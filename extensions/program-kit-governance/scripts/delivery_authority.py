@@ -120,6 +120,11 @@ def require_admission(root, activity, entry=None):
                 return runtime(root).admit_refinement(root, entry)
             except ValueError as error:
                 raise DeliveryError(str(error)) from error
+        if activity in ('implementation', 'delivery', 'acceptance') and status['admission'] == 'provider-check-required':
+            try:
+                return runtime(root).admit_execution(root, activity, entry)
+            except ValueError as error:
+                raise DeliveryError(str(error)) from error
         raise DeliveryError(f'PKD_ADAPTER_UNAVAILABLE {activity} requires current provider admission; '
-                            'execution claims and delivery evidence gates are unavailable in this phase')
+                            'the configured adapter does not support this operation')
     return status

@@ -181,8 +181,16 @@ def apply_review(provider, review_id):
         return record
     for decision in proposal['decisions']:
         identity = str(decision['nativeId'])
+        prior = book['accepted'].get(identity)
+        previous = next(f['previousAccepted'] for f in report['findings'] if str(f['nativeId']) == identity)
+        require((prior or {}).get('reviewId') == (previous or {}).get('reviewId'),
+                'accepted review advanced; reconcile again before applying this decision')
+        # Reviewing history is mandatory, but explicitly non-substantive feedback does not
+        # replace the business/technical basis or restart an otherwise valid execution.
+        retain_basis = prior and decision['classification'] in ('cosmetic', 'feedback') and not decision['technicalRevisionRequired']
+        business_review = prior.get('businessReviewId', prior['reviewId']) if retain_basis else review_id
         book['accepted'][identity] = {'snapshot': report['snapshots'][identity], 'reviewId': review_id,
-            'classification': decision['classification'], 'reason': decision['reason']}
+            'businessReviewId': business_review, 'classification': decision['classification'], 'reason': decision['reason']}
         for key in decision['affectedKeys']:
             if decision['technicalRevisionRequired'] or decision['classification'] == 'retired':
                 prior = book['technical'].setdefault(key, {'pendingReviews': [], 'retired': False, 'evidence': []})
@@ -196,6 +204,10 @@ def apply_review(provider, review_id):
 def check_scoped(provider, state, key):
     book = ledger(state)
     pending = []
+    board_operations = state.get('execution', {}).get('board', {}).get('operations', {}).values()
+    scope = set(ancestors(state, key))
+    require(not any(op['state'] not in ('applied', 'abandoned') and scope & set(op['items']) for op in board_operations),
+            'board synchronization pending; resume the recorded board operation before further progression')
     for ancestor in ancestors(state, key):
         identity = str(state['works'][ancestor]['nativeId'])
         accepted = book['accepted'].get(identity)

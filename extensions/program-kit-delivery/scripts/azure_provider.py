@@ -185,13 +185,18 @@ class AzureProvider:
         require(state.get('schemaVersion') == 1 and state.get('space') == self.profile['space'], 'coordination state identity mismatch')
         return head, state
 
-    def commit(self, expected, state, *, initial=False, extra_files=None):
+    def commit(self, expected, state, *, initial=False, extra_files=None, edit_files=None):
         require(state['space'] == self.profile['space'], 'cannot write another delivery space')
         changes = [{'changeType': 'add' if initial else 'edit', 'item': {'path': '/' + self.state_path},
                     'newContent': {'content': json.dumps(state, sort_keys=True, indent=2) + '\n', 'contentType': 'rawtext'}}]
         for path, content in (extra_files or {}).items():
             require(path != self.state_path and all(s not in ('', '.', '..') for s in path.split('/')), 'invalid extra artifact path')
             changes.append({'changeType': 'add', 'item': {'path': '/' + path},
+                            'newContent': {'content': content, 'contentType': 'rawtext'}})
+        for path, content in (edit_files or {}).items():
+            require(path != self.state_path and path not in (extra_files or {})
+                    and all(s not in ('', '.', '..') for s in path.split('/')), 'invalid edited artifact path')
+            changes.append({'changeType': 'edit', 'item': {'path': '/' + path},
                             'newContent': {'content': content, 'contentType': 'rawtext'}})
         result = self.api.call('POST', self.prefix + '/pushes', {
             'refUpdates': [{'name': 'refs/heads/' + self.coord['branch'], 'oldObjectId': expected}],

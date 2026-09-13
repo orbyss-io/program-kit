@@ -1,6 +1,6 @@
 # Program Kit team delivery: development plan
 
-Date: 2026-09-13. Status: Phases 0 through 3 complete. The [Phase 0 evidence](delivery/phase-0-evidence.md) records the provider capability proof; [Phase 1 evidence](delivery/phase-1-evidence.md) records the installed foundation. [Phase 2 evidence](delivery/phase-2-evidence.md) records Azure setup, planning and activation, including the completed human portal Epic journey. [Phase 3 evidence](delivery/phase-3-evidence.md) records reconciliation, reviewed recovery and authority transitions, including the approved real human portal edit journey. The Phase 4 grilling interview is next.
+Date: 2026-09-13. Status: Phases 0 through 4 complete. The [Phase 0 evidence](delivery/phase-0-evidence.md) records the provider capability proof; [Phase 1 evidence](delivery/phase-1-evidence.md) records the installed foundation. [Phase 2 evidence](delivery/phase-2-evidence.md) records Azure setup, planning and activation, including the completed human portal Epic journey. [Phase 3 evidence](delivery/phase-3-evidence.md) records reconciliation, reviewed recovery and authority transitions, including the approved real human portal edit journey. Phase 4's [execution acceptance evidence](delivery/phase-4-evidence.md) records parallel delivery, native board-state publication and the completed real human false-closure/reconciliation exercise. Phase 5 awaits its grilling interview; Phase 7 records the deferred Spec Kit integration request.
 
 The supporting [template research](backlog-delivery-template-research.md) contains the source evidence, field mappings, four work-item templates, and a worked requirement. Product choices below were accepted during the interview. Technical mechanisms remain subject to the explicit verification gates in this plan.
 
@@ -122,6 +122,11 @@ Use native predecessor/successor links between properly bounded activities. Add 
 
 Implement deterministic delivery checks for existing consumer validation paths, with explicit activation guidance for relevant CI gates. Reuse the consumer's quality system and propose missing integration checks; do not turn this into general-purpose pipeline provisioning or release orchestration.
 
+Include the approved native board-state completion amendment: validate per-type lifecycle mappings
+against the team's real board columns; publish actual start, integrated implementation and accepted
+delivery through conditional, recoverable native updates. Preserve human edits and distinct
+blocked/paused/review activity. Parent completion requires its own explicit outcome decision.
+
 **Exit:** two repositories can contribute to one milestone with parallel eligible work, enforced claims, explicit integration obligations, and artifact-bound evidence. Manual status changes and merge/close automations cannot bypass technical or acceptance gates. New baselines invalidate affected evidence without erasing historical results.
 
 ### Phase 5 — GitHub adapter and equivalent outcomes
@@ -140,6 +145,30 @@ Run the acceptance scenarios below and retain evidence identifying profile, adap
 
 **Exit:** reviewer-readable evidence demonstrates the outcomes; disabled consumers retain their established workflow; both connected profiles are usable; documentation accurately distinguishes supported behavior, degraded operation, and unverified editions.
 
+### Phase 7 — Delivery module, Spec Kit lifecycle and Program Kit integration (deferred)
+
+Recorded at the user's request on 2026-09-13. Start only after the currently planned delivery
+capabilities are fully developed and tested through Phase 6. Hold a dedicated grilling interview
+before implementation; this entry does not authorize repository extraction or integration changes now.
+
+Design the planning/delivery capability as a module that could later be maintained in its own
+repository and benefit both Spec Kit consumers and Program Kit consumers. Evaluate a Spec Kit
+extension that maintains traceable work items throughout specification, planning, task generation
+and implementation, including revisions, reconciliation and completion evidence. Explicitly design
+the boundaries among Spec Kit's lifecycle, Program Kit's implementation/governance/constitution
+capabilities and the delivery module's platform authority and team coordination. Avoid duplicate
+backlogs, competing lifecycle writers, implicit architecture approval and a mandatory Program Kit
+dependency for standalone Spec Kit use.
+
+Resolve packaging, ownership, shared contracts, extension hooks, compatibility/versioning and any
+future repository extraction through that interview. Test standalone Spec Kit plus delivery,
+Program Kit plus delivery, and existing consumers with delivery disabled. Preserve current work
+identities, approved plans and provider history across an eventual extraction or migration.
+
+**Exit:** approved integration boundaries and tested lifecycle journeys demonstrate that the three
+components cooperate from specification through verified delivery without weakening governance or
+requiring duplicate work-item management. A separate repository remains an option to evaluate.
+
 ## Acceptance scenarios
 
 | Scenario | Required result |
@@ -157,6 +186,7 @@ Run the acceptance scenarios below and retain evidence identifying profile, adap
 | Stale or missing evidence | Old tests, unavailable artifacts, mismatched contract versions, or missing provider access cannot establish current delivery. |
 | Outage and reconnection | No fallback authority or new shared claims during outage; reconcile before governed completion and resolve intervening edits. |
 | Milestone acceptance | Child completion updates progress but does not automatically establish the business outcome or move commitments. |
+| Native board truth | Actual start and verified progression update supported native states; claims alone do not start work and integrated implementation alone cannot close a Requirement. Tasks use their own workflow. Parent closure needs explicit outcome acceptance. Interrupted writes remain visibly pending and recover without replaying uncertain changes. |
 | Profile upgrade/disconnect | Review the impact, retain history, account for active claims/obligations, and prevent accidental governance bypass. |
 | Provider parity | Exercise the full applicable matrix for Azure and GitHub; preserve outcome guarantees despite different native representations. |
 
@@ -192,7 +222,9 @@ Use chromium/webkit where local browser checks apply; Firefox acceptance remains
 The product direction is settled. Exact adapter transports, durable coordination storage, capability fallbacks, schemas, and packaging are technical decisions to resolve with the user in the relevant phase's grilling interview, informed by repository research and the phase-0 proof. If a required guarantee cannot be met within the accepted boundary, report the concrete limitation and return the affected scope decision for review rather than silently weakening behavior.
 
 Phase 2 passed deterministic, synthetic Azure and real human portal acceptance and was committed
-and pushed on `codex/backlog-delivery`. Phase 3 passed independent and real human acceptance;
-commit and push it on the same integration branch. Hold the Phase 4 interview before starting execution
-coordination, including the deferred planned/actual start and target/committed finish decisions.
+and pushed on `codex/backlog-delivery`. Phase 3 passed independent and real human acceptance and
+was committed and pushed at `a2e8e216d1a75e39e52387b9ebad56be072106b7`. Phase 4's interview is
+complete; [all fourteen decisions](backlog-delivery-phase-4-decisions.md) were accepted. Execution
+coordination passed independent validation and synthetic Azure acceptance. The real human portal
+closure/tag exercise remains; commit and push Phase 4 after its acceptance completes.
 Do not merge the integration branch to main yet.

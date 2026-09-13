@@ -33,8 +33,11 @@ def registered(provider, root, state):
 
 def no_unresolved(state):
     require(not any(op['state'] != 'applied' for op in state['operations'].values()), 'resolve uncertain operations before authority handoff')
+    require(not any(op['state'] not in ('applied', 'abandoned') for op in state.get('execution', {}).get('board', {}).get('operations', {}).values()),
+            'resolve pending board publication before authority handoff')
     # Future execution ledgers must supply their own verified transition contract.
-    require(not state.get('claims'), 'execution claims require a supported release/handoff before authority change')
+    require(not any(c.get('state') in ('active', 'paused', 'awaiting-review') for c in state.get('claims', {}).values()),
+            'execution claims require a supported release/handoff before authority change')
 
 
 def ensure_roots(roots):

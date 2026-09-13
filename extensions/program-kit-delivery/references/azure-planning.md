@@ -124,8 +124,8 @@ activation records remain inconsistent, never silently disabled.
 Bootstrap and later onboarding use this same handoff. Activation is per repository. Refinement
 checks verify current registration, immutable evidence, profile source, branch protection, mapped
 Requirement content and accepted planning basis. Missing bindings, unknown operations and material
-changes block admission. Existing architecture/intake gates remain mandatory. Implementation,
-verified delivery, business acceptance and execution claims remain their later phases. Use
+changes block admission. Existing architecture/intake gates remain mandatory. Explicit Azure
+execution policy adds [implementation claims and delivery evidence](azure-execution.md). Use
 [azure-reconciliation.md](azure-reconciliation.md) for history/comment review, technical revision,
 reviewed recovery and explicit profile/disconnect transitions. Existing enabled consumers require
 an initial history baseline review for further refinement. No CI credentials or agent sessions

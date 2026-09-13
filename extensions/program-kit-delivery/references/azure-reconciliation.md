@@ -35,6 +35,14 @@ provide this shape in a JSON array:
 ```
 
 Classes are `baseline`, `cosmetic`, `feedback`, `business`, `technical`, `ownership` and `retired`.
+
+Every accepted review retains its own identity and complete observed history. A `cosmetic` or
+`feedback` decision explicitly requiring no technical revision preserves the prior business basis
+for execution. This allows a reviewed false closure to be corrected without replacing the execution
+plan, releasing the claim or resetting actual start. It does not clear an earlier pending revision.
+Business, technical, ownership, retirement, baseline and explicitly revision-requiring decisions
+advance the basis. A concurrent accepted review invalidates the older pending decision. Never
+classify a changed requirement as cosmetic merely to keep execution running.
 The example is illustrative, not a standing approval for Epic 82. An uncertain Epic change initially
 affects its descendants. The reviewer can narrow that set with an explanation or include known
 shared-dependency work; the changed work itself cannot be omitted. Unknown/unavailable evidence
@@ -79,7 +87,8 @@ the accepted technical basis and needs another reviewed technical proposal. Hist
 retained, while the latest accepted revision supplies the current basis. The initial adapter needs
 the relevant repositories available locally for technical verification; ordinary refinement checks
 can verify artifacts in the current consumer and fail explicitly for unavailable other repositories.
-Remote artifact resolution and execution evidence remain later-phase work.
+[Azure execution](azure-execution.md) adds published artifact checks for read-only CI and exact
+pipeline evidence; human technical revision still verifies actual local Git artifacts.
 
 ## Reviewed recovery
 
@@ -111,7 +120,7 @@ For one consumer to leave, prepare `disconnect-plan --repository-id <id> --repos
 `key`, `disposition` (`transferred`, `resolved` or `retired`), `recipientRepositoryId` (null except for
 transfer), and a reason. A transfer requires another registered consumer already bound to the same
 Requirement. Uncertain operations must be resolved; active implementation must finish or be paused.
-Future execution claims require their supported release/handoff contract. No native status is
+Execution claims require their supported release/handoff contract. No native status is
 silently closed as a consequence of disconnect.
 
 Both transitions require `transition-approve` for business, technical and coordinator roles, using

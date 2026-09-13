@@ -23,6 +23,9 @@ provides:
     - name: "speckit.program-kit-delivery.reconcile"
       file: "commands/speckit.program-kit-delivery.reconcile.md"
       description: "Review Azure changes, technical revisions and explicit authority handoffs."
+    - name: "speckit.program-kit-delivery.execute"
+      file: "commands/speckit.program-kit-delivery.execute.md"
+      description: "Coordinate reviewed execution, claims, dependencies and delivery evidence."
   scripts:
     - name: "delivery"
       file: "scripts/delivery.py"
@@ -36,5 +39,8 @@ provides:
     - name: "azure-reconciliation"
       file: "scripts/azure_reconciliation.py"
       description: "Complete Azure history observations and reviewed reconciliation operations."
+    - name: "azure-execution"
+      file: "scripts/azure_execution_cli.py"
+      description: "Scoped execution claims, provider evidence and readable delivery views."
 hooks: {}
 tags: [delivery, backlog, governance]

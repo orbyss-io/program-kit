@@ -92,6 +92,35 @@ class ReconciliationTests(unittest.TestCase):
         with self.assertRaisesRegex(AzureError, 'omit the changed work'):
             reconcile.propose_review(self.provider, report['id'], decisions)
 
+    def test_non_substantive_review_retains_basis_but_never_erases_material_revision(self):
+        import azure_execution as execution
+        self.baseline()
+        original = execution.basis(self.provider.state, 'R1')
+        self.change(text='Reviewed feedback with no requirement change')
+        report = reconcile.sync(self.provider, ['E1'])
+        self.accept(report, self.decisions(report, 'feedback'))
+        self.assertEqual(execution.basis(self.provider.state, 'R1'), original)
+        self.change(text='New business requirement')
+        report = reconcile.sync(self.provider, ['E1'])
+        material = self.accept(report, self.decisions(report, 'business'))
+        changed = execution.basis(self.provider.state, 'R1')
+        self.assertNotEqual(changed, original)
+        self.change(text='Cosmetic edit after business revision')
+        report = reconcile.sync(self.provider, ['E1'])
+        self.accept(report, self.decisions(report, 'cosmetic'))
+        self.assertEqual(execution.basis(self.provider.state, 'R1'), changed)
+        self.assertIn(material['id'], reconcile.check_scoped(self.provider, self.provider.state, 'R1'))
+
+    def test_concurrent_review_cannot_replace_a_newer_accepted_decision(self):
+        self.baseline()
+        self.change()
+        report = reconcile.sync(self.provider, ['E1'])
+        stale = reconcile.propose_review(self.provider, report['id'], self.decisions(report, 'feedback'))
+        reconcile.approve_review(self.provider, stale, authority.digest(stale), 'Earlier feedback assessment', 'technical')
+        self.accept(report, self.decisions(report, 'business'))
+        with self.assertRaisesRegex(AzureError, 'accepted review advanced'):
+            reconcile.apply_review(self.provider, stale['id'])
+
     def test_edit_then_revert_remains_a_finding_and_invalidates_plan(self):
         self.baseline()
         entries = [{'key': 'E1', 'kind': 'epic', 'nativeId': 1, 'fields': {'System.Title': 'Reviewed rename'}}]

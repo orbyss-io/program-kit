@@ -2,6 +2,49 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://orbyss.io/program-kit/delivery/v1",
   "$defs": {
+    "boardStateMap": {
+      "type": "object",
+      "properties": {
+        "notStarted": {"type": "string", "minLength": 1},
+        "active": {"type": "string", "minLength": 1},
+        "implemented": {"type": "string", "minLength": 1},
+        "accepted": {"type": "string", "minLength": 1}
+      },
+      "required": ["notStarted", "active", "implemented", "accepted"],
+      "additionalProperties": false
+    },
+    "boardPolicy": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {"const": 1},
+        "types": {
+          "type": "object",
+          "properties": {
+            "epic": {"$ref": "#/$defs/boardStateMap"},
+            "feature": {"$ref": "#/$defs/boardStateMap"},
+            "requirement": {"$ref": "#/$defs/boardStateMap"},
+            "task": {"$ref": "#/$defs/boardStateMap"}
+          },
+          "required": ["epic", "feature", "requirement", "task"],
+          "additionalProperties": false
+        },
+        "boards": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "teamId": {"type": "string", "minLength": 1},
+              "boardId": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["epic", "feature", "requirement", "task"]}
+            },
+            "required": ["teamId", "boardId", "kind"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["schemaVersion", "types", "boards"],
+      "additionalProperties": false
+    },
     "profile": {
       "type": "object",
       "properties": {
@@ -190,6 +233,9 @@
         "tagNamespace": {
           "type": "string",
           "minLength": 1
+        },
+        "execution": {
+          "$ref": "#/$defs/executionPolicy"
         },
         "azure": {
           "$ref": "azure-planning.schema.json#/$defs/profile"
@@ -693,9 +739,529 @@
         "taskIds"
       ],
       "additionalProperties": false
+    },
+    "executionSchedule": {
+      "type": "object",
+      "properties": {
+        "plannedStart": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "targetFinish": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "committedDeadline": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      },
+      "required": [
+        "plannedStart",
+        "targetFinish",
+        "committedDeadline"
+      ],
+      "additionalProperties": false
+    },
+    "executionArtifact": {
+      "type": "object",
+      "properties": {
+        "repositoryId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "repositoryId",
+        "commit",
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "executionPolicy": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "teams": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "repositories": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              },
+              "executors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              },
+              "workInProgressWarning": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              }
+            },
+            "required": [
+              "repositories",
+              "executors",
+              "workInProgressWarning"
+            ],
+            "additionalProperties": false
+          },
+          "minProperties": 1
+        },
+        "pipelines": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "projectId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "definitionId": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "repositoryId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "finalYamlSha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "repositoryAliases": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minProperties": 1
+              },
+              "requiredJobs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              },
+              "artifactName": {
+                "type": "string",
+                "minLength": 1
+              },
+              "manifestPath": {
+                "type": "string",
+                "minLength": 1
+              },
+              "targetBranches": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minProperties": 1
+              },
+              "toolRepositories": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "repositoryId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "commit": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{40}$"
+                    }
+                  },
+                  "required": [
+                    "repositoryId",
+                    "commit"
+                  ],
+                  "additionalProperties": false
+                },
+                "minProperties": 0
+              }
+            },
+            "required": [
+              "projectId",
+              "definitionId",
+              "repositoryId",
+              "finalYamlSha256",
+              "repositoryAliases",
+              "requiredJobs",
+              "artifactName",
+              "manifestPath",
+              "targetBranches"
+            ],
+            "additionalProperties": false
+          },
+          "minProperties": 0
+        },
+        "tagCategories": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minProperties": 0
+        },
+        "ciReaders": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 0
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "teams",
+        "pipelines",
+        "tagCategories"
+      ],
+      "additionalProperties": false
+    },
+    "executionFootprint": {
+      "type": "object",
+      "properties": {
+        "writePaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mode": {
+                "enum": [
+                  "read",
+                  "change",
+                  "exclusive"
+                ]
+              },
+              "contractRevision": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "mode",
+              "contractRevision"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true,
+          "minItems": 0
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 0
+        },
+        "generatedSources": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minProperties": 0
+        }
+      },
+      "required": [
+        "writePaths",
+        "resources",
+        "categories",
+        "generatedSources"
+      ],
+      "additionalProperties": false
+    },
+    "executionCheck": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "pipeline",
+            "manual"
+          ]
+        },
+        "acceptanceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "pipeline": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "acceptanceIds",
+        "pipeline",
+        "description"
+      ],
+      "additionalProperties": false
+    },
+    "executionDependency": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "predecessor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "blockedActivity": {
+          "enum": [
+            "implementation",
+            "integration",
+            "review",
+            "publish",
+            "delivery",
+            "acceptance"
+          ]
+        },
+        "condition": {
+          "enum": [
+            "contract",
+            "integration",
+            "delivery",
+            "acceptance"
+          ]
+        },
+        "checkIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 0
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "externalReference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^https://"
+        }
+      },
+      "required": [
+        "id",
+        "predecessor",
+        "blockedActivity",
+        "condition",
+        "checkIds",
+        "reason",
+        "externalReference"
+      ],
+      "additionalProperties": false
+    },
+    "executionPlan": {
+      "type": "object",
+      "properties": {
+        "workId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repositoryId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "teamId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetBranch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseCommit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "technicalArtifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionArtifact"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "footprint": {
+          "$ref": "#/$defs/executionFootprint"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionCheck"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionDependency"
+          },
+          "uniqueItems": true,
+          "minItems": 0
+        },
+        "schedule": {
+          "$ref": "#/$defs/executionSchedule"
+        },
+        "priority": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 4
+        },
+        "milestones": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 0
+        }
+      },
+      "required": [
+        "workId",
+        "repositoryId",
+        "teamId",
+        "executorId",
+        "targetBranch",
+        "baseCommit",
+        "technicalArtifacts",
+        "footprint",
+        "checks",
+        "dependencies",
+        "schedule",
+        "priority",
+        "milestones"
+      ],
+      "additionalProperties": false
     }
   },
   "oneOf": [
+    {
+      "$ref": "#/$defs/boardPolicy"
+    },
     {
       "$ref": "#/$defs/profile"
     },

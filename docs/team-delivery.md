@@ -5,8 +5,12 @@ preparation, profiles, four work-item templates and the common core authority bo
 The Phase 2 implementation adds reviewed Azure setup, discovery, planning and repository activation
 for refinement. Phase 3 adds history-aware reconciliation, explicitly reviewed impact and technical
 revision, recovery that preserves human edits, and resumable profile/disconnect transitions.
-Independent and real human portal acceptance passed. GitHub activation and execution claims
-belong to later phases.
+Phases 2 and 3 passed independent and real human portal acceptance. Phase 4 adds Azure execution
+plans, concurrent claims, activity dependencies, platform views and exact delivery evidence; its
+native board-state amendment adds per-type mappings, transactional publication/recovery and explicit
+parent outcomes. Independent and real human portal acceptance passed, including reviewed correction
+of a false closure without losing the active claim, actual start or human tag. GitHub activation
+belongs to its later adapter phase.
 Installing or upgrading the kit performs no delivery-provider calls or writes.
 
 Use `speckit.program-kit-delivery.configure` to prepare a shared policy and repository binding,
@@ -29,7 +33,9 @@ Use `speckit.program-kit-delivery.azure` for the reviewed Azure journey describe
 [Azure reference](../extensions/program-kit-delivery/references/azure-planning.md). Untagged portal
 epics are discoverable within the selected project and areas; discovery does not approve them.
 Activation verifies native capabilities, identities, the pinned profile and coordinator permissions.
-Only refinement admission is implemented. The Phase 3 reconciliation command adds reviewed history,
+Explicit Azure execution policy enables implementation, delivery and acceptance admission through
+`speckit.program-kit-delivery.execute`; older profiles require a reviewed migration to enable it.
+The Phase 3 reconciliation command adds reviewed history,
 technical revision and profile/disconnect handoffs; hand-written history cannot restore local authority. See the
 [Phase 2 decisions](backlog-delivery-phase-2-decisions.md) and [acceptance evidence](delivery/phase-2-evidence.md).
 This development branch is not a release announcement.

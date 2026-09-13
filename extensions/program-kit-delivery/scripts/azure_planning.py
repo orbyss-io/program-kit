@@ -96,7 +96,7 @@ def business_fields(fields):
 
 
 def relation_keys(relations):
-    return [(r['rel'], r['url'].rsplit('/', 1)[-1] if r['rel'].startswith('System.LinkTypes.Hierarchy-') else r['url']) for r in relations]
+    return [(r['rel'], r['url'].rsplit('/', 1)[-1] if r['rel'].startswith(('System.LinkTypes.Hierarchy-', 'System.LinkTypes.Dependency-')) else r['url']) for r in relations]
 
 
 def relation_metadata_preserved(before, after):

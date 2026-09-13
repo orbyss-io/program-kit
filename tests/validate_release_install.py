@@ -553,10 +553,15 @@ def main() -> int:
             raise AssertionError("Delivery Azure command was not installed")
         if not (project / ".agents/skills/speckit-program-kit-delivery-reconcile/SKILL.md").is_file():
             raise AssertionError("Delivery reconciliation command was not installed")
+        if not (project / ".agents/skills/speckit-program-kit-delivery-execute/SKILL.md").is_file():
+            raise AssertionError("Delivery execution command was not installed")
         for relative in ("scripts/azure.py", "scripts/azure_setup.py", "scripts/azure_activation.py",
                          "references/azure-planning.schema.json", "references/azure-planning.md",
                          "scripts/azure_reconciliation.py", "scripts/azure_history.py",
-                         "references/azure-reconciliation.schema.json", "references/azure-reconciliation.md"):
+                         "references/azure-reconciliation.schema.json", "references/azure-reconciliation.md",
+                         "scripts/azure_execution_cli.py", "scripts/azure_execution_ci.py", "scripts/azure_execution_evidence.py",
+                         "scripts/azure_execution_views.py", "scripts/azure_execution_board.py", "scripts/delivery_execution_contract.py",
+                         "references/azure-execution.md", "references/azure-board-default.json"):
             if not (project / ".specify/extensions/program-kit-delivery" / relative).is_file():
                 raise AssertionError(f"Delivery Azure runtime was not installed: {relative}")
         if "program-kit-building-blocks" not in extension_config.get("installed", []):

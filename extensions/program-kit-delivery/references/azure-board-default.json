@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "types": {
+    "epic": {"notStarted": "New", "active": "Active", "implemented": "Resolved", "accepted": "Closed"},
+    "feature": {"notStarted": "New", "active": "Active", "implemented": "Resolved", "accepted": "Closed"},
+    "requirement": {"notStarted": "New", "active": "Active", "implemented": "Resolved", "accepted": "Closed"},
+    "task": {"notStarted": "New", "active": "Active", "implemented": "Active", "accepted": "Closed"}
+  },
+  "boards": []
+}

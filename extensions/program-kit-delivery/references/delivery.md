@@ -27,8 +27,9 @@ coordinate cooperating consumers; they do not protect against rewriting all repo
 Preparation writes a `prepared` configuration with empty history. Its authority remains local.
 Actual enabled activation requires provider verification and an accepted activation record.
 The Azure command implements reviewed setup, planning and per-repository activation for refinement;
-read [azure-planning.md](azure-planning.md) for its scope and recovery rules. GitHub activation,
-implementation claims, verified delivery and acceptance admission are not available yet. A fabricated
+read [azure-planning.md](azure-planning.md) for its scope and recovery rules. Explicit Azure execution
+policy adds [claims, verified delivery and acceptance](azure-execution.md). GitHub activation remains
+unavailable until its adapter phase. A fabricated
 capability flag, native board column or local Ready/Delivered text cannot enable those operations.
 No machine-local override can select a different delivery binding or bypass the core gate.
 
@@ -47,7 +48,7 @@ that a provider currently admits the work. Core checks and later provider admiss
 Each technical entry has one primary Requirement. Cross-repository independent execution uses
 meaningful child Tasks with the parent's accepted basis. Simple work can be executed directly on
 the Requirement. The approved decomposition excludes simultaneous parent-wide and child claims;
-the accountable owner need not monopolize implementation. Runtime claims arrive in Phase 4.
+the accountable owner need not monopolize implementation. Azure runtime claims use the reviewed execution policy.
 
 Platform owns business intent, acceptance, priority, assignment, dependencies, milestone and delivery
 state. Git owns technical plans, architecture and code. Local roadmap views in enabled mode are

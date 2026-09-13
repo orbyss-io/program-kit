@@ -38,6 +38,10 @@ def validate_profile(profile):
         require(bool(people), role + ' requires a role binding')
     if 'azure' in profile:
         require(profile['provider'] == 'azure', 'Azure settings cannot configure another provider')
+    if 'execution' in profile:
+        require('azure' in profile, 'execution requires configured provider settings')
+        from delivery_execution_contract import policy
+        policy(profile)
     return profile
 
 
@@ -49,6 +53,52 @@ def admit_refinement(root, entry=None):
     from azure_provider import AzureProvider
     from azure_activation import admit
     return admit(AzureProvider(AzureTransport(profile['azure']['organization']), profile), root, binding, entry)
+
+
+def admit_execution(root, activity, entry=None):
+    binding, history = authority.read(root / authority.BINDING), authority.read(root / authority.HISTORY)
+    profile = validate_configuration(root, binding, history)
+    if 'execution' not in profile:
+        raise ValueError('PKD_ADAPTER_UNAVAILABLE execution policy is absent; prepare and approve an explicit profile migration')
+    from azure_transport import AzureTransport
+    from azure_provider import AzureProvider
+    import azure_execution as execution
+    import azure_execution_evidence as evidence
+    provider = AzureProvider(AzureTransport(profile['azure']['organization']), profile)
+    roots = {binding['repositoryId']: str(root)}
+    locations = root / '.program-kit/delivery/repositories.local.json'
+    if locations.is_file():
+        others = authority.read(locations)
+        require(isinstance(others, dict) and others.get(binding['repositoryId'], str(root)) == str(root), 'current repository location cannot be overridden')
+        roots.update(others)
+    from azure_planning import state_for
+    _, state = state_for(provider)
+    if entry and activity in ('delivery', 'acceptance'):
+        link = binding['workBindings'].get(entry)
+        require(link, 'selected roadmap entry has no delivery binding')
+        key = link['taskId'] if link['executionMode'] == 'delegated' else link['requirementId']
+        current = state.get('claims', {}).get(key, {})
+        require(current.get('state') == 'released', 'selected work has no integrated implementation record')
+        # Completion authority comes from current governed proof and the human role. A checkout
+        # may have since hosted an independent Task; its last session receipt is not that authority.
+        receipt = {k: current[k] for k in ('workId', 'generation', 'sessionId', 'actorId', 'repositoryId', 'planId')}
+    else:
+        receipt = authority.read(root / execution.RECEIPT)
+    require(receipt['repositoryId'] == binding['repositoryId'], 'execution receipt belongs to another repository')
+    current = state.get('claims', {}).get(receipt['workId'], {})
+    require(set(receipt) == {'workId', 'generation', 'sessionId', 'actorId', 'repositoryId', 'planId'}
+            and all(current.get(k) == v for k, v in receipt.items()), 'execution receipt generation or planning basis is stale')
+    if entry:
+        link = binding['workBindings'].get(entry)
+        require(link and receipt['workId'] == (link['taskId'] if link['executionMode'] == 'delegated' else link['requirementId']),
+                'execution receipt does not represent the selected roadmap entry')
+    if activity == 'implementation':
+        return execution.checkpoint(provider, receipt, activity, roots)
+    # Delivery/acceptance follow released implementation claims, using fresh evidence and the
+    # appropriate human role. Checking admission does not itself record completion.
+    proposal = evidence.progress_plan(provider, receipt['workId'], activity, roots)
+    return {'authority': 'platform', 'admission': activity, 'workId': receipt['workId'],
+            'completionRecorded': False, 'proofDigest': authority.digest(proposal)}
 
 
 def verify_disconnect(root, binding, history):
