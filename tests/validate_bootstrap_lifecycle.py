@@ -94,7 +94,9 @@ def setup(root, *, web=None):
     selection_path = root / governance.BUILDING_BLOCK_SELECTION
     blocks.draft_selection(root, selection_path, catalog, [])
     selection = blocks.load_json(selection_path)
-    selection['authority'] = {'architectureMap': governance.ARCHITECTURE_MAP.as_posix(), 'decisionIds': [candidate], 'rationale': 'Reviewed fixture placement'}
+    selection['authority'] = {'architectureMap': governance.ARCHITECTURE_MAP.as_posix(),
+                              'decisionIds': sorted(scope, reverse=True),
+                              'rationale': ' Reviewed fixture placement '}
     selection['scopes'] = [{'id': 'application', 'kind': 'application', 'environment': 'test'}]
     selection['targets'] = [
         {'id': 'feature', 'kind': 'dotnet-project', 'path': 'src/Fixture/Fixture.csproj', 'role': 'implementation', 'scope': 'application'},
@@ -321,7 +323,9 @@ def main():
                     fails(lambda: governance.accept_bootstrap('approve'), 'acceptance failed after founding ADR promotion')
                 assert reviewed_hashes == governance._artifact_hashes(governance.bootstrap_artifacts())
                 assert not (root / governance.BOOTSTRAP_APPROVAL).exists()
+                reviewed_design = lifecycle.design_digest(root / governance.BUILDING_BLOCK_SELECTION)
                 governance.accept_bootstrap('approve')
+                assert lifecycle.design_digest(root / governance.BUILDING_BLOCK_SELECTION) == reviewed_design
                 governance.validate_bootstrap(True, True)
                 assert lifecycle.load(root / governance.BUILDING_BLOCK_SELECTION)['status'] == 'Accepted'
                 assert not (root / 'src/Fixture/Fixture.csproj').exists()

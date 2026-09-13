@@ -1457,8 +1457,10 @@ def accept_selection(
     selection["catalog"] = catalog_binding(catalog)
     selection["authority"] = {
         "architectureMap": normalize_path(architecture_relative, "architecture map path"),
-        "decisionIds": sorted(unique([require_id(item, "decision ID") for item in decision_ids], "decision IDs")),
-        "rationale": rationale.strip(),
+        # Preserve reviewed authority bytes across promotion: proof bindings
+        # exclude lifecycle status, not changes to this selected design.
+        "decisionIds": unique([require_id(item, "decision ID") for item in decision_ids], "decision IDs"),
+        "rationale": rationale,
     }
     validate_selection(selection)
     verify_catalog_binding(selection, catalog)

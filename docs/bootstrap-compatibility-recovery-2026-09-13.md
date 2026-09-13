@@ -131,3 +131,42 @@ python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py 
 
 This retains completed stages and proceeds toward the final human bootstrap review.
 Readiness and first-slice acceptance are still live work, not results of these checks.
+
+## Approval promotion repair
+
+After the human chose approve, `accept-bootstrap` failed because selection promotion
+sorted `authority.decisionIds`. The reviewed order was founding-boundary,
+founding-form-delivery, founding-compatibility; acceptance moved compatibility ahead
+of form-delivery. The recorded proof's design digest matched the reviewed selection
+(`2fb36c496a6e20630c057c937352f4675b93282b61769b8d2d6f4010b0dde5af`),
+while that sort alone produced
+`4a5ff2d7c34a3fa010cf9b7e42e4c3c2352cbf2c6fcb36ed6e1b29c65e1e2a8b`.
+Selection status and draft suggestions were already excluded correctly; the other
+reviewed fields were intentionally bound. Acceptance rolled back and wrote no real
+bootstrap approval.
+
+Building-block acceptance now preserves supplied ADR ordering and rationale while
+validating IDs, uniqueness, catalog and accepted decision authority. Proof hashing
+and existing receipts are unchanged. Regression uses multiple reverse-ordered ADRs
+and a whitespace-preserving rationale across actual proof/approval validation.
+
+The prior `accept-bootstrap` recovery mapping restarted architecture authoring.
+Both interactive and automatic acceptance-shell failures now restart at final
+review-packet preparation, retaining the completed architecture and proof prefix.
+Native-engine regression covers the nested switch/gate failure and verifies no
+second authoring dispatch. Normal review validation and the human gate remain.
+
+An isolated copy of this exact consumer successfully executes acceptance with the
+repair (`artifacts/acceptance-promotion-recovery/simulation.json` and `simulation.log`).
+This is explicitly test evidence, not an approval for the actual consumer. Copy
+preparation initially hit Windows path limits under the long artifact directory;
+the successful isolated copy uses a short temporary path. No runtime proofs or
+paid agent sessions were rerun. Real consumer state and eight protected authority
+artifacts are unchanged; its four receipts still validate under Spec Kit Python 3.13.
+The two repaired scripts are installed in the real consumer. Resume with the same
+plain resume command above; it prepares the final packet and returns to review.
+
+Targeted building-block, bootstrap-lifecycle and native-resumption regressions pass.
+The initial Development run exposed a duplicate recovery mapping in this repair;
+it was corrected and the native-resumption regression passes. The final bounded
+Development run passed and is preserved as `artifacts/acceptance-promotion-development-final.log`.

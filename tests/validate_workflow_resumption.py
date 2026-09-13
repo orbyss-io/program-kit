@@ -226,7 +226,33 @@ def main():
                 history = root / '.specify/workflows/resumption-history/architecture-retry'
                 assert any((entry / 'inputs.json').is_file() and (entry / 'workflow.yml').is_file()
                            for entry in history.iterdir())
-                # Saved-definition migration has separate unit evidence. Its
+                # A failed nested acceptance shell returns to packet preparation,
+                # retaining all completed authoring and proof stages.
+                acceptance_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
+                acceptance_calls = []
+                def acceptance_dispatch(self, command, integration, model, args, context):
+                    acceptance_calls.append(args)
+                    return {'exit_code': 0, 'stdout': 'prepared', 'stderr': ''}
+                acceptance_steps = [shell('accepted-prefix', 'python -c "print(1)"'),
+                    agent('architecture-prerequisite-closure'),
+                    shell('write-bootstrap-review', 'python -c "print(1)"'),
+                    {'id': 'route-bootstrap-approval', 'type': 'switch', 'expression': 'false',
+                     'cases': {}, 'default': [
+                        {'id': 'review-bootstrap', 'type': 'gate', 'message': 'Review acceptance repair',
+                         'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'},
+                        shell('accept-bootstrap', 'python -c "print(1); raise SystemExit(1)"')]}]
+                with patch.object(CommandStep, '_try_dispatch', acceptance_dispatch):
+                    pending = workflow.execute_definition(root, definition(acceptance_steps), {}, 'acceptance-repair')
+                    assert pending.status == RunStatus.PAUSED, pending.error
+                    broken = workflow.resume(root, pending.run_id, {'bootstrap_verdict': 'approve'})
+                    assert broken.status == RunStatus.FAILED and broken.current_step_id == 'accept-bootstrap', broken.error
+                    prefix = copy.deepcopy(broken.step_results['accepted-prefix'])
+                    repaired = workflow.resume(root, broken.run_id)
+                    assert repaired.status == RunStatus.PAUSED and repaired.current_step_id == 'review-bootstrap', repaired.error
+                    assert repaired.step_results['accepted-prefix'] == prefix
+                    assert acceptance_calls == ['architecture-prerequisite-closure']
+                    assert 'accept-bootstrap' not in repaired.step_results
+                    assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == acceptance_approval
                 # Explicit, proven shell recovery preserves paid producer work.
                 import bootstrap_proof_plan
                 closure_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
