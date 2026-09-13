@@ -1050,16 +1050,28 @@ def building_block_stage_contract(project_root: Path, intake: dict) -> dict | No
             "option_groups": option_groups,
         }
     inventory = building_block_target_inventory(project_root)
+    placement_schema_path = '.specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json'
+    placement_schema = load_json(project_root / placement_schema_path)
+    try:
+        kind_contracts = {rule['properties']['kind']['const']: rule
+                          for rule in placement_schema['$defs']['targetKindPlacement']['oneOf']}
+        needed_kinds = {slot['kind'] for contract in contracts.values() for slot in contract['target_slots'].values()}
+        projected_kinds = {kind: kind_contracts[kind] for kind in sorted(needed_kinds)}
+    except (KeyError, TypeError) as error:
+        raise ContextError('Installed selection schema lacks an executable target-kind placement contract; repair installed component coherence before dispatch.') from error
     available = {item["kind"] for item in inventory["candidates"] if item["exists"]}
     planning = {
         "owner": "architecture",
         "declaration": "docs/architecture/building-block-selection.json#/targets/*/placement",
         "authorized": True,
+        "target_kind_contracts": projected_kinds,
+        "contract_source": {"path": placement_schema_path, "sha256": sha256_file(project_root / placement_schema_path)},
         "missing_observed_kinds": sorted({slot["kind"] for contract in contracts.values()
                                           for slot in contract["target_slots"].values()} - available),
         "rules": [
             "Derive physical layout from context/module ownership, deployment boundaries, repository conventions and explicit preferences. Do not ask users for filenames, target IDs or other mechanical placement details.",
             "Each target declares placement.state (observed or planned), owner (canonical element ID with ownership), decisionIds (current owner-linked founding ADRs), and rationale. Planned paths need not exist.",
+            "Use target_kind_contracts for exact filename and required identity fields before writing. Examples illustrate legal forms, not mandatory directories. Preserve observed casing. Composition slot IDs bind selection target IDs; a cshell-shell target's shell field is the runtime shell identity.",
             "Preserve observed paths, identities and ownership; new placements need an explicit Proposed or Accepted architecture decision. Do not copy extension templates into the observed inventory.",
             "Keep selection Draft and ADRs Proposed pending review. Do not scaffold, restore or materialize during architecture. Ask only about consequential unresolved product constraints or trade-offs.",
         ],
@@ -1436,7 +1448,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     intake = validate_intake(
         project_root,
         run_id,
-        allow_architecture_evolution=stage in {"tooling", "roadmap", "readiness"},
+        allow_architecture_evolution=stage in {"architecture", "tooling", "roadmap", "readiness"},
     )
     architecture_map = load_json(project_root / "docs/architecture/architecture-map.json")
     governance = governance_contract(project_root)
@@ -1564,9 +1576,18 @@ def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
         raise ContextError("Architecture recovery requires a failed bootstrap at validate-architecture-output")
     if (project_root / ".specify/governance/bootstrap-approval.json").exists():
         raise ContextError("Architecture recovery cannot revise an already approved bootstrap")
-    # Validate before writing evidence or replacing context. This keeps confirmed intake and
-    # approved assessment semantics authoritative, including for old persisted workflow YAML.
-    create_documents(project_root, run_id, "architecture")
+    # A failed structural batch may already have evolved the canonical map but stopped
+    # before its deterministic DSL export. Validate the map and immutable intake semantics
+    # before deriving that view; never rewrite confirmed intake hashes to bless new bytes.
+    intake_module = _load_intake_module()
+    architecture_module = intake_module._load_architecture_module()
+    model = load_json(project_root / 'docs/architecture/architecture-map.json')
+    try:
+        architecture_module.validate_model(model, project_root)
+        architecture_module.validate_bootstrap_alignment(model, load_json(project_root / INTAKE_PATH))
+        projection = architecture_module.StructurizrDslExporter().export(model)
+    except architecture_module.ArchitectureMapError as error:
+        raise ContextError(str(error)) from error
     preserved = [run / name for name in ("state.json", "inputs.json", "workflow.yml", "log.jsonl")]
     preserved += [context_path(run, "architecture"), evidence_path(run, "architecture")]
     paths = governance_contract(project_root)["paths"]
@@ -1586,9 +1607,23 @@ def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
             raise ContextError(f"Preserved recovery evidence has an invalid hash: {backup}")
         records.append({"path": source.relative_to(project_root).as_posix(), "sha256": digest,
                         "preserved_path": backup.relative_to(project_root).as_posix()})
-    destination, payload = build_context(project_root, run_id, "architecture")
+    projection_path = project_root / 'docs/architecture/workspace.dsl'
+    original_projection = projection_path.read_bytes()
+    projection_before = sha256_file(projection_path)
+    if projection_path.read_text(encoding='utf-8') != projection:
+        projection_path.write_text(projection, encoding='utf-8', newline='\n')
+    # Full native intake validation still requires the original project intent, unchanged
+    # confirmed semantics, valid current map and its exact deterministic projection.
+    try:
+        destination, payload = build_context(project_root, run_id, "architecture")
+    except Exception:
+        # A rejected authority or intake must not leave a refreshed view behind.
+        projection_path.write_bytes(original_projection)
+        raise
     result = {
         "run_id": run_id, "status": "ready-for-architecture-retry", "preserved": records,
+        "derived_projection": {"path": 'docs/architecture/workspace.dsl',
+                               "before_sha256": projection_before, "sha256": sha256_file(projection_path)},
         "context": result_payload(project_root, destination, payload),
         "architecture_skill_input": "$speckit-program-kit-governance-architecture "
                                     "docs/architecture/bootstrap-intake.json; bootstrap context: "
@@ -1596,7 +1631,7 @@ def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
         "validate_command": "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
                             f"validate-stage --stage architecture --run-id {run_id} --json",
         "resume_after_validation": f"specify workflow resume {run_id}",
-        "boundary": "Run the installed architecture skill in a user-owned session, review its new Proposed decisions, then validate before resuming. Resume alone only retries the validator. No workflow state or approval was changed.",
+        "boundary": "Run the installed architecture skill in a user-owned session, review its new Proposed decisions, then validate before resuming. Resume alone only retries the validator. Only the derived DSL and context were refreshed; no confirmed intake, canonical map, workflow state or approval was changed.",
     }
     manifest = run / "architecture-recovery" / (sha256_bytes(compact_json(result).encode()) + ".json")
     manifest.write_text(compact_json(result), encoding="utf-8")

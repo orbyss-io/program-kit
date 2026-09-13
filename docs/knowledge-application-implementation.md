@@ -4,6 +4,13 @@ Candidate: 0.12.0 on `codex/repository-sync-coordinator`. This document records
 implementation and deterministic evidence; it is not live acceptance or a
 publication decision.
 
+Latest live finding: the human-owned Equipment Lending bootstrap stopped during
+architecture after successful intake, assessment approval and ratification. The
+[placement and recovery report](lending-bootstrap-placement-recovery.md) records
+the missing producer contract, evolved-map recovery correction, preserved evidence
+and tested recovery procedure. Historical pre-trial statements below describe the
+initial candidate preparation, not the later native workflow outcome.
+
 ## Accepted design and implemented behavior
 
 Applicable knowledge reaches each producer through compact phase context and

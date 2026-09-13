@@ -443,6 +443,11 @@ def index_selection(selection: dict) -> tuple[dict[str, dict], dict[str, dict]]:
     return scopes, targets
 
 
+def placement_kind_contracts() -> dict:
+    schema = load_json(Path(__file__).resolve().parents[1] / 'references/building-block-selection.schema.json')
+    return {rule['properties']['kind']['const']: rule for rule in schema['$defs']['targetKindPlacement']['oneOf']}
+
+
 def validate_placements(repository: Path, selection: dict, require_all: bool = False) -> None:
     """Validate architecture declarations without creating their consumer-owned files.
 
@@ -458,6 +463,7 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
         fail("PKB306", "architecture must declare composition instances and their bindings")
     if not declared:
         return
+    kind_contracts = placement_kind_contracts()
     architecture = load_json(repository_path(repository, normalize_path(
         selection["authority"]["architectureMap"], "architecture map")))
     owners = {item["id"]: item for item in architecture.get("elements", [])}
@@ -503,19 +509,14 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
             fail("PKB306", f"{label} claims an observed file that is absent")
         if require_all and placement["state"] == "planned" and path.is_file():
             fail("PKB306", f"{label} must preserve the already observed file's identity and ownership")
-        name = path.name.casefold()
-        valid_kind = {
-            "repository": name == "directory.build.props",
-            "dotnet-project": name.endswith(".csproj"),
-            "npm-package": name == "package.json",
-            "cshell-shell": name == "shells.json",
-            "dotnet-tool-manifest": name == "dotnet-tools.json",
-            "host-image": name == "dockerfile" or name.startswith("dockerfile."),
-        }.get(target.get("kind"), False)
-        if not valid_kind:
-            fail("PKB303", f"{label} path does not match its target kind")
-        if target["kind"] == "cshell-shell":
-            require_id(target.get("shell"), f"{label} shell")
+        rule = kind_contracts.get(target.get('kind'))
+        if rule is None:
+            fail('PKB303', f"{label} has no supported target-kind contract")
+        if not re.search(rule['properties']['path']['pattern'], target['path']):
+            fail('PKB303', f"{label} path {target['path']!r} does not match {target['kind']!r}: {rule['description']}")
+        for field in rule['required']:
+            if field not in {'kind', 'path'}:
+                require_id(target.get(field), f"{label} {field}: {rule['properties'][field]['description']}")
 
 
 def binding_targets(instance: dict, slot: str, targets: dict[str, dict]) -> list[dict]:

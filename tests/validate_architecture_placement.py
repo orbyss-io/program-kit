@@ -203,6 +203,14 @@ def main():
         (root / "docs/architecture/README.md").unlink(missing_ok=True)
         context_error(context, "Renderer compatibility unresolved", lambda: context.validate_stage_output(root, "architecture"))
         context_error(context, "Renderer compatibility unresolved", lambda: context.validate_stage_batch(root, run_id, "architecture"))
+        # A real blocked architecture has already changed the map but may fail before
+        # the structural batch regenerates DSL. Recovery must not demand a new intake.
+        map_path = root / 'docs/architecture/architecture-map.json'
+        evolved = json.loads(map_path.read_text(encoding='utf-8'))
+        evolved['title'] += ' — refined architecture'
+        write_json(map_path, evolved)
+        original_dsl = (root / 'docs/architecture/workspace.dsl').read_bytes()
+        context_error(context, 'requires re-analysis', lambda: context.validate_intake(root, run_id))
         protected = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()
                      and (path.name in {"state.json", "inputs.json", "workflow.yml", "bootstrap-intake.json", "bootstrap-decisions.json"}
                           or "approval" in path.name or "constitution" in path.name)}
@@ -211,9 +219,32 @@ def main():
         assert all(path.read_bytes() == data for path, data in protected.items())
         assert list((run / "program-kit-context").glob("architecture.blocked-*.json"))
         assert not (root / context.ARCHITECTURE_BLOCKED).exists()
+        assert (root / 'docs/architecture/workspace.dsl').read_bytes() != original_dsl
+        assert result['derived_projection']['sha256'] != result['derived_projection']['before_sha256']
+        context.validate_context(root, run_id, 'architecture')
         for record in result["preserved"]:
             assert context.sha256_file(root / record["preserved_path"]) == record["sha256"]
         assert not any(p for p in root.rglob("*.csproj") if not p.is_relative_to(root / ".specify"))
+        # Invalid confirmed intent cannot be accepted through evolution/recovery; a
+        # rejected rebuild restores any provisional derived view and keeps authority.
+        intent_path = root / 'docs/architecture/project-intent.md'
+        intent_bytes = intent_path.read_bytes()
+        intent_path.write_bytes(intent_bytes + b'changed')
+        preserved_dsl = (root / 'docs/architecture/workspace.dsl').read_bytes()
+        context_error(context, 'Architecture source changed', lambda: context.prepare_architecture_recovery(root, run_id))
+        assert (root / 'docs/architecture/workspace.dsl').read_bytes() == preserved_dsl
+        intent_path.write_bytes(intent_bytes)
+        corrupt = copy.deepcopy(evolved)
+        corrupt['strategic_model']['subdomains'][0]['name'] += ' reinterpreted'
+        write_json(map_path, corrupt)
+        try:
+            context.prepare_architecture_recovery(root, run_id)
+        except context.ContextError:
+            pass
+        else:
+            raise AssertionError('Recovery accepted changed confirmed domain semantics')
+        assert (root / 'docs/architecture/workspace.dsl').read_bytes() == preserved_dsl
+        write_json(map_path, evolved)
         state["status"] = "completed"
         write_json(run / "state.json", state)
         context_error(context, "failed bootstrap", lambda: context.prepare_architecture_recovery(root, run_id))

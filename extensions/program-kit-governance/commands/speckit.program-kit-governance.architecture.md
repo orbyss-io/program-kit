@@ -36,7 +36,11 @@ counts; do not trade away required architecture evidence merely to reach a targe
 When `stage_plan.building_blocks` is present, use its exact draft command, composition slot/options
 projection, canonical repository convention, observed target inventory, and authorized
 `placement_planning` contract. Missing application files are a planning input: architecture owns
-the exact future layout and may declare it without creating those files. Do not run `--help`, search or dump the
+the layout. Apply `placement_planning.target_kind_contracts` before writing each target: it is the
+same executable filename/identity contract used by validation. `cshell-shell` names a `shells.json`
+document with a `shell` runtime identity; `host-image` names a Dockerfile, while the actual host DLL
+belongs in separate runtime evidence. These examples do not dictate consumer directory layout.
+Declare the exact future layout without creating those files. Do not run `--help`, search or dump the
 catalog, or enumerate project files to rediscover those values. When
 `stage_plan.managed_web_contract` is present, use its exact applicable control decisions and
 verification statements; do not search the installed extensions for `WEB-Cxx` records.
