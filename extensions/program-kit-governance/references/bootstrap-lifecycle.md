@@ -132,3 +132,10 @@ explicitly prepared conditional Ready transitions. A failed probe stops the work
 receipt preserved. Explicit recovery reuses current successful proofs and renews failed work.
 An empty plan explicitly records that no scratch proof is required. Final approval reviews
 scope, dispositions and evidence after execution; it never substitutes for a failed probe.
+
+After a compatibility failure has been repaired and every planned proof has current passing
+evidence, the owner may use `workflow_lifecycle.py resume --run-id <id> --reuse-proven-closure`.
+This checks current design, source, contract, tooling and executed-case bindings before retaining
+the closure producer's output. It resumes at the native proof shell, preserving downstream
+validation and human review. Open, failed, stale or differently planned proofs reject reuse;
+ordinary resume still returns to the owning authoring stage when repair requires new design work.

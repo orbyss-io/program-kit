@@ -369,10 +369,15 @@ def continuation(root: Path, source: RunState, inputs: dict) -> RunState:
     return state
 
 
-def resume_unlocked(root: Path, run_id: str, inputs: dict) -> RunState:
+def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closure: bool = False) -> RunState:
     state = RunState.load(run_id, root)
     require_enabled(root, state)
     definition = definition_for(root, run_id)
+    if reuse_proven_closure:
+        if state.status != RunStatus.FAILED or state.current_step_id != 'execute-compatibility-proofs':
+            raise WorkflowLifecycleError('Proven closure reuse applies only to a failed compatibility shell step')
+        from bootstrap_proof_plan import require_proven_closure
+        require_proven_closure(root)
     # Resolve lineage before checking a verdict against the child's actual gate.
     if (root / '.specify/workflows/resumptions' / f'{run_id}.json').is_file():
         return continuation(root, state, inputs)
@@ -422,6 +427,8 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict) -> RunState:
             state.save()
     if state.status == RunStatus.FAILED:
         restart = STAGE_STARTS.get(state.current_step_id, state.current_step_id)
+        if reuse_proven_closure:
+            restart = 'execute-compatibility-proofs'
         starts = [index for index, step in enumerate(definition.steps) if step['id'] == restart]
         if not starts:
             # A nested gate/acceptance failure must return to its owning stage,
@@ -456,9 +463,9 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict) -> RunState:
     return result
 
 
-def resume(root: Path, run_id: str, inputs: dict | None = None) -> RunState:
+def resume(root: Path, run_id: str, inputs: dict | None = None, *, reuse_proven_closure: bool = False) -> RunState:
     with execution_lock(root):
-        return resume_unlocked(root, run_id, inputs or {})
+        return resume_unlocked(root, run_id, inputs or {}, reuse_proven_closure=reuse_proven_closure)
 
 
 def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: str | None) -> dict:
@@ -497,9 +504,12 @@ def main() -> int:
     parser.add_argument('--source-run')
     parser.add_argument('--verdict')
     parser.add_argument('--input', action='append', default=[])
+    parser.add_argument('--reuse-proven-closure', action='store_true', help='Resume repaired compatibility proofs without repeating their paid authoring stage; requires current passing evidence for every planned probe')
     args = parser.parse_args()
     root = Path.cwd().resolve()
     try:
+        if args.reuse_proven_closure and args.command != 'resume':
+            raise WorkflowLifecycleError('--reuse-proven-closure requires resume')
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
         governance.configure_paths()
@@ -513,7 +523,7 @@ def main() -> int:
             else:
                 inputs = dict(item.split('=', 1) for item in args.input)
                 if args.command == 'resume':
-                    state = resume(root, args.run_id, inputs)
+                    state = resume(root, args.run_id, inputs, reuse_proven_closure=args.reuse_proven_closure)
                 else:
                     with execution_lock(root):
                         require_enabled(root)

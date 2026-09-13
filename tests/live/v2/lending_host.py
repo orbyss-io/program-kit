@@ -149,6 +149,11 @@ class PublishedLendingHost(LendingHost):
     def start(self):
         data = Path(self.environment['LENDING_FIXTURE_DATA'])
         data.mkdir(parents=True, exist_ok=True)
+        # Nuplane preview.61 local-directory feeds extract beside their source,
+        # independently of FeedResolution.PackageInstallRoot (remote feeds).
+        installed = data / 'nuplane-installed'
+        installed.mkdir(exist_ok=True)
+        (self.bundle / 'packages/.installed').mkdir(exist_ok=True)
         self.command = ['docker', 'run', '--name', self.container, '--pull=never',
                         '-p', f'127.0.0.1:{self.port}:8080',
                         '-e', 'ASPNETCORE_URLS=http://+:8080',
@@ -161,6 +166,7 @@ class PublishedLendingHost(LendingHost):
                              '-e', 'LENDING_FIXTURE_CONNECTION_STRING']
         for name in ('hostsettings.json', 'shells.json', 'nuplane.settings.json', 'packages'):
             self.command += ['--mount', f'type=bind,source={self.bundle / name},target=/app/{name},readonly']
+        self.command += ['--mount', f'type=bind,source={installed},target=/app/packages/.installed']
         if self.environment.get('LENDING_FIXTURE_WEB'):
             self.command += ['--mount', f'type=bind,source={self.environment["LENDING_FIXTURE_WEB"]},target=/fixture-web,readonly',
                              '-e', 'LENDING_FIXTURE_WEB=/fixture-web']

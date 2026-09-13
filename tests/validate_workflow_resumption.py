@@ -227,6 +227,38 @@ def main():
                 assert any((entry / 'inputs.json').is_file() and (entry / 'workflow.yml').is_file()
                            for entry in history.iterdir())
                 # Saved-definition migration has separate unit evidence. Its
+                # Explicit, proven shell recovery preserves paid producer work.
+                import bootstrap_proof_plan
+                closure_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
+                closure_calls = []
+                def closure_dispatch(self, command, integration, model, args, context):
+                    closure_calls.append(args)
+                    return {'exit_code': 0, 'stdout': 'prepared', 'stderr': ''}
+                closure_steps = [shell('accepted-prefix', 'python -c "print(1)"'),
+                    agent('architecture-prerequisite-closure'),
+                    shell('execute-compatibility-proofs', 'python -c "from pathlib import Path; print(1); raise SystemExit(0 if Path(\'proof-repaired\').exists() else 2)"'),
+                    {'id': 'review-bootstrap', 'type': 'gate', 'message': 'Review repaired closure',
+                     'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'}]
+                with patch.object(CommandStep, '_try_dispatch', closure_dispatch):
+                    broken = workflow.execute_definition(root, definition(closure_steps), {}, 'proof-repair')
+                    assert broken.status == RunStatus.FAILED
+                    preserved = copy.deepcopy(broken.step_results['accepted-prefix'])
+                    with patch.object(bootstrap_proof_plan, 'require_proven_closure', side_effect=life.LifecycleError('unproven')):
+                        try:
+                            workflow.resume(root, broken.run_id, reuse_proven_closure=True)
+                        except life.LifecycleError:
+                            pass
+                        else:
+                            raise AssertionError('Unproven closure reuse accepted')
+                    (root / 'proof-repaired').write_text('fixture', encoding='utf-8')
+                    with patch.object(bootstrap_proof_plan, 'require_proven_closure', return_value=['runtime']):
+                        resumed = workflow.resume(root, broken.run_id, reuse_proven_closure=True)
+                    assert resumed.status == RunStatus.PAUSED, resumed.error
+                    assert resumed.step_results['accepted-prefix'] == preserved
+                    assert closure_calls == ['architecture-prerequisite-closure']
+                    assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == closure_approval
+                    assert (root / g.CONSTITUTION).read_bytes() == constitution
+                # Saved-definition migration has separate unit evidence. Its
                 # fixture reaches a native gate; it does not claim live success.
                 migration = root / 'migration-case'
                 migration.mkdir()

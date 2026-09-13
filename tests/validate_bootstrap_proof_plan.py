@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
-from bootstrap_proof_plan import execute, PLAN
+from bootstrap_proof_plan import execute, PLAN, require_proven_closure
 from bootstrap_lifecycle import LEDGER, load, write, source_digest
 from validate_governance_state import roadmap
 
@@ -39,10 +39,39 @@ class ProofPlanTests(unittest.TestCase):
 
     def test_actual_proof_closes_only_scoped_condition_and_resume_reuses(self):
         self.assertEqual(1, len(execute(self.root)))
+        self.assertEqual(['runtime'], require_proven_closure(self.root))
         self.assertEqual('closed', load(self.root / LEDGER)['prerequisites'][0]['status'])
         self.assertIn('**Status**: Ready', (self.root / 'docs/architecture/specification-roadmap.md').read_text(encoding='utf-8'))
         self.assertEqual([], execute(self.root))
         self.assertEqual(1, len(list(self.root.rglob('proof.json'))))
+
+    def test_reuse_rejects_unproven_and_different_planned_recipe(self):
+        with self.assertRaisesRegex(ValueError, 'must pass'):
+            require_proven_closure(self.root)
+        execute(self.root)
+        other = self.recipe.with_name('other.py')
+        other.write_bytes(self.recipe.read_bytes())
+        other.with_suffix('.contract.json').write_bytes(self.recipe.with_suffix('.contract.json').read_bytes())
+        self.plan['probes'][0]['recipe'] = 'docs/architecture/other.py'
+        write(self.root / PLAN, self.plan)
+        with self.assertRaisesRegex(ValueError, 'matching passing proof'):
+            require_proven_closure(self.root)
+
+    def test_windows_long_nuget_paths_are_removed_without_losing_sibling_evidence(self):
+        import os
+        from bootstrap_lifecycle import compatibility_scratch
+        attempt = self.root / 'attempt'
+        attempt.mkdir()
+        preserved = attempt / 'stderr.txt'
+        preserved.write_text('preserved failure', encoding='utf-8')
+        with compatibility_scratch(attempt) as directory:
+            scratch = Path(directory)
+            long = scratch / ('a' * 100) / ('b' * 100) / ('c' * 80)
+            native = Path('\\\\?\\' + str(long)) if os.name == 'nt' else long
+            native.mkdir(parents=True)
+            (native / 'package.nuspec').write_text('evidence', encoding='utf-8')
+        self.assertFalse(scratch.exists())
+        self.assertEqual('preserved failure', preserved.read_text(encoding='utf-8'))
 
     def test_failed_proof_preserved_without_promoting_or_retrying(self):
         self.recipe.write_text('raise RuntimeError("intentional probe rejection")', encoding='utf-8')

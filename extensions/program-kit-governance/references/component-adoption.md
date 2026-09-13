@@ -4,6 +4,17 @@ Foundation and Forms 0.2.0 are independent component releases. Select only appli
 mechanisms and verify the exact Program Kit combination before acceptance. Existing
 wire and canonical identities must survive upgrades unless explicitly redesigned.
 
+For bounded architecture compatibility, inspect the installed
+`examples/bootstrap-runtime` sources before inventing another host/port probe. They exercise
+the published Foundation 0.2.0 image, two-shell replacement, compiled Core boundaries,
+strict JSON, headers, OpenAPI and unchanged-bundle restart. They are synthetic mechanism
+examples, not consumer implementation or proof that an unexecuted plan works. Copy only
+applicable source files into a contract-bound scratch recipe with exact selected dependencies.
+The Forms producer call signatures are also demonstrated by the publisher's
+[release integration probe](https://github.com/orbyss-io/forms/blob/0841adcb924ca38db957b348cdbbd301472747e4/tests/Orbyss.Forms.ReleaseIntegration.Probe/Program.cs).
+Missing source access or runtime-service inputs must be resolved before scheduling a proof;
+an always-failing missing-input guard is not an executable compatibility handoff.
+
 ## Immutable Forms
 
 Prefer `forms_immutable_release` for a form published at build time. Bind its producer

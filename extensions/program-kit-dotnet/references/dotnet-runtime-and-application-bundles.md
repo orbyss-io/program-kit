@@ -66,6 +66,8 @@ the original. Reconcile legacy duplicates before changing runtime configuration.
 
 `release_bundle.py stage` composes configuration and verifies available package/activation closure;
 `describe` binds the published Foundation image digest and emits the descriptor, ZIP and checksum.
+Resolve the publisher's version-prefixed tag (for example `foundation-host:v0.2.0`)
+to its registry digest; do not infer that a cached image belongs to that release.
 Package-free configuration bundles are allowed; active features must still have verified resolution.
 Runtime feeds, watching, reconciliation and reload are explicit deployment choices; configuring a
 feed does not establish successful feature loading. Application identity/version and bundle hashes
@@ -75,6 +77,15 @@ Local execution and delivery acceptance mount the bundle's individual settings a
 into the published image, preserving /app and its host binaries. Never mount the entire bundle over
 /app. Prove actual feature activation, application behavior and stop/restart with retained data using
 that image. The release workflow attests and publishes the bundle without building or pushing images.
+
+For the pinned Nuplane 0.0.9-preview.61, local directory feeds extract into
+`<feed>/.installed`. Keep the package archives read-only and mount a separate writable
+runtime directory at `/app/packages/.installed`; preserve or recreate that extraction
+state according to deployment requirements. `FeedResolution.PackageInstallRoot`
+configures remote acquisition and does not relocate local-feed extraction in this version.
+This behavior is defined by the published package's
+[MultiFeedPackageResolver](https://github.com/valence-works/nuplane/blob/c292a10390ada26da54865d46820d3ec327c8888/src/Nuplane/Feeds/MultiFeedPackageResolver.cs).
+Never solve the writable-state requirement by changing the release's package bytes.
 
 Architecture binds the external image to a `host-image` target whose path is hostsettings.json and
 plans bundle ownership. Feature planning/tasks cover configuration, package inclusion, activation and

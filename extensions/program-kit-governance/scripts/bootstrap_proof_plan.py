@@ -10,6 +10,29 @@ from bootstrap_lifecycle import LEDGER, LifecycleError, load, write, run_proof, 
 PLAN = Path('docs/architecture/bootstrap-proof-plan.json')
 
 
+def require_proven_closure(root: Path):
+    """Read-only admission for explicit reuse after deterministic repair."""
+    from governance_state import roadmap_records, ROADMAP
+    from json_schema import validate_value
+    from bootstrap_lifecycle import digest
+    plan = load(root / PLAN)
+    schema = Path(__file__).resolve().parents[1] / 'references/bootstrap-proof-plan.schema.json'
+    if not validate_value(plan, load(schema), schema)['valid'] or not plan['probes']:
+        raise LifecycleError('Proven closure reuse requires a nonempty valid proof plan')
+    validate_prerequisites(root, roadmap_records(root / ROADMAP), required=True, allow_proposed_authority=True)
+    items = {i['id']: i for i in load(root / LEDGER)['prerequisites']}
+    for probe in plan['probes']:
+        item = items.get(probe['id'])
+        if item is None or item['disposition'] != 'architecture' or item['status'] != 'closed':
+            raise LifecycleError('Every planned architecture proof must pass before closure reuse')
+        recipe, contract, _, _ = validate_recipe(root, probe['id'], probe['recipe'])
+        required = {(p.relative_to(root).as_posix(), digest(p)) for p in [recipe, contract]}
+        if not any(required <= {(p['path'], p['sha256']) for p in load(root / evidence['path'])['inputs']}
+                   for evidence in item['evidence'] if evidence['kind'] == 'compatibility'):
+            raise LifecycleError('Current planned recipe/contract has no matching passing proof')
+    return [p['id'] for p in plan['probes']]
+
+
 def execute(root: Path):
     from governance_state import roadmap_records, ROADMAP
     plan = load(root / PLAN)

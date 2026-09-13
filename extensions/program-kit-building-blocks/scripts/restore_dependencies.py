@@ -84,6 +84,13 @@ def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
 def isolated_environment(repository: Path) -> dict[str, str]:
     environment = os.environ.copy()
     cache = repository / ".program-kit/cache"
+    # Native compatibility projects are nested under a source-bound attempt.
+    # Keeping NuGet's long package filenames under that path breaks MSBuild on
+    # Windows. Reuse only this consumer's cache, never the user's global cache.
+    parts = repository.parts
+    if (len(parts) >= 7 and parts[-6:-3] == ('.specify', 'governance', 'compatibility')
+            and parts[-2].startswith('attempt-') and parts[-1].startswith('scratch-')):
+        cache = repository.parents[5] / '.program-kit/cache'
     values = {
         "NUGET_PACKAGES": cache / "nuget/packages",
         "NUGET_HTTP_CACHE_PATH": cache / "nuget/http",

@@ -6,6 +6,9 @@ import hashlib
 import json
 import re
 import sys
+import os
+import shutil
+from contextlib import contextmanager
 from pathlib import Path
 
 LEDGER = Path('docs/architecture/bootstrap-prerequisites.json')
@@ -327,6 +330,22 @@ def validate_recipe(root: Path, identity: str, recipe: str):
     return recipe_path, contract_path, contract, names
 
 
+@contextmanager
+def compatibility_scratch(attempt: Path):
+    """Delete only this attempt's scratch, including Windows paths over MAX_PATH."""
+    import tempfile
+    path = Path(tempfile.mkdtemp(prefix='scratch-', dir=attempt)).resolve()
+    if not path.is_relative_to(attempt.resolve()) or not path.name.startswith('scratch-'):
+        raise LifecycleError('Compatibility scratch escaped its owned attempt')
+    try:
+        yield str(path)
+    finally:
+        # NuGet's HTTP/cache filenames routinely exceed 260 characters. The
+        # extended prefix is required even though dotnet itself wrote them.
+        cleanup = '\\\\?\\' + str(path) if os.name == 'nt' and not str(path).startswith('\\\\?\\') else str(path)
+        shutil.rmtree(cleanup)
+
+
 def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     """Execute a reviewed Python compatibility recipe in a fresh isolated scratch directory."""
     import tempfile
@@ -345,7 +364,7 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     ) if (root / p).is_file()}
     from compatibility_process import run
     provisioning = None
-    with tempfile.TemporaryDirectory(prefix='scratch-', dir=attempt) as directory:
+    with compatibility_scratch(attempt) as directory:
         with (attempt / 'stdout.txt').open('wb') as stdout, (attempt / 'stderr.txt').open('wb') as stderr:
             try:
                 from bootstrap_compatibility import prepare, restore
