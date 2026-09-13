@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import os
+import re
 import sys
 import tempfile
 import yaml
@@ -127,7 +128,20 @@ def main():
                     if args == 'readiness':
                         report.write_text('**Status**: NOT READY\n- Blocker: fixture | Owner: Architecture | Next: Reconcile evidence\n', encoding='utf-8')
                     elif command == 'speckit.program-kit-governance.readiness':
+                        matched = re.search(r'Read (\S+/program-kit-context/readiness.json) first', args)
+                        assert matched, 'Continuation readiness lacks its generated stage brief'
+                        brief = life.load(root / matched[1])
+                        assert brief['stage'] == 'readiness'
+                        assert brief['run_id'] in matched[1]
+                        assert brief['output_contract']['artifact_byte_budgets'][g.READINESS_REPORT.as_posix()] == 4096
+                        assert brief['output_contract']['validation_commands'] == [brief['stage_plan']['terminal_condition']['command']]
+                        for name in brief['reading_policy']['allowed_sources']:
+                            (root / name).read_bytes()
+                        evidence = root / brief['evidence_index']['path']
+                        assert life.digest(evidence) == brief['evidence_index']['sha256']
                         report.write_text('**Status**: READY\n\nReviewed unchanged authority and current evidence.\n', encoding='utf-8')
+                        result = fixture.context.validate_stage_batch(root, brief['run_id'], 'readiness')
+                        assert result['completion_eligible']
                     return {'exit_code': 0, 'stdout': 'fixture producer', 'stderr': ''}
                 with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
                     failed = WorkflowEngine(root).execute(definition(ready_tail()), run_id='readiness-retry')
@@ -226,6 +240,51 @@ def main():
                 history = root / '.specify/workflows/resumption-history/architecture-retry'
                 assert any((entry / 'inputs.json').is_file() and (entry / 'workflow.yml').is_file()
                            for entry in history.iterdir())
+                # Reproduce the old published continuation's unavailable handoff.
+                # Resume must migrate only readiness and retain accepted authority.
+                (root / g.BOOTSTRAP_COMPLETION).unlink(missing_ok=True)
+                legacy = copy.deepcopy(workflow.continuation_definition(root).data)
+                legacy['workflow']['version'] = '0.12.0'
+                legacy['steps'] = [s for s in legacy['steps'] if s['id'] != 'prepare-recovery-readiness']
+                next(s for s in legacy['steps'] if s['id'] == 'recovery-readiness')['input']['args'] = 'Legacy inaccessible handoff'
+                def legacy_dispatch(self, command, integration, model, args, context):
+                    if args == 'Legacy inaccessible handoff':
+                        report.write_text('**Status**: NOT READY\n- Blocker: READINESS-CURRENT-EVIDENCE | Owner: Operator | Next: Repair input access\n', encoding='utf-8')
+                        return {'exit_code': 0, 'stdout': 'incomplete assessment', 'stderr': ''}
+                    return readiness_dispatch(self, command, integration, model, args, context)
+                with patch.object(CommandStep, '_try_dispatch', legacy_dispatch):
+                    legacy_source = WorkflowEngine(root).execute(definition(ready_tail()), run_id='legacy-context')
+                    with patch.object(workflow, 'continuation_definition', return_value=WorkflowDefinition(legacy)):
+                        legacy_failed = workflow.resume(root, legacy_source.run_id)
+                assert legacy_failed.current_step_id == 'recovery-require-ready'
+                source_before = (workflow.run_directory(root, legacy_source.run_id) / 'state.json').read_bytes()
+                approval_before = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
+                successful_prefix = copy.deepcopy(legacy_failed.step_results['verify-recovery-source'])
+                old_architecture = architecture.read_bytes()
+                architecture.write_bytes(old_architecture + b'\nUnapproved drift\n')
+                with patch.object(CommandStep, '_try_dispatch', side_effect=AssertionError('No dispatch with changed authority')):
+                    fixture.fails(lambda: workflow.resume(root, legacy_source.run_id), 'stale')
+                architecture.write_bytes(old_architecture)
+                retried_commands = []
+                def repaired_dispatch(self, command, integration, model, args, context):
+                    retried_commands.append(command)
+                    assert command == 'speckit.program-kit-governance.readiness'
+                    return readiness_dispatch(self, command, integration, model, args, context)
+                with patch.object(CommandStep, '_try_dispatch', repaired_dispatch):
+                    repaired = workflow.resume(root, legacy_source.run_id)
+                assert repaired.status == RunStatus.COMPLETED, repaired.error
+                assert len(retried_commands) == 1
+                assert repaired.step_results['verify-recovery-source'] == successful_prefix
+                assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == approval_before
+                assert (workflow.run_directory(root, legacy_source.run_id) / 'state.json').read_bytes() == source_before
+                workflow.validate_engine_completion(root)
+                mapping_path = root / '.specify/workflows/resumptions/legacy-context.json'
+                mapping_bytes = mapping_path.read_bytes()
+                mapping = life.load(mapping_path)
+                mapping['continuation_run'] = 'unrelated'
+                life.write(mapping_path, mapping)
+                fixture.fails(lambda: fixture.context.build_context(root, repaired.run_id, 'readiness'), 'lineage')
+                mapping_path.write_bytes(mapping_bytes)
                 # Reviewed manual correction skips only the authoring agent and
                 # still reaches the native human gate. The full prepared-review
                 # admission checks are exercised by validate_bootstrap_lifecycle.

@@ -12,6 +12,7 @@ import json
 import re
 import shutil
 import sys
+import uuid
 from pathlib import Path
 
 import bootstrap_lifecycle as lifecycle
@@ -93,10 +94,12 @@ def prepare(root: Path, run_id: str) -> dict:
     for relative in (governance.READINESS_REPORT, lifecycle.RESULT):
         if (root / relative).is_file():
             original[relative.as_posix()] = lifecycle.digest(root / relative)
-    import tempfile
     destination_directory = directory
     directory.parent.mkdir(parents=True, exist_ok=True)
-    directory = Path(tempfile.mkdtemp(prefix=f'.prepare-{run_id}-', dir=directory.parent))
+    # This directory is published as shared workspace evidence. mkdtemp applies
+    # owner-only Windows ACLs that survive rename and exclude sandbox workers.
+    directory = directory.parent / f'.prepare-{run_id}-{uuid.uuid4().hex}'
+    directory.mkdir()
     # Publish the manifest last. An interrupted preparation cannot authorize recovery.
     for name, expected_hash in original.items():
         # Flat content-addressed storage avoids duplicating deep Windows workflow paths.

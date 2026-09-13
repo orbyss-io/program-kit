@@ -26,6 +26,22 @@ Stale preparation fails before dispatch; the flag cannot supply verdicts. Native
 checks, synchronization, packet preparation, human approval, readiness and completion
 still run. Use plain resume for subsequent continuation attempts.
 
+Continuation readiness first generates a fresh compact stage brief and hash-bound
+evidence index in the continuation run, using the original confirmed intake through
+verified lineage. It supplies current ADR supersession, permitted source paths,
+output budgets and the single structured validation command. Historical correction
+handoffs are not readiness inputs. Published recovery directories inherit workspace
+permissions; private temporary-directory ACLs must not be retained after publication.
+
+The known 0.12.0 continuation readiness suffix migrates to 0.12.1 after preserving
+its failed state and workflow in resumption history. A failure whose sole blocker is
+`READINESS-CURRENT-EVIDENCE` retries context generation and readiness after validating
+the unchanged approved authority. It does not repeat closure, proof execution or
+approval. Other semantic readiness blockers retain correction/review routing. Changed
+authority, unknown suffixes and invalid lineage stop before agent dispatch. The
+original lineage definition remains historical; the child's saved migrated workflow
+and final completion hash identify the actual executed suffix.
+
 Repeated resume follows the same linked run. An OS execution lock prevents concurrent
 resumption and releases on process death. Interrupted state and invalidated step history stay
 inspectable. Unknown saved structures require maintenance rather than guessed jumps.

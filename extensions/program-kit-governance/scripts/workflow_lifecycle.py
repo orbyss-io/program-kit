@@ -67,8 +67,9 @@ STAGE_STARTS = {
     'recovery-synchronize': 'verify-recovery-source',
     'recovery-review': 'verify-recovery-source',
     'recovery-accept': 'verify-recovery-source',
-    'recovery-readiness': 'recovery-readiness',
-    'recovery-evaluate': 'recovery-readiness',
+    'prepare-recovery-readiness': 'prepare-recovery-readiness',
+    'recovery-readiness': 'prepare-recovery-readiness',
+    'recovery-evaluate': 'prepare-recovery-readiness',
     'recovery-require-ready': 'verify-recovery-source',
 }
 FINAL_FAILURES = {'readiness', 'validate-readiness-output', 'require-readiness', 'complete-bootstrap'}
@@ -197,8 +198,40 @@ def require_enabled(root: Path, state: RunState | None = None) -> None:
 
 def migrate_suffix(root: Path, state: RunState, saved: WorkflowDefinition, restart: str) -> WorkflowDefinition:
     if state.inputs.get('source_run'):
-        # A continuation is pinned by its lineage manifest, not the fresh workflow.
-        return saved
+        # Only the known historical readiness suffix may change. The original
+        # lineage manifest and approved prefix remain immutable history.
+        installed = continuation_definition(root)
+        if saved.version == installed.version or restart != 'recovery-readiness':
+            return saved
+        if (saved.version, installed.version) != ('0.12.0', '0.12.1'):
+            raise WorkflowLifecycleError('No reviewed continuation readiness migration for this version')
+        recovery.manifest(root, state.inputs['source_run'])
+        governance.validate_bootstrap(True, True)
+        old_index = next(i for i, s in enumerate(saved.steps) if s['id'] == 'recovery-readiness')
+        new_index = next(i for i, s in enumerate(installed.steps) if s['id'] == 'prepare-recovery-readiness')
+        old_tail = saved.steps[old_index:]
+        new_tail = installed.steps[new_index + 1:]
+        if (len(old_tail) != len(new_tail) or old_tail[1:] != new_tail[1:]
+                or {k: v for k, v in old_tail[0].items() if k != 'input'}
+                != {k: v for k, v in new_tail[0].items() if k != 'input'}):
+            raise WorkflowLifecycleError('Unknown saved continuation readiness suffix; maintenance required')
+        data = copy.deepcopy(saved.data)
+        data['workflow']['version'] = installed.version
+        data['steps'] = copy.deepcopy(saved.steps[:old_index]) + copy.deepcopy(installed.steps[new_index:])
+        result = WorkflowDefinition(data)
+        errors = validate_workflow(result)
+        if errors:
+            raise WorkflowLifecycleError('Invalid continuation migration: ' + '; '.join(errors))
+        destination = run_directory(root, state.run_id) / 'workflow.yml'
+        before = lifecycle.digest(destination)
+        import yaml
+        temporary = destination.with_suffix('.yml.tmp')
+        temporary.write_text(yaml.safe_dump(data, sort_keys=False), encoding='utf-8')
+        temporary.replace(destination)
+        state.append_log({'event': 'continuation_readiness_migration', 'from_version': saved.version,
+                          'to_version': installed.version, 'previous_sha256': before,
+                          'current_sha256': lifecycle.digest(destination)})
+        return result
     installed_path = root / '.specify/workflows/program-kit-bootstrap/workflow.yml'
     if not installed_path.is_file():
         return saved
@@ -341,6 +374,21 @@ def source_ready(root: Path, source_run: str) -> bool:
         return False
 
 
+def prepare_recovery_readiness(root: Path, run_id: str, source_run: str) -> dict:
+    """Generate the same bounded input/output contract as fresh readiness."""
+    recovery.manifest(root, source_run)
+    governance.validate_bootstrap(True, True)
+    path, payload = bootstrap_context.build_context(root, run_id, 'readiness')
+    bootstrap_context.validate_context(root, run_id, 'readiness')
+    # Fail before paid dispatch on missing/unreadable declared inputs. Worker-side
+    # access is additionally verified by the cross-identity Windows regression.
+    for name in payload['reading_policy']['allowed_sources']:
+        (root / name).read_bytes()
+    return {'context': path.relative_to(root).as_posix(),
+            'sha256': lifecycle.digest(path), 'bytes': path.stat().st_size,
+            'validation_commands': payload['output_contract']['validation_commands']}
+
+
 def continuation(root: Path, source: RunState, inputs: dict, *, reuse_prepared_recovery: bool = False) -> RunState:
     mapping_path = root / '.specify/workflows/resumptions' / f'{source.run_id}.json'
     if mapping_path.is_file():
@@ -447,6 +495,18 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
             state.save()
     if state.status == RunStatus.FAILED:
         restart = STAGE_STARTS.get(state.current_step_id, state.current_step_id)
+        if state.inputs.get('source_run'):
+            if state.current_step_id == 'recovery-require-ready':
+                verdict = lifecycle.verdict(root)
+                if {item['id'] for item in verdict.get('blockers', [])} == {'READINESS-CURRENT-EVIDENCE'}:
+                    # This is a producer-input failure, not a request to redraft
+                    # already-approved architecture or rerun compatibility proofs.
+                    restart = 'prepare-recovery-readiness'
+            if restart == 'prepare-recovery-readiness':
+                recovery.manifest(root, state.inputs['source_run'])
+                governance.validate_bootstrap(True, True)
+                if not any(s['id'] == restart for s in definition.steps):
+                    restart = 'recovery-readiness'  # migrate the historical suffix below
         if reuse_proven_closure:
             restart = 'execute-compatibility-proofs'
         starts = [index for index, step in enumerate(definition.steps) if step['id'] == restart]
@@ -461,7 +521,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
         invalidated.update(all_step_ids(definition.steps[index:]))
         state.step_results = {key: value for key, value in state.step_results.items() if key not in invalidated}
         state.current_step_index = index
-        state.current_step_id = restart
+        state.current_step_id = definition.steps[index]['id']
         for name in ('assessment_verdict', 'constitution_verdict', 'bootstrap_verdict', 'recovery_verdict'):
             if name in state.inputs:
                 state.inputs[name] = ''
@@ -471,10 +531,13 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
         # Keep approved prefix authority. Downstream completion is no longer valid.
         for relative in (governance.BOOTSTRAP_COMPLETION, lifecycle.RESULT):
             (root / relative).unlink(missing_ok=True)
-        state.append_log({'event': 'stage_resumption', 'restart_step': restart,
+        state.append_log({'event': 'stage_resumption', 'restart_step': state.current_step_id,
                           'invalidated_steps': sorted(invalidated), 'snapshot': str(archived),
                           'saved_workflow_sha256': lifecycle.digest(run_directory(root, run_id) / 'workflow.yml')})
         state.save()
+    if (state.status == RunStatus.PAUSED and state.inputs.get('source_run')
+            and state.current_step_id == 'recovery-readiness'):
+        prepare_recovery_readiness(root, run_id, state.inputs['source_run'])
     with execution_owner(root, run_id):
         result = WorkflowEngine(root).resume(run_id, inputs=inputs or None)
     if result.status == RunStatus.COMPLETED:
@@ -493,7 +556,8 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
     state = RunState.load(run_id, root)
     expected = {'complete': 'complete-bootstrap', 'verify-source': 'verify-recovery-source',
                 'review': 'recovery-review', 'accept': 'recovery-accept',
-                'synchronize': 'recovery-synchronize', 'evaluate': 'recovery-evaluate'}
+                'synchronize': 'recovery-synchronize', 'evaluate': 'recovery-evaluate',
+                'readiness-context': 'prepare-recovery-readiness'}
     if (state.status != RunStatus.RUNNING or state.current_step_id != expected.get(action)
             or state.inputs.get('source_run') != source_run):
         raise WorkflowLifecycleError('This helper executes only as its matching native workflow step')
@@ -514,6 +578,8 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
         return recovery.synchronize(root, source_run)
     if action == 'evaluate':
         return recovery.evaluate(root, source_run)
+    if action == 'readiness-context':
+        return prepare_recovery_readiness(root, run_id, source_run)
     raise WorkflowLifecycleError(f'Unknown internal step {action}')
 
 

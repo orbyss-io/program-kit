@@ -175,7 +175,7 @@ STAGE_RECORD_FIELDS = {
         "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
     },
     "readiness": {
-        "decisions": ("id", "title", "status", "scope"),
+        "decisions": ("id", "path", "title", "status", "scope", "supersedes"),
         "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
         "elements": ("id", "type", "name", "description", "properties", "status", "ownership", "parent", "decision_refs"),
         "relationships": ("id", "source", "target", "status", "decision_refs"),
@@ -587,6 +587,20 @@ def validate_intake(
 ) -> dict:
     try:
         module = _load_intake_module()
+        # A continuation owns fresh context but retains the original confirmed
+        # intake. Require recorded lineage; never invent or rewrite child inputs.
+        inputs = load_json(safe_run_directory(project_root, run_id) / 'inputs.json').get('inputs', {})
+        source_run = inputs.get('source_run')
+        if source_run:
+            source = safe_run_directory(project_root, source_run)
+            mapping = load_json(project_root / '.specify/workflows/resumptions' / f'{source_run}.json')
+            if (mapping.get('continuation_run') != run_id or source_run == run_id
+                    or mapping.get('source_state_sha256') != sha256_file(source / 'state.json')
+                    or mapping.get('source_workflow_sha256') != sha256_file(source / 'workflow.yml')):
+                raise ContextError('Readiness context requires unchanged recorded continuation lineage')
+            import bootstrap_recovery
+            bootstrap_recovery.manifest(project_root, source_run)
+            run_id = source_run
         _, intake = module.intake_from_run(
             project_root,
             run_id,
@@ -855,16 +869,19 @@ def governance_contract(project_root: Path) -> dict:
     return {"paths": values, "configuration_sources": sources}
 
 
+def stage_validation_command(stage: str, run_id: str) -> str:
+    return ("python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
+            f"validate-stage --stage {stage} --run-id {run_id}"
+            + (" --json" if stage == 'readiness' else ""))
+
+
 def resolved_output_contract(stage: str, paths: dict[str, str], run_id: str = "") -> dict:
     contract = OUTPUT_CONTRACTS[stage]
     write_paths = [replace_governance_path(path, paths) for path in contract["write_paths"]]
     return {
         "write_paths": write_paths,
         "contract_references": list(contract["contract_references"]),
-        "validation_commands": [
-            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
-            f"validate-stage --stage {stage} --run-id {run_id}"
-        ],
+        "validation_commands": [stage_validation_command(stage, run_id)],
         "artifact_byte_budgets": {
             replace_governance_path(path, paths): ARTIFACT_BYTE_BUDGETS[path]
             for path in contract["write_paths"]
@@ -1149,10 +1166,7 @@ def runtime_release_projection(project_root: Path, intake: dict) -> dict | None:
 
 def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[str, dict], run_id: str) -> dict:
     terminal = {
-        "command": (
-            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
-            f"validate-stage --stage {stage} --run-id {run_id}"
-        ),
+        "command": stage_validation_command(stage, run_id),
         "on_success": (
             "Stop immediately. Do not read another file, inspect a diff, measure output again, "
             "or run another command; report only artifact paths, byte counts, and validation counts."
@@ -1481,6 +1495,11 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "docs/architecture/bootstrap-acceptance-scope.json",
     ) if stage in {"roadmap", "readiness"} and (project_root / path).is_file())
     stage_artifacts += lifecycle_sources
+    if stage == 'readiness':
+        # Named decisions must be queryable when the compact projection omits
+        # decisive conditions. Index them without requiring a bulk full read.
+        stage_artifacts = tuple(dict.fromkeys((*stage_artifacts,
+            *(item['path'] for item in architecture_map.get('decisions', [])))))
     artifacts: list[dict] = []
     authorities: dict[str, dict] = {}
     authority_paths = dict(AUTHORITY_JSON)

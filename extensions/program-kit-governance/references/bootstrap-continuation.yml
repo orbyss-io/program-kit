@@ -2,7 +2,7 @@ schema_version: "1.0"
 workflow:
   id: program-kit-bootstrap
   name: Program Kit bootstrap continuation
-  version: "0.12.0"
+  version: "0.12.1"
   description: Engine-owned continuation of an approved bootstrap after technical readiness failure.
 inputs:
   source_run:
@@ -72,12 +72,16 @@ steps:
                 type: shell
                 run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step accept --run-id {{ context.run_id }} --source-run {{ inputs.source_run }} --verdict {{ steps.review-recovery.output.choice }}"
                 output_format: json
+  - id: prepare-recovery-readiness
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step readiness-context --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"
+    output_format: json
   - id: recovery-readiness
     type: command
     command: speckit.program-kit-governance.readiness
     integration: "{{ inputs.integration }}"
     input:
-      args: "Workflow continuation {{ context.run_id }} from {{ inputs.source_run }}. Use .specify/governance/bootstrap-recovery/{{ inputs.source_run }}/handoff.md and the current approved artifacts and proofs. Produce an honest readiness report with explicit owned blockers if non-ready. The workflow owns evaluation and completion. Do not use stale historical stage context or invoke independent completion."
+      args: "Workflow continuation {{ context.run_id }} from {{ inputs.source_run }}. Read .specify/workflows/runs/{{ context.run_id }}/program-kit-context/readiness.json first. It contains the current approved authority, evidence index and exact output/validation contract. Historical recovery handoffs are not this stage's input. Produce an honest readiness report with explicit owned blockers if non-ready. The workflow owns evaluation and completion. Do not invoke independent completion."
   - id: recovery-evaluate
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step evaluate --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"

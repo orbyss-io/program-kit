@@ -372,6 +372,13 @@ def main():
                 assert report.stat().st_size > 3072 and report.stat().st_size < 4096
                 result = cli(root, 'bootstrap_recovery.py', 'prepare', '--run-id', run_id)
                 assert result.returncode == 0, result.stderr
+                if os.name == 'nt':
+                    published = str(recovery.location(root, run_id)).replace("'", "''")
+                    acl = subprocess.run([shutil.which('pwsh') or 'powershell.exe', '-NoProfile', '-NonInteractive', '-Command',
+                        f"(Get-Acl -LiteralPath '{published}').AreAccessRulesProtected"],
+                        capture_output=True, text=True)
+                    assert acl.returncode == 0, (acl.stdout, acl.stderr)
+                    assert acl.stdout.strip() == 'False', 'Published handoff must inherit workspace ACLs'
                 saved_run = lifecycle.digest(run / 'state.json')
                 saved_approval = lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)
                 assert recovery.evaluate(root, run_id)['target_exceeded_count'] == 1
