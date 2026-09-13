@@ -88,6 +88,7 @@ $developmentValidators = @(
     'validate_retired_sync.py',
     'validate_scoped_materialization.py',
     'validate_intake_session.py',
+    'validate_discovery_fixture.py',
     'validate_intake_handoff.py',
     'validate_intake_authoring.py',
     'validate_json_schema.py',

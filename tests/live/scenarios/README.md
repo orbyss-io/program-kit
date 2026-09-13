@@ -1,5 +1,12 @@
 # Versioned live test fixtures
 
+Vision-first human discovery inputs are a separate starting point:
+[`repair-desk/v1`](repair-desk/v1/README.md) supplies only a consumer vision to the
+ordinary intake launcher, then reviews the discovered roadmap and implements one
+selected journey through the native flow. Its evaluator/operator material stays
+outside the consumer. It is intentionally not in the sealed-fixture catalog below:
+no confirmed intake, fixed feature identity or phase receipt exists before interview.
+
 `catalog.json` lists use cases by stable ID and version. Each version lives in
 `<use-case>/v<version>/`, with its scenario manifest and disposable-project input
 under `fixture/`. Commit these inputs; keep generated runs, logs and receipts in
