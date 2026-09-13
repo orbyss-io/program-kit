@@ -68,7 +68,7 @@ jobs:
             --repository . \
             --staged artifacts/release-bundle \
             --image "${ORBYSS_FOUNDATION_HOST_IMAGE%@*}" \
-            --tag "$(jq -r '.artifacts[] | select(.packageKey == "oci:ghcr.io/orbyss-io/foundation-host") | .version' artifacts/building-block-public-availability.json)" \
+            --tag "v$(jq -r '.artifacts[] | select(.packageKey == "oci:ghcr.io/orbyss-io/foundation-host") | .version' artifacts/building-block-public-availability.json)" \
             --digest "${ORBYSS_FOUNDATION_HOST_IMAGE#*@}" \
             --output artifacts/application-bundle.json
 
