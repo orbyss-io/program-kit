@@ -6,6 +6,7 @@ from contextlib import nullcontext
 import json
 from pathlib import Path
 import shutil
+import sys
 import tempfile
 import unittest
 from types import SimpleNamespace
@@ -14,6 +15,7 @@ import uuid
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
 spec = importlib.util.spec_from_file_location('intake_session', ROOT / 'scripts/intake_session.py')
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
@@ -124,6 +126,36 @@ class IntakeSessionTests(unittest.TestCase):
         self.history()
         module.finish(self.record, 0, keep=True)
         self.assertTrue(self.workspace.exists())
+
+    def test_only_rolled_back_local_download_is_retried(self):
+        calls = []
+        diagnostic = "Failed to install bundle: [WinError 10054] reset. No changes were recorded."
+        def execute(command, workspace, log):
+            if 'bundle' in command:
+                calls.append(command)
+                if len(calls) == 1:
+                    with log.open('a', encoding='utf-8') as stream: stream.write(diagnostic)
+                    return 2
+            return 0
+        with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1234')), patch.object(module, 'run', side_effect=execute):
+            module.install_components('nonexistent-specify', 'git', self.workspace, self.record)
+        self.assertEqual(len(calls), 2)
+        self.assertIn(diagnostic, (self.record/'setup.log').read_text())
+        self.assertIn('no coding agent has started', (self.record/'setup.log').read_text())
+
+    def test_setup_retry_is_bounded_and_does_not_cover_other_failures(self):
+        for diagnostic, expected in [('schema failure', 1), ('Failed to install bundle: [WinError 10054] reset. No changes were recorded.', 3)]:
+            calls = []
+            def execute(command, workspace, log):
+                if 'bundle' in command:
+                    calls.append(command)
+                    with log.open('a', encoding='utf-8') as stream: stream.write(diagnostic + '\n')
+                    return 2
+                return 0
+            with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1234')), patch.object(module, 'run', side_effect=execute):
+                with self.assertRaisesRegex(RuntimeError, 'step 6'):
+                    module.install_components('nonexistent-specify', 'git', self.workspace, self.record)
+            self.assertEqual(len(calls), expected)
 
     def test_archive_failure_never_deletes(self):
         with patch.object(module.zipfile, 'ZipFile', side_effect=OSError('disk full')):

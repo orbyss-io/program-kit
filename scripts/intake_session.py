@@ -89,6 +89,7 @@ def candidate_catalogs(record: Path):
                         if '__pycache__' not in path.parts and path.suffix != '.pyc':
                             archive.write(path, path.relative_to(source).as_posix())
                 catalog[kind][name]['download_url'] = f'{base}/{name}.zip'
+                catalog[kind][name]['sha256'] = digest(directory / f'{name}.zip')
             save(directory / f'{kind}.json', catalog)
         if os.name == 'nt':
             # Windows archive transfers need the same isolated server process used by live setup.
@@ -155,8 +156,29 @@ def install_components(specify: str, git: str, workspace: Path, record: Path) ->
             print(f'Installing consumer components ({index}/{len(steps)})...', flush=True)
             if command[0] == specify:
                 command = launcher + command[1:]
-            if run(command, workspace, record / 'setup.log'):
-                raise RuntimeError(f'Installation failed at step {index}; see {record / "setup.log"}')
+            log = record / 'setup.log'
+            # Only retry an owned local transfer when the native bundle transaction
+            # explicitly reports rollback. Never retry agents, approvals or arbitrary
+            # setup failures; retain each diagnostic and keep the attempt count bounded.
+            for attempt in range(3):
+                offset = log.stat().st_size if log.exists() else 0
+                code = run(command, workspace, log)
+                if code == 0:
+                    break
+                if index != 6 or not log.is_file():
+                    raise RuntimeError(f'Installation failed at step {index}; see {log}')
+                with log.open('rb') as stream:
+                    stream.seek(offset)
+                    diagnostic = stream.read().decode('utf-8', errors='replace')
+                transient = ('[WinError 10054]' in diagnostic or 'timed out' in diagnostic)
+                rolled_back_download = (index == 6 and 'Failed to install bundle' in diagnostic
+                                        and 'No changes were recorded' in diagnostic and transient)
+                if not rolled_back_download or attempt == 2:
+                    raise RuntimeError(f'Installation failed at step {index}; see {log}')
+                message = f'Local bundle transfer interrupted; native rollback confirmed. Retrying setup transfer ({attempt + 2}/3); no coding agent has started.'
+                with log.open('a', encoding='utf-8') as stream:
+                    stream.write(message + '\n')
+                print(message, flush=True)
 
 
 def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: Path | None = None) -> None:

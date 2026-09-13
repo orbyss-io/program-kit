@@ -52,6 +52,14 @@ The Docker daemon was unavailable during preparation; the new trial must pass
 `docker info` before starting any model session. No Foundation runtime source or
 registry image was changed, and no paid session or publication was performed.
 
+The exact intake setup smoke test also exposed intermittent Windows loopback archive
+resets, which the component-by-component packaged installer does not exercise. Archive
+bytes verified against source. Intake catalogs now bind each ZIP's SHA-256, and only
+a native bundle download failure explicitly reporting rollback may retry, at most
+three attempts with every diagnostic retained. Other failures and model sessions never
+use that retry. The guarded PrepareOnly run completed all eight installation steps;
+the original failures remain in `artifacts/intake-sessions/`.
+
 The
 [placement and recovery report](lending-bootstrap-placement-recovery.md) records
 the earlier diagnosis and recovery procedure. Its Dockerfile/DLL advice is superseded;
