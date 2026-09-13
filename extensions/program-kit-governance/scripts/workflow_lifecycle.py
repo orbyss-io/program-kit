@@ -341,9 +341,11 @@ def source_ready(root: Path, source_run: str) -> bool:
         return False
 
 
-def continuation(root: Path, source: RunState, inputs: dict) -> RunState:
+def continuation(root: Path, source: RunState, inputs: dict, *, reuse_prepared_recovery: bool = False) -> RunState:
     mapping_path = root / '.specify/workflows/resumptions' / f'{source.run_id}.json'
     if mapping_path.is_file():
+        if reuse_prepared_recovery:
+            raise WorkflowLifecycleError('Prepared recovery reuse applies only when creating the continuation; resume the existing continuation without the flag')
         mapping = lifecycle.load(mapping_path)
         if (mapping['source_state_sha256'] != lifecycle.digest(run_directory(root, source.run_id) / 'state.json')
                 or mapping['source_workflow_sha256'] != lifecycle.digest(run_directory(root, source.run_id) / 'workflow.yml')):
@@ -354,11 +356,21 @@ def continuation(root: Path, source: RunState, inputs: dict) -> RunState:
     else:
         recovery.prepare(root, source.run_id)
         definition = continuation_definition(root)
+        prepared_hash = None
+        if reuse_prepared_recovery:
+            prepared_hash = recovery.require_prepared_review(root, source.run_id)
+            data = copy.deepcopy(definition.data)
+            # Only the correction producer is omitted. Proof validation, packet
+            # generation, human approval, readiness and completion remain native.
+            data['steps'] = [step for step in data['steps'] if step['id'] != 'route-recovery-correction']
+            definition = WorkflowDefinition(data)
         child = f'{source.run_id}-r-{uuid.uuid4().hex[:8]}'
         mapping = {'source_run': source.run_id, 'continuation_run': child,
                    'continuation_definition': definition.data,
                    'source_state_sha256': lifecycle.digest(run_directory(root, source.run_id) / 'state.json'),
                    'source_workflow_sha256': lifecycle.digest(run_directory(root, source.run_id) / 'workflow.yml')}
+        if prepared_hash:
+            mapping['prepared_review_sha256'] = prepared_hash
         lifecycle.write(mapping_path, mapping)
     definition = WorkflowDefinition(mapping['continuation_definition'])
     values = {'source_run': source.run_id, 'integration': source.inputs.get('integration', 'codex')}
@@ -370,10 +382,17 @@ def continuation(root: Path, source: RunState, inputs: dict) -> RunState:
     return state
 
 
-def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closure: bool = False) -> RunState:
+def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False) -> RunState:
     state = RunState.load(run_id, root)
     require_enabled(root, state)
     definition = definition_for(root, run_id)
+    if reuse_prepared_recovery:
+        if inputs:
+            raise WorkflowLifecycleError('Prepared recovery reuse cannot supply inputs or preapprove its future review gate')
+        if (reuse_proven_closure or state.status != RunStatus.FAILED
+                or state.current_step_id not in FINAL_FAILURES or state.inputs.get('source_run')):
+            raise WorkflowLifecycleError('Prepared recovery reuse requires an original failed approved-bootstrap readiness run')
+        return continuation(root, state, inputs, reuse_prepared_recovery=True)
     if reuse_proven_closure:
         if state.status != RunStatus.FAILED or state.current_step_id != 'execute-compatibility-proofs':
             raise WorkflowLifecycleError('Proven closure reuse applies only to a failed compatibility shell step')
@@ -464,9 +483,10 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
     return result
 
 
-def resume(root: Path, run_id: str, inputs: dict | None = None, *, reuse_proven_closure: bool = False) -> RunState:
+def resume(root: Path, run_id: str, inputs: dict | None = None, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False) -> RunState:
     with execution_lock(root):
-        return resume_unlocked(root, run_id, inputs or {}, reuse_proven_closure=reuse_proven_closure)
+        return resume_unlocked(root, run_id, inputs or {}, reuse_proven_closure=reuse_proven_closure,
+                               reuse_prepared_recovery=reuse_prepared_recovery)
 
 
 def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: str | None) -> dict:
@@ -506,11 +526,12 @@ def main() -> int:
     parser.add_argument('--verdict')
     parser.add_argument('--input', action='append', default=[])
     parser.add_argument('--reuse-proven-closure', action='store_true', help='Resume repaired compatibility proofs without repeating their paid authoring stage; requires current passing evidence for every planned probe')
+    parser.add_argument('--reuse-prepared-recovery', action='store_true', help='Create an approved-bootstrap continuation from a current prepared recovery review and passing proofs, retaining the human approval gate')
     args = parser.parse_args()
     root = Path.cwd().resolve()
     try:
-        if args.reuse_proven_closure and args.command != 'resume':
-            raise WorkflowLifecycleError('--reuse-proven-closure requires resume')
+        if (args.reuse_proven_closure or args.reuse_prepared_recovery) and args.command != 'resume':
+            raise WorkflowLifecycleError('Recovery reuse flags require resume')
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
         governance.configure_paths()
@@ -524,7 +545,8 @@ def main() -> int:
             else:
                 inputs = dict(item.split('=', 1) for item in args.input)
                 if args.command == 'resume':
-                    state = resume(root, args.run_id, inputs, reuse_proven_closure=args.reuse_proven_closure)
+                    state = resume(root, args.run_id, inputs, reuse_proven_closure=args.reuse_proven_closure,
+                                   reuse_prepared_recovery=args.reuse_prepared_recovery)
                 else:
                     with execution_lock(root):
                         require_enabled(root)

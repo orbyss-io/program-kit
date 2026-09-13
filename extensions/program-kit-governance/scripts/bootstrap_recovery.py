@@ -231,6 +231,25 @@ def accept(root: Path, run_id: str, verdict: str) -> dict:
     return {'status': 'Approved', 'next': 'Continue to native readiness, eligibility and completion steps.'}
 
 
+@pending_review
+def require_prepared_review(root: Path, run_id: str) -> str:
+    """Read-only admission for skipping already completed recovery authoring."""
+    directory, _ = manifest(root, run_id)
+    reviewed = lifecycle.load(directory / 'review.json')
+    if (reviewed['artifacts'] != basis()
+            or reviewed['packet_sha256'] != lifecycle.digest(directory / 'review.md')
+            or reviewed['bootstrap_approval_sha256'] != lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)):
+        raise lifecycle.LifecycleError('Prepared recovery review is stale; repair and regenerate it before reuse')
+    governance.validate_bootstrap(False, True)
+    from bootstrap_proof_plan import require_proven_closure
+    require_proven_closure(root)
+    import bootstrap_context
+    for stage in ('architecture', 'tooling', 'roadmap'):
+        bootstrap_context.validate_stage_output(root, stage, run_id)
+    bootstrap_context.validate_architecture_structure(root, run_id, allow_accepted=True)
+    return lifecycle.digest(directory / 'review.json')
+
+
 def evaluate(root: Path, run_id: str) -> dict:
     manifest(root, run_id)
     import bootstrap_context

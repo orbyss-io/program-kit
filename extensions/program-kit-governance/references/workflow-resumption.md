@@ -18,6 +18,14 @@ are preserved. Changed authority goes through correction and review; readiness, 
 completion execute as native steps. Already recovered valid authority can be reused.
 Semantic user rejection is never converted into technical recovery.
 
+When a maintainer has already prepared and validated the exact recovery review,
+`resume --run-id <original-id> --reuse-prepared-recovery` creates the continuation
+without repeating its correction-authoring agent. Admission verifies the preserved
+authority, current review packet, architecture checks and every planned passing proof.
+Stale preparation fails before dispatch; the flag cannot supply verdicts. Native proof
+checks, synchronization, packet preparation, human approval, readiness and completion
+still run. Use plain resume for subsequent continuation attempts.
+
 Repeated resume follows the same linked run. An OS execution lock prevents concurrent
 resumption and releases on process death. Interrupted state and invalidated step history stay
 inspectable. Unknown saved structures require maintenance rather than guessed jumps.

@@ -226,6 +226,38 @@ def main():
                 history = root / '.specify/workflows/resumption-history/architecture-retry'
                 assert any((entry / 'inputs.json').is_file() and (entry / 'workflow.yml').is_file()
                            for entry in history.iterdir())
+                # Reviewed manual correction skips only the authoring agent and
+                # still reaches the native human gate. The full prepared-review
+                # admission checks are exercised by validate_bootstrap_lifecycle.
+                (root / g.BOOTSTRAP_COMPLETION).unlink(missing_ok=True)
+                with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
+                    prepared_source = WorkflowEngine(root).execute(definition(ready_tail()), run_id='prepared-authority')
+                assert prepared_source.status == RunStatus.FAILED
+                workflow.recovery.prepare(root, prepared_source.run_id)
+                architecture.write_bytes(architecture.read_bytes() + b'\nPrepared scoped correction for review.\n')
+                workflow.recovery.synchronize(root, prepared_source.run_id)
+                workflow.recovery.review(root, prepared_source.run_id)
+                original_state = (root / '.specify/workflows/runs/prepared-authority/state.json').read_bytes()
+                try:
+                    workflow.resume(root, prepared_source.run_id, {'recovery_verdict': 'approve'}, reuse_prepared_recovery=True)
+                except workflow.WorkflowLifecycleError as error:
+                    assert 'preapprove' in str(error)
+                else:
+                    raise AssertionError('Prepared recovery preapproved a future gate')
+                with patch.object(workflow.recovery, 'require_prepared_review', side_effect=life.LifecycleError('stale prepared packet')):
+                    try:
+                        workflow.resume(root, prepared_source.run_id, reuse_prepared_recovery=True)
+                    except life.LifecycleError as error:
+                        assert 'stale prepared packet' in str(error)
+                    else:
+                        raise AssertionError('Stale prepared review dispatched a continuation')
+                assert not (root / '.specify/workflows/resumptions/prepared-authority.json').exists()
+                with patch.object(workflow.recovery, 'require_prepared_review', return_value='f' * 64), \
+                        patch.object(CommandStep, '_try_dispatch', side_effect=AssertionError('No agent before the recovery review')):
+                    prepared = workflow.resume(root, prepared_source.run_id, reuse_prepared_recovery=True)
+                    assert prepared.status == RunStatus.PAUSED and prepared.current_step_id == 'review-recovery', prepared.error
+                assert (root / '.specify/workflows/runs/prepared-authority/state.json').read_bytes() == original_state
+                assert not (root / g.BOOTSTRAP_COMPLETION).exists()
                 # A failed nested acceptance shell returns to packet preparation,
                 # retaining all completed authoring and proof stages.
                 acceptance_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()

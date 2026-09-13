@@ -60,6 +60,19 @@ transient current status claims outside those views. Original proposal history r
 The constitution has separate authority; new drafts must not bake temporary drafting prose into
 ratified content. Correct an existing ratified document only through its amendment procedure.
 
+For a Ready entry whose Scope names a canonical candidate slice, its mapped journey
+relationships and endpoints must be Accepted or explicitly covered by the pending
+architecture review. Closed mechanism proofs cannot substitute for that scope.
+Unrelated future proposals do not block the entry. Keep canonical candidate IDs in
+roadmap Scope so this dependency check can use the existing map without guessing.
+The validator checks the candidate's declared journey; it does not infer additional
+journeys from prose or replace the separate decomposition/coverage review.
+
+Current ADR prose must not contradict roadmap status. Preserve immutable older ADRs
+through the existing catalog `supersedes` relationship when a reviewed follow-on
+decision replaces their bookkeeping or scope. Proposed successors apply only inside
+their explicit pending review; readiness requires Accepted successor authority.
+
 Readiness begins at byte zero with exactly one status line and a newline:
 `**Status**: READY`, `**Status**: CONDITIONALLY READY`, or `**Status**: NOT READY`.
 Missing, malformed and BOM-prefixed statuses are invalid artifacts. Non-ready reports contain one

@@ -63,6 +63,9 @@ evaluation, not completion eligibility; its terminal batch returns the explicit 
 Treat `docs/architecture/specification-roadmap.md` as the sole authority for roadmap-entry status.
 The marked roadmap views in architecture and traceability are deterministic derived navigation;
 report anything else that copies or contradicts roadmap status as not ready.
+Use the canonical decision catalog's `supersedes` links: an Accepted successor makes
+the replaced ADR historical evidence. Check the successor's current claims and scope;
+do not reopen its explicitly superseded status assertions or exclusions.
 
 The first specification must be a viable vertical slice with an actor, trigger or intent, owner,
 observable outcome, contracts, material failure paths, and verification, or it must carry a justified

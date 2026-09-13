@@ -1969,6 +1969,7 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> li
                 "implementation decision outside Required Accepted ADRs; list the ADR there "
                 "and keep the record Blocked until it is Accepted"
             )
+    validate_roadmap_architecture_scope(records)
     if verify_delivery and any(record['Status'] == 'Delivered' for record in records):
         from specification_intake import spec_entries
         from phase_obligations import check as check_phase
@@ -1990,6 +1991,68 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> li
     if require_ready and not any(record["Status"] == "Ready" for record in records):
         raise GovernanceStateError("Specification roadmap contains no Ready entry")
     return records
+
+
+def validate_roadmap_architecture_scope(records: list[dict]) -> None:
+    """Check the canonical journeys explicitly referenced by Ready roadmap scope."""
+    path = project_path(ARCHITECTURE_MAP)
+    if not path.is_file():
+        return
+    model = read_json(path)
+    strategic = model.get('strategic_model', {})
+    journeys = {item['id']: item for item in strategic.get('journeys', [])}
+    relationships = {item['id']: item for item in model.get('relationships', [])}
+    elements = {item['id']: item for item in model.get('elements', [])}
+    pending = PENDING_RECOVERY_REVIEW or not project_path(BOOTSTRAP_APPROVAL).is_file()
+    scope = lifecycle_call('acceptance_scope', model) if pending and strategic else {}
+    covered = {kind: {identity for item in scope.values() for identity in item[kind]}
+               for kind in ('elements', 'relationships')}
+    for record in records:
+        if record['Status'] not in {'Ready', 'Active'}:
+            continue
+        # Scope must explicitly name a canonical candidate; do not infer it from
+        # a shared context or make unrelated future proposals block this entry.
+        candidates = [item for item in strategic.get('candidate_slices', [])
+                      if re.search(r'(?<![\w-])' + re.escape(item['id']) + r'(?![\w-])', record['Scope'])]
+        missing = set()
+        for candidate in candidates:
+            for step in journeys.get(candidate['journey'], {}).get('steps', []):
+                edge = relationships.get(step['relationship'])
+                if edge is None:
+                    raise GovernanceStateError(f"{record['id']} references an unknown architecture relationship")
+                required = [('relationships', edge)] + [('elements', elements[edge[key]]) for key in ('source', 'target')]
+                for kind, item in required:
+                    if kind == 'elements' and item.get('type') in {'person', 'external-system'} and item['status'] == 'explicit':
+                        continue  # Confirmed actors/external facts are not Proposed implementation components.
+                    if item['status'] != 'accepted' and item['id'] not in covered[kind]:
+                        missing.add(item['id'])
+        if missing:
+            raise GovernanceStateError(f"{record['id']} required architecture is outside accepted or pending review scope: "
+                                       + ', '.join(sorted(missing)))
+
+
+def validate_adr_roadmap_claims(records: list[dict]) -> None:
+    """Active ADRs must not contradict roadmap status; superseded history stays intact."""
+    path = project_path(ARCHITECTURE_MAP)
+    if not path.is_file():
+        return
+    model = read_json(path)
+    pending = PENDING_RECOVERY_REVIEW or not project_path(BOOTSTRAP_APPROVAL).is_file()
+    scope = lifecycle_call('acceptance_scope', model) if pending and model.get('strategic_model') else {}
+    superseded = {identity for decision in model.get('decisions', [])
+                  if decision['status'] == 'Accepted' or (pending and decision['id'] in scope)
+                  for identity in decision.get('supersedes', [])}
+    for decision in model.get('decisions', []):
+        if decision['id'] in superseded:
+            continue
+        text = project_path(Path(decision['path'])).read_text(encoding='utf-8')
+        for record in records:
+            pattern = (r'(?<![\w-])' + re.escape(record['id'])
+                       + r'\s+(?:(?:still\s+)?(?:is|remains)|status\s*[:=])\s+(Candidate|Blocked|Ready|Active|Delivered|Superseded)\b')
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                if match[1].lower() != record['Status'].lower():
+                    raise GovernanceStateError(f"{decision['path']} contradicts authoritative status for {record['id']}; "
+                                               'reconcile the current assertion through reviewed correction or explicit ADR supersession')
 
 
 def _roadmap_view(records: list[dict[str, str]]) -> str:
@@ -2088,6 +2151,7 @@ def _without_roadmap_view(text: str, path: Path) -> tuple[str, str]:
 def validate_bootstrap_consistency() -> None:
     """Prove that roadmap authority and its two derived architecture views agree."""
     records = validate_roadmap(False)
+    validate_adr_roadmap_claims(records)
     expected_view = _roadmap_view(records)
     stale_claims = re.compile(
         r"(?:created\s+later\s+by\s+(?:the\s+)?roadmap|no\s+roadmap\s+record\s+exists)",

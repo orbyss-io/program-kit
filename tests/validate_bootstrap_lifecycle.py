@@ -391,11 +391,16 @@ def main():
                 lifecycle.write(root / lifecycle.SCOPE, scope)
                 ledger(root, [dependency])
                 (root / governance.ROADMAP).write_text(fixture.roadmap('`provider-closure`'), encoding='utf-8')
+                lifecycle.write(root / 'docs/architecture/bootstrap-proof-plan.json', {
+                    'schemaVersion': 1, 'probes': [{'id': 'provider', 'recipe': recipe.relative_to(root).as_posix(), 'timeout': 30}],
+                    'readyWhenProven': []})
                 recovery.synchronize(root, run_id)
                 recovery.review(root, run_id)
+                assert recovery.require_prepared_review(root, run_id)
                 review_path = recovery.location(root, run_id) / 'review.md'
                 original_review = review_path.read_bytes()
                 review_path.write_bytes(original_review + b'\nChanged after review.\n')
+                fails(lambda: recovery.require_prepared_review(root, run_id), 'stale')
                 fails(lambda: recovery.accept(root, run_id, 'approve'), 'stale')
                 review_path.write_bytes(original_review)
                 assert lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL) == saved_approval
