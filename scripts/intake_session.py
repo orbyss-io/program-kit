@@ -20,6 +20,7 @@ import threading
 import time
 import uuid
 import zipfile
+from local_catalog_server import CatalogHandler
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = Path('.agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md')
@@ -66,7 +67,7 @@ def candidate_catalogs(record: Path):
     """Serve only candidate archives, on loopback, for the real bundle installer."""
     directory = record / 'candidate-catalogs'
     directory.mkdir()
-    class Handler(http.server.SimpleHTTPRequestHandler):
+    class Handler(CatalogHandler):
         def log_message(self, *_args):
             pass
     server = http.server.ThreadingHTTPServer(
@@ -84,10 +85,7 @@ def candidate_catalogs(record: Path):
             catalog['catalog_url'] = f'{base}/{kind}.json'
             for name in names:
                 source = ROOT / kind / name
-                with zipfile.ZipFile(directory / f'{name}.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
-                    for path in checked_files(source):
-                        if '__pycache__' not in path.parts and path.suffix != '.pyc':
-                            archive.write(path, path.relative_to(source).as_posix())
+                candidate_archive(source, directory / f'{name}.zip')
                 catalog[kind][name]['download_url'] = f'{base}/{name}.zip'
                 catalog[kind][name]['sha256'] = digest(directory / f'{name}.zip')
             save(directory / f'{kind}.json', catalog)
@@ -97,7 +95,7 @@ def candidate_catalogs(record: Path):
             server.server_close()
             server_log = (record / 'catalog-server.log').open('w', encoding='utf-8')
             process = subprocess.Popen(
-                [sys.executable, '-m', 'http.server', str(port), '--bind', '127.0.0.1', '--directory', str(directory)],
+                [sys.executable, str(ROOT / 'scripts/local_catalog_server.py'), str(port), '--directory', str(directory)],
                 stdin=subprocess.DEVNULL, stdout=server_log, stderr=subprocess.STDOUT,
                 creationflags=subprocess.CREATE_NO_WINDOW)
             deadline = time.monotonic() + 10
@@ -127,6 +125,14 @@ def candidate_catalogs(record: Path):
                 process.wait(timeout=10)
         if server_log is not None:
             server_log.close()
+
+
+def candidate_archive(source: Path, destination: Path) -> None:
+    # Keep the intake's strict reparse guard, then share the actual release payload
+    # rules. Local builds must not silently become consumer distribution inputs.
+    checked_files(source)
+    from build_release import deterministic_zip
+    deterministic_zip(source, destination)
 
 
 def install_components(specify: str, git: str, workspace: Path, record: Path) -> None:

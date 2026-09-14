@@ -13,6 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 import uuid
 import zipfile
+import io
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -22,6 +23,38 @@ spec.loader.exec_module(module)
 
 
 class IntakeSessionTests(unittest.TestCase):
+    def test_catalog_copy_keeps_exact_binary_and_bounds_each_write(self):
+        from local_catalog_server import CatalogHandler
+        data = bytes(range(256)) * 5000
+        sizes = []
+        class Output(io.BytesIO):
+            def write(self, value):
+                sizes.append(len(value))
+                return super().write(value)
+        output = Output()
+        CatalogHandler.copyfile(None, io.BytesIO(data), output)
+        self.assertEqual(data, output.getvalue())
+        self.assertLessEqual(max(sizes), 64 * 1024)
+
+    def test_candidate_payload_matches_release_after_local_builds(self):
+        source = self.record / 'source'
+        source.mkdir()
+        (source / 'extension.yml').write_text('id: fixture')
+        (source / 'tool.csproj').write_text('<Project />')
+        clean = self.record / 'clean.zip'
+        module.candidate_archive(source, clean)
+        for relative in ('bin/Tool.exe', 'obj/assets.json', '__pycache__/cached.pyc',
+                         'node_modules/package.json', 'test-results/result.xml',
+                         'playwright-report/index.html', '.auth/session.json'):
+            path = source / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('local-only fixture')
+        dirty = self.record / 'dirty.zip'
+        module.candidate_archive(source, dirty)
+        self.assertEqual(clean.read_bytes(), dirty.read_bytes())
+        with zipfile.ZipFile(dirty) as archive:
+            self.assertEqual({'extension.yml', 'tool.csproj'}, set(archive.namelist()))
+
     def setUp(self):
         self.print_patch = patch('builtins.print')
         self.print_patch.start()

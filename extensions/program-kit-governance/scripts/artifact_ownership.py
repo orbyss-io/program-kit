@@ -273,7 +273,7 @@ def planned_paths(feature_dir: Path, manifest: dict, include_tasks: bool) -> lis
     return result
 
 
-def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: bool) -> None:
+def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: bool, *, design_only: bool = False) -> None:
     if not external_program_kit_host_selected(feature_dir, manifest):
         return
     paths = planned_paths(feature_dir, manifest, include_tasks)
@@ -306,7 +306,7 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
             "PKA012 .NET feature planning is incomplete for the external Orbyss.Foundation.Host profile; "
             "missing " + ", ".join(missing) + "."
         )
-    validate_runtime_composition(feature_dir, manifest)
+    validate_runtime_composition(feature_dir, manifest, design_only=design_only)
 
 
 def direct_msbuild_references(project: Path, root: Path) -> tuple[set[str], set[str]]:
@@ -354,7 +354,7 @@ def activated_feature_identities(root: Path) -> set[str]:
     return identities
 
 
-def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
+def validate_runtime_composition(feature_dir: Path, manifest: dict, *, design_only: bool = False) -> None:
     composition = manifest.get("runtimeComposition")
     if not isinstance(composition, dict):
         raise ValueError(
@@ -596,7 +596,7 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
 
     for path, project in declared_projects.items():
         project_path = root / path
-        if not project_path.is_file():
+        if design_only or not project_path.is_file():
             continue
         actual_projects, actual_packages = direct_msbuild_references(project_path, root)
         if actual_projects != project["projectReferences"]:
@@ -835,6 +835,7 @@ def main() -> int:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--tasks")
     parser.add_argument("--plan")
+    parser.add_argument('--design-only', action='store_true', help='Validate planned ownership before dependency skeleton materialization; not source permission')
     args = parser.parse_args()
     try:
         manifest = load_manifest(Path(args.manifest))
@@ -844,7 +845,7 @@ def main() -> int:
             raise ValueError("PKA009 manifest must predeclare canonical Program Kit artifacts: " + ", ".join(missing))
         feature_dir = Path(args.manifest).resolve().parent
         validate_governance_context(feature_dir, bool(args.tasks))
-        validate_runtime_profile(feature_dir, manifest, bool(args.tasks))
+        validate_runtime_profile(feature_dir, manifest, bool(args.tasks), design_only=args.design_only)
         validate_authorization_ownership(feature_dir, manifest, bool(args.tasks))
         validate_npm_graph_evidence(feature_dir, manifest)
         validate_openapi_pipeline(feature_dir, manifest, bool(args.tasks))

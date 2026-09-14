@@ -237,7 +237,8 @@ def coherence(root, selection, template, *, materialized=False):
             required = project_packages(owner, project, template)
             for name in required:
                 if name not in refs:
-                    errors.append(f'PKP004 {project} must reference {name}')
+                    if materialized:
+                        errors.append(f'PKP004 {project} must reference {name}')
                 elif any(key in refs[name].attrib for key in ('Version', 'VersionOverride')):
                     errors.append(f'PKP004 {project} overrides central pin {name}')
     return errors

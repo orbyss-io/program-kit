@@ -1,7 +1,6 @@
-# Repair Desk: vision-first intake and one journey delivered
+# Household Shopping: vision-first intake and one journey delivered
 
-Status: superseded by household-shopping/v1 at the operator’s request. The interrupted
-intake is retained as historical evidence; do not restart this case for the next trial.
+Status: prepared discovery input; no intake, bootstrap or paid trial has run.
 
 The consumer receives only `PROJECT_REQUEST.md`, a short ordinary product vision.
 `fixture.json`, `OPERATOR.md` and `REVIEW.md` remain with the trial owner. No acceptance
@@ -25,7 +24,7 @@ From a normal user-owned terminal at the candidate repository root, the eventual
 intake command is:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-IntakeSession.ps1 -KeepWorkspace -IdeaFile tests\live\scenarios\repair-desk\v1\PROJECT_REQUEST.md
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-IntakeSession.ps1 -KeepWorkspace -IdeaFile tests\live\scenarios\household-shopping\v1\PROJECT_REQUEST.md
 ```
 
 Do not pass `-AcceptanceContracts` or copy this entire scenario directory. The
@@ -43,7 +42,7 @@ and input isolation. Its retained workspace is setup evidence, not a completed i
 After bootstrap, extract a reviewer worksheet outside the consumer:
 
 ```powershell
-python tests/review_discovery_roadmap.py --project <new-consumer-directory> --output artifacts/repair-desk-roadmap-review.json
+python tests/review_discovery_roadmap.py --project <new-consumer-directory> --output artifacts/household-shopping-roadmap-review.json
 ```
 
 Review the actual proposed entries and journey dispositions with the human, following

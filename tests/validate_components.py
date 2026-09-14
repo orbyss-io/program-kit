@@ -614,7 +614,8 @@ def main() -> int:
         extension_root / "scripts/implementation_preflight.py",
         "verify-before-implement",
         "artifact_ownership.py",
-        "implementation preflight lifecycle and artifact ownership are coherent",
+        "choices=('setup', 'source')",
+        "planned_selection_errors",
     )
     context_script = extension_root / "scripts/bootstrap_context.py"
     intake_script = extension_root / "scripts/bootstrap_intake.py"

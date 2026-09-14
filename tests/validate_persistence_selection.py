@@ -236,6 +236,13 @@ class PersistenceTests(unittest.TestCase):
         central.write_text('<Project><Import Project=".program-kit/eng/ProgramKit.Persistence.props" /></Project>')
         self.assertEqual([], persistence.coherence(self.root, selection, TEMPLATE))
         self.assertTrue(any('create owned' in e for e in persistence.coherence(self.root, selection, TEMPLATE, materialized=True)))
+        owner = selection['owners'][0]
+        for relative in [owner['providerProject'], *owner['testProjects']]:
+            path = self.root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('<Project />')
+        self.assertEqual([], persistence.coherence(self.root, selection, TEMPLATE))
+        self.assertTrue(any('must reference' in e for e in persistence.coherence(self.root, selection, TEMPLATE, materialized=True)))
         central.write_text(central.read_text().replace('</Project>', '<ItemGroup><PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.0" /></ItemGroup></Project>'))
         self.assertTrue(any('central package graph' in e for e in persistence.coherence(self.root, selection, TEMPLATE)))
 

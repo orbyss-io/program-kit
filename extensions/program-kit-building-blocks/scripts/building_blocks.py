@@ -23,7 +23,7 @@ NPMRC_BEGIN = "# Program Kit building-block registry routing: begin"
 NPMRC_END = "# Program Kit building-block registry routing: end"
 
 
-@dataclass(frozen=True)
+@dataclass
 class ResolverError(ValueError):
     code: str
     detail: str
@@ -1073,6 +1073,7 @@ def check_output(repository: Path, output: dict) -> None:
 def check_materialization(repository: Path, lock: dict) -> None:
     for output in lock.get("managedOutputs", []):
         check_output(repository, output)
+    audit_unmanaged_dependencies(repository, load_json(default_catalog(Path(__file__))), lock)
 
 
 def repository_files(repository: Path, pattern: str) -> list[Path]:
@@ -1086,6 +1087,19 @@ def repository_files(repository: Path, pattern: str) -> list[Path]:
 
 def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock: dict | None) -> None:
     owned = output_map(ownership_lock or {})
+    # The coordinator's engineering baseline and retained proof inputs have their own
+    # authorities. Never infer ownership from a docs/specs directory name.
+    governance = Path(__file__).resolve().parents[2] / 'program-kit-governance/scripts'
+    exempt = set()
+    if (governance / 'dependency_audit.py').is_file():
+        sys.path.insert(0, str(governance))
+        try:
+            from dependency_audit import audit_exemptions
+            exempt = audit_exemptions(repository, ownership_lock or {})
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            fail('PKB405', str(error))
+        finally:
+            sys.path.remove(str(governance))
     nuget_ids = {
         package["packageId"].casefold()
         for package in catalog["packages"].values()
@@ -1100,6 +1114,8 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
     reference_pattern = re.compile(r'<PackageReference\s+[^>]*Include="([^"]+)"', re.IGNORECASE)
     version_pattern = re.compile(r'<PackageVersion\s+[^>]*Include="([^"]+)"', re.IGNORECASE)
     for path in repository_files(repository, "*.csproj"):
+        if path.resolve() in exempt:
+            continue
         relative = path.relative_to(repository).as_posix()
         content = read_text(path)
         prior = owned.get(relative)
@@ -1112,18 +1128,20 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
         relative = path.relative_to(repository).as_posix()
         if relative in owned and owned[relative]["kind"] == "nuget-central-pins":
             continue
-        if relative == ".program-kit/eng/ProgramKit.Packages.props":
+        if path.resolve() in exempt:
             continue
         for package_id in version_pattern.findall(read_text(path)):
             if package_id.casefold() in nuget_ids:
                 findings.append(f"unmanaged NuGet pin {package_id} in {relative}")
     for path in repository_files(repository, "package.json"):
+        if path.resolve() in exempt:
+            continue
         relative = path.relative_to(repository).as_posix()
         value = load_json(path)
         prior = owned.get(relative)
         previous_entries = prior["entries"] if prior and prior["kind"] == "npm-package" else []
         previous_ids = {entry["packageId"] for entry in previous_entries}
-        for section_name in ("dependencies", "devDependencies"):
+        for section_name in ("dependencies", "devDependencies", "optionalDependencies", "peerDependencies"):
             section = value.get(section_name, {})
             if not isinstance(section, dict):
                 fail("PKB405", f"{relative} {section_name} must be an object")
@@ -1131,6 +1149,8 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
                 if package_id in npm_ids and package_id not in previous_ids:
                     findings.append(f"unmanaged npm dependency {package_id} in {relative}")
     for path in repository_files(repository, "dotnet-tools.json"):
+        if path.resolve() in exempt:
+            continue
         relative = path.relative_to(repository).as_posix()
         value = load_json(path)
         tools = value.get("tools", {})
@@ -1363,7 +1383,8 @@ def apply_materialization(repository: Path, lock_path: Path, lock: dict, catalog
     previous_lock = load_json(lock_path) if lock_path.is_file() else None
     if previous_lock:
         check_materialization(repository, previous_lock)
-    audit_unmanaged_dependencies(repository, catalog, previous_lock)
+    else:
+        audit_unmanaged_dependencies(repository, catalog, None)
     previous_outputs = output_map(previous_lock or {})
     desired_outputs = output_map(lock)
     paths = sorted(set(previous_outputs) | set(desired_outputs), key=str.casefold)
@@ -1374,7 +1395,6 @@ def apply_materialization(repository: Path, lock_path: Path, lock: dict, catalog
         )
     transaction_id = commit_transaction(repository, changes, lock_path, lock)
     check_materialization(repository, lock)
-    audit_unmanaged_dependencies(repository, catalog, lock)
     return transaction_id
 
 

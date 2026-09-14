@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "household-shopping-vision-discovery",
+  "version": "1",
+  "kind": "human-intake-discovery",
+  "consumerInputs": [
+    "PROJECT_REQUEST.md"
+  ],
+  "operatorOnly": [
+    "README.md",
+    "OPERATOR.md",
+    "REVIEW.md"
+  ],
+  "acceptanceContractsAtIntake": false,
+  "preconfirmedIntake": false,
+  "preselectedRoadmapEntry": null,
+  "executionBudget": {
+    "featureSlices": 1
+  },
+  "roadmapSelection": "after-bootstrap-human-review",
+  "liveRunStarted": false
+}

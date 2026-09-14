@@ -27,7 +27,11 @@ def owned_targets(repository: Path, feature: str | None, selected: list[dict]) -
             continue
         if path.is_file() and (path.name == "package.json" or path.suffix == ".csproj"):
             candidates.add(relative.as_posix())
-    result = sorted(path for path in candidates if (path in exact or any(fnmatch.fnmatchcase(path, pattern) for pattern in patterns))
+    from dependency_audit import evidence_inputs, reject_active_references
+    evidence = evidence_inputs(repository)
+    reject_active_references(repository, evidence, {'targets': selected})
+    result = sorted(path for path in candidates if (repository / path).resolve() not in evidence
+                    and (path in exact or any(fnmatch.fnmatchcase(path, pattern) for pattern in patterns))
                     and (Path(path).name == "package.json" or Path(path).suffix == ".csproj"))
     for relative in result:
         if not (repository / relative).resolve().is_relative_to(repository.resolve()):
