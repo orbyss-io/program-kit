@@ -84,7 +84,7 @@ DECISION_SOURCES = {
 }
 WEB_THREAT_MODEL = "program-kit-web-threat-model-v1"
 WEB_SECURITY_EVIDENCE = "program-kit-web-security-evidence-v1"
-APPROVAL_MODES = {"interactive", "automatic"}
+APPROVAL_MODES = {"interactive", "automatic", "simulated-proxy"}
 PENDING_RECOVERY_REVIEW = False
 ASSESSMENT_BASIS = (
     BOOTSTRAP_INTAKE,
@@ -105,6 +105,15 @@ class GovernanceStateError(ValueError):
 
 
 def validate_approval_mode(mode: str) -> str:
+    from proxy_bootstrap import MODE, require_active
+    from proxy_intake import MARKER
+    if mode == MODE or project_path(MARKER).exists():
+        if mode != MODE:
+            raise GovernanceStateError('Proxy bootstrap reviews must be explicitly simulated')
+        try:
+            require_active(Path.cwd())
+        except (ValueError, OSError) as error:
+            raise GovernanceStateError(str(error)) from error
     if mode not in APPROVAL_MODES:
         raise GovernanceStateError(
             f"Approval mode must be one of {sorted(APPROVAL_MODES)}, got {mode!r}"
@@ -118,6 +127,12 @@ def recorded_approval_mode(record: dict, label: str) -> str:
     mode = record.get("approval_mode", "interactive")
     if not isinstance(mode, str) or mode not in APPROVAL_MODES:
         raise GovernanceStateError(f"{label} has an invalid approval mode")
+    if mode == 'simulated-proxy':
+        from proxy_bootstrap import require_active
+        try:
+            require_active(Path.cwd())
+        except (ValueError, OSError) as error:
+            raise GovernanceStateError(str(error)) from error
     return mode
 
 

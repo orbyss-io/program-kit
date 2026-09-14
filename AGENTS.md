@@ -77,6 +77,13 @@ Disclose simulated answers, preserve the proxy marker, and stop before confirmat
 This supplies no paid-worker, live-acceptance, implementation, architecture or release authority.
 The following live-acceptance requirements remain unchanged for actual automated workers.
 
+An explicit later request can extend the same-session rehearsal through bootstrap using
+`speckit.program-kit-governance.proxy-bootstrap`. Its dedicated adapter pauses native command steps
+for the current session, labels review decisions simulated, retains the draft intake and runs real
+validators. This is a separate exception for an adapter that cannot dispatch a coding agent; never
+use ordinary outer Codex bootstrap for a proxy or promote its results to consumer authority.
+Stop before feature implementation. The paid-worker manifest rules still apply to actual workers.
+
 Paid live acceptance is entirely user-invoked. Do not ask whether to run it during publication, and
 do not report it as skipped when it was not requested. Deterministic local and CI-compatible Release
 tests remain mandatory.

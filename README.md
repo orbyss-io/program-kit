@@ -230,6 +230,11 @@ questions and answers, validates the requested draft scope, and stops before con
 bootstrap. This is an optional diagnostic tool, not independent live acceptance or authorization
 for paid workers, implementation or release. See the [proxy intake command](extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-intake.md).
 
+You can explicitly extend a full draft through a same-session bootstrap rehearsal with
+`$speckit-program-kit-governance-proxy-bootstrap`. Native workflow stages and validators run while
+agent commands pause for the current session. Review decisions remain simulated, the intake stays
+draft, and the result has no consumer completion authority. See the [proxy bootstrap command](extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-bootstrap.md).
+
 For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
 ratification:
 

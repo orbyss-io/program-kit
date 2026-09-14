@@ -63,3 +63,7 @@ Run `python .specify/extensions/program-kit-governance/scripts/proxy_intake.py v
 result, questions/answers, draft synthesis, failures/repairs and limits in plain language. Report only
 measured token usage if available; never estimate it from file bytes or cached volume.
 Stop. Do not provide a bootstrap launch command for this unconfirmed proxy draft.
+
+If the user subsequently requests a same-session bootstrap rehearsal, use the separate installed
+`speckit.program-kit-governance.proxy-bootstrap` command. That explicit scope extension preserves
+the draft and provenance marker; it does not enable ordinary bootstrap or a paid live worker.

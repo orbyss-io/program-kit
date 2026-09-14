@@ -533,10 +533,13 @@ def intake_from_run(
         raise IntakeError(
             f"Workflow bootstrap_intake must be {CANONICAL_INTAKE.as_posix()}"
         )
+    from proxy_bootstrap import active
+    proxy_run = active(project_root, run_id)
     return CANONICAL_INTAKE, validate_intake(
         project_root,
         CANONICAL_INTAKE,
         allow_architecture_evolution=allow_architecture_evolution,
+        allowed_statuses={"draft"} if proxy_run else None,
     )
 
 
