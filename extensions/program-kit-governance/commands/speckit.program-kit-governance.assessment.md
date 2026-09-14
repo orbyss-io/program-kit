@@ -121,6 +121,15 @@ Allowed choice sources are `explicit-intake`, `program-kit-default`, `derived-de
 uses the schema fields shown. Declare provider/durability intent in the existing per-owner persistence records. The deterministic resolver supplies absent profile, host, local identity and toolchain defaults before approval. Unresolved and deferred entries name
 the affected roadmap item or lifecycle trigger rather than becoming global blockers.
 
+Audit inherited open items against the action they actually block. Unspecified cost, hosting or
+provider constraints do not prevent applicable local defaults. Do not schedule a generic unanswered
+constraints survey as a pre-architecture user-answer merely because intake assigned it to
+architecture. Preserve the unknown fact and its source; defer production/service commitments to
+their actual trigger. Require an earlier answer only for a concrete conflicting constraint or a
+necessary action that has no safe applicable default, explaining that dependency in `blocks`.
+If confirmed intake explicitly requires an answer before even local evaluation, preserve that
+instruction and route its clarification; do not silently reinterpret an explicit consumer limit.
+
 Do not guess exact toolchain versions during intake. The research stage receives the selected
 profile manifests through its generated `managed_profile_pins` authority and verifies the resolver's
 `toolchain` block from those exact values before deterministic validation.

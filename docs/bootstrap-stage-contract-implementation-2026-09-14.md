@@ -105,3 +105,37 @@ new disposable consumer to start bootstrap. After native completion, run the sel
 full Spec Kit flow. The next live run measures token use, avoidable exploration/retries and useful
 time alongside the quality of the roadmap and delivered journey. No live quality or efficiency
 improvement is claimed before those observations exist.
+
+## Intake constraint classification follow-up (`03e99993`)
+
+This trial selected .NET, local Keycloak and EF/PostgreSQL defaults successfully. Its intake Q9
+asked whether hard hosting/cost/provider constraints existed, made delegation conditional on
+absence of constraints, then converted an unanswered optional follow-up into an architecture
+prerequisite. The user accepted the recommendations and confirmed the provisional synthesis;
+the evidence did not establish actual constraints or authorize spending. Assessment retained
+`hard-constraints` as a required architecture answer even though research selected no paid service
+and reported no necessary new local human answer. The native gate faithfully enforced that
+misclassified question. This is a different cause from the earlier ADR-resolution defect.
+
+The question ledger otherwise covered the initial useful shopping loop, participants and rights,
+browser/online boundaries, ongoing-list and undo behavior, duplicates, future journeys, update
+and conflict expectations, and individual private access. This inspection does not prove complete
+semantic coverage of every possible consumer. Intake validation checks structured classifications,
+nonempty dispositions, blocking descriptions, triggers and evidence references; it does not prove
+that an agent assigned the right urgency to a human question.
+
+The existing grilling, intake method, default-adoption and assessment instructions now distinguish
+unspecified constraints from confirmed absence. Authorized local defaults do not require proof
+that no unmentioned constraints exist. Explicit consumer limits remain protected, and actual paid
+service or production commitments still require their necessary decisions. Intake closure reviews
+each remaining human question's next dependent action, evidence for urgency and applicability of
+defaults/deferral. A real immediate blocker cannot merely be handed to architecture to make intake
+appear complete. Six cases in the existing interactive intake acceptance guide cover both false
+blockers and missed required questions. These are live semantic acceptance criteria, not a claim
+that schema validation proves interview quality. The failed consumer was inspected read-only.
+
+All 48 Development validators passed (`artifacts/intake-constraint-disposition-development.log`).
+Setup-only installation `8620b9280a9541a28a559106dd2791c8` preserved the vision-only fixture,
+matched both corrected reference hashes and contained the revised grilling/assessment skills.
+No live agent was started. The existing failed run can record an explicit local-default policy
+answer and resume; its confirmed intake has not been silently rewritten.

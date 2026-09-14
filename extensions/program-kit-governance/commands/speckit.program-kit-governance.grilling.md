@@ -46,6 +46,13 @@ Resolve the condition through evidence or a focused question only when it affect
 outcome; otherwise retain it as explicitly assigned. Do not convert a planning estimate or a
 conditional fallback into an observed property of the user's organization.
 
+Distinguish an unknown fact from a prerequisite for acting. Applying an authorized default does
+not require the user to prove that no unmentioned constraints exist. Do not make a default
+recommendation conditional on that proof. Preserve known conflicts and unresolved facts, but
+ask again only when a concrete pending action depends on the missing fact and no authorized
+default permits that action. An optional unanswered question does not become mandatory merely
+because the interview is ending. Keep later commitments at their actual trigger.
+
 Challenge contradictions and weak assumptions with evidence. When the user changes a decision,
 invalidate only conclusions that depend on it, preserve unaffected answers, and reopen the affected
 branches. Maintain a compact decision record so the conversation can resume without reconstructing

@@ -47,6 +47,21 @@ packages, versions, or profiles. Record the default's source, rationale, and mat
 for the final synthesis, where the user can revisit it. Technical importance alone is not a reason
 to spend an interview question on an unambiguous default.
 
+For broad questions about cost, hosting, existing providers or technology constraints, distinguish
+"none specified" from "none exist". The former permits applicable Program Kit local-development
+and evaluation defaults; it does not assert an unlimited budget or authorize services. Preserve
+any concrete constraint the user supplies. Unknown production costs, hosting and account recovery
+remain due before those commitments, unless a stated requirement makes them necessary earlier.
+Do not turn an optional unanswered constraints survey into a mandatory architecture question or
+condition ordinary default adoption on proving the absence of constraints.
+
+Before confirming intake, review every remaining human decision against its next dependent action:
+what exactly cannot proceed, what supplied evidence makes an answer necessary now, and why an
+applicable default or a later trigger cannot handle it. Ask a focused question now if it really
+blocks the immediate bootstrap baseline. Otherwise apply the default or retain an owned deferral.
+Do not declare intake complete while merely assigning a genuinely immediate human blocker to
+architecture. This review covers unresolved branches; it is not another fixed questionnaire.
+
 Ask when intent is unclear, conflicts with a default, or leaves materially different candidates
 plausible. Clarify the product need first, then derive the technical consequence where evidence
 permits. Explain alternatives and consequences when an actual user choice remains. Preserve an

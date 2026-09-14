@@ -31,6 +31,12 @@ default immediately; only consequential questions without a safe default need hu
 Unattended workers must not treat an asynchronous question as answered. Required answers are
 recorded against the exact question at the native handoff, then the user resumes the workflow.
 
+"No additional constraints supplied" is sufficient to adopt an applicable local default. It is
+not a claim that no constraints exist. A generic unanswered constraints question must not shadow
+resolved defaults with a new architecture blocker. Preserve known conflicts; require facts needed
+for an actual present action, and defer production hosting, paid services and operational choices
+until those actions become necessary. Default adoption never supplies spending authorization.
+
 ## Bootstrap promise
 
 Program Kit produces a complete, opinionated, usable baseline. Human attention is reserved for
