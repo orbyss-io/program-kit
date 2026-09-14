@@ -1325,6 +1325,21 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
             "roadmap governance",
         )
         checks.append("roadmap-governance")
+        # Roadmap owns link-only edits to architecture and traceability. Close
+        # their derived hashes/projection before the next context validates the
+        # canonical map; waiting until post-proof synchronization is too late.
+        _run_project_validator(
+            project_root, governance_script, ["synchronize-roadmap"], "roadmap synchronization"
+        )
+        checks.append("roadmap-synchronization")
+        _run_project_validator(
+            project_root, governance_script, ["validate-bootstrap-consistency"], "roadmap consistency"
+        )
+        checks.append("roadmap-consistency")
+        # Synchronization adds marked navigation. Enforce budgets on those final
+        # bytes as well, so a passing handoff cannot conceal an oversized output.
+        output = validate_stage_output(project_root, stage, run_id)
+        checks.append("synchronized-output-contract")
     elif stage == 'closure':
         from bootstrap_proof_plan import execute
         execute(project_root, validate_only=True)

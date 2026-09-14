@@ -52,6 +52,9 @@ update `docs/architecture/architecture.md` and `docs/architecture/traceability.m
 copied status fields or tables for roadmap entries and no stale claims that a roadmap record does not
 yet exist. Preserve their design, decision, ownership, and verification traceability. Do not write or
 edit the marked `PROGRAM-KIT:ROADMAP-VIEW` section; the deterministic synchronization step owns it.
+The terminal validation batch runs that existing synchronization before closure context is built,
+refreshes the two documents' canonical hashes and DSL, and checks consistency and final byte budgets.
+Do not refresh hashes by hand or run an additional synchronization command after the batch.
 Make the smallest link-only edits needed outside the new roadmap, do not restate roadmap fields, and
 check the final byte count of each edited file against `output_contract.artifact_byte_budgets`.
 

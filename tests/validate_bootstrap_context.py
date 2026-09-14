@@ -513,11 +513,35 @@ def main() -> int:
             roadmap_batch = module.validate_stage_batch(project, run_id, "roadmap")
         finally:
             module._run_project_validator = original_validator
-        if roadmap_batch["checks"] != ["output-contract", "owned-decisions-and-answers", "roadmap-governance"] or not any(
-            arguments == ["validate-roadmap"]
-            for _, arguments, _ in validator_calls
-        ):
-            raise AssertionError("Roadmap drafting must validate Blocked entries before compatibility closure")
+        if roadmap_batch["checks"] != [
+            "output-contract", "owned-decisions-and-answers", "roadmap-governance",
+            "roadmap-synchronization", "roadmap-consistency", "synchronized-output-contract",
+        ] or [arguments for _, arguments, _ in validator_calls] != [
+            ["validate-roadmap"], ["synchronize-roadmap"], ["validate-bootstrap-consistency"],
+        ]:
+            raise AssertionError("Roadmap handoff must close document hashes, projection and consistency before closure")
+
+        # A pre-sync size check alone misses navigation appended by the helper.
+        architecture_document = project / "docs/architecture/architecture.md"
+        architecture_bytes = architecture_document.read_bytes()
+        try:
+            def oversized_sync(_root, _script, arguments, _label):
+                if arguments == ["synchronize-roadmap"]:
+                    architecture_document.write_text(
+                        "x" * (module.ARTIFACT_BYTE_BUDGETS["docs/architecture/architecture.md"] + 1),
+                        encoding="utf-8",
+                    )
+            module._run_project_validator = oversized_sync
+            try:
+                module.validate_stage_batch(project, run_id, "roadmap")
+            except module.ContextError as exc:
+                if "exceeds its hard byte budget" not in str(exc):
+                    raise
+            else:
+                raise AssertionError("Roadmap synchronization escaped final artifact byte budgets")
+        finally:
+            architecture_document.write_bytes(architecture_bytes)
+            module._run_project_validator = original_validator
 
         assessment_path = project / "docs/architecture/bootstrap-assessment.md"
         assessment_text = assessment_path.read_text(encoding="utf-8")

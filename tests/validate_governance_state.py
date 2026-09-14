@@ -802,6 +802,31 @@ def main() -> int:
             if (project / module.WORKSPACE_DSL).read_text(encoding="utf-8") != expected_projection:
                 raise AssertionError("Roadmap synchronization did not refresh the C4 projection")
             module.validate_bootstrap_consistency()
+            # The terminal batch runs once in the producer and again at the
+            # native handoff. Synchronization must be repeatable without drift.
+            synchronized_paths = [project / relative for relative in (
+                module.ARCHITECTURE, module.TRACEABILITY, module.ARCHITECTURE_MAP, module.WORKSPACE_DSL
+            )]
+            original_bytes = {path: path.read_bytes() for path in synchronized_paths}
+            module.synchronize_roadmap_views()
+            if any(path.read_bytes() != content for path, content in original_bytes.items()):
+                raise AssertionError("Repeated roadmap synchronization changed its outputs")
+            unrelated = project / "docs/architecture/quality-attributes.md"
+            quality_bytes = unrelated.read_bytes()
+            map_path = project / module.ARCHITECTURE_MAP
+            drift_model = json.loads(map_path.read_text(encoding="utf-8"))
+            drift_model["documentation"].append({
+                "id": "quality-attributes", "path": "docs/architecture/quality-attributes.md",
+                "sha256": module.sha256(unrelated), "scope": "Outside roadmap write ownership",
+            })
+            module.write_json(map_path, drift_model)
+            original_bytes[map_path] = map_path.read_bytes()
+            unrelated.write_bytes(quality_bytes + b"\nUnreviewed quality change\n")
+            expect_error(module, module.synchronize_roadmap_views, "documentation is missing or stale")
+            if any(path.read_bytes() != content for path, content in original_bytes.items()):
+                raise AssertionError("Rejected synchronization left partial derived updates")
+            unrelated.write_bytes(quality_bytes)
+            module.synchronize_roadmap_views()
             module.validate_bootstrap(False, True)
             module.write_review("bootstrap")
             assert_review_packet(project / module.BOOTSTRAP_REVIEW, "bootstrap")
