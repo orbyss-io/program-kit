@@ -64,6 +64,35 @@ own applicable inherited or executed evidence.
 
 ## Next live exercise
 
+### Follow-up: approved design handoff (run `53b44fbf`)
+
+The first fresh shopping run exposed a defect in the redesign. Architecture authored the
+Household Shopping context, module dependencies and UI placement in `f1-household-boundary.md`
+and related Proposed ADRs, but `require-tooling-handoff` still looked for a resolution inside the
+approved decision register. Architecture was correctly forbidden to rewrite that register.
+The diagnostic then incorrectly offered the user-answer command for this design-owned task.
+The run did apply the .NET and local Keycloak defaults; this failure was not absent selection.
+
+Design handoffs now project explicit question-bound resolution metadata from the existing ADRs
+registered in the canonical map. The map hash, ADR hash/status and original question must match.
+Stage briefs supply the exact marker; native producer completion and terminal validation enforce
+it before downstream work. This closes design authoring only. Human approval and empirical proof
+are unchanged. Final review displays the authored design evidence, and recovery rechecks current
+evidence instead of treating the saved failure report as current authority. Only user-answer
+questions receive answer commands. Standalone validation without native inputs remains supported.
+
+Seventeen targeted handoff tests passed, including native shell execution reproducing the missing
+design link and then reaching the independent human review gate without changing the register.
+Native recovery checks passed in `artifacts/design-handoff-resumption.log`. The original failed
+consumer remains unchanged as historical evidence; the next exercise starts from a fresh intake.
+All 48 Development validators passed on the final repaired sources; log:
+`artifacts/design-handoff-development-verified.log`. The setup-only installation in
+`artifacts/intake-sessions/814d3749a57f435898d6334c5827531f/session.json` passed vision isolation,
+and the installed handoff, context, lifecycle and review modules match the source hashes.
+No coding agent was started. An earlier Development attempt exposed the standalone/native
+validation distinction described above and is retained separately in
+`artifacts/design-handoff-development.log`.
+
 Use the existing household-shopping vision-only fixture. Supply no private acceptance folder or
 predefined architecture. In a normal foreground PowerShell terminal at the candidate repository root:
 

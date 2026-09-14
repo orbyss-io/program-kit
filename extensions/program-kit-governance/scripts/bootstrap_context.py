@@ -1293,6 +1293,12 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
         checks.extend(validate_architecture_structure(project_root, run_id)["checks"])
     output = validate_stage_output(project_root, stage, run_id)
     checks.append("output-contract")
+    # Standalone readiness validation can use a label without native run state.
+    # Native producers always have inputs; their shell handoff remains strict.
+    if run_id and (safe_run_directory(project_root, run_id) / 'inputs.json').is_file():
+        from bootstrap_handoff import require
+        require(project_root, run_id, stage, questions_only=True)
+        checks.append('owned-decisions-and-answers')
     workflow_path = project_root / '.specify/workflows/runs' / run_id / 'workflow.yml'
     if stage == 'assessment' and workflow_path.is_file() and 'require-research-handoff' in workflow_path.read_text(encoding='utf-8'):
         from bootstrap_handoff import require
@@ -1461,6 +1467,8 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         'rule': 'Use only for a necessary consequential answer without a safe default; record it and return. The native boundary owns answer collection and resumption.',
     }
     payload['stage_plan']['decision_handoff'] = __import__('bootstrap_handoff').projection(project_root, run_id)
+    if any(q.get('kind') == 'design-decision' for q in payload['stage_plan']['decision_handoff']):
+        payload['stage_plan']['design_resolution'] = 'Resolve design-decision questions due at this stage before terminal validation. Before assessment approval, record resolution in the register. After approval, preserve the register: explain the design in an existing Proposed ADR, insert the exact resolution_marker from decision_handoff as a metadata line, and refresh that ADR hash in the canonical map. This closes design authoring only, not human acceptance or compatibility proof. User answers cannot close design work.'
     first_ids = set(decisions.get('first_slice', {}).get('journey_ids', []))
     if first_ids and stage != 'assessment':
         projection = payload['intake']

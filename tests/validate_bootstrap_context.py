@@ -375,7 +375,7 @@ def main() -> int:
                 ):
                     raise AssertionError("Assessment removed routed diagnostic references entirely")
                 batch = module.validate_stage_batch(project, run_id, "assessment")
-                if batch["checks"] != ["output-contract"]:
+                if batch["checks"] != ["output-contract", "owned-decisions-and-answers"]:
                     raise AssertionError("Assessment terminal batch acquired a research prerequisite")
             if stage == "architecture":
                 if "elements" in payload["architecture_map"]:
@@ -513,7 +513,7 @@ def main() -> int:
             roadmap_batch = module.validate_stage_batch(project, run_id, "roadmap")
         finally:
             module._run_project_validator = original_validator
-        if roadmap_batch["checks"] != ["output-contract", "roadmap-governance"] or not any(
+        if roadmap_batch["checks"] != ["output-contract", "owned-decisions-and-answers", "roadmap-governance"] or not any(
             arguments == ["validate-roadmap"]
             for _, arguments, _ in validator_calls
         ):

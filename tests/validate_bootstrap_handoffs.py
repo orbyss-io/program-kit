@@ -86,6 +86,63 @@ class DefaultAndHandoffTests(unittest.TestCase):
         write(self.root / handoff.REGISTER, self.register)
         self.assertEqual('complete', handoff.check(self.root, 'trial', 'research')['status'])
         self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'architecture')['status'])
+        self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'research', questions_only=True)['status'])
+
+    def design_fixture(self):
+        question = {'id': 'design-boundary', 'question': 'Realize the context, contracts and UI placement',
+                    'blocks': 'tooling', 'kind': 'design-decision', 'owner': 'architecture', 'due_stage': 'architecture'}
+        self.register['unresolved'] = [question]
+        write(self.root / handoff.REGISTER, self.register)
+        relative = 'docs/architecture/decisions/household.md'
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        marker = handoff.projection(self.root, 'trial')[0]['resolution_marker']
+        path.write_text('# Household ownership\n\n- **Status**: Proposed\n' + marker + '\n\nOne household context owns list contracts; the Web adapter owns initial rendering.\n', encoding='utf-8')
+        import hashlib
+        model = {'decisions': [{'id': 'household', 'path': relative, 'status': 'Proposed',
+                                'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}]}
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        return question, path, model
+
+    def test_approved_question_resolves_through_existing_proposed_adr(self):
+        question, path, model = self.design_fixture()
+        before = (self.root / handoff.REGISTER).read_bytes()
+        write(self.root / '.specify/governance/bootstrap-assessment-approval.json', {'approved': True})
+        self.assertEqual('complete', handoff.require(self.root, 'trial', 'architecture', questions_only=True)['status'])
+        self.assertEqual('complete', handoff.require(self.root, 'trial', 'tooling')['status'])
+        self.assertEqual(before, (self.root / handoff.REGISTER).read_bytes())
+        self.assertEqual('Proposed', handoff.projection(self.root, 'trial')[0]['resolution_evidence'][0]['status'])
+        # Earlier failure metadata cannot force another paid architecture dispatch.
+        write(self.directory / 'handoff-tooling.json', {'status': 'needs-design-decision', 'retry_stage': 'architecture'})
+        self.assertIsNone(handoff.retry_stage(self.root, 'trial', 'tooling'))
+        question['question'] = 'A changed requirement needs new design evidence'
+        write(self.root / handoff.REGISTER, self.register)
+        self.assertEqual('architecture', handoff.retry_stage(self.root, 'trial', 'tooling'))
+
+    def test_stale_unreferenced_or_rejected_adr_cannot_close_design(self):
+        question, path, model = self.design_fixture()
+        original = path.read_bytes()
+        path.write_bytes(original + b'Unbound edit\n')
+        self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'tooling')['status'])
+        path.write_bytes(original)
+        model['decisions'][0]['status'] = 'Rejected'
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'tooling')['status'])
+        write(self.root / 'docs/architecture/architecture-map.json', {'decisions': []})
+        self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'tooling')['status'])
+
+    def test_design_failure_does_not_request_user_answer_and_retries_owner(self):
+        question, path, model = self.design_fixture()
+        path.unlink()
+        with self.assertRaises(ValueError) as caught:
+            handoff.require(self.root, 'trial', 'architecture', questions_only=True)
+        self.assertNotIn('--answer', str(caught.exception))
+        self.assertIn('design owner', str(caught.exception))
+        self.assertEqual('architecture', handoff.retry_stage(self.root, 'trial', 'architecture', completing=True))
+        question['kind'] = 'user-answer'
+        write(self.root / handoff.REGISTER, self.register)
+        with self.assertRaisesRegex(ValueError, 'needs-user-answer'):
+            handoff.retry_stage(self.root, 'trial', 'tooling')
 
     def test_first_feature_is_bounded_and_future_blockers_do_not_expand_it(self):
         from validate_governance_state import roadmap
@@ -168,6 +225,40 @@ class DefaultAndHandoffTests(unittest.TestCase):
         model['refinements'][0]['after_sha256'] = architecture.refinement_hash(changed)
         with self.assertRaisesRegex(architecture.ArchitectureMapError, 'preserve original consumer evidence'):
             architecture.refined_records(model, 'candidate_contexts', [old], [changed])
+
+    @unittest.skipUnless(importlib.util.find_spec('specify_cli'), 'Native engine tests use the installed Spec Kit interpreter')
+    def test_native_approved_design_handoff_reaches_review_without_rewriting_register(self):
+        from contextlib import chdir
+        from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
+        from specify_cli.workflows.base import RunStatus
+        question, path, model = self.design_fixture()
+        original = path.read_bytes()
+        approved = (self.root / handoff.REGISTER).read_bytes()
+        path.write_text('# Household ownership\n\n- **Status**: Proposed\n\nDesign exists but its resolution link is absent.\n', encoding='utf-8')
+        import hashlib
+        model['decisions'][0]['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        write(self.root / '.specify/governance/bootstrap-assessment-approval.json', {'register': hashlib.sha256(approved).hexdigest()})
+        shutil.copytree(ROOT / 'extensions/program-kit-governance/scripts', self.root / '.specify/extensions/program-kit-governance/scripts')
+        shutil.copytree(ROOT / 'extensions/program-kit-dotnet/scripts', self.root / '.specify/extensions/program-kit-dotnet/scripts')
+        definition = WorkflowDefinition({'schema_version': '1.0', 'workflow': {'id': 'program-kit-bootstrap', 'name': 'Approved design handoff regression', 'version': '0.12.0'},
+            'inputs': {'bootstrap_verdict': {'type': 'string', 'default': ''}}, 'steps': [
+                {'id': 'require-architecture-answers', 'type': 'shell', 'run': '"' + sys.executable + '" .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py questions --run-id {{ context.run_id }} --stage architecture', 'output_format': 'json'},
+                {'id': 'require-tooling-handoff', 'type': 'shell', 'run': '"' + sys.executable + '" .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py require --run-id {{ context.run_id }} --stage tooling', 'output_format': 'json'},
+                {'id': 'review', 'type': 'gate', 'message': 'Human architecture acceptance remains required', 'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'}]})
+        with chdir(self.root), patch.object(sys.stdin, 'isatty', return_value=False):
+            engine = WorkflowEngine(self.root)
+            state = engine.execute(definition, run_id='design')
+            self.assertEqual(RunStatus.FAILED, state.status)
+            self.assertEqual('require-architecture-answers', state.current_step_id)
+            self.assertNotIn('require-tooling-handoff', state.step_results)
+            path.write_bytes(original)
+            model['decisions'][0]['sha256'] = hashlib.sha256(original).hexdigest()
+            write(self.root / 'docs/architecture/architecture-map.json', model)
+            state = engine.resume('design')
+            self.assertEqual(RunStatus.PAUSED, state.status)
+            self.assertEqual('review', state.current_step_id)
+            self.assertEqual(approved, (self.root / handoff.REGISTER).read_bytes())
 
     @unittest.skipUnless(importlib.util.find_spec('specify_cli'), 'Native engine tests use the installed Spec Kit interpreter')
     def test_native_question_answer_gate_and_explicit_reopen(self):

@@ -104,6 +104,13 @@ Do not rewrite `bootstrap-assessment.md`, `decision-backlog.md`, `tooling-evalua
 the assessment review so the artifacts can be corrected, the packet regenerated, and the exact
 contents approved again.
 
+Resolve each `decision_handoff` design question due at architecture in the ADR that actually
+answers it. Insert its exact supplied `resolution_marker` as a metadata line and refresh the
+ADR's hash in the canonical map. This links completed design back to the approved question
+without editing the approved register. Terminal validation requires this link. A Proposed ADR
+closes design authoring; human acceptance and compatibility proof remain separate obligations.
+Never substitute a user answer for architecture-owned work or mark an unanswered question resolved.
+
 Treat `docs/architecture/architecture-map.json` as the canonical living architecture model and the
 confirmed intake map as its provisional starting state. Make the smallest patch that adds accepted
 decision and architecture evidence; do not synthesize the model from an empty object or copy a

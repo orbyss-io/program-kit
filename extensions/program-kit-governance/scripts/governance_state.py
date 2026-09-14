@@ -1289,6 +1289,16 @@ def write_review(stage: str) -> None:
         return
     if stage == "bootstrap":
         validate_bootstrap(False, False)
+        from bootstrap_handoff import design_evidence
+        unresolved = []
+        designed = []
+        for question in decisions.get('unresolved', []):
+            evidence = design_evidence(Path.cwd(), question)[1] if question.get('kind') == 'design-decision' else []
+            if evidence:
+                designed.append(f"- `{question['id']}`: design authored in " + ', '.join(
+                    f"`{item['path']}` ({item['status']})" for item in evidence) + '; acceptance and proof remain separate.')
+            elif not question.get('resolution'):
+                unresolved.append(question)
         founding_adrs = reviewed_adr_records()
         artifacts = bootstrap_artifacts()
         rows = []
@@ -1339,7 +1349,8 @@ def write_review(stage: str) -> None:
             "## Exceptions and unresolved decisions",
             "",
             *_list_items(decisions.get("overrides"), "decision", "No default overrides"),
-            *_list_items(decisions.get("unresolved"), "question", "No immediate unresolved decisions"),
+            *_list_items(unresolved, "question", "No immediate unresolved decisions"),
+            *designed,
             "",
             "## View the C4 projection",
             "",

@@ -39,19 +39,55 @@ def directory(root, run_id):
     return path
 
 
-def projection(root, run_id):
+def questions(root, run_id):
     questions = load(root / REGISTER, {}).get('unresolved', [])
     path = directory(root, run_id)
     questions = questions + load(path / 'decision-questions.json', {}).get('questions', [])
     if len({q['id'] for q in questions}) != len(questions):
         raise ValueError('Duplicate decision question IDs across register and stage questions')
+    return questions
+
+
+def design_evidence(root, question):
+    """Project resolution from existing ADR authority, without rewriting approval.
+
+    A Proposed ADR closes design authoring only. Human acceptance and empirical
+    compatibility still belong to their existing later gates.
+    """
+    marker = '- **Resolves**: ' + question['id'] + ' @ ' + fingerprint(question)
+    evidence = []
+    for decision in load(root / 'docs/architecture/architecture-map.json', {}).get('decisions', []):
+        if decision.get('status') not in {'Proposed', 'Accepted'}:
+            continue
+        relative = Path(decision.get('path', ''))
+        path = (root / relative).resolve()
+        if relative.is_absolute() or not path.is_relative_to((root / 'docs/architecture/decisions').resolve()) or not path.is_file():
+            continue
+        data = path.read_bytes()
+        digest = hashlib.sha256(data).hexdigest()
+        if digest != decision.get('sha256'):
+            continue
+        lines = data.decode('utf-8').splitlines()
+        if marker in lines and '- **Status**: ' + decision['status'] in lines:
+            evidence.append({'decision': decision['id'], 'path': relative.as_posix(), 'sha256': digest,
+                             'status': decision['status']})
+    return marker, evidence
+
+
+def projection(root, run_id):
+    path = directory(root, run_id)
     responses = load(path / 'decision-responses.json', {})
-    return [{**q, 'answer': responses.get(q['id'], {}).get('answer')
-             if responses.get(q['id'], {}).get('question_sha256') == fingerprint(q) else None}
-            for q in questions]
+    result = []
+    for q in questions(root, run_id):
+        item = {**q, 'answer': responses.get(q['id'], {}).get('answer')
+                if responses.get(q['id'], {}).get('question_sha256') == fingerprint(q) else None}
+        if q.get('kind') == 'design-decision':
+            item['resolution_marker'], item['resolution_evidence'] = design_evidence(root, q)
+        result.append(item)
+    return result
 
 
-def pending_questions(root, run_id, stage):
+def pending_questions(root, run_id, stage, *, completing=False):
     pending = []
     order = list(STAGES)
     for q in projection(root, run_id):
@@ -62,7 +98,8 @@ def pending_questions(root, run_id, stage):
             raise ValueError('Unknown question due stage: ' + str(due))
         if due in order and order.index(due) <= order.index(stage):
             if (q['kind'] == 'user-answer' and not q['answer'] or
-                    q['kind'] == 'design-decision' and order.index(due) < order.index(stage) and not q.get('resolution')):
+                    q['kind'] == 'design-decision' and (completing or order.index(due) < order.index(stage))
+                    and not (q.get('resolution') or q.get('resolution_evidence'))):
                 pending.append(q)
     return pending
 
@@ -81,7 +118,7 @@ def check(root, run_id, stage, *, questions_only=False):
     # coordinator explicitly has no Foundation opt-out engineering adapter.
     if not questions_only and register.get('dotnet', {}).get('program_kit_host_opt_out') is True:
         raise HandoffError('BOOTSTRAP-UNSUPPORTED-ADAPTER: Foundation host opt-out has no supported engineering adapter. Resolve an integration route before approving this baseline; the coordinator cannot scaffold it.', 'research')
-    pending = pending_questions(root, run_id, stage)
+    pending = pending_questions(root, run_id, stage, completing=questions_only)
     result = {'stage': stage, 'status': 'complete', 'next_owner': STAGES[stage]['next_owner'],
               'first_slice': first, 'register_sha256': fingerprint(register), 'questions': pending}
     if pending:
@@ -102,13 +139,29 @@ def require(root, run_id, stage, *, questions_only=False):
         result['retry_stage'] = result['questions'][0]['due_stage']
     path.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     if result['status'] != 'complete':
-        lines = [result['status'] + ': dependent ' + stage + ' work has not started.']
+        lines = [result['status'] + ': ' + stage + (' output is incomplete.' if questions_only else ' handoff is blocked.')]
         for q in result['questions']:
             lines.append(q['id'] + ': ' + q['question'] + '\nOwner: ' + q['owner'] + '\nRecommendation: ' + q.get('recommendation', 'Design owner must supply evidence.'))
-        lines.append('Record required answers: python .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py answer --run-id ' + run_id + ' --question-id <id> --answer "<your answer>"')
+        if any(q['kind'] == 'user-answer' for q in result['questions']):
+            lines.append('Record user-answer questions only: python .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py answer --run-id ' + run_id + ' --question-id <id> --answer "<your answer>"')
+        if any(q['kind'] == 'design-decision' for q in result['questions']):
+            lines.append('The design owner must resolve these questions in its artifacts; no user answer or approval substitutes for design evidence. Resume routes unfinished design to its owning stage.')
         lines.append('Then resume: python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id ' + run_id)
         raise ValueError('\n'.join(lines))
     return result
+
+
+def retry_stage(root, run_id, stage, *, completing=False):
+    """Re-evaluate evidence; a saved failure report is not current authority."""
+    try:
+        result = check(root, run_id, stage, questions_only=completing)
+    except HandoffError as error:
+        return error.retry_stage
+    if result['status'] == 'needs-user-answer':
+        require(root, run_id, stage, questions_only=completing)
+    if result['status'] == 'needs-design-decision':
+        return min((q['due_stage'] for q in result['questions']), key=list(STAGES).index)
+    return None
 
 
 def answer(root, run_id, identity, text):
@@ -119,8 +172,8 @@ def answer(root, run_id, identity, text):
         reopened = str(state.get('error', '')).startswith('Operator reopened ')
         if state.get('status') not in {'failed', 'paused'} or not (reopened or str(state.get('current_step_id', state.get('current_step', ''))).startswith('require-')):
             raise ValueError('Answers are recorded only at a stopped native handoff; changed approved meaning must first reopen its owning stage')
-        questions = {q['id']: {k: v for k, v in q.items() if k != 'answer'} for q in projection(root, run_id)}
-        q = questions.get(identity)
+        current_questions = {q['id']: q for q in questions(root, run_id)}
+        q = current_questions.get(identity)
         if not q or q.get('kind') != 'user-answer' or not text or not text.strip():
             raise ValueError('Answer requires a current user-answer question and nonempty response')
         if len(text) > 4000:

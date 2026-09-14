@@ -463,17 +463,20 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
     if state.status == RunStatus.FAILED:
         restart = STAGE_STARTS.get(state.current_step_id, state.current_step_id)
         if state.current_step_id.startswith('require-') and state.current_step_id.endswith('-answers'):
-            from bootstrap_handoff import require
+            from bootstrap_handoff import retry_stage
+            from bootstrap_stages import STAGES
             stage = state.current_step_id.removeprefix('require-').removesuffix('-answers')
-            require(root, run_id, stage, questions_only=True)
+            owner = retry_stage(root, run_id, stage, completing=True)
+            if owner:
+                restart = STAGES[owner]['restart']
         if state.current_step_id.startswith('require-') and state.current_step_id.endswith('-handoff'):
             from bootstrap_stages import STAGES
+            from bootstrap_handoff import retry_stage
             stage = state.current_step_id.removeprefix('require-').removesuffix('-handoff')
-            report = run_directory(root, run_id) / ('handoff-' + stage + '.json')
-            if report.is_file():
-                result = lifecycle.load(report)
-                if result.get('status') == 'needs-design-decision' and result.get('retry_stage') in STAGES:
-                    restart = STAGES[result['retry_stage']]['restart']
+            if stage in STAGES:
+                owner = retry_stage(root, run_id, stage)
+                if owner:
+                    restart = STAGES[owner]['restart']
         if state.inputs.get('source_run'):
             if state.current_step_id == 'recovery-require-ready':
                 verdict = lifecycle.verdict(root)
