@@ -148,6 +148,8 @@ def definition_for(root: Path, run_id: str) -> WorkflowDefinition:
 
 
 def require_enabled(root: Path, state: RunState | None = None) -> None:
+    from proxy_intake import forbid_authority
+    forbid_authority(root)
     owner = getattr(state, 'installed_registry_root', None)
     if owner:
         owner_path = Path(owner)

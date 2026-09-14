@@ -328,6 +328,12 @@ def validate_intake(
         raise IntakeError(f"Bootstrap intake exceeds {MAX_BYTES} bytes")
     intake = load_object(path)
     version = intake.get("schema_version")
+    if intake.get('status') == 'confirmed':
+        from proxy_intake import forbid_authority
+        try:
+            forbid_authority(project_root)
+        except ValueError as error:
+            raise IntakeError(str(error)) from error
     if allowed_statuses is None and intake.get("status") != "confirmed":
         raise IntakeError("Bootstrap intake is not confirmed")
     statuses = allowed_statuses or {"confirmed"}

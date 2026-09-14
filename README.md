@@ -222,6 +222,14 @@ in a fresh user-owned terminal. It sets up a disposable consumer, asks for your 
 and opens Codex for human Q&A. It preserves review evidence before cleanup and never starts
 bootstrap. See [interactive intake acceptance](tests/acceptance/intake-grilling.md).
 
+For an explicitly requested non-authorizing rehearsal, use
+`$speckit-program-kit-governance-proxy-intake` or ask for a "proxy intake rehearsal".
+It uses the current session to simulate fictional consumer answers in a disposable consumer:
+one question round for a quick scan, or full draft intake when requested. It preserves the
+questions and answers, validates the requested draft scope, and stops before confirmation and
+bootstrap. This is an optional diagnostic tool, not independent live acceptance or authorization
+for paid workers, implementation or release. See the [proxy intake command](extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-intake.md).
+
 For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
 ratification:
 

@@ -66,6 +66,17 @@ authorizes moving a tag by itself.
 
 ## Optional live acceptance
 
+### Optional non-authorizing proxy intake
+
+An explicit user request for a proxy intake/rehearsal authorizes the current session to simulate
+fictional consumer answers and create draft artifacts in a disposable consumer. Use the shipped
+`speckit.program-kit-governance.proxy-intake` command. This is a separate optional tool: default to
+one question round for a quick scan, or perform full draft intake when requested. Setup uses
+`Start-IntakeSession.ps1 -PrepareOnly`; never launch its interactive mode for the proxy.
+Disclose simulated answers, preserve the proxy marker, and stop before confirmation/bootstrap.
+This supplies no paid-worker, live-acceptance, implementation, architecture or release authority.
+The following live-acceptance requirements remain unchanged for actual automated workers.
+
 Paid live acceptance is entirely user-invoked. Do not ask whether to run it during publication, and
 do not report it as skipped when it was not requested. Deterministic local and CI-compatible Release
 tests remain mandatory.

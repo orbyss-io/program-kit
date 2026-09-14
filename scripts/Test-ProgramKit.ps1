@@ -64,6 +64,7 @@ function Invoke-ProgramKitNative {
 }
 
 $developmentValidators = @(
+    'validate_proxy_intake.py',
     'validate_bootstrap_handoffs.py',
     'validate_bootstrap_profiles.py',
     'validate_dependency_audit.py',
