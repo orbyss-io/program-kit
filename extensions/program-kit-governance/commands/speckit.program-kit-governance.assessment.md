@@ -67,7 +67,7 @@ resolved by a derived default, genuinely unresolved, or deferred until a named l
 Only genuinely unresolved decisions may block an affected roadmap entry. Specification details,
 acceptance criteria, and triggered production concerns are not foundation ADRs.
 
-Create `docs/architecture/bootstrap-decisions.json` with this exact shape and the standalone
+Create `docs/architecture/bootstrap-decisions.json` using this base shape and the standalone
 `.specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json` contract.
 Do not inspect `governance_state.py` to rediscover a contract already supplied here; run its
 validator after writing and use a specific diagnostic only if repair is needed.
@@ -77,6 +77,7 @@ validator after writing and use a specific diagnostic only if repair is needed.
   "schema_version": "1.0",
   "default_profile": { "id": "program-kit-standard", "version": "<installed-version>" },
   "selected_profiles": ["dotnet", "typescript-web"],
+  "first_slice": {"journey_ids": ["<source-journey-id>"], "outcome": "Useful first outcome", "rationale": "Why this boundary is independently useful"},
   "dotnet": {
     "host_runtime": "Orbyss.Foundation.Host",
     "host_source": "program-kit-default",
@@ -107,7 +108,7 @@ validator after writing and use a specific diagnostic only if repair is needed.
     { "id": "stable-id", "summary": "Consequential fact the reviewer must understand" }
   ],
   "unresolved": [
-    { "id": "stable-id", "question": "Decision only the human can safely answer", "blocks": "Affected roadmap item or gate" }
+    { "id": "stable-id", "question": "Decision only the human can safely answer", "blocks": "Affected roadmap item or gate", "owner": "consumer", "kind": "user-answer", "due_stage": "research", "recommendation": "Evidence-backed recommendation" }
   ],
   "deferred": [
     { "id": "stable-id", "question": "Decision that is not material yet", "trigger": "Lifecycle event that makes it material" }
@@ -117,11 +118,11 @@ validator after writing and use a specific diagnostic only if repair is needed.
 
 Allowed choice sources are `explicit-intake`, `program-kit-default`, `derived-default`, and
 `override`. Use empty arrays when a category has no entries. Every object in the remaining lists
-has the exact fields shown plus concise review-packet text. Unresolved and deferred entries name
+uses the schema fields shown. Declare provider/durability intent in the existing per-owner persistence records. The deterministic resolver supplies absent profile, host, local identity and toolchain defaults before approval. Unresolved and deferred entries name
 the affected roadmap item or lifecycle trigger rather than becoming global blockers.
 
 Do not guess exact toolchain versions during intake. The research stage receives the selected
-profile manifests through its generated `managed_profile_pins` authority and adds the schema's
+profile manifests through its generated `managed_profile_pins` authority and verifies the resolver's
 `toolchain` block from those exact values before deterministic validation.
 
 When .NET is selected, set `Orbyss.Foundation.Host` automatically unless intake explicitly opts out. An

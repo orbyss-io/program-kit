@@ -120,7 +120,10 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
     from feature_knowledge import project as project_knowledge, source_hash
     brief_path = directory(repository, entry) / 'brief.json'
     brief = read(brief_path) if brief_path.is_file() else {}
-    knowledge = project_knowledge(repository, brief.get('architectureScope'))
+    from bootstrap_handoff import first_feature
+    handoff = first_feature(repository)
+    inherited_scope = handoff['architectureScope'] if handoff and handoff['roadmapEntry'] == entry else None
+    knowledge = project_knowledge(repository, brief.get('architectureScope', inherited_scope))
     paths = [governance.CONSTITUTION, governance.ARCHITECTURE]
     for adr in governance.roadmap_required_adr_ids(record["Required Accepted ADRs"], entry):
         matches = [p for p in governance.project_path(governance.DECISIONS).rglob("*.md")

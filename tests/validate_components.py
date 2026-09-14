@@ -19,12 +19,18 @@ EXPECTED_STEPS = [
     "validate-bootstrap-intake",
     "prepare-assessment-context",
     "assessment",
+    "require-assessment-answers",
+    "resolve-assessment-defaults",
     "validate-assessment-output",
+    "require-research-handoff",
     "prepare-research-context",
     "research",
+    "require-research-answers",
+    "resolve-research-defaults",
     "validate-research-output",
     "validate-profile-pins",
     "validate-assessment",
+    "require-architecture-handoff",
     "write-assessment-review",
     "route-assessment-approval",
     "constitution-draft",
@@ -33,25 +39,37 @@ EXPECTED_STEPS = [
     "route-constitution-ratification",
     "prepare-architecture-context",
     "architecture-dispatch",
+    "require-architecture-answers",
     "validate-architecture-output",
     "validate-architecture-alignment",
+    "require-tooling-handoff",
     "prepare-tooling-context",
     "tooling",
+    "require-tooling-answers",
     "validate-tooling-output",
+    "require-roadmap-handoff",
     "prepare-roadmap-context",
     "specification-roadmap",
+    "require-roadmap-answers",
     "validate-roadmap-output",
+    "require-closure-handoff",
+    "prepare-closure-context",
     "architecture-prerequisite-closure",
+    "require-closure-answers",
+    "validate-closure-output",
     "execute-compatibility-proofs",
     "validate-prerequisite-closure",
     "synchronize-lifecycle",
     "synchronize-roadmap",
     "validate-bootstrap-consistency",
     "validate-bootstrap",
+    "require-first-feature-handoff",
     "write-bootstrap-review",
     "route-bootstrap-approval",
+    "require-readiness-handoff",
     "prepare-readiness-context",
     "readiness",
+    "require-readiness-answers",
     "validate-readiness-output",
     "require-readiness",
     "complete-bootstrap",
@@ -204,7 +222,7 @@ def main() -> int:
         raise AssertionError("Governance assessment must consume the validated intake")
     if "initial_design" in workflow_path.read_text(encoding="utf-8"):
         raise AssertionError("The workflow must not retain the legacy initial_design route")
-    context_stages = ("assessment", "research", "architecture", "tooling", "roadmap", "readiness")
+    context_stages = ("assessment", "research", "architecture", "tooling", "roadmap", "closure", "readiness")
     for stage in context_stages:
         context_id = f"prepare-{stage}-context"
         context_step = next(step for step in steps if step["id"] == context_id)
@@ -221,6 +239,7 @@ def main() -> int:
         ("architecture-dispatch", "architecture"),
         ("tooling", "tooling"),
         ("specification-roadmap", "roadmap"),
+        ("architecture-prerequisite-closure", "closure"),
         ("readiness", "readiness"),
     ):
         command_step = next(step for step in steps if step["id"] == command_id)
@@ -230,7 +249,7 @@ def main() -> int:
     for stage in context_stages:
         validation_step = next(step for step in steps if step["id"] == f"validate-{stage}-output")
         validation_command = validation_step.get("run", "")
-        expected_validator = "validate-stage" if stage in {"architecture", "roadmap", "readiness"} else "validate-output"
+        expected_validator = "validate-stage" if stage in {"architecture", "roadmap", "closure", "readiness"} else "validate-output"
         if (
             validation_step.get("type") != "shell"
             or validation_step.get("output_format") != "json"
@@ -238,7 +257,7 @@ def main() -> int:
             or f"--stage {stage}" not in validation_command
         ):
             raise AssertionError(f"{stage} output budgets are not deterministically validated")
-        if stage in {"architecture", "roadmap", "readiness"} and "--run-id {{ context.run_id }}" not in validation_command:
+        if stage in {"architecture", "roadmap", "closure", "readiness"} and "--run-id {{ context.run_id }}" not in validation_command:
             raise AssertionError("Stage validation must bind its workflow run")
     pin_validation = next(step for step in steps if step["id"] == "validate-profile-pins")
     if (
@@ -298,7 +317,7 @@ def main() -> int:
             "accept-assessment",
             "auto-accept-assessment",
             "docs/architecture/reviews/assessment-review.md",
-            "Gate 1/3 — Assessment approval",
+            "Confirm scope and proposed approach",
         ),
         (
             "route-constitution-ratification",
@@ -306,7 +325,7 @@ def main() -> int:
             "constitution-ratify",
             "auto-ratify-constitution",
             "docs/architecture/reviews/constitution-review.md",
-            "Gate 2/3 — Constitution ratification",
+            "Ratify the governing principles",
         ),
         (
             "route-bootstrap-approval",
@@ -314,7 +333,7 @@ def main() -> int:
             "accept-bootstrap",
             "auto-accept-bootstrap",
             "docs/architecture/reviews/bootstrap-review.md",
-            "Gate 3/3 — Final bootstrap approval",
+            "Accept the evidenced architecture and first-slice handoff",
         ),
     ):
         route = next(step for step in steps if step["id"] == route_id)
@@ -484,7 +503,7 @@ def main() -> int:
         "stage_plan.managed_web_contract",
         "authorities.assessment_approval.bootstrap_decisions_sha256",
         "must cross the required layers end to end",
-        "preserve its relationship selection",
+        "record-refinement",
         "Do not construct a PowerShell file-inventory command",
         "stop immediately",
     )

@@ -24,7 +24,7 @@
   "properties": {
     "schema_version": { "const": "4.0" },
     "run_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
-    "stage": { "enum": ["assessment", "research", "architecture", "tooling", "roadmap", "readiness"] },
+    "stage": { "enum": ["assessment", "research", "architecture", "tooling", "roadmap", "closure", "readiness"] },
     "stage_focus": { "type": "string", "minLength": 1 },
     "stage_plan": { "type": "object", "required": ["mode"], "additionalProperties": true },
     "bootstrap_intake": { "$ref": "#/$defs/file" },

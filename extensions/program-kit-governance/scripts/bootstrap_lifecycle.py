@@ -276,6 +276,8 @@ def proof_tooling():
         'program-kit-governance/references/bootstrap-proof-plan.schema.json',
         'program-kit-governance/scripts/bootstrap_compatibility.py',
         'program-kit-governance/scripts/compatibility_process.py',
+        'program-kit-governance/scripts/compatibility_diagnostics.py',
+        'program-kit-governance/scripts/managed_compatibility.py',
         'program-kit-governance/scripts/repository_sync.py',
         'program-kit-governance/scripts/package_execution.py',
         'program-kit-governance/scripts/phase_obligations.py',
@@ -364,6 +366,8 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     ) if (root / p).is_file()}
     from compatibility_process import run
     provisioning = None
+    failure_category = 'tooling-error'
+    diagnostic_artifacts = {}
     with compatibility_scratch(attempt) as directory:
         with (attempt / 'stdout.txt').open('wb') as stdout, (attempt / 'stderr.txt').open('wb') as stderr:
             try:
@@ -371,33 +375,46 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
                 fixture_inputs, dependency_plan = prepare(root, Path(directory), contract)
                 inputs.extend(fixture_inputs)
                 if dependency_plan:
-                    provisioning = restore(root, Path(directory), timeout=max(timeout, 120))
+                    failure_category = 'needs-provisioning'
+                    provisioning = restore(root, Path(directory), timeout=max(timeout, 120), stdout=stdout, stderr=stderr)
+                failure_category = 'verification-failed'
                 exit_code = run(command, directory, stdout, stderr, timeout)
             except (OSError, ValueError, subprocess.SubprocessError) as exc:
                 exit_code = 125
                 stderr.write(str(exc).encode('utf-8'))
         process_exit_code = exit_code
+        from compatibility_diagnostics import preserve
+        source = local(Path(directory), contract.get('result', 'compatibility-results.xml'))
+        if source.is_file():
+            destination = attempt / 'test-results.xml'
+            diagnostic_artifacts['test-results.xml'] = preserve(source, destination)
+            test_record = {'path': destination.relative_to(root).as_posix(), 'sha256': digest(destination)}
+        if exit_code == 124:
+            failure_category = 'timeout'
         if exit_code == 0:
             try:
                 from phase_obligations import test_results
                 source = local(Path(directory), contract.get('result', 'compatibility-results.xml'))
-                actual = test_results(source, 'junit')
+                if not test_record or diagnostic_artifacts['test-results.xml']['truncated']:
+                    raise LifecycleError('Compatibility result is missing or exceeds the retained evidence limit')
+                actual = test_results(root / test_record['path'], 'junit')
                 if not all(actual.values()) or not all(actual.get(name) is True for name in names):
                     raise LifecycleError('Compatibility recipe omitted, failed or skipped required runtime checks')
-                destination = attempt / 'test-results.xml'
-                destination.write_bytes(source.read_bytes())
-                test_record = {'path': destination.relative_to(root).as_posix(), 'sha256': digest(destination)}
+                failure_category = None
             except (OSError, ValueError, LifecycleError, ET.ParseError) as error:
                 exit_code = 126
+                failure_category = 'invalid-test-results'
                 with (attempt / 'stderr.txt').open('ab') as stderr:
                     stderr.write(('\n' + str(error)).encode('utf-8'))
     streams = []
     for name in ('stdout.txt', 'stderr.txt'):
         path = attempt / name
+        diagnostic_artifacts[name] = preserve(path, path)
         streams.append({'path': path.relative_to(root).as_posix(), 'sha256': digest(path)})
     value = {'schema_version': '1.1', 'prerequisite': identity, 'exit_code': exit_code,
              'process_exit_code': process_exit_code, 'test_result': test_record, 'checks': names,
              'provisioning': provisioning, 'tooling_sources': proof_tooling(),
+             'failure_category': failure_category, 'diagnostic_artifacts': diagnostic_artifacts,
              'command': command, 'python': sys.version, 'inputs': inputs, 'streams': streams,
              'design_sources': design_sources}
     receipt = attempt / 'proof.json'

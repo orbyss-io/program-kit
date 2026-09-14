@@ -12,6 +12,17 @@ ADMISSIONS = ('ownership', 'atomicity', 'concurrency', 'providerSemantics', 'mig
               'queries', 'authorization', 'dataProtection', 'operations', 'realProviderTests')
 
 
+def resolve_profile(storage, profile='auto', *, dotnet=False):
+    """The same default policy applies at assessment, feature setup and upgrade."""
+    if profile != 'auto':
+        return profile
+    if storage == 'server-relational':
+        if not dotnet:
+            raise ValueError('PKP001 EF/PostgreSQL default requires selected .NET intent')
+        return 'ef-postgresql'
+    return 'none' if storage == 'none' else None
+
+
 def read(path, default=None):
     return json.loads(path.read_text(encoding='utf-8')) if path.is_file() else default
 
@@ -62,10 +73,7 @@ def resolve(root, feature=None, requested=None):
             raise ValueError('PKP001 persistence owners must be named and unique')
         identities.add(owner)
         profile = item.get('profile', 'auto')
-        if profile == 'auto':
-            if storage == 'server-relational' and 'dotnet' not in declared_profiles and not managed:
-                raise ValueError('PKP001 EF/PostgreSQL default requires selected .NET intent')
-            profile = 'ef-postgresql' if storage == 'server-relational' else 'none' if storage == 'none' else None
+        profile = resolve_profile(storage, profile, dotnet='dotnet' in declared_profiles or bool(managed))
         if profile not in {*PROFILES, 'none', 'custom'}:
             raise ValueError(f'PKP001 {owner}: choose an explicit supported or custom profile for {storage}')
         baseline_profile = profile

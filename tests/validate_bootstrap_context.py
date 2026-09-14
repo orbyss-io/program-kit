@@ -34,6 +34,8 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
             "extensions/program-kit-governance/references/bootstrap-lifecycle.md",
         ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json":
             "extensions/program-kit-governance/references/bootstrap-decisions.schema.json",
+        ".specify/extensions/program-kit-governance/references/bootstrap-proof-plan.schema.json":
+            "extensions/program-kit-governance/references/bootstrap-proof-plan.schema.json",
         ".specify/extensions/program-kit-governance/references/architecture-map.schema.json":
             "extensions/program-kit-governance/references/architecture-map.schema.json",
         ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json":
@@ -388,10 +390,10 @@ def main() -> int:
                 if not any("C4 component" in item and "container parent" in item for item in invariants):
                     raise AssertionError("Architecture plan omits C4 component containment")
                 if not any(
-                    "seed journey view" in item and "relationship selection and order" in item
+                    "consumer evidence" in item and "traceable refinements" in item
                     for item in invariants
                 ):
-                    raise AssertionError("Architecture plan omits immutable journey-view structure")
+                    raise AssertionError("Architecture plan omits evidence-preserving proposal refinement")
                 building_blocks = payload["stage_plan"].get("building_blocks")
                 if not building_blocks or "forms" not in building_blocks["capabilities"]:
                     raise AssertionError("Architecture plan omitted the selected building-block projection")

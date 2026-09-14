@@ -80,7 +80,12 @@ Keep user intent, Program Kit defaults, derived conclusions, proposals, and unre
 distinct. Do not turn a suggested default into explicit user intent. Candidate vertical slices are
 discovery signals only and begin with an actor or trigger and end in an observable outcome.
 
-Before authoring, perform evidence-backed strategic analysis. Classify every subdomain as Core,
+Start with the first useful outcome and a concise portfolio of later journeys. Keep future
+journeys as actor/outcome summaries and minimal traceable interactions; do not predesign their
+endpoints, data models, implementation conditions or acceptance suites. Ask for consumer meaning
+and constraints, not technical selections with an unambiguous Program Kit default.
+
+Before authoring, perform proportional evidence-backed strategic analysis. Classify every identified subdomain as Core,
 Supporting, or Generic. Propose bounded contexts only where model, language, ownership, lifecycle,
 or consistency boundaries support them; do not turn pages, nouns, or cross-cutting concerns into
 contexts. Record responsibilities, explicit non-responsibilities, language, owned data, invariants,

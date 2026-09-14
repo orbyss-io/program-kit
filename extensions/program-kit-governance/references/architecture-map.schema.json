@@ -6,6 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "model_id", "title", "sources", "decisions", "documentation", "constraints", "elements", "relationships", "views", "configuration", "extensions", "strategic_model"],
   "properties": {
+    "refinements": {"type": "array","items": {"type": "object","additionalProperties": false,"required": ["collection","id","before_sha256","after_sha256","decision_refs","rationale"],"properties": {"collection": {"enum": ["subdomains","candidate_contexts","capability_assessments","founding_decision_candidates"]},"id": {"$ref": "#/$defs/id"},"before_sha256": {"$ref": "#/$defs/sha256"},"after_sha256": {"$ref": "#/$defs/sha256"},"decision_refs": {"type": "array","minItems": 1,"uniqueItems": true,"items": {"$ref": "#/$defs/id"}},"rationale": {"$ref": "#/$defs/text"}}}},
     "schema_version": { "const": "1.1" },
     "strategic_model": { "$ref": "#/$defs/strategic_model" },
     "model_id": { "$ref": "#/$defs/id" },

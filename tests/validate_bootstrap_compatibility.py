@@ -35,6 +35,40 @@ class CompatibilityTests(unittest.TestCase):
             compatibility.prepare(self.root, scratch, {'fixtures': {'../escaped.cs': 'probe.cs'}})
         self.assertFalse((self.root / 'escaped.cs').exists())
 
+    def test_maintained_dotnet_recipe_executes_through_shared_restore(self):
+        from managed_compatibility import render
+        from bootstrap_lifecycle import run_proof, load
+        for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
+            shutil.copytree(ROOT / 'extensions' / name, self.root / '.specify/extensions' / name,
+                            ignore=shutil.ignore_patterns('bin', 'obj', '__pycache__', 'node_modules'))
+        manifest = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/global.json'
+        sdk = json.loads(manifest.read_text(encoding='utf-8'))['sdk']['version']
+        compatibility.write(self.root / 'docs/architecture/bootstrap-decisions.json', {
+            'selected_profiles': ['dotnet'], 'toolchain': {'source': 'program-kit-default', 'pins': {'dotnet-sdk': sdk}}})
+        plan = render(self.root, 'dotnet-runtime', 'maintained-dotnet')
+        result = run_proof(self.root, plan['id'], plan['recipe'], plan['timeout'])
+        proof = load(self.root / result['path'])
+        self.assertEqual(0, result['exit_code'], proof)
+        self.assertEqual(['Managed.dotnet_runtime'], proof['checks'])
+        self.assertIsNotNone(proof['provisioning']['lockedRestore'])
+
+    def test_maintained_browser_recipe_executes_through_shared_restore(self):
+        from managed_compatibility import render
+        from bootstrap_lifecycle import run_proof, load
+        from bootstrap_context import managed_profile_pin_authority
+        for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
+            shutil.copytree(ROOT / 'extensions' / name, self.root / '.specify/extensions' / name,
+                            ignore=shutil.ignore_patterns('bin', 'obj', '__pycache__', 'node_modules'))
+        decisions = {'selected_profiles': ['dotnet', 'browser-web', 'ui-experience-v1']}
+        decisions['toolchain'] = {'source': 'program-kit-default', 'pins': managed_profile_pin_authority(self.root, decisions)['pins']}
+        compatibility.write(self.root / 'docs/architecture/bootstrap-decisions.json', decisions)
+        plan = render(self.root, 'browser-runtime', 'maintained-browser', engines=('chromium',))
+        result = run_proof(self.root, plan['id'], plan['recipe'], plan['timeout'])
+        proof = load(self.root / result['path'])
+        self.assertEqual(0, result['exit_code'], proof)
+        self.assertEqual(['Managed.browser_runtime'], proof['checks'])
+        self.assertIsNotNone(proof['provisioning']['lockedRestore'])
+
     def test_target_must_have_a_bound_fixture(self):
         with self.assertRaisesRegex(ValueError, 'bound fixture'):
             compatibility.prepare(self.root, self.root, {'dependencyTargets': ['Missing.csproj']})

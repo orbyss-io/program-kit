@@ -118,28 +118,23 @@ runtime boundaries; a bounded context or capability must never be projected as a
 system merely to fit a C4 level. Diagrams are views of the canonical model, never independent
 sources of truth.
 
-For every seed dynamic view bound to a confirmed intake journey, preserve its relationship selection
-and order exactly. Adding relationships to the model does not authorize appending them to
-that seed view; put supported additional detail in a separate view instead.
+Confirmed consumer evidence remains immutable. Keep each source journey's identity, actor and
+observable outcome, and use only intake evidence IDs. A proposed interpretation may be refined
+with research and an ADR; confirmation of the intake did not ratify proposed architecture.
+Preserve proposal IDs and consumer evidence references. Explicit consumer selections require an
+intake/assessment correction, not a proposal refinement.
 
-The confirmed intake remains immutable evidence. Preserve these cross-artifact projections exactly:
+The normal shared projections remain subdomains, candidate_contexts, capability_assessments and
+founding_decision_candidates. For a changed proposed/derived record, patch the canonical map and
+record its exact source/result binding with the maintained command:
+`python .specify/extensions/program-kit-governance/scripts/architecture_map.py record-refinement --collection <collection> --id <source-id> --decision <ADR-id> --rationale "<evidence-backed reason>"`.
+The helper computes hashes from the unchanged intake and current map. The map's `refinements`
+collection records the rationale and Proposed/Accepted ADR; final review covers that refinement.
+Do not hand-compute hashes or weaken alignment checks. Re-export DSL after model edits.
 
-- `strategic_model.subdomains` is the intake `domain_analysis.subdomains`; only `decision_refs` may
-  be added to a map record.
-- Each `strategic_model.bounded_contexts` record is its intake
-  `domain_analysis.candidate_contexts` record with `id` and `name` represented by `element`; the
-  referenced element must retain the intake name, every other intake field remains identical, and
-  only `decision_refs` may be added.
-- Each `strategic_model.capability_bindings` record is its intake `capability_assessments` record
-  with `id` represented by `assessment` and `need` omitted; only `module`, `status`, and
-  `decision_refs` may be added. Preserve all other values exactly.
-- `strategic_model.founding_decisions` is exactly the intake
-  `domain_analysis.founding_decision_candidates` collection. Map every intake journey separately
-  through `source_journey`, and use only evidence IDs declared by the intake.
-
-Do not enrich, rewrite, or normalize those confirmed semantics in the architecture map. Put later
-detail in modules, contracts, relationships, constraints, ADRs, narrative documents, or another
-non-projection field.
+Keep one dynamic view per source journey for traceability. First-slice interactions receive the
+needed architectural detail; future journeys may retain a minimal interaction and outcome until
+their planning trigger. New technical interactions need evidence; they are not consumer facts.
 
 Apply these executable containment rules before the first map write:
 

@@ -1,5 +1,36 @@
 # Default adoption
 
+## Executable selection and first use
+
+The bootstrap workflow resolves defaults before validating assessment/research outputs and before
+approval. `bootstrap_defaults.py` writes missing structured selections to the existing decision
+register and records their source. It never changes confirmed intake or an approved register.
+The stage registry and `bootstrap_handoff.py` enforce when the resulting choices must be usable.
+
+When no application language or platform is selected, the managed application default is
+.NET with the published Foundation host. Managed BFF/SPA authentication also implies that
+dependency. A browser-only explicit anonymous profile does not require an invented backend.
+An explicit alternate language or host is preserved: a conflict with managed authentication or
+an unavailable engineering adapter must be resolved before adopting that combination.
+
+For managed sign-in without a provider selection, use the shipped Keycloak local adapter for
+development and bounded evaluation. Its version/configuration remains owned by the existing web
+profile, not by a second bootstrap pin. Production identity hosting is a separate decision due
+before production deployment; it does not prevent a local first slice. Preserve an explicitly
+selected consumer identity service. Applying this default does not authorize paid infrastructure.
+
+Declare persistence needs structurally per data owner in the existing `persistence` collection.
+The shared persistence resolver turns `server-relational` plus an absent/`auto` profile into
+`ef-postgresql` for .NET. It preserves explicit profiles and does not infer a durable store from
+free text. Assessment must translate confirmed durability needs into this declaration. Provider
+selection is distinct from later admission and real-provider behavior evidence.
+
+The register's `first_slice` names source journey IDs, a useful outcome and why that boundary is
+small enough. Each unresolved question declares an owner, kind and due stage. Apply a known
+default immediately; only consequential questions without a safe default need human answers.
+Unattended workers must not treat an asynchronous question as answered. Required answers are
+recorded against the exact question at the native handoff, then the user resumes the workflow.
+
 ## Bootstrap promise
 
 Program Kit produces a complete, opinionated, usable baseline. Human attention is reserved for

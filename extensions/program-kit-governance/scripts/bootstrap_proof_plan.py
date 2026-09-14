@@ -10,6 +10,66 @@ from bootstrap_lifecycle import LEDGER, LifecycleError, load, write, run_proof, 
 PLAN = Path('docs/architecture/bootstrap-proof-plan.json')
 
 
+def invalidate_changed_recipes(root, plan, ledger):
+    """Retain receipts while reopening only changed execution inputs before acceptance."""
+    import copy
+    import uuid
+    from bootstrap_lifecycle import digest, design_digest, local, proof_tooling
+    from governance_state import ROADMAP, roadmap_records
+    updated = copy.deepcopy(ledger)
+    planned = {p['id']: p for p in plan['probes']}
+    invalidated = []
+    for item in updated['prerequisites']:
+        if item['id'] not in planned or item['status'] != 'closed':
+            continue
+        stale = []
+        for evidence in item['evidence']:
+            if evidence['kind'] != 'compatibility':
+                continue
+            path = local(root, evidence['path'])
+            if digest(path) != evidence['sha256']:
+                raise LifecycleError('Preserved proof receipt changed; restore its integrity before retry')
+            proof = load(path)
+            if any(not local(root, p).is_file() or design_digest(local(root, p)) != h for p, h in proof.get('design_sources', {}).items()):
+                raise LifecycleError('Selected design/pins changed; reopen the owning decision before replanning compatibility')
+            for bound in proof.get('streams', []) + ([proof['test_result']] if proof.get('test_result') else []):
+                if digest(local(root, bound['path'])) != bound['sha256']:
+                    raise LifecycleError('Preserved proof diagnostics changed; restore their integrity before retry')
+            recipe, contract, _, _ = validate_recipe(root, item['id'], planned[item['id']]['recipe'])
+            required = {(p.relative_to(root).as_posix(), digest(p)) for p in (recipe, contract)}
+            changed = not required <= {(b['path'], b['sha256']) for b in proof.get('inputs', [])} or proof.get('tooling_sources') != proof_tooling() or any(
+                not local(root, b['path']).is_file() or digest(local(root, b['path'])) != b['sha256'] for b in proof.get('inputs', []))
+            if changed:
+                stale.append(evidence)
+        if stale:
+            if (root / '.specify/governance/bootstrap-approval.json').is_file():
+                raise LifecycleError('Accepted compatibility inputs changed; reopen the architecture review before renewal')
+            item['status'] = 'open'
+            item['evidence'] = [e for e in item['evidence'] if e not in stale]
+            invalidated.append(item['id'])
+    if not invalidated:
+        return ledger
+    # Validate the new recipe contracts before revoking any existing eligibility.
+    for probe in plan['probes']:
+        validate_recipe(root, probe['id'], probe['recipe'])
+    path = root / ROADMAP
+    original = path.read_text(encoding='utf-8')
+    affected = {s for i in updated['prerequisites'] if i['id'] in invalidated for s in i['affected_slices']}
+    if any(r['id'] in affected and r['Status'] in {'Active', 'Delivered'} for r in roadmap_records(path)):
+        raise LifecycleError('Active/delivered scope needs an explicit compatibility change review')
+    text = original
+    for identity in affected:
+        pattern = r'(^###\s+' + re.escape(identity) + r':[^\n]*\n)(.*?)(?=^###\s+|\Z)'
+        text = re.sub(pattern, lambda m: m[1] + re.sub(r'(?m)^(-\s+\*\*Status\*\*:\s*)Ready$', r'\g<1>Blocked', m[2]), text, flags=re.MULTILINE | re.DOTALL)
+    archive = root / '.specify/governance/compatibility/invalidations' / (uuid.uuid4().hex + '.json')
+    write(archive, {'reason': 'execution-inputs-changed', 'prerequisites': invalidated, 'previous_ledger': ledger, 'previous_roadmap': original})
+    # Conservative ordering: a stopped process may leave Blocked with old evidence,
+    # never Ready with revoked evidence. The next resume can repeat reconciliation.
+    path.write_text(text, encoding='utf-8')
+    write(root / LEDGER, updated)
+    return updated
+
+
 def require_proven_closure(root: Path):
     """Read-only admission for explicit reuse after deterministic repair."""
     from governance_state import roadmap_records, ROADMAP
@@ -33,7 +93,7 @@ def require_proven_closure(root: Path):
     return [p['id'] for p in plan['probes']]
 
 
-def execute(root: Path):
+def execute(root: Path, *, validate_only=False):
     from governance_state import roadmap_records, ROADMAP
     plan = load(root / PLAN)
     from json_schema import validate_value
@@ -44,6 +104,8 @@ def execute(root: Path):
     if set(plan) - {'$schema'} != {'schemaVersion', 'probes', 'readyWhenProven'} or plan['schemaVersion'] != 1:
         raise LifecycleError('Bootstrap proof plan requires schemaVersion 1, probes and readyWhenProven')
     ledger = load(root / LEDGER)
+    if not validate_only:
+        ledger = invalidate_changed_recipes(root, plan, ledger)
     records = roadmap_records(root / ROADMAP)
     validate_prerequisites(root, records, required=True, allow_proposed_authority=True)
     items = {item['id']: item for item in ledger['prerequisites']}
@@ -72,6 +134,8 @@ def execute(root: Path):
     # reusable on explicit native resume; current evidence is checked above.
     for probe in probes:
         validate_recipe(root, probe['id'], probe['recipe'])
+    if validate_only:
+        return []
     results = []
     for probe in probes:
         item = items[probe['id']]
@@ -80,7 +144,11 @@ def execute(root: Path):
         result = run_proof(root, probe['id'], probe['recipe'], probe['timeout'])
         results.append(result)
         if result['exit_code']:
-            raise LifecycleError('Compatibility failed; inspect ' + result['path'] + ' before an explicit resume')
+            proof = load(root / result['path'])
+            from compatibility_diagnostics import sanitize
+            detail = next(((root / s['path']).read_text(encoding='utf-8') for s in proof.get('streams', []) if s['path'].endswith('stderr.txt')), '')
+            raise LifecycleError('Compatibility failed (' + str(proof.get('failure_category', 'verification-failed'))
+                                 + '); inspect ' + result['path'] + '. Repair the reported condition, then resume this same run; unchanged recipes are not reauthored.\n' + sanitize(detail)[-1600:])
         item['evidence'].append({k: result[k] for k in ('path', 'sha256', 'kind')})
         item['status'] = 'closed'
         write(root / LEDGER, ledger)

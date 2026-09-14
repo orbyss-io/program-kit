@@ -2,6 +2,14 @@
 description: Research current architecture, delivery, and quality tooling for the detected context.
 ---
 
+## Stage responsibility
+
+Resolve the first-slice provider and stack worklist, including consumer-owned design. Apply the
+resolved defaults and use recorded answers from stage_plan.decision_handoff. Mark research-owned
+questions resolved with evidence before handoff; production-only concerns keep their actual due
+trigger. A newly discovered necessary human answer uses stage_plan.question_transport, followed
+by an immediate return. Do not ask an unattended asynchronous question and continue as if answered.
+
 ## Input
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.

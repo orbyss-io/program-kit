@@ -38,40 +38,7 @@ class WorkflowLifecycleError(ValueError):
     pass
 
 
-STAGE_STARTS = {
-    'validate-assessment-output': 'prepare-assessment-context',
-    'validate-assessment': 'prepare-assessment-context',
-    'write-assessment-review': 'prepare-assessment-context',
-    'accept-assessment': 'prepare-assessment-context',
-    'assessment': 'prepare-assessment-context',
-    'research': 'prepare-research-context',
-    'validate-research-output': 'prepare-research-context',
-    'constitution-draft': 'constitution-draft',
-    'validate-constitution-draft': 'constitution-draft',
-    'write-constitution-review': 'constitution-draft',
-    'ratify-constitution': 'constitution-draft',
-    'architecture-dispatch': 'prepare-architecture-context',
-    'validate-architecture-output': 'prepare-architecture-context',
-    'validate-architecture-alignment': 'prepare-architecture-context',
-    'write-bootstrap-review': 'prepare-architecture-context',
-    'accept-bootstrap': 'write-bootstrap-review',
-    'auto-accept-bootstrap': 'write-bootstrap-review',
-    'tooling': 'prepare-tooling-context',
-    'validate-tooling-output': 'prepare-tooling-context',
-    'specification-roadmap': 'prepare-roadmap-context',
-    'validate-roadmap-output': 'prepare-roadmap-context',
-    'architecture-prerequisite-closure': 'architecture-prerequisite-closure',
-    'execute-compatibility-proofs': 'architecture-prerequisite-closure',
-    'validate-prerequisite-closure': 'architecture-prerequisite-closure',
-    'recovery-closure': 'verify-recovery-source',
-    'recovery-synchronize': 'verify-recovery-source',
-    'recovery-review': 'verify-recovery-source',
-    'recovery-accept': 'verify-recovery-source',
-    'prepare-recovery-readiness': 'prepare-recovery-readiness',
-    'recovery-readiness': 'prepare-recovery-readiness',
-    'recovery-evaluate': 'prepare-recovery-readiness',
-    'recovery-require-ready': 'verify-recovery-source',
-}
+from bootstrap_stages import STAGE_STARTS
 FINAL_FAILURES = {'readiness', 'validate-readiness-output', 'require-readiness', 'complete-bootstrap'}
 
 
@@ -495,6 +462,18 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
             state.save()
     if state.status == RunStatus.FAILED:
         restart = STAGE_STARTS.get(state.current_step_id, state.current_step_id)
+        if state.current_step_id.startswith('require-') and state.current_step_id.endswith('-answers'):
+            from bootstrap_handoff import require
+            stage = state.current_step_id.removeprefix('require-').removesuffix('-answers')
+            require(root, run_id, stage, questions_only=True)
+        if state.current_step_id.startswith('require-') and state.current_step_id.endswith('-handoff'):
+            from bootstrap_stages import STAGES
+            stage = state.current_step_id.removeprefix('require-').removesuffix('-handoff')
+            report = run_directory(root, run_id) / ('handoff-' + stage + '.json')
+            if report.is_file():
+                result = lifecycle.load(report)
+                if result.get('status') == 'needs-design-decision' and result.get('retry_stage') in STAGES:
+                    restart = STAGES[result['retry_stage']]['restart']
         if state.inputs.get('source_run'):
             if state.current_step_id == 'recovery-require-ready':
                 verdict = lifecycle.verdict(root)
@@ -529,6 +508,11 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
             state.inputs['auto_approve_and_ratify'] = False
         state.inputs = WorkflowEngine(root)._resolve_inputs(definition, state.inputs)
         # Keep approved prefix authority. Downstream completion is no longer valid.
+        if restart in {'prepare-assessment-context', 'prepare-research-context', 'require-research-handoff'}:
+            # A producer must be able to correct its own decisions before a fresh
+            # review. The original approval is preserved in the snapshot above.
+            (root / governance.ASSESSMENT_APPROVAL).unlink(missing_ok=True)
+            (root / governance.BOOTSTRAP_APPROVAL).unlink(missing_ok=True)
         for relative in (governance.BOOTSTRAP_COMPLETION, lifecycle.RESULT):
             (root / relative).unlink(missing_ok=True)
         state.append_log({'event': 'stage_resumption', 'restart_step': state.current_step_id,
@@ -550,6 +534,42 @@ def resume(root: Path, run_id: str, inputs: dict | None = None, *, reuse_proven_
     with execution_lock(root):
         return resume_unlocked(root, run_id, inputs or {}, reuse_proven_closure=reuse_proven_closure,
                                reuse_prepared_recovery=reuse_prepared_recovery)
+
+
+def reopen(root: Path, run_id: str, stage: str) -> dict:
+    """Explicit operator reopens decision authority without dispatching a producer."""
+    from bootstrap_stages import STAGES
+    if stage not in {'assessment', 'research', 'architecture'}:
+        raise WorkflowLifecycleError('Reopen the owning assessment, research or architecture stage')
+    with execution_lock(root):
+        state = RunState.load(run_id, root)
+        if state.status not in {RunStatus.FAILED, RunStatus.PAUSED, RunStatus.COMPLETED} or state.inputs.get('source_run'):
+            raise WorkflowLifecycleError('Reopen requires a stopped primary bootstrap run')
+        definition = WorkflowDefinition.from_yaml(run_directory(root, run_id) / 'workflow.yml')
+        restart = 'require-research-handoff' if stage == 'research' else STAGES[stage]['restart']
+        matches = [i for i, step in enumerate(definition.steps) if step['id'] == restart]
+        if not matches:
+            raise WorkflowLifecycleError('This historical workflow has no supported decision handoff; preserve it and start a new trial')
+        archived = snapshot(root, state)
+        response = run_directory(root, run_id) / 'decision-responses.json'
+        if response.is_file():
+            shutil.copyfile(response, archived / response.name)
+            response.unlink()
+        index = matches[0]
+        invalidated = all_step_ids(definition.steps[index:])
+        state.step_results = {k: v for k, v in state.step_results.items() if k not in invalidated}
+        state.current_step_index, state.current_step_id = index, restart
+        state.status, state.error = RunStatus.FAILED, 'Operator reopened ' + stage + ' decisions'
+        for name in ('assessment_verdict', 'constitution_verdict', 'bootstrap_verdict'):
+            state.inputs[name] = ''
+        state.inputs['auto_approve_and_ratify'] = False
+        for relative in (governance.BOOTSTRAP_APPROVAL, governance.BOOTSTRAP_COMPLETION, lifecycle.RESULT):
+            (root / relative).unlink(missing_ok=True)
+        if stage in {'assessment', 'research'}:
+            (root / governance.ASSESSMENT_APPROVAL).unlink(missing_ok=True)
+        state.append_log({'event': 'operator_reopened_decisions', 'stage': stage, 'snapshot': str(archived)})
+        state.save()
+        return {'run_id': run_id, 'status': 'reopened', 'stage': stage, 'next': 'Record corrected answers, then resume the same run'}
 
 
 def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: str | None) -> dict:
@@ -585,11 +605,12 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['run', 'resume', 'step', 'validate-completion'])
+    parser.add_argument('command', choices=['run', 'resume', 'reopen', 'step', 'validate-completion'])
     parser.add_argument('action', nargs='?')
     parser.add_argument('--run-id')
     parser.add_argument('--source-run')
     parser.add_argument('--verdict')
+    parser.add_argument('--stage', choices=['assessment', 'research', 'architecture'])
     parser.add_argument('--input', action='append', default=[])
     parser.add_argument('--reuse-proven-closure', action='store_true', help='Resume repaired compatibility proofs without repeating their paid authoring stage; requires current passing evidence for every planned probe')
     parser.add_argument('--reuse-prepared-recovery', action='store_true', help='Create an approved-bootstrap continuation from a current prepared recovery review and passing proofs, retaining the human approval gate')
@@ -602,7 +623,9 @@ def main() -> int:
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
         governance.configure_paths()
         with contextlib.redirect_stdout(io.StringIO()) if args.command == 'step' else contextlib.nullcontext():
-            if args.command == 'step':
+            if args.command == 'reopen':
+                value = reopen(root, args.run_id, args.stage)
+            elif args.command == 'step':
                 value = step(root, args.action, args.run_id, args.source_run, args.verdict)
             elif args.command == 'validate-completion':
                 governance.validate_completion()
@@ -623,8 +646,15 @@ def main() -> int:
                             validate_engine_completion(root)
                 value = {'run_id': state.run_id, 'status': state.status.value,
                          'current_step': state.current_step_id, 'error': state.error}
+                if state.status == RunStatus.FAILED:
+                    from compatibility_diagnostics import sanitize
+                    output = state.step_results.get(state.current_step_id, {}).get('output', {})
+                    detail = output.get('stderr') or output.get('stdout')
+                    if detail:
+                        value['diagnostic'] = sanitize(str(detail))[-4000:]
+                    value['evidence'] = str(run_directory(root, state.run_id) / 'state.json')
         print(json.dumps(value))
-        return 0 if args.command == 'step' or value.get('status', 'completed') == 'completed' else 2
+        return 0 if args.command in {'step', 'reopen'} or value.get('status', 'completed') == 'completed' else 2
     except (ValueError, OSError, KeyError, governance.GovernanceStateError, lifecycle.LifecycleError, bootstrap_context.ContextError) as error:
         print(f'Program Kit workflow lifecycle: {error}', file=sys.stderr)
         return 1

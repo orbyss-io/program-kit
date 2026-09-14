@@ -809,6 +809,13 @@ def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
         result = validate_value(value['persistence'], persistence_schema, schema_path)
         if not result['valid']:
             raise GovernanceStateError(f"Bootstrap persistence violates its schema: {result['errors']}")
+    for name in ('identity', 'first_slice', 'unresolved'):
+        if name in value:
+            from json_schema import validate_value
+            field_schema = {'$schema': schema['$schema'], '$defs': schema['$defs'], **schema['properties'][name]}
+            result = validate_value(value[name], field_schema, schema_path)
+            if not result['valid']:
+                raise GovernanceStateError(f"Bootstrap {name} violates its schema: {result['errors']}")
     if value.get("schema_version") != "1.0":
         raise GovernanceStateError("Bootstrap decisions must use schema_version 1.0")
     profile = value.get("default_profile")
@@ -866,13 +873,13 @@ def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
         if not isinstance(collection, list) or not all(isinstance(item, dict) for item in collection):
             raise GovernanceStateError(f"Bootstrap decisions {collection_name} must be a list of objects")
         collection_ids: set[str] = set()
-        expected_item_fields = {"id", text_field}
-        if collection_name == "unresolved":
-            expected_item_fields.add("blocks")
-        elif collection_name == "deferred":
-            expected_item_fields.add("trigger")
+        item_schema = schema['properties'][collection_name]
+        if '$ref' in item_schema:
+            item_schema = schema['$defs'][item_schema['$ref'].split('/')[-1]]
+        expected_item_fields = set(item_schema['items']['required'])
+        allowed_item_fields = set(item_schema['items']['properties'])
         for index, item in enumerate(collection):
-            if set(item) != expected_item_fields:
+            if not expected_item_fields <= set(item) or set(item) - allowed_item_fields:
                 raise GovernanceStateError(
                     f"Bootstrap {collection_name} item {index + 1} has unexpected fields; "
                     f"expected {sorted(expected_item_fields)}"
@@ -1157,6 +1164,15 @@ def _list_items(items: object, field: str, empty: str, *, limit: int = 15) -> li
 
 def write_review(stage: str) -> None:
     decisions = validate_bootstrap_decisions()
+    first = decisions.get('first_slice', {})
+    decision_summary = [
+        '## First useful outcome', '', first.get('outcome', 'See the canonical roadmap.'),
+        '', first.get('rationale', ''),
+        '', '## Choices and consequences', '',
+        *[f"- {item['decision']} ({item['source']}): {item['rationale']}" for item in decisions['choices']],
+        '', '## Owned deferrals', '',
+        *[f"- {item['question']} — trigger: {item['trigger']}" for item in decisions.get('deferred', [])], '',
+    ]
     if stage == "assessment":
         required = ASSESSMENT_BASIS
         _require_files(required, "Assessment review")
@@ -1219,6 +1235,7 @@ def write_review(stage: str) -> None:
             "- The bootstrap decision register is structurally valid.",
             "- For .NET, `Orbyss.Foundation.Host` is selected unless an explicit intake opt-out is recorded.",
         ]
+        lines[2:2] = decision_summary
         write_text(project_path(ASSESSMENT_REVIEW), "\n".join(lines) + "\n")
         print(f"Assessment review packet written: {project_path(ASSESSMENT_REVIEW)}")
         return
@@ -1347,6 +1364,7 @@ def write_review(stage: str) -> None:
             "- Orbyss.Foundation.Host appears in the accepted baseline when .NET is selected without an opt-out.",
             "- The roadmap is structurally valid.",
         ]
+        lines[2:2] = decision_summary
         write_text(project_path(BOOTSTRAP_REVIEW), "\n".join(lines) + "\n")
         print(f"Bootstrap review packet written: {project_path(BOOTSTRAP_REVIEW)}")
         return

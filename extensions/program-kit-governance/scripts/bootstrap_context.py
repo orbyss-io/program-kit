@@ -14,6 +14,7 @@ from pathlib import Path
 _scripts_path = str(Path(__file__).resolve().parent)
 if _scripts_path not in sys.path:
     sys.path.insert(0, _scripts_path)
+from bootstrap_stages import STAGE_ARTIFACTS, STAGE_FULL_READS, STAGE_FOCUS, INTAKE_STAGE_FIELDS, MAP_STAGE_FIELDS, STAGE_RECORD_FIELDS, OUTPUT_CONTRACTS, STAGES
 from bootstrap_profiles import effective_stage_intake, validate_profile_dependencies
 
 
@@ -27,122 +28,10 @@ INTAKE_ARTIFACTS = (
     INTAKE_PATH.as_posix(),
 )
 
-STAGE_ARTIFACTS: dict[str, tuple[str, ...]] = {
-    "assessment": (),
-    "research": (
-        "docs/architecture/bootstrap-assessment.md",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-    ),
-    "architecture": (
-        ".specify/memory/constitution.md",
-        ".specify/memory/constitution-ratification.json",
-        ".specify/governance/bootstrap-assessment-approval.json",
-        "docs/architecture/bootstrap-assessment.md",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-        "docs/architecture/tooling-evaluation.md",
-    ),
-    "tooling": (
-        ".specify/memory/constitution.md",
-        ".specify/memory/constitution-ratification.json",
-        ".specify/governance/bootstrap-assessment-approval.json",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-        "docs/architecture/tooling-evaluation.md",
-        "docs/architecture/architecture.md",
-        "docs/architecture/quality-attributes.md",
-        "docs/architecture/technology-radar.md",
-        "docs/architecture/traceability.md",
-        "docs/architecture/decisions/bootstrap-baseline.md",
-    ),
-    "roadmap": (
-        ".specify/memory/constitution.md",
-        ".specify/memory/constitution-ratification.json",
-        ".specify/governance/bootstrap-assessment-approval.json",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-        "docs/architecture/tooling-evaluation.md",
-        "docs/architecture/architecture.md",
-        "docs/architecture/quality-attributes.md",
-        "docs/architecture/quality-system.md",
-        "docs/architecture/technology-radar.md",
-        "docs/architecture/traceability.md",
-        "docs/architecture/decisions/bootstrap-baseline.md",
-    ),
-    "readiness": (
-        ".specify/memory/constitution.md",
-        ".specify/memory/constitution-ratification.json",
-        ".specify/governance/bootstrap-assessment-approval.json",
-        ".specify/governance/bootstrap-approval.json",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-        "docs/architecture/tooling-evaluation.md",
-        "docs/architecture/architecture.md",
-        "docs/architecture/quality-attributes.md",
-        "docs/architecture/quality-system.md",
-        "docs/architecture/specification-roadmap.md",
-        "docs/architecture/technology-radar.md",
-        "docs/architecture/traceability.md",
-        "docs/architecture/decisions/bootstrap-baseline.md",
-    ),
-}
 
-STAGE_FULL_READS = {
-    "assessment": (),
-    "research": ("docs/architecture/bootstrap-decisions.json",),
-    "architecture": (
-        ".specify/memory/constitution.md",
-        "docs/architecture/architecture-map.json",
-    ),
-    "tooling": (".specify/memory/constitution.md",),
-    "roadmap": (".specify/memory/constitution.md",),
-    "readiness": (".specify/memory/constitution.md",),
-}
 
-STAGE_FOCUS = {
-    "assessment": "Project confirmed intake into a proportional decision baseline without reopening accepted choices.",
-    "research": "Verify only selected technologies and capabilities; excluded surfaces are out of scope.",
-    "architecture": "Define the smallest governed architecture that realizes the confirmed intake journeys.",
-    "tooling": "Adopt only controls required by selected capabilities and accepted boundaries.",
-    "roadmap": "Create outcome-oriented specification entries from confirmed journeys and accepted decisions.",
-    "readiness": "Prove the first Ready entry has accepted authority, owned risks, and sufficient evidence.",
-}
 
-INTAKE_STAGE_FIELDS = {
-    "assessment": (
-        "facts", "scope", "actors", "journeys", "quality_requirements", "integrations",
-        "choices", "capability_assessments", "domain_analysis", "open_items",
-        "candidate_slice_signals", "routing",
-    ),
-    "research": (
-        "quality_requirements", "choices", "capability_assessments", "open_items", "routing",
-    ),
-    "architecture": (
-        "facts", "scope", "actors", "journeys", "quality_requirements", "integrations", "choices",
-        "domain_analysis", "open_items", "candidate_slice_signals", "routing",
-    ),
-    "tooling": (
-        "scope", "quality_requirements", "open_items", "routing",
-    ),
-    "roadmap": (
-        "scope", "actors", "journeys", "open_items", "candidate_slice_signals", "domain_analysis", "quality_requirements",
-    ),
-    "readiness": (
-        "actors", "journeys", "open_items", "candidate_slice_signals", "domain_analysis", "quality_requirements",
-    ),
-}
 
-MAP_STAGE_FIELDS = {
-    "assessment": ("constraints", "elements", "relationships", "views"),
-    "research": ("constraints", "elements", "relationships", "views"),
-    # Architecture edits the canonical seed, so a second lossy copy in the brief is actively
-    # harmful. The seed is a required full read and this projection carries only its identity.
-    "architecture": (),
-    "tooling": ("decisions", "constraints", "elements", "relationships"),
-    "roadmap": ("decisions", "constraints", "elements", "relationships", "views", "strategic_model"),
-    "readiness": ("decisions", "constraints", "elements", "relationships", "views", "strategic_model"),
-}
 
 MAP_RECORD_FIELDS = {
     "sources": ("id", "path", "sha256", "format", "importer"),
@@ -165,32 +54,10 @@ MAP_RECORD_FIELDS = {
     "extensions": ("id", "kind", "policy", "source"),
 }
 
-STAGE_RECORD_FIELDS = {
-    "tooling": {
-        "decisions": ("id", "title", "status", "scope"),
-        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "description", "properties", "status", "ownership", "parent", "decision_refs"),
-        "relationships": ("id", "source", "target", "status", "decision_refs"),
-    },
-    "roadmap": {
-        "decisions": ("id", "title", "status", "scope"),
-        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "description", "properties", "status", "ownership", "parent", "decision_refs"),
-        "relationships": ("id", "source", "target", "status", "decision_refs"),
-        "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
-    },
-    "readiness": {
-        "decisions": ("id", "path", "title", "status", "scope", "supersedes"),
-        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "description", "properties", "status", "ownership", "parent", "decision_refs"),
-        "relationships": ("id", "source", "target", "status", "decision_refs"),
-        "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
-    },
-}
 
-MAX_INDEX_HEADINGS = 24
-MAX_INDEX_SIGNALS = 8
-MAX_INDEX_SIGNAL_CHARS = 160
+MAX_INDEX_HEADINGS = 12
+MAX_INDEX_SIGNALS = 4
+MAX_INDEX_SIGNAL_CHARS = 120
 MAX_BUILDING_BLOCK_TARGETS = 128
 
 GOVERNANCE_CONFIGS = (
@@ -198,63 +65,6 @@ GOVERNANCE_CONFIGS = (
     Path(".specify/extensions/program-kit-governance/program-kit-governance-config.local.yml"),
 )
 
-OUTPUT_CONTRACTS = {
-    "assessment": {
-        "write_paths": [
-            "docs/architecture/bootstrap-assessment.md",
-            "docs/architecture/decision-backlog.md",
-            "docs/architecture/bootstrap-decisions.json",
-        ],
-        "contract_references": [
-            ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
-        ],
-    },
-    "research": {
-        "write_paths": [
-            "docs/architecture/tooling-evaluation.md",
-            "docs/architecture/bootstrap-decisions.json",
-        ],
-        "contract_references": [
-            ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
-        ],
-    },
-    "architecture": {
-        "write_paths": [
-            "docs/architecture/README.md",
-            "docs/architecture/architecture.md",
-            "docs/architecture/quality-attributes.md",
-            "docs/architecture/technology-radar.md",
-            "docs/architecture/traceability.md",
-            "docs/architecture/bootstrap-prerequisites.json",
-            "docs/architecture/architecture-map.json",
-            "docs/architecture/building-block-selection.json",
-            "docs/architecture/workspace.dsl",
-            "docs/architecture/decisions/README.md",
-            "docs/architecture/decisions/bootstrap-baseline.md",
-        ],
-        "contract_references": [
-            ".specify/extensions/program-kit-governance/references/architecture-map.schema.json",
-            ".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md",
-            ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
-        ],
-    },
-    "tooling": {
-        "write_paths": ["docs/architecture/quality-system.md"],
-        "contract_references": [],
-    },
-    "roadmap": {
-        "write_paths": [
-            "docs/architecture/specification-roadmap.md",
-            "docs/architecture/architecture.md",
-            "docs/architecture/traceability.md",
-        ],
-        "contract_references": [".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md"],
-    },
-    "readiness": {
-        "write_paths": ["docs/architecture/readiness-report.md"],
-        "contract_references": [".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md"],
-    },
-}
 
 ARTIFACT_BYTE_BUDGETS = {
     "docs/architecture/bootstrap-prerequisites.json": 32 * 1024,
@@ -644,12 +454,12 @@ def intake_projection(intake: dict, stage: str) -> dict:
         "status": intake["status"],
         "project": intake["project"],
         **{field: intake[field] for field in fields
-           if field != "domain_analysis" or stage not in {"roadmap", "readiness"}},
+           if field != "domain_analysis" or stage not in {"architecture", "roadmap", "readiness"}},
         **({"domain_analysis": {
             "source": "docs/architecture/bootstrap-intake.json#/domain_analysis",
             "projection": "architecture_map.strategic_model",
             "rule": "Use the canonical semantic model below; intake alignment is validated before projection.",
-        }} if stage in {"roadmap", "readiness"} else {}),
+        }} if stage in {"architecture", "roadmap", "readiness"} else {}),
     }
 
 
@@ -772,6 +582,7 @@ def compact_authority(name: str, payload: dict) -> dict:
             for key in (
                 "schema_version", "default_profile", "selected_profiles", "dotnet", "web",
                 "toolchain", "persistence", "unresolved", "deferred",
+                "identity", "first_slice",
             )
             if key in payload
         }
@@ -1194,8 +1005,10 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         "on_failure": "Repair only the named diagnostic, rerun this same batch once, and stop when it passes.",
     }
     if stage == "assessment":
+        from bootstrap_defaults import resolve
         return {
             "mode": "confirmed-intake-projection",
+            "resolved_defaults": resolve(intake, {}),
             "managed_web_dependency": {
                 "source": ".specify/extensions/program-kit-dotnet/references/secure-web-profiles.md#selection",
                 "rule": "Managed BFF/SPA-PKCE authentication uses Foundation/.NET. If adopted, select dotnet plus browser-web (or typescript-web), disclose the host and package dependencies for assessment review. UI-experience alone is insufficient. No language in intake means no consumer preference, not approval of a backend-free managed profile. Preserve explicit alternate-stack constraints and surface any conflict before approval.",
@@ -1205,6 +1018,8 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "Read required_full_reads once; routed optional references are diagnostic sources only.",
                 "Write all three assessment outputs once, then run the supplied validation batch once.",
                 "The assessment batch intentionally does not require tooling-evaluation.md; research owns that later prerequisite.",
+                "Treat resolved_defaults as executable policy, preserve explicit intake selections and record their structured overrides. Select first_slice.journey_ids, outcome and rationale in the decision register. Future journeys remain a portfolio, not detailed first-slice requirements.",
+                "Each unresolved item needs owner, due_stage and kind (user-answer or design-decision). Use a default when available. Required human answers use the durable handoff, never unattended asynchronous questions.",
             ],
             "terminal_condition": terminal,
         }
@@ -1225,16 +1040,18 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "classification": item["decision_state"],
             }
             for item in intake["capability_assessments"]
-            if item["decision_state"] == "research-required"
+            if item["decision_state"] in {"research-required", "project-owned-design"}
             or item["mechanism_coverage"] in {"conflict", "insufficient-evidence"}
         )
         plan = {
             "mode": "focused-research" if questions else "baseline-verification",
             "research_questions": questions,
+            "decision_handoff": __import__('bootstrap_handoff').projection(project_root, run_id),
             "rules": [
                 "Do not survey alternatives unless a listed research question requires it.",
                 "For an accepted managed baseline, verify only material compatibility, support, license, or supply-chain risk.",
                 "Do not repeat product overviews or re-research accepted architecture choices.",
+                "Resolve first-use provider decisions, including consumer-owned design. Apply documented defaults where no selection exists. Record resolution and evidence in the existing register; defer unrelated production decisions to their actual trigger.",
                 "Use observed_toolchain below; do not run local --version, runtime-list, repository-status, or source-tree probes.",
             ],
             "observed_toolchain": observed_toolchain(),
@@ -1249,6 +1066,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
     if stage == "architecture":
         return {
             "mode": "patch-canonical-seed",
+            "decision_handoff": __import__('bootstrap_handoff').projection(project_root, run_id),
             "required_order": [
                 "Read the canonical seed, constitution, and both output schemas once.",
                 "Write founding ADRs and patch the existing map; do not reconstruct it from scratch.",
@@ -1261,7 +1079,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "Every strategic module references a domain-capability element whose parent equals module.context; every domain-capability has exactly one module record.",
                 "Every non-empty capability binding module references one of those strategic modules, never a container.",
                 "A C4 component has a container parent. A shell or host directly owned by the software system is a container, not a component.",
-                "Keep one unique dynamic view for every confirmed intake journey and preserve each seed journey view's relationship selection and order exactly.",
+                "Keep journey identity and consumer evidence. Provisional models may evolve through the map's traceable refinements; explicit consumer constraints remain fixed. Future journeys need traceability, not feature design.",
             ],
             "structural_validation_command": (
                 "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
@@ -1276,6 +1094,20 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "rule": "If a prerequisite prevents completion, record the specific reason, accountable owner and next action with this command, then report BLOCKED. Its exit 2 is intentional. Process/dispatch success is not validated architecture completion.",
             },
             "terminal_condition": terminal,
+        }
+    if stage == 'closure':
+        return {
+            'mode': 'maintained-proof-planning',
+            'first_slice': authorities.get('assessment_decisions', {}).get('first_slice'),
+            'source_hashes': __import__('bootstrap_lifecycle').source_paths(project_root),
+            'recipe_catalog': __import__('managed_compatibility').catalog(),
+            'rules': [
+                'Select maintained recipes for managed toolchains. Custom recipes are only for consumer-specific risk; do not reconstruct generic package, subprocess or JUnit machinery.',
+                'Inventory source conditions using the named source paths, querying only the relevant conditions. Every prerequisite has an owner, affected slices and due trigger.',
+                'A toolchain smoke test cannot close provider, host activation or product behavior obligations. Plan only checks due before the first specification.',
+                'Return after the exact validation batch. Native execution owns restore, probes, conditional readiness and retry.',
+            ],
+            'terminal_condition': terminal,
         }
     return {
         "mode": "bounded-generation",
@@ -1452,10 +1284,20 @@ def validate_architecture_structure(project_root: Path, run_id: str, *, allow_ac
 def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
     checks: list[str] = []
     verdict: dict = {}
+    decision_path = project_root / 'docs/architecture/bootstrap-decisions.json'
+    if stage in {'assessment', 'research'} and decision_path.is_file() and load_json(decision_path).get('first_slice'):
+        from bootstrap_defaults import apply
+        apply(project_root)
+        checks.append('resolved-defaults')
     if stage == "architecture":
         checks.extend(validate_architecture_structure(project_root, run_id)["checks"])
     output = validate_stage_output(project_root, stage, run_id)
     checks.append("output-contract")
+    workflow_path = project_root / '.specify/workflows/runs' / run_id / 'workflow.yml'
+    if stage == 'assessment' and workflow_path.is_file() and 'require-research-handoff' in workflow_path.read_text(encoding='utf-8'):
+        from bootstrap_handoff import require
+        require(project_root, run_id, 'assessment')
+        checks.append('first-slice-and-default-handoff')
     governance_script = (
         ".specify/extensions/program-kit-governance/scripts/governance_state.py"
     )
@@ -1477,6 +1319,10 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
             "roadmap governance",
         )
         checks.append("roadmap-governance")
+    elif stage == 'closure':
+        from bootstrap_proof_plan import execute
+        execute(project_root, validate_only=True)
+        checks.append('executable-proof-plan')
     elif stage == "readiness":
         result = subprocess.run(
             [sys.executable, str(project_root / governance_script), "evaluate-readiness"],
@@ -1510,7 +1356,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     intake = validate_intake(
         project_root,
         run_id,
-        allow_architecture_evolution=stage in {"architecture", "tooling", "roadmap", "readiness"},
+        allow_architecture_evolution=stage in {"architecture", "tooling", "roadmap", "closure", "readiness"},
     )
     architecture_map = load_json(project_root / "docs/architecture/architecture-map.json")
     governance = governance_contract(project_root)
@@ -1535,7 +1381,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "docs/architecture/bootstrap-acceptance-scope.json",
     ) if stage in {"roadmap", "readiness"} and (project_root / path).is_file())
     stage_artifacts += lifecycle_sources
-    if stage == 'readiness':
+    if stage in {'readiness', 'closure'}:
         # Named decisions must be queryable when the compact projection omits
         # decisive conditions. Index them without requiring a bulk full read.
         stage_artifacts = tuple(dict.fromkeys((*stage_artifacts,
@@ -1599,17 +1445,30 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
             "rules": [
                 "Read this stage brief in full.",
                 "Treat intake and architecture_map as stage projections; query the canonical source only for an omitted decisive fact.",
-                "Do not print or read the evidence index in full; query one artifact and heading range or JSON field at a time.",
-                "Do not open an allowed source unless this brief lacks a fact required for the current output.",
-                "Read every listed contract reference once before the first write; do not inspect validator implementation.",
-                "Excluded intake routing surfaces are out of scope unless contradictory evidence is cited.",
-                "Prefer one targeted source-read batch, one write batch, and one validation batch; expand only for a specific failure.",
-                "Aim for artifact_target_bytes initially; only artifact_byte_budgets is a hard validation boundary. Retain decisive evidence above target and do not add ad hoc size assertions.",
-                "After writes report only paths, byte counts, status, and targeted diagnostics; never print full files or diffs.",
+                "Query one indexed source only for a decisive omitted fact. Read output contracts before writing; executor source is not an authoring dependency.",
+                "Read every listed contract reference once before the first write.",
+                "Use one source batch, write batch and terminal validation batch. Report paths, counts and diagnostics; no full files or diffs.",
+                "Targets guide initial drafting; only artifact_byte_budgets are hard limits. Preserve decisive evidence.",
             ],
             "provenance": "The evidence index binds optional source sections to paths and SHA-256 values.",
         },
     }
+    payload['stage_plan']['handoff_contract'] = STAGES[stage]
+    payload['stage_plan']['registry_sha256'] = sha256_file(Path(__file__).with_name('bootstrap_stages.py'))
+    payload['stage_plan']['question_transport'] = {
+        'command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py ask --run-id ' + run_id + ' --stage ' + stage,
+        'arguments': ['--question-id', '--question', '--owner', '--recommendation'],
+        'rule': 'Use only for a necessary consequential answer without a safe default; record it and return. The native boundary owns answer collection and resumption.',
+    }
+    payload['stage_plan']['decision_handoff'] = __import__('bootstrap_handoff').projection(project_root, run_id)
+    first_ids = set(decisions.get('first_slice', {}).get('journey_ids', []))
+    if first_ids and stage != 'assessment':
+        projection = payload['intake']
+        if 'journeys' in projection:
+            projection['future_portfolio'] = [{k: j[k] for k in ('id', 'name', 'outcome') if k in j}
+                                               for j in intake['journeys'] if j['id'] not in first_ids]
+            projection['journeys'] = [j for j in intake['journeys'] if j['id'] in first_ids]
+        payload['stage_plan']['first_slice'] = decisions['first_slice']
     return context_path(run_directory, stage), payload, evidence_destination, evidence
 
 

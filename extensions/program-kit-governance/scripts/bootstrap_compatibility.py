@@ -95,7 +95,7 @@ def prepare(root: Path, scratch: Path, contract: dict):
     return inputs, plan
 
 
-def restore(root: Path, scratch: Path, *, timeout=600):
+def restore(root: Path, scratch: Path, *, timeout=600, stdout=None, stderr=None):
     tool = provider('program-kit-building-blocks/scripts/restore_dependencies.py')
     lock_path = scratch / '.program-kit/sync/dependencies.json'
     plan = load(lock_path)
@@ -127,7 +127,7 @@ def restore(root: Path, scratch: Path, *, timeout=600):
             exit_code = run([sys.executable, str(Path(tool.__file__)), mode, '--target', str(scratch),
                              '--lock', '.program-kit/sync/dependencies.json', '--request',
                              '.program-kit/evidence/building-block-restore-request.json', '--approved'],
-                            scratch, None, None, timeout)
+                            scratch, stdout, stderr, timeout)
             if exit_code:
                 raise ValueError('Shared compatibility restore failed: ' + mode)
     receipt = load(scratch / '.program-kit/evidence/building-block-restore.json')

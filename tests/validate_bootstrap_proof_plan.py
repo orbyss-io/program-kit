@@ -48,6 +48,7 @@ class ProofPlanTests(unittest.TestCase):
     def test_reuse_rejects_unproven_and_different_planned_recipe(self):
         with self.assertRaisesRegex(ValueError, 'must pass'):
             require_proven_closure(self.root)
+
         execute(self.root)
         other = self.recipe.with_name('other.py')
         other.write_bytes(self.recipe.read_bytes())
@@ -56,6 +57,19 @@ class ProofPlanTests(unittest.TestCase):
         write(self.root / PLAN, self.plan)
         with self.assertRaisesRegex(ValueError, 'matching passing proof'):
             require_proven_closure(self.root)
+
+
+    def test_changed_recipe_invalidates_only_its_evidence_and_preserves_history(self):
+        execute(self.root)
+        original = next(self.root.rglob('proof.json'))
+        original_bytes = original.read_bytes()
+        self.recipe.write_text(self.recipe.read_text(encoding='utf-8') + '\n# corrected recipe input\n', encoding='utf-8')
+        self.assertEqual(1, len(execute(self.root)))
+        self.assertEqual(original_bytes, original.read_bytes())
+        self.assertEqual(2, len(list(self.root.rglob('proof.json'))))
+        archives = list((self.root / '.specify/governance/compatibility/invalidations').glob('*.json'))
+        self.assertEqual(['runtime'], load(archives[0])['prerequisites'])
+        self.assertEqual(['runtime'], require_proven_closure(self.root))
 
     def test_windows_long_nuget_paths_are_removed_without_losing_sibling_evidence(self):
         import os
@@ -87,6 +101,43 @@ class ProofPlanTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'every affected|/readyWhenProven/0/prerequisites'):
             execute(self.root)
         self.assertEqual([], list(self.root.rglob('proof.json')))
+
+    def test_failure_preserves_redacted_case_before_cleanup(self):
+        import os
+        from unittest.mock import patch
+        secret = 'fixture-credential-not-for-evidence'
+        self.recipe.write_text("import os,sys\nfrom pathlib import Path\ns=os.environ['PROBE_TEST_SECRET']\nprint(s)\nPath('compatibility-results.xml').write_text('<testsuite><testcase classname=\"Probe\" name=\"persist\"><failure>provider unavailable '+s+'</failure></testcase></testsuite>')\nsys.exit(7)\n", encoding='utf-8')
+        with patch.dict(os.environ, {'PROBE_TEST_SECRET': secret}):
+            with self.assertRaisesRegex(ValueError, 'Compatibility failed'):
+                execute(self.root)
+        receipt = load(next(self.root.rglob('proof.json')))
+        self.assertEqual('verification-failed', receipt['failure_category'])
+        result = self.root / receipt['test_result']['path']
+        self.assertIn('provider unavailable', result.read_text())
+        self.assertNotIn(secret, result.read_text())
+        self.assertTrue(receipt['diagnostic_artifacts']['test-results.xml']['redacted'])
+        self.assertFalse(list(result.parent.glob('scratch-*')))
+        for stream in receipt['streams']:
+            self.assertNotIn(secret, (self.root / stream['path']).read_text())
+
+    def test_invalid_missing_and_oversized_results_cannot_close(self):
+        for result in (None, '<broken>', 'x' * (256 * 1024 + 1)):
+            with self.subTest(result='missing' if result is None else len(result)):
+                self.recipe.write_text('from pathlib import Path\n' + ('' if result is None else 'Path("compatibility-results.xml").write_text(' + repr(result) + ')'), encoding='utf-8')
+                with self.assertRaisesRegex(ValueError, 'Compatibility failed'):
+                    execute(self.root)
+                receipts = sorted(self.root.rglob('proof.json'), key=lambda p: p.stat().st_mtime_ns)
+                receipt = load(receipts[-1])
+                self.assertEqual('invalid-test-results', receipt['failure_category'])
+                self.assertEqual('open', load(self.root / LEDGER)['prerequisites'][0]['status'])
+
+    def test_timeout_has_diagnostic_category(self):
+        self.recipe.write_text('import time\ntime.sleep(30)', encoding='utf-8')
+        self.plan['probes'][0]['timeout'] = 1
+        write(self.root / PLAN, self.plan)
+        with self.assertRaisesRegex(ValueError, 'Compatibility failed'):
+            execute(self.root)
+        self.assertEqual('timeout', load(next(self.root.rglob('proof.json')))['failure_category'])
 
     def test_later_invalid_recipe_blocks_before_any_probe(self):
         ledger = load(self.root / LEDGER)
