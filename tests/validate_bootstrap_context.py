@@ -321,6 +321,7 @@ def main() -> int:
             expected_validation = (
                 "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
                 f"validate-stage --stage {stage} --run-id {run_id}"
+                + (" --json" if stage == "readiness" else "")
             )
             if payload["output_contract"]["validation_commands"] != [expected_validation]:
                 raise AssertionError(f"{stage} context does not expose one terminal validation batch")
@@ -631,6 +632,7 @@ constitution:
         }
         managed_decisions = {
             "selected_profiles": ["dotnet", "typescript-web"],
+            "dotnet": {"host_runtime": "Orbyss.Foundation.Host", "program_kit_host_opt_out": False},
             "toolchain": {
                 "source": "program-kit-default",
                 "pins": dict(pins),

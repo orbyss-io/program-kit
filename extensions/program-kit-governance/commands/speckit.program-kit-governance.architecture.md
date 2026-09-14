@@ -264,6 +264,13 @@ project names. Never ask product users for .csproj paths, package.json locations
 target IDs or other mechanical bookkeeping, including through intake. Ask only about consequential
 product constraints or trade-offs that context and applicable defaults cannot resolve.
 
+The context routes the adopted assessment profiles in addition to the original intake signals;
+an empty intake language list does not undo a reviewed .NET selection. Use
+`authorities.assessment_decisions.toolchain` for adopted toolchain pins and
+`runtime_release.managed_host` for the catalog host identity. The research-only
+`managed_profile_pins` field need not be repeated here. A catalog version is not evidence of an
+observed image digest, successful restore or compatibility; closure supplies that evidence.
+
 For every target, author `placement` with `state: observed|planned`, `owner` (canonical architecture
 element ID with nonempty ownership), `decisionIds`, and `rationale`. The owner must reference those
 decisions through `decision_refs`, and the selection authority must include them. Register each

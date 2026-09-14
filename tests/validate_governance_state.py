@@ -496,6 +496,12 @@ def main() -> int:
 
             bootstrap_decisions = project / module.BOOTSTRAP_DECISIONS
             bootstrap_decisions.parent.mkdir(parents=True, exist_ok=True)
+            for profiles, diagnostic in ((["ui-experience-v1"], "browser-web"),
+                                         (["browser-web"], "require dotnet")):
+                incomplete_browser = decisions()
+                incomplete_browser["selected_profiles"] = profiles
+                bootstrap_decisions.write_text(json.dumps(incomplete_browser), encoding="utf-8")
+                expect_error(module, module.validate_bootstrap_decisions, diagnostic)
             alternate_without_opt_out = decisions()
             alternate_without_opt_out["dotnet"]["host_runtime"] = "Custom.Host"
             bootstrap_decisions.write_text(

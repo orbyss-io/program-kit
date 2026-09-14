@@ -11,6 +11,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+_scripts_path = str(Path(__file__).resolve().parent)
+if _scripts_path not in sys.path:
+    sys.path.insert(0, _scripts_path)
+from bootstrap_profiles import effective_stage_intake, validate_profile_dependencies
+
 
 SCHEMA_VERSION = "4.0"
 CONTEXT_DIRECTORY = Path(".specify/workflows/runs")
@@ -913,7 +918,8 @@ def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
         result.append(
             ".specify/extensions/program-kit-governance/references/software-language.md"
         )
-    if any(".net" in item for item in languages | frameworks) or "c#" in languages:
+    if (any(".net" in item for item in languages | frameworks) or "c#" in languages
+            or capabilities.intersection({"authenticated-browser-bff", "browser-spa-pkce", "dotnet-host-runtime"})):
         result.extend(DOTNET_REFERENCES)
     secure_web = (
         "authenticated-browser-bff" in capabilities
@@ -1161,7 +1167,21 @@ def runtime_release_projection(project_root: Path, intake: dict) -> dict | None:
     if heading not in content:
         raise ContextError("Installed runtime reference lacks the application release bundle contract; synchronize installation before dispatch")
     section = content.split(heading, 1)[1].split("\n## ", 1)[0].strip()
-    return {"source": relative, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "contract": section}
+    catalog_relative = ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
+    catalog_path = project_root / catalog_relative
+    catalog = load_json(catalog_path)
+    host_key = "oci:ghcr.io/orbyss-io/foundation-host"
+    host = catalog["packages"][host_key]
+    return {
+        "source": relative, "sha256": sha256_file(path), "contract": section,
+        "managed_host": {
+            "catalog": catalog_relative, "sha256": sha256_file(catalog_path),
+            "package": host_key, "version": host["version"],
+            "tag": host["materialization"]["tagTemplate"].format(version=host["version"]),
+            "source": catalog["sources"][host["source"]],
+            "evidence_boundary": "Catalog identity is a managed pin, not an observed digest or compatibility proof. Bootstrap closure verifies the published artifact before acceptance.",
+        },
+    }
 
 
 def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[str, dict], run_id: str) -> dict:
@@ -1176,6 +1196,10 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
     if stage == "assessment":
         return {
             "mode": "confirmed-intake-projection",
+            "managed_web_dependency": {
+                "source": ".specify/extensions/program-kit-dotnet/references/secure-web-profiles.md#selection",
+                "rule": "Managed BFF/SPA-PKCE authentication uses Foundation/.NET. If adopted, select dotnet plus browser-web (or typescript-web), disclose the host and package dependencies for assessment review. UI-experience alone is insufficient. No language in intake means no consumer preference, not approval of a backend-free managed profile. Preserve explicit alternate-stack constraints and surface any conflict before approval.",
+            },
             "rules": [
                 "Use the projected intake and map; do not reconstruct them from repository discovery.",
                 "Read required_full_reads once; routed optional references are diagnostic sources only.",
@@ -1331,6 +1355,11 @@ def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> d
             "budget_bytes": budget,
             "target_exceeded": size > target,
         })
+    if stage in {"assessment", "research"}:
+        try:
+            validate_profile_dependencies(load_json(project_root / "docs/architecture/bootstrap-decisions.json"))
+        except ValueError as error:
+            raise ContextError(str(error)) from error
     return {
         "stage": stage,
         "artifacts": artifacts,
@@ -1381,7 +1410,10 @@ def validate_architecture_structure(project_root: Path, run_id: str, *, allow_ac
     )
     checks = ["architecture-map"]
     selection_path = project_root / "docs/architecture/building-block-selection.json"
-    intake = load_json(project_root / INTAKE_PATH)
+    intake = effective_stage_intake(
+        load_json(project_root / INTAKE_PATH),
+        load_json(project_root / "docs/architecture/bootstrap-decisions.json"),
+    )
     if building_block_stage_contract(project_root, intake) is not None or selection_path.is_file():
         selection_command = "validate-draft"
         if allow_accepted and selection_path.is_file() and load_json(selection_path).get("status") == "Accepted":
@@ -1485,8 +1517,16 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     governance_paths = governance["paths"]
     output_contract = resolved_output_contract(stage, governance_paths, run_id)
     contract_references = tuple(output_contract["contract_references"])
-    routed = routed_references(intake, stage)
-    required_routed = required_routed_references(intake, stage)
+    decision_path = project_root / "docs/architecture/bootstrap-decisions.json"
+    decisions = load_json(decision_path) if stage != "assessment" and decision_path.is_file() else {}
+    if stage != "assessment":
+        try:
+            validate_profile_dependencies(decisions)
+        except ValueError as error:
+            raise ContextError(str(error)) from error
+    effective_intake = effective_stage_intake(intake, decisions)
+    routed = routed_references(effective_intake, stage)
+    required_routed = required_routed_references(effective_intake, stage)
     stage_artifacts = INTAKE_ARTIFACTS + tuple(
         replace_governance_path(path, governance_paths) for path in STAGE_ARTIFACTS[stage]
     ) + routed + contract_references
@@ -1535,8 +1575,8 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "run_id": run_id,
         "stage": stage,
         "stage_focus": STAGE_FOCUS[stage],
-        "stage_plan": stage_plan(project_root, intake, stage, authorities, run_id),
-        "runtime_release": runtime_release_projection(project_root, intake),
+        "stage_plan": stage_plan(project_root, effective_intake, stage, authorities, run_id),
+        "runtime_release": runtime_release_projection(project_root, effective_intake),
         "bootstrap_intake": intake_record(project_root, run_id),
         "intake": intake_projection(intake, stage),
         "architecture_map": architecture_projection(project_root, architecture_map, stage),

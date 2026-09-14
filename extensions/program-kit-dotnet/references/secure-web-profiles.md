@@ -35,6 +35,16 @@ boundary and do not reopen inherited protocol decisions.
 
 ## Selection
 
+The managed authenticated profiles below select Foundation's .NET implementation, not a
+framework-neutral authentication recipe. Assessment must record `dotnet` and `browser-web`
+(or `typescript-web`) in `selected_profiles`, the .NET host decision and package-source
+acknowledgement. `ui-experience-v1` does not substitute for the browser boundary profile.
+Disclose these dependencies as provisional Program Kit defaults before assessment approval,
+even when intake names no language. Preserve an explicit alternate-stack constraint and resolve
+the conflict through assessment review; do not silently replace it. Identity-provider and
+consumer persistence choices remain separate. An explicit `none-v1` browser does not by itself
+require .NET. See the existing .NET host default/opt-out and application release bundle contract.
+
 | Application shape | Selected profile | Rule |
 | --- | --- | --- |
 | Browser UI, no explicit override | `bff-cookie-v1` | Secure default |

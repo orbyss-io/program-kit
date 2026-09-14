@@ -15,6 +15,7 @@ _scripts_path = str(Path(__file__).resolve().parent)
 if _scripts_path not in sys.path:
     sys.path.insert(0, _scripts_path)
 from decision_status import has_decision_status as _has_decision_status
+from bootstrap_profiles import validate_profile_dependencies
 
 
 CONSTITUTION = Path(".specify/memory/constitution.md")
@@ -901,6 +902,10 @@ def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
     if len({item.lower() for item in selected_profiles}) != len(selected_profiles):
         raise GovernanceStateError("Bootstrap decisions selected_profiles contains duplicates")
     normalized_profiles = {item.lower() for item in selected_profiles}
+    try:
+        validate_profile_dependencies(value)
+    except ValueError as error:
+        raise GovernanceStateError(str(error)) from error
     toolchain = value.get("toolchain")
     if {"dotnet", "ui-experience-v1"} & normalized_profiles:
         if not isinstance(toolchain, dict):

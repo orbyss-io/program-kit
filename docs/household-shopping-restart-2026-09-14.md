@@ -9,6 +9,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Code\Orbyss\_Program
 
 It creates a new isolated consumer and installs the current corrected candidate.
 Do not reuse the discarded Repair Desk workspace or the PrepareOnly workspace.
+The Household Shopping attempt in `program-kit-intake-nh09io7h` (run `fbf1521e`)
+is also historical evidence. Restart intake using the command above after the managed-profile
+routing repair; do not resume or patch that attempt's approved assessment.
 No specific working folder, acceptance contract folder or preselected slice is needed.
 
 Imagine you and your partner keeping a grocery list. Answer the interview in ordinary

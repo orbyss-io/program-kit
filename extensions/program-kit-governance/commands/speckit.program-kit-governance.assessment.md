@@ -147,6 +147,13 @@ the `secure-web-profile` choice. Its `threat_model` and `security_evidence` are 
 no inherited authenticated-profile assurance; ordinary HTTP/JSON/assets protections and applicable
 security evidence remain required. Follow the existing secure-web-profiles.md selection contract.
 
+Record `browser-web` for a browser without an explicit TypeScript selection, or `typescript-web`
+when selected. Apply the managed authenticated profile's .NET dependency from that same selection
+contract: record `dotnet`, its host decision and dependency acknowledgement for the assessment
+review, even if intake left the language open. Describe the dependency as a Program Kit default,
+not an explicit consumer language choice. Do not defer the required backend while adopting its
+managed authentication. Surface conflicts with explicit consumer stack constraints before approval.
+
 Do not invent acceptance outside explicit intake, the versioned Program Kit defaults, safe derived
 defaults, or reviewed overrides. Record those sources as provisional baseline choices for the
 assessment gate. Do not initialize application code or modify the confirmed intake, canonical

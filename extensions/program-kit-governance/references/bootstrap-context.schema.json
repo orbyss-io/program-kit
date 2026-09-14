@@ -62,6 +62,30 @@
         "local_environment_policy": { "type": "string", "minLength": 1 }
       }
     },
+    "runtime_release": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["source", "sha256", "contract", "managed_host"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "contract": { "type": "string", "minLength": 1 },
+        "managed_host": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["catalog", "sha256", "package", "version", "tag", "source", "evidence_boundary"],
+          "properties": {
+            "catalog": { "type": "string", "minLength": 1 },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "package": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 },
+            "tag": { "type": "string", "minLength": 1 },
+            "source": { "type": "object" },
+            "evidence_boundary": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
     "decisions": {
       "type": "array",
       "items": {
