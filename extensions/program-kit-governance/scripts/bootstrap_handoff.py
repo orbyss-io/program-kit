@@ -220,6 +220,7 @@ def ask(root, run_id, identity, question, owner, stage, recommendation, *, kind=
 def first_feature(root: Path, *, require_ready=False):
     """Derive the first handoff from existing scoped roadmap/map/decision authority."""
     from governance_state import roadmap_records, ROADMAP
+    from architecture_map import candidate_journeys
     register = load(root / REGISTER, {})
     first = register.get('first_slice')
     if not first:
@@ -227,16 +228,16 @@ def first_feature(root: Path, *, require_ready=False):
     model = load(root / 'docs/architecture/architecture-map.json', {})
     strategic = model.get('strategic_model', {})
     journeys = {j['id']: j for j in strategic.get('journeys', []) if j['source_journey'] in first['journey_ids']}
-    candidates = [c for c in strategic.get('candidate_slices', []) if c['journey'] in journeys]
+    candidates = [c for c in strategic.get('candidate_slices', []) if candidate_journeys(c) & journeys.keys()]
     entries = []
     for entry in roadmap_records(root / ROADMAP):
         selected = [c for c in candidates if re.search(r'(?<![\w-])' + re.escape(c['id']) + r'(?![\w-])', entry['Scope'])]
-        if selected and {journeys[c['journey']]['source_journey'] for c in selected} == set(first['journey_ids']):
+        if selected and {journeys[j]['source_journey'] for c in selected for j in candidate_journeys(c) if j in journeys} == set(first['journey_ids']):
             entries.append((entry, selected))
     if len(entries) != 1:
         raise ValueError('FIRST-SLICE-HANDOFF: roadmap must identify one entry covering the selected first journey boundary through exact canonical candidate IDs')
     entry, selected = entries[0]
-    extra = [c for c in strategic.get('candidate_slices', []) if c['journey'] not in journeys
+    extra = [c for c in strategic.get('candidate_slices', []) if candidate_journeys(c) - journeys.keys()
              and re.search(r'(?<![\w-])' + re.escape(c['id']) + r'(?![\w-])', entry['Scope'])]
     if extra:
         raise ValueError('FIRST-SLICE-HANDOFF: first entry includes future candidate journeys outside the confirmed first_slice boundary')

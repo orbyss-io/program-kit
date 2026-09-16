@@ -92,6 +92,10 @@ contexts. Record responsibilities, explicit non-responsibilities, language, owne
 lifecycle, separation rationale, and split triggers. Challenge suspicious boundaries explicitly.
 Preserve every separately named source journey and its observable outcome.
 
+A candidate slice may span several cohesive journeys: record the primary strategic journey ID in
+`journey` and the others in `supporting_journeys`. Preserve separate journey identities even when
+one first outcome needs them together. Do not encode additional coverage only in prose.
+
 Prepare **founding decision candidates** for the proposed architecture: decision question,
 recommended option, genuine alternatives, rationale, consequences, confidence, source evidence,
 and affected map identities. Present these alongside the draft map. They are focused prepwork for

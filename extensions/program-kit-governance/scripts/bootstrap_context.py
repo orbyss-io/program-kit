@@ -1101,6 +1101,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             "terminal_condition": terminal,
         }
     if stage == 'roadmap':
+        from architecture_map import candidate_journeys
         first = authorities.get('assessment_decisions', {}).get('first_slice')
         model = load_json(project_root / 'docs/architecture/architecture-map.json')
         strategic = model.get('strategic_model', {})
@@ -1111,7 +1112,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             'first_entry': {
                 'journey_ids': first['journey_ids'],
                 'candidate_ids': [c['id'] for c in strategic.get('candidate_slices', [])
-                                  if c['journey'] in journeys],
+                                  if candidate_journeys(c) & journeys],
                 'rule': 'Exactly one roadmap entry Scope covers these canonical candidate IDs and no future candidate. Supporting journeys in an approved combined first slice belong to that one specification, not separate entries linked only by prose.',
             } if first else None,
             'rules': ['Preserve the approved first specification boundary; keep other journeys as separate portfolio entries.',

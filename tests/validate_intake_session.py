@@ -117,6 +117,22 @@ class IntakeSessionTests(unittest.TestCase):
         self.assertIn('Standalone skill completion does not resume', report)
         self.assertNotIn('No workflow was launched.', report)
 
+    def test_completed_intake_check_does_not_certify_evolved_architecture(self):
+        path = self.workspace / '.specify/workflows/runs/example/state.json'
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps({'run_id': 'example', 'status': 'failed',
+            'current_step_id': 'validate-roadmap-output', 'step_results': {
+                'validate-bootstrap-intake': {'status': 'completed', 'output': {'exit_code': 0}}}}))
+        intake = self.workspace / 'docs/architecture/bootstrap-intake.json'
+        intake.parent.mkdir(parents=True)
+        intake.write_text('{"status":"confirmed"}')
+        with patch.object(module, 'run', return_value=2):
+            state = module.finish(self.record, 0, keep=True, prepare_only=True)
+        self.assertEqual('downstream-review-required', state['intakeStatus'])
+        self.assertEqual('failed', state['intakeValidation']['originalArtifactCheck'])
+        self.assertEqual('not-established', state['intakeValidation']['currentStageValidity'])
+        self.assertEqual(['example'], state['intakeValidation']['admittedByRuns'])
+
     def test_validation_distinguishes_draft_confirmed_and_invalid(self):
         path = self.workspace / 'docs/architecture/bootstrap-intake.json'
         path.parent.mkdir(parents=True)

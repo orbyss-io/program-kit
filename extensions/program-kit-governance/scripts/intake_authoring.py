@@ -69,7 +69,7 @@ def derive_structure(model: dict) -> None:
         if view['type'] != 'dynamic':
             raise ValueError(f'Journey {journey["id"]} must identify a dynamic view.')
         ordered = [step['relationship'] for step in journey['steps']]
-        view['relationships'] = list(ordered)
+        view['relationships'] = list(dict.fromkeys(ordered))
         view['order'] = list(ordered)
 
 

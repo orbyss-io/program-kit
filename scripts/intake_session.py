@@ -374,6 +374,20 @@ def finish(record: Path, exit_code: int, keep: bool = False, prepare_only: bool 
         workflows.append({'runId': value.get('run_id'), 'status': value.get('status'),
                           'currentStep': value.get('current_step_id')})
     state['observedWorkflows'] = workflows
+    if state['intakeStatus'] == 'invalid':
+        # A user may finish the intake terminal only after bootstrap has evolved
+        # the map. Do not present that original-hash check as a failed interview.
+        # Preserve the failed check and make no claim about current stage validity.
+        admitted = []
+        for path in sorted((workspace / '.specify/workflows/runs').glob('*/state.json')):
+            value = json.loads(path.read_text(encoding='utf-8'))
+            check = value.get('step_results', {}).get('validate-bootstrap-intake', {})
+            if check.get('status') == 'completed' and check.get('output', {}).get('exit_code') == 0:
+                admitted.append(value['run_id'])
+        if admitted:
+            state['intakeStatus'] = 'downstream-review-required'
+            state['intakeValidation'] = {'originalArtifactCheck': 'failed', 'admittedByRuns': admitted,
+                                         'currentStageValidity': 'not-established'}
     workflow_note = ('Workflow state was observed: ' + json.dumps(workflows) +
                      '. Standalone skill completion does not resume or complete that workflow. '
                      'Intake validation checks original artifact hashes; downstream architecture edits may require stage-specific review.') if workflows else 'No workflow state was observed.'

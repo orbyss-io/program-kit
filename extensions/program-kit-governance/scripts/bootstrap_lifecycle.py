@@ -175,6 +175,12 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
             authorized = [e for e in item['evidence'] if e['kind'] == 'decision' and any(
                 d['path'] == e['path'] and d['status'] in ({'Accepted', 'Proposed'} if allow_proposed_authority else {'Accepted'})
                 for d in catalog)]
+            # The reviewed source inventory already binds each retained condition
+            # to exact ADR content. Requiring that same binding again under closure
+            # evidence confused phase assignment with proof of completion.
+            authorized += [s for s in sources if item['id'] in s['prerequisites'] and any(
+                d['path'] == s['path'] and d['status'] in ({'Accepted', 'Proposed'} if allow_proposed_authority else {'Accepted'})
+                for d in catalog)]
             if not authorized:
                 raise LifecycleError(f"{item['id']} changes an unresolved/ADR condition to feature/later ownership without reviewed decision authority")
     blockers = []

@@ -518,7 +518,7 @@ def constitution_metadata(path: Path, *, allow_pending: bool = False) -> tuple[s
             re.finditer(
                 rf"(?m)(?:^|\|[ \t]*)\*\*{re.escape(label)}\*\*:"
                 rf"[ \t]*({value_pattern})(?=[ \t]*(?:\||$))",
-                governance,
+                text,
             )
         )
         if len(field_matches) != 1:
@@ -2065,7 +2065,10 @@ def validate_roadmap_architecture_scope(records: list[dict]) -> None:
                       if re.search(r'(?<![\w-])' + re.escape(item['id']) + r'(?![\w-])', record['Scope'])]
         missing = set()
         for candidate in candidates:
-            for step in journeys.get(candidate['journey'], {}).get('steps', []):
+            from architecture_map import candidate_journeys
+            steps = [step for journey in candidate_journeys(candidate)
+                     for step in journeys.get(journey, {}).get('steps', [])]
+            for step in steps:
                 edge = relationships.get(step['relationship'])
                 if edge is None:
                     raise GovernanceStateError(f"{record['id']} references an unknown architecture relationship")

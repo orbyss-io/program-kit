@@ -172,13 +172,13 @@ def _id(value: object, label: str) -> str:
     return text
 
 
-def _unique_strings(value: object, label: str, maximum: int = 120) -> list[str]:
+def _unique_strings(value: object, label: str, maximum: int = 120, *, repeated: bool = False) -> list[str]:
     if not isinstance(value, list):
         raise ArchitectureMapError(f"{label} must be a list")
     result: list[str] = []
     for index, item in enumerate(value, 1):
         result.append(_text(item, f"{label}[{index}]", maximum))
-    if len(set(result)) != len(result):
+    if not repeated and len(set(result)) != len(result):
         raise ArchitectureMapError(f"{label} contains duplicates")
     return result
 
@@ -693,10 +693,8 @@ def _validate_strategic_model(
             contract = _text(step.get("contract"), f"{step_label}.contract", 64, allow_empty=True)
             if contract and contract not in contract_ids:
                 raise ArchitectureMapError(f"{step_label}.contract references a missing contract")
-        if len(set(step_relationships)) != len(step_relationships):
-            raise ArchitectureMapError(f"{label}.steps must use distinct relationship identities")
         view = views[view_key]
-        if view["relationships"] != step_relationships or view["order"] != step_relationships:
+        if view["relationships"] != list(dict.fromkeys(step_relationships)) or view["order"] != step_relationships:
             raise ArchitectureMapError(
                 f"Dynamic view {view_key} must preserve the journey relationship selection and order"
             )
@@ -713,7 +711,7 @@ def _validate_strategic_model(
             "id", "name", "journey", "actor_or_trigger", "outcome", "contexts", "status",
             "evidence", "decision_refs",
         }
-        if not isinstance(item, dict) or set(item) != fields:
+        if not isinstance(item, dict) or set(item) - {'supporting_journeys'} != fields:
             raise ArchitectureMapError(f"{label} has an invalid shape")
         slice_id = _id(item.get("id"), f"{label}.id")
         if slice_id in slice_ids:
@@ -722,6 +720,10 @@ def _validate_strategic_model(
         _text(item.get("name"), f"{label}.name", 240)
         if _id(item.get("journey"), f"{label}.journey") not in journey_ids:
             raise ArchitectureMapError(f"{label}.journey references a missing strategic journey")
+        if 'supporting_journeys' in item:
+            _semantic_ids(item['supporting_journeys'], f"{label}.supporting_journeys", journey_ids, require_one=True)
+            if item['journey'] in item['supporting_journeys']:
+                raise ArchitectureMapError(f"{label}.supporting_journeys repeats the primary journey")
         _text(item.get("actor_or_trigger"), f"{label}.actor_or_trigger")
         _text(item.get("outcome"), f"{label}.outcome")
         _semantic_ids(item.get("contexts"), f"{label}.contexts", context_ids, require_one=True)
@@ -916,6 +918,11 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
             semantic_evidence.update(item["evidence"])
     if not semantic_evidence.issubset(evidence_ids):
         raise ArchitectureMapError("Strategic architecture references unknown intake evidence")
+
+
+def candidate_journeys(candidate: dict) -> set[str]:
+    """Exact journey coverage; never infer additional scope from narrative text."""
+    return {candidate['journey'], *candidate.get('supporting_journeys', [])}
 
 
 def validate_model(model: dict, project_root: Path | None = None) -> dict:
@@ -1221,7 +1228,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
                 raise ArchitectureMapError(f"View {key} references missing relationship {relationship_id}")
         decision_references(view.get("decision_refs"), f"{label}.decision_refs", "proposed")
         _unique_strings(view.get("filters"), f"{label}.filters")
-        for ordered_id in _unique_strings(view.get("order"), f"{label}.order", 64):
+        for ordered_id in _unique_strings(view.get("order"), f"{label}.order", 64, repeated=view['type'] == 'dynamic'):
             if ordered_id not in element_ids and ordered_id not in relationship_ids:
                 raise ArchitectureMapError(f"View {key} order references missing identity {ordered_id}")
         _properties(view.get("layout"), f"{label}.layout")
@@ -1910,7 +1917,8 @@ class StructurizrDslImporter(ArchitectureMapImporter):
                     relationship_id = relationship_identifiers.get(
                         match.group(2), _canonical_identifier(match.group(2))
                     )
-                    current_view["relationships"].append(relationship_id)
+                    if relationship_id not in current_view["relationships"]:
+                        current_view["relationships"].append(relationship_id)
                     current_view["order"].append(relationship_id)
                     continue
                 if current_view is not None and line.startswith("autolayout "):

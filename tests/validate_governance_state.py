@@ -641,6 +641,17 @@ def main() -> int:
             )
             module.validate_constitution_draft()
             constitution_path.write_text(constitution(), encoding="utf-8")
+            # Metadata is document-level. A clear header placement must behave
+            # like the template footer; duplicates anywhere remain ambiguous.
+            lines = constitution(metadata_layout="lines").splitlines()
+            metadata = [line for line in lines if line.startswith(('**Version**:', '**Ratified**:', '**Last Amended**:'))]
+            body = '\n'.join(line for line in lines if line not in metadata)
+            header_metadata = '\n'.join(metadata) + '\n' + body
+            constitution_path.write_text(header_metadata, encoding="utf-8")
+            module.validate_constitution_draft()
+            constitution_path.write_text(header_metadata + '\n' + '\n'.join(metadata), encoding="utf-8")
+            expect_error(module, module.validate_constitution_draft, 'must declare Version')
+            constitution_path.write_text(constitution(), encoding="utf-8")
             module.validate_constitution_draft()
             module.write_review("constitution")
             assert_review_packet(project / module.CONSTITUTION_REVIEW, "constitution")

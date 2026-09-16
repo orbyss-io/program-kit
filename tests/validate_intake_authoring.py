@@ -62,6 +62,34 @@ class AuthoringTests(unittest.TestCase):
         self.build()
         self.assertEqual(before, {p.name: p.read_bytes() for p in self.intent.parent.iterdir()})
 
+    def test_repeated_interaction_and_compound_slice_survive_build_and_projection(self):
+        strategic = self.source['map']['strategic_model']
+        first = strategic['journeys'][0]
+        first['steps'].append({**first['steps'][0], 'order': 2, 'description': 'Repeat the operation.'})
+        second = copy.deepcopy(first)
+        second.update(id='second-journey', source_journey='journey-second', view='second-view')
+        strategic['journeys'].append(second)
+        view = copy.deepcopy(self.source['map']['views'][-1])
+        view['key'] = 'second-view'
+        self.source['map']['views'].append(view)
+        strategic['candidate_slices'][0]['supporting_journeys'] = ['second-journey']
+        self.build()
+        model = json.loads((self.root / 'docs/architecture/architecture-map.json').read_text(encoding='utf-8'))
+        dynamic = next(v for v in model['views'] if v['key'] == first['view'])
+        self.assertEqual(['submits-request'], dynamic['relationships'])
+        self.assertEqual(['submits-request', 'submits-request'], dynamic['order'])
+        dsl = (self.root / 'docs/architecture/workspace.dsl').read_text(encoding='utf-8')
+        self.assertIn('2: submits_request', dsl)
+        imported = architecture.StructurizrDslImporter().import_path(
+            self.root / 'docs/architecture/workspace.dsl', base=model).model
+        restored = next(v for v in imported['views'] if v['key'] == first['view'])
+        self.assertEqual(dynamic['relationships'], restored['relationships'])
+        self.assertEqual(dynamic['order'], restored['order'])
+        bad = copy.deepcopy(model)
+        bad['strategic_model']['candidate_slices'][0]['supporting_journeys'] = ['missing']
+        with self.assertRaises(architecture.ArchitectureMapError):
+            architecture.validate_model(bad)
+
     def test_confirmation_rejects_unanswered_consumer_question_but_draft_preserves_it(self):
         self.source['intake']['open_items'] = [{
             'id': 'interface-choice', 'question': 'Does browser access fit the intended use?',

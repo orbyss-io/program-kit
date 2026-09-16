@@ -200,6 +200,88 @@ class DefaultAndHandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'needs-user-answer'):
             handoff.require(self.root, 'trial', 'architecture', questions_only=True)
 
+    def test_compound_candidate_covers_each_journey_and_rejects_hidden_future_scope(self):
+        from validate_governance_state import roadmap
+        from bootstrap_context import stage_plan
+        import re
+        self.register['first_slice']['journey_ids'] = ['shopping', 'access']
+        write(self.root / handoff.REGISTER, self.register)
+        candidate = {'id': 'shared-loop', 'journey': 'j-shopping',
+                     'supporting_journeys': ['j-access'], 'contexts': ['household']}
+        model = {'elements': [], 'relationships': [], 'strategic_model': {
+            'journeys': [{'id': 'j-' + key, 'source_journey': key, 'steps': []}
+                         for key in ['shopping', 'access', 'history']], 'candidate_slices': [candidate]}}
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        path.write_text(re.sub(r'(?m)^- \*\*Scope\*\*:.*$', '- **Scope**: shared-loop', roadmap()), encoding='utf-8')
+        self.assertEqual(['shopping', 'access'], handoff.first_feature(self.root)['journeyIds'])
+        self.assertEqual(['shared-loop'], stage_plan(self.root, {}, 'roadmap', {'assessment_decisions': self.register}, 'trial')['first_entry']['candidate_ids'])
+        candidate['supporting_journeys'].append('j-history')
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        with self.assertRaisesRegex(ValueError, 'future candidate journeys'):
+            handoff.first_feature(self.root)
+
+    def test_ready_scope_requires_supporting_journey_edges_and_endpoints(self):
+        import governance_state as governance
+        model = {'elements': [
+            {'id': 'parent', 'type': 'person', 'status': 'explicit'},
+            {'id': 'list', 'type': 'container', 'status': 'accepted'},
+            {'id': 'member', 'type': 'container', 'status': 'proposed'}],
+            'relationships': [
+                {'id': 'read', 'source': 'list', 'target': 'parent', 'status': 'accepted'},
+                {'id': 'admit', 'source': 'parent', 'target': 'member', 'status': 'proposed'}],
+            'strategic_model': {'journeys': [
+                {'id': 'shop', 'steps': [{'relationship': 'read'}]},
+                {'id': 'access', 'steps': [{'relationship': 'admit'}]}],
+                'candidate_slices': [{'id': 'shared-loop', 'journey': 'shop',
+                                      'supporting_journeys': ['access']}]}}
+        path = self.root / governance.ARCHITECTURE_MAP
+        write(self.root / governance.BOOTSTRAP_APPROVAL, {'status': 'Approved'})
+        records = [{'id': 'RM-01', 'Status': 'Ready', 'Scope': 'shared-loop'}]
+        with patch.object(governance, 'project_path', side_effect=lambda p: self.root / p):
+            write(path, model)
+            with self.assertRaisesRegex(governance.GovernanceStateError, 'admit, member'):
+                governance.validate_roadmap_architecture_scope(records)
+            model['relationships'][1]['status'] = 'accepted'
+            write(path, model)
+            with self.assertRaisesRegex(governance.GovernanceStateError, 'scope: member'):
+                governance.validate_roadmap_architecture_scope(records)
+            model['elements'][2]['status'] = 'accepted'
+            write(path, model)
+            governance.validate_roadmap_architecture_scope(records)
+
+    def test_source_bound_adr_assigns_phase_without_claiming_closure(self):
+        import bootstrap_lifecycle as lifecycle
+        adr = 'docs/architecture/decisions/owned-policy.md'
+        path = self.root / adr
+        path.parent.mkdir(parents=True)
+        path.write_text('Status: Proposed\nFeature planning owns fields; no execution claimed.\n', encoding='utf-8')
+        model = {'decisions': [{'id': 'policy', 'path': adr, 'status': 'Proposed'}]}
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        condition = {'id': 'fields', 'source_ids': ['fields'], 'affected_slices': ['RM-01'],
+                     'disposition': 'feature', 'trigger': 'feature-plan', 'owner': 'Feature author',
+                     'task': 'Specify fields', 'rationale': 'Within owned boundary', 'status': 'open', 'evidence': []}
+        ledger = {'schema_version': '1.0', 'prerequisites': [condition], 'sources': [
+            {'path': p, 'sha256': lifecycle.source_digest(self.root / p), 'prerequisites': ['fields']}
+            for p in lifecycle.source_paths(self.root)]}
+        write(self.root / lifecycle.LEDGER, ledger)
+        records = [{'id': 'RM-01', 'Status': 'Ready'}]
+        self.assertEqual([], lifecycle.validate_prerequisites(self.root, records, allow_proposed_authority=True))
+        with self.assertRaisesRegex(lifecycle.LifecycleError, 'without reviewed decision authority'):
+            lifecycle.validate_prerequisites(self.root, records)
+        model['decisions'][0]['status'] = 'Accepted'
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        self.assertEqual([], lifecycle.validate_prerequisites(self.root, records))
+        condition['status'] = 'closed'
+        write(self.root / lifecycle.LEDGER, ledger)
+        with self.assertRaisesRegex(lifecycle.LifecycleError, 'closure requires evidence'):
+            lifecycle.validate_prerequisites(self.root, records)
+        condition['status'] = 'open'
+        write(self.root / lifecycle.LEDGER, ledger)
+        path.write_text('Status: Accepted\nChanged to require bootstrap execution.\n', encoding='utf-8')
+        with self.assertRaisesRegex(lifecycle.LifecycleError, 'inventory is stale'):
+            lifecycle.validate_prerequisites(self.root, records)
+
     def test_technical_question_requires_explicit_kind_and_routes_to_design_owner(self):
         write(self.directory / 'state.json', {'status': 'running', 'current_step_id': 'architecture-prerequisite-closure'})
         args = (self.root, 'trial', 'provider-input', 'Resolve exact provider bindings', 'Architecture/research owner', 'closure', 'Use selected provider evidence')

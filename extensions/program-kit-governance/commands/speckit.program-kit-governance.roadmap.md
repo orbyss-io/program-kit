@@ -113,6 +113,11 @@ the installed `references/bootstrap-lifecycle.md` contract. It binds all unresol
 assessment items and retained ADR conditions to exact affected entries, owners, triggers and
 closure evidence. Program Kit owns IDs and paths. Read the full roadmap including its preamble;
 never redefine Ready as specification-ready or place a global before-code gate outside records.
+
+For a retained ADR condition assigned to feature/later work, bind that cataloged ADR in `sources`
+with the exact condition ID. This is phase-assignment authority, not closure evidence: leave the
+condition open until its own gate. Cover compound slices through their declared primary and
+`supporting_journeys` IDs, never narrative-only claims.
 Keep open architecture dependencies Blocked. The subsequent bootstrap-closure command executes
 bounded compatibility tasks and reconciles eligibility before final review. An all-Blocked draft
 is a valid portfolio assessment and does not authorize implementation or bootstrap completion.

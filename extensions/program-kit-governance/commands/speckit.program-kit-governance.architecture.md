@@ -134,6 +134,9 @@ sources of truth.
 Confirmed consumer evidence remains immutable. Keep each source journey's identity, actor and
 observable outcome, and use only intake evidence IDs. A proposed interpretation may be refined
 with research and an ADR; confirmation of the intake did not ratify proposed architecture.
+For a candidate spanning several journeys, retain its primary `journey` and declare the other
+strategic journey IDs in `supporting_journeys`. Narrative inclusion alone cannot establish coverage.
+Keep every confirmed source journey; do not invent separate candidates solely to fit the schema.
 Preserve proposal IDs and consumer evidence references. Explicit consumer selections require an
 intake/assessment correction, not a proposal refinement.
 

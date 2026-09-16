@@ -67,7 +67,12 @@ Closed items require evidence entries with `path`, `sha256`, `kind` (`compatibil
 Decision evidence uses the same normalized source hash from `source-hashes`; compatibility
 receipts use their raw file SHA-256. Disposition of an unresolved assessment item or ADR condition
 as feature/later work requires a cataloged decision as explicit authority, Proposed only during
-review and Accepted at readiness. Ordinary already-deferred feature policy needs no invented ADR.
+review and Accepted at readiness. Its hash-bound entry in `sources`, listing that exact condition
+in `prerequisites`, supplies this authority; a duplicate `kind: decision` entry in `evidence` is
+not required. The source ADR must describe the assigned phase and the review must verify that
+assignment. This does not close the condition or prove execution. The register alone cannot
+authorize moving an unresolved decision to a later phase. Ordinary already-deferred feature policy
+needs no invented ADR.
 Architecture closure requires at least one successful executed compatibility receipt, including
 its bound recipe and both stream hashes. A recipe must contain the exact versions/source identities
 and observable compatibility assertions; structural/Draft resolution tests or business fixtures
@@ -91,8 +96,9 @@ relationships and endpoints must be Accepted or explicitly covered by the pendin
 architecture review. Closed mechanism proofs cannot substitute for that scope.
 Unrelated future proposals do not block the entry. Keep canonical candidate IDs in
 roadmap Scope so this dependency check can use the existing map without guessing.
-The validator checks the candidate's declared journey; it does not infer additional
-journeys from prose or replace the separate decomposition/coverage review.
+The validator checks the candidate's primary `journey` and optional `supporting_journeys`;
+it does not infer additional journeys from prose or replace the separate decomposition/coverage
+review. A cohesive slice may cover several journeys without creating artificial separate candidates.
 
 Current ADR prose must not contradict roadmap status. Preserve immutable older ADRs
 through the existing catalog `supersedes` relationship when a reviewed follow-on
