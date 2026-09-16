@@ -18,11 +18,12 @@ configuration binding appends configured scopes to the initialized `Scopes` arra
 retaining `orbyss-foundation-api` even when the selected profile configures only
 `program-kit-api`. Keycloak rejects that unregistered scope. Preserve this failure;
 do not register an unwanted scope or change fixture expectations to manufacture a
-passing receipt. A corrected publisher package and reviewed pin/fixture update are
-required before this exact profile can claim successful interoperability.
+passing receipt. The maintained fixture now selects 0.2.2, which corrects this binding
+and the separately discovered OIDC shell callback routing defect. Execute the exact
+published combination before claiming successful interoperability.
 
-Source authority: Foundation v0.2.0 at
-`3a97b158bd020391a0954e2148acc001eb8f2a17`:
+Source authority: Foundation v0.2.2 at
+`8d60cdd55e7fb9056c83d614786667c04ef78bdf`:
 `FoundationBffCookieFeature` owns `/api` 401/403 behavior, local cookie semantics,
 OIDC and logout; `AntiforgeryMiddleware` owns unsafe API/logout CSRF rejection;
 `AssuranceOptionsValidator` requires an effective named policy. The synthetic

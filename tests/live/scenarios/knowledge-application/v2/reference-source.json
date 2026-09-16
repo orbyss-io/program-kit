@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "kind": "verified-released-inputs",
+  "version": "0.11.0",
+  "release": "https://github.com/orbyss-io/program-kit/releases/tag/v0.11.0",
+  "source": {
+    "clean": true,
+    "commit": "4b8afd433ef4814f10ca2a954df95b57e06619ca",
+    "tree": "ef8ff95d9cad469beb1ba69ca8f6c35f607612f8"
+  },
+  "assets": [
+    {
+      "name": "program-kit-0.11.0.zip",
+      "sha256": "1d6df41b004d58dffed09c998c785139e9d55a06418d32c3e7005ac8a401db6e",
+      "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/program-kit-0.11.0.zip"
+    },
+    {
+      "name": "program-kit-bootstrap-0.11.0.zip",
+      "sha256": "5a64248b35ca0cb3e9566ff62d3dd4be5458477db87571bcf5867a677ee9cd7e",
+      "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/program-kit-bootstrap-0.11.0.zip"
+    },
+    {
+      "name": "program-kit-building-blocks-0.11.0.zip",
+      "sha256": "c89cc80b146d88951dcbf8120957bf9dcf82bd53769a00d266815bbc0147453a",
+      "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/program-kit-building-blocks-0.11.0.zip"
+    },
+    {
+      "name": "program-kit-dotnet-0.11.0.zip",
+      "sha256": "888a83a96d6688e3f332fd3735437ce257b5c7f27268a16dd4aa99ff2c4c5dd1",
+      "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/program-kit-dotnet-0.11.0.zip"
+    },
+    {
+      "name": "program-kit-governance-0.11.0.zip",
+      "sha256": "871a79cb04d060d54bc3b4889b43adcde0b34102aa591fff4118d784ef482568",
+      "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/program-kit-governance-0.11.0.zip"
+    },
+    {
+      "name": "program-kit-governance-preset-0.11.0.zip",
+      "sha256": "5edd29e1b72d0a9d7b7d5eb37902e397f61fee52dd4288c8642d3cbf8d007753",
+      "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/program-kit-governance-preset-0.11.0.zip"
+    },
+    {
+      "name": "release-receipt-0.11.0.json",
+      "sha256": "19c5511f191aac49288bf1ac498a02c0c2bb0f7e62897a0e1288880fe05ccc2a",
+      "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/release-receipt-0.11.0.json"
+    },
+    {
+      "name": "SHA256SUMS",
+      "sha256": "80a9e25a16ba8452da672f1a01fc41607b9fe0e5d31263a6ec51c4a8b22dfcb6",
+      "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/SHA256SUMS"
+    }
+  ],
+  "note": "Pinned downloaded release inputs only; consumer admission requires separate executed evidence.",
+  "sourceFiles": [
+    {
+      "path": "catalogs/extensions.json",
+      "sha256": "8251c8a686e6b8a1a1c0d45ac05b89a7b72d07db610210e6234aab6183c5586c"
+    },
+    {
+      "path": "catalogs/presets.json",
+      "sha256": "35491cd802317933f973b527ef4c82a3228dd7338b60ac119ba1ce56bb4c7b88"
+    },
+    {
+      "path": "catalogs/workflows.json",
+      "sha256": "6d538a3dd8f2899aa4b838cad095fae743ca75bd5ac262e34e2d59c04229715b"
+    }
+  ]
+}

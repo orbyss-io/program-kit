@@ -1,12 +1,12 @@
 # Apply selected component mechanisms
 
-Foundation and Forms 0.2.0 are independent component releases. Select only applicable
+Foundation 0.2.2 and Forms 0.2.0 are independent component releases. Select only applicable
 mechanisms and verify the exact Program Kit combination before acceptance. Existing
 wire and canonical identities must survive upgrades unless explicitly redesigned.
 
 For bounded architecture compatibility, inspect the installed
 `examples/bootstrap-runtime` sources before inventing another host/port probe. They exercise
-the published Foundation 0.2.0 image, two-shell replacement, compiled Core boundaries,
+the published Foundation 0.2.2 image, two-shell replacement, compiled Core boundaries,
 strict JSON, headers, OpenAPI and unchanged-bundle restart. They are synthetic mechanism
 examples, not consumer implementation or proof that an unexecuted plan works. Copy only
 applicable source files into a contract-bound scratch recipe with exact selected dependencies.

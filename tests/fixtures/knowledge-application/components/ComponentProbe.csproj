@@ -12,9 +12,9 @@
     <PackageReference Include="Orbyss.Forms.Management" Version="0.2.0" />
     <PackageReference Include="Orbyss.Forms.JsonForms" Version="0.2.0" />
     <PackageReference Include="Orbyss.Forms.Storage.InMemory" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.Json" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.Json.AspNetCore" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.WebDefaults" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.Web.HostedPages" Version="0.2.0" />
+    <PackageReference Include="Orbyss.Foundation.Json" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.Json.AspNetCore" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.WebDefaults" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.Web.HostedPages" Version="0.2.2" />
   </ItemGroup>
 </Project>

@@ -25,7 +25,7 @@ def main() -> int:
 
     required_versions = inventory.get("requiredReplacementVersions")
     if required_versions != {
-        "foundation": "0.2.0",
+        "foundation": "0.2.2",
         "forms": "0.2.0",
         "localization": "0.1.1",
     }:

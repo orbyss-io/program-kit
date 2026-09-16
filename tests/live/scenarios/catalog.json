@@ -18,6 +18,12 @@
       "version": "2",
       "path": "internal-forms-workspace/v2",
       "kind": "building-block-consumer"
+    },
+    {
+      "id": "internal-forms-workspace",
+      "version": "3",
+      "path": "internal-forms-workspace/v3",
+      "kind": "building-block-consumer"
     }
   ]
 }

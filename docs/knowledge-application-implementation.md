@@ -136,7 +136,7 @@ receipt is generated after the freeze and preserved outside shipped content.
 
 The next requested experiment is **actual human intake → native bootstrap → first
 vertical slice**, using the intake produced by the real conversation. See
-`tests/live/scenarios/knowledge-application/v1/README.md` for the staged procedure.
+`tests/live/scenarios/knowledge-application/v2/README.md` for the staged procedure.
 The tracked prepared intake is a deterministic fixture only.
 
 The human starts `Start-IntakeSession.ps1` in a foreground terminal. Capturing its

@@ -16,6 +16,21 @@ from validate_building_blocks import accepted_fixture, load_module, write_json, 
 
 
 class ProviderContextTests(unittest.TestCase):
+    def test_shipped_probe_and_exporter_pins_match_managed_foundation(self):
+        import xml.etree.ElementTree as ET
+        version = json.loads(CATALOG.read_text())['families']['foundation']['releaseVersion']
+        files = list((ROOT / 'extensions/program-kit-governance/examples').rglob('*.csproj'))
+        files += list((ROOT / 'tests/fixtures/knowledge-application/components').rglob('*.csproj'))
+        checked = 0
+        for path in files:
+            for reference in ET.parse(path).iter('PackageReference'):
+                if reference.get('Include', '').startswith('Orbyss.Foundation.'):
+                    self.assertEqual(version, reference.get('Version'), str(path))
+                    checked += 1
+        self.assertGreater(checked, 0)
+        tools = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/.config/dotnet-tools.json'
+        self.assertEqual(version, json.loads(tools.read_text())['tools']['orbyss.foundation.openapi.exporter']['version'])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

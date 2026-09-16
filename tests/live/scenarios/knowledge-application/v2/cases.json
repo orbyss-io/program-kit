@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "1.0",
+  "id": "knowledge-application",
+  "version": "2",
+  "status": "fixtures-prepared-not-live-authorized",
+  "claim": "Measure tokens, independent quality and avoidable work for a fictional lending feature and a separately admitted released-reference upgrade.",
+  "inputs": {
+    "request": "PROJECT_REQUEST.md",
+    "consumerSeed": "bootstrap-seed",
+    "feature": "RM01",
+    "futureFeature": "RM02",
+    "registryCredentialReference": "PROGRAM_KIT_NPM_TOKEN"
+  },
+  "cases": [
+    {
+      "id": "fresh-baseline",
+      "candidate": "baseline",
+      "start": "accepted-bootstrap-checkpoint",
+      "stages": [
+        "feature-intake",
+        "specify",
+        "plan-package-requests",
+        "supervisor-package-resolution",
+        "plan-and-tasks",
+        "implementation-setup",
+        "supervisor-restore",
+        "implementation-and-verification",
+        "unchanged-sync"
+      ],
+      "assertions": [
+        "human-intake-confirmed",
+        "spec-plan-tasks-traceability",
+        "strict-package-evidence",
+        "mixed-stack-build",
+        "functional-smoke",
+        "future-feature-unmaterialized"
+      ],
+      "comparisonRole": "control",
+      "status": "historical-comparison-only-no-new-paid-baseline"
+    },
+    {
+      "id": "fresh-candidate",
+      "candidate": "candidate",
+      "start": "equivalent-accepted-bootstrap-checkpoint",
+      "stages": [
+        "feature-intake",
+        "specify",
+        "plan-package-requests",
+        "supervisor-package-resolution",
+        "plan-and-tasks",
+        "implementation-setup",
+        "supervisor-restore",
+        "implementation-and-verification",
+        "unchanged-sync"
+      ],
+      "assertions": [
+        "human-intake-confirmed",
+        "spec-plan-tasks-traceability",
+        "strict-package-evidence",
+        "mixed-stack-build",
+        "functional-smoke",
+        "future-feature-unmaterialized",
+        "first-lookup-correct-registry",
+        "no-consumer-setup-helpers",
+        "current-phase-readiness",
+        "unchanged-sync-no-work",
+        "domain-restart-retry-behavior",
+        "compiled-extension-proof",
+        "public-forms-adoption",
+        "executed-phase-obligations",
+        "browser-accessibility"
+      ],
+      "comparisonRole": "treatment"
+    },
+    {
+      "id": "upgrade-candidate",
+      "candidate": "candidate",
+      "start": "explicitly-admitted-released-reference",
+      "stages": [
+        "capture-consumer-hashes",
+        "offline-upgrade",
+        "upgrade-readiness",
+        "supervisor-restore-if-stale",
+        "resume-feature-flow",
+        "verification",
+        "unchanged-upgrade"
+      ],
+      "assertions": [
+        "same-sync-coordinator",
+        "consumer-edits-preserved",
+        "offline-upgrade-no-network",
+        "obsolete-command-removed",
+        "future-feature-unmaterialized",
+        "stale-evidence-rejected",
+        "mixed-stack-build",
+        "functional-smoke",
+        "unchanged-sync-no-work",
+        "canonical-and-wire-identity-preserved",
+        "explicit-scoped-remediation",
+        "independent-before-and-after-behavior"
+      ],
+      "comparisonRole": "upgrade"
+    }
+  ],
+  "metrics": [
+    "input_tokens",
+    "cached_input_tokens",
+    "output_tokens",
+    "quality",
+    "avoidable-rework",
+    "unnecessary-reading",
+    "setupDiscoveryCommands",
+    "wrongRegistryRequests",
+    "packageResolutionAttempts",
+    "repeatedUnchangedOperations",
+    "consumerSetupHelpers",
+    "setupFailures",
+    "humanInterventions"
+  ],
+  "evidenceRules": {
+    "successRequiresIndependentAssertions": true,
+    "unknownIsNotZero": true,
+    "compareOnlyEquivalentSuccessfulRuns": true,
+    "recordExternalServiceFailuresSeparately": true,
+    "wallClockIsDescriptiveOnly": true,
+    "workerCredentials": false,
+    "packageNetworkOwner": "supervisor",
+    "oneUseAuthorizationPerPaidStage": true,
+    "automaticRetry": false,
+    "numericalSavingsRequireMatchedConditions": true
+  },
+  "referenceBaseline": {
+    "kind": "released-reference-consumer",
+    "historicalLiveCheckpoint": false,
+    "admission": "Exact inventory and independent before-behavior reviewed before phase authorization."
+  }
+}

@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / 'tests'))
 from live.v2.postgresql_service import PostgreSqlService
 from live.v2.supervisor import run_supervised
 
-IMAGE = 'ghcr.io/orbyss-io/foundation-host@sha256:78d58af0179c58355e969b42f884710ffd305b835fe8c01a1aa2627f0f277866'
+IMAGE = 'ghcr.io/orbyss-io/foundation-host@sha256:622353f8c3888ae173819abad493ecde786307e72f661cdfa3bf3afa84cf6cde'
 IDS = {'provider-durability-admission', 'managed-runtime-admission', 'forms-hosted-page-admission', 'shell-replacement-enforcement'}
 
 
@@ -62,8 +62,8 @@ def prepare(project, run_id):
     for source, target in [('components', 'components'), ('forms-browser-packages', 'web'), ('bootstrap-runtime', 'runtime')]:
         shutil.copytree((ROOT / 'extensions/program-kit-governance/examples/bootstrap-runtime') if source == 'bootstrap-runtime' else ROOT / 'tests/fixtures/knowledge-application' / source, verified / target,
                        ignore=shutil.ignore_patterns('bin', 'obj', '__pycache__', 'node_modules', 'packages.lock.json'))
-    write(verified / 'runtime/runtime-inputs.json', {'hostImage': IMAGE, 'foundationRelease': '0.2.0',
-        'foundationCommit': 'e8227378a6d10a95d53a03c48c1c2a75503577b0', 'formsCommit': '0841adcb924ca38db957b348cdbbd301472747e4'})
+    write(verified / 'runtime/runtime-inputs.json', {'hostImage': IMAGE, 'foundationRelease': '0.2.2',
+        'foundationCommit': '8d60cdd55e7fb9056c83d614786667c04ef78bdf', 'formsCommit': '0841adcb924ca38db957b348cdbbd301472747e4'})
     def contract(identity, recipe_source, fixtures, targets, cases):
         recipe = folder / (identity + '.py')
         shutil.copyfile(recipe_source, recipe)
@@ -98,7 +98,7 @@ def prepare(project, run_id):
     write(project / 'docs/architecture/bootstrap-proof-plan.json', plan)
     # Keep the original account explicitly historical; add a Proposed correction.
     adr = adr.replace('## Evidence boundary and findings', '## Historical failed-attempt findings (before recovery)')
-    adr += '\n## Prepared compatibility recovery\n\nThe Draft selection now binds json_profiles and hosted_pages to the existing API and shell, as required by the founding design. Existing boundaries, owners and Accepted authority are unchanged. The verified/ fixtures use Foundation and Forms 0.2.0 public APIs and the published Foundation v0.2.0 digest. A separate writable Nuplane extraction directory preserves immutable bundle inputs. Runtime cases prove actual published-host activation, JSON/headers/OpenAPI, restart and two-shell replacement; compiled Core enforcement includes an injected forbidden dependency. Forms runs public producer, trusted/tamper admission, React and HostedPages HTTP probes. PostgreSQL remains the exact supervisor-owned fixture. No product behavior or universal compatibility is claimed.\n\nThe deterministic recovery executor supplies services and records proof before native resume. All four conditions remain open until their exact recipes pass; the prepared conditional roadmap transition cannot run earlier. Final native review still owns acceptance. Historical missing-input guards above are superseded by these source-bound recipes, not by an approval or a success claim.\n'
+    adr += '\n## Prepared compatibility recovery\n\nThe Draft selection now binds json_profiles and hosted_pages to the existing API and shell, as required by the founding design. Existing boundaries, owners and Accepted authority are unchanged. The verified/ fixtures use Foundation 0.2.2 and Forms 0.2.0 public APIs and the published Foundation v0.2.2 digest. A separate writable Nuplane extraction directory preserves immutable bundle inputs. Runtime cases prove actual published-host activation, JSON/headers/OpenAPI, restart and two-shell replacement; compiled Core enforcement includes an injected forbidden dependency. Forms runs public producer, trusted/tamper admission, React and HostedPages HTTP probes. PostgreSQL remains the exact supervisor-owned fixture. No product behavior or universal compatibility is claimed.\n\nThe deterministic recovery executor supplies services and records proof before native resume. All four conditions remain open until their exact recipes pass; the prepared conditional roadmap transition cannot run earlier. Final native review still owns acceptance. Historical missing-input guards above are superseded by these source-bound recipes, not by an approval or a success claim.\n'
     adr_path.write_text(adr, encoding='utf-8')
     model_path = project / 'docs/architecture/architecture-map.json'
     model = read(model_path)

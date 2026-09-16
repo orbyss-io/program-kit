@@ -34,7 +34,7 @@ CASES = ('fresh-baseline', 'fresh-candidate', 'upgrade-candidate')
 
 
 def fixture(root: Path) -> Path:
-    return root / 'tests/live/scenarios/knowledge-application/v1'
+    return root / 'tests/live/scenarios/knowledge-application/v2'
 
 
 def seed(root: Path) -> Path:
@@ -45,7 +45,7 @@ def authority(root: Path, case: str, scenario_root: Path | None = None) -> dict:
     if case not in CASES:
         raise LiveContractError('LIVE_SYNC_CASE_INVALID')
     sources = file_inventory(fixture(root))
-    return {'id': 'knowledge-application-' + case, 'version': '1',
+    return {'id': 'knowledge-application-' + case, 'version': '2',
             'digest': canonical_sha256({'case':case, 'fixtures':sources,
                                        'seed':scenario_authority(scenario_root or seed(root), root / 'tests/live/schemas/v2')})}
 

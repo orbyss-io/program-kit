@@ -3,12 +3,12 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="CShells.AspNetCore.Abstractions" Version="0.0.29-preview.147" PrivateAssets="all" />
-    <PackageReference Include="Orbyss.Foundation.Authentication" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.Authentication.BffCookie" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.Authentication.Assurance" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.WebDefaults" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.Web.ProblemDetails" Version="0.2.0" />
-    <PackageReference Include="Orbyss.Foundation.Web.OpenApi" Version="0.2.0" />
+    <PackageReference Include="Orbyss.Foundation.Authentication" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.Authentication.BffCookie" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.Authentication.Assurance" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.WebDefaults" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.Web.ProblemDetails" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.Web.OpenApi" Version="0.2.2" />
     <PackageReference Include="System.Text.Json" Version="10.0.11" />
   </ItemGroup>
 </Project>

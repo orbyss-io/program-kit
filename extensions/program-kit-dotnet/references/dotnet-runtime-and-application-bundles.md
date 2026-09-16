@@ -66,7 +66,7 @@ the original. Reconcile legacy duplicates before changing runtime configuration.
 
 `release_bundle.py stage` composes configuration and verifies available package/activation closure;
 `describe` binds the published Foundation image digest and emits the descriptor, ZIP and checksum.
-Resolve the publisher's version-prefixed tag (for example `foundation-host:v0.2.0`)
+Resolve the publisher's version-prefixed tag (for example `foundation-host:v0.2.2`)
 to its registry digest; do not infer that a cached image belongs to that release.
 Package-free configuration bundles are allowed; active features must still have verified resolution.
 Runtime feeds, watching, reconciliation and reload are explicit deployment choices; configuring a

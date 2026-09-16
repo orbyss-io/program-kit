@@ -45,7 +45,7 @@ from live.run_bootstrap_acceptance import prepare_local_catalog_server, specify_
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS = ROOT / "tests/live/schemas/v2"
-SCENARIO = ROOT / "tests/live/scenarios/internal-forms-workspace/v2"
+SCENARIO = ROOT / "tests/live/scenarios/internal-forms-workspace/v3"
 CATALOG = ROOT / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
 RESOLVER = ROOT / "extensions/program-kit-building-blocks/scripts/building_blocks.py"
 RESTORE = ROOT / "extensions/program-kit-building-blocks/scripts/restore_dependencies.py"
@@ -119,7 +119,7 @@ def main() -> int:
         raise AssertionError("Interactive authorization no longer displays and binds the actual Codex launcher version")
     scenario, expectation, expectation_path = load_scenario(SCENARIO, SCHEMAS)
     authority = scenario_authority(SCENARIO, SCHEMAS)
-    if expectation["catalogSha256"] != "c5a214cb1c3fa0d6b0d1d526671e8fb1cc39c5d4a18b09132e71fa035c3386f5":
+    if expectation["catalogSha256"] != "0ca415b7627d5d335c53582a3694dc98c6ece6a205c7dbf8425b3897b912ec81":
         raise AssertionError("Internal Forms expectation lost its reviewed catalog binding")
 
     resolver = load_module("live_v2_building_blocks", RESOLVER)

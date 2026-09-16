@@ -28,7 +28,7 @@ def capture(root: Path, session: Path, destination: Path, decision_ids=None):
     archive_path = session / 'consumer.zip'
     require(sha256_file(archive_path) == state.get('archiveSha256'), 'ARCHIVE_CHANGED')
     require(not destination.exists(), 'DESTINATION_EXISTS')
-    base = root / 'tests/live/scenarios/knowledge-application/v1/bootstrap-seed'
+    base = root / 'tests/live/scenarios/knowledge-application/v2/bootstrap-seed'
     fixture = destination / 'fixture'
     originals = {}
     with zipfile.ZipFile(archive_path) as archive:
@@ -48,7 +48,7 @@ def capture(root: Path, session: Path, destination: Path, decision_ids=None):
             require(hashlib.sha256(payload).hexdigest() == record['sha256'] and len(payload) == record['bytes'], 'ORIGINAL_INPUT_CHANGED')
             originals[record['path']] = payload
         idea = read('product-idea.md')
-        require(idea == (root / 'tests/live/scenarios/knowledge-application/v1/PROJECT_REQUEST.md').read_bytes(), 'DIFFERENT_PRODUCT_NEEDS_REVIEWED_FIXTURE')
+        require(idea == (root / 'tests/live/scenarios/knowledge-application/v2/PROJECT_REQUEST.md').read_bytes(), 'DIFFERENT_PRODUCT_NEEDS_REVIEWED_FIXTURE')
         originals['PROJECT_REQUEST.md'] = idea
         for record in file_inventory(base / 'fixture/acceptance'):
             name = 'acceptance/' + record['path']

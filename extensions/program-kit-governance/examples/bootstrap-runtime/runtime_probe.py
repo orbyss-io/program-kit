@@ -1,6 +1,6 @@
 """Synthetic activation on the published host; no consumer host project/image is built.
 
-APIs derived from Foundation v0.2.0 (e8227378a6d10a95d53a03c48c1c2a75503577b0):
+APIs verified against Foundation v0.2.2 (8d60cdd55e7fb9056c83d614786667c04ef78bdf):
 Host/Program.cs, FoundationOpenApiFeature and WebDefaults' PolicyProbeFeature.
 Build/pack only the synthetic port/features. Runtime dependencies come from the
 coordinator's locked restore. No package resolution or restore happens here.

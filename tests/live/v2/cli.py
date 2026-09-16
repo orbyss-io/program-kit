@@ -98,7 +98,7 @@ def schemas(root: Path) -> Path:
 
 
 def default_scenario(root: Path) -> Path:
-    return root / "tests/live/scenarios/internal-forms-workspace/v2"
+    return root / "tests/live/scenarios/internal-forms-workspace/v3"
 
 
 def execution_workspace(root: Path, run_token: str) -> Path:

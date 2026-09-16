@@ -1,7 +1,7 @@
 <Project>
   <ItemGroup>
     <!-- The analyzer is the sole repository-wide building-block exception. -->
-    <PackageVersion Include="Orbyss.Foundation.Analyzers" Version="0.2.0" />
+    <PackageVersion Include="Orbyss.Foundation.Analyzers" Version="0.2.2" />
     <PackageVersion Include="CShells.Abstractions" Version="0.0.29-preview.147" />
     <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="0.0.29-preview.147" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />

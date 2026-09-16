@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 from repository_sync import audit_toolchain, provider, write
 
-IMAGE = 'ghcr.io/orbyss-io/foundation-host@sha256:78d58af0179c58355e969b42f884710ffd305b835fe8c01a1aa2627f0f277866'
+IMAGE = 'ghcr.io/orbyss-io/foundation-host@sha256:622353f8c3888ae173819abad493ecde786307e72f661cdfa3bf3afa84cf6cde'
 
 
 def main():
@@ -20,7 +20,7 @@ def main():
     for name in ['global.json', 'NuGet.config']:
         shutil.copyfile(template / name, target / name)
     shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts/compatibility_process.py', target / 'bounded_process.py')
-    write(target / 'runtime-inputs.json', {'hostImage': IMAGE, 'foundationRelease': '0.2.0'})
+    write(target / 'runtime-inputs.json', {'hostImage': IMAGE, 'foundationRelease': '0.2.2'})
     audit_toolchain(target, {'dotnet': '10.0.202'})
     executor = provider('program-kit-building-blocks/scripts/restore_dependencies.py')
     plan = {'schemaVersion': 1, 'targets': [{'path': p, 'packages': [{'materializationKind': 'nuget-project'}]} for p in

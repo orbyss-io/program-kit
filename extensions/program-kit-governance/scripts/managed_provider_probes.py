@@ -19,8 +19,8 @@ def render(root, kind, identity, host_image):
     decisions = json.loads((root / 'docs/architecture/bootstrap-decisions.json').read_text(encoding='utf-8'))
     selected = project(root, decisions)
     host = next((p for p in selected['selected_packages'] if p['ecosystem'] == 'oci'), None)
-    if not host or host['version'] != '0.2.0':
-        raise ValueError('Maintained activation fixture requires selected Foundation 0.2.0; review the fixture for other releases')
+    if not host or host['version'] != '0.2.2':
+        raise ValueError('Maintained activation fixture requires selected Foundation 0.2.2; review the fixture for other releases')
     if not isinstance(host_image, str) or not re.fullmatch(re.escape(host['packageId']) + r'@sha256:[0-9a-f]{64}', host_image):
         raise ValueError('Supply --host-image with the registry-verified digest for the selected Foundation tag')
     if decisions.get('toolchain', {}).get('pins', {}).get('dotnet-sdk', '').split('.')[0] != '10':

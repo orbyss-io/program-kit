@@ -11,7 +11,7 @@ from live.v2 import cli, intake_handoff, scenario, sync_stages
 from live.v2.common import LiveContractError, atomic_write_json, load_object, sha256_file
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = ROOT / 'tests/live/scenarios/knowledge-application/v1/bootstrap-seed'
+BASE = ROOT / 'tests/live/scenarios/knowledge-application/v2/bootstrap-seed'
 
 
 class IntakeHandoffTests(unittest.TestCase):

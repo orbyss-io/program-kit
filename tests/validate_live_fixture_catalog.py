@@ -15,18 +15,21 @@ def main():
         resolve_fixture(record['id'], record['version'])
     from live.v2.scenario import validate_candidate_catalog
     repository = root.parents[2]
-    validate_candidate_catalog(root / 'internal-forms-workspace/v2', repository, root.parent / 'schemas/v2')
+    validate_candidate_catalog(root / 'internal-forms-workspace/v3', repository, root.parent / 'schemas/v2')
     from live.v2.sync_stages import seed, authority as stage_authority
     validate_candidate_catalog(seed(repository), repository, root.parent / 'schemas/v2')
     assert stage_authority(repository, 'fresh-candidate')['id'] == 'knowledge-application-fresh-candidate'
     assert not list((seed(repository) / 'fixture').rglob('*.csproj'))
     assert not list((seed(repository) / 'fixture').rglob('package.json'))
-    try:
-        validate_candidate_catalog(root / 'internal-forms-workspace/v1', repository, root.parent / 'schemas/v2')
-    except LiveContractError as error:
-        assert 'CATALOG_STALE' in str(error)
-    else:
-        raise AssertionError('Historical fixture pins were admitted for the current candidate')
+    assert stage_authority(repository, 'fresh-candidate')['version'] == '2'
+    for historical in ('internal-forms-workspace/v1', 'internal-forms-workspace/v2',
+                       'knowledge-application/v1/bootstrap-seed'):
+        try:
+            validate_candidate_catalog(root / historical, repository, root.parent / 'schemas/v2')
+        except LiveContractError as error:
+            assert 'CATALOG_STALE' in str(error)
+        else:
+            raise AssertionError('Historical fixture pins were admitted: ' + historical)
     selected = resolve_fixture('price-calculator-approved-intake', '1')
     directory = Path(selected['directory'])
     scenario = load_object(directory / 'scenario.json')

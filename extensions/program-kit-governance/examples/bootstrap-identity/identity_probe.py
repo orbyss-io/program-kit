@@ -1,6 +1,6 @@
 """Published Foundation BFF + pinned Keycloak; no consumer feature or host build.
 
-Uses the shipped neutral realm/BFF configuration and Foundation v0.2.0 public
+Uses the shipped neutral realm/BFF configuration and Foundation v0.2.2 public
 IWebShellFeature/permission-policy API. Shared compatibility setup owns restore.
 Only scratch settings, local test personas and disposable containers are used.
 """
