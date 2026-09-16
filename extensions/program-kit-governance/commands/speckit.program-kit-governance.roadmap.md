@@ -124,8 +124,14 @@ step only copies the status already justified here; it never chooses or promotes
 
 Report blocked records and the exact design task or ADR that can unlock each one.
 
-Start with one roadmap entry per normalized user-visible journey unless accepted architecture
-requires a split. Reuse the compact authority and normalized brief rather than reconstructing the
+The approved `first_slice.journey_ids` is one selected specification boundary. Create exactly
+one first entry whose Scope includes every canonical candidate ID projected in
+`stage_plan.first_entry.candidate_ids`, and no candidate for a future journey. If this boundary
+contains several supporting journeys, describe them in that one entry; four separate entries
+plus prose saying they share a specification do not satisfy the handoff. Do not enlarge or shrink
+the approved boundary. Create separate portfolio entries for the remaining user-visible journeys.
+Without a structured first_slice, start with one entry per journey unless accepted architecture
+requires another boundary. Reuse the compact authority and normalized brief rather than reconstructing the
 design from every downstream document. Report entry IDs, statuses, final byte counts, and validation
 counts only; do
 not print the complete roadmap or repository-wide diffs.

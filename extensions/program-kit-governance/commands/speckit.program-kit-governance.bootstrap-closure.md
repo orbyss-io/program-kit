@@ -17,6 +17,17 @@ are not proof of interoperability or license admission. An empty `decision_hando
 questions; it is not the provider inventory. Technical research/design gaps use an explicitly typed
 design-decision handoff to the owning stage, never a request for the consumer to provide kit metadata.
 
+`provider_inputs.persistence_runtimes` supplies exact selected test-server identities
+and existing profile package pins. Use maintained `ef-postgresql` for a retained
+EF/Npgsql/PostgreSQL compatibility condition: it proves write/read, expected-revision
+conflict, rollback and restart in an isolated database. Provision that exact image;
+do not invent another server version or delegate kit metadata to the consumer.
+`managed_baseline_evidence` supplies dated publisher/package/notice evidence and its
+limits. Review the named gap against those sources. If an already approved condition
+combines local mechanism feasibility with later consumer distribution obligations,
+split it only through an explicit follow-on decision and final review, preserving both
+obligations. A runtime receipt cannot close a source/license question by itself.
+
 Create or reconcile `docs/architecture/bootstrap-prerequisites.json` using the contract reference.
 Inventory every unresolved/deferred register item and every condition retained in every cataloged
 ADR, including Accepted ADRs. Use `bootstrap_lifecycle.py source-hashes` to obtain source bindings;

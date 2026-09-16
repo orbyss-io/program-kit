@@ -39,6 +39,25 @@ named diagnostic.
 
 ## Rules
 
+Use `stage_plan.provider_inputs` before external discovery. Its managed baseline
+evidence supplies exact publisher/registry identities, dated package declarations,
+distribution notices, maintenance evidence and explicit gaps even before architecture
+has written its selection. Query the named evidence file for a specific package or
+notice; do not read the full inventory or reconstruct publisher URLs. A missing GitHub
+Release page does not negate an observed registry artifact and successful publisher
+workflow. A failed web-page fetch warrants the supplied canonical metadata source,
+not an unbounded new admission prerequisite.
+
+Assess license/support risk against actual consumer constraints and the due activity.
+Preserve source attribution, preview risk and unknown scanner fields. Bootstrap needs
+bounded evidence for selecting/testing the managed mechanism; actual consumer lockfile
+notices and redistribution obligations belong before packaging/distribution unless a
+concrete restriction blocks the selected design now. Never certify the whole host as
+MIT, invent support guarantees, or silently waive a known conflicting term. Name the
+specific artifact, question, source route, owner and due action for any retained gap.
+The projected persistence runtime supplies the test server pin; its package pins come
+from the existing profile props. Explicit alternatives retain their own provider work.
+
 Use `stage_plan.building_blocks.composition_contracts` when supplied to check managed capability
 options before proposing a stack. Distinguish supported managed options from unverified adapter
 ideas. If Forms lists Angular, React and Vue renderers, a Blazor proposal remains an explicit

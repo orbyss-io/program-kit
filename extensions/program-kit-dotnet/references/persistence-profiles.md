@@ -15,6 +15,15 @@ database suits every workload. Explicit embedded, existing-store and custom choi
 | `ef-sqlserver` | EF Core/Design/SqlServer 10.0.11; Testcontainers.MsSql 4.14.0 | SQL Server/Azure SQL behavior and operations are requirements. |
 | `ef-sqlite` | EF Core/Design/Sqlite 10.0.11 | An embedded single-file relational store satisfies concurrency, durability, scale, and deployment constraints. It is never evidence for PostgreSQL or SQL Server. |
 
+The installed `persistence-runtimes.json` supplies the managed `ef-postgresql` local
+server version/digest and primary source evidence. Bootstrap projects it together with
+the package pins from the existing props into `provider_inputs.persistence_runtimes`.
+Use maintained `ef-postgresql` compatibility for a retained external provider risk;
+do not ask the consumer to select missing kit metadata or reconstruct a test service.
+This disposable server is a test default, not a production deployment commitment.
+An explicit alternative profile does not inherit PostgreSQL. SQL Server requires a
+reviewed exact server image for its chosen edition/platform; SQLite has no server image.
+
 All profiles inherit the common managed `Microsoft.Extensions.DependencyInjection.Abstractions` and
 `Microsoft.Extensions.Logging.Abstractions` 10.0.11 central pins. These pins converge older compatible
 transitive requests from Testcontainers with net10 platform and observability projects; they do not

@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import xml.etree.ElementTree as ET
 
 import yaml
 
@@ -21,8 +22,22 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
         sources.append({'path': relative, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
         return path
 
-    result = {'sources': sources, 'selected_packages': [], 'identity_runtime': None,
+    result = {'sources': sources, 'selected_packages': [], 'identity_runtime': None, 'persistence_runtimes': [],
               'evidence_boundary': 'Selected identities and installed templates are planning inputs, not license admission or executed interoperability evidence. Inspect exact selected publisher/package license evidence; preserve unknowns and run the retained bounded proofs.'}
+    if 'dotnet' in decisions.get('selected_profiles', []) and not decisions.get('dotnet', {}).get('program_kit_host_opt_out'):
+        catalog = json.loads(bind('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json').read_text(encoding='utf-8'))
+        relative = '.specify/extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json'
+        evidence = json.loads(bind(relative).read_text(encoding='utf-8'))
+        version = catalog['families']['foundation']['releaseVersion']
+        if evidence.get('releaseVersion') != version:
+            raise ValueError('PROVIDER-HANDOFF-MISSING: Foundation baseline source evidence must be reviewed for selected ' + version)
+        result['managed_baseline_evidence'] = {'source': relative, 'releaseVersion': version,
+            'sourceCommit': evidence['sourceCommit'], 'hostImage': evidence['hostImage'],
+            'publisher': catalog['families']['foundation']['repository'],
+            'packageMetadataCount': len(evidence['packageMetadata']),
+            'distributionNoticeCount': len(evidence['hostDistribution']['noticeFiles']),
+            'maintenance': evidence['maintenance'], 'assessment': evidence['assessment'],
+            'metadataExceptions': evidence['hostDistribution']['metadataExceptions']}
     selection_relative = 'docs/architecture/building-block-selection.json'
     if (root / selection_relative).is_file():
         selection_path = bind(selection_relative)
@@ -63,4 +78,16 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
             raise ValueError('PROVIDER-HANDOFF-MISSING: managed Keycloak image needs an exact tag and digest')
         result['identity_runtime'] = {'provider': 'keycloak', 'image': image, 'source': relative,
                                       'scope': decisions['identity'].get('scope', 'local-evaluation')}
+    owners = decisions.get('persistence', [])
+    postgres = [owner for owner in owners if owner.get('profile') == 'ef-postgresql']
+    if postgres:
+        base = '.specify/extensions/program-kit-dotnet/'
+        relative = base + 'references/persistence-runtimes.json'
+        runtime = json.loads(bind(relative).read_text(encoding='utf-8'))['profiles']['ef-postgresql']
+        if not re.fullmatch(r'postgres@sha256:[0-9a-f]{64}', runtime.get('image', '')) or not runtime.get('version'):
+            raise ValueError('PROVIDER-HANDOFF-MISSING: managed PostgreSQL needs an exact server version and digest')
+        pins = {item.attrib['Include']: item.attrib['Version'] for item in
+                ET.parse(bind(base + runtime['packagePins'])).iter('PackageVersion')}
+        result['persistence_runtimes'].append({**runtime, 'profile': 'ef-postgresql', 'source': relative,
+            'owners': [owner['owner'] for owner in postgres], 'packages': pins})
     return result

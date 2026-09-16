@@ -164,6 +164,36 @@ class DefaultAndHandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'before asking for final acceptance'):
             handoff.first_feature(self.root, require_ready=True)
 
+    def test_combined_first_outcome_requires_one_explicit_roadmap_entry(self):
+        from validate_governance_state import roadmap
+        from bootstrap_context import stage_plan
+        import re
+        self.register['first_slice']['journey_ids'] = ['shopping', 'access']
+        write(self.root / handoff.REGISTER, self.register)
+        model = {'elements': [], 'relationships': [], 'strategic_model': {
+            'journeys': [{'id': 'j-' + key, 'source_journey': key, 'steps': []}
+                         for key in ['shopping', 'access', 'history']],
+            'candidate_slices': [{'id': 'slice-' + key, 'journey': 'j-' + key,
+                                  'contexts': ['household']} for key in ['shopping', 'access', 'history']]}}
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        plan = stage_plan(self.root, {}, 'roadmap', {'assessment_decisions': self.register}, 'trial')
+        self.assertEqual(['slice-shopping', 'slice-access'], plan['first_entry']['candidate_ids'])
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        one = re.sub(r'(?m)^- \*\*Scope\*\*:.*$', '- **Scope**: slice-shopping', roadmap(status='Blocked'))
+        two = one.replace('SPEC-001', 'SPEC-002').replace('slice-shopping', 'slice-access')
+        path.write_text('First two entries share one specification.\n' + one + two, encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'one entry covering'):
+            handoff.first_feature(self.root)
+        import bootstrap_context as context
+        with patch.object(context, 'validate_stage_output', return_value={}), \
+             patch.object(handoff, 'require'), \
+             patch.object(context, '_run_project_validator') as validator:
+            with self.assertRaisesRegex(context.ContextError, 'one entry covering'):
+                context.validate_stage_batch(self.root, 'trial', 'roadmap')
+            self.assertEqual([['validate-roadmap']], [call.args[2] for call in validator.call_args_list])
+        path.write_text(one.replace('slice-shopping', 'slice-shopping; slice-access'), encoding='utf-8')
+        self.assertEqual(['shopping', 'access'], handoff.first_feature(self.root)['journeyIds'])
+
     def test_late_question_stops_before_output_validation(self):
         write(self.directory / 'state.json', {'status': 'running', 'current_step_id': 'architecture-dispatch'})
         handoff.ask(self.root, 'trial', 'legal-region', 'Which mandated region applies?', 'consumer', 'architecture', 'Use the stated contractual region', kind='user-answer')

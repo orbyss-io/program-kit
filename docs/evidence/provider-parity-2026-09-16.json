@@ -1,0 +1,114 @@
+{
+  "scope": "Same-session historical-input replay, no independent agents or consumer authority",
+  "runs": [
+    {
+      "label": "original-failure",
+      "workspace": "C:\\Users\\Joeyb\\AppData\\Local\\Temp\\program-kit-intake-pl4os9cn",
+      "runId": "a4cb1382",
+      "archive": "artifacts\\provider-parity-2026-09-16\\original-failure.zip",
+      "archiveSha256": "f3fa21db2e059d573ad02a240e93eb915cfbf328e3a5f7b46629bdc5744c7712",
+      "files": 72,
+      "proofs": [],
+      "status": "failed",
+      "finalStep": "require-closure-answers",
+      "createdAt": "2026-09-16T17:06:29.936381+00:00",
+      "updatedAt": "2026-09-16T17:42:14.653879+00:00"
+    },
+    {
+      "label": "diagnostic",
+      "workspace": "C:\\Users\\Joeyb\\AppData\\Local\\Temp\\program-kit-intake-zpdbw9bm",
+      "runId": "proxy-b13802f8ef85",
+      "archive": "artifacts\\provider-parity-2026-09-16\\diagnostic.zip",
+      "archiveSha256": "673f6fb7a1dc505d11edd28dec321926d7eabb3c34896f9213b4ab08deffaa2a",
+      "files": 115,
+      "proofs": [
+        {
+          "path": ".specify/governance/compatibility/external-provider-compatibility/attempt-js9c_es5/proof.json",
+          "sha256": "bbea9b0de3a1f157768f6588f7cdb1011983958bda856f43ac1f8cf2f875abc0",
+          "exit": 0,
+          "checks": [
+            "PostgreSql.exact_server",
+            "PostgreSql.write_read",
+            "PostgreSql.atomic_expected_revision_conflict",
+            "PostgreSql.transaction_rollback",
+            "PostgreSql.restart_preserves_state"
+          ]
+        },
+        {
+          "path": ".specify/governance/compatibility/foundation-artifact-admission/attempt-rqkxfick/proof.json",
+          "sha256": "3d24573167e645d093a34f632ee8cb4aa8a5dcbba404f609fd946045f5c0c101",
+          "exit": 0,
+          "checks": [
+            "Shell.compiled_boundary_positive_and_negative",
+            "PublishedHost.exact_image_activation",
+            "Shell.actual_registration_and_replacement",
+            "PublishedHost.http_profiles_headers_openapi",
+            "PublishedHost.bundle_restart"
+          ]
+        },
+        {
+          "path": ".specify/governance/compatibility/identity-interoperability/attempt-isa0f570/proof.json",
+          "sha256": "f2b9a2def815b0e696c039dc77de2fceed3694f88fd935e6c8e8061a03f7d851",
+          "exit": 0,
+          "checks": [
+            "Identity.pinned_provider_discovery",
+            "Identity.published_bff_activation",
+            "Identity.code_flow_permission_negatives_and_logout"
+          ]
+        }
+      ],
+      "status": "completed",
+      "finalStep": "complete-bootstrap",
+      "createdAt": "2026-09-16T18:03:43.719582+00:00",
+      "updatedAt": "2026-09-16T18:29:02.728081+00:00"
+    },
+    {
+      "label": "clean-repeat",
+      "workspace": "C:\\Users\\Joeyb\\AppData\\Local\\Temp\\program-kit-intake-dldsnhq2",
+      "runId": "proxy-82ec957a7198",
+      "archive": "artifacts\\provider-parity-2026-09-16\\clean-repeat.zip",
+      "archiveSha256": "eb4b744da38f8439baad12a27403d7e87fb8dbc47470e58e2bf2441676dc8098",
+      "files": 115,
+      "proofs": [
+        {
+          "path": ".specify/governance/compatibility/external-provider-compatibility/attempt-m43ed7iv/proof.json",
+          "sha256": "eb13b9413d873fa56118624ad467948728cb532cd811fb6bcc73c863171a286f",
+          "exit": 0,
+          "checks": [
+            "PostgreSql.exact_server",
+            "PostgreSql.write_read",
+            "PostgreSql.atomic_expected_revision_conflict",
+            "PostgreSql.transaction_rollback",
+            "PostgreSql.restart_preserves_state"
+          ]
+        },
+        {
+          "path": ".specify/governance/compatibility/foundation-artifact-admission/attempt-cyxs6yux/proof.json",
+          "sha256": "fd0b8bd6d25aefca3398330217ad47686e422a685373a363ca049b8938502d3e",
+          "exit": 0,
+          "checks": [
+            "Shell.compiled_boundary_positive_and_negative",
+            "PublishedHost.exact_image_activation",
+            "Shell.actual_registration_and_replacement",
+            "PublishedHost.http_profiles_headers_openapi",
+            "PublishedHost.bundle_restart"
+          ]
+        },
+        {
+          "path": ".specify/governance/compatibility/identity-interoperability/attempt-ruxxv0vi/proof.json",
+          "sha256": "c26b2d890ac10ee37450b5f4dbf1655beed33e6e331320611594f38f683421d7",
+          "exit": 0,
+          "checks": [
+            "Identity.pinned_provider_discovery",
+            "Identity.published_bff_activation",
+            "Identity.code_flow_permission_negatives_and_logout"
+          ]
+        }
+      ],
+      "status": "completed",
+      "finalStep": "complete-bootstrap",
+      "createdAt": "2026-09-16T18:31:36.571474+00:00",
+      "updatedAt": "2026-09-16T18:36:16.337088+00:00"
+    }
+  ]
+}

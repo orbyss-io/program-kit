@@ -42,6 +42,8 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
             "extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
         ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json":
             "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        ".specify/extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json":
+            "extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json",
     }
     for destination, source in contract_references.items():
         target = project / destination
@@ -526,7 +528,7 @@ def main() -> int:
         finally:
             module._run_project_validator = original_validator
         if roadmap_batch["checks"] != [
-            "output-contract", "owned-decisions-and-answers", "roadmap-governance",
+            "output-contract", "owned-decisions-and-answers", "roadmap-governance", "first-entry-coverage",
             "roadmap-synchronization", "roadmap-consistency", "synchronized-output-contract",
         ] or [arguments for _, arguments, _ in validator_calls] != [
             ["validate-roadmap"], ["synchronize-roadmap"], ["validate-bootstrap-consistency"],

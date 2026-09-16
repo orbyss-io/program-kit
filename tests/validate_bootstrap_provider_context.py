@@ -40,6 +40,12 @@ class ProviderContextTests(unittest.TestCase):
         destination = self.root / self.identity
         destination.parent.mkdir(parents=True)
         shutil.copyfile(ROOT / self.identity.replace('.specify/', ''), destination)
+        for relative in ('references/persistence-runtimes.json',
+                         'templates/dotnet/files/.program-kit/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props'):
+            source = ROOT / 'extensions/program-kit-dotnet' / relative
+            target = self.root / '.specify/extensions/program-kit-dotnet' / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
         self.decisions = {'selected_profiles': ['dotnet'], 'identity': {'provider': 'keycloak', 'scope': 'local-evaluation'}}
         resolver = load_module(RESOLVER)
         self.selection, _ = accepted_fixture(resolver, self.root, json.loads(CATALOG.read_text()), 'api_baseline')
@@ -81,6 +87,39 @@ class ProviderContextTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'exact tag and digest'):
             providers.project(self.root, self.decisions, require_selection=False)
 
+    def test_baseline_sources_precede_architecture_and_stale_release_fails(self):
+        self.selection.unlink()
+        value = providers.project(self.root, self.decisions, require_selection=False)
+        evidence = value['managed_baseline_evidence']
+        self.assertEqual('0.2.2', evidence['releaseVersion'])
+        self.assertIn('dotnet-foundation', evidence['publisher'])
+        self.assertTrue(evidence['metadataExceptions'])
+        self.assertGreater(evidence['distributionNoticeCount'], 0)
+        self.assertIn('No blanket', ' '.join(evidence['assessment']['limits']))
+        path = self.root / evidence['source']
+        document = json.loads(path.read_text()); document['releaseVersion'] = '0.2.0'
+        write_json(path, document)
+        with self.assertRaisesRegex(ValueError, 'reviewed for selected'):
+            providers.project(self.root, self.decisions, require_selection=False)
+
+    def test_persistence_runtime_available_before_selection_and_not_for_alternatives(self):
+        self.selection.unlink()
+        decisions = {**self.decisions, 'persistence': [{'owner': 'household', 'profile': 'ef-postgresql'}]}
+        projected = providers.project(self.root, decisions, require_selection=False)
+        postgres = projected['persistence_runtimes'][0]
+        self.assertEqual(['household'], postgres['owners'])
+        self.assertIn('@sha256:', postgres['image'])
+        self.assertEqual('18.6', postgres['version'])
+        self.assertEqual('10.0.3', postgres['packages']['Npgsql.EntityFrameworkCore.PostgreSQL'])
+        decisions['persistence'][0]['profile'] = 'ef-sqlite'
+        self.assertEqual([], providers.project(self.root, decisions, require_selection=False)['persistence_runtimes'])
+        decisions['persistence'][0]['profile'] = 'ef-postgresql'
+        path = self.root / '.specify/extensions/program-kit-dotnet/references/persistence-runtimes.json'
+        value = json.loads(path.read_text()); value['profiles']['ef-postgresql']['image'] = 'postgres:latest'
+        write_json(path, value)
+        with self.assertRaisesRegex(ValueError, 'exact server version and digest'):
+            providers.project(self.root, decisions, require_selection=False)
+
     def test_selected_catalog_drift_is_not_silently_rebound(self):
         selection = json.loads(self.selection.read_text())
         selection['catalog']['resolutionSha256'] = '0' * 64
@@ -119,6 +158,7 @@ class ProviderContextTests(unittest.TestCase):
         templates = self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/web-profiles'
         shutil.copytree(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles', templates, dirs_exist_ok=True)
         decisions = {**self.decisions, 'web': {'secure_profile': 'bff-cookie-v1'},
+                     'persistence': [{'owner': 'household', 'profile': 'ef-postgresql'}],
                      'toolchain': {'pins': {'dotnet-sdk': '10.0.202'}}}
         write_json(self.root / 'docs/architecture/bootstrap-decisions.json', decisions)
         image = 'ghcr.io/orbyss-io/foundation-host@sha256:' + 'a' * 64

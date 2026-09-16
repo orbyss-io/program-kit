@@ -1100,6 +1100,24 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             },
             "terminal_condition": terminal,
         }
+    if stage == 'roadmap':
+        first = authorities.get('assessment_decisions', {}).get('first_slice')
+        model = load_json(project_root / 'docs/architecture/architecture-map.json')
+        strategic = model.get('strategic_model', {})
+        journeys = {j['id'] for j in strategic.get('journeys', [])
+                    if first and j['source_journey'] in first['journey_ids']}
+        return {
+            'mode': 'bounded-generation',
+            'first_entry': {
+                'journey_ids': first['journey_ids'],
+                'candidate_ids': [c['id'] for c in strategic.get('candidate_slices', [])
+                                  if c['journey'] in journeys],
+                'rule': 'Exactly one roadmap entry Scope covers these canonical candidate IDs and no future candidate. Supporting journeys in an approved combined first slice belong to that one specification, not separate entries linked only by prose.',
+            } if first else None,
+            'rules': ['Preserve the approved first specification boundary; keep other journeys as separate portfolio entries.',
+                      'Run the terminal batch before handing off to closure; it validates first-entry coverage even while Blocked.'],
+            'terminal_condition': terminal,
+        }
     if stage == 'closure':
         return {
             'mode': 'maintained-proof-planning',
@@ -1335,6 +1353,12 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
             "roadmap governance",
         )
         checks.append("roadmap-governance")
+        from bootstrap_handoff import first_feature
+        try:
+            first_feature(project_root)
+        except ValueError as exc:
+            raise ContextError(str(exc)) from exc
+        checks.append("first-entry-coverage")
         # Roadmap owns link-only edits to architecture and traceability. Close
         # their derived hashes/projection before the next context validates the
         # canonical map; waiting until post-proof synchronization is too late.

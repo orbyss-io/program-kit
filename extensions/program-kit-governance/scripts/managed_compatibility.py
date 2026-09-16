@@ -20,6 +20,7 @@ def catalog():
         'foundation-host': {'case': 'Managed.foundation_host', 'proves': 'published local image executes its ASP.NET runtime; no consumer shell activation'},
         'foundation-activation': {'case': 'PublishedHost.exact_image_activation', 'proves': 'synthetic package activation, shell replacement, HTTP/OpenAPI and restart on the published image; no consumer behavior', 'requires': '--host-image with registry-verified selected release digest'},
         'bff-keycloak': {'case': 'Identity.code_flow_permission_negatives_and_logout', 'proves': 'selected published BFF and local Keycloak code flow, 401/403/authorized endpoint, cookie/storage and logout checks; no consumer membership or complete web assurance', 'requires': '--host-image with registry-verified selected release digest; pinned local Keycloak and Chromium'},
+        'ef-postgresql': {'case': 'PostgreSql.atomic_expected_revision_conflict', 'proves': 'selected EF/Npgsql and exact PostgreSQL server write/read, stale-revision rejection, rollback and restart; no consumer schema, migrations or business policy', 'requires': 'selected ef-postgresql owner; exact image from provider_inputs.persistence_runtimes available locally'},
     }
 
 
@@ -29,7 +30,7 @@ def render(root: Path, kind: str, identity: str, engines=('chromium',), host_ima
         raise ValueError('Select a maintained recipe ID and safe prerequisite identity')
     if not engines or not set(engines) <= {'chromium', 'webkit', 'firefox'}:
         raise ValueError('Select explicit supported browser engines')
-    if kind in {'foundation-activation', 'bff-keycloak'}:
+    if kind in {'foundation-activation', 'bff-keycloak', 'ef-postgresql'}:
         from managed_provider_probes import render as render_provider
         return render_provider(root, kind, identity, host_image)
     directory = root / 'docs/architecture/compatibility'
