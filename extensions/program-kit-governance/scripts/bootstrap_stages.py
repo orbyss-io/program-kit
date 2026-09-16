@@ -257,6 +257,7 @@ STAGE_ARTIFACTS['closure'] = (
     'docs/architecture/bootstrap-decisions.json',
     'docs/architecture/bootstrap-prerequisites.json',
     'docs/architecture/specification-roadmap.md',
+    'docs/architecture/tooling-evaluation.md',
 )
 STAGE_FULL_READS['closure'] = ('docs/architecture/bootstrap-prerequisites.json',)
 STAGE_FOCUS['closure'] = 'Select maintained compatibility checks for the first slice and disposition remaining prerequisites by their actual due phase.'

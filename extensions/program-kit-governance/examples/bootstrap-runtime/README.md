@@ -27,7 +27,7 @@ the full fictional-trial fixture, while ordinary consumers adapt only applicable
 examples to their reviewed prerequisite scope.
 
 Source evidence: Foundation tag v0.2.0 commit
-`e8227378a6d10a95d53a03c48c1c2a75503577b0`, public host and WebDefaults/OpenAPI
+`3a97b158bd020391a0954e2148acc001eb8f2a17`, public host and WebDefaults/OpenAPI
 feature implementations; Nuplane preview.61 commit
 `c292a10390ada26da54865d46820d3ec327c8888`, local-feed resolver. Compiler, HTTP
 and injected-negative results, not these examples alone, establish a tested claim.

@@ -712,7 +712,7 @@ def resolved_output_contract(stage: str, paths: dict[str, str], run_id: str = ""
 
 
 def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
-    if stage not in {"assessment", "research"}:
+    if stage not in {"assessment", "research", "architecture", "tooling", "closure"}:
         return ()
     routing = intake["routing"]
     languages = {item.casefold() for item in routing["languages"]}
@@ -950,8 +950,12 @@ def managed_web_control_projection(project_root: Path, authorities: dict[str, di
         for item in evidence.get("controls", [])
         if isinstance(item, dict) and isinstance(item.get("id"), str)
     }
+    if not control_ids or len(set(control_ids)) != len(control_ids) or any(identity not in controls for identity in control_ids):
+        raise ContextError('Managed web evidence has an incomplete or duplicate control projection for ' + profile)
     return {
         "profile": profile,
+        "source": evidence_path.relative_to(project_root).as_posix(),
+        "sha256": sha256_file(evidence_path),
         "threat_model": evidence.get("threatModel"),
         "evidence_profile": evidence.get("id"),
         "controls": [
@@ -1045,6 +1049,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         )
         plan = {
             "mode": "focused-research" if questions else "baseline-verification",
+            "provider_inputs": __import__('bootstrap_provider_context').project(project_root, load_json(project_root / 'docs/architecture/bootstrap-decisions.json'), require_selection=False),
             "research_questions": questions,
             "decision_handoff": __import__('bootstrap_handoff').projection(project_root, run_id),
             "rules": [
@@ -1098,11 +1103,14 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
     if stage == 'closure':
         return {
             'mode': 'maintained-proof-planning',
+            'provider_inputs': __import__('bootstrap_provider_context').project(project_root, authorities.get('assessment_decisions', {})),
             'first_slice': authorities.get('assessment_decisions', {}).get('first_slice'),
             'source_hashes': __import__('bootstrap_lifecycle').source_paths(project_root),
             'recipe_catalog': __import__('managed_compatibility').catalog(),
             'rules': [
                 'Select maintained recipes for managed toolchains. Custom recipes are only for consumer-specific risk; do not reconstruct generic package, subprocess or JUnit machinery.',
+                'Use provider_inputs for exact selected packages, activation identities, registry/publisher sources and the pinned local identity image. Query indexed tooling-evaluation.md for researched conditions. An empty decision_handoff means no pending questions, not missing provider decisions.',
+                'Verify missing license/source evidence against the exact selected publisher/package sources; do not ask the consumer to supply managed package facts or claim the pin itself proves admission.',
                 'Inventory source conditions using the named source paths, querying only the relevant conditions. Every prerequisite has an owner, affected slices and due trigger.',
                 'A toolchain smoke test cannot close provider, host activation or product behavior obligations. Plan only checks due before the first specification.',
                 'The selected first entry must already be Ready or have a complete readyWhenProven transition. Every open architecture blocker for it needs a probe; an empty transition list cannot conceal missing coverage.',
@@ -1404,7 +1412,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "docs/architecture/bootstrap-acceptance-scope.json",
     ) if stage in {"roadmap", "readiness"} and (project_root / path).is_file())
     stage_artifacts += lifecycle_sources
-    if stage in {'readiness', 'closure'}:
+    if stage in {'architecture', 'tooling', 'roadmap', 'readiness', 'closure'}:
         # Named decisions must be queryable when the compact projection omits
         # decisive conditions. Index them without requiring a bulk full read.
         stage_artifacts = tuple(dict.fromkeys((*stage_artifacts,
@@ -1424,7 +1432,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         managed_profile_pin_authority(
             project_root, authorities.get("assessment_decisions", {})
         )
-        if stage == "research"
+        if stage in {"research", "closure"}
         else None
     )
     # Research must edit and therefore fully read the decision register. Do not also spend model
@@ -1476,12 +1484,13 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
             "provenance": "The evidence index binds optional source sections to paths and SHA-256 values.",
         },
     }
+
     payload['stage_plan']['handoff_contract'] = STAGES[stage]
     payload['stage_plan']['registry_sha256'] = sha256_file(Path(__file__).with_name('bootstrap_stages.py'))
     payload['stage_plan']['question_transport'] = {
         'command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py ask --run-id ' + run_id + ' --stage ' + stage,
-        'arguments': ['--question-id', '--question', '--owner', '--recommendation'],
-        'rule': 'Use only for a necessary consequential answer without a safe default; record it and return. The native boundary owns answer collection and resumption.',
+        'arguments': ['--question-id', '--question', '--owner', '--recommendation', '--kind'],
+        'rule': 'Choose --kind user-answer only for a consequential consumer intent/constraint without a safe default. Choose --kind design-decision for missing technical research/design evidence, with --stage naming its owning stage. Never ask the consumer for installed pins, source/license evidence or a missing generated context. Consult the supplied provider inputs and named sources first. The native boundary routes design work to its owner.',
     }
     payload['stage_plan']['decision_handoff'] = __import__('bootstrap_handoff').projection(project_root, run_id)
     if any(q.get('kind') == 'design-decision' for q in payload['stage_plan']['decision_handoff']):
@@ -1494,7 +1503,41 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
                                                for j in intake['journeys'] if j['id'] not in first_ids]
             projection['journeys'] = [j for j in intake['journeys'] if j['id'] in first_ids]
         payload['stage_plan']['first_slice'] = decisions['first_slice']
+    bind_projected_sources(project_root, payload, evidence)
     return context_path(run_directory, stage), payload, evidence_destination, evidence
+
+
+def bind_projected_sources(project_root, payload, evidence):
+    """Named installed sources and hash-bound project sources remain queryable."""
+    paths = set()
+
+    def visit(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if (key in {'path', 'source', 'catalog'} and isinstance(child, str)
+                        and (child.startswith('.specify/extensions/')
+                             or key == 'path' and 'sha256' in value and child.startswith('docs/'))):
+                    relative = child.split('#', 1)[0]
+                    resolved = (project_root / relative).resolve()
+                    if not resolved.is_relative_to(project_root.resolve()) or not resolved.is_file():
+                        raise ContextError('STAGE-INPUT-MISSING: projected source is unavailable: ' + relative)
+                    paths.add(relative)
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    for key in ('stage_plan', 'managed_profile_pins', 'runtime_release'):
+        visit(payload.get(key))
+    known = {item['path'] for item in evidence['artifacts']}
+    for relative in sorted(paths - known):
+        record, _ = artifact_record(project_root, relative)
+        evidence['artifacts'].append(record)
+    payload['reading_policy']['allowed_sources'] = list(dict.fromkeys([
+        *payload['reading_policy']['allowed_sources'], *sorted(paths)]))
+    payload['evidence_index']['bytes'] = len(compact_json(evidence).encode('utf-8'))
+    payload['evidence_index']['sha256'] = sha256_bytes(compact_json(evidence).encode('utf-8'))
+    return sorted(paths)
 
 
 def build_context(project_root: Path, run_id: str, stage: str) -> tuple[Path, dict]:

@@ -9,6 +9,14 @@ Do not discover executor implementation, reread all architecture narratives or a
 For an older continuation without a generated brief, use references/bootstrap-lifecycle.md and
 its recovery manifest; preserve its explicit source and approval boundaries.
 
+The brief's `provider_inputs` resolves the actual Draft/Accepted selection through the shared
+building-block resolver, including exact packages, activations, publisher/registry sources and the
+installed local identity image. `managed_profile_pins` supplies toolchain pins. Query the indexed
+research report and selected profile references for retained risks and proof contracts. These inputs
+are not proof of interoperability or license admission. An empty `decision_handoff` means no pending
+questions; it is not the provider inventory. Technical research/design gaps use an explicitly typed
+design-decision handoff to the owning stage, never a request for the consumer to provide kit metadata.
+
 Create or reconcile `docs/architecture/bootstrap-prerequisites.json` using the contract reference.
 Inventory every unresolved/deferred register item and every condition retained in every cataloged
 ADR, including Accepted ADRs. Use `bootstrap_lifecycle.py source-hashes` to obtain source bindings;
@@ -33,6 +41,12 @@ The renderer supplies the exact recipe/contract/fixture files. Do not rewrite it
 restore, browser-launch or JUnit mechanics. An absent browser or local image is provisioning work;
 record its actionable blocker. Never build a Foundation image. The published image runtime check
 does not prove consumer shell activation, persistence or identity behavior.
+For retained managed host activation or BFF/local-Keycloak risks, use `foundation-activation` or
+`bff-keycloak` from that same catalog. Supply `--host-image <repository>@sha256:<digest>` after
+verifying the selected version's publisher tag against the registry. These bind the maintained
+synthetic fixtures through the same restore/receipt coordinator; provision the exact local images
+and Chromium before execution. Their bounded cases do not prove consumer membership or full
+delivery/security assurance. An alternate provider requires its own evidence, never this fixture.
 
 Only consumer-specific compatibility risks need custom Python recipes and adjacent contracts.
 Bind exact named runtime cases, source inputs and selected versions. When dependencies are needed,

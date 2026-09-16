@@ -18,15 +18,20 @@ def catalog():
         'dotnet-runtime': {'case': 'Managed.dotnet_runtime', 'proves': 'selected SDK builds and executes a minimal program; no consumer behavior'},
         'browser-runtime': {'case': 'Managed.browser_runtime', 'proves': 'selected Node/Playwright launches selected browser engines; no UI acceptance'},
         'foundation-host': {'case': 'Managed.foundation_host', 'proves': 'published local image executes its ASP.NET runtime; no consumer shell activation'},
+        'foundation-activation': {'case': 'PublishedHost.exact_image_activation', 'proves': 'synthetic package activation, shell replacement, HTTP/OpenAPI and restart on the published image; no consumer behavior', 'requires': '--host-image with registry-verified selected release digest'},
+        'bff-keycloak': {'case': 'Identity.code_flow_permission_negatives_and_logout', 'proves': 'selected published BFF and local Keycloak code flow, 401/403/authorized endpoint, cookie/storage and logout checks; no consumer membership or complete web assurance', 'requires': '--host-image with registry-verified selected release digest; pinned local Keycloak and Chromium'},
     }
 
 
-def render(root: Path, kind: str, identity: str, engines=('chromium',)):
+def render(root: Path, kind: str, identity: str, engines=('chromium',), host_image=None):
     import re
     if kind not in catalog() or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9-]{0,100}', identity):
         raise ValueError('Select a maintained recipe ID and safe prerequisite identity')
     if not engines or not set(engines) <= {'chromium', 'webkit', 'firefox'}:
         raise ValueError('Select explicit supported browser engines')
+    if kind in {'foundation-activation', 'bff-keycloak'}:
+        from managed_provider_probes import render as render_provider
+        return render_provider(root, kind, identity, host_image)
     directory = root / 'docs/architecture/compatibility'
     directory.mkdir(parents=True, exist_ok=True)
     recipe = directory / (identity + '.py')
@@ -126,5 +131,6 @@ if __name__ == '__main__':
     parser.add_argument('--kind', choices=list(catalog()))
     parser.add_argument('--id')
     parser.add_argument('--engines', default='chromium')
+    parser.add_argument('--host-image')
     args = parser.parse_args()
-    print(json.dumps(catalog() if args.command == 'catalog' else render(Path.cwd().resolve(), args.kind, args.id, tuple(args.engines.split(',')))))
+    print(json.dumps(catalog() if args.command == 'catalog' else render(Path.cwd().resolve(), args.kind, args.id, tuple(args.engines.split(',')), args.host_image)))

@@ -13,8 +13,8 @@ import time
 import uuid
 import sys
 from pathlib import Path
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError, URLError
+from http.client import HTTPConnection
+from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 sys.path.insert(0, str(Path.cwd()))  # Coordinator-copied, contract-bound helper.
 from bounded_process import run
@@ -95,10 +95,18 @@ def main():
     started = False
     url = ''
     def request(path, data=None):
-        req = Request(url + path, data=data, headers={'Content-Type': 'application/json'})
+        # This fixture owns a plain HTTP loopback listener. Do not construct the
+        # urllib default HTTPS/proxy handlers for it: those can initialize an
+        # unrelated machine TLS stack or route private probe traffic to a proxy.
+        address = urlsplit(url)
+        connection = HTTPConnection(address.hostname, address.port, timeout=5)
         try:
-            with urlopen(req, timeout=5) as response: return response.status, response.headers, response.read()
-        except HTTPError as error: return error.code, error.headers, error.read()
+            connection.request('POST' if data is not None else 'GET', path, body=data,
+                               headers={'Content-Type': 'application/json'})
+            response = connection.getresponse()
+            return response.status, response.headers, response.read()
+        finally:
+            connection.close()
     def ready():
         nonlocal url
         port = command(['docker', 'port', container, '8080/tcp']).split(':')[-1]
@@ -107,7 +115,7 @@ def main():
         while time.monotonic() < until:
             try:
                 if request('/a/probe')[0] == 200: return
-            except (URLError, TimeoutError, ConnectionError): pass
+            except (OSError, TimeoutError, ConnectionError): pass
             time.sleep(.25)
         print(command(['docker', 'logs', container])[-10000:])
         raise RuntimeError('Published host did not activate the fixture')

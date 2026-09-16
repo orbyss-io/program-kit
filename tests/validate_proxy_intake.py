@@ -121,18 +121,43 @@ class ProxyTests(unittest.TestCase):
             result = bootstrap.advance(self.root)
             self.assertEqual('paused', result['status'])
             self.assertEqual('assessment', result['step'])
+            import bootstrap_handoff as handoff
+            question = (self.root, result['runId'], 'provider-proof', 'Resolve technical proof inputs',
+                        'Compatibility maintainer', 'research', 'Supply bounded technical evidence')
+            with self.assertRaisesRegex(ValueError, 'running producer'):
+                handoff.ask(*question, kind='design-decision')
             with self.assertRaisesRegex(intake.IntakeError, 'not confirmed'):
                 intake.intake_from_run(self.root, result['runId'])
             with bootstrap.invocation(self.root):
                 self.assertEqual('draft', intake.intake_from_run(self.root, result['runId'])[1]['status'])
+                answer = handoff.ask(*question, kind='design-decision')
+                self.assertEqual('needs-design-decision', answer['status'])
+                state = bootstrap.load(self.root / '.specify/workflows/runs' / result['runId'] / 'state.json')
+                self.assertEqual('paused', state['status'])
             bootstrap.respond(self.root, 'Simulated producer completed its artifact.', ['docs/architecture/project-intent.md'])
             result = bootstrap.advance(self.root)
             self.assertEqual('review-assessment', result['step'])
+            with bootstrap.invocation(self.root), self.assertRaisesRegex(ValueError, 'running producer'):
+                handoff.ask(*question, kind='design-decision')
             bootstrap.respond(self.root, 'Simulated review of exact fixture packet.', [], 'approve')
             result = bootstrap.advance(self.root)
             self.assertEqual('failed', result['status'])
             self.assertEqual('actual-validator', result['step'])
             self.assertTrue((self.root / 'validator-ran').is_file())
+            helper = self.root / '.specify/extensions/fixture/repair.py'
+            helper.parent.mkdir(parents=True, exist_ok=True)
+            helper.write_text("from pathlib import Path\nPath('repair-ran').write_text('yes')\n")
+            state_path = self.root / '.specify/workflows/runs' / result['runId'] / 'state.json'
+            before = state_path.read_bytes()
+            # The last pending request is a review, so no producer repair is admitted.
+            with self.assertRaisesRegex(ValueError, 'Producer tools'):
+                bootstrap.tool(self.root, [helper.relative_to(self.root).as_posix()])
+            request = bootstrap.load(self.root / bootstrap.DIRECTORY / 'pending.json')
+            request.update(type='command', step='assessment')
+            bootstrap.write(self.root / bootstrap.DIRECTORY / 'pending.json', request)
+            self.assertEqual(0, bootstrap.tool(self.root, [helper.relative_to(self.root).as_posix()]))
+            self.assertTrue((self.root / 'repair-ran').is_file())
+            self.assertEqual(before, state_path.read_bytes())
         self.assertEqual('draft', json.loads((self.root / proxy.INTAKE).read_text(encoding='utf-8'))['status'])
         self.assertFalse((self.root / '.specify/governance/bootstrap-completion.json').exists())
         self.assertNotIn(bootstrap.ENVIRONMENT, os.environ)

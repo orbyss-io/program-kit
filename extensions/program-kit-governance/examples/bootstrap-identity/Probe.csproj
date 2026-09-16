@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><PackageId>ProgramKit.Compatibility.Identity</PackageId><Version>1.0.0</Version><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><ImportDirectoryBuildProps>false</ImportDirectoryBuildProps><ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets></PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="CShells.AspNetCore.Abstractions" Version="0.0.29-preview.147" PrivateAssets="all" />
+    <PackageReference Include="Orbyss.Foundation.Authentication" Version="0.2.0" />
+    <PackageReference Include="Orbyss.Foundation.Authentication.BffCookie" Version="0.2.0" />
+    <PackageReference Include="Orbyss.Foundation.Authentication.Assurance" Version="0.2.0" />
+    <PackageReference Include="Orbyss.Foundation.WebDefaults" Version="0.2.0" />
+    <PackageReference Include="Orbyss.Foundation.Web.ProblemDetails" Version="0.2.0" />
+    <PackageReference Include="Orbyss.Foundation.Web.OpenApi" Version="0.2.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.11" />
+  </ItemGroup>
+</Project>

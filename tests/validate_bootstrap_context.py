@@ -452,6 +452,11 @@ def main() -> int:
                 observed = payload["stage_plan"].get("observed_toolchain", {})
                 if set(observed) != {"dotnet", "node", "npm", "python"}:
                     raise AssertionError("Research context omitted supervisor-observed toolchain facts")
+            elif stage == 'closure':
+                if payload['managed_profile_pins'] is None or 'provider_inputs' not in payload['stage_plan']:
+                    raise AssertionError('Closure omitted its executable provider/toolchain inputs')
+                if 'docs/architecture/tooling-evaluation.md' not in payload['reading_policy']['allowed_sources']:
+                    raise AssertionError('Closure cannot query the research handoff')
             elif payload["managed_profile_pins"] is not None:
                 raise AssertionError(f"{stage} context unnecessarily duplicated managed profile pins")
             for artifact, budget in output_contract["artifact_byte_budgets"].items():
@@ -478,6 +483,13 @@ def main() -> int:
             module.validate_context(project, run_id, stage)
 
             evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            if stage in {'architecture', 'tooling', 'roadmap', 'readiness', 'closure'}:
+                for decision in json.loads((project / 'docs/architecture/architecture-map.json').read_text(encoding='utf-8'))['decisions']:
+                    if decision['path'] not in payload['reading_policy']['allowed_sources']:
+                        raise AssertionError(f'{stage} cannot query a governing ADR')
+            for record in (payload.get('managed_profile_pins') or {}).get('sources', []):
+                if record['path'] not in payload['reading_policy']['allowed_sources']:
+                    raise AssertionError(f'{stage} hides a projected pin source')
             for artifact in evidence["artifacts"]:
                 if len(artifact.get("headings", [])) > module.MAX_INDEX_HEADINGS:
                     raise AssertionError("Evidence index contains too many headings")

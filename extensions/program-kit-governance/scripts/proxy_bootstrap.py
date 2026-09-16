@@ -270,9 +270,23 @@ def advance(root):
 
 def tool(root, arguments):
     """Run an installed producer helper in the explicitly scoped proxy process tree."""
-    request = pending(root)
+    value = binding(root)
+    run_path = root / '.specify/workflows/runs' / value['runId']
+    state = load(run_path / 'state.json')
+    if state.get('status') == 'failed':
+        # A deterministic shell failure needs source/contract repair before native
+        # resume. Preserve engine state; never substitute a review or completion.
+        import yaml
+        definition = yaml.safe_load((run_path / 'workflow.yml').read_text(encoding='utf-8'))
+        step = next((s for s in definition['steps'] if s['id'] == state['current_step_id']), {})
+        request = load(root / DIRECTORY / 'pending.json')
+        if (canonical(definition) != value['workflowSha256'] or step.get('type') != 'shell'
+                or step.get('id') == 'complete-bootstrap' or request.get('runId') != value['runId']):
+            raise ValueError('Proxy repair tools require an unchanged failed deterministic step')
+    else:
+        request = pending(root)
     if request['type'] != 'command' or not arguments:
-        raise ValueError('Producer tools require a paused producer command')
+        raise ValueError('Producer tools require a paused producer or failed deterministic handoff')
     path = (root / arguments[0]).resolve()
     extensions = (root / '.specify/extensions').resolve()
     if (not path.is_relative_to(extensions) or path.suffix != '.py' or not path.is_file()

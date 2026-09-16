@@ -166,9 +166,21 @@ class DefaultAndHandoffTests(unittest.TestCase):
 
     def test_late_question_stops_before_output_validation(self):
         write(self.directory / 'state.json', {'status': 'running', 'current_step_id': 'architecture-dispatch'})
-        handoff.ask(self.root, 'trial', 'legal-region', 'Which mandated region applies?', 'consumer', 'architecture', 'Use the stated contractual region')
+        handoff.ask(self.root, 'trial', 'legal-region', 'Which mandated region applies?', 'consumer', 'architecture', 'Use the stated contractual region', kind='user-answer')
         with self.assertRaisesRegex(ValueError, 'needs-user-answer'):
             handoff.require(self.root, 'trial', 'architecture', questions_only=True)
+
+    def test_technical_question_requires_explicit_kind_and_routes_to_design_owner(self):
+        write(self.directory / 'state.json', {'status': 'running', 'current_step_id': 'architecture-prerequisite-closure'})
+        args = (self.root, 'trial', 'provider-input', 'Resolve exact provider bindings', 'Architecture/research owner', 'closure', 'Use selected provider evidence')
+        with self.assertRaisesRegex(ValueError, 'explicit question kind'):
+            handoff.ask(*args)
+        self.assertFalse((self.directory / 'decision-questions.json').exists())
+        handoff.ask(*args, kind='design-decision')
+        with self.assertRaisesRegex(ValueError, 'needs-design-decision') as caught:
+            handoff.require(self.root, 'trial', 'closure', questions_only=True)
+        self.assertNotIn('--answer', str(caught.exception))
+        self.assertEqual('closure', handoff.retry_stage(self.root, 'trial', 'closure', completing=True))
 
     def test_recipe_uses_sync_resolved_tool_not_path(self):
         write(self.root / '.program-kit/evidence/toolchain.json', {'satisfied': True, 'commands': {'node': ['exact-managed-node']}})
@@ -192,7 +204,7 @@ class DefaultAndHandoffTests(unittest.TestCase):
     def test_maintained_recipes_bind_inputs_and_preserve_failure_case(self):
         self.register['toolchain'] = {'pins': {'dotnet-sdk': '10.0.202', 'node': '24.20.0'}}
         write(self.root / handoff.REGISTER, self.register)
-        for kind in managed.catalog():
+        for kind in ('dotnet-runtime', 'browser-runtime', 'foundation-host'):
             result = managed.render(self.root, kind, kind)
             recipe, _, contract, cases = validate_recipe(self.root, kind, result['recipe'])
             self.assertTrue(recipe.is_file())

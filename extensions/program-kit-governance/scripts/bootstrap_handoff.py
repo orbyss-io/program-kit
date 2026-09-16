@@ -189,7 +189,9 @@ def answer(root, run_id, identity, text):
         return {'recorded': identity, 'run_id': run_id}
 
 
-def ask(root, run_id, identity, question, owner, stage, recommendation):
+def ask(root, run_id, identity, question, owner, stage, recommendation, *, kind=None):
+    if kind not in {'user-answer', 'design-decision'}:
+        raise ValueError('Choose an explicit question kind: user-answer for consumer intent, design-decision for technical research/design evidence')
     if not identity or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,119}', identity):
         raise ValueError('Question requires a stable ID')
     if not all(isinstance(v, str) and v.strip() and len(v) <= 2000 for v in (question, owner, recommendation)) or stage not in STAGES:
@@ -197,15 +199,22 @@ def ask(root, run_id, identity, question, owner, stage, recommendation):
     path = directory(root, run_id)
     state = load(path / 'state.json', {})
     if state.get('status') != 'running':
-        raise ValueError('Stage questions are recorded only by a running producer')
+        from proxy_bootstrap import active, pending
+        # A same-session producer deliberately pauses the native dispatcher.
+        # Admit only its bound invocation at the current command, never an
+        # ordinary paused workflow or a simulated review gate.
+        if not (state.get('status') == 'paused' and active(root, run_id)
+                and pending(root).get('type') == 'command'):
+            raise ValueError('Stage questions are recorded only by a running producer')
     existing = {q['id']: q for q in projection(root, run_id)}
     if identity in existing:
         raise ValueError('Question ID already exists; consume its current answer or use a distinct consequential question')
     data = load(path / 'decision-questions.json', {'questions': []})
     data['questions'].append({'id': identity, 'question': question, 'owner': owner, 'due_stage': stage,
-                              'recommendation': recommendation, 'kind': 'user-answer', 'blocks': 'Dependent ' + stage + ' output'})
+                              'recommendation': recommendation, 'kind': kind, 'blocks': 'Dependent ' + stage + ' output'})
     (path / 'decision-questions.json').write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
-    return {'status': 'needs-user-answer', 'question_id': identity, 'next': 'Return to the native workflow handoff; do not assume a response'}
+    return {'status': 'needs-user-answer' if kind == 'user-answer' else 'needs-design-decision',
+            'question_id': identity, 'next': 'Return to the native workflow handoff; do not assume an answer or design evidence'}
 
 
 def first_feature(root: Path, *, require_ready=False):
@@ -256,6 +265,7 @@ if __name__ == '__main__':
     parser.add_argument('--question')
     parser.add_argument('--owner')
     parser.add_argument('--recommendation')
+    parser.add_argument('--kind', choices=['user-answer', 'design-decision'])
     args = parser.parse_args()
     try:
         root = Path.cwd().resolve()
@@ -264,7 +274,7 @@ if __name__ == '__main__':
         elif args.command == 'answer':
             result = answer(root, args.run_id, args.question_id, args.answer)
         elif args.command == 'ask':
-            result = ask(root, args.run_id, args.question_id, args.question, args.owner, args.stage, args.recommendation)
+            result = ask(root, args.run_id, args.question_id, args.question, args.owner, args.stage, args.recommendation, kind=args.kind)
         else:
             result = require(root, args.run_id, args.stage, questions_only=args.command == 'questions')
         print(json.dumps(result))
