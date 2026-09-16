@@ -1105,6 +1105,8 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 'Select maintained recipes for managed toolchains. Custom recipes are only for consumer-specific risk; do not reconstruct generic package, subprocess or JUnit machinery.',
                 'Inventory source conditions using the named source paths, querying only the relevant conditions. Every prerequisite has an owner, affected slices and due trigger.',
                 'A toolchain smoke test cannot close provider, host activation or product behavior obligations. Plan only checks due before the first specification.',
+                'The selected first entry must already be Ready or have a complete readyWhenProven transition. Every open architecture blocker for it needs a probe; an empty transition list cannot conceal missing coverage.',
+                'Separate a consumer choice, an external compatibility risk and verification of future feature code. Preserve approved defaults and due phases; do not convert device testing or consumer business tests into bootstrap design decisions.',
                 'Return after the exact validation batch. Native execution owns restore, probes, conditional readiness and retry.',
             ],
             'terminal_condition': terminal,

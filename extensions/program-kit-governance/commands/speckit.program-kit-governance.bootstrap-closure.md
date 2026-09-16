@@ -21,6 +21,11 @@ Synthetic business inputs remove authoring dependencies only. They cannot prove 
 store, renderer, runtime or provider. Routine field rules, feature behavior tests and choices wholly
 inside accepted boundaries belong to feature-plan. Production and later-release policy remain at
 their actual triggers. Record the reason and source authority for every such disposition for review.
+Apply the contract's "Assign conditions before drafting proofs" distinctions. Preserve consumer
+answers/defaults; resolve misassigned conditions at their source with reviewable authority. Split
+mechanism compatibility from later consumer behavior checks, retaining the latter at their existing
+feature gates. Do not convert consumer preference into a proof, or omit an external risk because
+the maintained catalog only supplies generic runtime checks.
 
 For managed tool/runtime prerequisites select an existing recipe from the brief's catalog:
 `python .specify/extensions/program-kit-governance/scripts/managed_compatibility.py render --kind <catalog-id> --id <prerequisite-id>`.
@@ -39,7 +44,10 @@ Write `docs/architecture/bootstrap-proof-plan.json` with `schemaVersion: 1`, `pr
 (each has prerequisite `id`, repository-relative `recipe`, `timeout` from 1–600 seconds),
 and `readyWhenProven` (each has roadmap `id`, the exact complete affected architecture
 `prerequisites` list, and rationale that those are its only remaining readiness conditions).
-Use empty arrays when no probe or conditional transition is needed. Keep prerequisite status
+For the selected first roadmap entry, account for every open architecture blocker with a probe
+and include its complete conditional Ready transition. If no architecture conditions remain,
+reconcile its Ready status from its governing decisions. An empty transition list must not leave
+that entry Blocked. Only use empty arrays when no probe or conditional transition is needed. Keep prerequisite status
 open and roadmap entries Blocked until execution succeeds. In a native workflow, return now;
 the next shell step runs `bootstrap_proof_plan.py`, attaches successful receipts and applies
 only those conditional transitions. Do not spend agent turns polling restores or running probes.

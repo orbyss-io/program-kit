@@ -118,6 +118,10 @@ the rationale and consequences for final review.
   candidate contexts must still be covered. Do not narrow the map's references to contexts only.
 - `open_items` contain `id`, `question`, `classification`, `disposition`, `blocks`, `trigger`, and
   `evidence`. Classification is `human-decision`, `research`, `project-owned-design`, or `deferred`.
+  For deferred items, keep `blocks` empty and name the owner/next action in `disposition` and actual
+  later dependency in `trigger`. Drafts may retain human decisions; confirmed intake cannot retain
+  `human-decision` items or `human-answer-required` capability assessments. Record resolved choices
+  and their provenance instead. Confirmation is not a substitute for answering a required question.
 - `routing` contains string arrays named `languages`, `frameworks`, `interfaces`,
   `included_surfaces`, `excluded_surfaces`, and `capabilities`.
 

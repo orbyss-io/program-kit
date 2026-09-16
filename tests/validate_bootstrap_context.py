@@ -544,6 +544,20 @@ def main() -> int:
             module._run_project_validator = original_validator
 
         assessment_path = project / "docs/architecture/bootstrap-assessment.md"
+        # Closure can edit the roadmap and must not escape its existing byte limit.
+        roadmap_path = project / 'docs/architecture/specification-roadmap.md'
+        roadmap_original = roadmap_path.read_bytes()
+        try:
+            roadmap_path.write_text('x' * (module.ARTIFACT_BYTE_BUDGETS['docs/architecture/specification-roadmap.md'] + 1), encoding='utf-8')
+            try:
+                module.validate_stage_output(project, 'closure')
+            except module.ContextError as exc:
+                if 'specification-roadmap.md' not in str(exc) or 'hard byte budget' not in str(exc):
+                    raise
+            else:
+                raise AssertionError('Closure roadmap edits escaped the byte budget')
+        finally:
+            roadmap_path.write_bytes(roadmap_original)
         assessment_text = assessment_path.read_text(encoding="utf-8")
         write(
             assessment_path,

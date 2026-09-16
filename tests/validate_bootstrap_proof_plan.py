@@ -45,6 +45,53 @@ class ProofPlanTests(unittest.TestCase):
         self.assertEqual([], execute(self.root))
         self.assertEqual(1, len(list(self.root.rglob('proof.json'))))
 
+    def select_first_slice(self):
+        docs = self.root / 'docs/architecture'
+        write(docs / 'bootstrap-decisions.json', {'first_slice': {
+            'journey_ids': ['shopping'], 'outcome': 'Remember a needed item'}})
+        write(docs / 'architecture-map.json', {'decisions': [], 'strategic_model': {
+            'journeys': [{'id': 'shopping-journey', 'source_journey': 'shopping', 'steps': []}],
+            'candidate_slices': [{'id': 'first-shopping', 'journey': 'shopping-journey', 'contexts': ['household']} ]}})
+        path = docs / 'specification-roadmap.md'
+        path.write_text(path.read_text(encoding='utf-8').replace('One end-to-end vertical slice.', 'first-shopping'), encoding='utf-8')
+        ledger = load(self.root / LEDGER)
+        ledger['sources'][0]['sha256'] = source_digest(docs / 'bootstrap-decisions.json')
+        write(self.root / LEDGER, ledger)
+
+    def test_selected_first_slice_requires_transition_before_any_execution(self):
+        self.select_first_slice()
+        self.plan['readyWhenProven'] = []
+        write(self.root / PLAN, self.plan)
+        for validation in (True, False):
+            with self.assertRaisesRegex(ValueError, 'FIRST-SLICE-PROOF-COVERAGE.*no conditional'):
+                execute(self.root, validate_only=validation)
+        self.assertEqual([], list(self.root.rglob('proof.json')))
+
+    def test_selected_first_slice_reports_unplanned_blocker_and_owner_before_probe(self):
+        self.select_first_slice()
+        ledger = load(self.root / LEDGER)
+        import copy
+        missing = copy.deepcopy(ledger['prerequisites'][0])
+        missing.update(id='provider', owner='Provider compatibility owner', task='Prove selected provider interoperability')
+        ledger['prerequisites'].append(missing)
+        write(self.root / LEDGER, ledger)
+        self.plan['readyWhenProven'] = []
+        write(self.root / PLAN, self.plan)
+        with self.assertRaisesRegex(ValueError, 'provider.*Provider compatibility owner'):
+            execute(self.root)
+        self.assertEqual([], list(self.root.rglob('proof.json')))
+
+    def test_selected_first_slice_complete_plan_reaches_ready_and_is_reusable(self):
+        self.select_first_slice()
+        self.assertEqual([], execute(self.root, validate_only=True))
+        self.assertEqual(1, len(execute(self.root)))
+        self.assertEqual(['runtime'], require_proven_closure(self.root))
+        self.assertEqual([], execute(self.root))
+
+    def test_first_handoff_recovery_returns_to_closure_owner(self):
+        from bootstrap_stages import STAGE_STARTS
+        self.assertEqual('prepare-closure-context', STAGE_STARTS['require-first-feature-handoff'])
+
     def test_reuse_rejects_unproven_and_different_planned_recipe(self):
         with self.assertRaisesRegex(ValueError, 'must pass'):
             require_proven_closure(self.root)

@@ -264,11 +264,11 @@ INTAKE_STAGE_FIELDS['closure'] = ('candidate_slice_signals', 'open_items', 'rout
 MAP_STAGE_FIELDS['closure'] = ('decisions',)
 STAGE_RECORD_FIELDS['closure'] = {'decisions': ('id', 'path', 'title', 'status', 'scope')}
 OUTPUT_CONTRACTS['closure'] = {
-    'write_paths': ['docs/architecture/bootstrap-prerequisites.json', 'docs/architecture/bootstrap-proof-plan.json', 'docs/architecture/bootstrap-acceptance-scope.json'],
+    'write_paths': ['docs/architecture/bootstrap-prerequisites.json', 'docs/architecture/bootstrap-proof-plan.json', 'docs/architecture/bootstrap-acceptance-scope.json', 'docs/architecture/specification-roadmap.md'],
     'contract_references': ['.specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md', '.specify/extensions/program-kit-governance/references/bootstrap-proof-plan.schema.json'],
 }
 STAGE_STARTS.update({
-    'require-first-feature-handoff': 'prepare-roadmap-context',
+    'require-first-feature-handoff': 'prepare-closure-context',
     'architecture-prerequisite-closure': 'prepare-closure-context',
     'validate-closure-output': 'prepare-closure-context',
     'validate-prerequisite-closure': 'prepare-closure-context',

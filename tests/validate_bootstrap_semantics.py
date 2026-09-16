@@ -278,6 +278,7 @@ def expect_failure(action, marker: str) -> None:
 def main() -> int:
     repository = Path(__file__).resolve().parents[1]
     scripts = repository / "extensions/program-kit-governance/scripts"
+    sys.path.insert(0, str(scripts))  # Match the installed CLI's sibling-module import path.
     architecture = load_module(scripts / "architecture_map.py", "semantic_architecture")
     intake_module = load_module(scripts / "bootstrap_intake.py", "semantic_intake")
     viewer = load_module(scripts / "c4_view.py", "semantic_viewer")

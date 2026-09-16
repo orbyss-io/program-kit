@@ -46,6 +46,14 @@ Defaults need disclosed applicability and provenance. Deferred decisions require
 deferred or excluded premise. Unknown dependencies and cycles block review. `begin` deliberately
 creates an incomplete draft; fill it through the interview, not guesses to satisfy the validator.
 
+The context projects `bootstrapObligations` from the selected entry's existing prerequisite ledger.
+For each one, link exactly one decision using `bootstrapPrerequisite: "<existing prerequisite ID>"`.
+Resolve its policy with evidence or retain its planning work as `deferred`, `blocking: false`, with
+owner, trigger and `duePhase: "planning"`. The existing phase-obligation gate stops planning until
+that decision is resolved. Do not silently exclude an inherited obligation, move it to delivery,
+or claim a future implementation test has executed. The review shows the original task and source
+IDs alongside the proposed resolution; changes to those obligations invalidate its confirmation.
+
 ```text
 specification_intake.py review --entry SPC-001
 specification_intake.py confirm --entry SPC-001 --review-sha256 <presented-hash> --confirmation-source "<user-message-reference>" --confirmation-text "<actual-user-confirmation>"

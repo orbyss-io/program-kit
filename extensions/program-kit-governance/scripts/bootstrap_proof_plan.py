@@ -10,6 +10,29 @@ from bootstrap_lifecycle import LEDGER, LifecycleError, load, write, run_proof, 
 PLAN = Path('docs/architecture/bootstrap-proof-plan.json')
 
 
+def require_first_slice_plan(root, plan, ledger, records):
+    """A successful closure plan must have a path to its selected first handoff."""
+    from bootstrap_handoff import first_feature
+    handoff = first_feature(root)
+    if handoff is None:
+        return  # Older consumers have no selected first-slice contract.
+    identity = handoff['roadmapEntry']
+    required = [i for i in ledger['prerequisites']
+                if i['disposition'] == 'architecture' and identity in i['affected_slices']]
+    planned = {p['id'] for p in plan['probes']}
+    missing = [i for i in required if i['status'] != 'closed' and i['id'] not in planned]
+    if missing:
+        details = '; '.join(f"{i['id']} (owner: {i['owner']}): {i['task']}" for i in missing)
+        raise LifecycleError('FIRST-SLICE-PROOF-COVERAGE: ' + identity + ' has unplanned architecture blockers: '
+                             + details + '. Closure must plan their bounded proofs or obtain reviewed source authority '
+                             'for their actual later phase. Do not run unrelated probes or relabel a dependency to bypass it.')
+    record = next(r for r in records if r['id'] == identity)
+    if record['Status'] != 'Ready' and not any(p['id'] == identity for p in plan['readyWhenProven']):
+        raise LifecycleError('FIRST-SLICE-PROOF-COVERAGE: ' + identity + ' has no conditional Ready transition. '
+                             'Plan its complete architecture prerequisite set; if none remain, reconcile roadmap readiness '
+                             'with its governing decisions before returning closure output.')
+
+
 def invalidate_changed_recipes(root, plan, ledger):
     """Retain receipts while reopening only changed execution inputs before acceptance."""
     import copy
@@ -81,6 +104,7 @@ def require_proven_closure(root: Path):
         raise LifecycleError('Proven closure reuse requires a nonempty valid proof plan')
     validate_prerequisites(root, roadmap_records(root / ROADMAP), required=True, allow_proposed_authority=True)
     items = {i['id']: i for i in load(root / LEDGER)['prerequisites']}
+    require_first_slice_plan(root, plan, load(root / LEDGER), roadmap_records(root / ROADMAP))
     for probe in plan['probes']:
         item = items.get(probe['id'])
         if item is None or item['disposition'] != 'architecture' or item['status'] != 'closed':
@@ -130,6 +154,7 @@ def execute(root: Path, *, validate_only=False):
             raise LifecycleError('Conditional readiness must name an existing eligible candidate and rationale')
         if not required or set(promotion['prerequisites']) != required or any(items[i]['status'] != 'closed' and i not in ids for i in required):
             raise LifecycleError('Conditional readiness must cover every affected architecture prerequisite')
+    require_first_slice_plan(root, plan, ledger, records)
     # Validate the whole plan before executing any probe. Successful receipts are
     # reusable on explicit native resume; current evidence is checked above.
     for probe in probes:

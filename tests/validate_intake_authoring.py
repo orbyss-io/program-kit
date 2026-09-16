@@ -62,6 +62,54 @@ class AuthoringTests(unittest.TestCase):
         self.build()
         self.assertEqual(before, {p.name: p.read_bytes() for p in self.intent.parent.iterdir()})
 
+    def test_confirmation_rejects_unanswered_consumer_question_but_draft_preserves_it(self):
+        self.source['intake']['open_items'] = [{
+            'id': 'interface-choice', 'question': 'Does browser access fit the intended use?',
+            'classification': 'human-decision', 'disposition': 'Consumer must choose the access surface',
+            'blocks': 'Selecting the first journey interface', 'trigger': '',
+            'evidence': [self.source['intake']['evidence'][0]['id']]}]
+        self.build()
+        document = intake.validate_intake(self.root, allowed_statuses={'draft'})
+        document['status'] = 'confirmed'
+        write_json(self.root / intake.CANONICAL_INTAKE, document)
+        with self.assertRaisesRegex(intake.IntakeError, 'consumer answer'):
+            intake.validate_intake(self.root)
+
+    def test_confirmation_rejects_capability_that_still_needs_a_human_answer(self):
+        self.build()
+        document = intake.validate_intake(self.root, allowed_statuses={'draft'})
+        document['capability_assessments'] = [{
+            'id': 'access-surface', 'need': 'Select the intended interface',
+            'mechanism_coverage': 'insufficient-evidence', 'program_kit_capabilities': [],
+            'semantic_owner': 'consumer', 'semantic_profile': '', 'integration_owner': 'consumer',
+            'provider_selection': '', 'decision_state': 'human-answer-required',
+            'evidence': [document['evidence'][0]['id']]}]
+        document['status'] = 'confirmed'
+        write_json(self.root / intake.CANONICAL_INTAKE, document)
+        with self.assertRaisesRegex(intake.IntakeError, 'consumer answer'):
+            intake.validate_intake(self.root)
+
+    def test_deferred_item_cannot_conceal_an_immediate_blocker(self):
+        self.source['intake']['open_items'] = [{
+            'id': 'interface-choice', 'question': 'Does browser access fit the intended use?',
+            'classification': 'deferred', 'disposition': 'Consumer to answer later',
+            'blocks': 'Selecting the first journey interface', 'trigger': 'Architecture',
+            'evidence': [self.source['intake']['evidence'][0]['id']]}]
+        with self.assertRaisesRegex(intake.IntakeError, 'both deferred and blocking'):
+            self.build()
+
+    def test_confirmed_intake_retains_real_device_verification_at_delivery(self):
+        self.source['intake']['open_items'] = [{
+            'id': 'device-verification', 'question': 'Does the implemented interface work on actual devices?',
+            'classification': 'deferred', 'disposition': 'Feature verification owner runs device checks',
+            'blocks': '', 'trigger': 'Delivery before actual use',
+            'evidence': [self.source['intake']['evidence'][0]['id']]}]
+        self.build()
+        document = intake.validate_intake(self.root, allowed_statuses={'draft'})
+        document['status'] = 'confirmed'
+        write_json(self.root / intake.CANONICAL_INTAKE, document)
+        self.assertEqual('confirmed', intake.validate_intake(self.root)['status'])
+
     def test_confirmed_intake_cannot_be_replaced(self):
         self.build()
         path = self.root / intake.CANONICAL_INTAKE

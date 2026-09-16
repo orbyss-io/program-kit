@@ -437,6 +437,8 @@ def validate_intake(
         disposition = item.get("decision_state")
         if coverage not in coverage_values or disposition not in dispositions:
             raise IntakeError(f"{label} has invalid coverage or disposition")
+        if intake['status'] == 'confirmed' and disposition == 'human-answer-required':
+            raise IntakeError(f"{label} still requires a consumer answer; resolve it during intake before confirmation")
         capabilities = _string_list(item.get("program_kit_capabilities"), f"{label}.program_kit_capabilities")
         if coverage in {"managed", "guided", "conflict"} and not any(capabilities):
             raise IntakeError(f"{label} must name the relevant Program Kit capability")
@@ -489,6 +491,10 @@ def validate_intake(
             raise IntakeError(f"{label} must name the lifecycle trigger")
         if classification != "deferred" and not blocks:
             raise IntakeError(f"{label} must name what it blocks")
+        if intake['status'] == 'confirmed' and classification == 'human-decision':
+            raise IntakeError(f"{label} still requires a consumer answer; resolve it during intake before confirmation")
+        if classification == 'deferred' and blocks:
+            raise IntakeError(f"{label} cannot be both deferred and blocking; resolve the immediate dependency or retain only a later trigger")
         references = _string_list(item.get("evidence"), f"{label}.evidence")
         if any(reference not in evidence_ids for reference in references):
             raise IntakeError(f"{label} references unknown evidence")

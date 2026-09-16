@@ -37,6 +37,32 @@ boundaries. Later/production and later/later-release items retain later policy t
 classification, rationale and source-condition inventory require the same review as architecture.
 Do not relabel a shared provider dependency as feature-owned to bypass it.
 
+## Assign conditions before drafting proofs
+
+Separate three kinds of work at their originating phase, before placing conditions in an ADR:
+
+- Consumer intent: intake resolves consequential choices such as intended browser/native access.
+  Confirmed proposals and applicable defaults remain decisions, not unanswered preferences.
+  A genuinely new human constraint returns to the consumer at its owning review; a runtime receipt
+  cannot answer it, and a Program Kit maintainer cannot answer on the consumer's behalf.
+- External feasibility: research selects supported mechanisms, exact pins and source evidence;
+  architecture resolves ownership, contracts and placement. A specific unresolved compatibility
+  risk needs a bounded bootstrap probe of that mechanism. Identify the uncertainty and named case;
+  do not require building the actual feature to establish the architecture baseline. Generic runtime
+  receipts cannot substitute for a required provider or identity interoperability proof.
+- Consumer implementation: feature specification/planning resolves policy and admission details;
+  implementation/delivery proves the real behavior. Use existing persistence-profile admission,
+  secure-web, composition and UI verification gates. Examples include consumer transaction/retry
+  policies, membership mapping, actual bundle activation, and actual device/accessibility journeys.
+  Confirmed browser intent is not proof those device checks passed. A concrete feasibility concern
+  can justify an earlier probe; the mere absence of future application code cannot.
+
+For each retained condition name its source, affected slice, owner, next action and actual gate.
+Split a combined external compatibility and consumer behavior condition rather than moving the
+whole condition to whichever phase is convenient. Preserve all required verification. Resolve
+misassigned conditions through the existing reviewed decision process, never by silently editing
+approved intent or treating a Proposed-to-Accepted promotion as test evidence.
+
 Closed items require evidence entries with `path`, `sha256`, `kind` (`compatibility` or `decision`).
 Decision evidence uses the same normalized source hash from `source-hashes`; compatibility
 receipts use their raw file SHA-256. Disposition of an unresolved assessment item or ADR condition
@@ -145,6 +171,12 @@ explicitly prepared conditional Ready transitions. A failed probe stops the work
 receipt preserved. Explicit recovery reuses current successful proofs and renews failed work.
 An empty plan explicitly records that no scratch proof is required. Final approval reviews
 scope, dispositions and evidence after execution; it never substitutes for a failed probe.
+
+For a selected first slice, closure validation requires every open architecture prerequisite to
+have a probe and a complete conditional Ready transition, unless the entry is already Ready.
+An empty `readyWhenProven` array with a Blocked first entry is incomplete closure planning, even
+when all listed toolchain recipes are valid. Resolve it before executing any probes. Future slices
+may retain their scoped blockers. The closure output budget includes its roadmap edits.
 
 After a compatibility failure has been repaired and every planned proof has current passing
 evidence, the owner may use `workflow_lifecycle.py resume --run-id <id> --reuse-proven-closure`.

@@ -62,6 +62,27 @@ blocks the immediate bootstrap baseline. Otherwise apply the default or retain a
 Do not declare intake complete while merely assigning a genuinely immediate human blocker to
 architecture. This review covers unresolved branches; it is not another fixed questionnaire.
 
+For an included user interface, settle the intended access surface in this interview: where and
+how people need to use the first useful journey, and any special device/native/offline constraint
+that changes that choice. Reuse supplied answers. If a responsive browser is a derived proposal,
+present that proposal and its material limits in the final synthesis and obtain confirmation;
+do not preserve it simultaneously as an unanswered device-preference question. If the consumer
+cannot yet choose between materially different surfaces, ask now rather than assigning the choice
+to bootstrap closure. Do not ask for a device inventory without a consequential need.
+
+Keep product suitability separate from executed device/accessibility verification. Confirming a
+browser proposal settles intended use, not empirical fitness of software that does not exist yet.
+Assign real-device, assistive-technology and delivered-journey checks to feature verification before
+actual use. Only a specific unresolved feasibility risk warrants an earlier bounded prototype.
+Apply the same distinction to provider selection versus tests of future consumer persistence,
+membership and shell composition. Never turn an unanswered preference into an empirical proof task.
+
+Before confirmation, reconcile open items with the current synthesis. An answered or adopted
+default belongs in choices with its evidence, not in an open human-decision item. A truly deferred
+item has an owner/next action in disposition, a later trigger, and empty blocks. Remaining
+human-decision or human-answer-required records prevent confirmation. Deferral must reflect the
+actual dependency; changing a label does not resolve an immediate question.
+
 Ask when intent is unclear, conflicts with a default, or leaves materially different candidates
 plausible. Clarify the product need first, then derive the technical consequence where evidence
 permits. Explain alternatives and consequences when an actual user choice remains. Preserve an

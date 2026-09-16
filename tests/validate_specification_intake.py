@@ -75,6 +75,49 @@ class IntakeTests(unittest.TestCase):
         for path in ("specs", ".git", ".specify/feature.json"):
             self.assertFalse((self.repository / path).exists())
 
+    def test_bootstrap_feature_obligations_are_scoped_carried_and_bound_to_review(self):
+        ledger = self.repository / 'docs/architecture/bootstrap-prerequisites.json'
+        item = {'id': 'persistence-policy', 'source_ids': ['durable-write'], 'owner': 'Feature owner',
+                'task': 'Plan provider admission and replay policy', 'rationale': 'Durable results',
+                'trigger': 'feature-plan', 'disposition': 'feature', 'affected_slices': ['SPC-001']}
+        intake.atomic_write(ledger, {'prerequisites': [item, {**item, 'id': 'future', 'affected_slices': ['SPC-002']}]})
+        self.assertEqual(['persistence-policy'], [i['id'] for i in intake.context(self.repository, 'SPC-001')['bootstrapObligations']])
+        with self.assertRaisesRegex(ValueError, 'needs exactly one linked'):
+            intake.review(self.repository, 'SPC-001')
+        self.brief['decisions'].append({
+            'id': 'Q2', 'bootstrapPrerequisite': 'persistence-policy', 'question': 'How is replay handled?',
+            'answer': 'Plan provider-backed admission within accepted storage ownership',
+            'provenance': 'Bootstrap persistence-policy', 'rationale': 'Feature plan owns details',
+            'dependsOn': [], 'disposition': 'deferred', 'blocking': False,
+            'owner': 'Feature owner', 'trigger': 'Before tasks', 'duePhase': 'delivery'})
+        self.save()
+        with self.assertRaisesRegex(ValueError, 'due at planning'):
+            intake.review(self.repository, 'SPC-001')
+        self.brief['decisions'][-1]['duePhase'] = 'planning'
+        self.save()
+        self.confirm()
+        import phase_obligations
+        intake.atomic_write(self.repository / '.specify/feature.json', {'roadmap_entry_id': 'SPC-001'})
+        with self.assertRaisesRegex(ValueError, 'Q2 is due at planning'):
+            phase_obligations.deferred(self.repository, 'planning')
+        self.brief['decisions'][-1].update(disposition='answered', answer='Reviewed replay policy and its verification plan')
+        self.save()
+        self.confirm()
+        phase_obligations.deferred(self.repository, 'planning')
+        item['task'] = 'Changed admission requirement'
+        intake.atomic_write(ledger, {'prerequisites': [item]})
+        with self.assertRaisesRegex(ValueError, 'stale'):
+            intake.check(self.repository, 'SPC-001')
+
+    def test_bootstrap_carryover_rejects_duplicate_unknown_and_excluded_links(self):
+        obligation = {'id': 'retained'}
+        for decisions in ([{'bootstrapPrerequisite': 'retained', 'disposition': 'excluded'}],
+                          [{'bootstrapPrerequisite': 'retained', 'disposition': 'answered'}] * 2,
+                          [{'bootstrapPrerequisite': 'retained', 'disposition': 'answered'},
+                           {'bootstrapPrerequisite': 'unknown', 'disposition': 'answered'}]):
+            with self.subTest(decisions=decisions), self.assertRaises(ValueError):
+                intake.require_bootstrap_carryover({'decisions': decisions}, [obligation])
+
     def test_mutation_invalidates_confirmation_and_can_be_reconfirmed(self):
         self.confirm()
         self.brief["scope"] = "Include archived invoices"

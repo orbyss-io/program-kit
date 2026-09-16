@@ -15,6 +15,12 @@ promotion is not evidence those conditions have executed. The later bootstrap-cl
 isolated compatibility work before dependent slices become Ready. Architecture drafting still does
 not scaffold or restore consumer projects.
 
+Use the phase distinctions in `references/bootstrap-lifecycle.md` when retaining conditions in
+ADRs. Preserve the confirmed interface choice and applicable defaults. Do not reopen consumer
+device preference as a compatibility prerequisite or demand completed feature behavior before its
+specification exists. Separate external mechanism feasibility from verification of the later
+consumer implementation, and identify the actual owning gate for each condition.
+
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 
 Read the compact bootstrap stage brief first, once, with enough output capacity to avoid truncation.
