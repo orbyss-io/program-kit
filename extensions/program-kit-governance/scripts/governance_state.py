@@ -1910,7 +1910,7 @@ def roadmap_required_adr_ids(value: str, record_id: str) -> list[str]:
     return list(dict.fromkeys(identifiers))
 
 
-def pending_founding_adr_ids() -> set[str]:
+def pending_review_adr_ids() -> set[str]:
     if PENDING_RECOVERY_REVIEW:
         model = read_json(project_path(ARCHITECTURE_MAP))
         scope = lifecycle_call("acceptance_scope", model)
@@ -1922,7 +1922,10 @@ def pending_founding_adr_ids() -> set[str]:
     ):
         return set()
     try:
-        records = founding_adr_records("Proposed")
+        # Fresh bootstrap reviews scoped closure decisions alongside founding
+        # decisions. Use the same authority set as the final review packet;
+        # pending review is neither acceptance nor permission for unscoped ADRs.
+        records = reviewed_adr_records()
     except GovernanceStateError:
         return set()
     identifiers = {item["candidate_id"].lower() for item in records}
@@ -1975,18 +1978,18 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> li
     full_text = project_path(ROADMAP).read_text(encoding="utf-8")
     if re.search(r'(?i)Ready\s*=\s*specification-ready|(?:unresolved|pending)\s+provider\s+decision.{0,160}before\s+(?:implementation|code)', full_text):
         raise GovernanceStateError('Roadmap hides an unresolved implementation decision or redefines Ready; reconcile the prerequisite ledger and remove the contradictory gate')
-    pending_founding: set[str] | None = None
+    pending_review: set[str] | None = None
     for record in records:
         identifiers = roadmap_required_adr_ids(
             record["Required Accepted ADRs"], record["id"]
         )
         if record["Status"] not in {"Ready", "Active"}:
             continue
-        if pending_founding is None:
-            pending_founding = pending_founding_adr_ids()
+        if pending_review is None:
+            pending_review = pending_review_adr_ids()
         unresolved = [
             adr for adr in identifiers
-            if not accepted_adr(adr) and adr.lower() not in pending_founding
+            if not accepted_adr(adr) and adr.lower() not in pending_review
         ]
         if unresolved:
             raise GovernanceStateError(

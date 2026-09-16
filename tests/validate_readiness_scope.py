@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import validate_bootstrap_lifecycle as fixture
 
@@ -37,6 +38,67 @@ class ReadinessScopeTests(unittest.TestCase):
     def save(self):
         life.write(self.root / g.ARCHITECTURE_MAP, self.model)
         life.write(self.root / life.SCOPE, self.scope)
+
+    def follow_on(self, *, scoped=True, status='Proposed'):
+        self.model = life.load(self.root / g.ARCHITECTURE_MAP)
+        decision = copy.deepcopy(self.model['decisions'][0])
+        decision.update(id='bootstrap-proof-assignment',
+                        path='docs/architecture/decisions/bootstrap-proof-assignment.md',
+                        status=status)
+        (self.root / decision['path']).write_text(
+            '# Bootstrap proof assignment\n\nStatus: ' + status + '\n', encoding='utf-8')
+        decision['sha256'] = life.digest(self.root / decision['path'])
+        self.model['decisions'].append(decision)
+        if scoped:
+            self.scope['decisions'][decision['id']] = {'elements': [], 'relationships': []}
+        self.save()
+        (self.root / g.ROADMAP).write_text(
+            fixture.fixture.roadmap('`bootstrap-proof-assignment`'), encoding='utf-8')
+        fixture.ledger(self.root, [])
+        return decision
+
+    def test_fresh_scoped_follow_on_reaches_review_without_premature_acceptance(self):
+        decision = self.follow_on()
+        g.synchronize_lifecycle()
+        g.synchronize_roadmap_views()
+        g.validate_roadmap(True)
+        reviewed = {r['candidate_id'] for r in g.reviewed_adr_records()}
+        self.assertIn(decision['id'], reviewed)
+        self.assertFalse(g.accepted_adr(decision['id']))
+        self.assertFalse((self.root / g.BOOTSTRAP_APPROVAL).exists())
+        g.write_review('bootstrap')
+        g.accept_bootstrap('approve')  # Simulated review in this disposable fixture only.
+        self.assertTrue(g.accepted_adr(decision['id']))
+        g.validate_bootstrap(True, True)
+        (self.root / g.READINESS_REPORT).write_text(
+            '**Status**: READY\n\nScoped fixture decisions were reviewed and accepted.\n', encoding='utf-8')
+        g.complete_bootstrap()
+        g.validate_completion()
+
+    def test_unscoped_follow_on_cannot_reach_review(self):
+        self.follow_on(scoped=False)
+        with self.assertRaisesRegex(g.GovernanceStateError, 'unresolved ADRs: bootstrap-proof-assignment'):
+            g.validate_roadmap(True)
+
+    def test_rejected_follow_on_is_not_pending_review_authority(self):
+        self.follow_on(status='Rejected')
+        with self.assertRaisesRegex(g.GovernanceStateError, 'unresolved ADRs: bootstrap-proof-assignment'):
+            g.validate_roadmap(True)
+
+    def test_pending_follow_on_requires_recovery_review_after_bootstrap_approval(self):
+        self.follow_on()
+        life.write(self.root / g.BOOTSTRAP_APPROVAL, {'status': 'Approved'})
+        with self.assertRaisesRegex(g.GovernanceStateError, 'unresolved ADRs: bootstrap-proof-assignment'):
+            g.validate_roadmap(True)
+        with patch.object(g, 'PENDING_RECOVERY_REVIEW', True):
+            g.validate_roadmap(True)
+
+    def test_stale_follow_on_cannot_be_synchronized(self):
+        decision = self.follow_on()
+        with (self.root / decision['path']).open('a', encoding='utf-8') as stream:
+            stream.write('\nUnreviewed change.\n')
+        with self.assertRaisesRegex(g.GovernanceStateError, 'inventory is stale'):
+            g.synchronize_roadmap_views()
 
     def test_missing_edge_requires_scope_then_actual_acceptance(self):
         self.edge['status'] = 'proposed'
