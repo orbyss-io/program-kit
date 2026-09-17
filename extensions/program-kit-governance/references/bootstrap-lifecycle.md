@@ -6,6 +6,12 @@ or first-slice proof has been resolved. Roadmap Ready means ready for specificat
 The same ledger independently gates planning, implementation, delivery and production.
 Unclear journeys stay Candidate with owned discovery work; bootstrap may complete with no Ready entry.
 
+The lifecycle run/resume/reopen entry point provisions and checks the pinned schema tools for
+both the native shell Python and the installed workflow-engine Python before dispatch. Each
+interpreter retains its own project-local dependency cache; uv installation uses a project-local
+download cache. Setup or import failures stop at this boundary before agent work. Internal steps
+and read-only completion validation do not silently install dependencies or change approvals.
+
 `docs/architecture/bootstrap-prerequisites.json` has schema_version `1.0`, `sources` and
 `prerequisites` arrays. It is part of the reviewed and hash-bound bootstrap artifact bundle.
 Source entries have `path`, `sha256` and `prerequisites` (condition IDs). Inventory the complete

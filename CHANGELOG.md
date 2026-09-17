@@ -4,6 +4,10 @@
 
 ### 0.12.0 candidate
 
+- Provision and verify schema dependencies for both the workflow engine Python and
+  native shell Python before bootstrap or resume dispatch, preventing mixed-interpreter
+  installations from failing only at the final completion step.
+
 - Separate bootstrap initialization from slice-phase eligibility. Preserve unanswered intent,
   proposed journeys and open compatibility obligations in reviewed records without requiring
   a Ready first slice. Gate specification, planning and implementation at their actual boundaries;

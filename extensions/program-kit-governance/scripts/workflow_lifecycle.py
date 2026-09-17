@@ -76,6 +76,41 @@ def installed_interpreter() -> Path:
     return interpreter.absolute()
 
 
+def prepare_schema_runtimes(root: Path) -> None:
+    """Provision and verify both engine and PATH-shell Python before dispatch.
+
+    Native shell steps use `python`; lifecycle completion also imports the
+    engine and may re-enter its isolated interpreter. Their version-specific
+    schema caches must both exist. Never share binary dependencies between them.
+    """
+    shell_python = shutil.which('python')
+    if not shell_python:
+        raise WorkflowLifecycleError('WORKFLOW_RUNTIME_PREFLIGHT: python is unavailable on PATH')
+    scripts = root / '.specify/extensions/program-kit-governance/scripts'
+    probe = ('import sys; sys.path.insert(0, sys.argv[1]); '
+             'import schema_runtime; schema_runtime.activate(); '
+             'from json_schema import validate_value; '
+             'assert validate_value({}, {"$schema": "https://json-schema.org/draft/2020-12/schema", '
+             '"type": "object"})["valid"]')
+    interpreters = dict.fromkeys((os.path.normcase(os.path.abspath(sys.executable)),
+                                 os.path.normcase(os.path.abspath(shell_python))))
+    for interpreter in interpreters:
+        commands = ([interpreter, str(scripts / 'schema_runtime.py'), 'setup', '--project-root', str(root)],
+                    [interpreter, '-I', '-c', probe, str(scripts)])
+        for command in commands:
+            try:
+                result = subprocess.run(command, cwd=root, capture_output=True,
+                                        encoding='utf-8', errors='replace', timeout=360, check=False)
+            except (OSError, subprocess.SubprocessError) as error:
+                raise WorkflowLifecycleError(
+                    f'WORKFLOW_RUNTIME_PREFLIGHT: {interpreter}: {error}') from error
+            if result.returncode:
+                from compatibility_diagnostics import sanitize
+                detail = sanitize(result.stderr or result.stdout)[-4000:]
+                raise WorkflowLifecycleError(
+                    f'WORKFLOW_RUNTIME_PREFLIGHT: {interpreter} failed before agent dispatch: {detail}')
+
+
 @contextlib.contextmanager
 def execution_lock(root: Path):
     """The OS releases this lock after interruption/process death; no PID probes."""
@@ -660,6 +695,9 @@ def main() -> int:
             raise WorkflowLifecycleError('Recovery reuse flags require resume')
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
+        if args.command in {'run', 'resume', 'reopen'}:
+            with execution_lock(root):
+                prepare_schema_runtimes(root)
         governance.configure_paths()
         with contextlib.redirect_stdout(io.StringIO()) if args.command == 'step' else contextlib.nullcontext():
             if args.command == 'reopen':
