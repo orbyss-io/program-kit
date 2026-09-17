@@ -33,11 +33,14 @@ output budgets and the single structured validation command. Historical correcti
 handoffs are not readiness inputs. Published recovery directories inherit workspace
 permissions; private temporary-directory ACLs must not be retained after publication.
 
-The known 0.12.0 continuation readiness suffix migrates to 0.12.1 after preserving
+The known 0.12.0/0.12.1 continuation readiness suffixes migrate to internal revision
+0.13.0 and use the same deterministic readiness renderer as fresh bootstrap, after preserving
 its failed state and workflow in resumption history. A failure whose sole blocker is
 `READINESS-CURRENT-EVIDENCE` retries context generation and readiness after validating
 the unchanged approved authority. It does not repeat closure, proof execution or
-approval. Other semantic readiness blockers retain correction/review routing. Changed
+approval. Recorded unresolved questions or invalid authority retain correction/review
+routing; an old report's independently authored status does not itself require
+re-authoring valid accepted decisions. Changed
 authority, unknown suffixes and invalid lineage stop before agent dispatch. The
 original lineage definition remains historical; the child's saved migrated workflow
 and final completion hash identify the actual executed suffix.

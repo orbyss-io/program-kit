@@ -7,7 +7,7 @@ STAGES = {
     'architecture': {'requires': ['provider-decisions', 'managed-pins'], 'resolves': ['composition', 'ownership', 'architecture-risks'], 'later': ['feature-types', 'future-journey-details'], 'next_owner': 'tooling', 'restart': 'prepare-architecture-context'},
     'tooling': {'requires': ['composition', 'ownership'], 'resolves': ['enforcement-tools', 'verification-due-phases'], 'later': ['application-scaffolding'], 'next_owner': 'roadmap', 'restart': 'prepare-tooling-context'},
     'roadmap': {'requires': ['first-slice', 'architecture-risks'], 'resolves': ['first-entry', 'future-portfolio'], 'later': ['future-specifications'], 'next_owner': 'closure', 'restart': 'prepare-roadmap-context'},
-    'closure': {'requires': ['first-entry', 'provider-decisions'], 'resolves': ['executable-proof-plan', 'owned-deferrals'], 'later': ['feature-behavior', 'production-approval'], 'next_owner': 'execute-compatibility-proofs', 'restart': 'prepare-closure-context'},
+    'closure': {'requires': ['first-entry', 'provider-decisions'], 'resolves': ['first-slice-design-review', 'executable-proof-plan', 'owned-deferrals'], 'later': ['feature-behavior', 'production-approval'], 'next_owner': 'execute-compatibility-proofs', 'restart': 'prepare-closure-context'},
     'readiness': {'requires': ['accepted-architecture', 'compatibility-evidence'], 'resolves': ['ready-to-specify-handoff'], 'later': ['ready-to-code', 'ready-to-deliver'], 'next_owner': 'specification-intake', 'restart': 'prepare-readiness-context'},
 }
 
@@ -254,14 +254,21 @@ STAGE_STARTS = {
 
 
 STAGE_ARTIFACTS['closure'] = (
+    '.specify/memory/constitution.md',
     'docs/architecture/bootstrap-decisions.json',
     'docs/architecture/bootstrap-prerequisites.json',
     'docs/architecture/specification-roadmap.md',
     'docs/architecture/tooling-evaluation.md',
+    'docs/architecture/architecture.md',
+    'docs/architecture/quality-attributes.md',
+    'docs/architecture/quality-system.md',
+    'docs/architecture/traceability.md',
 )
-STAGE_FULL_READS['closure'] = ('docs/architecture/bootstrap-prerequisites.json',)
-STAGE_FOCUS['closure'] = 'Select maintained compatibility checks for the first slice and disposition remaining prerequisites by their actual due phase.'
-INTAKE_STAGE_FIELDS['closure'] = ('candidate_slice_signals', 'open_items', 'routing')
+STAGE_FULL_READS['closure'] = ('.specify/memory/constitution.md', 'docs/architecture/bootstrap-prerequisites.json')
+STAGE_FOCUS['closure'] = 'Review the first-slice design against confirmed outcomes and owned verification before approval; resolve substantive findings through existing questions and prerequisites, and select maintained compatibility checks.'
+INTAKE_STAGE_FIELDS['closure'] = ('actors', 'journeys', 'quality_requirements', 'candidate_slice_signals', 'open_items', 'routing')
+# The first-feature handoff identifies the exact slice scope. Deeper design and
+# quality sources are indexed above rather than duplicating the whole portfolio.
 MAP_STAGE_FIELDS['closure'] = ('decisions',)
 STAGE_RECORD_FIELDS['closure'] = {'decisions': ('id', 'path', 'title', 'status', 'scope')}
 OUTPUT_CONTRACTS['closure'] = {

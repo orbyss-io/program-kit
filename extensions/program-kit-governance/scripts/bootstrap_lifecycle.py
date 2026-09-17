@@ -260,9 +260,6 @@ def project_lifecycle(root: Path, model: dict, *, check: bool = False) -> None:
         pattern = re.compile(re.escape(STATUS_START) + r'.*?' + re.escape(STATUS_END), re.DOTALL)
         if text.count(STATUS_START) != text.count(STATUS_END) or text.count(STATUS_START) > 1:
             raise LifecycleError(f'Malformed lifecycle projection: {path}')
-        outside = pattern.sub('', text)
-        if re.search(r'(?i)(?:all (?:\w+ )?founding ADRs remain Proposed|design is Proposed|pending Accepted ADRs)', outside):
-            raise LifecycleError(f'{path} duplicates transient lifecycle claims; revise in the reviewed bundle, retain historical context explicitly')
         if check:
             if pattern.search(text) is None or pattern.search(text)[0] != view:
                 raise LifecycleError(f'Stale lifecycle projection: {path}')

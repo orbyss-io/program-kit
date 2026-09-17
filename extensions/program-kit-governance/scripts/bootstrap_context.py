@@ -1518,6 +1518,8 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         'rule': 'Choose --kind user-answer only for a consequential consumer intent/constraint without a safe default. Choose --kind design-decision for missing technical research/design evidence, with --stage naming its owning stage. Never ask the consumer for installed pins, source/license evidence or a missing generated context. Consult the supplied provider inputs and named sources first. The native boundary routes design work to its owner.',
     }
     payload['stage_plan']['decision_handoff'] = __import__('bootstrap_handoff').projection(project_root, run_id)
+    if stage == 'closure':
+        payload['stage_plan']['first_feature_handoff'] = __import__('bootstrap_handoff').first_feature(project_root)
     if any(q.get('kind') == 'design-decision' for q in payload['stage_plan']['decision_handoff']):
         payload['stage_plan']['design_resolution'] = 'Resolve design-decision questions due at this stage before terminal validation. Before assessment approval, record resolution in the register. After approval, preserve the register: explain the design in an existing Proposed ADR, insert the exact resolution_marker from decision_handoff as a metadata line, and refresh that ADR hash in the canonical map. This closes design authoring only, not human acceptance or compatibility proof. User answers cannot close design work.'
     first_ids = set(decisions.get('first_slice', {}).get('journey_ids', []))

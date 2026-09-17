@@ -129,8 +129,9 @@ review. Retain the earlier approval; the new approval supersedes only its mutabl
 When the native review gate pauses, the user reviews that packet and resumes the workflow with
 `workflow_lifecycle.py resume --run-id {run_id} --input recovery_verdict=approve`.
 
-The workflow then invokes the readiness producer using this handoff and current constitution, prerequisite ledger,
-canonical map, roadmap, approval and scoped evidence. Its output is `docs/architecture/readiness-report.md`.
+The workflow renders readiness deterministically from the current constitution, prerequisite ledger,
+canonical map, roadmap, approval and scoped evidence. No readiness agent reinterprets historical
+status prose. Its output is `docs/architecture/readiness-report.md`.
 Generation target: 3072 UTF-8 bytes; hard limit: 4096. Keep decisive blockers even above target.
 The native evaluation step records eligible=false and actionable blockers for valid non-ready output.
 The eligibility step stops non-ready execution before completion. Only the final native completion

@@ -1,4 +1,4 @@
-"""Reject incomplete slice acceptance and live ADR status contradictions before readiness."""
+"""Enforce accepted slice scope without treating proposal prose as lifecycle state."""
 import copy
 import os
 from pathlib import Path
@@ -70,8 +70,7 @@ class ReadinessScopeTests(unittest.TestCase):
         g.accept_bootstrap('approve')  # Simulated review in this disposable fixture only.
         self.assertTrue(g.accepted_adr(decision['id']))
         g.validate_bootstrap(True, True)
-        (self.root / g.READINESS_REPORT).write_text(
-            '**Status**: READY\n\nScoped fixture decisions were reviewed and accepted.\n', encoding='utf-8')
+        self.assertTrue(g.render_readiness()['eligible'])
         g.complete_bootstrap()
         g.validate_completion()
 
@@ -137,31 +136,26 @@ class ReadinessScopeTests(unittest.TestCase):
         self.save()
         g.validate_roadmap_architecture_scope(self.records)
 
-    def test_stale_adr_needs_reviewed_supersession_not_unscoped_proposal(self):
-        old = self.model['decisions'][0]
-        with (self.root / old['path']).open('a', encoding='utf-8') as stream:
-            stream.write('\n' + self.records[0]['id'] + ' remains Blocked.\n')
+    def test_proposal_history_does_not_need_a_successor_after_approval(self):
+        new = self.follow_on()
+        path = self.root / new['path']
+        with path.open('a', encoding='utf-8') as stream:
+            stream.write('\nThe founding ADRs remain Proposed. SPEC-001 remains Blocked.\n'
+                         'Final architecture review remains mandatory. No runtime success is asserted.\n')
+        new['sha256'] = life.digest(path)
         self.save()
-        with self.assertRaisesRegex(g.GovernanceStateError, 'contradicts authoritative status'):
-            g.validate_adr_roadmap_claims(self.records)
-        new = copy.deepcopy(old)
-        new.update(id='reviewed-correction', path='docs/architecture/decisions/reviewed-correction.md',
-                   status='Proposed', supersedes=[old['id']])
-        (self.root / new['path']).write_text('# Scoped correction\nStatus: Proposed\n', encoding='utf-8')
-        new['sha256'] = life.digest(self.root / new['path'])
-        self.model['decisions'].append(new)
-        self.save()
-        with self.assertRaisesRegex(g.GovernanceStateError, 'contradicts authoritative status'):
-            g.validate_adr_roadmap_claims(self.records)
-        self.scope['decisions'][new['id']] = {'elements': [], 'relationships': []}
-        self.save()
-        g.validate_adr_roadmap_claims(self.records)
-        life.write(self.root / g.BOOTSTRAP_APPROVAL, {'status': 'Approved'})
-        with self.assertRaisesRegex(g.GovernanceStateError, 'contradicts authoritative status'):
-            g.validate_adr_roadmap_claims(self.records)
-        new['status'] = 'Accepted'
-        self.save()
-        g.validate_adr_roadmap_claims(self.records)
+        fixture.ledger(self.root, [])
+        g.synchronize_lifecycle()
+        g.synchronize_roadmap_views()
+        g.validate_bootstrap_consistency()
+        g.write_review('bootstrap')
+        g.accept_bootstrap('approve')
+        self.assertTrue(g.render_readiness()['eligible'])
+        self.assertIn('founding ADRs remain Proposed', path.read_text(encoding='utf-8'))
+        # A substantive unreviewed change still fails the accepted source hashes.
+        with path.open('a', encoding='utf-8') as stream:
+            stream.write('\nSwitch the selected provider.\n')
+        self.assertFalse(g.render_readiness()['eligible'])
 
 
 if __name__ == '__main__':

@@ -780,11 +780,9 @@ def main() -> int:
                 encoding="utf-8",
             )
             module.synchronize_roadmap_views()
-            expect_error(
-                module,
-                module.validate_bootstrap_consistency,
-                "duplicates authoritative status",
-            )
+            # Proposal-time prose is history; only the synchronized navigation
+            # view owns the derived status. Source hashes still bind the prose.
+            module.validate_bootstrap_consistency()
             architecture_path.write_text(
                 "# Architecture\n\nOrbyss.Foundation.Host is the accepted runtime.\n\n"
                 "The browser boundary inherits program-kit-web-threat-model-v1 and "

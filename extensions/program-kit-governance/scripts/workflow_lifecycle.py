@@ -170,9 +170,10 @@ def migrate_suffix(root: Path, state: RunState, saved: WorkflowDefinition, resta
         # Only the known historical readiness suffix may change. The original
         # lineage manifest and approved prefix remain immutable history.
         installed = continuation_definition(root)
-        if saved.version == installed.version or restart != 'recovery-readiness':
+        if saved.version == installed.version or restart not in {'recovery-readiness', 'prepare-recovery-readiness'}:
             return saved
-        if (saved.version, installed.version) != ('0.12.0', '0.12.1'):
+        projection_migration = saved.version in {'0.12.0', '0.12.1'} and installed.version == '0.13.0'
+        if not projection_migration and (saved.version, installed.version) != ('0.12.0', '0.12.1'):
             raise WorkflowLifecycleError('No reviewed continuation readiness migration for this version')
         recovery.manifest(root, state.inputs['source_run'])
         governance.validate_bootstrap(True, True)
@@ -180,10 +181,17 @@ def migrate_suffix(root: Path, state: RunState, saved: WorkflowDefinition, resta
         new_index = next(i for i, s in enumerate(installed.steps) if s['id'] == 'prepare-recovery-readiness')
         old_tail = saved.steps[old_index:]
         new_tail = installed.steps[new_index + 1:]
+        expected_producer = ({'id': 'recovery-readiness', 'type': 'command',
+                              'command': 'speckit.program-kit-governance.readiness',
+                              'integration': '{{ inputs.integration }}'} if projection_migration else
+                             {k: v for k, v in new_tail[0].items() if k != 'input'})
         if (len(old_tail) != len(new_tail) or old_tail[1:] != new_tail[1:]
-                or {k: v for k, v in old_tail[0].items() if k != 'input'}
-                != {k: v for k, v in new_tail[0].items() if k != 'input'}):
+                or {k: v for k, v in old_tail[0].items() if k != 'input'} != expected_producer):
             raise WorkflowLifecycleError('Unknown saved continuation readiness suffix; maintenance required')
+        if old_index and saved.steps[old_index - 1]['id'] == 'prepare-recovery-readiness':
+            if saved.steps[old_index - 1] != installed.steps[new_index]:
+                raise WorkflowLifecycleError('Unknown saved continuation readiness context')
+            old_index -= 1
         data = copy.deepcopy(saved.data)
         data['workflow']['version'] = installed.version
         data['steps'] = copy.deepcopy(saved.steps[:old_index]) + copy.deepcopy(installed.steps[new_index:])
@@ -336,11 +344,10 @@ def continuation_definition(root: Path) -> WorkflowDefinition:
 
 def source_ready(root: Path, source_run: str) -> bool:
     recovery.manifest(root, source_run)
-    try:
-        governance.validate_bootstrap(True, True)
-        return bool(lifecycle.verdict(root)['eligible'])
-    except (governance.GovernanceStateError, lifecycle.LifecycleError):
-        return False
+    # Report prose cannot force re-authoring already-valid accepted decisions.
+    # Changed authority, missing proofs or pending owned questions still route
+    # to correction before any approval can be reused.
+    return governance.readiness_authority(source_run)['eligible']
 
 
 def prepare_recovery_readiness(root: Path, run_id: str, source_run: str) -> dict:

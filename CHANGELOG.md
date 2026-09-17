@@ -4,6 +4,10 @@
 
 ### 0.12.0 candidate
 
+- Derive terminal bootstrap readiness from validated authority instead of a late
+  agent-authored narrative verdict. Review substantive first-slice findings in
+  closure before acceptance; preserve ADR history without routine status-only
+  supersession. Share deterministic readiness with bounded native recovery.
 - Apply the existing .NET engineering knowledge through scoped phase obligations, attributable
   source review, compiler diagnostics and executed behavior evidence. Include typed boundaries,
   SOLID, deferred initialization, concurrency, lifetime, secure I/O and operation-level API proof.

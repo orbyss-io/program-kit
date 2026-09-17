@@ -125,6 +125,9 @@ def workflow_gate(root):
     import copy
     shipped = yaml.safe_load((ROOT / 'workflows/program-kit-bootstrap/workflow.yml').read_text(encoding='utf-8'))
     steps = [copy.deepcopy(s) for s in shipped['steps'] if s['id'] in {'readiness', 'validate-readiness-output', 'require-readiness', 'complete-bootstrap'}]
+    # Preserve regression coverage for historical agent-produced verdicts. New
+    # native flows use the separately tested deterministic readiness shell.
+    steps[0] = {'id': 'readiness', 'type': 'command', 'command': 'speckit.program-kit-governance.readiness'}
     steps[0]['integration'] = 'codex'
     steps[0]['input'] = {'args': 'Deterministic fixture; agent dispatch is mocked'}
     for step in steps[1:]:

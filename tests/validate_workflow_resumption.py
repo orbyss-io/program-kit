@@ -168,21 +168,27 @@ def main():
                     aborted = WorkflowEngine(root).execute(historical, inputs={'bootstrap_verdict': 'abort'}, run_id='historical-abort')
                     assert aborted.status == RunStatus.ABORTED
                     old = (workflow.run_directory(root, aborted.run_id) / 'state.json').read_bytes()
-                    # Interrupt the real continuation engine at its readiness
-                    # dispatch; it must pause and resume without repeating closure.
+                    # Interrupt the deterministic readiness shell; resumption
+                    # must not repeat closure or start a readiness agent.
                     seen = []
                     def interrupted(self, command, integration, model, args, context):
                         seen.append(command)
-                        if command == 'speckit.program-kit-governance.readiness' and seen.count(command) == 1:
-                            raise KeyboardInterrupt()
+                        assert command != 'speckit.program-kit-governance.readiness'
                         return readiness_dispatch(self, command, integration, model, args, context)
-                    with patch.object(CommandStep, '_try_dispatch', interrupted):
+                    shell_attempts = []
+                    def interrupted_shell(self, config, context):
+                        if config['id'] == 'recovery-readiness':
+                            shell_attempts.append(config['id'])
+                        if config['id'] == 'recovery-readiness' and len(shell_attempts) == 1:
+                            raise KeyboardInterrupt()
+                        return execute(self, config, context)
+                    with patch.object(CommandStep, '_try_dispatch', interrupted), patch.object(ShellStep, 'execute', interrupted_shell):
                         paused = workflow.resume(root, aborted.run_id)
                         assert paused.status == RunStatus.PAUSED and paused.current_step_id == 'recovery-readiness'
                         assert not (root / g.BOOTSTRAP_COMPLETION).exists()
                         done = workflow.resume(root, aborted.run_id)
                         assert done.status == RunStatus.COMPLETED, done.error
-                        assert seen.count('speckit.program-kit-governance.bootstrap-recovery') == 1
+                        assert seen.count('speckit.program-kit-governance.bootstrap-recovery') == 0
                     assert (workflow.run_directory(root, aborted.run_id) / 'state.json').read_bytes() == old
                     assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == approval
                     workflow.validate_engine_completion(root)
@@ -205,6 +211,10 @@ def main():
                 with patch.object(CommandStep, '_try_dispatch', changed_dispatch):
                     failed = WorkflowEngine(root).execute(definition(ready_tail()), run_id='changed-authority')
                     assert failed.status == RunStatus.FAILED
+                    workflow.recovery.prepare(root, failed.run_id)
+                    # A real changed input, not an independently worded report,
+                    # requires correction and renewed review.
+                    architecture.write_bytes(architecture.read_bytes() + b'\nChanged consumer boundary.\n')
                     try:
                         workflow.resume(root, failed.run_id, {'recovery_verdict': 'approve'})
                     except workflow.WorkflowLifecycleError:
@@ -246,7 +256,11 @@ def main():
                 legacy = copy.deepcopy(workflow.continuation_definition(root).data)
                 legacy['workflow']['version'] = '0.12.0'
                 legacy['steps'] = [s for s in legacy['steps'] if s['id'] != 'prepare-recovery-readiness']
-                next(s for s in legacy['steps'] if s['id'] == 'recovery-readiness')['input']['args'] = 'Legacy inaccessible handoff'
+                legacy_readiness = next(s for s in legacy['steps'] if s['id'] == 'recovery-readiness')
+                legacy_readiness.clear()
+                legacy_readiness.update(id='recovery-readiness', type='command',
+                    command='speckit.program-kit-governance.readiness', integration='{{ inputs.integration }}',
+                    input={'args': 'Legacy inaccessible handoff'})
                 def legacy_dispatch(self, command, integration, model, args, context):
                     if args == 'Legacy inaccessible handoff':
                         report.write_text('**Status**: NOT READY\n- Blocker: READINESS-CURRENT-EVIDENCE | Owner: Operator | Next: Repair input access\n', encoding='utf-8')
@@ -273,7 +287,7 @@ def main():
                 with patch.object(CommandStep, '_try_dispatch', repaired_dispatch):
                     repaired = workflow.resume(root, legacy_source.run_id)
                 assert repaired.status == RunStatus.COMPLETED, repaired.error
-                assert len(retried_commands) == 1
+                assert len(retried_commands) == 0  # Migrated suffix renders deterministically.
                 assert repaired.step_results['verify-recovery-source'] == successful_prefix
                 assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == approval_before
                 assert (workflow.run_directory(root, legacy_source.run_id) / 'state.json').read_bytes() == source_before

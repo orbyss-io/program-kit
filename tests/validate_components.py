@@ -66,11 +66,7 @@ EXPECTED_STEPS = [
     "require-first-feature-handoff",
     "write-bootstrap-review",
     "route-bootstrap-approval",
-    "require-readiness-handoff",
-    "prepare-readiness-context",
     "readiness",
-    "require-readiness-answers",
-    "validate-readiness-output",
     "require-readiness",
     "complete-bootstrap",
 ]
@@ -222,7 +218,7 @@ def main() -> int:
         raise AssertionError("Governance assessment must consume the validated intake")
     if "initial_design" in workflow_path.read_text(encoding="utf-8"):
         raise AssertionError("The workflow must not retain the legacy initial_design route")
-    context_stages = ("assessment", "research", "architecture", "tooling", "roadmap", "closure", "readiness")
+    context_stages = ("assessment", "research", "architecture", "tooling", "roadmap", "closure")
     for stage in context_stages:
         context_id = f"prepare-{stage}-context"
         context_step = next(step for step in steps if step["id"] == context_id)
@@ -240,12 +236,15 @@ def main() -> int:
         ("tooling", "tooling"),
         ("specification-roadmap", "roadmap"),
         ("architecture-prerequisite-closure", "closure"),
-        ("readiness", "readiness"),
     ):
         command_step = next(step for step in steps if step["id"] == command_id)
         expected_context = f"steps.prepare-{stage}-context.output.data.path"
         if expected_context not in command_step.get("input", {}).get("args", ""):
             raise AssertionError(f"{command_id} does not consume its generated bootstrap context")
+    readiness_step = next(step for step in steps if step['id'] == 'readiness')
+    if (readiness_step.get('type') != 'shell' or
+            'governance_state.py render-readiness --run-id {{ context.run_id }}' not in readiness_step.get('run', '')):
+        raise AssertionError('Terminal readiness must project current authority without agent dispatch')
     for stage in context_stages:
         validation_step = next(step for step in steps if step["id"] == f"validate-{stage}-output")
         validation_command = validation_step.get("run", "")
@@ -507,7 +506,7 @@ def main() -> int:
         "Do not construct a PowerShell file-inventory command",
         "stop immediately",
     )
-    for command_name in ("research", "tooling", "roadmap", "readiness"):
+    for command_name in ("research", "tooling", "roadmap"):
         require_text(
             extension_root
             / f"commands/speckit.program-kit-governance.{command_name}.md",
@@ -557,10 +556,10 @@ def main() -> int:
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.readiness.md",
-        "--require-roadmap --require-ready",
-        "first feature specification",
-        "program-kit-web-security-evidence-v1",
-        "single command in `output_contract.validation_commands`",
+        "scripts/governance_state.py render-readiness",
+        "Do not independently author a verdict",
+        "Substantive conflicts must be resolved",
+        "without an agent dispatch",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.architecture-check.md",

@@ -87,6 +87,19 @@ evidence to the exact prerequisite. It stops at the first failure; preserve that
 authority evidence as appropriate. A failing attempt remains preserved; diagnose it before another
 bounded attempt. No repeated truncation or ad hoc byte assertions.
 
+Before returning the closure handoff, review the first slice against confirmed
+journeys, accepted choices, owned contracts, material failure paths, verification
+and dependencies. Use `stage_plan.first_feature_handoff` for its exact journey and
+architecture scope. The indexed architecture, quality attributes, quality system
+and traceability sources supply omitted decisive facts; query only the affected
+scope, not the whole future portfolio. Record each substantive conflict in the existing owned
+design-decision questions or prerequisite ledger, with the exact affected source
+and required correction. Resolve bootstrap-due findings before final approval;
+do not leave semantic review to the terminal readiness renderer. Preserve later
+obligations at their actual triggers. Proposal-time descriptions of pending proofs
+or approvals are history, not additional unresolved requirements. Do not create
+successor ADRs merely to state that an existing approval or proof has completed.
+
 Update the roadmap producer's artifact after evidence changes: affected entries stay Blocked until
 their architecture prerequisites close. Write the explicit acceptance scope for founding and any
 follow-on decisions; include only reviewed map elements/relationships with those decision refs.

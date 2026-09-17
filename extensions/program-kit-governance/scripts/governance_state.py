@@ -2086,30 +2086,6 @@ def validate_roadmap_architecture_scope(records: list[dict]) -> None:
                                        + ', '.join(sorted(missing)))
 
 
-def validate_adr_roadmap_claims(records: list[dict]) -> None:
-    """Active ADRs must not contradict roadmap status; superseded history stays intact."""
-    path = project_path(ARCHITECTURE_MAP)
-    if not path.is_file():
-        return
-    model = read_json(path)
-    pending = PENDING_RECOVERY_REVIEW or not project_path(BOOTSTRAP_APPROVAL).is_file()
-    scope = lifecycle_call('acceptance_scope', model) if pending and model.get('strategic_model') else {}
-    superseded = {identity for decision in model.get('decisions', [])
-                  if decision['status'] == 'Accepted' or (pending and decision['id'] in scope)
-                  for identity in decision.get('supersedes', [])}
-    for decision in model.get('decisions', []):
-        if decision['id'] in superseded:
-            continue
-        text = project_path(Path(decision['path'])).read_text(encoding='utf-8')
-        for record in records:
-            pattern = (r'(?<![\w-])' + re.escape(record['id'])
-                       + r'\s+(?:(?:still\s+)?(?:is|remains)|status\s*[:=])\s+(Candidate|Blocked|Ready|Active|Delivered|Superseded)\b')
-            for match in re.finditer(pattern, text, re.IGNORECASE):
-                if match[1].lower() != record['Status'].lower():
-                    raise GovernanceStateError(f"{decision['path']} contradicts authoritative status for {record['id']}; "
-                                               'reconcile the current assertion through reviewed correction or explicit ADR supersession')
-
-
 def _roadmap_view(records: list[dict[str, str]]) -> str:
     lines = [
         ROADMAP_VIEW_START,
@@ -2206,12 +2182,7 @@ def _without_roadmap_view(text: str, path: Path) -> tuple[str, str]:
 def validate_bootstrap_consistency() -> None:
     """Prove that roadmap authority and its two derived architecture views agree."""
     records = validate_roadmap(False)
-    validate_adr_roadmap_claims(records)
     expected_view = _roadmap_view(records)
-    stale_claims = re.compile(
-        r"(?:created\s+later\s+by\s+(?:the\s+)?roadmap|no\s+roadmap\s+record\s+exists)",
-        re.IGNORECASE,
-    )
     for relative in (ARCHITECTURE, TRACEABILITY):
         path = project_path(relative)
         if not path.is_file():
@@ -2223,25 +2194,6 @@ def validate_bootstrap_consistency() -> None:
             raise GovernanceStateError(
                 f"{relative} roadmap view is stale; run synchronize-roadmap after roadmap generation"
             )
-        if stale_claims.search(outside):
-            raise GovernanceStateError(
-                f"{relative} still claims the generated specification roadmap does not exist"
-            )
-        for number, line in enumerate(outside.splitlines(), 1):
-            for record in records:
-                if record["id"] not in line:
-                    continue
-                copied_status = re.search(
-                    r"(?:\*\*Status\*\*\s*:|\bstatus\s*[:=]|\|)\s*"
-                    r"(Candidate|Blocked|Ready|Active|Delivered|Superseded)\b",
-                    line,
-                    re.IGNORECASE,
-                )
-                if copied_status:
-                    raise GovernanceStateError(
-                        f"{relative}:{number} duplicates authoritative status for {record['id']}; "
-                        f"keep status only in {ROADMAP.as_posix()} and the synchronized derived view"
-                    )
     print("Architecture, roadmap, and traceability roadmap views are consistent")
 
 
@@ -2267,6 +2219,68 @@ def synchronize_lifecycle() -> None:
     architecture.validate_model(model, Path.cwd().resolve())
     write_json(project_path(ARCHITECTURE_MAP), model)
     write_text(project_path(WORKSPACE_DSL), architecture.StructurizrDslExporter().export(model))
+
+
+def readiness_authority(run_id: str = '') -> dict:
+    """Calculate eligibility from owned records, never from a prior report."""
+    import contextlib
+    import io
+    from bootstrap_handoff import first_feature, pending_questions
+    root = Path.cwd().resolve()
+    blockers = []
+    handoff = None
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            validate_bootstrap(True, True)
+            validate_bootstrap_consistency()
+            handoff = first_feature(root, require_ready=True)
+        if run_id:
+            for question in pending_questions(root, run_id, 'readiness', completing=True):
+                blockers.append({'id': question['id'], 'owner': question['owner'],
+                                 'task': question['question']})
+    except (GovernanceStateError, ValueError, OSError) as exc:
+        blockers.append({'id': 'governance-authority', 'owner': 'Architecture maintainer',
+                         'task': str(exc)})
+    return {'status': 'NOT READY' if blockers else 'READY', 'eligible': not blockers,
+            'blockers': blockers, 'handoff': handoff}
+
+
+def render_readiness(run_id: str = '') -> dict:
+    """Project existing authority into the terminal report; never make a decision."""
+    authority = readiness_authority(run_id)
+    status, blockers, handoff = authority['status'], authority['blockers'], authority['handoff']
+    lines = [f'**Status**: {status}', '',
+             'Generated from current governance authority. Narrative proposal history does not set lifecycle state.', '',
+             'Authority: accepted decision catalog and scope; source-bound prerequisite ledger and receipts; '
+             'ratified constitution; exact bootstrap approval; specification roadmap.', '']
+    for item in blockers:
+        # Keep arbitrary source diagnostics from creating additional report records.
+        clean = lambda value: ' '.join(str(value).replace('|', '/').split())
+        lines.append(f"- Blocker: {clean(item['id'])} | Owner: {clean(item['owner'])} | Next: {clean(item['task'])}")
+    if not blockers:
+        lines.append('Accepted authority and current evidence validate. No unresolved first-slice architecture blocker remains.')
+        if handoff:
+            lines += ['', f"Next specification: {handoff['roadmapEntry']}. {handoff['outcome']}"]
+        ledger = read_json(project_path(lifecycle_module().LEDGER))
+        deferred = {}
+        for item in ledger['prerequisites']:
+            if item['status'] == 'open':
+                deferred.setdefault(item['trigger'], []).append(item['id'])
+        if deferred:
+            lines += ['', 'Remaining obligations retain their owners and evidence in `bootstrap-prerequisites.json`:']
+            for trigger, identities in sorted(deferred.items()):
+                lines.append(f"- {trigger}: {', '.join(identities)}")
+    lines += ['', 'This is eligibility to begin the first specification. Feature implementation, delivery, '
+              'security certification and production approval are not asserted. Completion remains native-workflow owned.', '']
+    report = '\n'.join(lines)
+    if len(report.encode('utf-8')) > 4096 and not blockers:
+        # The authoritative details remain in the ledger; a large portfolio must
+        # not fail merely because its generated summary lists every deferred ID.
+        report = '\n'.join(lines[:6] +
+            ['Current authority validates. See specification-roadmap.md for the first Ready entry and '
+             'bootstrap-prerequisites.json for all owned deferrals.'] + ['', lines[-2], ''])
+    write_text(project_path(READINESS_REPORT), report)
+    return evaluate_readiness()
 
 
 def evaluate_readiness() -> dict:
@@ -2330,6 +2344,8 @@ def main() -> int:
     subparsers.add_parser("synchronize-roadmap")
     subparsers.add_parser("validate-bootstrap-consistency")
     subparsers.add_parser("evaluate-readiness")
+    readiness_parser = subparsers.add_parser("render-readiness")
+    readiness_parser.add_argument('--run-id', default='')
     subparsers.add_parser("require-readiness")
     subparsers.add_parser("synchronize-lifecycle")
     subparsers.add_parser("validate-prerequisites")
@@ -2381,6 +2397,8 @@ def main() -> int:
             elif args.command == "validate-roadmap":
                 validate_roadmap(args.require_ready)
                 print("Specification roadmap is valid")
+            elif args.command == 'render-readiness':
+                print(json.dumps(render_readiness(args.run_id)))
             elif args.command in {"evaluate-readiness", "require-readiness"}:
                 result = evaluate_readiness()
                 print(json.dumps(result))

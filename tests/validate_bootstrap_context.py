@@ -301,6 +301,12 @@ def main() -> int:
                 raise AssertionError(f"{stage} context was not written")
             if path.stat().st_size >= 32 * 1024:
                 raise AssertionError(f"{stage} compact semantic stage brief exceeds 32 KiB")
+            if stage == 'closure':
+                assert 'first_feature_handoff' in payload['stage_plan']
+                allowed = payload['reading_policy']['allowed_sources']
+                for required in ('quality-attributes.md', 'quality-system.md', 'traceability.md'):
+                    assert 'docs/architecture/' + required in allowed
+                assert 'quality_requirements' in payload['intake']
             if payload["bootstrap_intake"]["path"] != "docs/architecture/bootstrap-intake.json":
                 raise AssertionError("Bootstrap-intake provenance is not canonical")
             if payload["intake"]["status"] != "confirmed":

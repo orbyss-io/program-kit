@@ -100,10 +100,16 @@ The validator checks the candidate's primary `journey` and optional `supporting_
 it does not infer additional journeys from prose or replace the separate decomposition/coverage
 review. A cohesive slice may cover several journeys without creating artificial separate candidates.
 
-Current ADR prose must not contradict roadmap status. Preserve immutable older ADRs
-through the existing catalog `supersedes` relationship when a reviewed follow-on
-decision replaces their bookkeeping or scope. Proposed successors apply only inside
-their explicit pending review; readiness requires Accepted successor authority.
+Current lifecycle facts have one owner: the decision catalog for decision status,
+the prerequisite ledger and verified receipts for closure, and the roadmap for entry
+status. ADR bodies are decision reasoning and proposal-time history, not another
+lifecycle state store. Routine approval or proof completion never requires ADR
+supersession. A substantive replacement of accepted design still requires the
+existing reviewed `supersedes` relationship. Before acceptance, closure resolves
+substantive conflicts through source-bound owned questions and prerequisites.
+Native fresh and recovery flows call `governance_state.py render-readiness` after
+approval; no final agent reinterprets narrative state. The generated report names
+the first handoff and retains deferrals at their recorded triggers.
 
 Readiness begins at byte zero with exactly one status line and a newline:
 `**Status**: READY`, `**Status**: CONDITIONALLY READY`, or `**Status**: NOT READY`.

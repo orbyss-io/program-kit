@@ -64,9 +64,7 @@ EXPECTED_STEPS = [
     "validate-bootstrap",
     "write-bootstrap-review",
     "route-bootstrap-approval",
-    "prepare-readiness-context",
     "readiness",
-    "validate-readiness-output",
     "require-readiness",
     "complete-bootstrap",
 ]

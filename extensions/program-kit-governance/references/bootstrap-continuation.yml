@@ -2,7 +2,7 @@ schema_version: "1.0"
 workflow:
   id: program-kit-bootstrap
   name: Program Kit bootstrap continuation
-  version: "0.12.1"
+  version: "0.13.0"
   description: Engine-owned continuation of an approved bootstrap after technical readiness failure.
 inputs:
   source_run:
@@ -77,11 +77,9 @@ steps:
     run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step readiness-context --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"
     output_format: json
   - id: recovery-readiness
-    type: command
-    command: speckit.program-kit-governance.readiness
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "Workflow continuation {{ context.run_id }} from {{ inputs.source_run }}. Read .specify/workflows/runs/{{ context.run_id }}/program-kit-context/readiness.json first. It contains the current approved authority, evidence index and exact output/validation contract. Historical recovery handoffs are not this stage's input. Produce an honest readiness report with explicit owned blockers if non-ready. The workflow owns evaluation and completion. Do not invoke independent completion."
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py render-readiness --run-id {{ context.run_id }}"
+    output_format: json
   - id: recovery-evaluate
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step evaluate --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"
