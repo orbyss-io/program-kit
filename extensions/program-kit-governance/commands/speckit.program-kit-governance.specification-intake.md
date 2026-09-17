@@ -17,8 +17,11 @@ an existing specification may resume its Active entry. A missing/Blocked entry n
 Run `scripts/specification_intake.py begin --entry <ID> --request <feature-request>` from the consumer
 root. This validates installation, ratification and the selected entry and resumes existing evidence.
 Read the scoped `context --entry <ID>` output before interviewing. Carry its `bootstrapObligations`
-into the reviewed decisions using the existing prerequisite IDs and planning gate, as described in
-the artifact contract. Do not rediscover them by reading every bootstrap document.
+into the reviewed decisions using each prerequisite's exact ID, verification kind and due phase.
+Resolve policy/test-design decisions in the interview; retain compatibility/execution obligations
+as deferred at their actual implementation or delivery phase. Do not ask the consumer to answer
+that software tests passed. The existing native proof receipts satisfy execution gates later.
+Do not rediscover these obligations by reading every bootstrap document.
 Keep the interview under `.program-kit/specification-intake/<ID>/`. Until the gate passes, do not
 create a spec directory, branch, `spec.md`, or `.specify/feature.json`; do not call `speckit.specify`
 recursively. Other pre-hooks that create branches must be ordered after this gate.

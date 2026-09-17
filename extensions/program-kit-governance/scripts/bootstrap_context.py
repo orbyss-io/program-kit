@@ -1102,6 +1102,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         }
     if stage == 'roadmap':
         from architecture_map import candidate_journeys
+        from governance_state import REQUIRED_RECORD_FIELDS
         first = authorities.get('assessment_decisions', {}).get('first_slice')
         model = load_json(project_root / 'docs/architecture/architecture-map.json')
         strategic = model.get('strategic_model', {})
@@ -1109,6 +1110,11 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                     if first and j['source_journey'] in first['journey_ids']}
         return {
             'mode': 'bounded-generation',
+            'entry_template': '### RM-01: <outcome>\n\n' + '\n'.join(
+                f'- **{field}**: <value>' for field in sorted(REQUIRED_RECORD_FIELDS)),
+            'prerequisite_scope': [{k: i[k] for k in ('id', 'affected_slices', 'trigger', 'status')}
+                for i in load_json(project_root / 'docs/architecture/bootstrap-prerequisites.json').get('prerequisites', [])]
+                if (project_root / 'docs/architecture/bootstrap-prerequisites.json').is_file() else [],
             'first_entry': {
                 'journey_ids': first['journey_ids'],
                 'candidate_ids': [c['id'] for c in strategic.get('candidate_slices', [])
@@ -1116,7 +1122,8 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 'rule': 'Exactly one roadmap entry Scope covers these canonical candidate IDs and no future candidate. Supporting journeys in an approved combined first slice belong to that one specification, not separate entries linked only by prose.',
             } if first else None,
             'rules': ['Preserve the approved first specification boundary; keep other journeys as separate portfolio entries.',
-                      'Run the terminal batch before handing off to closure; it validates first-entry coverage even while Blocked.'],
+                      'Use entry_template exact heading/field syntax. Assign every prerequisite_scope item to actual roadmap IDs; preserve its source binding and due phase. Dependencies link to ledger IDs without repeating open/closed state.',
+                      'before-implementation proofs do not block Ready for specification. Run the terminal batch before handing off to closure.'],
             'terminal_condition': terminal,
         }
     if stage == 'closure':
@@ -1138,6 +1145,14 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             ],
             'terminal_condition': terminal,
         }
+    if stage == 'tooling':
+        from bootstrap_quality import projection
+        quality = projection(project_root)
+        return {'mode': 'bounded-generation', 'consumer_quality_cases': quality,
+                'authored_target_bytes': max(1024, 5500 - sum(len(v.encode('utf-8')) for v in quality['cases'].values())),
+                'rules': ['Reference consumer case IDs; do not redefine WEB-Q cases. Terminal validation generates their exact view from quality-attributes.md. Reserve the projected case bytes within the existing output budget.',
+                          'Link to ADR metadata and prerequisite ledger for current status; do not repeat Proposed/Accepted or open/closed in authored prose.'],
+                'terminal_condition': terminal}
     return {
         "mode": "bounded-generation",
         "rules": [
@@ -1198,13 +1213,15 @@ def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> d
     governance_paths = governance_contract(project_root)["paths"]
     contract = resolved_output_contract(stage, governance_paths, run_id)
     artifacts: list[dict] = []
+    problems: list[str] = []
     for relative_path, budget in contract["artifact_byte_budgets"].items():
         path = project_root / relative_path
         if not path.is_file():
-            raise ContextError(f"Required {stage} output is missing: {relative_path}")
+            problems.append(f"Required {stage} output is missing: {relative_path}")
+            continue
         size = path.stat().st_size
         if size > budget:
-            raise ContextError(
+            problems.append(
                 f"{stage} output exceeds its hard byte budget: "
                 f"{relative_path} is {size} bytes; maximum {budget}"
             )
@@ -1216,6 +1233,8 @@ def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> d
             "budget_bytes": budget,
             "target_exceeded": size > target,
         })
+    if problems:
+        raise ContextError('\n'.join(problems))
     if stage in {"assessment", "research"}:
         try:
             validate_profile_dependencies(load_json(project_root / "docs/architecture/bootstrap-decisions.json"))
@@ -1313,6 +1332,15 @@ def validate_architecture_structure(project_root: Path, run_id: str, *, allow_ac
 def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
     checks: list[str] = []
     verdict: dict = {}
+    if stage in {'tooling', 'closure'}:
+        from bootstrap_quality import synchronize, validate
+        try:
+            if stage == 'tooling':
+                synchronize(project_root)
+            validate(project_root)
+        except ValueError as error:
+            raise ContextError(str(error)) from error
+        checks.append('consumer-quality-case-mapping')
     decision_path = project_root / 'docs/architecture/bootstrap-decisions.json'
     if stage in {'assessment', 'research'} and decision_path.is_file() and load_json(decision_path).get('first_slice'):
         from bootstrap_defaults import apply
@@ -1396,6 +1424,7 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
         "checks": checks,
         "check_count": len(checks),
         "artifact_count": len(output["artifacts"]),
+        "artifacts": output["artifacts"],
         "target_exceeded_count": output["target_exceeded_count"],
         **({"readiness": verdict, "completion_eligible": verdict["eligible"]} if verdict else {}),
     }
@@ -1784,6 +1813,8 @@ def main() -> int:
             f"Program Kit {args.stage} terminal validation batch passed "
             f"({result['check_count']} checks; {result['target_exceeded_count']} above generation target)"
         )
+        for artifact in result['artifacts']:
+            print(f"{artifact['path']}: {artifact['bytes']} bytes; target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}")
     elif args.command == "validate-output":
         print(
             f"Program Kit {args.stage} outputs are within hard byte budgets "

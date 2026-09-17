@@ -297,14 +297,18 @@ def deferred(root, phase, feature=None):
                 folders = [root / '.program-kit/specification-intake' / match.group(1)]
     from bootstrap_lifecycle import phase_eligibility
     from governance_state import roadmap_records, ROADMAP
+    satisfied = {}
     for folder in folders:
         stage = 'planning' if phase in {'planning', 'after-plan', 'after-tasks'} else phase
         eligibility = phase_eligibility(root, roadmap_records(root / ROADMAP), folder.name, stage)
+        satisfied[folder.name] = set(eligibility.get('satisfied_prerequisites', []))
         require(eligibility['eligible'], 'Phase requires decision resolution: ' + '; '.join(
             b['id'] + ' (' + b['owner'] + '): ' + b['task'] for b in eligibility['blockers']))
     for folder in folders:
         brief = read(folder / 'brief.json')
         for item in brief.get('decisions', []):
+            if item.get('bootstrapPrerequisite') in satisfied.get(folder.name, set()):
+                continue
             if item.get('disposition') != 'deferred':
                 continue
             due = item.get('duePhase')

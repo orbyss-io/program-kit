@@ -4,6 +4,11 @@
 
 ### 0.12.0 candidate
 
+- Separate feature planning decisions from delivery execution evidence; retain each obligation's
+  actual due phase through specification intake and use current native receipts without rewriting
+  bootstrap approvals. Generate consumer security-case mappings from quality attributes, provide
+  exact roadmap authoring contracts, and report all output-size failures in one batch.
+
 - Provision and verify schema dependencies for both the workflow engine Python and
   native shell Python before bootstrap or resume dispatch, preventing mixed-interpreter
   installations from failing only at the final completion step.

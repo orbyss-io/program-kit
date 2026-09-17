@@ -104,8 +104,11 @@ and traceability sources supply omitted decisive facts; query only the affected
 scope, not the whole future portfolio. Record each substantive conflict in the existing owned
 design-decision questions or prerequisite ledger, with the exact affected source
 and required correction. Resolve bootstrap-due findings before final approval;
-do not leave semantic review to the terminal readiness renderer. Preserve later
-obligations at their actual triggers. Proposal-time descriptions of pending proofs
+do not leave semantic review to the terminal readiness renderer. Apply the lifecycle reference's
+phase/evidence table: separate planning test cases from executing the delivered feature. Delivery
+obligations use compatibility receipts and remain deferred at delivery, not feature-plan. Validate
+the generated consumer quality-case view; never redefine WEB-Q IDs while adding provider checks.
+Preserve later obligations at their actual triggers. Proposal-time descriptions of pending proofs
 or approvals are history, not additional unresolved requirements. Do not create
 successor ADRs merely to state that an existing approval or proof has completed.
 

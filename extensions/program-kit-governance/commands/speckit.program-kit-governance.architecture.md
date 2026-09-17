@@ -12,7 +12,7 @@ including newly designed runtime elements when justified. Leave unfinished provi
 proposals outside the scope. Keep current lifecycle status in canonical metadata and deterministic
 marked views, not duplicated prose. Preserve conditions retained in ADRs; Proposed-to-Accepted
 promotion is not evidence those conditions have executed. The later bootstrap-closure command owns
-isolated compatibility work before dependent slices become Ready. Architecture drafting still does
+isolated compatibility work before dependent implementation. Architecture drafting still does
 not scaffold or restore consumer projects.
 
 Use the phase distinctions in `references/bootstrap-lifecycle.md` when retaining conditions in
@@ -20,6 +20,10 @@ ADRs. Preserve the confirmed interface choice and applicable defaults. Do not re
 device preference as a compatibility prerequisite or demand completed feature behavior before its
 specification exists. Separate external mechanism feasibility from verification of the later
 consumer implementation, and identify the actual owning gate for each condition.
+Split planning a test from executing it using the disposition/trigger/verification table in that
+reference. Delivery behavior stays at delivery, never feature-plan. Author consumer `WEB-Qxx`
+definitions only in quality-attributes.md as `- WEB-Q01 (WEB-Cxx): scenario` with indented continuation
+lines. This is their sole definition source; tooling receives a generated view of all those cases.
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 

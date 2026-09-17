@@ -1606,6 +1606,11 @@ def validate_ratification() -> dict:
 
 
 def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
+    from bootstrap_quality import validate as validate_quality_cases
+    try:
+        validate_quality_cases(Path.cwd().resolve())
+    except ValueError as error:
+        raise GovernanceStateError(str(error)) from error
     assessment_approval = validate_assessment_approval()
     validate_ratification()
     artifacts = bootstrap_artifacts()
@@ -2234,13 +2239,15 @@ def render_readiness(run_id: str = '') -> dict:
         if handoff:
             lines += ['', f"First candidate: {handoff['roadmapEntry']}. {handoff['outcome']}"]
         records = roadmap_records(project_path(ROADMAP))
+        satisfied = set()
         for record in records:
             phases = [lifecycle_call('phase_eligibility', records, record['id'], phase) for phase in ('specification', 'planning', 'implementation')]
+            satisfied.update(identity for phase in phases for identity in phase.get('satisfied_prerequisites', []))
             lines.append('- ' + record['id'] + ': ' + '; '.join(p['phase'] + (' eligible' if p['eligible'] else ' needs resolution: ' + ', '.join(b['id'] for b in p['blockers'])) for p in phases))
         ledger = read_json(project_path(lifecycle_module().LEDGER))
         deferred = {}
         for item in ledger['prerequisites']:
-            if item['status'] == 'open':
+            if item['status'] == 'open' and item['id'] not in satisfied:
                 deferred.setdefault(item['trigger'], []).append(item['id'])
         if deferred:
             lines += ['', 'Remaining obligations retain their owners and evidence in `bootstrap-prerequisites.json`:']

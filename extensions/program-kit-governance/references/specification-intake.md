@@ -48,10 +48,12 @@ creates an incomplete draft; fill it through the interview, not guesses to satis
 
 The context projects `bootstrapObligations` from the selected entry's existing prerequisite ledger.
 For each one, link exactly one decision using `bootstrapPrerequisite: "<existing prerequisite ID>"`.
-Resolve its policy with evidence or retain its planning work as `deferred`, `blocking: false`, with
-owner, trigger and `duePhase: "planning"`. The existing phase-obligation gate stops planning until
-that decision is resolved. Do not silently exclude an inherited obligation, move it to delivery,
-or claim a future implementation test has executed. The review shows the original task and source
+Resolve a policy decision with evidence, or retain it as `deferred`, `blocking: false`, with owner,
+trigger and the original due phase: feature-plan -> planning, before-implementation -> implementation,
+delivery -> delivery. The context includes `verification`: compatibility obligations require executed
+evidence and stay deferred, never answered/default merely because tests are planned. Do not silently
+exclude an inherited obligation or move its due phase. Current native receipts satisfy proof gates
+later without changing the approved bootstrap ledger. The review shows the original task and source
 IDs alongside the proposed resolution; changes to those obligations invalidate its confirmation.
 
 ```text

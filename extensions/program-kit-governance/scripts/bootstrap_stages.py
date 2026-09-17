@@ -128,7 +128,8 @@ MAP_STAGE_FIELDS = {
     # harmful. The seed is a required full read and this projection carries only its identity.
     "architecture": (),
     "tooling": ("decisions", "constraints", "elements", "relationships"),
-    "roadmap": ("decisions", "constraints", "elements", "relationships", "views", "strategic_model"),
+    # Roadmap needs owned outcomes/contracts, not a duplicate of diagram layout.
+    "roadmap": ("decisions", "constraints", "elements", "relationships", "strategic_model"),
     "readiness": ("decisions", "constraints", "elements", "relationships", "views", "strategic_model"),
 }
 
@@ -204,6 +205,7 @@ OUTPUT_CONTRACTS = {
     "roadmap": {
         "write_paths": [
             "docs/architecture/specification-roadmap.md",
+            "docs/architecture/bootstrap-prerequisites.json",
             "docs/architecture/architecture.md",
             "docs/architecture/traceability.md",
         ],

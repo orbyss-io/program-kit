@@ -91,6 +91,8 @@ jobs:
         run: |
           python tests/validate_workflow_resumption.py
           python tests/validate_workflow_runtimes.py
+          python tests/validate_phase_readiness.py
+          python tests/validate_bootstrap_handoff_quality.py
           python tests/validate_live_fixture_catalog.py
           python tests/validate_live_workflow_acceptance.py
 

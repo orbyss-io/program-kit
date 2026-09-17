@@ -19,6 +19,11 @@ rediscover either contract; run the supplied validator and respond only to a spe
 Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after every write, including edits to
 existing files.
+Use `stage_plan.entry_template` for the exact parser syntax and `stage_plan.prerequisite_scope`
+to assign every retained condition to real roadmap IDs in bootstrap-prerequisites.json. Preserve
+source bindings, ownership and due phases. A before-implementation proof does not make an otherwise
+specifiable entry Blocked. Dependencies name/link ledger IDs, never repeat their open/closed status.
+Use links to ADR metadata for acceptance state. The generated views own changing status.
 
 Validate the ratified constitution before doing any work:
 

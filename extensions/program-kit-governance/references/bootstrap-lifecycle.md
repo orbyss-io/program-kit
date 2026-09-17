@@ -20,7 +20,7 @@ approved decision register and every cataloged ADR, including conditions retaine
 status metadata so approval cannot silently discharge a future condition. Any substantive source
 change requires re-inventory and renewed review. Empty conditions are an explicit reviewed assertion.
 
-Each prerequisite has these fields, with optional `verification` (`compatibility` or `decision`). Architecture items default to compatibility; explicit decision obligations close with source-bound decision evidence:
+Each prerequisite has these fields, with optional `verification` (`compatibility` or `decision`). Architecture and delivery items default to compatibility; explicit decision obligations close with source-bound decision evidence:
 
 ```json
 {
@@ -44,6 +44,32 @@ Feature/feature-plan items identify ordinary specification/planning decisions in
 boundaries. Later/production and later/later-release items retain later policy triggers. Their
 classification, rationale and source-condition inventory require the same review as architecture.
 Do not relabel a shared provider dependency as feature-owned to bypass it.
+
+Split "plan and execute" conditions into two source-linked obligations. For example:
+
+| Work | Disposition / trigger | Verification |
+| --- | --- | --- |
+| Decide device coverage and test cases | feature / feature-plan | decision |
+| Execute device/accessibility cases on the implemented feature | feature / delivery | compatibility |
+| Define application activation/restart tests | feature / feature-plan | decision |
+| Run those tests against the actual release bundle | feature / delivery | compatibility |
+
+Use `verification: decision` for feature-plan and `verification: compatibility` for delivery.
+An explicitly typed consumer release-policy decision can still be deferred to delivery; it is not
+execution evidence. Do not put an actual test or device result in that decision category.
+Here compatibility means the existing source-bound executed-test receipt, also usable for
+consumer-specific delivery recipes; it is not restricted to a generic bootstrap smoke test.
+Its named tests, inputs, streams and selected design must match. Device verification may require
+human-operated equipment; a script or interview must never manufacture that evidence.
+Keep delivery prerequisites open and deferred at delivery during specification intake. They do
+not block specification, planning or implementation, and an answer/default never closes them.
+At delivery run the existing `bootstrap_lifecycle.py proof --id <prerequisite> --recipe <reviewed-recipe>`
+against exact consumer inputs. Phase eligibility validates the latest retained native attempt;
+failure, missing results or changed inputs do not reuse an older success. A passing current receipt
+satisfies the execution gate without rewriting the approved bootstrap ledger or reconfirming an
+interview just to say a test passed. The feature's normal verification gates still apply.
+Do not put "perform device tests" or "execute the application" in a planning decision. A real
+external feasibility concern remains an architecture/before-implementation compatibility obligation.
 
 ## Assign conditions before drafting proofs
 

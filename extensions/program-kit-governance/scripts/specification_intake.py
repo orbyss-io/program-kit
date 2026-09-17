@@ -57,9 +57,10 @@ def bootstrap_obligations(repository: Path, entry: str) -> list[dict]:
     if not path.is_file():
         return []
     fields = ('id', 'source_ids', 'owner', 'task', 'rationale', 'trigger')
-    return sorted(({k: item[k] for k in fields} for item in read(path)['prerequisites']
-                   if entry in item['affected_slices'] and (item['disposition'] == 'feature' or
-                       item['disposition'] == 'architecture' and item['status'] != 'closed')),
+    from bootstrap_lifecycle import verification_kind
+    return sorted(({**{k: item[k] for k in fields}, 'verification': verification_kind(item)} for item in read(path)['prerequisites']
+                   if entry in item['affected_slices'] and item['status'] != 'closed'
+                   and item['disposition'] in {'feature', 'architecture'}),
                   key=lambda item: item['id'])
 
 
@@ -71,6 +72,9 @@ def require_bootstrap_carryover(brief: dict, obligations: list[dict]) -> None:
         item = matches[0]
         require(item['disposition'] in {'answered', 'default', 'deferred'},
                 f"Bootstrap prerequisite {obligation['id']} cannot be silently excluded")
+        if obligation.get('verification') == 'compatibility':
+            require(item['disposition'] == 'deferred',
+                    f"Bootstrap prerequisite {obligation['id']} requires executed evidence, not an intake answer; retain its due phase")
         if item['disposition'] == 'deferred':
             require(item.get('duePhase') == {'before-implementation': 'implementation', 'delivery': 'delivery'}.get(obligation['trigger'], 'planning'),
                     f"Bootstrap prerequisite {obligation['id']} must preserve its owning phase gate")

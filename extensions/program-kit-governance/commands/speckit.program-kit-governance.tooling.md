@@ -52,7 +52,9 @@ For a single-journey bootstrap, compose the first complete draft in at most 650 
 draft and trim it toward the byte ceiling, and do not measure it repeatedly. After one write,
 run the terminal validation batch directly; only a named diagnostic justifies one repair pass.
 
-Generic programming guardrails apply automatically. Project-specific tool selection and architecture choices remain Proposed until their ADR is accepted. Avoid duplicating capabilities already supplied effectively by the language toolchain, platform, or accepted repository tooling.
+Generic programming guardrails apply automatically. Link to ADR metadata for current approval
+status; do not repeat "remains Proposed" in prose that outlives approval. Avoid duplicating
+capabilities already supplied effectively by the language toolchain, platform, or accepted tooling.
 
 Do not manufacture a tooling ADR for standard-library test/process utilities that directly realize
 an explicit automated-test requirement without adding a dependency or architecture surface. Treat
@@ -87,8 +89,13 @@ meaningful policy path and outcomes; it does not select another authentication l
 Map the secure-web checks to control IDs `WEB-C01` through `WEB-C13` and assurance levels `WEB-V1`
 through `WEB-V4` from `program-kit-web-security-evidence-v1`, and preserve their canonical meanings
 and declared profile applicability. Do not renumber a sequential test list as `WEB-Cxx`. Give
-project-specific checks a separate `WEB-Qxx` identity (or a domain-specific identity) and record an
-explicit many-to-many mapping to the inherited controls. Tool output must distinguish source and
+project-specific checks a separate `WEB-Qxx` identity (or a domain-specific identity). The existing
+WEB-Q definitions and control mapping in `quality-attributes.md` are canonical. Use
+`stage_plan.consumer_quality_cases` without inventing or redefining those IDs in quality-system.md.
+The terminal batch writes their exact generated view, including every case. Reference IDs in
+the capability matrix instead of writing another definition list. Additional managed suite cases
+use their existing control IDs, not a conflicting consumer ID. Keep authored text below
+`stage_plan.authored_target_bytes`, which reserves space for this generated view. Tool output must distinguish source and
 configuration checks, protocol/boundary tests, real-browser/provider tests, and deployment
 assurance. A skipped real-provider, conformance, vulnerability, or risk-proportional security test
 remains visible; it cannot be converted into passing evidence by a unit mock.

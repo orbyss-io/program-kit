@@ -196,5 +196,59 @@ class PhaseReadinessTests(unittest.TestCase):
         self.assertFalse(result['eligible'])
         self.assertFalse(result['authority_valid'])
 
+    def test_delivery_execution_does_not_gate_planning_or_accept_an_answer(self):
+        item = fixture.item('device-proof', disposition='feature', trigger='delivery')
+        self.baseline([item])
+        self.assertTrue(self.eligibility('planning')['eligible'])
+        self.assertTrue(self.eligibility('implementation')['eligible'])
+        self.assertFalse(self.eligibility('delivery')['eligible'])
+        L.write(self.root / '.program-kit/specification-intake/SPEC-001/brief.json',
+                {'decisions': [{'bootstrapPrerequisite': 'device-proof', 'disposition': 'answered'}]})
+        with patch.object(intake, 'check', return_value={}):
+            self.assertFalse(self.eligibility('delivery')['eligible'])
+        with self.assertRaisesRegex(ValueError, 'executed evidence'):
+            intake.require_bootstrap_carryover({'decisions': [
+                {'bootstrapPrerequisite': 'device-proof', 'disposition': 'answered'}]},
+                intake.bootstrap_obligations(self.root, 'SPEC-001'))
+
+    def test_execution_cannot_be_assigned_to_planning(self):
+        item = fixture.item('delivery', disposition='feature', trigger='feature-plan')
+        item['verification'] = 'compatibility'
+        fixture.ledger(self.root, [item])
+        with self.assertRaisesRegex(ValueError, 'not executed proof'):
+            self.eligibility('planning')
+
+    def test_explicit_late_consumer_decision_remains_a_valid_deferral(self):
+        item = fixture.item('release-choice', disposition='feature', trigger='delivery')
+        item.update(verification='decision', task='Consumer chooses the release audience')
+        self.assertTrue(self.baseline([item])['eligible'])
+        self.assertTrue(self.eligibility('implementation')['eligible'])
+        self.assertFalse(self.eligibility('delivery')['eligible'])
+
+    def test_native_delivery_receipt_satisfies_gate_without_mutating_approved_ledger(self):
+        item = fixture.item('device-proof', disposition='feature', trigger='delivery')
+        self.baseline([item])
+        ledger = (self.root / L.LEDGER).read_bytes()
+        approval = (self.root / G.BOOTSTRAP_APPROVAL).read_bytes()
+        recipe = self.root / 'docs/architecture/delivery-test.py'
+        recipe.write_text("from pathlib import Path\nPath('compatibility-results.xml').write_text('<testsuite><testcase classname=\"Delivery\" name=\"behavior\"/></testsuite>')\n")
+        L.write(recipe.with_suffix('.contract.json'), {'schemaVersion': 1, 'result': 'compatibility-results.xml',
+                'checks': [{'id': 'behavior', 'kind': 'runtime-compatibility', 'testCases': ['Delivery.behavior']}]})
+        result = L.run_proof(self.root, item['id'], recipe.relative_to(self.root).as_posix(), 10)
+        self.assertEqual(0, result['exit_code'])
+        self.assertTrue(self.eligibility('delivery')['eligible'])
+        # A still-deferred brief does not block again after valid native proof.
+        L.write(self.root / '.specify/feature.json', {'roadmap_entry_id': 'SPEC-001'})
+        L.write(self.root / '.program-kit/specification-intake/SPEC-001/brief.json', {'decisions': [
+            {'id': 'device', 'bootstrapPrerequisite': 'device-proof', 'disposition': 'deferred', 'duePhase': 'delivery'}]})
+        phases.deferred(self.root, 'delivery')
+        self.assertEqual(ledger, (self.root / L.LEDGER).read_bytes())
+        self.assertEqual(approval, (self.root / G.BOOTSTRAP_APPROVAL).read_bytes())
+        # Changed source revokes the receipt; a later failed attempt cannot reuse it.
+        recipe.write_text(recipe.read_text() + '\nraise SystemExit(1)\n')
+        self.assertFalse(self.eligibility('delivery')['eligible'])
+        L.run_proof(self.root, item['id'], recipe.relative_to(self.root).as_posix(), 10)
+        self.assertFalse(self.eligibility('delivery')['eligible'])
+
 if __name__ == '__main__':
     unittest.main()

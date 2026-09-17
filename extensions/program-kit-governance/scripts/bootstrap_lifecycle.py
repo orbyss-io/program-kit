@@ -76,7 +76,13 @@ def source_paths(root: Path) -> list[str]:
     return sorted(set(paths))
 
 
-def validate_prerequisites(root: Path, records: list[dict], *, required: bool = False, allow_proposed_authority: bool = False) -> list[dict]:
+def verification_kind(item: dict) -> str:
+    # Delivery is evidence about running software, not an interview answer.
+    return item.get('verification', 'compatibility' if item['disposition'] == 'architecture'
+                    or item['trigger'] == 'delivery' else 'decision')
+
+
+def validate_prerequisites(root: Path, records: list[dict], *, required: bool = False, allow_proposed_authority: bool = False, _ledger: dict | None = None) -> list[dict]:
     decision_path = root / 'docs/architecture/bootstrap-decisions.json'
     decisions = load(decision_path) if decision_path.is_file() else {}
     pending = decisions.get('unresolved', []) + decisions.get('deferred', [])
@@ -84,7 +90,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
         if required or pending:
             raise LifecycleError(f'Missing {LEDGER}: architecture owner must disposition every unresolved/deferred item before roadmap eligibility')
         return []  # Older completed baselines without deferred decisions remain readable.
-    ledger = load(root / LEDGER)
+    ledger = _ledger if _ledger is not None else load(root / LEDGER)
     if set(ledger) != {'schema_version', 'sources', 'prerequisites'} or ledger['schema_version'] != '1.0':
         raise LifecycleError('Prerequisite ledger must use schema 1.0 with sources and prerequisites')
     items = ledger['prerequisites']
@@ -112,8 +118,10 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
         triggers = {'architecture': {'before-bootstrap-completion', 'before-specification', 'before-implementation'}, 'feature': {'feature-plan', 'delivery'}, 'later': {'production', 'later-release'}}
         if disposition not in triggers or item['trigger'] not in triggers[disposition]:
             raise LifecycleError(f'{identity} has inconsistent disposition/trigger')
-        if item.get('verification', 'compatibility' if disposition == 'architecture' else 'decision') not in {'compatibility', 'decision'}:
+        if verification_kind(item) not in {'compatibility', 'decision'}:
             raise LifecycleError(f'{identity} has invalid verification kind')
+        if item['trigger'] == 'feature-plan' and verification_kind(item) != 'decision':
+            raise LifecycleError(f'{identity}: feature-plan owns a decision or test design, not executed proof; retain execution as a separate delivery obligation')
         if item['status'] not in {'open', 'closed'}:
             raise LifecycleError(f'{identity} status must be open or closed')
         if item['status'] == 'closed' and not item['evidence']:
@@ -157,7 +165,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
             if not any(e['kind'] == 'decision' and any(d['path'] == e['path'] and d['status'] in allowed
                        for d in catalog) for e in item['evidence']):
                 raise LifecycleError(f'{identity} decision closure requires governed ADR evidence')
-        if item.get('verification', 'compatibility' if disposition == 'architecture' else 'decision') == 'compatibility' and item['status'] == 'closed' and not any(e['kind'] == 'compatibility' for e in item['evidence']):
+        if verification_kind(item) == 'compatibility' and item['status'] == 'closed' and not any(e['kind'] == 'compatibility' for e in item['evidence']):
             raise LifecycleError(f'{identity} requires executed compatibility evidence')
     covered = {source for item in items for source in item['source_ids']}
     missing = {item['id'] for item in pending} - covered
@@ -201,6 +209,34 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
     return blockers
 
 
+def satisfied_feature_proofs(root: Path, records: list[dict], items: list[dict]) -> set[str]:
+    """Read current native receipts without rewriting the approved bootstrap ledger.
+
+    Latest attempt wins, including failure or interruption. Never resurrect an
+    older passing receipt, or discharge a proof from interview text.
+    """
+    satisfied = set()
+    for item in items:
+        if item['disposition'] != 'feature' or verification_kind(item) != 'compatibility' or item['status'] == 'closed':
+            continue
+        parent = root / '.specify/governance/compatibility' / item['id']
+        attempts = sorted((p for p in parent.glob('attempt-*') if p.is_dir()),
+                          key=lambda p: (p.stat().st_mtime_ns, p.name), reverse=True)
+        if not attempts or not (attempts[0] / 'proof.json').is_file():
+            continue
+        receipt = attempts[0] / 'proof.json'
+        overlay = load(root / LEDGER)
+        overlay['prerequisites'] = [{**i, 'status': 'closed', 'evidence': [{
+            'path': receipt.relative_to(root).as_posix(), 'sha256': digest(receipt), 'kind': 'compatibility'}]}
+            if i['id'] == item['id'] else i for i in overlay['prerequisites']]
+        try:
+            validate_prerequisites(root, records, _ledger=overlay)
+        except (ValueError, OSError):
+            continue
+        satisfied.add(item['id'])
+    return satisfied
+
+
 # Eligibility is local to an action; initialization is allowed with open decisions.
 PHASE_ORDER = ('specification', 'planning', 'implementation', 'delivery', 'production')
 TRIGGER_PHASE = {'before-bootstrap-completion': 'specification',
@@ -218,12 +254,12 @@ def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -
     validate_prerequisites(root, records)
     record = selected[0]
     items = load(root / LEDGER)['prerequisites'] if (root / LEDGER).is_file() else []
-    resolved_feature = set()
+    resolved_feature = satisfied_feature_proofs(root, records, items)
     brief_path = root / '.program-kit/specification-intake' / entry / 'brief.json'
     if phase != 'specification' and brief_path.is_file():
         proposed = {d.get('bootstrapPrerequisite') for d in load(brief_path).get('decisions', [])
                     if d.get('disposition') in {'answered', 'default'}}
-        candidates = {i['id'] for i in items if i['disposition'] == 'feature' and i.get('verification', 'decision') == 'decision' and i['id'] in proposed}
+        candidates = {i['id'] for i in items if i['disposition'] == 'feature' and verification_kind(i) == 'decision' and i['id'] in proposed}
         if candidates:
             # check() re-enters only specification eligibility; it cannot discharge
             # a later compatibility gate or recurse into this branch.
@@ -233,7 +269,7 @@ def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -
             except (ValueError, OSError):
                 pass  # Stale/unconfirmed text never closes an obligation.
             else:
-                resolved_feature = candidates
+                resolved_feature.update(candidates)
     blockers = [{'id': i['id'], 'owner': i['owner'], 'task': i['task'], 'due': TRIGGER_PHASE[i['trigger']]}
                 for i in items if i['status'] != 'closed' and i['id'] not in resolved_feature and entry in i['affected_slices']
                 and PHASE_ORDER.index(TRIGGER_PHASE[i['trigger']]) <= PHASE_ORDER.index(phase)]
@@ -241,7 +277,8 @@ def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -
         blockers.insert(0, {'id': 'journey-scope', 'owner': 'Consumer and architecture owner',
                            'task': 'Clarify this candidate outcome and boundary through roadmap/design resolution.',
                            'due': 'specification'})
-    return {'entry': entry, 'phase': phase, 'eligible': not blockers, 'blockers': blockers}
+    return {'entry': entry, 'phase': phase, 'eligible': not blockers, 'blockers': blockers,
+            'satisfied_prerequisites': sorted(resolved_feature | {i['id'] for i in items if i['status'] == 'closed'})}
 
 
 def verdict(root: Path) -> dict:
