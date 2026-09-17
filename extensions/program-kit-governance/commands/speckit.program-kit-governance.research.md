@@ -2,6 +2,9 @@
 description: Research current architecture, delivery, and quality tooling for the detected context.
 ---
 
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage research --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+
+
 ## Stage responsibility
 
 Resolve the first-slice provider and stack worklist, including consumer-owned design. Apply the
@@ -30,9 +33,9 @@ Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
 counts; do not trade away required evidence merely to reach a target.
 
-For a single-journey baseline verification, compose the first complete
+For baseline verification of the selected first slice, including its supporting journeys, compose the first complete
 `tooling-evaluation.md` draft in at most 700 words and aim below 5,500 UTF-8 bytes. Do not write a
-long draft and trim it toward the target, and do not measure it repeatedly. When updating multiple
+long draft and trim it toward the hard limit. Use output_contract.draft_size_command once after the write; if oversized, revise toward the generation target in one coherent edit, preserving source evidence. This advisory check does not replace terminal validation. When updating multiple
 files in one patch, use exactly one patch operation per path; never target the same file twice in a
 single patch call. Run the supplied terminal validation batch after the write and repair only a
 named diagnostic.

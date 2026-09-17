@@ -221,6 +221,21 @@ class AuthoringTests(unittest.TestCase):
             self.assertNotIn('registration', result['ownerOptions'][field])
             self.assertEqual(result['semanticRules'][field]['literals'], sorted(literals))
         self.assertEqual(self.source, before)
+        self.assertIn('not-declared', ' '.join(result['coverageRules']))
+
+    def test_missing_managed_capabilities_are_batched_without_guessing_ids(self):
+        model = self.semantic_fixture()
+        bindings = model['strategic_model']['capability_bindings']
+        self.assertTrue(bindings)
+        for binding in bindings:
+            binding['mechanism_coverage'] = 'guided'
+            binding['program_kit_capabilities'] = []
+        before = copy.deepcopy(model)
+        errors = authoring.authoring_semantic_errors(model)
+        for binding in bindings:
+            self.assertIn(binding['assessment'], '\n'.join(errors))
+        self.assertIn('not-declared', '\n'.join(errors))
+        self.assertEqual(before, model)
 
     def test_descriptor_cli_lists_sections_and_returns_actionable_invalid_section(self):
         command = [sys.executable, str(SCRIPTS / 'intake_authoring.py'), 'describe', '--document', 'intake']

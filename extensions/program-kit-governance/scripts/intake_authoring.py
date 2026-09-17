@@ -132,6 +132,10 @@ def describe_authoring(document: str, section: str, source: dict | None = None) 
             for field, literals in architecture.CAPABILITY_OWNER_LITERALS.items()}
         if source is not None:
             result['ownerOptions'] = owner_options(source['map'])
+        result['coverageRules'] = [
+            'managed, guided and conflict require nonempty program_kit_capabilities naming the relevant catalog capability IDs.',
+            'Consumer-owned semantics alone do not imply guided mechanism coverage. Use not-declared when the catalog declares no mechanism; never invent a capability ID.',
+            'Managed mechanisms with consumer-owned semantics also require a semantic_profile.']
     if document == 'map' and section == 'context_relationship':
         result['semanticRules'] = [
             'Every individual cross-context map relationship ID needs exactly one context_relationship record, including module-level edges.',
@@ -147,6 +151,11 @@ def authoring_semantic_errors(model: dict) -> list[str]:
     diagnostics = []
     options = owner_options(model)
     for index, binding in enumerate(strategic['capability_bindings']):
+        if binding['mechanism_coverage'] in {'managed', 'guided', 'conflict'} and not binding['program_kit_capabilities']:
+            diagnostics.append(f'$.map/strategic_model/capability_bindings/{index}/program_kit_capabilities: '
+                               f"assessment {binding['assessment']!r} with {binding['mechanism_coverage']} coverage "
+                               'must name relevant catalog capability IDs. Consumer ownership alone is not guided coverage; '
+                               'use not-declared if no mechanism is declared. Do not invent IDs.')
         for field, allowed in options.items():
             if binding[field] not in allowed:
                 diagnostics.append(f'$.map/strategic_model/capability_bindings/{index}/{field}: '

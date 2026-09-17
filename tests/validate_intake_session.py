@@ -23,6 +23,13 @@ spec.loader.exec_module(module)
 
 
 class IntakeSessionTests(unittest.TestCase):
+    def test_persistent_guidance_routes_stages_without_repeating_intake(self):
+        self.assertIn('This is intake only', module.INSTRUCTIONS)
+        self.assertNotIn('This is intake only', module.CONSUMER_INSTRUCTIONS)
+        self.assertNotIn('bootstrap/SKILL.md', module.CONSUMER_INSTRUCTIONS)
+        self.assertIn('INTAKE-SESSION.md', module.CONSUMER_INSTRUCTIONS)
+        self.assertIn('no approval', module.CONSUMER_INSTRUCTIONS)
+
     def test_catalog_copy_keeps_exact_binary_and_bounds_each_write(self):
         from local_catalog_server import CatalogHandler
         data = bytes(range(256)) * 5000

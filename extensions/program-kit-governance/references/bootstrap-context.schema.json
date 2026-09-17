@@ -139,6 +139,7 @@
         "write_paths": { "$ref": "#/$defs/string_list" },
         "contract_references": { "$ref": "#/$defs/string_list" },
         "validation_commands": { "$ref": "#/$defs/string_list" },
+        "draft_size_command": { "type": "string", "minLength": 1 },
         "artifact_byte_budgets": {
           "type": "object",
           "propertyNames": { "type": "string", "minLength": 1 },

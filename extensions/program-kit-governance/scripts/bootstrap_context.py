@@ -698,6 +698,7 @@ def resolved_output_contract(stage: str, paths: dict[str, str], run_id: str = ""
         "write_paths": write_paths,
         "contract_references": list(contract["contract_references"]),
         "validation_commands": [stage_validation_command(stage, run_id)],
+        "draft_size_command": f"python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py inspect-output --stage {stage}",
         "artifact_byte_budgets": {
             replace_governance_path(path, paths): ARTIFACT_BYTE_BUDGETS[path]
             for path in contract["write_paths"]
@@ -1207,6 +1208,20 @@ def check_architecture_blocked(project_root: Path, run_id: str = "") -> None:
                        f"Resolution: {report['resolution']}. Dispatch/process exit is not architecture completion.")
 
 
+def inspect_stage_output(project_root: Path, stage: str, run_id: str = "") -> dict:
+    """Advisory, read-only sizing before terminal validation; never an acceptance verdict."""
+    contract = resolved_output_contract(stage, governance_contract(project_root)['paths'], run_id)
+    artifacts = []
+    for relative, budget in contract['artifact_byte_budgets'].items():
+        path = project_root / relative
+        size = path.stat().st_size if path.is_file() else None
+        target = contract['artifact_target_bytes'][relative]
+        artifacts.append({'path': relative, 'bytes': size, 'target_bytes': target,
+                          'budget_bytes': budget, 'headroom_bytes': None if size is None else budget - size,
+                          'above_target_bytes': None if size is None else max(0, size - target)})
+    return {'stage': stage, 'advisory_only': True, 'artifacts': artifacts}
+
+
 def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> dict:
     if stage == "architecture":
         check_architecture_blocked(project_root, run_id)
@@ -1223,7 +1238,9 @@ def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> d
         if size > budget:
             problems.append(
                 f"{stage} output exceeds its hard byte budget: "
-                f"{relative_path} is {size} bytes; maximum {budget}"
+                f"{relative_path} is {size} bytes; maximum {budget}; "
+                f"revise toward target {contract['artifact_target_bytes'][relative_path]} bytes "
+                "to retain headroom for downstream edits"
             )
         target = contract["artifact_target_bytes"][relative_path]
         artifacts.append({
@@ -1706,7 +1723,23 @@ def result_payload(project_root: Path, path: Path, payload: dict) -> dict:
         "bytes": path.stat().st_size,
         "evidence_path": index["path"],
         "evidence_bytes": index["bytes"],
+        "read_command": f"python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage {payload['stage']} --run-id {payload['run_id']} --page 1",
     }
+
+
+def read_brief(project_root: Path, run_id: str, stage: str, page: int) -> dict:
+    """Lossless bounded display; reading does not rebuild or validate mutable stage inputs."""
+    path = context_path(safe_run_directory(project_root, run_id), stage)
+    text = compact_json(load_json(path))
+    # Character offsets preserve Unicode without splitting UTF-8 byte sequences.
+    page_chars = 8000
+    pages = max(1, (len(text) + page_chars - 1) // page_chars)
+    if not 1 <= page <= pages:
+        raise ContextError(f'Brief page must be between 1 and {pages}')
+    start = (page - 1) * page_chars
+    return {'path': path.relative_to(project_root).as_posix(), 'sha256': sha256_file(path),
+            'page': page, 'pages': pages, 'start_character': start,
+            'text': text[start:start + page_chars], 'next_page': page + 1 if page < pages else None}
 
 
 def main() -> int:
@@ -1720,6 +1753,8 @@ def main() -> int:
             "build",
             "validate",
             "validate-output",
+            "inspect-output",
+            "read-brief",
             "validate-intake",
             "validate-profile-pins",
             "validate-architecture-alignment",
@@ -1736,10 +1771,11 @@ def main() -> int:
     parser.add_argument("--reason")
     parser.add_argument("--owner")
     parser.add_argument("--resolution")
+    parser.add_argument("--page", type=int, default=1)
     args = parser.parse_args()
     project_root = Path(args.project_root).resolve()
     try:
-        if args.command != "validate-output" and not args.run_id:
+        if args.command not in {"validate-output", "inspect-output"} and not args.run_id:
             raise ContextError(f"--run-id is required for {args.command}")
         if args.command == "prepare-architecture-recovery":
             result = prepare_architecture_recovery(project_root, args.run_id)
@@ -1777,10 +1813,15 @@ def main() -> int:
             if not args.stage:
                 raise ContextError("--stage is required for validate-stage")
             result = validate_stage_batch(project_root, args.run_id, args.stage)
-        elif args.command == "validate-output":
+        elif args.command in {"validate-output", "inspect-output", "read-brief"}:
             if not args.stage:
-                raise ContextError("--stage is required for validate-output")
-            result = validate_stage_output(project_root, args.stage, args.run_id or "")
+                raise ContextError(f"--stage is required for {args.command}")
+            if args.command == 'read-brief':
+                result = read_brief(project_root, args.run_id, args.stage, args.page)
+            elif args.command == 'inspect-output':
+                result = inspect_stage_output(project_root, args.stage, args.run_id or '')
+            else:
+                result = validate_stage_output(project_root, args.stage, args.run_id or "")
         else:
             if not args.stage:
                 raise ContextError(f"--stage is required for {args.command}")
@@ -1794,6 +1835,14 @@ def main() -> int:
         return 2
     if args.json or args.command == "prepare-architecture-recovery":
         print(json.dumps(result))
+    elif args.command == 'read-brief':
+        print(f"Brief {result['path']} sha256={result['sha256']} page {result['page']}/{result['pages']} (character {result['start_character']})")
+        print(result['text'], end='\n')
+        print(f"Next page: {result['next_page']}" if result['next_page'] else 'End of brief; all pages are required.')
+    elif args.command == 'inspect-output':
+        print('Advisory sizing only; terminal validation is still required.')
+        for artifact in result['artifacts']:
+            print(f"{artifact['path']}: {artifact['bytes']} bytes; target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}; headroom {artifact['headroom_bytes']}; above target {artifact['above_target_bytes']}")
     elif args.command == "validate-intake":
         print(f"Program Kit confirmed bootstrap intake is valid: {result['path']}")
     elif args.command == "validate-profile-pins":

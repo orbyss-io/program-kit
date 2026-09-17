@@ -2,6 +2,9 @@
 description: Turn researched capabilities into a staged repository quality system.
 ---
 
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage tooling --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+
+
 ## Input
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.

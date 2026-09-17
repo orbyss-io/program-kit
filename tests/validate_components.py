@@ -526,7 +526,8 @@ def main() -> int:
         "Never create a separate ADR",
         "at most 700 words",
         "never target the same file twice",
-        "do not measure it repeatedly",
+        "draft_size_command once",
+        "does not replace terminal validation",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.assessment.md",

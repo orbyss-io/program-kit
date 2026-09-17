@@ -39,6 +39,16 @@ If acceptance/ is present, read its fixed observable trial contracts during inta
 These describe what the later implementation must demonstrate; do not implement them now.
 """
 
+CONSUMER_INSTRUCTIONS = """# Consumer trial
+
+For the interactive intake task, read INTAKE-SESSION.md and follow its installed
+intake skill. Those interview-only instructions apply only to that task.
+For a separately authorized bootstrap stage or feature task, follow the installed
+skill named by that task and its supplied context. Do not repeat the intake or
+reread its skill unless the task explicitly returns to intake. This file grants
+no approval, workflow execution, installation or paid-agent authorization.
+"""
+
 
 def save(path: Path, value: dict) -> None:
     temporary = path.with_suffix('.tmp')
@@ -244,7 +254,7 @@ def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: P
     (workspace / 'INTAKE-SESSION.md').write_text(INSTRUCTIONS, encoding='utf-8')
     # This is a consumer root, outside the contributor repository and its ancestor instructions.
     (workspace / 'AGENTS.md').write_text(
-        INSTRUCTIONS + '\nFor every Git command use git -c safe.directory=' + workspace.as_posix()
+        CONSUMER_INSTRUCTIONS + '\nFor every Git command use git -c safe.directory=' + workspace.as_posix()
         + (' -c core.excludesFile= ' if os.name == 'nt' else ' -c core.excludesFile=/dev/null ')
         + '<command>. Do not persist global Git exceptions.\n', encoding='utf-8')
     state['status'] = 'ready'

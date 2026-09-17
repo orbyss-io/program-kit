@@ -2,6 +2,9 @@
 description: Close scoped bootstrap architecture prerequisites with bounded compatibility evidence.
 ---
 
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage closure --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+
+
 You own verification planning after roadmap drafting. Read the supplied closure stage brief first;
 its projections, allowed source queries, maintained recipe catalog and terminal command are the
 execution contract. Read only its required_full_reads, then query a named condition when omitted.
@@ -115,7 +118,11 @@ successor ADRs merely to state that an existing approval or proof has completed.
 Update the roadmap producer's artifact after evidence changes: affected phases remain ineligible until their due prerequisites close; specification-ready entries may remain Ready. Write the explicit acceptance scope for founding and any
 follow-on decisions; include only reviewed map elements/relationships with those decision refs.
 Leave unfinished storage and unrelated proposals outside that scope. Replace duplicated current
-status prose with source links or explicitly dated historical descriptions. Never edit or reratify
+status prose with source links or explicitly dated historical descriptions. Keep authoring-session
+Docker/network observations in the preparation review, labeled as pre-execution observations;
+prerequisite task text describes the durable action, not that session's environment. Link the
+current ledger/receipts for execution status. After any roadmap edit use
+output_contract.draft_size_command once, leaving target headroom before terminal validation. Never edit or reratify
 the constitution to replace status words. Escalate a necessary constitutional change through its
 governed amendment procedure.
 

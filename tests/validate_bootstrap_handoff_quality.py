@@ -1,5 +1,6 @@
 """Consumer quality authority and batched authoring diagnostics; no agents."""
 from pathlib import Path
+import json
 import sys
 import tempfile
 import unittest
@@ -76,6 +77,39 @@ class QualityHandoffTests(unittest.TestCase):
                 context.validate_stage_output(self.root, 'tooling')
         for name in ('first.md', 'second.md', 'missing.md'):
             self.assertIn(name, str(error.exception))
+
+    def test_advisory_sizing_preserves_files_and_reports_headroom_without_acceptance(self):
+        path = self.root / 'draft.md'
+        path.write_bytes(b'x' * 12)
+        contract = {'artifact_byte_budgets': {'draft.md': 10, 'missing.md': 10},
+                    'artifact_target_bytes': {'draft.md': 8, 'missing.md': 8}}
+        with patch.object(context, 'governance_contract', return_value={'paths': {}}), \
+                patch.object(context, 'resolved_output_contract', return_value=contract):
+            result = context.inspect_stage_output(self.root, 'research')
+        self.assertTrue(result['advisory_only'])
+        self.assertEqual(-2, result['artifacts'][0]['headroom_bytes'])
+        self.assertEqual(4, result['artifacts'][0]['above_target_bytes'])
+        self.assertIsNone(result['artifacts'][1]['bytes'])
+        self.assertEqual(b'x' * 12, path.read_bytes())
+
+    def test_brief_pages_are_lossless_bounded_and_do_not_rebuild_sources(self):
+        path = context.context_path(context.safe_run_directory(self.root, 'trial'), 'closure')
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {'run_id': 'trial', 'stage': 'closure', 'facts': ['é漢🙂' * 12000],
+                   'last_required_fact': 'must not disappear'}
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding='utf-8')
+        before = path.read_bytes()
+        first = context.read_brief(self.root, 'trial', 'closure', 1)
+        pages = [context.read_brief(self.root, 'trial', 'closure', n)
+                 for n in range(1, first['pages'] + 1)]
+        self.assertEqual(payload, json.loads(''.join(p['text'] for p in pages)))
+        self.assertTrue(all(len(p['text']) <= 8000 for p in pages))
+        self.assertEqual(1, len({p['sha256'] for p in pages}))
+        self.assertIsNone(pages[-1]['next_page'])
+        for invalid in (0, first['pages'] + 1):
+            with self.assertRaises(context.ContextError):
+                context.read_brief(self.root, 'trial', 'closure', invalid)
+        self.assertEqual(before, path.read_bytes())
 
 
 if __name__ == '__main__':
