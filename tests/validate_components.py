@@ -332,7 +332,7 @@ def main() -> int:
             "accept-bootstrap",
             "auto-accept-bootstrap",
             "docs/architecture/reviews/bootstrap-review.md",
-            "Accept the evidenced architecture and first-slice handoff",
+            "Accept the initialized architecture baseline, owned open decisions and per-slice phase handoff",
         ),
     ):
         route = next(step for step in steps if step["id"] == route_id)
@@ -543,9 +543,9 @@ def main() -> int:
         "Required Accepted ADRs",
         "Design tasks remain separate",
         "single command in `output_contract.validation_commands`",
-        "feature-owned decisions",
-        "pending founding bundle",
-        "only architecture-significant prerequisites",
+        "separate phase eligibility",
+        "no entry is Ready",
+        "Retain later architecture choices",
         "at most 550 words",
     )
     require_text(

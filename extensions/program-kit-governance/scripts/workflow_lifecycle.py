@@ -176,7 +176,7 @@ def migrate_suffix(root: Path, state: RunState, saved: WorkflowDefinition, resta
         if not projection_migration and (saved.version, installed.version) != ('0.12.0', '0.12.1'):
             raise WorkflowLifecycleError('No reviewed continuation readiness migration for this version')
         recovery.manifest(root, state.inputs['source_run'])
-        governance.validate_bootstrap(True, True)
+        governance.validate_bootstrap(True, False)
         old_index = next(i for i, s in enumerate(saved.steps) if s['id'] == 'recovery-readiness')
         new_index = next(i for i, s in enumerate(installed.steps) if s['id'] == 'prepare-recovery-readiness')
         old_tail = saved.steps[old_index:]
@@ -278,6 +278,33 @@ def execution_owner(root: Path, run_id: str):
             lifecycle.write(path, {'run_id': run_id, 'active': False})
 
 
+def expected_handoff_pause(root, state):
+    """Only a structured producer handoff is a normal pause; crashes stay failed."""
+    step = state.current_step_id or ''
+    for stage in __import__('bootstrap_stages').STAGES:
+        if step not in {f'require-{stage}-handoff', f'require-{stage}-answers', f'validate-{stage}-output'}:
+            continue
+        path = run_directory(root, state.run_id) / f'handoff-{stage}.json'
+        if path.is_file():
+            value = lifecycle.load(path)
+            if value.get('status') in {'needs-user-answer', 'needs-design-decision'} and value.get('questions'):
+                return value
+    return None
+
+
+def normalize_handoff_pause(root, state):
+    handoff = expected_handoff_pause(root, state) if state.status == RunStatus.FAILED else None
+    output = state.step_results.get(state.current_step_id, {}).get('output', {})
+    diagnostic = str(output.get('stderr', '')) + str(output.get('stdout', ''))
+    if handoff and handoff['status'] + ':' in diagnostic and 'Traceback (most recent call last)' not in diagnostic:
+        state.append_log({'event': 'awaiting-resolution', 'stage': handoff['stage'],
+                          'questions': [q['id'] for q in handoff['questions']]})
+        state.status = RunStatus.PAUSED
+        state.error = None
+        state.save()
+    return state
+
+
 def execute_definition(root: Path, definition: WorkflowDefinition, inputs: dict, run_id: str) -> RunState:
     require_enabled(root)
     errors = validate_workflow(definition)
@@ -286,8 +313,8 @@ def execute_definition(root: Path, definition: WorkflowDefinition, inputs: dict,
     if run_directory(root, run_id).exists():
         raise WorkflowLifecycleError('Run ID already exists; use resume to preserve its history')
     with execution_owner(root, run_id):
-        return WorkflowEngine(root).execute(definition, inputs=inputs, run_id=run_id,
-                                            installed_workflow_id='program-kit-bootstrap')
+        return normalize_handoff_pause(root, WorkflowEngine(root).execute(definition, inputs=inputs, run_id=run_id,
+                                            installed_workflow_id='program-kit-bootstrap'))
 
 
 def validate_engine_completion(root: Path) -> None:
@@ -353,7 +380,7 @@ def source_ready(root: Path, source_run: str) -> bool:
 def prepare_recovery_readiness(root: Path, run_id: str, source_run: str) -> dict:
     """Generate the same bounded input/output contract as fresh readiness."""
     recovery.manifest(root, source_run)
-    governance.validate_bootstrap(True, True)
+    governance.validate_bootstrap(True, False)
     path, payload = bootstrap_context.build_context(root, run_id, 'readiness')
     bootstrap_context.validate_context(root, run_id, 'readiness')
     # Fail before paid dispatch on missing/unreadable declared inputs. Worker-side
@@ -469,7 +496,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
             state.append_log({'event': 'paused_workflow_migration', 'snapshot': str(archived),
                               'invalidated_steps': sorted(invalidated), 'restart_step': restart})
             state.save()
-    if state.status == RunStatus.FAILED:
+    if state.status == RunStatus.FAILED or (state.status == RunStatus.PAUSED and expected_handoff_pause(root, state)):
         restart = STAGE_STARTS.get(state.current_step_id, state.current_step_id)
         if state.current_step_id.startswith('require-') and state.current_step_id.endswith('-answers'):
             from bootstrap_handoff import retry_stage
@@ -495,7 +522,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
                     restart = 'prepare-recovery-readiness'
             if restart == 'prepare-recovery-readiness':
                 recovery.manifest(root, state.inputs['source_run'])
-                governance.validate_bootstrap(True, True)
+                governance.validate_bootstrap(True, False)
                 if not any(s['id'] == restart for s in definition.steps):
                     restart = 'recovery-readiness'  # migrate the historical suffix below
         if reuse_proven_closure:
@@ -535,7 +562,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
             and state.current_step_id == 'recovery-readiness'):
         prepare_recovery_readiness(root, run_id, state.inputs['source_run'])
     with execution_owner(root, run_id):
-        result = WorkflowEngine(root).resume(run_id, inputs=inputs or None)
+        result = normalize_handoff_pause(root, WorkflowEngine(root).resume(run_id, inputs=inputs or None))
     if result.status == RunStatus.COMPLETED:
         governance.validate_completion()
         validate_engine_completion(root)
@@ -658,7 +685,7 @@ def main() -> int:
                             validate_engine_completion(root)
                 value = {'run_id': state.run_id, 'status': state.status.value,
                          'current_step': state.current_step_id, 'error': state.error}
-                if state.status == RunStatus.FAILED:
+                if state.status in {RunStatus.FAILED, RunStatus.PAUSED}:
                     from compatibility_diagnostics import sanitize
                     output = state.step_results.get(state.current_step_id, {}).get('output', {})
                     detail = output.get('stderr') or output.get('stdout')
@@ -666,7 +693,7 @@ def main() -> int:
                         value['diagnostic'] = sanitize(str(detail))[-4000:]
                     value['evidence'] = str(run_directory(root, state.run_id) / 'state.json')
         print(json.dumps(value))
-        return 0 if args.command in {'step', 'reopen'} or value.get('status', 'completed') == 'completed' else 2
+        return 0 if args.command in {'step', 'reopen'} or value.get('status', 'completed') in {'completed', 'paused'} else 2
     except (ValueError, OSError, KeyError, governance.GovernanceStateError, lifecycle.LifecycleError, bootstrap_context.ContextError) as error:
         print(f'Program Kit workflow lifecycle: {error}', file=sys.stderr)
         return 1

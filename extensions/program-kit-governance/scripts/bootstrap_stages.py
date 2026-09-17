@@ -3,12 +3,12 @@ from __future__ import annotations
 
 STAGES = {
     'assessment': {'requires': ['confirmed-intent'], 'resolves': ['first-slice', 'defaults', 'capability-dependencies'], 'later': ['feature-design', 'production-operations'], 'next_owner': 'research', 'restart': 'prepare-assessment-context'},
-    'research': {'requires': ['first-slice', 'defaults'], 'resolves': ['provider-decisions', 'source-evidence', 'managed-pins'], 'later': ['feature-behavior'], 'next_owner': 'architecture', 'restart': 'prepare-research-context'},
-    'architecture': {'requires': ['provider-decisions', 'managed-pins'], 'resolves': ['composition', 'ownership', 'architecture-risks'], 'later': ['feature-types', 'future-journey-details'], 'next_owner': 'tooling', 'restart': 'prepare-architecture-context'},
+    'research': {'requires': ['first-slice', 'defaults'], 'resolves': ['provider-findings-or-owned-unknowns', 'source-evidence', 'applicable-managed-pins'], 'later': ['feature-behavior'], 'next_owner': 'architecture', 'restart': 'prepare-research-context'},
+    'architecture': {'requires': ['provider-findings-or-owned-unknowns', 'applicable-managed-pins'], 'resolves': ['composition', 'ownership', 'architecture-risks'], 'later': ['feature-types', 'future-journey-details'], 'next_owner': 'tooling', 'restart': 'prepare-architecture-context'},
     'tooling': {'requires': ['composition', 'ownership'], 'resolves': ['enforcement-tools', 'verification-due-phases'], 'later': ['application-scaffolding'], 'next_owner': 'roadmap', 'restart': 'prepare-tooling-context'},
     'roadmap': {'requires': ['first-slice', 'architecture-risks'], 'resolves': ['first-entry', 'future-portfolio'], 'later': ['future-specifications'], 'next_owner': 'closure', 'restart': 'prepare-roadmap-context'},
-    'closure': {'requires': ['first-entry', 'provider-decisions'], 'resolves': ['first-slice-design-review', 'executable-proof-plan', 'owned-deferrals'], 'later': ['feature-behavior', 'production-approval'], 'next_owner': 'execute-compatibility-proofs', 'restart': 'prepare-closure-context'},
-    'readiness': {'requires': ['accepted-architecture', 'compatibility-evidence'], 'resolves': ['ready-to-specify-handoff'], 'later': ['ready-to-code', 'ready-to-deliver'], 'next_owner': 'specification-intake', 'restart': 'prepare-readiness-context'},
+    'closure': {'requires': ['candidate-entries', 'provider-findings-or-owned-unknowns'], 'resolves': ['first-slice-design-review', 'executable-proof-plan', 'owned-deferrals'], 'later': ['feature-behavior', 'production-approval'], 'next_owner': 'execute-compatibility-proofs', 'restart': 'prepare-closure-context'},
+    'readiness': {'requires': ['reviewed-baseline', 'owned-open-obligations'], 'resolves': ['initialized-baseline-and-phase-eligibility'], 'later': ['ready-to-code', 'ready-to-deliver'], 'next_owner': 'specification-intake', 'restart': 'prepare-readiness-context'},
 }
 
 STAGE_ARTIFACTS: dict[str, tuple[str, ...]] = {
@@ -92,7 +92,7 @@ STAGE_FOCUS = {
     "architecture": "Define the smallest governed architecture that realizes the confirmed intake journeys.",
     "tooling": "Adopt only controls required by selected capabilities and accepted boundaries.",
     "roadmap": "Create outcome-oriented specification entries from confirmed journeys and accepted decisions.",
-    "readiness": "Prove the first Ready entry has accepted authority, owned risks, and sufficient evidence.",
+    "readiness": "Validate baseline initialization and report each slice's phase eligibility and owned open work.",
 }
 
 

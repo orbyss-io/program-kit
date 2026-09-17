@@ -33,7 +33,7 @@ is missing or stale.
 Use the compact approved decision and Accepted baseline records from the stage brief. Open a source
 only for a decisive field omitted from that projection. Explicit intake choices and adopted Program
 Kit defaults do not appear as unresolved ADR prerequisites.
-Genuinely unresolved decisions block only the roadmap entries they materially affect. Deferred
+Genuinely unresolved decisions gate only their affected slice and due phase. Ready means specification-ready, not implementation-ready. Deferred
 production, scale, retention, recovery, or long-running-operation choices do not block an unrelated
 first vertical slice before their named trigger.
 
@@ -76,11 +76,10 @@ the colon outside the bold label (for example `- **User-visible outcome**: ...`)
 
 Statuses are `Candidate`, `Blocked`, `Ready`, `Active`, `Delivered`, and `Superseded`. Bootstrap may
 create Candidate, Blocked, and Ready records. `Ready` means ready to write the feature specification,
-then proceed through planning, tasks, and implementation while making feature-owned decisions in
-those lifecycle artifacts. It does not mean every field-level, data-model, business-rule, failure,
+Planning, implementation and delivery have separate phase eligibility checks against the same prerequisite ledger. It does not mean every field-level, data-model, business-rule, failure,
 or implementation choice was decided during architecture bootstrap.
 
-Put only architecture-significant prerequisites in `Required Accepted ADRs`. Use `None` or a
+Put only architecture-significant decisions needed to specify this journey in `Required Accepted ADRs`. Retain later architecture choices in the prerequisite ledger with their actual due phase. Use `None` or a
 semicolon-separated list of exact existing ADR identifiers; wrap non-`ADR-*` identifiers in
 backticks. The Proposed founding ADRs named by the stage brief are bound to this same bootstrap
 review and will be promoted atomically before readiness, so they may be listed without making the
@@ -93,12 +92,13 @@ separate design task or ADR only when the evidence identifies an unresolved arch
 outside the slice that changes an accepted boundary, shared store, cross-domain/public contract,
 security profile, or deployment topology.
 
-A record is Ready only when those architecture prerequisites, dependencies, and ownership are
-explicit and it has no hidden external decision or approval gate. Never hide such a gate in
-Dependencies, Verification responsibility, or Recommended sequence. When confirmed intake contains
-an end-to-end user journey and the accepted baseline or pending founding bundle supplies its system
-boundaries, produce at least one Ready entry unless you can cite the specific architecture-significant
-choice outside that slice that still prevents specification.
+A record is Ready when its outcome, boundary and ownership are sufficient for specification and
+its specification-due decisions are resolved. `before-implementation` obligations do not prohibit
+Ready or Active: they prohibit dependent implementation. Candidate or Blocked entries may remain
+after bootstrap, even when no entry is Ready. Never invent a journey start/end or provider choice
+to obtain completion. The final report identifies which phase can proceed for each slice.
+Use architecture-map journey `discovery` IDs for unclear boundaries, retaining Proposed status,
+empty steps/view and a Candidate roadmap entry with owned `before-specification` obligations.
 
 Design tasks remain separate. They produce evidence, alternatives, Proposed ADRs, updated views, and
 unlocked roadmap entries; they are not feature specifications or application implementation work.

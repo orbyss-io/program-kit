@@ -58,16 +58,16 @@ class ProofPlanTests(unittest.TestCase):
         ledger['sources'][0]['sha256'] = source_digest(docs / 'bootstrap-decisions.json')
         write(self.root / LEDGER, ledger)
 
-    def test_selected_first_slice_requires_transition_before_any_execution(self):
+    def test_selected_first_slice_can_retain_its_unready_status(self):
         self.select_first_slice()
         self.plan['readyWhenProven'] = []
         write(self.root / PLAN, self.plan)
-        for validation in (True, False):
-            with self.assertRaisesRegex(ValueError, 'FIRST-SLICE-PROOF-COVERAGE.*no conditional'):
-                execute(self.root, validate_only=validation)
-        self.assertEqual([], list(self.root.rglob('proof.json')))
+        self.assertEqual([], execute(self.root, validate_only=True))
+        self.assertEqual(1, len(execute(self.root)))
+        self.assertIn('**Status**: Blocked', (self.root / 'docs/architecture/specification-roadmap.md').read_text())
+        self.assertEqual('closed', load(self.root / LEDGER)['prerequisites'][0]['status'])
 
-    def test_selected_first_slice_reports_unplanned_blocker_and_owner_before_probe(self):
+    def test_unplanned_provider_remains_owned_while_known_probe_runs(self):
         self.select_first_slice()
         ledger = load(self.root / LEDGER)
         import copy
@@ -77,9 +77,11 @@ class ProofPlanTests(unittest.TestCase):
         write(self.root / LEDGER, ledger)
         self.plan['readyWhenProven'] = []
         write(self.root / PLAN, self.plan)
-        with self.assertRaisesRegex(ValueError, 'provider.*Provider compatibility owner'):
-            execute(self.root)
-        self.assertEqual([], list(self.root.rglob('proof.json')))
+        self.assertEqual(1, len(execute(self.root)))
+        remaining = load(self.root / LEDGER)['prerequisites'][1]
+        self.assertEqual('open', remaining['status'])
+        self.assertEqual('Provider compatibility owner', remaining['owner'])
+        self.assertEqual(1, len(list(self.root.rglob('proof.json'))))
 
     def test_selected_first_slice_complete_plan_reaches_ready_and_is_reusable(self):
         self.select_first_slice()
@@ -155,8 +157,8 @@ class ProofPlanTests(unittest.TestCase):
         secret = 'fixture-credential-not-for-evidence'
         self.recipe.write_text("import os,sys\nfrom pathlib import Path\ns=os.environ['PROBE_TEST_SECRET']\nprint(s)\nPath('compatibility-results.xml').write_text('<testsuite><testcase classname=\"Probe\" name=\"persist\"><failure>provider unavailable '+s+'</failure></testcase></testsuite>')\nsys.exit(7)\n", encoding='utf-8')
         with patch.dict(os.environ, {'PROBE_TEST_SECRET': secret}):
-            with self.assertRaisesRegex(ValueError, 'Compatibility failed'):
-                execute(self.root)
+            self.assertEqual(7, execute(self.root)[0]['exit_code'])
+        self.assertEqual('open', load(self.root / LEDGER)['prerequisites'][0]['status'])
         receipt = load(next(self.root.rglob('proof.json')))
         self.assertEqual('verification-failed', receipt['failure_category'])
         result = self.root / receipt['test_result']['path']

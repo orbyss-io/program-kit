@@ -94,7 +94,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
     slices = {item['id'] for item in records}
     for item in items:
         fields = {'id', 'source_ids', 'affected_slices', 'disposition', 'trigger', 'owner', 'task', 'rationale', 'status', 'evidence'}
-        if not isinstance(item, dict) or set(item) != fields:
+        if not isinstance(item, dict) or set(item) - {'verification'} != fields:
             raise LifecycleError('Prerequisite has missing or unexpected fields')
         identity = item['id']
         if not isinstance(identity, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9-]{0,100}', identity) or identity in by_id:
@@ -109,9 +109,11 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
         if not item['affected_slices'] or set(item['affected_slices']) - slices:
             raise LifecycleError(f'{identity} must identify exact affected roadmap slices')
         disposition = item['disposition']
-        triggers = {'architecture': {'before-bootstrap-completion', 'before-implementation'}, 'feature': {'feature-plan'}, 'later': {'production', 'later-release'}}
+        triggers = {'architecture': {'before-bootstrap-completion', 'before-specification', 'before-implementation'}, 'feature': {'feature-plan', 'delivery'}, 'later': {'production', 'later-release'}}
         if disposition not in triggers or item['trigger'] not in triggers[disposition]:
             raise LifecycleError(f'{identity} has inconsistent disposition/trigger')
+        if item.get('verification', 'compatibility' if disposition == 'architecture' else 'decision') not in {'compatibility', 'decision'}:
+            raise LifecycleError(f'{identity} has invalid verification kind')
         if item['status'] not in {'open', 'closed'}:
             raise LifecycleError(f'{identity} status must be open or closed')
         if item['status'] == 'closed' and not item['evidence']:
@@ -149,7 +151,13 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
                 design = proof.get('design_sources', {})
                 if set(design) != expected_design or any(design_digest(local(root, p)) != h for p, h in design.items()):
                     raise LifecycleError(f'{identity} compatibility proof does not bind the current selected design/pins')
-        if disposition == 'architecture' and item['status'] == 'closed' and not any(e['kind'] == 'compatibility' for e in item['evidence']):
+        if item.get('verification') == 'decision' and item['status'] == 'closed':
+            catalog = load(root / 'docs/architecture/architecture-map.json').get('decisions', [])
+            allowed = {'Accepted', 'Proposed'} if allow_proposed_authority else {'Accepted'}
+            if not any(e['kind'] == 'decision' and any(d['path'] == e['path'] and d['status'] in allowed
+                       for d in catalog) for e in item['evidence']):
+                raise LifecycleError(f'{identity} decision closure requires governed ADR evidence')
+        if item.get('verification', 'compatibility' if disposition == 'architecture' else 'decision') == 'compatibility' and item['status'] == 'closed' and not any(e['kind'] == 'compatibility' for e in item['evidence']):
             raise LifecycleError(f'{identity} requires executed compatibility evidence')
     covered = {source for item in items for source in item['source_ids']}
     missing = {item['id'] for item in pending} - covered
@@ -169,7 +177,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
     unresolved_ids = {i['id'] for i in decisions.get('unresolved', [])}
     adr_conditions = {identity for source in sources if source['path'].endswith('.md') for identity in source['prerequisites']}
     for item in items:
-        if item['disposition'] == 'architecture':
+        if item['disposition'] == 'architecture' or any(s.startswith('question-sha256:') for s in item['source_ids']):
             continue
         if set(item['source_ids']) & unresolved_ids or item['id'] in adr_conditions:
             authorized = [e for e in item['evidence'] if e['kind'] == 'decision' and any(
@@ -188,9 +196,52 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
         if item['disposition'] == 'architecture' and item['status'] != 'closed':
             blockers.append(item)
             ineligible = [r['id'] for r in records if r['id'] in item['affected_slices'] and r['Status'] in {'Ready', 'Active'}]
-            if ineligible:
+            if ineligible and item['trigger'] in {'before-bootstrap-completion', 'before-specification'}:
                 raise LifecycleError(f"Architecture prerequisite {item['id']} blocks {', '.join(ineligible)}; owner: {item['owner']}; task: {item['task']}")
     return blockers
+
+
+# Eligibility is local to an action; initialization is allowed with open decisions.
+PHASE_ORDER = ('specification', 'planning', 'implementation', 'delivery', 'production')
+TRIGGER_PHASE = {'before-bootstrap-completion': 'specification',
+                 'before-specification': 'specification', 'feature-plan': 'planning',
+                 'before-implementation': 'implementation', 'delivery': 'delivery', 'production': 'production',
+                 'later-release': 'production'}
+
+
+def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -> dict:
+    if phase not in PHASE_ORDER:
+        raise LifecycleError('Unknown eligibility phase: ' + phase)
+    selected = [r for r in records if r['id'] == entry]
+    if len(selected) != 1:
+        raise LifecycleError('Select exactly one roadmap entry')
+    validate_prerequisites(root, records)
+    record = selected[0]
+    items = load(root / LEDGER)['prerequisites'] if (root / LEDGER).is_file() else []
+    resolved_feature = set()
+    brief_path = root / '.program-kit/specification-intake' / entry / 'brief.json'
+    if phase != 'specification' and brief_path.is_file():
+        proposed = {d.get('bootstrapPrerequisite') for d in load(brief_path).get('decisions', [])
+                    if d.get('disposition') in {'answered', 'default'}}
+        candidates = {i['id'] for i in items if i['disposition'] == 'feature' and i.get('verification', 'decision') == 'decision' and i['id'] in proposed}
+        if candidates:
+            # check() re-enters only specification eligibility; it cannot discharge
+            # a later compatibility gate or recurse into this branch.
+            from specification_intake import check
+            try:
+                check(root, entry, later=True)
+            except (ValueError, OSError):
+                pass  # Stale/unconfirmed text never closes an obligation.
+            else:
+                resolved_feature = candidates
+    blockers = [{'id': i['id'], 'owner': i['owner'], 'task': i['task'], 'due': TRIGGER_PHASE[i['trigger']]}
+                for i in items if i['status'] != 'closed' and i['id'] not in resolved_feature and entry in i['affected_slices']
+                and PHASE_ORDER.index(TRIGGER_PHASE[i['trigger']]) <= PHASE_ORDER.index(phase)]
+    if record['Status'] not in {'Ready', 'Active', 'Delivered'}:
+        blockers.insert(0, {'id': 'journey-scope', 'owner': 'Consumer and architecture owner',
+                           'task': 'Clarify this candidate outcome and boundary through roadmap/design resolution.',
+                           'due': 'specification'})
+    return {'entry': entry, 'phase': phase, 'eligible': not blockers, 'blockers': blockers}
 
 
 def verdict(root: Path) -> dict:
@@ -200,7 +251,7 @@ def verdict(root: Path) -> dict:
     if path.stat().st_size > 4096:
         raise LifecycleError('Readiness report exceeds its 4096-byte hard budget')
     text = path.read_text(encoding='utf-8')
-    match = re.match(r'\A\*\*Status\*\*: (READY|CONDITIONALLY READY|NOT READY)\n', text)
+    match = re.match(r'\A\*\*Status\*\*: (INITIALIZED|READY|CONDITIONALLY READY|NOT READY)\n', text)
     if not match:
         raise LifecycleError('Malformed readiness status: require exact first line at byte zero, no BOM')
     statuses = re.findall(r'^\*\*Status\*\*:', text, re.MULTILINE)
@@ -211,11 +262,11 @@ def verdict(root: Path) -> dict:
     # Deliberately small, readable report contract, also returned as structured JSON.
     for identity, owner, task in re.findall(r'^- Blocker: ([^|\n]+) \| Owner: ([^|\n]+) \| Next: (.+)$', text, re.MULTILINE):
         blockers.append({'id': identity.strip(), 'owner': owner.strip(), 'task': task.strip()})
-    if status != 'READY' and not blockers:
+    if status not in {'INITIALIZED', 'READY'} and not blockers:
         raise LifecycleError('Non-ready assessment requires - Blocker: <id> | Owner: <owner> | Next: <action>')
-    if status == 'READY' and blockers:
+    if status in {'INITIALIZED', 'READY'} and blockers:
         raise LifecycleError('READY assessment cannot contain unresolved blockers')
-    return {'status': status, 'eligible': status == 'READY', 'blockers': blockers,
+    return {'status': status, 'eligible': status in {'INITIALIZED', 'READY'}, 'blockers': blockers,
             'report': {'path': REPORT.as_posix(), 'sha256': digest(path)}}
 
 

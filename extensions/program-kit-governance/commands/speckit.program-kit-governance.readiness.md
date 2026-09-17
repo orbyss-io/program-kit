@@ -1,5 +1,5 @@
 ---
-description: Render first-specification readiness from validated governance authority.
+description: Render bootstrap initialization and phase readiness from validated governance authority.
 scripts:
   py: scripts/governance_state.py render-readiness
 ---
@@ -24,12 +24,10 @@ an earlier description of that state.
 
 Substantive conflicts must be resolved in the existing closure handoff before
 acceptance: identify the affected choice, contract or requirement, its source,
-owner and required decision. Unresolved questions and architecture prerequisites
-remain blocking. Actual changes to accepted design still require reviewed changes;
+owner and required decision. Unresolved questions must be carried into owned, phase-scoped ledger obligations; they need not be resolved to initialize the repository. Actual changes to accepted design still require reviewed changes;
 do not edit accepted documents, waive evidence or suppress a genuine finding.
 
 The native workflow generates final readiness without an agent dispatch. It owns
-recovery, approvals and completion. READY is permission to begin the first
-specification, not implementation, delivery, security or production approval.
+recovery, approvals and completion. INITIALIZED means the reviewed baseline is complete. Each slice has separate specification, planning and implementation eligibility; no phase is authorized by initialization alone.
 No agent-authored report, process exit or standalone completion file establishes
 native workflow completion.

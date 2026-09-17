@@ -4,6 +4,11 @@
 
 ### 0.12.0 candidate
 
+- Separate bootstrap initialization from slice-phase eligibility. Preserve unanswered intent,
+  proposed journeys and open compatibility obligations in reviewed records without requiring
+  a Ready first slice. Gate specification, planning and implementation at their actual boundaries;
+  classify structured clarification/design handoffs as pauses and retain technical failures.
+
 - Derive terminal bootstrap readiness from validated authority instead of a late
   agent-authored narrative verdict. Review substantive first-slice findings in
   closure before acceptance; preserve ADR history without routine status-only

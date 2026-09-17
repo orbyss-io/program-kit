@@ -69,11 +69,20 @@ Write `docs/architecture/bootstrap-proof-plan.json` with `schemaVersion: 1`, `pr
 (each has prerequisite `id`, repository-relative `recipe`, `timeout` from 1–600 seconds),
 and `readyWhenProven` (each has roadmap `id`, the exact complete affected architecture
 `prerequisites` list, and rationale that those are its only remaining readiness conditions).
-For the selected first roadmap entry, account for every open architecture blocker with a probe
-and include its complete conditional Ready transition. If no architecture conditions remain,
-reconcile its Ready status from its governing decisions. An empty transition list must not leave
-that entry Blocked. Only use empty arrays when no probe or conditional transition is needed. Keep prerequisite status
-open and roadmap entries Blocked until execution succeeds. In a native workflow, return now;
+Plan only bounded probes whose inputs and execution route are known. Unplanned provider or design
+questions remain open in the source-bound prerequisite ledger, with exact affected slices, owner,
+next action and due phase. Empty probes and readyWhenProven arrays are valid. Bootstrap completion
+does not require a Ready first slice. Preserve compatibility requirements before implementation;
+do not relabel or claim they passed. Ready is specification eligibility, not implementation eligibility.
+Carry unresolved stage questions using `bootstrap_handoff.py defer --run-id <run> --question-id <id>
+--entry <roadmap-id> --phase specification|planning|implementation|delivery|production --rationale <reason>`.
+This preserves the exact unanswered question in the reviewed ledger; it supplies no answer.
+Record inconsistent artifacts as `artifact-conflict` and correct them before review. Ordinary missing
+knowledge is `design-decision`; consumer intent is `user-answer`. Do not classify unknowns as defects.
+For an unfamiliar technology, record a consumer-owned design/verification route, using the existing
+custom compatibility recipe mechanism where applicable. Missing managed adapters never justify
+inventing supported capabilities. The consumer can supply evidence without a Program Kit release.
+In a native workflow return after preparation;
 the next shell step runs `bootstrap_proof_plan.py`, attaches successful receipts and applies
 only those conditional transitions. Do not spend agent turns polling restores or running probes.
 For a standalone owner-invoked closure, run that same deterministic executor once after preparation.
@@ -83,7 +92,7 @@ machine toolchains or use this as a feature implementation task. An unavailable 
 produces an open blocker with evidence and a next action, never fabricated compatibility.
 
 The runner retains a unique receipt and both streams for each attempt and attaches successful
-evidence to the exact prerequisite. It stops at the first failure; preserve that open blocker. Include design
+evidence to the exact prerequisite. Expected provisioning gaps or evidenced negative compatibility results preserve open obligations and allow baseline review. Broken tooling or malformed results remain technical failures. Include design
 authority evidence as appropriate. A failing attempt remains preserved; diagnose it before another
 bounded attempt. No repeated truncation or ad hoc byte assertions.
 
@@ -100,8 +109,7 @@ obligations at their actual triggers. Proposal-time descriptions of pending proo
 or approvals are history, not additional unresolved requirements. Do not create
 successor ADRs merely to state that an existing approval or proof has completed.
 
-Update the roadmap producer's artifact after evidence changes: affected entries stay Blocked until
-their architecture prerequisites close. Write the explicit acceptance scope for founding and any
+Update the roadmap producer's artifact after evidence changes: affected phases remain ineligible until their due prerequisites close; specification-ready entries may remain Ready. Write the explicit acceptance scope for founding and any
 follow-on decisions; include only reviewed map elements/relationships with those decision refs.
 Leave unfinished storage and unrelated proposals outside that scope. Replace duplicated current
 status prose with source links or explicitly dated historical descriptions. Never edit or reratify

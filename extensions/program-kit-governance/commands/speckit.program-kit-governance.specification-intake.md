@@ -12,8 +12,7 @@ The user need not invoke grilling separately. A missing method is an incomplete 
 Use the triggering feature request and select its exact specification-roadmap entry from the
 configured roadmap. Resolve an unambiguous match yourself; if multiple entries fit, ask which one.
 An unrelated Ready entry does not authorize this feature. A new feature requires a Ready entry;
-an existing specification may resume its Active entry. A missing/Blocked entry needs roadmap or
-architecture work before this gate can proceed. Do not relabel an entry just to pass validation.
+an existing specification may resume its Active entry. A missing/Blocked entry needs scoped journey/decision resolution before this gate can proceed. Ready authorizes specification only; carry later architecture obligations into the brief and preserve their implementation gate. Do not relabel an entry just to pass validation.
 
 Run `scripts/specification_intake.py begin --entry <ID> --request <feature-request>` from the consumer
 root. This validates installation, ratification and the selected entry and resumes existing evidence.

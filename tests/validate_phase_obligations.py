@@ -239,6 +239,10 @@ raise SystemExit(not result.wasSuccessful())
             validate_contract(value)
 
     def test_due_deferral_cannot_hide_in_prose(self):
+        from validate_governance_state import roadmap
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(roadmap().replace('SPEC-001', 'SPC-001'))
         self.write('.specify/feature.json', {'roadmap_entry_id': 'SPC-001'})
         brief = {'decisions': [{'id': 'storage', 'disposition': 'deferred', 'trigger': 'Before plan approval'}]}
         self.write('.program-kit/specification-intake/SPC-001/brief.json', brief)

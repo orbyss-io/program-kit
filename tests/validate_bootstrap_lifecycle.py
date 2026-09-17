@@ -239,11 +239,12 @@ def main():
                 for changed in [base.replace('# Specification roadmap', '# Specification roadmap\n\nunresolved provider decision must close before implementation'),
                                 base.replace('First module data', 'unresolved provider decision must close before implementation')]:
                     (root / governance.ROADMAP).write_text(changed, encoding='utf-8')
-                    fails(lambda: governance.validate_roadmap(True), 'hides an unresolved')
+                    governance.validate_roadmap(True)  # Narrative phrasing is not lifecycle authority.
                 (root / governance.ROADMAP).write_text(base, encoding='utf-8')
                 dependency = item()
                 ledger(root, [dependency])
-                fails(lambda: governance.validate_roadmap(True), 'provider blocks SPEC-001')
+                governance.validate_roadmap(True)
+                assert not lifecycle.phase_eligibility(root, governance.roadmap_records(root / governance.ROADMAP), 'SPEC-001', 'implementation')['eligible']
                 # Accepted ADR metadata cannot close a retained condition or replace proof.
                 dependency['status'] = 'closed'
                 ledger(root, [dependency])

@@ -25,6 +25,14 @@ def resolve(intake: dict, register: dict) -> dict:
                             'rationale': 'Default or dependency resolution under ' + POLICY,
                             'override': 'Explicit consumer selection takes precedence.'})
 
+    def unresolved(identity, question):
+        items = value.setdefault('unresolved', [])
+        if not any(item['id'] == identity for item in items):
+            items.append({'id': identity, 'question': question, 'kind': 'design-decision',
+                          'owner': 'Consumer architecture owner', 'due_stage': 'implementation',
+                          'blocks': 'Dependent implementation',
+                          'recommendation': 'Research and review a consumer-owned integration and its bounded verification; no managed capability is claimed.'})
+
     routing = intake.get('routing', {})
     languages = {v.casefold() for v in routing.get('languages', [])}
     web = value.get('web', {})
@@ -43,11 +51,12 @@ def resolve(intake: dict, register: dict) -> dict:
             record('secure-web-profile', 'bff-cookie-v1')
     authenticated = web.get('secure_profile') in {'bff-cookie-v1', 'spa-pkce-v1'}
     explicit_other_stack = languages - {'.net', 'c#', 'csharp', 'typescript', 'javascript', 'html', 'css'}
-    if authenticated and explicit_other_stack and 'dotnet' not in profiles:
-        raise ValueError('BOOTSTRAP-DEFAULT-CONFLICT: managed authentication needs Foundation/.NET; preserve the explicit language constraint and resolve the supported integration before adoption')
+    consumer_integration = authenticated and explicit_other_stack and 'dotnet' not in profiles
+    if consumer_integration:
+        unresolved('consumer-authentication-integration', 'Resolve authentication integration for the explicit language constraint; managed Foundation/.NET integration has not been adopted.')
     # Browser-only anonymous scope does not need an invented backend. Otherwise an
     # absent language preference selects the supported managed application baseline.
-    if authenticated or (not languages and profiles <= {'ui-experience-v1', 'browser-web', 'typescript-web'} and web.get('secure_profile') != 'none-v1'):
+    if (authenticated and not consumer_integration) or (not languages and profiles <= {'ui-experience-v1', 'browser-web', 'typescript-web'} and web.get('secure_profile') != 'none-v1'):
         profiles.add('dotnet')
         record('application-platform', '.NET / Foundation', 'derived-default' if authenticated else 'program-kit-default')
     if 'dotnet' in profiles and 'dotnet' not in value:
@@ -58,7 +67,9 @@ def resolve(intake: dict, register: dict) -> dict:
         acknowledgements = value.setdefault('acknowledgements', [])
         if not any(a['id'] in {'orbyss-building-block-dependencies', 'program-kit-preview-dependencies'} for a in acknowledgements):
             acknowledgements.append({'id': 'orbyss-building-block-dependencies', 'summary': 'Foundation uses independently pinned building-block packages and registry sources from the installed catalog; application release bundles contain settings, Nuplane configuration and optional package feeds.'})
-    if authenticated and 'identity' not in value:
+    if value.get('dotnet', {}).get('program_kit_host_opt_out'):
+        unresolved('consumer-host-integration', 'Select and verify the consumer-owned host integration; Program Kit does not supply its scaffold.')
+    if authenticated and not consumer_integration and 'identity' not in value:
         value['identity'] = {'provider': 'keycloak', 'source': 'program-kit-default',
                              'scope': 'local-evaluation', 'production_trigger': 'before-production-deployment'}
         record('identity-provider', 'Keycloak managed local adapter; production hosting is deferred to deployment')
@@ -70,7 +81,8 @@ def resolve(intake: dict, register: dict) -> dict:
         if owner.get('profile', 'auto') == 'auto':
             profile = persistence.resolve_profile(owner.get('storage'), dotnet='dotnet' in profiles)
             if profile is None:
-                raise ValueError('BOOTSTRAP-PROVIDER-CHOICE: ' + owner['owner'] + ' requires a supported or custom provider for ' + str(owner.get('storage')))
+                profile = 'custom'
+                unresolved('consumer-persistence-' + owner['owner'], 'Select and verify a consumer-owned persistence provider for ' + str(owner.get('storage')))
             owner['profile'] = profile
             record('persistence-' + owner['owner'], profile)
     value['selected_profiles'] = sorted(profiles)

@@ -64,7 +64,7 @@ Create `docs/architecture/decision-backlog.md`. Each item must have a stable ID,
 
 Classify backlog entries as one of: resolved by explicit intake, resolved by Program Kit default,
 resolved by a derived default, genuinely unresolved, or deferred until a named lifecycle trigger.
-Only genuinely unresolved decisions may block an affected roadmap entry. Specification details,
+Unresolved decisions gate only their affected slice at the phase where an answer is necessary. Bootstrap may initialize with no Ready slice. Do not invent journey boundaries or technical selections. Specification details,
 acceptance criteria, and triggered production concerns are not foundation ADRs.
 
 Create `docs/architecture/bootstrap-decisions.json` using this base shape and the standalone

@@ -79,8 +79,15 @@ class IntakeTests(unittest.TestCase):
         ledger = self.repository / 'docs/architecture/bootstrap-prerequisites.json'
         item = {'id': 'persistence-policy', 'source_ids': ['durable-write'], 'owner': 'Feature owner',
                 'task': 'Plan provider admission and replay policy', 'rationale': 'Durable results',
-                'trigger': 'feature-plan', 'disposition': 'feature', 'affected_slices': ['SPC-001']}
-        intake.atomic_write(ledger, {'prerequisites': [item, {**item, 'id': 'future', 'affected_slices': ['SPC-002']}]})
+                'trigger': 'feature-plan', 'disposition': 'feature', 'affected_slices': ['SPC-001'], 'status': 'open', 'evidence': []}
+        from bootstrap_lifecycle import source_digest
+        source = self.repository / 'docs/architecture/bootstrap-decisions.json'
+        intake.atomic_write(source, {})
+        intake.atomic_write(self.repository / "docs/architecture/architecture-map.json", {"decisions": []})
+        self.records.append({**self.records[0], 'id': 'SPC-002', 'Status': 'Candidate'})
+        intake.atomic_write(ledger, {'schema_version': '1.0',
+            'sources': [{'path': source.relative_to(self.repository).as_posix(), 'sha256': source_digest(source), 'prerequisites': []}],
+            'prerequisites': [item, {**item, 'id': 'future', 'affected_slices': ['SPC-002']}]})
         self.assertEqual(['persistence-policy'], [i['id'] for i in intake.context(self.repository, 'SPC-001')['bootstrapObligations']])
         with self.assertRaisesRegex(ValueError, 'needs exactly one linked'):
             intake.review(self.repository, 'SPC-001')
@@ -91,21 +98,25 @@ class IntakeTests(unittest.TestCase):
             'dependsOn': [], 'disposition': 'deferred', 'blocking': False,
             'owner': 'Feature owner', 'trigger': 'Before tasks', 'duePhase': 'delivery'})
         self.save()
-        with self.assertRaisesRegex(ValueError, 'due at planning'):
+        with self.assertRaisesRegex(ValueError, 'owning phase gate'):
             intake.review(self.repository, 'SPC-001')
         self.brief['decisions'][-1]['duePhase'] = 'planning'
         self.save()
         self.confirm()
         import phase_obligations
+        from validate_governance_state import roadmap
+        (self.repository / intake.governance.ROADMAP).write_text(roadmap().replace('SPEC-001', 'SPC-001') + '\n' + roadmap(status='Candidate').replace('SPEC-001', 'SPC-002'))
         intake.atomic_write(self.repository / '.specify/feature.json', {'roadmap_entry_id': 'SPC-001'})
-        with self.assertRaisesRegex(ValueError, 'Q2 is due at planning'):
+        with self.assertRaisesRegex(ValueError, 'persistence-policy'):
             phase_obligations.deferred(self.repository, 'planning')
         self.brief['decisions'][-1].update(disposition='answered', answer='Reviewed replay policy and its verification plan')
         self.save()
         self.confirm()
         phase_obligations.deferred(self.repository, 'planning')
         item['task'] = 'Changed admission requirement'
-        intake.atomic_write(ledger, {'prerequisites': [item]})
+        changed = intake.read(ledger)
+        changed['prerequisites'][0] = item
+        intake.atomic_write(ledger, changed)
         with self.assertRaisesRegex(ValueError, 'stale'):
             intake.check(self.repository, 'SPC-001')
 

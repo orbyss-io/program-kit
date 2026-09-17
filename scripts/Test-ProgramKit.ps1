@@ -104,6 +104,7 @@ $developmentValidators = @(
     'validate_bootstrap_lifecycle.py',
     'validate_readiness_scope.py',
     'validate_readiness_projection.py',
+    'validate_phase_readiness.py',
     'validate_bootstrap_compatibility.py',
     'validate_bootstrap_proof_plan.py',
     'validate_workflow_resumption.py',

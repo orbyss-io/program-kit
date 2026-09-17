@@ -1820,7 +1820,7 @@ def require_legacy_completion_cli() -> None:
 
 
 def complete_bootstrap() -> None:
-    validate_bootstrap(True, True)
+    validate_bootstrap(True, False)
     report = project_path(READINESS_REPORT)
     if not report.is_file():
         raise GovernanceStateError(f"Readiness report is missing: {report}")
@@ -1850,7 +1850,7 @@ def complete_bootstrap() -> None:
 
 def validate_completion() -> None:
     """Validate the completion record against the current approved artifacts."""
-    validate_bootstrap(True, True)
+    validate_bootstrap(True, False)
     report = project_path(READINESS_REPORT)
     if not lifecycle_call("verdict")["eligible"]:
         raise GovernanceStateError("Readiness report must begin with '**Status**: READY'")
@@ -1973,11 +1973,6 @@ def roadmap_records(path: Path) -> list[dict[str, str]]:
 def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> list[dict[str, str]]:
     records = roadmap_records(project_path(ROADMAP))
     lifecycle_call("validate_prerequisites", records)
-    # Defense in depth for legacy prose. The structured source inventory and slice
-    # dispositions above are authoritative; moving a gate outside a record cannot hide it.
-    full_text = project_path(ROADMAP).read_text(encoding="utf-8")
-    if re.search(r'(?i)Ready\s*=\s*specification-ready|(?:unresolved|pending)\s+provider\s+decision.{0,160}before\s+(?:implementation|code)', full_text):
-        raise GovernanceStateError('Roadmap hides an unresolved implementation decision or redefines Ready; reconcile the prerequisite ledger and remove the contradictory gate')
     pending_review: set[str] | None = None
     for record in records:
         identifiers = roadmap_required_adr_ids(
@@ -1995,31 +1990,6 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> li
             raise GovernanceStateError(
                 f"{record['Status']} roadmap record {record['id']} references unresolved ADRs: "
                 + ", ".join(unresolved)
-            )
-        lifecycle_text = "\n".join(record.values())
-        hidden_decision_gate = (
-            re.search(
-                r"\b(?:proposed|unresolved|pending)\b.{0,180}\b(?:ADR|decision|design task)\b",
-                lifecycle_text,
-                re.IGNORECASE | re.DOTALL,
-            )
-            or re.search(
-                r"\b(?:before|until|only after|requires?|must)\b.{0,180}"
-                r"\b(?:Accepted|acceptance)\b.{0,100}\bADR\b",
-                lifecycle_text,
-                re.IGNORECASE | re.DOTALL,
-            )
-            or re.search(
-                r"\bDT-[A-Z0-9-]+\b.{0,180}\b(?:before|block|gate|must|require)",
-                lifecycle_text,
-                re.IGNORECASE | re.DOTALL,
-            )
-        )
-        if hidden_decision_gate:
-            raise GovernanceStateError(
-                f"{record['Status']} roadmap record {record['id']} hides an unresolved "
-                "implementation decision outside Required Accepted ADRs; list the ADR there "
-                "and keep the record Blocked until it is Accepted"
             )
     validate_roadmap_architecture_scope(records)
     if verify_delivery and any(record['Status'] == 'Delivered' for record in records):
@@ -2069,6 +2039,8 @@ def validate_roadmap_architecture_scope(records: list[dict]) -> None:
         missing = set()
         for candidate in candidates:
             from architecture_map import candidate_journeys
+            if any(journeys[j].get('discovery') for j in candidate_journeys(candidate)):
+                raise GovernanceStateError(f"{record['id']} needs journey discovery before specification; keep it Candidate or Blocked")
             steps = [step for journey in candidate_journeys(candidate)
                      for step in journeys.get(journey, {}).get('steps', [])]
             for step in steps:
@@ -2225,23 +2197,23 @@ def readiness_authority(run_id: str = '') -> dict:
     """Calculate eligibility from owned records, never from a prior report."""
     import contextlib
     import io
-    from bootstrap_handoff import first_feature, pending_questions
+    from bootstrap_handoff import first_feature, untracked_questions
     root = Path.cwd().resolve()
     blockers = []
     handoff = None
     try:
         with contextlib.redirect_stdout(io.StringIO()):
-            validate_bootstrap(True, True)
+            validate_bootstrap(True, False)
             validate_bootstrap_consistency()
-            handoff = first_feature(root, require_ready=True)
+            handoff = first_feature(root)
         if run_id:
-            for question in pending_questions(root, run_id, 'readiness', completing=True):
+            for question in untracked_questions(root, run_id):
                 blockers.append({'id': question['id'], 'owner': question['owner'],
                                  'task': question['question']})
     except (GovernanceStateError, ValueError, OSError) as exc:
         blockers.append({'id': 'governance-authority', 'owner': 'Architecture maintainer',
                          'task': str(exc)})
-    return {'status': 'NOT READY' if blockers else 'READY', 'eligible': not blockers,
+    return {'status': 'NOT READY' if blockers else 'INITIALIZED', 'eligible': not blockers,
             'blockers': blockers, 'handoff': handoff}
 
 
@@ -2258,9 +2230,13 @@ def render_readiness(run_id: str = '') -> dict:
         clean = lambda value: ' '.join(str(value).replace('|', '/').split())
         lines.append(f"- Blocker: {clean(item['id'])} | Owner: {clean(item['owner'])} | Next: {clean(item['task'])}")
     if not blockers:
-        lines.append('Accepted authority and current evidence validate. No unresolved first-slice architecture blocker remains.')
+        lines.append('Bootstrap baseline validates. Open decisions remain owned; phase eligibility is evaluated separately.')
         if handoff:
-            lines += ['', f"Next specification: {handoff['roadmapEntry']}. {handoff['outcome']}"]
+            lines += ['', f"First candidate: {handoff['roadmapEntry']}. {handoff['outcome']}"]
+        records = roadmap_records(project_path(ROADMAP))
+        for record in records:
+            phases = [lifecycle_call('phase_eligibility', records, record['id'], phase) for phase in ('specification', 'planning', 'implementation')]
+            lines.append('- ' + record['id'] + ': ' + '; '.join(p['phase'] + (' eligible' if p['eligible'] else ' needs resolution: ' + ', '.join(b['id'] for b in p['blockers'])) for p in phases))
         ledger = read_json(project_path(lifecycle_module().LEDGER))
         deferred = {}
         for item in ledger['prerequisites']:
@@ -2270,14 +2246,14 @@ def render_readiness(run_id: str = '') -> dict:
             lines += ['', 'Remaining obligations retain their owners and evidence in `bootstrap-prerequisites.json`:']
             for trigger, identities in sorted(deferred.items()):
                 lines.append(f"- {trigger}: {', '.join(identities)}")
-    lines += ['', 'This is eligibility to begin the first specification. Feature implementation, delivery, '
+    lines += ['', 'This records bootstrap initialization, not permission for every feature phase. Feature implementation, delivery, '
               'security certification and production approval are not asserted. Completion remains native-workflow owned.', '']
     report = '\n'.join(lines)
     if len(report.encode('utf-8')) > 4096 and not blockers:
         # The authoritative details remain in the ledger; a large portfolio must
         # not fail merely because its generated summary lists every deferred ID.
         report = '\n'.join(lines[:6] +
-            ['Current authority validates. See specification-roadmap.md for the first Ready entry and '
+            ['Current authority validates. See specification-roadmap.md for candidate journeys and '
              'bootstrap-prerequisites.json for all owned deferrals.'] + ['', lines[-2], ''])
     write_text(project_path(READINESS_REPORT), report)
     return evaluate_readiness()
@@ -2296,12 +2272,12 @@ def evaluate_readiness() -> dict:
     import io
     try:
         with contextlib.redirect_stdout(io.StringIO()):
-            validate_bootstrap(True, True)
+            validate_bootstrap(True, False)
     except GovernanceStateError as exc:
         result["eligible"] = False
         result["authority_valid"] = False
         result["blockers"].append({"id": "governance-authority", "owner": "architecture maintainer", "task": str(exc)})
-        if result["status"] == "READY":
+        if result["status"] in {"INITIALIZED", "READY"}:
             result['assessment_valid'] = False
             lifecycle_module().write(project_path(lifecycle_module().RESULT), result)
             raise GovernanceStateError(f"READY contradicts governance authority: {exc}") from exc

@@ -661,7 +661,7 @@ def _validate_strategic_model(
             "id", "name", "source_journey", "actor_or_trigger", "outcome", "view", "steps",
             "status", "evidence", "decision_refs",
         }
-        if not isinstance(item, dict) or set(item) != fields:
+        if not isinstance(item, dict) or set(item) - {"discovery"} != fields:
             raise ArchitectureMapError(f"{label} has an invalid shape")
         journey_id = _id(item.get("id"), f"{label}.id")
         if journey_id in journey_ids:
@@ -671,6 +671,13 @@ def _validate_strategic_model(
         _id(item.get("source_journey"), f"{label}.source_journey")
         _text(item.get("actor_or_trigger"), f"{label}.actor_or_trigger")
         _text(item.get("outcome"), f"{label}.outcome")
+        if item.get('discovery'):
+            _semantic_ids(item['discovery'], f'{label}.discovery', require_one=True)
+            if item['status'] != 'proposed' or item['steps'] or item['view']:
+                raise ArchitectureMapError(f'{label}: unresolved journey must remain proposed with empty steps/view')
+            _semantic_ids(item.get('evidence'), f'{label}.evidence', require_one=True)
+            _semantic_status(item, label, decision_ids, decision_statuses)
+            continue
         view_key = _id(item.get("view"), f"{label}.view")
         if view_key in journey_views or views.get(view_key, {}).get("type") != "dynamic":
             raise ArchitectureMapError(f"{label}.view must name one unique dynamic view")
@@ -733,6 +740,8 @@ def _validate_strategic_model(
     required_view_types = {
         "system-context", "domain-landscape", "context-map", "context-decomposition", "dynamic"
     }
+    if all(j.get("discovery") for j in journeys):
+        required_view_types.discard("dynamic")
     actual_view_types = {view["type"] for view in views.values()}
     if not required_view_types.issubset(actual_view_types):
         raise ArchitectureMapError(

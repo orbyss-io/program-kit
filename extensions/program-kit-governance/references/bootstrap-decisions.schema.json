@@ -113,7 +113,8 @@
           "owner": {"$ref": "#/$defs/text"},
           "due_stage": {"enum": ["research","architecture","tooling","roadmap","closure","readiness","feature-plan","implementation","delivery","production"]},
           "recommendation": {"$ref": "#/$defs/text"},
-          "kind": {"enum": ["user-answer","design-decision"]},
+          "required_now": {"type": "boolean"},
+          "kind": {"enum": ["user-answer","design-decision","artifact-conflict"]},
           "resolution": {"$ref": "#/$defs/text"},
           "blocks": { "$ref": "#/$defs/text" }
         }

@@ -1131,8 +1131,8 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 'Use provider_inputs for exact selected packages, activation identities, registry/publisher sources and the pinned local identity image. Query indexed tooling-evaluation.md for researched conditions. An empty decision_handoff means no pending questions, not missing provider decisions.',
                 'Verify missing license/source evidence against the exact selected publisher/package sources; do not ask the consumer to supply managed package facts or claim the pin itself proves admission.',
                 'Inventory source conditions using the named source paths, querying only the relevant conditions. Every prerequisite has an owner, affected slices and due trigger.',
-                'A toolchain smoke test cannot close provider, host activation or product behavior obligations. Plan only checks due before the first specification.',
-                'The selected first entry must already be Ready or have a complete readyWhenProven transition. Every open architecture blocker for it needs a probe; an empty transition list cannot conceal missing coverage.',
+                'A toolchain smoke test cannot close provider, activation or product behavior obligations. Plan bounded checks with known inputs; retain unknowns at their affected phase.',
+                'Bootstrap can complete with Candidate entries and open proofs. Empty probe/transition lists are valid. Never fabricate a Ready entry; retain owned obligations with exact phase gates.',
                 'Separate a consumer choice, an external compatibility risk and verification of future feature code. Preserve approved defaults and due phases; do not convert device testing or consumer business tests into bootstrap design decisions.',
                 'Return after the exact validation batch. Native execution owns restore, probes, conditional readiness and retry.',
             ],
@@ -1515,13 +1515,13 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     payload['stage_plan']['question_transport'] = {
         'command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py ask --run-id ' + run_id + ' --stage ' + stage,
         'arguments': ['--question-id', '--question', '--owner', '--recommendation', '--kind'],
-        'rule': 'Choose --kind user-answer only for a consequential consumer intent/constraint without a safe default. Choose --kind design-decision for missing technical research/design evidence, with --stage naming its owning stage. Never ask the consumer for installed pins, source/license evidence or a missing generated context. Consult the supplied provider inputs and named sources first. The native boundary routes design work to its owner.',
+        'rule': 'user-answer = intent; design-decision = missing knowledge; artifact-conflict = inconsistent artifacts. Use --required-now only if a valid baseline cannot be produced without the answer. Use supplied provider sources. Carry ordinary unknowns with bootstrap_handoff.py defer before review; never invent answers or ask consumers for kit metadata.',
     }
     payload['stage_plan']['decision_handoff'] = __import__('bootstrap_handoff').projection(project_root, run_id)
     if stage == 'closure':
         payload['stage_plan']['first_feature_handoff'] = __import__('bootstrap_handoff').first_feature(project_root)
     if any(q.get('kind') == 'design-decision' for q in payload['stage_plan']['decision_handoff']):
-        payload['stage_plan']['design_resolution'] = 'Resolve design-decision questions due at this stage before terminal validation. Before assessment approval, record resolution in the register. After approval, preserve the register: explain the design in an existing Proposed ADR, insert the exact resolution_marker from decision_handoff as a metadata line, and refresh that ADR hash in the canonical map. This closes design authoring only, not human acceptance or compatibility proof. User answers cannot close design work.'
+        payload['stage_plan']['design_resolution'] = 'Resolve what evidence permits; otherwise carry the exact question into the prerequisite ledger before final review using bootstrap_handoff.py defer --run-id <run> --question-id <id> --entry <roadmap-id> --phase specification|planning|implementation|delivery|production --rationale <reason>. Do not invent answers. Artifact conflicts must be corrected. Before assessment approval, record resolution in the register. After approval, preserve the register: explain the design in an existing Proposed ADR, insert the exact resolution_marker from decision_handoff as a metadata line, and refresh that ADR hash in the canonical map. This closes design authoring only, not human acceptance or compatibility proof. User answers cannot close design work.'
     first_ids = set(decisions.get('first_slice', {}).get('journey_ids', []))
     if first_ids and stage != 'assessment':
         projection = payload['intake']

@@ -295,6 +295,13 @@ def deferred(root, phase, feature=None):
             match = re.search(r'\.program-kit/specification-intake/([A-Z][A-Z0-9-]+)/', content)
             if match:
                 folders = [root / '.program-kit/specification-intake' / match.group(1)]
+    from bootstrap_lifecycle import phase_eligibility
+    from governance_state import roadmap_records, ROADMAP
+    for folder in folders:
+        stage = 'planning' if phase in {'planning', 'after-plan', 'after-tasks'} else phase
+        eligibility = phase_eligibility(root, roadmap_records(root / ROADMAP), folder.name, stage)
+        require(eligibility['eligible'], 'Phase requires decision resolution: ' + '; '.join(
+            b['id'] + ' (' + b['owner'] + '): ' + b['task'] for b in eligibility['blockers']))
     for folder in folders:
         brief = read(folder / 'brief.json')
         for item in brief.get('decisions', []):

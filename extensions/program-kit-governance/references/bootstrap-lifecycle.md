@@ -1,8 +1,10 @@
 # Bootstrap prerequisite, verdict and recovery contract
 
 The architecture owner, followed by the bootstrap-closure command, owns technical bookkeeping.
-Roadmap Ready means a slice can proceed through specification, planning and implementation without
-an unreviewed external architecture choice. A specification-ready qualifier cannot redefine it.
+Bootstrap completion means a valid reviewed baseline has been initialized, not that every decision
+or first-slice proof has been resolved. Roadmap Ready means ready for specification intake.
+The same ledger independently gates planning, implementation, delivery and production.
+Unclear journeys stay Candidate with owned discovery work; bootstrap may complete with no Ready entry.
 
 `docs/architecture/bootstrap-prerequisites.json` has schema_version `1.0`, `sources` and
 `prerequisites` arrays. It is part of the reviewed and hash-bound bootstrap artifact bundle.
@@ -12,7 +14,7 @@ approved decision register and every cataloged ADR, including conditions retaine
 status metadata so approval cannot silently discharge a future condition. Any substantive source
 change requires re-inventory and renewed review. Empty conditions are an explicit reviewed assertion.
 
-Each prerequisite has exactly these fields:
+Each prerequisite has these fields, with optional `verification` (`compatibility` or `decision`). Architecture items default to compatibility; explicit decision obligations close with source-bound decision evidence:
 
 ```json
 {
@@ -31,7 +33,7 @@ Each prerequisite has exactly these fields:
 
 Every unresolved/deferred register ID must appear in source_ids. Split a broad prerequisite across
 actual affected slices when necessary; use distinct IDs and preserve the common source ID.
-Architecture/before-implementation items block only their affected Ready/Active records while open.
+Architecture/before-implementation items gate affected implementation, not specification. Architecture/before-specification items gate specification. Legacy before-bootstrap-completion obligations conservatively gate specification; do not silently waive them.
 Feature/feature-plan items identify ordinary specification/planning decisions inside accepted
 boundaries. Later/production and later/later-release items retain later policy triggers. Their
 classification, rationale and source-condition inventory require the same review as architecture.
@@ -73,7 +75,7 @@ not required. The source ADR must describe the assigned phase and the review mus
 assignment. This does not close the condition or prove execution. The register alone cannot
 authorize moving an unresolved decision to a later phase. Ordinary already-deferred feature policy
 needs no invented ADR.
-Architecture closure requires at least one successful executed compatibility receipt, including
+Closing a compatibility prerequisite requires at least one successful executed compatibility receipt, including
 its bound recipe and both stream hashes. A recipe must contain the exact versions/source identities
 and observable compatibility assertions; structural/Draft resolution tests or business fixtures
 alone are insufficient. Receipts prove what the recipe executed, not untested feature behavior.
@@ -196,3 +198,16 @@ This checks current design, source, contract, tooling and executed-case bindings
 the closure producer's output. It resumes at the native proof shell, preserving downstream
 validation and human review. Open, failed, stale or differently planned proofs reject reuse;
 ordinary resume still returns to the owning authoring stage when repair requires new design work.
+
+
+## Completion and continuation
+
+The native renderer produces INITIALIZED when the reviewed baseline validates, even with open
+obligations. It lists candidate phase eligibility. Broken hashes, missing required artifacts and
+contradictory accepted records still prevent acceptance. Artifact conflicts pause their owning stage;
+ordinary unresolved intent/design is carried into the existing ledger, never answered by assumption.
+Use `bootstrap_handoff.py eligibility --entry <ID> --phase specification|planning|implementation|delivery|production`
+to inspect a slice. Resolve the named obligation through existing research/design, ADR review or
+compatibility recipes, reconcile source bindings and review changed authority. Then resume the
+affected feature phase. A consumer-owned technology uses this same evidence route; it does not
+require adding a managed catalog entry or waiting for Program Kit publication.

@@ -52,13 +52,14 @@ def nonempty(value: object) -> bool:
 
 
 def bootstrap_obligations(repository: Path, entry: str) -> list[dict]:
-    """Project the selected slice's existing feature-plan conditions, not the whole ledger."""
+    """Project selected feature decisions and open architecture obligations, not closed proofs."""
     path = repository / 'docs/architecture/bootstrap-prerequisites.json'
     if not path.is_file():
         return []
     fields = ('id', 'source_ids', 'owner', 'task', 'rationale', 'trigger')
     return sorted(({k: item[k] for k in fields} for item in read(path)['prerequisites']
-                   if item['disposition'] == 'feature' and entry in item['affected_slices']),
+                   if entry in item['affected_slices'] and (item['disposition'] == 'feature' or
+                       item['disposition'] == 'architecture' and item['status'] != 'closed')),
                   key=lambda item: item['id'])
 
 
@@ -71,8 +72,8 @@ def require_bootstrap_carryover(brief: dict, obligations: list[dict]) -> None:
         require(item['disposition'] in {'answered', 'default', 'deferred'},
                 f"Bootstrap prerequisite {obligation['id']} cannot be silently excluded")
         if item['disposition'] == 'deferred':
-            require(item.get('duePhase') == 'planning',
-                    f"Bootstrap prerequisite {obligation['id']} is due at planning; preserve its owning gate")
+            require(item.get('duePhase') == {'before-implementation': 'implementation', 'delivery': 'delivery'}.get(obligation['trigger'], 'planning'),
+                    f"Bootstrap prerequisite {obligation['id']} must preserve its owning phase gate")
     known = {item['id'] for item in obligations}
     require(all(item.get('bootstrapPrerequisite') in known for item in brief['decisions']
                 if 'bootstrapPrerequisite' in item), 'Unknown or out-of-scope bootstrap prerequisite link')
@@ -135,6 +136,9 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
     selected = [record for record in records if record["id"] == entry]
     require(len(selected) == 1, "Select exactly one existing roadmap entry")
     record = selected[0]
+    from bootstrap_lifecycle import phase_eligibility
+    eligibility = phase_eligibility(repository, records, entry, 'specification')
+    require(eligibility['eligible'], 'Selected journey needs resolution before specification: ' + '; '.join(b['id'] + ': ' + b['task'] for b in eligibility['blockers']))
     require(record["Status"] in ({"Ready", "Active", "Delivered"} if later else {"Ready", "Active"}),
             f"Selected roadmap entry {entry} is not Ready or Active")
     if record["Status"] == "Active" and not later:

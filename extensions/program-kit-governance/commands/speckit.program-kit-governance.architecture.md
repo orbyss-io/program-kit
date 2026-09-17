@@ -331,3 +331,14 @@ Keep .NET endpoints in `Orbyss.Foundation.Web.Discovery` or consumer-owned IWebS
 never in Orbyss.Foundation.Host. Accepted frontend frameworks consume the same contracts through their
 own initial-render adapter. Do not duplicate route/head owners or replace Keycloak flows to share
 branding. SVG/logo/icon assets retain license and accessibility semantics.
+
+
+## Incomplete knowledge
+
+Bootstrap establishes a baseline and owned discovery work; it does not require resolving every
+journey or provider. Never invent a start/end or interaction to fill a diagram. For an unclear
+strategic journey use `discovery` with existing open-question/prerequisite IDs, status `proposed`,
+and empty `steps` and `view`. Keep its candidate slice Proposed and roadmap entry Candidate until
+specification-due discovery resolves. Other understood journeys retain their normal dynamic views.
+Apply applicable defaults when no choice exists; an explicit incompatible constraint requires a
+consumer-owned integration decision, not silently replacing the constraint.

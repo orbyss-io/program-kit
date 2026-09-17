@@ -734,11 +734,9 @@ def main() -> int:
                 "- **Dependencies**: Before implementation, proposed test tooling requires an Accepted tooling ADR.",
             )
             roadmap_path.write_text(hidden_gate, encoding="utf-8")
-            expect_error(
-                module,
-                lambda: module.validate_roadmap(True),
-                "hides an unresolved implementation decision",
-            )
+            # Later-phase wording does not overrule the structured ledger or
+            # prohibit specification. Due-phase enforcement is tested separately.
+            module.validate_roadmap(True)
 
             decision = project / module.DECISIONS / "0042-first-boundary.md"
             decision.parent.mkdir(parents=True)

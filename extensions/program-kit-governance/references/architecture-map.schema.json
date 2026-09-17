@@ -291,16 +291,7 @@
         "status": { "$ref": "#/$defs/status" }, "evidence": { "$ref": "#/$defs/nonempty_id_list" }, "decision_refs": { "$ref": "#/$defs/id_list" }
       }
     },
-    "journey": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "name", "source_journey", "actor_or_trigger", "outcome", "view", "steps", "status", "evidence", "decision_refs"],
-      "properties": {
-        "id": { "$ref": "#/$defs/id" }, "name": { "$ref": "#/$defs/text" }, "source_journey": { "$ref": "#/$defs/id" },
-        "actor_or_trigger": { "$ref": "#/$defs/text" }, "outcome": { "$ref": "#/$defs/text" }, "view": { "$ref": "#/$defs/id" },
-        "steps": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/journey_step" } },
-        "status": { "$ref": "#/$defs/status" }, "evidence": { "$ref": "#/$defs/nonempty_id_list" }, "decision_refs": { "$ref": "#/$defs/id_list" }
-      }
-    },
+    "journey": {"type": "object", "additionalProperties": false, "required": ["id", "name", "source_journey", "actor_or_trigger", "outcome", "view", "steps", "status", "evidence", "decision_refs"], "properties": {"id": {"$ref": "#/$defs/id"}, "name": {"$ref": "#/$defs/text"}, "source_journey": {"$ref": "#/$defs/id"}, "actor_or_trigger": {"$ref": "#/$defs/text"}, "outcome": {"$ref": "#/$defs/text"}, "view": {"type": "string", "maxLength": 64}, "steps": {"type": "array", "items": {"$ref": "#/$defs/journey_step"}}, "status": {"$ref": "#/$defs/status"}, "evidence": {"$ref": "#/$defs/nonempty_id_list"}, "decision_refs": {"$ref": "#/$defs/id_list"}, "discovery": {"$ref": "#/$defs/nonempty_id_list"}}, "allOf": [{"if": {"required": ["discovery"]}, "then": {"properties": {"status": {"const": "proposed"}, "view": {"const": ""}, "steps": {"maxItems": 0}}}, "else": {"properties": {"view": {"$ref": "#/$defs/id"}, "steps": {"minItems": 1}}}}]},
     "journey_step": {
       "type": "object", "additionalProperties": false, "required": ["order", "relationship", "description", "contract"],
       "properties": { "order": { "type": "integer", "minimum": 1 }, "relationship": { "$ref": "#/$defs/id" }, "description": { "$ref": "#/$defs/text" }, "contract": { "type": "string", "maxLength": 64 } }

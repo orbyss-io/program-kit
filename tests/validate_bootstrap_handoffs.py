@@ -55,18 +55,20 @@ class DefaultAndHandoffTests(unittest.TestCase):
 
     def test_explicit_stack_conflict_is_preserved_and_early(self):
         self.intake['routing']['languages'] = ['Python']
-        with self.assertRaisesRegex(ValueError, 'DEFAULT-CONFLICT'):
-            resolve(self.intake, {'web': {'browser_ui': True}})
+        value = resolve(self.intake, {'web': {'browser_ui': True}})
+        self.assertNotIn('dotnet', value['selected_profiles'])
+        self.assertEqual('consumer-authentication-integration', value['unresolved'][0]['id'])
         self.assertEqual(['Python'], self.intake['routing']['languages'])
 
     def test_default_does_not_mask_unsupported_host(self):
         self.register['dotnet']['program_kit_host_opt_out'] = True
+        self.register = resolve(self.intake, self.register)
         write(self.root / handoff.REGISTER, self.register)
-        with self.assertRaisesRegex(ValueError, 'UNSUPPORTED-ADAPTER'):
-            handoff.check(self.root, 'trial', 'research')
+        self.assertEqual('complete', handoff.check(self.root, 'trial', 'research')['status'])
+        self.assertTrue(handoff.load(self.root / handoff.REGISTER)['dotnet']['program_kit_host_opt_out'])
 
     def test_required_answer_blocks_but_future_question_does_not(self):
-        question = {'id': 'region', 'question': 'Which required hosting region?', 'blocks': 'provider choice',
+        question = {'id': 'region', 'required_now': True, 'question': 'Which required hosting region?', 'blocks': 'provider choice',
                     'kind': 'user-answer', 'owner': 'consumer', 'due_stage': 'research', 'recommendation': 'Use the existing region constraint'}
         self.register['unresolved'] = [question]
         write(self.root / handoff.REGISTER, self.register)
@@ -85,12 +87,13 @@ class DefaultAndHandoffTests(unittest.TestCase):
         self.register['unresolved'] = [{'id': 'provider', 'question': 'Research the constrained provider', 'blocks': 'architecture', 'kind': 'design-decision', 'owner': 'research', 'due_stage': 'research'}]
         write(self.root / handoff.REGISTER, self.register)
         self.assertEqual('complete', handoff.check(self.root, 'trial', 'research')['status'])
-        self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'architecture')['status'])
-        self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'research', questions_only=True)['status'])
+        self.assertEqual('complete', handoff.check(self.root, 'trial', 'architecture')['status'])
+        self.assertEqual('provider', handoff.check(self.root, 'trial', 'architecture')['outstanding'][0]['id'])
+        self.assertEqual('complete', handoff.check(self.root, 'trial', 'research', questions_only=True)['status'])
 
     def design_fixture(self):
         question = {'id': 'design-boundary', 'question': 'Realize the context, contracts and UI placement',
-                    'blocks': 'tooling', 'kind': 'design-decision', 'owner': 'architecture', 'due_stage': 'architecture'}
+                    'blocks': 'tooling', 'required_now': True, 'kind': 'artifact-conflict', 'owner': 'architecture', 'due_stage': 'architecture'}
         self.register['unresolved'] = [question]
         write(self.root / handoff.REGISTER, self.register)
         relative = 'docs/architecture/decisions/household.md'
@@ -196,7 +199,7 @@ class DefaultAndHandoffTests(unittest.TestCase):
 
     def test_late_question_stops_before_output_validation(self):
         write(self.directory / 'state.json', {'status': 'running', 'current_step_id': 'architecture-dispatch'})
-        handoff.ask(self.root, 'trial', 'legal-region', 'Which mandated region applies?', 'consumer', 'architecture', 'Use the stated contractual region', kind='user-answer')
+        handoff.ask(self.root, 'trial', 'legal-region', 'Which mandated region applies?', 'consumer', 'architecture', 'Use the stated contractual region', kind='user-answer', required_now=True)
         with self.assertRaisesRegex(ValueError, 'needs-user-answer'):
             handoff.require(self.root, 'trial', 'architecture', questions_only=True)
 
@@ -393,7 +396,7 @@ class DefaultAndHandoffTests(unittest.TestCase):
         scripts = self.root / '.specify/extensions/program-kit-governance/scripts'
         shutil.copytree(ROOT / 'extensions/program-kit-governance/scripts', scripts)
         shutil.copytree(ROOT / 'extensions/program-kit-dotnet/scripts', self.root / '.specify/extensions/program-kit-dotnet/scripts')
-        self.register['unresolved'] = [{'id': 'region', 'question': 'Required region?', 'blocks': 'provider', 'kind': 'user-answer', 'owner': 'consumer', 'due_stage': 'research'}]
+        self.register['unresolved'] = [{'id': 'region', 'required_now': True, 'question': 'Required region?', 'blocks': 'provider', 'kind': 'user-answer', 'owner': 'consumer', 'due_stage': 'research'}]
         write(self.root / handoff.REGISTER, self.register)
         definition = WorkflowDefinition({'schema_version': '1.0', 'workflow': {'id': 'program-kit-bootstrap', 'name': 'Deterministic handoff transport', 'version': '0.12.0'},
             'inputs': {'bootstrap_verdict': {'type': 'string', 'default': ''}}, 'steps': [
@@ -402,8 +405,8 @@ class DefaultAndHandoffTests(unittest.TestCase):
         self.assertEqual([], validate_workflow(definition))
         with chdir(self.root), patch.object(sys.stdin, 'isatty', return_value=False):
             engine = WorkflowEngine(self.root)
-            state = engine.execute(definition, run_id='native')
-            self.assertEqual(RunStatus.FAILED, state.status)
+            state = lifecycle.normalize_handoff_pause(self.root, engine.execute(definition, run_id='native'))
+            self.assertEqual(RunStatus.PAUSED, state.status)
             self.assertNotIn('review', state.step_results)
             handoff.answer(self.root, 'native', 'region', 'EU')
             state = engine.resume('native')

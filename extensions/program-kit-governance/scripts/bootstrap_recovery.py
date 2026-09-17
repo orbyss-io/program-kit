@@ -227,7 +227,7 @@ def accept(root: Path, run_id: str, verdict: str) -> dict:
                     'recovery': {'run_id': run_id, 'previous_approval_sha256': reviewed['bootstrap_approval_sha256'],
                                  'review_sha256': lifecycle.digest(directory / 'review.json')}}
         lifecycle.write(root / governance.BOOTSTRAP_APPROVAL, approval)
-        governance.validate_bootstrap(True, True)
+        governance.validate_bootstrap(True, False)
     except Exception:
         for path, content in originals.items():
             (root / path).write_bytes(content)
