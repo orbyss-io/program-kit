@@ -2127,7 +2127,10 @@ def synchronize_roadmap_views() -> None:
             for item in model.get("documentation", [])
             if isinstance(item, dict)
         }
-        for relative in (ARCHITECTURE, TRACEABILITY):
+        # validate_roadmap above validates prerequisite authority, source bindings,
+        # phase assignments and proof evidence before we refresh these owned outputs.
+        # Both the ledger and roadmap may themselves be registered documentation.
+        for relative in (ARCHITECTURE, TRACEABILITY, ROADMAP, lifecycle_module().LEDGER):
             registered = documentation.get(relative.as_posix())
             if registered is not None:
                 registered["sha256"] = sha256(project_path(relative))

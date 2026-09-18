@@ -212,6 +212,33 @@ def main():
                 for document in refreshed['documentation']:
                     if document['path'] in {lifecycle.LEDGER.as_posix(), lifecycle.SCOPE.as_posix()}:
                         assert document['sha256'] == lifecycle.digest(root / document['path'])
+                # Roadmap authoring owns the ledger and roadmap as well as its two
+                # navigation views. Registered hashes must follow validated edits.
+                refreshed['documentation'].append({'id': 'roadmap',
+                    'path': governance.ROADMAP.as_posix(), 'sha256': '0' * 64, 'scope': 'bootstrap'})
+                lifecycle.write(root / governance.ARCHITECTURE_MAP, refreshed)
+                original_ledger_bytes = (root / lifecycle.LEDGER).read_bytes()
+                (root / lifecycle.LEDGER).write_bytes(original_ledger_bytes + b'\n')
+                governance.synchronize_roadmap_views()
+                synchronized = [root / p for p in (governance.ARCHITECTURE_MAP,
+                    governance.ARCHITECTURE, governance.TRACEABILITY, governance.WORKSPACE_DSL)]
+                stable_outputs = {p: p.read_bytes() for p in synchronized}
+                refreshed = lifecycle.load(root / governance.ARCHITECTURE_MAP)
+                for document in refreshed['documentation']:
+                    if document['path'] in {lifecycle.LEDGER.as_posix(), governance.ROADMAP.as_posix()}:
+                        assert document['sha256'] == lifecycle.digest(root / document['path'])
+                governance.synchronize_roadmap_views()
+                assert all(p.read_bytes() == b for p, b in stable_outputs.items())
+                valid_ledger = (root / lifecycle.LEDGER).read_bytes()
+                ledger(root, [{**item(), 'status': 'closed'}])
+                fails(governance.synchronize_roadmap_views, 'evidence')
+                assert all(p.read_bytes() == b for p, b in stable_outputs.items())
+                (root / lifecycle.LEDGER).write_bytes(valid_ledger)
+                quality_before = unrelated.read_bytes()
+                unrelated.write_bytes(quality_before + b'\nUnreviewed unrelated edit.\n')
+                fails(governance.synchronize_roadmap_views, 'documentation is missing or stale')
+                assert all(p.read_bytes() == b for p, b in stable_outputs.items())
+                unrelated.write_bytes(quality_before)
                 stable_map = (root / governance.ARCHITECTURE_MAP).read_bytes()
                 original_scope = (root / lifecycle.SCOPE).read_bytes()
                 lifecycle.write(root / lifecycle.SCOPE, {'schema_version': '1.0', 'decisions': {}})
