@@ -111,6 +111,34 @@ class QualityHandoffTests(unittest.TestCase):
                 context.read_brief(self.root, 'trial', 'closure', invalid)
         self.assertEqual(before, path.read_bytes())
 
+    def test_later_stage_preserves_approved_research_and_allows_separate_successor(self):
+        research = self.root / 'docs/architecture/tooling-evaluation.md'
+        research.write_text('Original proposal: all provider cases before closure.\n', encoding='utf-8')
+        receipt = self.root / '.specify/governance/bootstrap-assessment-approval.json'
+        receipt.parent.mkdir(parents=True)
+        receipt.write_text(json.dumps({'status': 'Approved', 'artifacts': {
+            'docs/architecture/tooling-evaluation.md': context.sha256_file(research)}}), encoding='utf-8')
+        protected = context.approved_assessment_inputs(self.root)
+        brief = context.context_path(context.safe_run_directory(self.root, 'trial'), 'closure')
+        brief.parent.mkdir(parents=True)
+        brief.write_text(json.dumps({'stage_plan': {'approved_inputs': protected}}), encoding='utf-8')
+        # A successor resolves the research proposal without rewriting its authority.
+        (research.parent / 'successor.md').write_text('Mechanism now; consumer behavior at delivery.')
+        context.validate_approved_inputs(self.root, protected)
+        original = research.read_bytes()
+        research.write_text('Edited proposal: consumer behavior later.', encoding='utf-8')
+        with patch.object(context, 'validate_stage_output') as downstream:
+            with self.assertRaisesRegex(context.ContextError, 'tooling-evaluation.md'):
+                context.validate_stage_batch(self.root, 'trial', 'closure')
+            downstream.assert_not_called()
+        # Rewriting the approval receipt must not bypass the captured boundary.
+        receipt.write_text(json.dumps({'status': 'Approved', 'artifacts': {
+            'docs/architecture/tooling-evaluation.md': context.sha256_file(research)}}), encoding='utf-8')
+        with self.assertRaisesRegex(context.ContextError, 'approval.json'):
+            context.validate_stage_batch(self.root, 'trial', 'closure')
+        research.write_bytes(original)
+        self.assertTrue((research.parent / 'successor.md').exists())
+
 
 if __name__ == '__main__':
     unittest.main()

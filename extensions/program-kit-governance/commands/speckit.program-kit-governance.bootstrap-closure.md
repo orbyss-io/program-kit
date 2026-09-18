@@ -35,6 +35,11 @@ Create or reconcile `docs/architecture/bootstrap-prerequisites.json` using the c
 Inventory every unresolved/deferred register item and every condition retained in every cataloged
 ADR, including Accepted ADRs. Use `bootstrap_lifecycle.py source-hashes` to obtain source bindings;
 fill condition references from source inspection, never infer that an empty list proves closure.
+Keep every file in `stage_plan.approved_inputs` unchanged, including approved research in
+`tooling-evaluation.md`, the assessment, backlog, intake and approval receipt. A follow-on ADR may
+refine an earlier research proposal's phase assignment; cite that original proposal without
+rewriting it or adding a link inside the approved file. The ledger binds the unchanged source
+and the reviewed successor. Never refresh approval hashes to accept your own changes.
 Keep the approved register and Accepted ADRs unchanged. Trace closure or changed disposition through
 new follow-on decisions; their Proposed metadata and exact map scope are reviewed at the final gate.
 
@@ -118,7 +123,9 @@ successor ADRs merely to state that an existing approval or proof has completed.
 Update the roadmap producer's artifact after evidence changes: affected phases remain ineligible until their due prerequisites close; specification-ready entries may remain Ready. Write the explicit acceptance scope for founding and any
 follow-on decisions; include only reviewed map elements/relationships with those decision refs.
 Leave unfinished storage and unrelated proposals outside that scope. Replace duplicated current
-status prose with source links or explicitly dated historical descriptions. Keep authoring-session
+status prose only in this stage's editable outputs with source links or explicitly dated historical
+descriptions. Approved inputs retain their historical text; explain later resolution in the
+follow-on ADR and ledger instead. Keep authoring-session
 Docker/network observations in the preparation review, labeled as pre-execution observations;
 prerequisite task text describes the durable action, not that session's environment. Link the
 current ledger/receipts for execution status. After any roadmap edit use

@@ -12,6 +12,16 @@ interpreter retains its own project-local dependency cache; uv installation uses
 download cache. Setup or import failures stop at this boundary before agent work. Internal steps
 and read-only completion validation do not silently install dependencies or change approvals.
 
+Assessment approval freezes every artifact named in its receipt, including
+`tooling-evaluation.md`, assessment/backlog, confirmed intake and the review packet.
+Later architecture/tooling/roadmap/closure stages preserve those exact bytes.
+Research can contain an earlier phase assignment that a reviewed follow-on ADR
+refines. Record that refinement in the new ADR and prerequisite ledger, citing
+the original; do not rewrite approved research or insert a backlink into it.
+Substantive replacement requires the owning assessment review, never a refreshed
+hash invented by a later producer. Stage briefs project this read-only boundary,
+and terminal stage validation checks it before downstream proofs and review.
+
 `docs/architecture/bootstrap-prerequisites.json` has schema_version `1.0`, `sources` and
 `prerequisites` arrays. It is part of the reviewed and hash-bound bootstrap artifact bundle.
 Source entries have `path`, `sha256` and `prerequisites` (condition IDs). Inventory the complete

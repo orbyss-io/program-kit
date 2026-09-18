@@ -534,7 +534,7 @@ def main() -> int:
         finally:
             module._run_project_validator = original_validator
         if roadmap_batch["checks"] != [
-            "output-contract", "owned-decisions-and-answers", "roadmap-governance", "first-entry-coverage",
+            "approved-assessment-inputs", "output-contract", "owned-decisions-and-answers", "roadmap-governance", "first-entry-coverage",
             "roadmap-synchronization", "roadmap-consistency", "synchronized-output-contract",
         ] or [arguments for _, arguments, _ in validator_calls] != [
             ["validate-roadmap"], ["synchronize-roadmap"], ["validate-bootstrap-consistency"],

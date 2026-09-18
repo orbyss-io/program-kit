@@ -1346,9 +1346,46 @@ def validate_architecture_structure(project_root: Path, run_id: str, *, allow_ac
     return {"checks": checks}
 
 
+def approved_assessment_inputs(project_root: Path) -> list[dict]:
+    """Project the existing human approval boundary; never renew its hashes."""
+    relative = '.specify/governance/bootstrap-assessment-approval.json'
+    receipt = project_root / relative
+    if not receipt.is_file():
+        return []
+    approval = load_json(receipt)
+    if approval.get('status') != 'Approved':
+        return []
+    return [{'path': relative, 'sha256': sha256_file(receipt)},
+            *({'path': path, 'sha256': digest} for path, digest in approval.get('artifacts', {}).items())]
+
+
+def validate_approved_inputs(project_root: Path, records: list[dict]) -> None:
+    changed = []
+    for record in records:
+        relative = record['path']
+        path = (project_root / relative).resolve()
+        if not path.is_relative_to(project_root.resolve()):
+            raise ContextError(f'Approved input escapes the project: {relative}')
+        if not path.is_file() or sha256_file(path) != record['sha256']:
+            changed.append(relative)
+    if changed:
+        raise ContextError('Approved assessment inputs changed: ' + ', '.join(changed)
+                           + '. Preserve the approved bytes and receipt. Record later design clarification '
+                           'in a Proposed follow-on ADR and prerequisite ledger, linking the unchanged source. '
+                           'A substantive replacement needs the owning assessment review; never refresh approval hashes.')
+
+
 def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
     checks: list[str] = []
     verdict: dict = {}
+    if stage not in {'assessment', 'research'}:
+        protected = approved_assessment_inputs(project_root)
+        if run_id:
+            brief = context_path(safe_run_directory(project_root, run_id), stage)
+            if brief.is_file():
+                protected = load_json(brief).get('stage_plan', {}).get('approved_inputs', protected)
+        validate_approved_inputs(project_root, protected)
+        checks.append('approved-assessment-inputs')
     if stage in {'tooling', 'closure'}:
         from bootstrap_quality import synchronize, validate
         try:
@@ -1557,6 +1594,17 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     }
 
     payload['stage_plan']['handoff_contract'] = STAGES[stage]
+    if stage not in {'assessment', 'research'}:
+        protected = approved_assessment_inputs(project_root)
+        validate_approved_inputs(project_root, protected)
+        # Readiness is rendered deterministically, not authored by a producer.
+        if stage != 'readiness':
+            payload['stage_plan']['approved_inputs'] = protected
+            payload['stage_plan']['approved_input_policy'] = (
+                'These files and their approval receipt are read-only in this stage, including tooling-evaluation.md. '
+                'Resolve later design or phase assignments in a Proposed follow-on ADR and prerequisite ledger, '
+                'citing the unchanged approved source. Do not edit historical research to agree with the new design '
+                'or refresh approval hashes. Substantive replacement returns to the owning assessment review.')
     payload['stage_plan']['registry_sha256'] = sha256_file(Path(__file__).with_name('bootstrap_stages.py'))
     payload['stage_plan']['question_transport'] = {
         'command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py ask --run-id ' + run_id + ' --stage ' + stage,

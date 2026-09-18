@@ -83,6 +83,11 @@ class ProfileRoutingTests(unittest.TestCase):
             self.assertIn("dotnet-sdk", research["managed_profile_pins"]["pins"])
             value["toolchain"] = {"source": "program-kit-default", "pins": research["managed_profile_pins"]["pins"], "override_reason": ""}
             write_json(register, value)
+            # This fixture crosses from editable research into approved architecture.
+            # Model that approval only after the researched pins have been selected.
+            write_json(project / '.specify/governance/bootstrap-assessment-approval.json', {
+                'status': 'Approved', 'artifacts': {
+                    'docs/architecture/bootstrap-decisions.json': context.sha256_file(register)}})
             _, architecture = context.build_context(project, "profiles", "architecture")
             blocks = architecture["stage_plan"]["building_blocks"]
             self.assertEqual(blocks["suggested_compositions"], ["api_baseline", "browser_bff"])
