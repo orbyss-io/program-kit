@@ -36,6 +36,12 @@ def make_source(model: dict, document: dict) -> dict:
 
 
 class AuthoringTests(unittest.TestCase):
+    def test_constraint_metadata_default_does_not_invent_decision_authority(self):
+        model = {'constraints': [{'id': 'one'}, {'id': 'two', 'decision_refs': ['existing-adr']}]}
+        authoring.defaults(model)
+        self.assertEqual([], model['constraints'][0]['decision_refs'])
+        self.assertEqual(['existing-adr'], model['constraints'][1]['decision_refs'])
+
     def test_independent_draft_errors_are_aggregated_without_replacing_outputs(self):
         self.build()
         before = {p: p.read_bytes() for p in self.intent.parent.iterdir() if p.name != 'intake-authoring.json'}

@@ -12,6 +12,55 @@ import bootstrap_context as context
 
 
 class QualityHandoffTests(unittest.TestCase):
+    def test_source_bundle_is_complete_compact_and_aggregate_bounded(self):
+        from bounded_read import read_bundle, read_page, PAGE_BYTES
+        value = {'data': [{'name': 'é漢🙂', 'count': n} for n in range(800)]}
+        raw = json.dumps(value, ensure_ascii=False, indent=4)
+        (self.root / 'data.json').write_text(raw, encoding='utf-8')
+        (self.root / 'rules.md').write_text('Required rule.\n' * 300, encoding='utf-8')
+        first = read_bundle(self.root, ['data.json', 'rules.md', 'data.json'])
+        pages = [read_bundle(self.root, ['data.json', 'rules.md', 'data.json'], n)
+                 for n in range(1, first['pages'] + 1)]
+        content = ''.join(p['text'] for p in pages)
+        compact = json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+        self.assertIn(compact, content)
+        self.assertIn((self.root / 'rules.md').read_bytes().decode('utf-8'), content)
+        self.assertEqual(1, content.count('SOURCE data.json'))
+        self.assertTrue(all(len(p['text'].encode('utf-8')) <= PAGE_BYTES for p in pages))
+        self.assertLess(len(content.encode('utf-8')), len(raw.encode('utf-8')))
+        self.assertEqual(['data'], json.loads(read_page(self.root, 'data.json', keys=True)['text'])['keys'])
+        with self.assertRaisesRegex(ValueError, 'available keys: data'):
+            read_page(self.root, 'data.json', pointer='/assurance_levels')
+        with self.assertRaisesRegex(ValueError, 'Omit --pointer for the root'):
+            read_page(self.root, 'data.json', pointer='/')
+
+    def test_required_source_reader_excludes_optional_evidence(self):
+        path = context.context_path(context.safe_run_directory(self.root, 'trial'), 'closure')
+        path.parent.mkdir(parents=True)
+        (self.root / 'required.md').write_text('Required fact', encoding='utf-8')
+        (self.root / 'optional.md').write_text('Optional unrelated fact', encoding='utf-8')
+        path.write_text(json.dumps({'reading_policy': {'required_full_reads': ['required.md'],
+            'allowed_sources': ['optional.md']}}), encoding='utf-8')
+        result = context.read_sources(self.root, 'trial', 'closure', 1)
+        self.assertIn('Required fact', result['text'])
+        self.assertNotIn('Optional unrelated fact', result['text'])
+        with self.assertRaisesRegex(context.ContextError, 'Page must be between'):
+            context.read_sources(self.root, 'trial', 'closure', 2)
+
+    def test_canonical_binding_status_distinguishes_acceptance_from_design_change(self):
+        from bootstrap_lifecycle import source_binding_status, source_digest, LEDGER
+        docs = self.root / 'docs/architecture'
+        adr = docs / 'decision.md'
+        adr.write_text('- **Status**: Proposed\n\nKeep consumer semantics.\n', encoding='utf-8')
+        (docs / 'bootstrap-decisions.json').write_text('{}', encoding='utf-8')
+        (docs / 'architecture-map.json').write_text(json.dumps({'decisions': [{'path': 'docs/architecture/decision.md'}]}), encoding='utf-8')
+        (self.root / LEDGER).write_text(json.dumps({'sources': [{'path': 'docs/architecture/decision.md',
+            'sha256': source_digest(adr)}]}), encoding='utf-8')
+        adr.write_text(adr.read_text(encoding='utf-8').replace('Proposed', 'Accepted'), encoding='utf-8')
+        self.assertEqual('matched', source_binding_status(self.root)['sources'][-1]['status'])
+        adr.write_text(adr.read_text(encoding='utf-8') + 'Changed condition.\n', encoding='utf-8')
+        self.assertEqual('changed', source_binding_status(self.root)['sources'][-1]['status'])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='pk-quality-handoff-')
         self.addCleanup(self.temp.cleanup)

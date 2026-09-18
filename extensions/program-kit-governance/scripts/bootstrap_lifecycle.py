@@ -76,6 +76,19 @@ def source_paths(root: Path) -> list[str]:
     return sorted(set(paths))
 
 
+def source_binding_status(root: Path) -> dict:
+    """Compare canonical ledger digests without interpreting status-only ADR promotion as drift."""
+    recorded = {item['path']: item['sha256'] for item in load(root / LEDGER).get('sources', [])} if (root / LEDGER).is_file() else {}
+    sources = []
+    for path in sorted(set(source_paths(root)) | set(recorded)):
+        target = local(root, path)
+        current = source_digest(target) if target.is_file() else None
+        status = 'missing' if current is None else ('unrecorded' if path not in recorded else
+                  'matched' if recorded[path] == current else 'changed')
+        sources.append({'path': path, 'status': status, 'sha256': current})
+    return {'digest_method': 'source_digest: normalized ADR status and text newlines', 'sources': sources}
+
+
 def verification_kind(item: dict) -> str:
     # Delivery is evidence about running software, not an interview answer.
     return item.get('verification', 'compatibility' if item['disposition'] == 'architecture'
@@ -515,14 +528,16 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['proof', 'source-hashes'])
+    parser.add_argument('command', choices=['proof', 'source-hashes', 'source-status'])
     parser.add_argument('--id')
     parser.add_argument('--recipe')
     parser.add_argument('--timeout', type=int, default=120)
     args = parser.parse_args()
     root = Path.cwd().resolve()
     try:
-        if args.command == 'source-hashes':
+        if args.command == 'source-status':
+            result = source_binding_status(root)
+        elif args.command == 'source-hashes':
             result = {'sources': [{'path': p, 'sha256': source_digest(local(root, p)), 'prerequisites': []} for p in source_paths(root)]}
         else:
             if not args.id or not args.recipe or not 1 <= args.timeout <= 600:

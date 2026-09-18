@@ -5,17 +5,17 @@ import json
 from pathlib import Path
 import sys
 
-PAGE_BYTES = 6000
+PAGE_BYTES = 9000
 
 
-def read_page(root: Path, relative: str, page: int = 1, pointer: str | None = None) -> dict:
+def source_content(root: Path, relative: str, pointer: str | None = None, keys: bool = False) -> dict:
     root = root.resolve()
     path = (root / relative).resolve()
     if not path.is_relative_to(root) or not path.is_file():
-        raise ValueError('Read path must be an existing file inside the repository.')
+        raise ValueError(f'Read path {relative!r} must be an existing file inside the repository; do not read an output before it is authored.')
     data = path.read_bytes()
     text = data.decode('utf-8-sig')
-    if pointer is not None:
+    if pointer is not None or keys or path.suffix.lower() == '.json':
         value = json.loads(text)
         if pointer and not pointer.startswith('/'):
             raise ValueError('JSON pointer must be empty or start with /.')
@@ -25,9 +25,22 @@ def read_page(root: Path, relative: str, page: int = 1, pointer: str | None = No
                 if not key.isdecimal() or (key != '0' and key.startswith('0')):
                     raise ValueError('JSON array pointer requires a nonnegative canonical index.')
                 value = value[int(key)]
-            else:
+            elif isinstance(value, dict):
+                if key not in value:
+                    names = ', '.join(str(k) for k in list(value)[:20])
+                    raise ValueError(f'Unknown JSON key {key!r}; available keys: {names}. Omit --pointer for the root; / means an empty key.')
                 value = value[key]
+            else:
+                raise ValueError('Cannot descend into a scalar JSON value.')
+        if keys:
+            value = {'type': type(value).__name__, 'keys': list(value) if isinstance(value, dict) else None,
+                     'length': len(value) if isinstance(value, (list, dict)) else None}
         text = json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+    return {'path': path.relative_to(root).as_posix(), 'sha256': hashlib.sha256(data).hexdigest(),
+            'pointer': pointer, 'text': text}
+
+
+def paginate(text: str, page: int) -> dict:
     encoded = text.encode('utf-8')
     chunks, start = [], 0
     while start < len(encoded):
@@ -40,19 +53,35 @@ def read_page(root: Path, relative: str, page: int = 1, pointer: str | None = No
     pages = len(chunks)
     if not 1 <= page <= pages:
         raise ValueError(f'Page must be between 1 and {pages}.')
-    return {'path': path.relative_to(root).as_posix(), 'sha256': hashlib.sha256(data).hexdigest(),
-            'pointer': pointer, 'page': page, 'pages': pages,
-            'text': chunks[page - 1], 'next_page': page + 1 if page < pages else None}
+    return {'page': page, 'pages': pages, 'text': chunks[page - 1],
+            'next_page': page + 1 if page < pages else None}
+
+
+def read_page(root: Path, relative: str, page: int = 1, pointer: str | None = None, keys: bool = False) -> dict:
+    source = source_content(root, relative, pointer, keys)
+    return {**source, **paginate(source['text'], page)}
+
+
+def read_bundle(root: Path, paths: list[str], page: int = 1) -> dict:
+    sources = [source_content(root, path) for path in dict.fromkeys(paths)]
+    text = '\n\n'.join(f"SOURCE {s['path']} sha256={s['sha256']}\n{s['text']}" for s in sources)
+    return {'path': 'source bundle', 'sha256': hashlib.sha256(text.encode('utf-8')).hexdigest(),
+            'pointer': None, **paginate(text, page)}
+
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--path', required=True)
+    parser.add_argument('--path', required=True, action='append')
+    parser.add_argument('--keys', action='store_true', help='Show JSON keys without reading all values.')
     parser.add_argument('--pointer')
     parser.add_argument('--page', type=int, default=1)
     args = parser.parse_args()
     try:
-        result = read_page(Path.cwd(), args.path, args.page, args.pointer)
+        if len(args.path) > 1 and (args.pointer is not None or args.keys):
+            raise ValueError('Pointers/key discovery require exactly one --path.')
+        result = (read_page(Path.cwd(), args.path[0], args.page, args.pointer, args.keys) if len(args.path) == 1
+                  else read_bundle(Path.cwd(), args.path, args.page))
     except (OSError, UnicodeError, ValueError, KeyError, IndexError, TypeError) as error:
         print(f'Bounded read failed: {error}', file=sys.stderr)
         return 2

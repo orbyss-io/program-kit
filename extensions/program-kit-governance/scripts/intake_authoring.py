@@ -28,6 +28,9 @@ def defaults(model: dict) -> None:
     model.setdefault('schema_version', '1.1')
     for key in ('decisions', 'documentation', 'constraints', 'extensions'):
         model.setdefault(key, [])
+    for constraint in model['constraints'] if isinstance(model['constraints'], list) else []:
+        if isinstance(constraint, dict):
+            constraint.setdefault('decision_refs', [])
     model.setdefault('configuration', {'styles': [], 'themes': [], 'terminology': {}, 'branding': {}, 'properties': {}})
     for key in ('elements', 'relationships', 'views'):
         for item in model.get(key, []) if isinstance(model.get(key, []), list) else []:

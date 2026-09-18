@@ -927,6 +927,7 @@ def building_block_stage_contract(project_root: Path, intake: dict) -> dict | No
         "placement_planning": planning,
         "rules": [
             "Use this projection instead of running --help or searching/dumping the installed catalog.",
+            "A planned target and its bound instance must resolve to the same ancestor of composition.scope_kind, even for Directory.Build.props. Target kind/path does not determine its logical scope. For an application composition, a target scoped only to the repository is outside that application; retain the repository file path and bind its scope to the owning application.",
             "The draft command initializes suggestions only. Architecture authors exact scopes, targets with placement provenance, instances, bindings, and compatible options before validation.",
             "Managed option groups constrain research: an unsupported renderer (for example Blazor for forms_runtime) remains unresolved until architecture chooses a supported option or an explicitly reviewed custom adapter/override. Never silently substitute a renderer or change approved product semantics.",
         ],
@@ -1134,6 +1135,8 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             'provider_inputs': __import__('bootstrap_provider_context').project(project_root, authorities.get('assessment_decisions', {})),
             'first_slice': authorities.get('assessment_decisions', {}).get('first_slice'),
             'source_hashes': __import__('bootstrap_lifecycle').source_paths(project_root),
+            'source_binding_status': __import__('bootstrap_lifecycle').source_binding_status(project_root),
+            'source_status_command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_lifecycle.py source-status',
             'recipe_catalog': __import__('managed_compatibility').catalog(),
             'rules': [
                 'Select maintained recipes for managed toolchains. Custom recipes are only for consumer-specific risk; do not reconstruct generic package, subprocess or JUnit machinery.',
@@ -1144,6 +1147,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 'Bootstrap can complete with Candidate entries and open proofs. Empty probe/transition lists are valid. Never fabricate a Ready entry; retain owned obligations with exact phase gates.',
                 'Separate a consumer choice, an external compatibility risk and verification of future feature code. Preserve approved defaults and due phases; do not convert device testing or consumer business tests into bootstrap design decisions.',
                 'Return after the exact validation batch. Native execution owns restore, probes, conditional readiness and retry.',
+                'Use source_binding_status and source_status_command for normalized ledger bindings; raw file hashes cannot establish ADR drift. Native proof execution owns Docker/toolchain availability; a sandboxed authoring process failure does not establish host incompatibility. Fixture tooling receipts do not discharge future consumer delivery tests.',
             ],
             'terminal_condition': terminal,
         }
@@ -1653,6 +1657,10 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         },
     }
 
+    if stage != 'readiness':  # Readiness is rendered deterministically, with no agent source reads.
+        payload['reading_policy']['read_command'] = (
+            f'python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py '
+            f'read-sources --stage {stage} --run-id {run_id} --page 1')
     payload['stage_plan']['handoff_contract'] = STAGES[stage]
     if stage not in {'assessment', 'research'}:
         protected = approved_assessment_inputs(project_root)
@@ -1850,6 +1858,16 @@ def read_brief(project_root: Path, run_id: str, stage: str, page: int) -> dict:
             'text': text[start:start + page_chars], 'next_page': page + 1 if page < pages else None}
 
 
+def read_sources(project_root: Path, run_id: str, stage: str, page: int) -> dict:
+    """Read only the explicitly required source set, compacted and aggregate-budgeted."""
+    from bounded_read import read_bundle
+    brief = load_json(context_path(safe_run_directory(project_root, run_id), stage))
+    try:
+        return read_bundle(project_root, brief['reading_policy']['required_full_reads'], page)
+    except (ValueError, KeyError, IndexError, TypeError) as exc:
+        raise ContextError(f'Required source read failed: {exc}') from exc
+
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
@@ -1863,6 +1881,7 @@ def main() -> int:
             "validate-output",
             "inspect-output",
             "read-brief",
+            "read-sources",
             "validate-intake",
             "validate-profile-pins",
             "validate-architecture-alignment",
@@ -1921,10 +1940,12 @@ def main() -> int:
             if not args.stage:
                 raise ContextError("--stage is required for validate-stage")
             result = validate_stage_batch(project_root, args.run_id, args.stage)
-        elif args.command in {"validate-output", "inspect-output", "read-brief"}:
+        elif args.command in {"validate-output", "inspect-output", "read-brief", "read-sources"}:
             if not args.stage:
                 raise ContextError(f"--stage is required for {args.command}")
-            if args.command == 'read-brief':
+            if args.command == 'read-sources':
+                result = read_sources(project_root, args.run_id, args.stage, args.page)
+            elif args.command == 'read-brief':
                 result = read_brief(project_root, args.run_id, args.stage, args.page)
             elif args.command == 'inspect-output':
                 result = inspect_stage_output(project_root, args.stage, args.run_id or '')
@@ -1943,6 +1964,10 @@ def main() -> int:
         return 2
     if args.json or args.command == "prepare-architecture-recovery":
         print(json.dumps(result))
+    elif args.command == 'read-sources':
+        print(f"Required sources sha256={result['sha256']} page {result['page']}/{result['pages']}")
+        print(result['text'])
+        print(f"Next page: {result['next_page']}" if result['next_page'] else 'End of required sources.')
     elif args.command == 'read-brief':
         print(f"Brief {result['path']} sha256={result['sha256']} page {result['page']}/{result['pages']} (character {result['start_character']})")
         print(result['text'], end='\n')
