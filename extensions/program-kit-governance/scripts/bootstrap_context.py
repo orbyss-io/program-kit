@@ -699,6 +699,7 @@ def resolved_output_contract(stage: str, paths: dict[str, str], run_id: str = ""
         "contract_references": list(contract["contract_references"]),
         "validation_commands": [stage_validation_command(stage, run_id)],
         "draft_size_command": f"python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py inspect-output --stage {stage}",
+        "budget_basis": "Authored UTF-8 bytes; exact canonical generated views are reported separately. Never trim generated views.",
         "artifact_byte_budgets": {
             replace_governance_path(path, paths): ARTIFACT_BYTE_BUDGETS[path]
             for path in contract["write_paths"]
@@ -1150,8 +1151,8 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         from bootstrap_quality import projection
         quality = projection(project_root)
         return {'mode': 'bounded-generation', 'consumer_quality_cases': quality,
-                'authored_target_bytes': max(1024, 5500 - sum(len(v.encode('utf-8')) for v in quality['cases'].values())),
-                'rules': ['Reference consumer case IDs; do not redefine WEB-Q cases. Terminal validation generates their exact view from quality-attributes.md. Reserve the projected case bytes within the existing output budget.',
+                'authored_target_bytes': 5500,
+                'rules': ['Reference consumer case IDs; do not redefine WEB-Q cases. Terminal validation generates their exact view from quality-attributes.md. Exact generated views are measured separately from authored prose.',
                           'Link to ADR metadata and prerequisite ledger for current status; do not repeat Proposed/Accepted or open/closed in authored prose.'],
                 'terminal_condition': terminal}
     return {
@@ -1208,18 +1209,76 @@ def check_architecture_blocked(project_root: Path, run_id: str = "") -> None:
                        f"Resolution: {report['resolution']}. Dispatch/process exit is not architecture completion.")
 
 
+def artifact_sizes(project_root: Path, relative: str, paths: dict) -> dict:
+    """Exclude only byte-equivalent canonical generated views, never arbitrary marked prose."""
+    path = project_root / relative
+    data = path.read_bytes()
+    generated = 0
+    if path.suffix == '.md':
+        text = data.decode('utf-8')
+        for kind in ('LIFECYCLE', 'ROADMAP-VIEW', 'QUALITY-CASES'):
+            start, end = f'<!-- PROGRAM-KIT:{kind}:START -->', f'<!-- PROGRAM-KIT:{kind}:END -->'
+            if start not in text and end not in text:
+                continue
+            if text.count(start) != 1 or text.count(end) != 1 or text.index(start) >= text.index(end):
+                raise ContextError(f'Malformed {kind} generated view in {relative}')
+            expected = None
+            if kind == 'LIFECYCLE':
+                from bootstrap_lifecycle import lifecycle_view
+                model = project_root / 'docs/architecture/architecture-map.json'
+                if model.is_file():
+                    expected = lifecycle_view(load_json(model))
+            elif kind == 'ROADMAP-VIEW':
+                from governance_state import _roadmap_view, roadmap_records
+                roadmap = Path(replace_governance_path('docs/architecture/specification-roadmap.md', paths))
+                if (project_root / roadmap).is_file():
+                    try:
+                        expected = _roadmap_view(roadmap_records(project_root / roadmap), roadmap).rstrip('\n')
+                    except ValueError as error:
+                        raise ContextError(f'Cannot verify generated roadmap view in {relative}: {error}') from error
+            else:
+                from bootstrap_quality import render, projection
+                try:
+                    expected = render(projection(project_root)['cases'])
+                except ValueError as error:
+                    raise ContextError(f'Cannot verify generated quality view in {relative}: {error}') from error
+            block = text[text.index(start):text.index(end) + len(end)]
+            # Preserve physical CRLF byte accounting while comparing generated semantics.
+            if expected is not None and block.replace('\r\n', '\n') == expected:
+                generated += len(block.encode('utf-8'))
+    return {'bytes': len(data), 'authored_bytes': len(data) - generated, 'generated_bytes': generated}
+
+
 def inspect_stage_output(project_root: Path, stage: str, run_id: str = "") -> dict:
     """Advisory, read-only sizing before terminal validation; never an acceptance verdict."""
     contract = resolved_output_contract(stage, governance_contract(project_root)['paths'], run_id)
     artifacts = []
     for relative, budget in contract['artifact_byte_budgets'].items():
         path = project_root / relative
-        size = path.stat().st_size if path.is_file() else None
+        sizes = artifact_sizes(project_root, relative, governance_contract(project_root)['paths']) if path.is_file() else {'bytes': None, 'authored_bytes': None, 'generated_bytes': None}
+        size = sizes['authored_bytes']
         target = contract['artifact_target_bytes'][relative]
-        artifacts.append({'path': relative, 'bytes': size, 'target_bytes': target,
+        artifacts.append({'path': relative, **sizes, 'target_bytes': target,
                           'budget_bytes': budget, 'headroom_bytes': None if size is None else budget - size,
                           'above_target_bytes': None if size is None else max(0, size - target)})
     return {'stage': stage, 'advisory_only': True, 'artifacts': artifacts}
+
+
+def validate_final_narrative_sizes(project_root: Path) -> None:
+    """Use the same accounting after final lifecycle/navigation synchronization."""
+    paths = governance_contract(project_root)['paths']
+    problems = []
+    for source in ('docs/architecture/architecture.md', 'docs/architecture/traceability.md',
+                   'docs/architecture/quality-system.md'):
+        relative = replace_governance_path(source, paths)
+        if not (project_root / relative).is_file():
+            continue  # The existing required-artifact validator owns missing files.
+        sizes = artifact_sizes(project_root, relative, paths)
+        if sizes['authored_bytes'] > ARTIFACT_BYTE_BUDGETS[source]:
+            problems.append(f"{relative}: {sizes['authored_bytes']} authored bytes exceeds its hard byte budget "
+                            f"{ARTIFACT_BYTE_BUDGETS[source]} ({sizes['generated_bytes']} generated bytes separately)")
+    if problems:
+        raise ContextError('\n'.join(problems))
 
 
 def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> dict:
@@ -1234,18 +1293,19 @@ def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> d
         if not path.is_file():
             problems.append(f"Required {stage} output is missing: {relative_path}")
             continue
-        size = path.stat().st_size
+        sizes = artifact_sizes(project_root, relative_path, governance_paths)
+        size = sizes['authored_bytes']
         if size > budget:
             problems.append(
                 f"{stage} output exceeds its hard byte budget: "
-                f"{relative_path} is {size} bytes; maximum {budget}; "
+                f"{relative_path} is {size} authored bytes ({sizes['bytes']} total); maximum {budget}; "
                 f"revise toward target {contract['artifact_target_bytes'][relative_path]} bytes "
                 "to retain headroom for downstream edits"
             )
         target = contract["artifact_target_bytes"][relative_path]
         artifacts.append({
             "path": relative_path,
-            "bytes": size,
+            **sizes,
             "target_bytes": target,
             "budget_bytes": budget,
             "target_exceeded": size > target,
@@ -1890,7 +1950,7 @@ def main() -> int:
     elif args.command == 'inspect-output':
         print('Advisory sizing only; terminal validation is still required.')
         for artifact in result['artifacts']:
-            print(f"{artifact['path']}: {artifact['bytes']} bytes; target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}; headroom {artifact['headroom_bytes']}; above target {artifact['above_target_bytes']}")
+            print(f"{artifact['path']}: {artifact['authored_bytes']} authored + {artifact['generated_bytes']} generated = {artifact['bytes']} total bytes; authored target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}; headroom {artifact['headroom_bytes']}; above target {artifact['above_target_bytes']}")
     elif args.command == "validate-intake":
         print(f"Program Kit confirmed bootstrap intake is valid: {result['path']}")
     elif args.command == "validate-profile-pins":
@@ -1911,7 +1971,7 @@ def main() -> int:
             f"({result['check_count']} checks; {result['target_exceeded_count']} above generation target)"
         )
         for artifact in result['artifacts']:
-            print(f"{artifact['path']}: {artifact['bytes']} bytes; target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}")
+            print(f"{artifact['path']}: {artifact['authored_bytes']} authored + {artifact['generated_bytes']} generated = {artifact['bytes']} total bytes; authored target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}")
     elif args.command == "validate-output":
         print(
             f"Program Kit {args.stage} outputs are within hard byte budgets "

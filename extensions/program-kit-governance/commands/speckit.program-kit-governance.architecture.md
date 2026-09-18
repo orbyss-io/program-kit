@@ -4,7 +4,7 @@ scripts:
   py: scripts/governance_state.py validate
 ---
 
-Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage architecture --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage architecture --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 
 
 ## Input

@@ -1607,9 +1607,11 @@ def validate_ratification() -> dict:
 
 def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
     from bootstrap_quality import validate as validate_quality_cases
+    from bootstrap_context import validate_final_narrative_sizes, ContextError
     try:
         validate_quality_cases(Path.cwd().resolve())
-    except ValueError as error:
+        validate_final_narrative_sizes(Path.cwd().resolve())
+    except (ValueError, ContextError) as error:
         raise GovernanceStateError(str(error)) from error
     assessment_approval = validate_assessment_approval()
     validate_ratification()
@@ -2063,14 +2065,14 @@ def validate_roadmap_architecture_scope(records: list[dict]) -> None:
                                        + ', '.join(sorted(missing)))
 
 
-def _roadmap_view(records: list[dict[str, str]]) -> str:
+def _roadmap_view(records: list[dict[str, str]], roadmap_path: Path | None = None) -> str:
     lines = [
         ROADMAP_VIEW_START,
         "## Specification roadmap view",
         "",
         (
             "> Derived navigation view only. "
-            f"`{ROADMAP.as_posix()}` is the authoritative source for roadmap-entry status."
+            f"`{(roadmap_path or ROADMAP).as_posix()}` is the authoritative source for roadmap-entry status."
         ),
         "",
         "| Roadmap entry | Title | Authoritative status |",

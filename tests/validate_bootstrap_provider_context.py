@@ -1,5 +1,6 @@
 """Provider handoff and source visibility regressions; no network or coding agents."""
 import hashlib
+import copy
 import json
 from pathlib import Path
 import shutil
@@ -16,6 +17,20 @@ from validate_building_blocks import accepted_fixture, load_module, write_json, 
 
 
 class ProviderContextTests(unittest.TestCase):
+    def test_known_identity_spellings_project_same_pins_without_mutating_approval(self):
+        expected = providers.project(self.root, self.decisions)['identity_runtime']
+        for spelling in ('keycloak', 'Keycloak', 'KEYCLOAK', ' Keycloak '):
+            with self.subTest(provider=spelling):
+                decisions = copy.deepcopy(self.decisions)
+                decisions['identity']['provider'] = spelling
+                before = copy.deepcopy(decisions)
+                self.assertEqual(expected, providers.project(self.root, decisions)['identity_runtime'])
+                self.assertEqual(before, decisions)
+        for provider, scope in (('Custom.Keycloak', 'local-evaluation'), ('keycloak', 'consumer-service')):
+            decisions = copy.deepcopy(self.decisions)
+            decisions['identity'].update(provider=provider, scope=scope)
+            self.assertIsNone(providers.project(self.root, decisions)['identity_runtime'])
+
     def test_shipped_probe_and_exporter_pins_match_managed_foundation(self):
         import xml.etree.ElementTree as ET
         version = json.loads(CATALOG.read_text())['families']['foundation']['releaseVersion']

@@ -2,7 +2,7 @@
 description: Turn researched capabilities into a staged repository quality system.
 ---
 
-Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage tooling --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage tooling --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 
 
 ## Input
@@ -98,7 +98,7 @@ WEB-Q definitions and control mapping in `quality-attributes.md` are canonical. 
 The terminal batch writes their exact generated view, including every case. Reference IDs in
 the capability matrix instead of writing another definition list. Additional managed suite cases
 use their existing control IDs, not a conflicting consumer ID. Keep authored text below
-`stage_plan.authored_target_bytes`, which reserves space for this generated view. Tool output must distinguish source and
+`stage_plan.authored_target_bytes`, which applies to authored prose; the exact generated view is accounted separately. Tool output must distinguish source and
 configuration checks, protocol/boundary tests, real-browser/provider tests, and deployment
 assurance. A skipped real-provider, conformance, vulnerability, or risk-proportional security test
 remains visible; it cannot be converted into passing evidence by a unit mock.

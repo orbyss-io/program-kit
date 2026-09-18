@@ -4,7 +4,7 @@ scripts:
   py: scripts/governance_state.py
 ---
 
-Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage roadmap --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage roadmap --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 
 
 ## Preconditions
@@ -64,7 +64,7 @@ The terminal validation batch runs that existing synchronization before closure 
 refreshes the two documents' canonical hashes and DSL, and checks consistency and final byte budgets.
 Do not refresh hashes by hand or run an additional synchronization command after the batch.
 Make the smallest link-only edits needed outside the new roadmap, do not restate roadmap fields, and
-check the final byte count of each edited file against `output_contract.artifact_byte_budgets`.
+use the supplied sizing command to check each edited file against `output_contract.artifact_byte_budgets`; it reports authored, generated and total bytes separately.
 
 For each record use the heading `### <ID>: <Title>` and include exactly these list-item forms, with
 the colon outside the bold label (for example `- **User-visible outcome**: ...`):

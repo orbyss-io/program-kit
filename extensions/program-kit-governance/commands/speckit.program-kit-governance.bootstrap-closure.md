@@ -2,7 +2,7 @@
 description: Close scoped bootstrap architecture prerequisites with bounded compatibility evidence.
 ---
 
-Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage closure --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage closure --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 
 
 You own verification planning after roadmap drafting. Read the supplied closure stage brief first;

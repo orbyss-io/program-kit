@@ -70,7 +70,9 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
     ):
         raise ValueError('PROVIDER-HANDOFF-MISSING: managed host/browser closure needs its architecture-owned building-block selection')
     identity = decisions.get('identity', {})
-    if identity.get('provider') == 'keycloak' and identity.get('scope') == 'local-evaluation':
+    # Interpret the known managed identity consistently without rewriting approved text.
+    # Unknown providers and consumer-service scopes remain consumer-owned.
+    if str(identity.get('provider', '')).strip().casefold() == 'keycloak' and identity.get('scope') == 'local-evaluation':
         relative = '.specify/extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml'
         document = yaml.safe_load(bind(relative).read_text(encoding='utf-8'))
         image = document['services']['keycloak']['image']

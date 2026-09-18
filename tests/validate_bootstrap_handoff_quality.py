@@ -92,6 +92,42 @@ class QualityHandoffTests(unittest.TestCase):
         self.assertIsNone(result['artifacts'][1]['bytes'])
         self.assertEqual(b'x' * 12, path.read_bytes())
 
+    def test_generated_growth_preserves_authored_budget_and_cannot_hide_prose(self):
+        from bootstrap_lifecycle import lifecycle_view
+        model = {'decisions': [], 'elements': [{'id': f'element-{n}', 'status': 'proposed'} for n in range(200)],
+                 'relationships': []}
+        model_path = self.root / 'docs/architecture/architecture-map.json'
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+        path = self.root / 'docs/architecture/architecture.md'
+        body = '# Design\n\n' + 'é' * 4000 + '\n\n'
+        path.write_bytes((body + lifecycle_view(model)).replace('\n', '\r\n').encode('utf-8'))
+        before = path.read_bytes()
+        sizes = context.artifact_sizes(self.root, 'docs/architecture/architecture.md', {})
+        self.assertGreater(sizes['bytes'], 10240)
+        self.assertLess(sizes['authored_bytes'], 10240)
+        with patch.object(context, 'governance_contract', return_value={'paths': {'specification_roadmap': 'docs/architecture/specification-roadmap.md', 'constitution_document': '.specify/memory/constitution.md', 'constitution_ratification': '.specify/memory/constitution-ratification.json'}}):
+            context.validate_final_narrative_sizes(self.root)
+        self.assertEqual(before, path.read_bytes())
+        # Extra author prose inside a marker is not a canonical generated view.
+        path.write_text(body + lifecycle_view(model).replace('## Current lifecycle authority',
+                        '## Current lifecycle authority\n' + 'hidden ' * 1000), encoding='utf-8')
+        sizes = context.artifact_sizes(self.root, 'docs/architecture/architecture.md', {})
+        self.assertEqual(0, sizes['generated_bytes'])
+        with patch.object(context, 'governance_contract', return_value={'paths': {'specification_roadmap': 'docs/architecture/specification-roadmap.md', 'constitution_document': '.specify/memory/constitution.md', 'constitution_ratification': '.specify/memory/constitution-ratification.json'}}):
+            with self.assertRaisesRegex(context.ContextError, 'hard byte budget'):
+                context.validate_final_narrative_sizes(self.root)
+        path.write_text(body + '<!-- PROGRAM-KIT:LIFECYCLE:START -->', encoding='utf-8')
+        with self.assertRaisesRegex(context.ContextError, 'Malformed'):
+            context.artifact_sizes(self.root, 'docs/architecture/architecture.md', {})
+
+    def test_quality_view_counts_separately_without_dropping_any_case(self):
+        quality.synchronize(self.root)
+        sizes = context.artifact_sizes(self.root, quality.TARGET.as_posix(), {})
+        raw = (self.root / quality.TARGET).read_bytes().decode('utf-8')
+        block = raw[raw.index(quality.START):raw.index(quality.END) + len(quality.END)]
+        self.assertEqual(len(block.encode('utf-8')), sizes['generated_bytes'])
+        quality.validate(self.root)
+
     def test_brief_pages_are_lossless_bounded_and_do_not_rebuild_sources(self):
         path = context.context_path(context.safe_run_directory(self.root, 'trial'), 'closure')
         path.parent.mkdir(parents=True, exist_ok=True)

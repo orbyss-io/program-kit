@@ -39,6 +39,12 @@ def outside_view(text):
     return text[:text.index(START)] + text[text.index(END) + len(END):]
 
 
+def render(cases):
+    return '\n'.join([START, '## Consumer quality cases', '',
+                      '> Generated from [quality attributes](quality-attributes.md); edit definitions there.', '',
+                      *cases.values(), END])
+
+
 def synchronize(root):
     cases = projection(root)['cases']
     path = root / TARGET
@@ -52,9 +58,7 @@ def synchronize(root):
                          'remove duplicate tooling definitions and reference the generated view: ' + ', '.join(authored))
     if not cases and START not in original:
         return []
-    view = '\n'.join([START, '## Consumer quality cases', '',
-                      '> Generated from [quality attributes](quality-attributes.md); edit definitions there.', '',
-                      *cases.values(), END])
+    view = render(cases)
     if START in original:
         result = original[:original.index(START)] + view + original[original.index(END) + len(END):]
     else:
