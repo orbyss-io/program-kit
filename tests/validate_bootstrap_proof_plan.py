@@ -13,6 +13,29 @@ from validate_governance_state import roadmap
 
 
 class ProofPlanTests(unittest.TestCase):
+    def test_no_transition_preserves_near_budget_roadmap_bytes(self):
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        self.plan['readyWhenProven'] = []
+        write(self.root / PLAN, self.plan)
+        original = path.read_bytes().replace(b'\r\n', b'\n')
+        original += b'\n<!-- ' + b'x' * (6140 - len(original) - 11) + b' -->\n'
+        self.assertEqual(6140, len(original))
+        path.write_bytes(original)
+        execute(self.root)
+        self.assertEqual(original, path.read_bytes())
+        # A second execution with existing receipts must also leave CRLF bytes intact.
+        crlf = original.replace(b'\n', b'\r\n')
+        path.write_bytes(crlf)
+        execute(self.root)
+        self.assertEqual(crlf, path.read_bytes())
+
+    def test_transition_preserves_crlf_and_only_changes_status(self):
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        before = path.read_text(encoding='utf-8').replace('\n', '\r\n').encode('utf-8')
+        path.write_bytes(before)
+        execute(self.root)
+        self.assertEqual(before.replace(b'**Status**: Blocked', b'**Status**: Ready'), path.read_bytes())
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='bootstrap-proof-plan-')
         self.addCleanup(self.temp.cleanup)

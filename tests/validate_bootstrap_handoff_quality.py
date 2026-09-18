@@ -128,6 +128,18 @@ class QualityHandoffTests(unittest.TestCase):
         self.assertEqual(len(block.encode('utf-8')), sizes['generated_bytes'])
         quality.validate(self.root)
 
+    def test_final_validation_includes_roadmap_physical_bytes(self):
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        path.write_bytes(b'x' * 6144)
+        paths = {'specification_roadmap': 'docs/architecture/specification-roadmap.md',
+                 'constitution_document': '.specify/memory/constitution.md',
+                 'constitution_ratification': '.specify/memory/constitution-ratification.json'}
+        with patch.object(context, 'governance_contract', return_value={'paths': paths}):
+            context.validate_final_narrative_sizes(self.root)
+            path.write_bytes(b'x' * 6145)
+            with self.assertRaisesRegex(context.ContextError, 'specification-roadmap.md'):
+                context.validate_final_narrative_sizes(self.root)
+
     def test_brief_pages_are_lossless_bounded_and_do_not_rebuild_sources(self):
         path = context.context_path(context.safe_run_directory(self.root, 'trial'), 'closure')
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -145,6 +157,27 @@ class QualityHandoffTests(unittest.TestCase):
         for invalid in (0, first['pages'] + 1):
             with self.assertRaises(context.ContextError):
                 context.read_brief(self.root, 'trial', 'closure', invalid)
+        self.assertEqual(before, path.read_bytes())
+
+    def test_repository_reader_pages_unicode_and_selects_json_without_mutation(self):
+        from bounded_read import read_page, PAGE_BYTES
+        path = self.root / 'large.json'
+        payload = {'one/key': {'~value': ['é漢🙂' * 7000]}, 'other': 'not requested'}
+        path.write_text(json.dumps(payload, ensure_ascii=False), encoding='utf-8')
+        before = path.read_bytes()
+        first = read_page(self.root, 'large.json', pointer='/one~1key/~0value/0')
+        pages = [read_page(self.root, 'large.json', n, '/one~1key/~0value/0')
+                 for n in range(1, first['pages'] + 1)]
+        self.assertEqual(payload['one/key']['~value'][0], json.loads(''.join(p['text'] for p in pages)))
+        self.assertTrue(all(len(p['text'].encode('utf-8')) <= PAGE_BYTES for p in pages))
+        self.assertEqual(1, len({p['sha256'] for p in pages}))
+        for page in (0, first['pages'] + 1):
+            with self.assertRaises(ValueError):
+                read_page(self.root, 'large.json', page, '/one~1key/~0value/0')
+        with self.assertRaises(ValueError):
+            read_page(self.root, '../outside.txt')
+        with self.assertRaises(ValueError):
+            read_page(self.root, 'large.json', pointer='/one~1key/~0value/-1')
         self.assertEqual(before, path.read_bytes())
 
     def test_later_stage_preserves_approved_research_and_allows_separate_successor(self):

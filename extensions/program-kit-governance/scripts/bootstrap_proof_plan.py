@@ -63,7 +63,9 @@ def invalidate_changed_recipes(root, plan, ledger):
     for probe in plan['probes']:
         validate_recipe(root, probe['id'], probe['recipe'])
     path = root / ROADMAP
-    original = path.read_text(encoding='utf-8')
+    original_bytes = path.read_bytes()
+    newline = '\r\n' if b'\r\n' in original_bytes else '\n'
+    original = original_bytes.decode('utf-8').replace('\r\n', '\n')
     affected = {s for i in updated['prerequisites'] if i['id'] in invalidated for s in i['affected_slices']}
     if any(r['id'] in affected and r['Status'] in {'Active', 'Delivered'} for r in roadmap_records(path)):
         raise LifecycleError('Active/delivered scope needs an explicit compatibility change review')
@@ -75,7 +77,8 @@ def invalidate_changed_recipes(root, plan, ledger):
     write(archive, {'reason': 'execution-inputs-changed', 'prerequisites': invalidated, 'previous_ledger': ledger, 'previous_roadmap': original})
     # Conservative ordering: a stopped process may leave Blocked with old evidence,
     # never Ready with revoked evidence. The next resume can repeat reconciliation.
-    path.write_text(text, encoding='utf-8')
+    if text != original:
+        path.write_bytes(text.replace('\n', newline).encode('utf-8'))
     write(root / LEDGER, updated)
     return updated
 
@@ -176,8 +179,11 @@ def execute(root: Path, *, validate_only=False):
     # The producer names exact conditional transitions; this executor changes no
     # substantive scope or authority and final review still owns acceptance.
     path = root / ROADMAP
-    original = path.read_text(encoding='utf-8')
-    updated = original
+    original_bytes = path.read_bytes()
+    original = original_bytes.decode('utf-8')
+    newline = '\r\n' if b'\r\n' in original_bytes else '\n'
+    updated = original.replace('\r\n', '\n')
+    normalized_original = updated
     for promotion in promotions:
         identity = promotion['id']
         if all(items[i]['status'] == 'closed' for i in promotion['prerequisites']):
@@ -187,11 +193,12 @@ def execute(root: Path, *, validate_only=False):
             updated, count = re.subn(pattern, promote, updated, flags=re.MULTILINE | re.DOTALL)
             if count != 1:
                 raise LifecycleError('Ambiguous roadmap identity for conditional readiness')
-    path.write_text(updated, encoding='utf-8')
+    if updated != normalized_original:
+        path.write_bytes(updated.replace('\n', newline).encode('utf-8'))
     try:
         validate_prerequisites(root, roadmap_records(path), required=True, allow_proposed_authority=True)
     except Exception:
-        path.write_text(original, encoding='utf-8')
+        path.write_bytes(original_bytes)
         raise
     return results
 

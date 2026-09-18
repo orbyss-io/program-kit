@@ -36,6 +36,26 @@ def make_source(model: dict, document: dict) -> dict:
 
 
 class AuthoringTests(unittest.TestCase):
+    def test_independent_draft_errors_are_aggregated_without_replacing_outputs(self):
+        self.build()
+        before = {p: p.read_bytes() for p in self.intent.parent.iterdir() if p.name != 'intake-authoring.json'}
+        self.source['map']['strategic_model']['contracts'][0]['kind'] = 'capability'
+        existing_id = self.source['intake']['evidence'][0]['id']
+        self.source['intake']['open_items'] = [{'id': existing_id, 'classification': 'research', 'blocks': '', 'trigger': ''}]
+        with self.assertRaises(ValueError) as error:
+            self.build()
+        for required in ('synchronous-capability', 'Duplicate intake ID', 'must name what it blocks'):
+            self.assertIn(required, str(error.exception))
+        self.assertEqual(before, {p: p.read_bytes() for p in before})
+
+    def test_language_labels_are_canonical_without_rewriting_evidence(self):
+        self.source['intake']['routing']['languages'] = ['C# (.NET managed default)', 'CSharp']
+        choices = copy.deepcopy(self.source['intake']['choices'])
+        self.build()
+        document = intake.validate_intake(self.root, allowed_statuses={'draft'})
+        self.assertEqual(['c#'], document['routing']['languages'])
+        self.assertEqual(choices, document['choices'])
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix='program-kit-authoring-test-')
         self.addCleanup(self.temporary.cleanup)
@@ -123,7 +143,7 @@ class AuthoringTests(unittest.TestCase):
             'classification': 'deferred', 'disposition': 'Consumer to answer later',
             'blocks': 'Selecting the first journey interface', 'trigger': 'Architecture',
             'evidence': [self.source['intake']['evidence'][0]['id']]}]
-        with self.assertRaisesRegex(intake.IntakeError, 'both deferred and blocking'):
+        with self.assertRaisesRegex(ValueError, 'deferred item cannot also block'):
             self.build()
 
     def test_confirmed_intake_retains_real_device_verification_at_delivery(self):

@@ -6,6 +6,8 @@ scripts:
 
 Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage roadmap --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 
+For other required references and evidence, use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <repository-relative-path> --page 1` and follow next pages. For one JSON fact, add `--pointer /path/to/field`; do not print the entire evidence/map/schema when a field or descriptor suffices. Emit one page per tool response, including when scheduling independent reads; nested per-command limits do not protect the aggregate response. Read required full references completely once and reuse already received content.
+
 
 ## Preconditions
 

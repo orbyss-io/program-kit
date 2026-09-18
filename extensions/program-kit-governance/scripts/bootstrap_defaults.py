@@ -9,6 +9,7 @@ from copy import deepcopy
 import importlib.util
 import json
 from pathlib import Path
+from language_identity import canonical_language
 
 REGISTER = Path('docs/architecture/bootstrap-decisions.json')
 POLICY = '.specify/extensions/program-kit-governance/references/default-adoption.md'
@@ -34,7 +35,7 @@ def resolve(intake: dict, register: dict) -> dict:
                           'recommendation': 'Research and review a consumer-owned integration and its bounded verification; no managed capability is claimed.'})
 
     routing = intake.get('routing', {})
-    languages = {v.casefold() for v in routing.get('languages', [])}
+    languages = {canonical_language(v) for v in routing.get('languages', [])}
     web = value.get('web', {})
     browser = web.get('browser_ui') is True or bool(profiles & {'browser-web', 'typescript-web'})
     if 'web' not in value:

@@ -1269,7 +1269,7 @@ def validate_final_narrative_sizes(project_root: Path) -> None:
     paths = governance_contract(project_root)['paths']
     problems = []
     for source in ('docs/architecture/architecture.md', 'docs/architecture/traceability.md',
-                   'docs/architecture/quality-system.md'):
+                   'docs/architecture/quality-system.md', 'docs/architecture/specification-roadmap.md'):
         relative = replace_governance_path(source, paths)
         if not (project_root / relative).is_file():
             continue  # The existing required-artifact validator owns missing files.

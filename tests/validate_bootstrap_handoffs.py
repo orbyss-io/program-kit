@@ -20,6 +20,20 @@ from bootstrap_lifecycle import validate_recipe, load, write
 
 
 class DefaultAndHandoffTests(unittest.TestCase):
+    def test_language_identity_preserves_managed_aliases_and_real_constraints(self):
+        for name in ('C#', ' CSHARP ', 'C# (.NET managed default)', 'C# (explicit selection)',
+                     'dotnet', '.NET', 'C# / .NET'):
+            intake = {'routing': {'languages': [name], 'capabilities': ['authenticated-browser-bff']}}
+            original = copy.deepcopy(intake)
+            result = resolve(intake, {})
+            self.assertIn('dotnet', result['selected_profiles'], name)
+            self.assertEqual('keycloak', result['identity']['provider'])
+            self.assertEqual(original, intake)
+        for names in (['Python'], ['C#', 'Python'], ['C# (without Foundation)'], ['Python (managed default)']):
+            result = resolve({'routing': {'languages': names, 'capabilities': ['authenticated-browser-bff']}}, {})
+            self.assertNotIn('dotnet', result['selected_profiles'], names)
+            self.assertEqual('consumer-authentication-integration', result['unresolved'][0]['id'])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
