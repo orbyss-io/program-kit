@@ -13,7 +13,7 @@ human feature-intake confirmation. See [repository sync validation](repository-s
 This document is preparation guidance, not a claim that 0.12.0 has been published or live-accepted.
 
 All Program Kit installable components advance together to `0.12.0`. Orbyss Foundation remains
-pinned at `0.1.0`; Forms and Localization remain at `0.1.1`. This minor version publishes no runtime
+pinned at `0.2.2`; Forms is pinned at `0.2.0` and Localization at `0.1.1`. This minor version publishes no runtime
 component versions.
 
 Before tagging, establish successful deterministic local Release evidence:
@@ -57,10 +57,10 @@ the read-only public component-package gate. It writes
 `artifacts/release-receipt-0.12.0.json` for later inspection and does not run an optional paid
 Codex-worker phase.
 
-Before the Program Kit stable tag, verify the already-published component releases and public package
-propagation: `dotnet-foundation` `v0.1.0`, `forms` `v0.1.1`, and `localization` `v0.1.1`.
+Before the Program Kit stable tag, verify the component tags and published package/image
+propagation (a GitHub Release entry is not required for each component): `dotnet-foundation` `v0.2.2`, `forms` `v0.2.0`, and `localization` `v0.1.1`.
 
-Only after all three replacement families and the 12 Forms npm packages are public and verified
+Only after all three replacement families and all cataloged Forms npm packages are public and verified
 should Program Kit `v0.12.0` be tagged. Legacy `ProgramKit.*` handling is permanently read-only:
 Program Kit records and verifies compatibility, but neither release tooling nor consumer tooling may
 remove, hide, or otherwise mutate those package versions.

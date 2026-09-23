@@ -109,6 +109,20 @@ def main() -> int:
         if "python tests/validate_runnable_host_pins.py" not in workflow:
             raise AssertionError(f"{label} does not enforce runnable-host central-pin regressions.")
 
+    # Every deterministic source validator selected by local Release must also
+    # execute before remote publication; keyword checks alone hid coverage drift.
+    release_match = re.search(r"\$releaseOnlyValidators\s*=\s*@\((.*?)\)", aggregate, re.DOTALL)
+    if release_match is None:
+        raise AssertionError("Could not locate Release validator list.")
+    required_validators = set(re.findall(r"'(validate_[^']+\.py)'", development + release_match.group(1)))
+    for workflow, label in ((ci, "CI"), (release, "Release workflow")):
+        invoked = set(re.findall(r"^\s+(?:run: )?python tests/(validate_[\w]+\.py)(?:\s|$)", workflow, re.MULTILINE))
+        missing = required_validators - invoked
+        if missing:
+            raise AssertionError(f"{label} omits deterministic Release validators: {sorted(missing)}")
+        if 'global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json' not in workflow:
+            raise AssertionError(f"{label} must install the managed SDK for executed component/persistence tests.")
+
     require(
         "release evidence reuse",
         release_guide,

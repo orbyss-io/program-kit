@@ -384,9 +384,10 @@ The previous public .NET sync command is retired without an alias.
 
 Selecting the .NET profile adopts `Orbyss.Foundation.Host` by default. The coordinator's internal
 engineering adapter scaffolds central build/package management, safe managed-file synchronization,
-runnable-image staging, and release workflows. The generated application
-image layers packages and configuration onto a digest-pinned application-neutral host; the host never parses release
-metadata. A write requires the approved,
+application-bundle staging, and release workflows. Consumers deploy the unchanged, digest-pinned
+published Foundation host with a bundle of shells.json, hostsettings.json, nuplane.settings.json,
+optional package feeds and a version/hash-bound descriptor. Consumers do not build a host DLL,
+Dockerfile or derived image. A write requires the approved,
 hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of the independently
 pinned packages and NuGet sources; restore/build execution is separately authorized. This .NET adapter is not a
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone

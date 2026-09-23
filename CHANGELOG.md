@@ -1,8 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.12.0 - 2026-09-23
 
-### 0.12.0 candidate
+- Reduce bootstrap reading overhead with bounded required-source batches and lossless JSON
+  compaction. Preserve consumer intent, distinguish canonical ADR bindings from raw hashes,
+  and synchronize validated roadmap/prerequisite documentation without weakening drift checks.
+- Use published Foundation 0.2.2, Forms 0.2.0 and Localization 0.1.1 through the managed catalog.
+  Deploy consumer configuration/package bundles with the unchanged published Foundation host.
+- Enforce the complete deterministic source-validator inventory in CI and tagged Release,
+  including real component, .NET engineering and PostgreSQL checks with the managed SDK.
 
 - Separate feature planning decisions from delivery execution evidence; retain each obligation's
   actual due phase through specification intake and use current native receipts without rewriting

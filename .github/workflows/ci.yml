@@ -122,6 +122,46 @@ jobs:
       - name: Validate bundle manifest
         run: specify bundle validate --path . --offline
 
+      - name: Set up managed .NET SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
+
+      - name: Validate remaining deterministic Release contracts
+        run: |
+          python tests/validate_proxy_intake.py
+          python tests/validate_bootstrap_handoffs.py
+          python tests/validate_bootstrap_provider_context.py
+          python tests/validate_bootstrap_profiles.py
+          python tests/validate_dependency_audit.py
+          python tests/validate_phase_obligations.py
+          python tests/validate_api_proof.py
+          python tests/validate_persistence_selection.py
+          python tests/validate_postgresql_service.py
+          python tests/validate_knowledge_inventory.py
+          python tests/validate_feature_knowledge.py
+          python tests/validate_architecture_recipe.py
+          python tests/validate_capability_proof.py
+          python tests/validate_learning_metrics.py
+          python tests/validate_learning_report.py
+          python tests/validate_lending_oracle.py
+          python tests/validate_reference_baseline.py
+          python tests/validate_discovery_fixture.py
+          python tests/validate_intake_handoff.py
+          python tests/validate_placement_contract.py
+          python tests/validate_readiness_scope.py
+          python tests/validate_readiness_projection.py
+          python tests/validate_bootstrap_compatibility.py
+          python tests/validate_bootstrap_proof_plan.py
+          python tests/validate_generated_contract_schemas.py
+          python tests/validate_release_bundle.py
+          python tests/validate_public_component_use.py
+          python tests/validate_dotnet_engineering.py
+          python tests/validate_persistence_runtime.py
+          python tests/validate_lifecycle_profiles.py
+          python tests/validate_js_toolchain.py
+          python tests/validate_repository_verification_hook.py
+
       - name: Build release assets
         run: python scripts/build_release.py
 
