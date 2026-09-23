@@ -9,6 +9,12 @@ import sys
 from pathlib import Path
 
 
+# Importlib-based viewers need the same sibling imports as direct CLI callers.
+_scripts_path = str(Path(__file__).resolve().parent)
+if _scripts_path not in sys.path:
+    sys.path.insert(0, _scripts_path)
+
+
 SCHEMA_VERSION = "1.1"
 CANONICAL_INTAKE = Path("docs/architecture/bootstrap-intake.json")
 CANONICAL_ARTIFACTS = {

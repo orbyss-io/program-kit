@@ -614,7 +614,7 @@ def founding_adr_records(required_status: str = "Proposed") -> list[dict[str, st
             raise GovernanceStateError(f"Duplicate founding ADR candidate marker: {candidate_id}")
         if not _has_decision_status(text, required_status):
             raise GovernanceStateError(
-                f"Founding ADR {path.relative_to(Path.cwd()).as_posix()} must be {required_status}"
+                f"Founding ADR {path.relative_to(Path.cwd().resolve()).as_posix()} must be {required_status}"
             )
         observed.add(candidate_id)
         records.append(

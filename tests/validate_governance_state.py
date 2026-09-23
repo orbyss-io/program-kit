@@ -6,6 +6,7 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 
 def load_validator(root: Path):
@@ -745,6 +746,10 @@ def main() -> int:
             module.validate_roadmap(True)
 
             write_bootstrap_artifacts(module, project, architecture_module)
+            # Resolved document paths and lexical cwd aliases (including Windows
+            # short names) must produce the intended governance error, not ValueError.
+            with patch.object(Path, 'cwd', return_value=project / 'unused' / '..'):
+                expect_error(module, lambda: module.founding_adr_records('Rejected'), 'must be Rejected')
             roadmap_path.write_text(
                 roadmap("`decision-context-boundaries`"), encoding="utf-8"
             )
