@@ -64,7 +64,12 @@ def setup(root=None, offline=False, wheelhouse=None):
             if sys.platform == 'win32' and (22, 2) <= pip_version < (24, 2):
                 command += ['--use-feature=truststore']  # Verified system roots, never a TLS bypass.
         elif shutil.which('uv'):
-            command = [shutil.which('uv'), 'pip', 'install', '--python', sys.executable]
+            # An isolated machine-installed Specify Python may inherit an
+            # administrator-owned UV_CACHE_DIR. Setup owns project-local tools,
+            # so it must not require write access to that machine cache.
+            cache = Path(root or project_root()).resolve() / '.program-kit/cache/uv'
+            command = [shutil.which('uv'), 'pip', 'install', '--python', sys.executable,
+                       '--cache-dir', str(cache)]
             if sys.platform == 'win32':
                 command += ['--native-tls']
         else:

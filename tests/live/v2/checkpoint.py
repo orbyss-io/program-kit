@@ -21,6 +21,7 @@ def seal_checkpoint(
     expectation_digest: str,
     selection_sha256: str,
     parent: str | None = None,
+    scenario_root: str | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     architecture = project / "docs/architecture/architecture-map.json"
     if not architecture.is_file():
@@ -45,6 +46,8 @@ def seal_checkpoint(
         "files": inventory,
         "createdAt": utc_now(),
     }
+    if scenario_root is not None:
+        manifest['scenarioRoot'] = scenario_root
     validate(manifest, checkpoint_schema)
     destination = store.checkpoints / f"{identifier}.json"
     atomic_write_json(destination, manifest)

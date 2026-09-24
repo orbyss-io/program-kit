@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,29 @@ from .supervisor import ProcessResult, run_supervised
 
 
 CONTROL_ARCHIVE_KEYS = ("workflow", "bundle")
+
+
+def bootstrap_session_limit(root: Path, receipt: dict) -> int:
+    relative = f"artifacts/program-kit-bootstrap-{receipt['version']}.zip"
+    records = [record for record in receipt['artifacts'] if record['path'] == relative]
+    archive = root / relative
+    if len(records) != 1 or sha256_file(archive) != records[0]['sha256']:
+        raise LiveContractError('LIVE_CANDIDATE_WORKFLOW_HASH_MISMATCH')
+    with zipfile.ZipFile(archive) as package:
+        workflow = package.read('workflow.yml').decode('utf-8-sig')
+    count = sum(line.strip() == 'type: command' for line in workflow.splitlines())
+    if count < 1:
+        raise LiveContractError('LIVE_CANDIDATE_WORKFLOW_HAS_NO_PAID_STEPS')
+    return count
+
+
+def validate_candidate_receipt(root: Path, receipt_path: Path, schema_root: Path, kind: str = 'release') -> tuple[dict, str]:
+    if kind == 'development-trial':
+        from live.v2.trial_candidate import validate_trial_receipt
+        return validate_trial_receipt(root, receipt_path, schema_root)
+    if kind != 'release':
+        raise LiveContractError('LIVE_CANDIDATE_RECEIPT_KIND_INVALID')
+    return validate_release_receipt(root, receipt_path, load_object(schema_root / 'release-receipt.schema.json'))
 
 
 def validate_release_receipt(root: Path, receipt_path: Path, schema: dict[str, Any]) -> tuple[dict[str, Any], str]:

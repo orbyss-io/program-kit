@@ -12,7 +12,7 @@ import yaml
 import validate_workflow_resumption as fixture
 from live.v2.authorization import issue_authorization, validate_authorization
 from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, load_object
-from live.v2.workflow_acceptance import driver, reserve_dispatch, reported_usage, reviewed_input
+from live.v2.workflow_acceptance import driver, reserve_dispatch, reported_usage, reviewed_input, parent_checkpoint
 from specify_cli.workflows.steps.command import CommandStep
 from specify_cli.workflows.steps.shell import ShellStep
 
@@ -61,6 +61,22 @@ def main():
         project.mkdir()
         evidence = base / 'evidence'
         evidence.mkdir()
+        # Parent admission must accept the current usage-ledger version while
+        # retaining inventory and cleanup checks. Schema shape is checked separately.
+        import live.v2.workflow_acceptance as acceptance
+        disposable = base / 'artifacts/live-v2-w/parent'
+        disposable.mkdir(parents=True)
+        parent_path = base / 'parent.json'
+        parent = {'schemaVersion': '2.2', 'kind': 'workflow-lifecycle',
+                  'workspace': 'artifacts/live-v2-w/parent', 'projectInventory': [],
+                  'process': {'cleanupComplete': True, 'logsDrained': True},
+                  'native': {'status': 'paused', 'run_id': 'fixture'}, 'review': None}
+        atomic_write_json(parent_path, parent)
+        with patch.object(acceptance, 'validate'), patch.object(acceptance, 'schemas', return_value=ROOT / 'tests/live/schemas/v2'), \
+             patch.object(acceptance, 'review_gate', return_value=None):
+            assert parent_checkpoint(base, parent_path)[0]['schemaVersion'] == '2.2'
+            (disposable / 'changed.txt').write_text('changed')
+            rejects(lambda: parent_checkpoint(base, parent_path), 'PARENT_CHANGED')
         os.chdir(project)
         try:
             fixture.setup(project)

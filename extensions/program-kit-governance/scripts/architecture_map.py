@@ -172,13 +172,13 @@ def _id(value: object, label: str) -> str:
     return text
 
 
-def _unique_strings(value: object, label: str, maximum: int = 120) -> list[str]:
+def _unique_strings(value: object, label: str, maximum: int = 120, *, repeated: bool = False) -> list[str]:
     if not isinstance(value, list):
         raise ArchitectureMapError(f"{label} must be a list")
     result: list[str] = []
     for index, item in enumerate(value, 1):
         result.append(_text(item, f"{label}[{index}]", maximum))
-    if len(set(result)) != len(result):
+    if not repeated and len(set(result)) != len(result):
         raise ArchitectureMapError(f"{label} contains duplicates")
     return result
 
@@ -661,7 +661,7 @@ def _validate_strategic_model(
             "id", "name", "source_journey", "actor_or_trigger", "outcome", "view", "steps",
             "status", "evidence", "decision_refs",
         }
-        if not isinstance(item, dict) or set(item) != fields:
+        if not isinstance(item, dict) or set(item) - {"discovery"} != fields:
             raise ArchitectureMapError(f"{label} has an invalid shape")
         journey_id = _id(item.get("id"), f"{label}.id")
         if journey_id in journey_ids:
@@ -671,6 +671,13 @@ def _validate_strategic_model(
         _id(item.get("source_journey"), f"{label}.source_journey")
         _text(item.get("actor_or_trigger"), f"{label}.actor_or_trigger")
         _text(item.get("outcome"), f"{label}.outcome")
+        if item.get('discovery'):
+            _semantic_ids(item['discovery'], f'{label}.discovery', require_one=True)
+            if item['status'] != 'proposed' or item['steps'] or item['view']:
+                raise ArchitectureMapError(f'{label}: unresolved journey must remain proposed with empty steps/view')
+            _semantic_ids(item.get('evidence'), f'{label}.evidence', require_one=True)
+            _semantic_status(item, label, decision_ids, decision_statuses)
+            continue
         view_key = _id(item.get("view"), f"{label}.view")
         if view_key in journey_views or views.get(view_key, {}).get("type") != "dynamic":
             raise ArchitectureMapError(f"{label}.view must name one unique dynamic view")
@@ -693,10 +700,8 @@ def _validate_strategic_model(
             contract = _text(step.get("contract"), f"{step_label}.contract", 64, allow_empty=True)
             if contract and contract not in contract_ids:
                 raise ArchitectureMapError(f"{step_label}.contract references a missing contract")
-        if len(set(step_relationships)) != len(step_relationships):
-            raise ArchitectureMapError(f"{label}.steps must use distinct relationship identities")
         view = views[view_key]
-        if view["relationships"] != step_relationships or view["order"] != step_relationships:
+        if view["relationships"] != list(dict.fromkeys(step_relationships)) or view["order"] != step_relationships:
             raise ArchitectureMapError(
                 f"Dynamic view {view_key} must preserve the journey relationship selection and order"
             )
@@ -713,7 +718,7 @@ def _validate_strategic_model(
             "id", "name", "journey", "actor_or_trigger", "outcome", "contexts", "status",
             "evidence", "decision_refs",
         }
-        if not isinstance(item, dict) or set(item) != fields:
+        if not isinstance(item, dict) or set(item) - {'supporting_journeys'} != fields:
             raise ArchitectureMapError(f"{label} has an invalid shape")
         slice_id = _id(item.get("id"), f"{label}.id")
         if slice_id in slice_ids:
@@ -722,6 +727,10 @@ def _validate_strategic_model(
         _text(item.get("name"), f"{label}.name", 240)
         if _id(item.get("journey"), f"{label}.journey") not in journey_ids:
             raise ArchitectureMapError(f"{label}.journey references a missing strategic journey")
+        if 'supporting_journeys' in item:
+            _semantic_ids(item['supporting_journeys'], f"{label}.supporting_journeys", journey_ids, require_one=True)
+            if item['journey'] in item['supporting_journeys']:
+                raise ArchitectureMapError(f"{label}.supporting_journeys repeats the primary journey")
         _text(item.get("actor_or_trigger"), f"{label}.actor_or_trigger")
         _text(item.get("outcome"), f"{label}.outcome")
         _semantic_ids(item.get("contexts"), f"{label}.contexts", context_ids, require_one=True)
@@ -731,6 +740,8 @@ def _validate_strategic_model(
     required_view_types = {
         "system-context", "domain-landscape", "context-map", "context-decomposition", "dynamic"
     }
+    if all(j.get("discovery") for j in journeys):
+        required_view_types.discard("dynamic")
     actual_view_types = {view["type"] for view in views.values()}
     if not required_view_types.issubset(actual_view_types):
         raise ArchitectureMapError(
@@ -769,6 +780,60 @@ def project_domain_analysis(model: dict) -> dict:
     }
 
 
+def refinement_hash(value: dict) -> str:
+    semantic = {k: v for k, v in value.items() if k not in {'status', 'decision_refs'}}
+    return hashlib.sha256(json.dumps(semantic, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()
+
+
+def record_refinement(model, intake, collection, identity, decisions, rationale):
+    projected = project_domain_analysis(model)
+    if collection == 'capability_assessments':
+        original = intake['capability_assessments']
+        bindings = {b['assessment']: b for b in model['strategic_model']['capability_bindings']}
+        current = [{**old, **{k: v for k, v in bindings[old['id']].items()
+                    if k not in {'assessment', 'module', 'status', 'decision_refs'}}} for old in original]
+    else:
+        original = intake['domain_analysis'][collection]
+        current = projected[collection]
+    old = next((v for v in original if v['id'] == identity), None)
+    new = next((v for v in current if v['id'] == identity), None)
+    if old is None or new is None or not rationale or not rationale.strip():
+        raise ArchitectureMapError('Refinement requires an existing proposal identity and rationale')
+    record = {'collection': collection, 'id': identity, 'before_sha256': refinement_hash(old),
+              'after_sha256': refinement_hash(new), 'decision_refs': decisions, 'rationale': rationale}
+    result = copy.deepcopy(model)
+    result['refinements'] = [r for r in result.get('refinements', []) if (r['collection'], r['id']) != (collection, identity)] + [record]
+    refined_records(result, collection, [old], [new])
+    return result
+
+
+def refined_records(model: dict, collection: str, original: list, current: list) -> list:
+    """Authorize specific provisional changes; never rewrite confirmed source evidence."""
+    result = []
+    by_id = {item['id']: item for item in current}
+    decisions = {item['id']: item for item in model['decisions']}
+    for old in original:
+        new = by_id.get(old['id'], old)
+        records = [r for r in model.get('refinements', []) if r['collection'] == collection and r['id'] == old['id']]
+        if len(records) > 1:
+            raise ArchitectureMapError('Duplicate proposal refinement: ' + old['id'])
+        if records:
+            r = records[0]
+            if (old.get('status') not in {'proposed', 'derived', 'unresolved'}
+                    and not (collection == 'capability_assessments' and old.get('decision_state') in {'project-owned-design', 'research-required', 'program-kit-default'})):
+                raise ArchitectureMapError('Explicit consumer decisions cannot be changed through proposal refinement')
+            if r['before_sha256'] != refinement_hash(old) or r['after_sha256'] != refinement_hash(new):
+                raise ArchitectureMapError('Proposal refinement hashes are stale: ' + old['id'])
+            if not r['decision_refs'] or any(decisions.get(d, {}).get('status') not in {'Proposed', 'Accepted'} for d in r['decision_refs']):
+                raise ArchitectureMapError('Proposal refinement requires a current Proposed or Accepted ADR')
+            if old.get('evidence') != new.get('evidence'):
+                raise ArchitectureMapError('Proposal refinement must preserve original consumer evidence references')
+            result.append(new)
+        else:
+            result.append(old)
+    return result
+
+
 def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     """Validate cross-artifact semantic completeness for new bootstrap intake contracts."""
     if intake.get("schema_version") != "1.1":
@@ -789,13 +854,13 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
         raise ArchitectureMapError("Intake and architecture-map subdomain analyses do not match")
     projected = project_domain_analysis(model)
     expected_subdomains = projected['subdomains']
-    if analysis.get("subdomains") != expected_subdomains:
+    if refined_records(model, 'subdomains', analysis.get('subdomains', []), expected_subdomains) != expected_subdomains:
         raise ArchitectureMapError("Intake and architecture-map subdomain evidence is not identical")
     contexts = {item["id"] for item in analysis.get("candidate_contexts", [])}
     mapped_contexts = {item["element"] for item in strategic["bounded_contexts"]}
     if contexts != mapped_contexts:
         raise ArchitectureMapError("Intake and architecture-map candidate bounded contexts do not match")
-    intake_contexts = analysis.get("candidate_contexts", [])
+    intake_contexts = refined_records(model, 'candidate_contexts', analysis.get('candidate_contexts', []), projected['candidate_contexts'])
     expected_contexts = [{key: value for key, value in item.items() if key != 'status'}
                          for item in projected['candidate_contexts']]
     intake_context_evidence = [
@@ -823,9 +888,12 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
         raise ArchitectureMapError(
             "Every capability assessment must have one strategic mechanism/semantics binding"
         )
+    mapped_assessments = [{**item, 'id': item['assessment']} for item in strategic['capability_bindings']]
+    mapped_assessments = [{**old, **{k: v for k, v in next(item for item in mapped_assessments if item['id'] == old['id']).items()
+                          if k not in {'assessment', 'module', 'status', 'decision_refs'}}} for old in intake.get('capability_assessments', [])]
     intake_bindings = [
         {key: value for key, value in item.items() if key not in {"id", "need"}}
-        for item in intake.get("capability_assessments", [])
+        for item in refined_records(model, 'capability_assessments', intake.get('capability_assessments', []), mapped_assessments)
     ]
     expected_bindings = [
         {
@@ -845,7 +913,7 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
         raise ArchitectureMapError(
             "Intake and architecture-map founding decision candidates do not match"
         )
-    if analysis.get("founding_decision_candidates") != projected['founding_decision_candidates']:
+    if refined_records(model, 'founding_decision_candidates', analysis.get('founding_decision_candidates', []), projected['founding_decision_candidates']) != projected['founding_decision_candidates']:
         raise ArchitectureMapError(
             "Intake and architecture-map founding decision evidence is not identical"
         )
@@ -859,6 +927,11 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
             semantic_evidence.update(item["evidence"])
     if not semantic_evidence.issubset(evidence_ids):
         raise ArchitectureMapError("Strategic architecture references unknown intake evidence")
+
+
+def candidate_journeys(candidate: dict) -> set[str]:
+    """Exact journey coverage; never infer additional scope from narrative text."""
+    return {candidate['journey'], *candidate.get('supporting_journeys', [])}
 
 
 def validate_model(model: dict, project_root: Path | None = None) -> dict:
@@ -877,8 +950,17 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
         "extensions",
     }
     required.add("strategic_model")
-    if set(model) != required or model.get("schema_version") != SCHEMA_VERSION:
+    if set(model) - {'refinements'} != required or model.get("schema_version") != SCHEMA_VERSION:
         raise ArchitectureMapError("Architecture map has an invalid top-level shape or schema version")
+    for item in model.get('refinements', []):
+        if set(item) != {'collection', 'id', 'before_sha256', 'after_sha256', 'decision_refs', 'rationale'}:
+            raise ArchitectureMapError('Proposal refinement has an invalid shape')
+        if item['collection'] not in {'subdomains', 'candidate_contexts', 'capability_assessments', 'founding_decision_candidates'}:
+            raise ArchitectureMapError('Unknown proposal refinement collection')
+        _id(item['id'], 'refinement.id')
+        _text(item['rationale'], 'refinement.rationale')
+        if not all(SHA256.fullmatch(item[k]) for k in ('before_sha256', 'after_sha256')):
+            raise ArchitectureMapError('Proposal refinement requires exact source and result hashes')
     _id(model.get("model_id"), "model_id")
     _text(model.get("title"), "title")
 
@@ -1155,7 +1237,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
                 raise ArchitectureMapError(f"View {key} references missing relationship {relationship_id}")
         decision_references(view.get("decision_refs"), f"{label}.decision_refs", "proposed")
         _unique_strings(view.get("filters"), f"{label}.filters")
-        for ordered_id in _unique_strings(view.get("order"), f"{label}.order", 64):
+        for ordered_id in _unique_strings(view.get("order"), f"{label}.order", 64, repeated=view['type'] == 'dynamic'):
             if ordered_id not in element_ids and ordered_id not in relationship_ids:
                 raise ArchitectureMapError(f"View {key} order references missing identity {ordered_id}")
         _properties(view.get("layout"), f"{label}.layout")
@@ -1844,7 +1926,8 @@ class StructurizrDslImporter(ArchitectureMapImporter):
                     relationship_id = relationship_identifiers.get(
                         match.group(2), _canonical_identifier(match.group(2))
                     )
-                    current_view["relationships"].append(relationship_id)
+                    if relationship_id not in current_view["relationships"]:
+                        current_view["relationships"].append(relationship_id)
                     current_view["order"].append(relationship_id)
                     continue
                 if current_view is not None and line.startswith("autolayout "):
@@ -1926,6 +2009,7 @@ class StructurizrDslImporter(ArchitectureMapImporter):
             ),
             "extensions": list(extensions_by_signature.values()),
             "strategic_model": copy.deepcopy((base or {}).get("strategic_model")),
+            **({'refinements': copy.deepcopy(base['refinements'])} if base and 'refinements' in base else {}),
         }
         validate_model(model)
         diagnostics.insert(
@@ -1966,6 +2050,13 @@ def main() -> int:
     validate_parser.add_argument("--map", required=True)
     validate_parser.add_argument("--project-root", default=".")
     validate_parser.add_argument("--verify-sources", action="store_true")
+    refinement_parser = subparsers.add_parser('record-refinement')
+    refinement_parser.add_argument('--map', default='docs/architecture/architecture-map.json')
+    refinement_parser.add_argument('--intake', default='docs/architecture/bootstrap-intake.json')
+    refinement_parser.add_argument('--collection', required=True, choices=['subdomains', 'candidate_contexts', 'capability_assessments', 'founding_decision_candidates'])
+    refinement_parser.add_argument('--id', required=True)
+    refinement_parser.add_argument('--decision', required=True, action='append')
+    refinement_parser.add_argument('--rationale', required=True)
     import_parser = subparsers.add_parser("import")
     import_parser.add_argument("--source", required=True)
     import_parser.add_argument("--format", default="auto")
@@ -1979,7 +2070,12 @@ def main() -> int:
     export_parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
     try:
-        if args.command == "validate":
+        if args.command == 'record-refinement':
+            path = Path(args.map)
+            result = record_refinement(load_object(path), load_object(Path(args.intake)), args.collection, args.id, args.decision, args.rationale)
+            write_text(path, json.dumps(result, indent=2, ensure_ascii=False) + '\n', True)
+            print('Recorded proposal refinement: ' + args.id)
+        elif args.command == "validate":
             model = load_object(Path(args.map))
             project_root = Path(args.project_root).resolve() if args.verify_sources else None
             validate_model(model, project_root)

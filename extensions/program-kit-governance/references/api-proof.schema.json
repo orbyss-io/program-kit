@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/api-proof.schema.json",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "identity": {
+            "type": "string",
+            "minLength": 1
+          },
+          "producerCheckIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "compatibilityCheckIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "versionDecision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "baselineSha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "newContract": {
+            "type": "boolean"
+          },
+          "artifactSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "identity",
+          "producerCheckIds",
+          "compatibilityCheckIds",
+          "versionDecision",
+          "baselineSha256",
+          "newContract"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contract": {
+            "type": "string",
+            "minLength": 1
+          },
+          "method": {
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              "HEAD",
+              "OPTIONS",
+              "TRACE"
+            ]
+          },
+          "route": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "designRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "checkIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "layout": {
+            "enum": [
+              "operation-folder",
+              "small-operation"
+            ]
+          },
+          "layoutRationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "composition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sources": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "minLength": 1
+              },
+              "request": {
+                "type": "string",
+                "minLength": 1
+              },
+              "response": {
+                "type": "string",
+                "minLength": 1
+              },
+              "validation": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mapping": {
+                "type": "string",
+                "minLength": 1
+              },
+              "handler": {
+                "type": "string",
+                "minLength": 1
+              },
+              "tests": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "endpoint",
+              "tests"
+            ],
+            "additionalProperties": false
+          },
+          "retired": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "contract",
+          "method",
+          "route",
+          "designRef",
+          "checkIds",
+          "layout",
+          "composition",
+          "sources"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "contracts",
+    "operations"
+  ],
+  "additionalProperties": false
+}

@@ -5,8 +5,9 @@ import json
 import os
 import re
 import tempfile
+import time
 from datetime import datetime, timezone
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 
@@ -48,6 +49,17 @@ def load_object(path: Path) -> dict[str, Any]:
     return value
 
 
+def sharing_retry(operation):
+    """Bound only Windows sharing/lock violations; never retry denied permissions."""
+    for attempt in range(8):
+        try:
+            return operation()
+        except OSError as error:
+            if os.name != 'nt' or getattr(error, 'winerror', None) not in {32, 33} or attempt == 7:
+                raise
+            time.sleep(min(.025 * 2 ** attempt, .2))
+
+
 def atomic_write_json(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
@@ -58,14 +70,15 @@ def atomic_write_json(path: Path, value: object) -> None:
             handle.write(payload)
             handle.flush()
             os.fsync(handle.fileno())
-        temporary.replace(path)
+        sharing_retry(lambda: temporary.replace(path))
     finally:
-        temporary.unlink(missing_ok=True)
+        sharing_retry(lambda: temporary.unlink(missing_ok=True))
 
 
 def safe_relative(value: str) -> PurePosixPath:
     path = PurePosixPath(value)
-    if not value or path.is_absolute() or ".." in path.parts or any(part in ("", ".") for part in path.parts):
+    if (not value or '\\' in value or ':' in value or PureWindowsPath(value).drive
+            or path.is_absolute() or ".." in path.parts or any(part in ("", ".") for part in path.parts)):
         raise LiveContractError(f"LIVE_UNSAFE_RELATIVE_PATH: {value!r}")
     return path
 

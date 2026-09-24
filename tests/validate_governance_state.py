@@ -6,6 +6,7 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 
 def load_validator(root: Path):
@@ -255,7 +256,7 @@ def decisions() -> dict:
     }
 
 
-def write_assessment(module, project: Path, semantic, architecture_module) -> None:
+def write_assessment(module, project: Path, semantic, architecture_module, *, web=None) -> None:
     intake_path = project / module.BOOTSTRAP_INTAKE
     intake_path.parent.mkdir(parents=True, exist_ok=True)
     intent_path = project / module.PROJECT_INTENT
@@ -276,6 +277,45 @@ def write_assessment(module, project: Path, semantic, architecture_module) -> No
         path.write_text(f"# {path.stem}\n", encoding="utf-8")
     decision_path = project / module.BOOTSTRAP_DECISIONS
     decision_path.write_text(json.dumps(decisions()), encoding="utf-8")
+    # Exercise the actual bootstrap shell gate, not only the persistence resolver/schema.
+    proposal = decisions()
+    proposal['persistence'] = [{'owner': 'reservation-management', 'capability': 'reservation-persistence',
+                              'storage': 'server-relational', 'profile': 'ef-postgresql',
+                              'status': 'proposed', 'testProvisioning': 'supervisor'}]
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    unchanged = decision_path.read_bytes()
+    if run_main(module, 'validate-assessment') != 0:
+        raise AssertionError('The assessment gate rejected schema-valid proposed persistence intent')
+    if decision_path.read_bytes() != unchanged or (project / module.ASSESSMENT_APPROVAL).exists():
+        raise AssertionError('Read-only assessment validation changed intent or fabricated approval')
+    proposal['web'].update(secure_profile='none-v1', profile_source='explicit-intake',
+                           override_reason='Explicit local anonymous fixture; reassess before deployment or authentication.',
+                           threat_model='none-v1', security_evidence='none-v1')
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    if run_main(module, 'validate-assessment') != 0:
+        raise AssertionError('Explicit anonymous browser intent with proposed persistence failed the shell gate')
+    proposal['web']['profile_source'] = 'program-kit-default'
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'requires explicit intake')
+    proposal['web']['profile_source'] = 'explicit-intake'
+    proposal['web']['override_reason'] = ''
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'override_reason')
+    proposal['web'] = decisions()['web']
+    proposal['persistence'][0]['profile'] = 'invented-provider'
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'persistence violates its schema')
+    proposal['persistence'] = 'not-an-owner-list'
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'persistence violates its schema')
+    proposal.pop('persistence')
+    proposal['invented_top_level'] = []
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'invalid top-level fields')
+    approved_decisions = decisions()
+    if web is not None:
+        approved_decisions['web'] = web
+    decision_path.write_text(json.dumps(approved_decisions), encoding='utf-8')
     module.write_review("assessment")
     assert_review_packet(project / module.ASSESSMENT_REVIEW, "assessment")
     assessment_path = project / module.ASSESSMENT
@@ -457,6 +497,12 @@ def main() -> int:
 
             bootstrap_decisions = project / module.BOOTSTRAP_DECISIONS
             bootstrap_decisions.parent.mkdir(parents=True, exist_ok=True)
+            for profiles, diagnostic in ((["ui-experience-v1"], "browser-web"),
+                                         (["browser-web"], "require dotnet")):
+                incomplete_browser = decisions()
+                incomplete_browser["selected_profiles"] = profiles
+                bootstrap_decisions.write_text(json.dumps(incomplete_browser), encoding="utf-8")
+                expect_error(module, module.validate_bootstrap_decisions, diagnostic)
             alternate_without_opt_out = decisions()
             alternate_without_opt_out["dotnet"]["host_runtime"] = "Custom.Host"
             bootstrap_decisions.write_text(
@@ -596,6 +642,17 @@ def main() -> int:
             )
             module.validate_constitution_draft()
             constitution_path.write_text(constitution(), encoding="utf-8")
+            # Metadata is document-level. A clear header placement must behave
+            # like the template footer; duplicates anywhere remain ambiguous.
+            lines = constitution(metadata_layout="lines").splitlines()
+            metadata = [line for line in lines if line.startswith(('**Version**:', '**Ratified**:', '**Last Amended**:'))]
+            body = '\n'.join(line for line in lines if line not in metadata)
+            header_metadata = '\n'.join(metadata) + '\n' + body
+            constitution_path.write_text(header_metadata, encoding="utf-8")
+            module.validate_constitution_draft()
+            constitution_path.write_text(header_metadata + '\n' + '\n'.join(metadata), encoding="utf-8")
+            expect_error(module, module.validate_constitution_draft, 'must declare Version')
+            constitution_path.write_text(constitution(), encoding="utf-8")
             module.validate_constitution_draft()
             module.write_review("constitution")
             assert_review_packet(project / module.CONSTITUTION_REVIEW, "constitution")
@@ -678,11 +735,9 @@ def main() -> int:
                 "- **Dependencies**: Before implementation, proposed test tooling requires an Accepted tooling ADR.",
             )
             roadmap_path.write_text(hidden_gate, encoding="utf-8")
-            expect_error(
-                module,
-                lambda: module.validate_roadmap(True),
-                "hides an unresolved implementation decision",
-            )
+            # Later-phase wording does not overrule the structured ledger or
+            # prohibit specification. Due-phase enforcement is tested separately.
+            module.validate_roadmap(True)
 
             decision = project / module.DECISIONS / "0042-first-boundary.md"
             decision.parent.mkdir(parents=True)
@@ -691,6 +746,10 @@ def main() -> int:
             module.validate_roadmap(True)
 
             write_bootstrap_artifacts(module, project, architecture_module)
+            # Resolved document paths and lexical cwd aliases (including Windows
+            # short names) must produce the intended governance error, not ValueError.
+            with patch.object(Path, 'cwd', return_value=project / 'unused' / '..'):
+                expect_error(module, lambda: module.founding_adr_records('Rejected'), 'must be Rejected')
             roadmap_path.write_text(
                 roadmap("`decision-context-boundaries`"), encoding="utf-8"
             )
@@ -724,11 +783,9 @@ def main() -> int:
                 encoding="utf-8",
             )
             module.synchronize_roadmap_views()
-            expect_error(
-                module,
-                module.validate_bootstrap_consistency,
-                "duplicates authoritative status",
-            )
+            # Proposal-time prose is history; only the synchronized navigation
+            # view owns the derived status. Source hashes still bind the prose.
+            module.validate_bootstrap_consistency()
             architecture_path.write_text(
                 "# Architecture\n\nOrbyss.Foundation.Host is the accepted runtime.\n\n"
                 "The browser boundary inherits program-kit-web-threat-model-v1 and "
@@ -757,6 +814,31 @@ def main() -> int:
             if (project / module.WORKSPACE_DSL).read_text(encoding="utf-8") != expected_projection:
                 raise AssertionError("Roadmap synchronization did not refresh the C4 projection")
             module.validate_bootstrap_consistency()
+            # The terminal batch runs once in the producer and again at the
+            # native handoff. Synchronization must be repeatable without drift.
+            synchronized_paths = [project / relative for relative in (
+                module.ARCHITECTURE, module.TRACEABILITY, module.ARCHITECTURE_MAP, module.WORKSPACE_DSL
+            )]
+            original_bytes = {path: path.read_bytes() for path in synchronized_paths}
+            module.synchronize_roadmap_views()
+            if any(path.read_bytes() != content for path, content in original_bytes.items()):
+                raise AssertionError("Repeated roadmap synchronization changed its outputs")
+            unrelated = project / "docs/architecture/quality-attributes.md"
+            quality_bytes = unrelated.read_bytes()
+            map_path = project / module.ARCHITECTURE_MAP
+            drift_model = json.loads(map_path.read_text(encoding="utf-8"))
+            drift_model["documentation"].append({
+                "id": "quality-attributes", "path": "docs/architecture/quality-attributes.md",
+                "sha256": module.sha256(unrelated), "scope": "Outside roadmap write ownership",
+            })
+            module.write_json(map_path, drift_model)
+            original_bytes[map_path] = map_path.read_bytes()
+            unrelated.write_bytes(quality_bytes + b"\nUnreviewed quality change\n")
+            expect_error(module, module.synchronize_roadmap_views, "documentation is missing or stale")
+            if any(path.read_bytes() != content for path, content in original_bytes.items()):
+                raise AssertionError("Rejected synchronization left partial derived updates")
+            unrelated.write_bytes(quality_bytes)
+            module.synchronize_roadmap_views()
             module.validate_bootstrap(False, True)
             module.write_review("bootstrap")
             assert_review_packet(project / module.BOOTSTRAP_REVIEW, "bootstrap")
@@ -786,6 +868,7 @@ def main() -> int:
             readiness.write_text("**Status**: READY\n\n# Readiness\n", encoding="utf-8")
             module.complete_bootstrap()
             module.validate_completion()
+            module.validate_setup_authority()
             completion = json.loads((project / module.BOOTSTRAP_COMPLETION).read_text(encoding="utf-8"))
             if completion.get("status") != "Completed":
                 raise AssertionError("Bootstrap completion evidence was not written")
@@ -798,6 +881,7 @@ def main() -> int:
                 "changed after human approval",
             )
             module.validate_roadmap(False)
+            module.validate_setup_authority()
             expect_error(module, lambda: module.validate_roadmap(True), "no Ready entry")
 
             constitution_path.write_text(finalized + "\nAmended after gate.\n", encoding="utf-8")

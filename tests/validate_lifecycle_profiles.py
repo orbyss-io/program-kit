@@ -324,7 +324,7 @@ def validate_feature_activation() -> None:
 
 def validate_release_feature_closure() -> None:
     release = module(
-        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/runnable_host.py",
+        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/release_bundle.py",
         "runnable_host",
     )
     with tempfile.TemporaryDirectory(prefix="program-kit-bundle-features-") as value:
@@ -455,9 +455,10 @@ def validate_release_feature_closure() -> None:
             encoding="utf-8",
         )
         (clean_repository / "hostsettings.json").write_text("{}\n", encoding="utf-8")
+        (clean_repository / "nuplane.settings.json").write_text('{"Nuplane": {}}\n', encoding="utf-8")
         clean_packages = root / "clean-packages"
         clean_packages.mkdir()
-        clean_output = clean_repository / "artifacts/runnable-host"
+        clean_output = clean_repository / "artifacts/release-bundle"
         original_bases = release.package_base_addresses
         original_download = release.download_package
         release.package_base_addresses = lambda sources: ["https://example.invalid/flat"]
@@ -506,11 +507,12 @@ def validate_release_feature_closure() -> None:
         repository = root / "repository"
         repository.mkdir()
         (repository / "VERSION").write_text("1.2.3\n", encoding="utf-8")
-        staged = repository / "artifacts/runnable-host"
+        staged = repository / "artifacts/release-bundle"
         staged.mkdir(parents=True)
         hostsettings = {"Nuplane": {"Loading": {"Enabled": True}}}
         shells_value = {"CShells": {"Shells": {"default": {"Features": {}}}}}
         (staged / "hostsettings.json").write_text(json.dumps(hostsettings), encoding="utf-8")
+        (staged / "nuplane.settings.json").write_text(json.dumps(hostsettings), encoding="utf-8")
         (staged / "shells.json").write_text(json.dumps(shells_value), encoding="utf-8")
         staged_packages = staged / "packages"
         staged_packages.mkdir()
@@ -522,20 +524,20 @@ def validate_release_feature_closure() -> None:
             descriptor_evidence,
             release.PROGRAM_KIT_VERSION,
         )
-        output = root / "runnable-host.json"
+        output = root / "application-bundle.json"
         previous_sha = os.environ.get("GITHUB_SHA")
         os.environ["GITHUB_SHA"] = "a" * 40
         try:
             release.describe(
                 repository,
                 staged,
-                "ghcr.io/example/application",
+                "ghcr.io/orbyss-io/foundation-host",
                 "v1.2.3",
                 "sha256:" + "b" * 64,
                 output,
             )
             descriptor = json.loads(output.read_text(encoding="utf-8"))
-            if descriptor["hostImage"]["reference"] != "ghcr.io/example/application@sha256:" + "b" * 64:
+            if descriptor["hostImage"]["reference"] != "ghcr.io/orbyss-io/foundation-host@sha256:" + "b" * 64:
                 raise AssertionError("runnable-host descriptor did not bind the immutable image")
             if descriptor["configuration"]["shells"] != shells_value:
                 raise AssertionError("runnable-host descriptor did not capture CShells settings")
@@ -545,7 +547,7 @@ def validate_release_feature_closure() -> None:
                 release.describe(
                     repository,
                     staged,
-                    "ghcr.io/example/application",
+                    "ghcr.io/orbyss-io/foundation-host",
                     "v1.2.3",
                     "sha256:" + "b" * 64,
                     output,
@@ -575,7 +577,7 @@ def validate_release_feature_closure() -> None:
                 release.describe(
                     repository,
                     staged,
-                    "ghcr.io/example/application",
+                    "ghcr.io/orbyss-io/foundation-host",
                     "v1.2.3",
                     "sha256:" + "b" * 64,
                     output,
@@ -628,7 +630,7 @@ def validate_preflight_seams() -> None:
             stopped = tools / "docker-stopped.cmd"
             stopped.write_text("@echo off\r\nexit /b 1\r\n", encoding="utf-8")
             slow = tools / "docker-slow.cmd"
-            slow.write_text("@echo off\r\nping -n 3 127.0.0.1 >nul\r\necho \"10.0.0\"\r\n", encoding="utf-8")
+            slow.write_text(f'@echo off\r\n"{sys.executable}" -c "import time; time.sleep(2); print(10)"\r\n', encoding="utf-8")
             ready = tools / "docker-ready.cmd"
             ready.write_text("@echo off\r\necho \"10.0.0\"\r\n", encoding="utf-8")
         else:
@@ -877,7 +879,7 @@ def validate_managed_sources() -> None:
     pipeline = (template / "files/.program-kit/eng/openapi_pipeline.py").read_text(encoding="utf-8")
     for phrase in (
         "Orbyss.Foundation.OpenApi.Exporter",
-        "artifacts/runnable-host/packages",
+        "artifacts/release-bundle/packages",
         "--strict-peer-deps",
         "generatedTypes",
         "application",
@@ -913,10 +915,10 @@ def validate_managed_sources() -> None:
     if exporter.get("commands") != ["orbyss-foundation-openapi-export"] or not exporter.get("version"):
         raise AssertionError("managed OpenAPI exporter tool pin is incomplete")
     runnable_schema = json.loads(
-        (template / "files/.program-kit/runnable-host.schema.json").read_text(encoding="utf-8")
+        (template / "files/.program-kit/application-bundle.schema.json").read_text(encoding="utf-8")
     )
     required = set(runnable_schema.get("required", []))
-    if required != {"schemaVersion", "application", "hostImage", "runtimeClosure", "configuration"}:
+    if required != {"schemaVersion", "application", "hostImage", "runtimeClosure", "configuration", "files"}:
         raise AssertionError("runnable-host schema does not close over image identity and configuration")
     host_image = runnable_schema["properties"]["hostImage"]
     if "digest" not in host_image.get("required", []) or "reference" not in host_image.get("required", []):
@@ -1364,7 +1366,7 @@ def validate_artifact_ownership() -> None:
             "- **Vertical-slice path**: request to response\n"
             "- **Artifact ownership manifest**: artifact-ownership.json\n"
             "Pack `src/Catalog/Catalog.csproj` with FoundationFeatureIdentity; activate it in "
-            "`shells.json`, configure `hostsettings.json`, run `.program-kit/eng/runnable_host.py stage` for "
+            "`shells.json`, configure `hostsettings.json` and `nuplane.settings.json` for application-bundle.zip, run `.program-kit/eng/release_bundle.py stage` for "
             "package-closure staging, and publish digest-pinned Orbyss.Foundation.Host evidence to "
             "`.program-kit/evidence/host-image.json`.\n",
             encoding="utf-8",
@@ -1478,7 +1480,7 @@ def validate_artifact_ownership() -> None:
             "- **Vertical-slice path**: request to response\n"
             "- **Artifact ownership manifest**: artifact-ownership.json\n"
             "Pack projects with FoundationFeatureIdentity; activate them in `shells.json`, configure "
-            "`hostsettings.json`, run `.program-kit/eng/runnable_host.py stage` for package-closure staging, "
+            "`hostsettings.json` and `nuplane.settings.json` for application-bundle.zip, run `.program-kit/eng/release_bundle.py stage` for package-closure staging, "
             "and publish digest-pinned Orbyss.Foundation.Host evidence to `.program-kit/evidence/host-image.json`.\n",
             encoding="utf-8",
         )
@@ -1670,7 +1672,7 @@ def validate_artifact_ownership() -> None:
             "shell": "default",
             "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": "0.1.0"},
             "features": ["Catalog.Api"],
-            "packageClosure": "artifacts/runnable-host/packages",
+            "packageClosure": "artifacts/release-bundle/packages",
             "rawDocument": "artifacts/openapi/catalog.raw.json",
             "artifact": "contracts/openapi/catalog.json",
             "baseline": "contracts/openapi/catalog.baseline.json",

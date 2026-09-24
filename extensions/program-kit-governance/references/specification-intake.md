@@ -46,6 +46,16 @@ Defaults need disclosed applicability and provenance. Deferred decisions require
 deferred or excluded premise. Unknown dependencies and cycles block review. `begin` deliberately
 creates an incomplete draft; fill it through the interview, not guesses to satisfy the validator.
 
+The context projects `bootstrapObligations` from the selected entry's existing prerequisite ledger.
+For each one, link exactly one decision using `bootstrapPrerequisite: "<existing prerequisite ID>"`.
+Resolve a policy decision with evidence, or retain it as `deferred`, `blocking: false`, with owner,
+trigger and the original due phase: feature-plan -> planning, before-implementation -> implementation,
+delivery -> delivery. The context includes `verification`: compatibility obligations require executed
+evidence and stay deferred, never answered/default merely because tests are planned. Do not silently
+exclude an inherited obligation or move its due phase. Current native receipts satisfy proof gates
+later without changing the approved bootstrap ledger. The review shows the original task and source
+IDs alongside the proposed resolution; changes to those obligations invalidate its confirmation.
+
 ```text
 specification_intake.py review --entry SPC-001
 specification_intake.py confirm --entry SPC-001 --review-sha256 <presented-hash> --confirmation-source "<user-message-reference>" --confirmation-text "<actual-user-confirmation>"
@@ -82,3 +92,13 @@ Spec Kit 1.0.1 executes these mandatory hooks through agent instructions before 
 Outline. Keep `.specify/extensions.yml` valid, auto-execution enabled, and the intake hook mandatory
 and unconditional. These are workflow gates, not a security boundary against manually editing
 files or disabling hooks. Keep any branch-creation pre-hook after feature intake.
+
+
+The interview may record `architectureScope` as exact canonical element IDs, chosen by the
+agent from the agreed outcome and reviewed with the brief. The context carries each selected
+module's owning context, invariants/lifecycle, children, affected contracts, boundary failure
+ownership and linked decisions directly from the canonical map. Unrelated model changes do
+not invalidate an explicit scope. Without an explicit scope the complete model is the safe
+fallback; narrow it during the interview to avoid unnecessary reading. Never invent IDs or
+omit a dependency to suppress an obligation. Generated roadmap/lifecycle status views do not
+invalidate authored architecture authority; changes to the actual rules still do.

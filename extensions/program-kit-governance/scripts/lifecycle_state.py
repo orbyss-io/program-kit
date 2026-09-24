@@ -389,6 +389,7 @@ def parser() -> argparse.ArgumentParser:
     analyze = commands.add_parser("complete-analysis")
     analyze.add_argument("--report", required=True)
     commands.add_parser("verify-before-implement")
+    commands.add_parser('verify-delivery')
     return root
 
 
@@ -415,6 +416,16 @@ def main() -> int:
                 report = (repository / report).resolve()
             report.relative_to(repository)
             return complete_analysis(repository, feature_dir, report)
+        if args.command == 'verify-delivery':
+            from phase_obligations import check, review_basis, digest
+            check(repository, feature_dir, 'delivery')
+            path = state_path(repository, feature_dir)
+            state = load_state(path)
+            state['phases']['delivery'] = {'basis': digest(review_basis(repository, feature_dir)),
+                                           'completedAtUtc': utc_now()}
+            atomic_write(path, state)
+            print('Delivery has current required verification and semantic review')
+            return 0
         return verify_before_implement(repository, feature_dir)
     except (FileNotFoundError, ValueError, json.JSONDecodeError) as error:
         print(str(error), file=sys.stderr)

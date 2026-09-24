@@ -4,6 +4,11 @@ scripts:
   py: scripts/governance_state.py validate
 ---
 
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage architecture --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+
+For required sources, execute `reading_policy.read_command` and follow its pages; it batches only the required files under one aggregate byte limit and compacts JSON without dropping values. Reuse content already received. For an omitted decisive fact use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <exact-indexed-path> --keys` to discover JSON keys, then `--pointer /known/key`; omit the pointer for the root. Repeat `--path` to bundle small documents under the same total limit. Do not read future outputs or dump optional evidence/catalogs. Use the exact installed helper path; do not reconstruct it. Return each bounded page once, with an output budget of at least 6000 tokens; do not aggregate several pages into another tool response.
+
+
 ## Input
 
 Create `docs/architecture/bootstrap-acceptance-scope.json` using the installed
@@ -12,12 +17,24 @@ including newly designed runtime elements when justified. Leave unfinished provi
 proposals outside the scope. Keep current lifecycle status in canonical metadata and deterministic
 marked views, not duplicated prose. Preserve conditions retained in ADRs; Proposed-to-Accepted
 promotion is not evidence those conditions have executed. The later bootstrap-closure command owns
-isolated compatibility work before dependent slices become Ready. Architecture drafting still does
+isolated compatibility work before dependent implementation. Architecture drafting still does
 not scaffold or restore consumer projects.
+
+Use the phase distinctions in `references/bootstrap-lifecycle.md` when retaining conditions in
+ADRs. Preserve the confirmed interface choice and applicable defaults. Do not reopen consumer
+device preference as a compatibility prerequisite or demand completed feature behavior before its
+specification exists. Separate external mechanism feasibility from verification of the later
+consumer implementation, and identify the actual owning gate for each condition.
+Split planning a test from executing it using the disposition/trigger/verification table in that
+reference. Delivery behavior stays at delivery, never feature-plan. Author consumer `WEB-Qxx`
+definitions only in quality-attributes.md as `- WEB-Q01 (WEB-Cxx): scenario` with indented continuation
+lines. This is their sole definition source; tooling receives a generated view of all those cases.
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 
-Read the compact bootstrap stage brief first. It contains the confirmed intake, canonical
+Read the compact bootstrap stage brief first, once, with enough output capacity to avoid truncation.
+If a tool truncates output, retrieve only the missing JSON fields instead of rereading the whole brief.
+It contains the confirmed intake, canonical
 architecture-map identity, compact approved decisions and ratification records, a measured
 `stage_plan`, and a link to a separate hash-bound evidence index. Follow the stage plan in order.
 Read the canonical architecture map and ratified constitution in full exactly once; patch that
@@ -36,7 +53,12 @@ counts; do not trade away required architecture evidence merely to reach a targe
 When `stage_plan.building_blocks` is present, use its exact draft command, composition slot/options
 projection, canonical repository convention, observed target inventory, and authorized
 `placement_planning` contract. Missing application files are a planning input: architecture owns
-the exact future layout and may declare it without creating those files. Do not run `--help`, search or dump the
+the layout. Apply `placement_planning.target_kind_contracts` before writing each target: it is the
+same executable filename/identity contract used by validation. `cshell-shell` names a `shells.json`
+document with a `shell` runtime identity; `host-image` names the consumer `hostsettings.json` binding for the published Foundation image.
+The application release is a bundle of shell, host and Nuplane settings plus optional package feeds;
+never plan a consumer Dockerfile, image build/push or locally produced host DLL. These examples do not dictate consumer directory layout.
+Declare the exact future layout without creating those files. Do not run `--help`, search or dump the
 catalog, or enumerate project files to rediscover those values. When
 `stage_plan.managed_web_contract` is present, use its exact applicable control decisions and
 verification statements; do not search the installed extensions for `WEB-Cxx` records.
@@ -97,6 +119,13 @@ Do not rewrite `bootstrap-assessment.md`, `decision-backlog.md`, `tooling-evalua
 the assessment review so the artifacts can be corrected, the packet regenerated, and the exact
 contents approved again.
 
+Resolve each `decision_handoff` design question due at architecture in the ADR that actually
+answers it. Insert its exact supplied `resolution_marker` as a metadata line and refresh the
+ADR's hash in the canonical map. This links completed design back to the approved question
+without editing the approved register. Terminal validation requires this link. A Proposed ADR
+closes design authoring; human acceptance and compatibility proof remain separate obligations.
+Never substitute a user answer for architecture-owned work or mark an unanswered question resolved.
+
 Treat `docs/architecture/architecture-map.json` as the canonical living architecture model and the
 confirmed intake map as its provisional starting state. Make the smallest patch that adds accepted
 decision and architecture evidence; do not synthesize the model from an empty object or copy a
@@ -111,28 +140,26 @@ runtime boundaries; a bounded context or capability must never be projected as a
 system merely to fit a C4 level. Diagrams are views of the canonical model, never independent
 sources of truth.
 
-For every seed dynamic view bound to a confirmed intake journey, preserve its relationship selection
-and order exactly. Adding relationships to the model does not authorize appending them to
-that seed view; put supported additional detail in a separate view instead.
+Confirmed consumer evidence remains immutable. Keep each source journey's identity, actor and
+observable outcome, and use only intake evidence IDs. A proposed interpretation may be refined
+with research and an ADR; confirmation of the intake did not ratify proposed architecture.
+For a candidate spanning several journeys, retain its primary `journey` and declare the other
+strategic journey IDs in `supporting_journeys`. Narrative inclusion alone cannot establish coverage.
+Keep every confirmed source journey; do not invent separate candidates solely to fit the schema.
+Preserve proposal IDs and consumer evidence references. Explicit consumer selections require an
+intake/assessment correction, not a proposal refinement.
 
-The confirmed intake remains immutable evidence. Preserve these cross-artifact projections exactly:
+The normal shared projections remain subdomains, candidate_contexts, capability_assessments and
+founding_decision_candidates. For a changed proposed/derived record, patch the canonical map and
+record its exact source/result binding with the maintained command:
+`python .specify/extensions/program-kit-governance/scripts/architecture_map.py record-refinement --collection <collection> --id <source-id> --decision <ADR-id> --rationale "<evidence-backed reason>"`.
+The helper computes hashes from the unchanged intake and current map. The map's `refinements`
+collection records the rationale and Proposed/Accepted ADR; final review covers that refinement.
+Do not hand-compute hashes or weaken alignment checks. Re-export DSL after model edits.
 
-- `strategic_model.subdomains` is the intake `domain_analysis.subdomains`; only `decision_refs` may
-  be added to a map record.
-- Each `strategic_model.bounded_contexts` record is its intake
-  `domain_analysis.candidate_contexts` record with `id` and `name` represented by `element`; the
-  referenced element must retain the intake name, every other intake field remains identical, and
-  only `decision_refs` may be added.
-- Each `strategic_model.capability_bindings` record is its intake `capability_assessments` record
-  with `id` represented by `assessment` and `need` omitted; only `module`, `status`, and
-  `decision_refs` may be added. Preserve all other values exactly.
-- `strategic_model.founding_decisions` is exactly the intake
-  `domain_analysis.founding_decision_candidates` collection. Map every intake journey separately
-  through `source_journey`, and use only evidence IDs declared by the intake.
-
-Do not enrich, rewrite, or normalize those confirmed semantics in the architecture map. Put later
-detail in modules, contracts, relationships, constraints, ADRs, narrative documents, or another
-non-projection field.
+Keep one dynamic view per source journey for traceability. First-slice interactions receive the
+needed architectural detail; future journeys may retain a minimal interaction and outcome until
+their planning trigger. New technical interactions need evidence; they are not consumer facts.
 
 Apply these executable containment rules before the first map write:
 
@@ -239,7 +266,7 @@ Resolve the decision backlog through focused design tasks before implementation 
 Architecture documents must clearly distinguish facts confirmed by intake evidence, derived constraints, proposals, accepted decisions, and unresolved questions.
 
 When .NET is selected without the recorded opt-out, the architecture, technology radar, and
-bootstrap-baseline decision must adopt the application-neutral `Orbyss.Foundation.Host` and runnable-host release model as
+bootstrap-baseline decision must adopt the application-neutral `Orbyss.Foundation.Host` and application-bundle release model as
 Accepted. Do not scaffold or restore packages during this command.
 
 When any capability routes to the installed `program-kit-building-blocks` catalog, create
@@ -256,6 +283,13 @@ and ownership. Declare new paths explicitly as proposals, never infer a global p
 project names. Never ask product users for .csproj paths, package.json locations, shell filenames,
 target IDs or other mechanical bookkeeping, including through intake. Ask only about consequential
 product constraints or trade-offs that context and applicable defaults cannot resolve.
+
+The context routes the adopted assessment profiles in addition to the original intake signals;
+an empty intake language list does not undo a reviewed .NET selection. Use
+`authorities.assessment_decisions.toolchain` for adopted toolchain pins and
+`runtime_release.managed_host` for the catalog host identity. The research-only
+`managed_profile_pins` field need not be repeated here. A catalog version is not evidence of an
+observed image digest, successful restore or compatibility; closure supplies that evidence.
 
 For every target, author `placement` with `state: observed|planned`, `owner` (canonical architecture
 element ID with nonempty ownership), `decisionIds`, and `rationale`. The owner must reference those
@@ -306,3 +340,14 @@ Keep .NET endpoints in `Orbyss.Foundation.Web.Discovery` or consumer-owned IWebS
 never in Orbyss.Foundation.Host. Accepted frontend frameworks consume the same contracts through their
 own initial-render adapter. Do not duplicate route/head owners or replace Keycloak flows to share
 branding. SVG/logo/icon assets retain license and accessibility semantics.
+
+
+## Incomplete knowledge
+
+Bootstrap establishes a baseline and owned discovery work; it does not require resolving every
+journey or provider. Never invent a start/end or interaction to fill a diagram. For an unclear
+strategic journey use `discovery` with existing open-question/prerequisite IDs, status `proposed`,
+and empty `steps` and `view`. Keep its candidate slice Proposed and roadmap entry Candidate until
+specification-due discovery resolves. Other understood journeys retain their normal dynamic views.
+Apply applicable defaults when no choice exists; an explicit incompatible constraint requires a
+consumer-owned integration decision, not silently replacing the constraint.

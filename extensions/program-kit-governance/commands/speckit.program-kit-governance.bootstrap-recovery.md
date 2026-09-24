@@ -16,7 +16,7 @@ ID, manifest, target and placement decision. Preserve immutable intake/assessmen
 and ratified constitution. Use scoped follow-on decisions for changed design authority. Do not
 remove a retained condition or change NOT READY to READY to make validation pass.
 
-Produce corrected ledger, scoped decisions, acceptance scope and architecture narrative.
+Produce corrected ledger, scoped decisions, acceptance scope, bootstrap-proof-plan.json and architecture narrative. Prepare recipes without executing them; the next native shell step owns provisioning and proof.
 Reuse valid compatibility receipts and preserve failed-attempt evidence. Stop after reporting
 the produced artifacts and bounded blockers. The engine executes synchronization, review,
 human approval, readiness evaluation and completion in order. Do not invoke standalone

@@ -36,7 +36,7 @@ def main() -> int:
                 "@echo off\r\n"
                 "if \"%1\"==\"--version\" (echo 11.19.0& exit /b 0)\r\n"
                 "if not \"%NPM_CONFIG_STRICT_SSL%\"==\"true\" exit /b 71\r\n"
-                "echo %NODE_OPTIONS%| findstr /c:\"--use-system-ca\" >nul || exit /b 72\r\n"
+                "if \"%NODE_OPTIONS:--use-system-ca=%\"==\"%NODE_OPTIONS%\" exit /b 72\r\n"
                 f"if not \"%NPM_CONFIG_CACHE%\"==\"{repository / '.program-kit/cache/npm'}\" exit /b 73\r\n"
                 f"echo %*>\"{invocation_log}\"\r\n"
                 "echo {}>package-lock.json\r\n"

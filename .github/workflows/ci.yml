@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   validate:
@@ -29,106 +30,37 @@ jobs:
       - name: Prepare project-local JSON Schema runtime
         run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
 
-      - name: Validate Program Kit components
-        run: |
-          python tests/validate_components.py
-          python tests/validate_test_suites.py
-          python tests/validate_specification_intake.py
-          python tests/validate_intake_session.py
-          python tests/validate_intake_authoring.py
-          python tests/validate_json_schema.py
-
-      - name: Set up pinned UI acceptance Node
+      - name: Set up pinned Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24.20.0"
 
-      - name: Set up pinned UI acceptance npm
+      - name: Set up pinned npm
         run: npm install --global npm@11.19.0 --ignore-scripts --no-audit --no-fund
 
-      - name: Validate UI experience and public content contracts
-        run: python tests/validate_ui_experience.py
+      - name: Set up managed .NET SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
 
-      - name: Validate UI accessibility, keyboard and analytics in Chromium
-        run: python tests/validate_ui_browser.py --install --install-browser
+      - name: Run shared deterministic validation inventory
+        env:
+          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
+        run: python scripts/run_validation.py --suite Release --approved --engines=chromium,firefox,webkit
 
-      - name: Validate Orbyss building-block knowledge and repository boundaries
-        run: |
-          python tests/validate_orbyss_building_blocks.py
-          python tests/validate_building_blocks.py
-          python tests/validate_building_block_availability.py
-          python tests/validate_legacy_programkit_nuget.py
-
-      - name: Validate Codex agent bootstrap boundary
-        run: python tests/validate_codex_bootstrap.py
-
-      - name: Validate governance-state transitions
-        run: python tests/validate_governance_state.py
-
-      - name: Validate sequential offline/local upgrade
-        run: python tests/validate_local_upgrade.py
-
-      - name: Validate bootstrap context generation
-        run: python tests/validate_bootstrap_context.py
-
-      - name: Validate architecture placement and recovery
-        run: python tests/validate_architecture_placement.py
-      - name: Validate bootstrap readiness and accepted-run recovery
-        run: python tests/validate_bootstrap_lifecycle.py
-
-      - name: Validate native workflow resumption and versioned live fixtures without agents
-        run: |
-          python tests/validate_workflow_resumption.py
-          python tests/validate_live_fixture_catalog.py
-          python tests/validate_live_workflow_acceptance.py
-
-      - name: Validate conversational bootstrap intake and architecture map
-        run: python tests/validate_bootstrap_intake.py
-
-      - name: Validate strategic bootstrap semantics and journey projections
-        run: python tests/validate_bootstrap_semantics.py
-
-      - name: Validate C4 projection viewing and cleanup
-        run: python tests/validate_c4_view.py
-
-      - name: Validate live bootstrap acceptance contracts without running agents
-        run: python tests/validate_live_bootstrap_acceptance.py
-
-      - name: Validate profile-gated .NET scaffold
-        run: python tests/validate_dotnet_scaffold.py
-
-      - name: Validate managed .NET restore and build contract
-        run: |
-          python tests/validate_dotnet_build_contract.py
-          python tests/validate_runnable_host_pins.py
-
-      - name: Validate solution test-project discovery
-        run: python tests/validate_dotnet_test_discovery.py
-
-      - name: Validate bundle manifest
-        run: specify bundle validate --path . --offline
-
-      - name: Build release assets
-        run: python scripts/build_release.py
-
-      - name: Validate packaged UI in a clean consumer
-        run: python tests/validate_packaged_ui.py
-
-      - name: Validate clean-consumer bootstrap consistency
-        run: python tests/validate_bootstrap_consistency_e2e.py
-
-      - name: Test packaged components and bundle graph
-        run: python tests/validate_release_install.py
-
-      - name: Test candidate upgrade from previous stable release
-        run: python tests/validate_public_upgrade.py --candidate-dir artifacts
-
-      - name: Upload validation artifacts
+      - name: Preserve validation evidence on success or failure
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: program-kit-${{ github.sha }}
-          path: artifacts/
-          if-no-files-found: error
+          path: |
+            artifacts/validation-runs/
+            artifacts/*.json
+            artifacts/*.zip
+            artifacts/*.cmd
+            artifacts/*.sh
+            artifacts/SHA256SUMS
+          if-no-files-found: warn
           retention-days: 14
 
   windows-bootstrap:
@@ -147,3 +79,29 @@ jobs:
 
       - name: Validate Python-flavor Codex bootstrap on Windows
         run: python tests/validate_codex_bootstrap.py
+
+      - name: Prepare engine schema runtime and preserve its interpreter
+        run: |
+          python extensions/program-kit-governance/scripts/schema_runtime.py setup
+          python -c "import sys; print('PK_ENGINE_PYTHON=' + sys.executable)" >> $env:GITHUB_ENV
+
+      - name: Validate source installation on Windows
+        run: python scripts/run_validation.py --check source-install
+
+      - name: Set up distinct shell Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate mixed Python workflow run and resume without agents
+        run: |
+          & $env:PK_ENGINE_PYTHON tests/validate_workflow_runtimes.py --mixed-python (Get-Command python).Source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Preserve Windows validation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-validation-${{ github.sha }}
+          path: artifacts/validation-runs/
+          if-no-files-found: warn

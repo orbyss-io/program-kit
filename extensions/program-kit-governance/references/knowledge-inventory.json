@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "scope": "Normative reference Markdown across shipped extensions; schemas, command hooks and templates are validated as producers of these contracts.",
+  "sources": [
+    {
+      "path": "program-kit-building-blocks/references/orbyss-building-blocks.md",
+      "phases": [
+        "selection",
+        "planning",
+        "setup",
+        "delivery"
+      ],
+      "enforcement": "capability-adoption; resolver + mechanism review/behavior"
+    },
+    {
+      "path": "program-kit-dotnet/references/dotnet-engineering.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery",
+        "upgrade"
+      ],
+      "enforcement": "dotnet-* phase obligations: exact section projection, attributed applicability/source review and current executed proof; upgrade invalidates changed rules"
+    },
+    {
+      "path": "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+      "phases": [
+        "architecture",
+        "planning",
+        "delivery"
+      ],
+      "enforcement": "runtime release section projected before bootstrap dispatch; bundle packaging + published-host delivery evidence + upgrade preservation"
+    },
+    {
+      "path": "program-kit-dotnet/references/engineering-adapter.md",
+      "phases": [
+        "setup",
+        "upgrade"
+      ],
+      "enforcement": "repository sync adapter contracts"
+    },
+    {
+      "path": "program-kit-dotnet/references/keycloak-admin-api.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "selected identity adapter: typed public contracts and protected behavior tests"
+    },
+    {
+      "path": "program-kit-dotnet/references/persistence-profiles.md",
+      "phases": [
+        "architecture",
+        "planning",
+        "delivery"
+      ],
+      "enforcement": "selected persistence: transaction, retry and migration behavior"
+    },
+    {
+      "path": "program-kit-dotnet/references/secure-web-profiles.md",
+      "phases": [
+        "architecture",
+        "planning",
+        "delivery"
+      ],
+      "enforcement": "selected BFF/SPA-PKCE security controls and behavior"
+    },
+    {
+      "path": "program-kit-dotnet/references/technology-profiles/dotnet.md",
+      "phases": [
+        "planning",
+        "setup",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "dotnet-boundaries and implementation-quality"
+    },
+    {
+      "path": "program-kit-dotnet/references/web-security-threat-model.md",
+      "phases": [
+        "architecture",
+        "planning",
+        "delivery"
+      ],
+      "enforcement": "security threat disposition and required negative behavior cases"
+    },
+    {
+      "path": "program-kit-governance/references/architecture-method.md",
+      "phases": [
+        "intake",
+        "architecture",
+        "planning"
+      ],
+      "enforcement": "canonical architecture validation and semantic design review"
+    },
+    {
+      "path": "program-kit-governance/references/bootstrap-lifecycle.md",
+      "phases": [
+        "bootstrap",
+        "continuation"
+      ],
+      "enforcement": "prerequisite ledger and executed compatibility"
+    },
+    {
+      "path": "program-kit-governance/references/c4-viewing.md",
+      "phases": [
+        "architecture visualization"
+      ],
+      "enforcement": "viewer ownership/freshness validator; not a feature implementation obligation"
+    },
+    {
+      "path": "program-kit-governance/references/codex-desktop-windows.md",
+      "phases": [
+        "bootstrap execution"
+      ],
+      "enforcement": "runtime preflight and human-owned launch contract"
+    },
+    {
+      "path": "program-kit-governance/references/default-adoption.md",
+      "phases": [
+        "intake",
+        "architecture"
+      ],
+      "enforcement": "default/override authority and applicability review"
+    },
+    {
+      "path": "program-kit-governance/references/intake-artifacts.md",
+      "phases": [
+        "intake",
+        "bootstrap"
+      ],
+      "enforcement": "confirmed intake schemas and semantic review"
+    },
+    {
+      "path": "program-kit-governance/references/intake-method.md",
+      "phases": [
+        "intake"
+      ],
+      "enforcement": "grilling frontier and confirmed decision basis"
+    },
+    {
+      "path": "program-kit-governance/references/json-schema-tools.md",
+      "phases": [
+        "schema operations"
+      ],
+      "enforcement": "offline installed schema runtime; not general semantic correctness proof"
+    },
+    {
+      "path": "program-kit-governance/references/modularity-and-contracts.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "architecture-authority, dotnet-boundaries, api-contracts"
+    },
+    {
+      "path": "program-kit-governance/references/orbyss-building-blocks.md",
+      "phases": [
+        "architecture",
+        "planning",
+        "setup",
+        "delivery"
+      ],
+      "enforcement": "capability-adoption"
+    },
+    {
+      "path": "program-kit-governance/references/phase-evidence.md",
+      "phases": [
+        "planning",
+        "tasks",
+        "delivery"
+      ],
+      "enforcement": "phase obligation projection, review and executed named checks"
+    },
+    {
+      "path": "program-kit-governance/references/programming-guardrails.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "implementation-quality"
+    },
+    {
+      "path": "program-kit-governance/references/software-language.md",
+      "phases": [
+        "intake",
+        "planning",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "domain-semantics"
+    },
+    {
+      "path": "program-kit-governance/references/specification-intake.md",
+      "phases": [
+        "before specify",
+        "due decisions"
+      ],
+      "enforcement": "confirmed scope and structured duePhase"
+    },
+    {
+      "path": "program-kit-governance/references/technology-profiles/typescript.md",
+      "phases": [
+        "planning",
+        "setup",
+        "delivery"
+      ],
+      "enforcement": "TypeScript graph, typed boundaries and browser-experience"
+    },
+    {
+      "path": "program-kit-governance/references/tool-selection.md",
+      "phases": [
+        "architecture",
+        "planning",
+        "setup",
+        "delivery"
+      ],
+      "enforcement": "applicable tool recipe and current check evidence"
+    },
+    {
+      "path": "program-kit-governance/references/ui-evaluation-v1.md",
+      "phases": [
+        "planning",
+        "delivery"
+      ],
+      "enforcement": "browser-experience plus attributable accessibility/usability review"
+    },
+    {
+      "path": "program-kit-governance/references/ui-experience-v1.md",
+      "phases": [
+        "architecture",
+        "planning",
+        "delivery"
+      ],
+      "enforcement": "selected UI profile materialization and real journey"
+    },
+    {
+      "path": "program-kit-governance/references/vertical-slicing.md",
+      "phases": [
+        "planning",
+        "tasks",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "domain-semantics and implementation-quality"
+    },
+    {
+      "path": "program-kit-governance/references/workflow-resumption.md",
+      "phases": [
+        "bootstrap continuation"
+      ],
+      "enforcement": "native run/resume and engine-bound completion"
+    },
+    {
+      "path": "program-kit-governance/references/component-adoption.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery",
+        "upgrade"
+      ],
+      "enforcement": "capability-adoption mechanism proof and legacy behavior preservation"
+    }
+  ]
+}

@@ -2,6 +2,11 @@
 description: Turn researched capabilities into a staged repository quality system.
 ---
 
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage tooling --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+
+For required sources, execute `reading_policy.read_command` and follow its pages; it batches only the required files under one aggregate byte limit and compacts JSON without dropping values. Reuse content already received. For an omitted decisive fact use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <exact-indexed-path> --keys` to discover JSON keys, then `--pointer /known/key`; omit the pointer for the root. Repeat `--path` to bundle small documents under the same total limit. Do not read future outputs or dump optional evidence/catalogs. Use the exact installed helper path; do not reconstruct it. Return each bounded page once, with an output budget of at least 6000 tokens; do not aggregate several pages into another tool response.
+
+
 ## Input
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
@@ -52,7 +57,9 @@ For a single-journey bootstrap, compose the first complete draft in at most 650 
 draft and trim it toward the byte ceiling, and do not measure it repeatedly. After one write,
 run the terminal validation batch directly; only a named diagnostic justifies one repair pass.
 
-Generic programming guardrails apply automatically. Project-specific tool selection and architecture choices remain Proposed until their ADR is accepted. Avoid duplicating capabilities already supplied effectively by the language toolchain, platform, or accepted repository tooling.
+Generic programming guardrails apply automatically. Link to ADR metadata for current approval
+status; do not repeat "remains Proposed" in prose that outlives approval. Avoid duplicating
+capabilities already supplied effectively by the language toolchain, platform, or accepted tooling.
 
 Do not manufacture a tooling ADR for standard-library test/process utilities that directly realize
 an explicit automated-test requirement without adding a dependency or architecture surface. Treat
@@ -87,8 +94,13 @@ meaningful policy path and outcomes; it does not select another authentication l
 Map the secure-web checks to control IDs `WEB-C01` through `WEB-C13` and assurance levels `WEB-V1`
 through `WEB-V4` from `program-kit-web-security-evidence-v1`, and preserve their canonical meanings
 and declared profile applicability. Do not renumber a sequential test list as `WEB-Cxx`. Give
-project-specific checks a separate `WEB-Qxx` identity (or a domain-specific identity) and record an
-explicit many-to-many mapping to the inherited controls. Tool output must distinguish source and
+project-specific checks a separate `WEB-Qxx` identity (or a domain-specific identity). The existing
+WEB-Q definitions and control mapping in `quality-attributes.md` are canonical. Use
+`stage_plan.consumer_quality_cases` without inventing or redefining those IDs in quality-system.md.
+The terminal batch writes their exact generated view, including every case. Reference IDs in
+the capability matrix instead of writing another definition list. Additional managed suite cases
+use their existing control IDs, not a conflicting consumer ID. Keep authored text below
+`stage_plan.authored_target_bytes`, which applies to authored prose; the exact generated view is accounted separately. Tool output must distinguish source and
 configuration checks, protocol/boundary tests, real-browser/provider tests, and deployment
 assurance. A skipped real-provider, conformance, vulnerability, or risk-proportional security test
 remains visible; it cannot be converted into passing evidence by a unit mock.

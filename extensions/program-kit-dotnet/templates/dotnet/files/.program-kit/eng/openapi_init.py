@@ -74,7 +74,7 @@ def main() -> int:
             "shell": args.shell,
             "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": exporter},
             "features": list(dict.fromkeys(args.feature)),
-            "packageClosure": "artifacts/runnable-host/packages",
+            "packageClosure": "artifacts/release-bundle/packages",
             "rawDocument": f"artifacts/openapi/{args.identity}.raw.json",
             "artifact": f"contracts/openapi/{args.identity}.json",
             "baseline": f"contracts/openapi/{args.identity}.baseline.json",

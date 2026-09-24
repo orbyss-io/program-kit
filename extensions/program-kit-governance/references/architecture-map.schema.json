@@ -6,6 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "model_id", "title", "sources", "decisions", "documentation", "constraints", "elements", "relationships", "views", "configuration", "extensions", "strategic_model"],
   "properties": {
+    "refinements": {"type": "array","items": {"type": "object","additionalProperties": false,"required": ["collection","id","before_sha256","after_sha256","decision_refs","rationale"],"properties": {"collection": {"enum": ["subdomains","candidate_contexts","capability_assessments","founding_decision_candidates"]},"id": {"$ref": "#/$defs/id"},"before_sha256": {"$ref": "#/$defs/sha256"},"after_sha256": {"$ref": "#/$defs/sha256"},"decision_refs": {"type": "array","minItems": 1,"uniqueItems": true,"items": {"$ref": "#/$defs/id"}},"rationale": {"$ref": "#/$defs/text"}}}},
     "schema_version": { "const": "1.1" },
     "strategic_model": { "$ref": "#/$defs/strategic_model" },
     "model_id": { "$ref": "#/$defs/id" },
@@ -149,7 +150,7 @@
           "relationships": { "$ref": "#/$defs/id_list" },
           "decision_refs": { "$ref": "#/$defs/id_list" },
           "filters": { "$ref": "#/$defs/string_list" },
-          "order": { "$ref": "#/$defs/id_list" },
+          "order": { "type": "array", "items": { "$ref": "#/$defs/id" } },
           "layout": { "$ref": "#/$defs/properties" },
           "animations": { "type": "array", "items": { "$ref": "#/$defs/id_list" } },
           "properties": { "$ref": "#/$defs/properties" }
@@ -290,16 +291,7 @@
         "status": { "$ref": "#/$defs/status" }, "evidence": { "$ref": "#/$defs/nonempty_id_list" }, "decision_refs": { "$ref": "#/$defs/id_list" }
       }
     },
-    "journey": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "name", "source_journey", "actor_or_trigger", "outcome", "view", "steps", "status", "evidence", "decision_refs"],
-      "properties": {
-        "id": { "$ref": "#/$defs/id" }, "name": { "$ref": "#/$defs/text" }, "source_journey": { "$ref": "#/$defs/id" },
-        "actor_or_trigger": { "$ref": "#/$defs/text" }, "outcome": { "$ref": "#/$defs/text" }, "view": { "$ref": "#/$defs/id" },
-        "steps": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/journey_step" } },
-        "status": { "$ref": "#/$defs/status" }, "evidence": { "$ref": "#/$defs/nonempty_id_list" }, "decision_refs": { "$ref": "#/$defs/id_list" }
-      }
-    },
+    "journey": {"type": "object", "additionalProperties": false, "required": ["id", "name", "source_journey", "actor_or_trigger", "outcome", "view", "steps", "status", "evidence", "decision_refs"], "properties": {"id": {"$ref": "#/$defs/id"}, "name": {"$ref": "#/$defs/text"}, "source_journey": {"$ref": "#/$defs/id"}, "actor_or_trigger": {"$ref": "#/$defs/text"}, "outcome": {"$ref": "#/$defs/text"}, "view": {"type": "string", "maxLength": 64}, "steps": {"type": "array", "items": {"$ref": "#/$defs/journey_step"}}, "status": {"$ref": "#/$defs/status"}, "evidence": {"$ref": "#/$defs/nonempty_id_list"}, "decision_refs": {"$ref": "#/$defs/id_list"}, "discovery": {"$ref": "#/$defs/nonempty_id_list"}}, "allOf": [{"if": {"required": ["discovery"]}, "then": {"properties": {"status": {"const": "proposed"}, "view": {"const": ""}, "steps": {"maxItems": 0}}}, "else": {"properties": {"view": {"$ref": "#/$defs/id"}, "steps": {"minItems": 1}}}}]},
     "journey_step": {
       "type": "object", "additionalProperties": false, "required": ["order", "relationship", "description", "contract"],
       "properties": { "order": { "type": "integer", "minimum": 1 }, "relationship": { "$ref": "#/$defs/id" }, "description": { "$ref": "#/$defs/text" }, "contract": { "type": "string", "maxLength": 64 } }
@@ -309,6 +301,7 @@
       "required": ["id", "name", "journey", "actor_or_trigger", "outcome", "contexts", "status", "evidence", "decision_refs"],
       "properties": {
         "id": { "$ref": "#/$defs/id" }, "name": { "$ref": "#/$defs/text" }, "journey": { "$ref": "#/$defs/id" },
+        "supporting_journeys": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
         "actor_or_trigger": { "$ref": "#/$defs/text" }, "outcome": { "$ref": "#/$defs/text" }, "contexts": { "$ref": "#/$defs/nonempty_id_list" },
         "status": { "$ref": "#/$defs/status" }, "evidence": { "$ref": "#/$defs/nonempty_id_list" }, "decision_refs": { "$ref": "#/$defs/id_list" }
       }

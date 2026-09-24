@@ -9,6 +9,12 @@ import sys
 from pathlib import Path
 
 
+# Importlib-based viewers need the same sibling imports as direct CLI callers.
+_scripts_path = str(Path(__file__).resolve().parent)
+if _scripts_path not in sys.path:
+    sys.path.insert(0, _scripts_path)
+
+
 SCHEMA_VERSION = "1.1"
 CANONICAL_INTAKE = Path("docs/architecture/bootstrap-intake.json")
 CANONICAL_ARTIFACTS = {
@@ -328,6 +334,12 @@ def validate_intake(
         raise IntakeError(f"Bootstrap intake exceeds {MAX_BYTES} bytes")
     intake = load_object(path)
     version = intake.get("schema_version")
+    if intake.get('status') == 'confirmed':
+        from proxy_intake import forbid_authority
+        try:
+            forbid_authority(project_root)
+        except ValueError as error:
+            raise IntakeError(str(error)) from error
     if allowed_statuses is None and intake.get("status") != "confirmed":
         raise IntakeError("Bootstrap intake is not confirmed")
     statuses = allowed_statuses or {"confirmed"}
@@ -431,6 +443,8 @@ def validate_intake(
         disposition = item.get("decision_state")
         if coverage not in coverage_values or disposition not in dispositions:
             raise IntakeError(f"{label} has invalid coverage or disposition")
+        if intake['status'] == 'confirmed' and disposition == 'human-answer-required':
+            raise IntakeError(f"{label} still requires a consumer answer; resolve it during intake before confirmation")
         capabilities = _string_list(item.get("program_kit_capabilities"), f"{label}.program_kit_capabilities")
         if coverage in {"managed", "guided", "conflict"} and not any(capabilities):
             raise IntakeError(f"{label} must name the relevant Program Kit capability")
@@ -483,6 +497,10 @@ def validate_intake(
             raise IntakeError(f"{label} must name the lifecycle trigger")
         if classification != "deferred" and not blocks:
             raise IntakeError(f"{label} must name what it blocks")
+        if intake['status'] == 'confirmed' and classification == 'human-decision':
+            raise IntakeError(f"{label} still requires a consumer answer; resolve it during intake before confirmation")
+        if classification == 'deferred' and blocks:
+            raise IntakeError(f"{label} cannot be both deferred and blocking; resolve the immediate dependency or retain only a later trigger")
         references = _string_list(item.get("evidence"), f"{label}.evidence")
         if any(reference not in evidence_ids for reference in references):
             raise IntakeError(f"{label} references unknown evidence")
@@ -527,10 +545,13 @@ def intake_from_run(
         raise IntakeError(
             f"Workflow bootstrap_intake must be {CANONICAL_INTAKE.as_posix()}"
         )
+    from proxy_bootstrap import active
+    proxy_run = active(project_root, run_id)
     return CANONICAL_INTAKE, validate_intake(
         project_root,
         CANONICAL_INTAKE,
         allow_architecture_evolution=allow_architecture_evolution,
+        allowed_statuses={"draft"} if proxy_run else None,
     )
 
 

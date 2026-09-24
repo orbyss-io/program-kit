@@ -1,0 +1,1506 @@
+{
+  "schemaVersion": 1,
+  "family": "foundation",
+  "releaseVersion": "0.2.2",
+  "observed": "2026-09-16",
+  "sourceCommit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf",
+  "hostImage": "ghcr.io/orbyss-io/foundation-host@sha256:622353f8c3888ae173819abad493ecde786307e72f661cdfa3bf3afa84cf6cde",
+  "scope": "Managed baseline research for local bootstrap feasibility. Evidence, not consumer approval, complete legal clearance or a consumer dependency lock.",
+  "maintenance": {
+    "releaseWorkflow": "https://github.com/orbyss-io/dotnet-foundation/actions/runs/35110254848",
+    "conclusion": "Published 0.2.2 source and successful gated release observed 2026-09-16; no future support guarantee. CShells/Nuplane previews retain activation/restart proof and upgrade revalidation obligations."
+  },
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/8d60cdd55e7fb9056c83d614786667c04ef78bdf/LICENSE",
+      "sha256": "6121f3533ee85c0c8b6233d12a9e0799a6b1e716f884f34eecc9d68aafc03bdd",
+      "bytes": 1064
+    },
+    {
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/8d60cdd55e7fb9056c83d614786667c04ef78bdf/THIRD-PARTY-NOTICES.md",
+      "sha256": "332d08ade1e27e07a67247627797a8a8f76d8b358554da490736c6111171dfb7",
+      "bytes": 480
+    },
+    {
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/8d60cdd55e7fb9056c83d614786667c04ef78bdf/src/Orbyss.Foundation.Host/NOTICE.md",
+      "sha256": "9ab997637c81acce257d3bfdc70edd1cf76ca8ef530b617de981f65d2373fada",
+      "bytes": 366
+    },
+    {
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/8d60cdd55e7fb9056c83d614786667c04ef78bdf/.github/workflows/release.yml",
+      "sha256": "f12d984d39484be642a23028cb5ec937b4d3fd38c78c3124248f474944a3c612",
+      "bytes": 3946
+    },
+    {
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/8d60cdd55e7fb9056c83d614786667c04ef78bdf/src/Orbyss.Foundation.Host/Dockerfile",
+      "sha256": "2e574987ec9fa725fa308a5d8dc8884619bc13e536d9b49a743ae029b64bd2a1",
+      "bytes": 799
+    },
+    {
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/8d60cdd55e7fb9056c83d614786667c04ef78bdf/src/Orbyss.Foundation.Host/packages.lock.json",
+      "sha256": "0bba78724eb83471df10998fde8fc4683f6d8940989d14643628a2c00a3d2a2b",
+      "bytes": 8929
+    }
+  ],
+  "packageMetadata": [
+    {
+      "id": "CShells",
+      "version": "0.0.29-preview.147",
+      "url": "https://f.feedz.io/valence-works/cshells/nuget/v3/packages/cshells/0.0.29-preview.147/cshells.0.0.29-preview.147.nupkg",
+      "packageSha256": "d5bc158159aaba1d29ddb376e2416b3b407860cd61929adf5ed768c5610be998",
+      "sha256": "22ec14bad893055103a7182325505962a0a4dd006e3aef82455be12945b72561",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/sfmskywalker/cshells",
+        "branch": "refs/heads/main",
+        "commit": "6dd505d2ee0d40fb222b079e81acca8bdbab17c5"
+      }
+    },
+    {
+      "id": "CShells.Abstractions",
+      "version": "0.0.29-preview.147",
+      "url": "https://f.feedz.io/valence-works/cshells/nuget/v3/packages/cshells.abstractions/0.0.29-preview.147/cshells.abstractions.0.0.29-preview.147.nupkg",
+      "packageSha256": "4191cb931317d52f0b7532ac16c2bc22f71f6a37653685730207fd2f52fab945",
+      "sha256": "e06489deb006eef6e3e630c7db304997777a8830844a81f9dcb2e8b224f9b7b1",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/sfmskywalker/cshells",
+        "branch": "refs/heads/main",
+        "commit": "6dd505d2ee0d40fb222b079e81acca8bdbab17c5"
+      }
+    },
+    {
+      "id": "CShells.AspNetCore",
+      "version": "0.0.29-preview.147",
+      "url": "https://f.feedz.io/valence-works/cshells/nuget/v3/packages/cshells.aspnetcore/0.0.29-preview.147/cshells.aspnetcore.0.0.29-preview.147.nupkg",
+      "packageSha256": "70f34dd164da13f5d38d692ec91a61b1146e4a5977df5c39aa3fc2cef6b82bba",
+      "sha256": "3e67b379498cedd35539d0de5a30b7b838b2f7dceeab728937f8199172bb6029",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/sfmskywalker/cshells",
+        "branch": "refs/heads/main",
+        "commit": "6dd505d2ee0d40fb222b079e81acca8bdbab17c5"
+      }
+    },
+    {
+      "id": "CShells.AspNetCore.Abstractions",
+      "version": "0.0.29-preview.147",
+      "url": "https://f.feedz.io/valence-works/cshells/nuget/v3/packages/cshells.aspnetcore.abstractions/0.0.29-preview.147/cshells.aspnetcore.abstractions.0.0.29-preview.147.nupkg",
+      "packageSha256": "ae3ab1fd4cdb49212f39104a0d798bf89bb9fd85361d72d6f529b56a66e5f482",
+      "sha256": "a3a71de3e196f382a91edfbb2e8e3b8a6af2b4fa23970d5e00016734ae4c7477",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/sfmskywalker/cshells",
+        "branch": "refs/heads/main",
+        "commit": "6dd505d2ee0d40fb222b079e81acca8bdbab17c5"
+      }
+    },
+    {
+      "id": "JetBrains.Annotations",
+      "version": "2025.2.4",
+      "url": "https://api.nuget.org/v3-flatcontainer/jetbrains.annotations/2025.2.4/jetbrains.annotations.nuspec",
+      "sha256": "aaed76f57a55fa276020ce892d63a98ec83d4e1da8b32191c44d1746279a25e9",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/JetBrains/JetBrains.Annotations.git"
+      }
+    },
+    {
+      "id": "Microsoft.AspNetCore.App.Runtime.linux-arm64",
+      "version": "10.0.11",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.aspnetcore.app.runtime.linux-arm64/10.0.11/microsoft.aspnetcore.app.runtime.linux-arm64.nuspec",
+      "sha256": "becdbb471968a8959b3483b3cf8b1e9c5b8328f662ecb4b7f41742f6922cf960",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/dotnet",
+        "commit": "e2f47b0110ed922f21a1522da67279133ce28f32"
+      }
+    },
+    {
+      "id": "Microsoft.AspNetCore.App.Runtime.linux-x64",
+      "version": "10.0.11",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.aspnetcore.app.runtime.linux-x64/10.0.11/microsoft.aspnetcore.app.runtime.linux-x64.nuspec",
+      "sha256": "239f5b12efd26f0f1ec2c2c524f71b54759fef3e535a872a40dc4ba55e56a284",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/dotnet",
+        "commit": "e2f47b0110ed922f21a1522da67279133ce28f32"
+      }
+    },
+    {
+      "id": "Microsoft.Extensions.Compliance.Abstractions",
+      "version": "10.1.0",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.compliance.abstractions/10.1.0/microsoft.extensions.compliance.abstractions.nuspec",
+      "sha256": "83f7180cdb21ebd3c7ed3231fc00809886ea87d4777223643449e5e27d9068c8",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/extensions",
+        "commit": "9e8d935cf0e7014d338ebdb7d6d7d4d348d62021"
+      }
+    },
+    {
+      "id": "Microsoft.Extensions.DependencyModel",
+      "version": "10.0.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.dependencymodel/10.0.1/microsoft.extensions.dependencymodel.nuspec",
+      "sha256": "5d66777fd6c799e7a9665bc7d5cfabe6e2eb0f6ad097a5e8978aedd90c6fabdc",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/dotnet",
+        "commit": "fad253f51b461736dfd3cd9c15977bb7493becef"
+      }
+    },
+    {
+      "id": "Microsoft.Extensions.Diagnostics.ExceptionSummarization",
+      "version": "10.1.0",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.diagnostics.exceptionsummarization/10.1.0/microsoft.extensions.diagnostics.exceptionsummarization.nuspec",
+      "sha256": "fc5da4b05f5d0a62954c66ac6c393c40e8b47272028817287ea51c9455306c9e",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/extensions",
+        "commit": "9e8d935cf0e7014d338ebdb7d6d7d4d348d62021"
+      }
+    },
+    {
+      "id": "Microsoft.Extensions.Resilience",
+      "version": "10.1.0",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.resilience/10.1.0/microsoft.extensions.resilience.nuspec",
+      "sha256": "71d890a673ba4914eb029cf5876ac251b831b3709df01518dcceeda512b94e09",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/extensions",
+        "commit": "9e8d935cf0e7014d338ebdb7d6d7d4d348d62021"
+      }
+    },
+    {
+      "id": "Microsoft.Extensions.Telemetry.Abstractions",
+      "version": "10.1.0",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.telemetry.abstractions/10.1.0/microsoft.extensions.telemetry.abstractions.nuspec",
+      "sha256": "9c06c08a41006e64121b43f72a16978bc4b1c7374ea623f4dcdc5215c7f9ee73",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/extensions",
+        "commit": "9e8d935cf0e7014d338ebdb7d6d7d4d348d62021"
+      }
+    },
+    {
+      "id": "Microsoft.NETCore.App.Runtime.linux-arm64",
+      "version": "10.0.11",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.netcore.app.runtime.linux-arm64/10.0.11/microsoft.netcore.app.runtime.linux-arm64.nuspec",
+      "sha256": "6ef92baee1e5d03303aa4b0fa85127ba2d2a3198c0b2e5286052b73f9a88388b",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/dotnet",
+        "commit": "e2f47b0110ed922f21a1522da67279133ce28f32"
+      }
+    },
+    {
+      "id": "Microsoft.NETCore.App.Runtime.linux-x64",
+      "version": "10.0.11",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.netcore.app.runtime.linux-x64/10.0.11/microsoft.netcore.app.runtime.linux-x64.nuspec",
+      "sha256": "bff347ebb28aa8f4ffb3efc5fbb9144d9a63ec22db14ce41cf6a57972765ece8",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/dotnet",
+        "commit": "e2f47b0110ed922f21a1522da67279133ce28f32"
+      }
+    },
+    {
+      "id": "Newtonsoft.Json",
+      "version": "13.0.3",
+      "url": "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.3/newtonsoft.json.nuspec",
+      "sha256": "ab5ff2f951cf44643a10b99ec9379104944e0850b594d19195d520788601a295",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/JamesNK/Newtonsoft.Json",
+        "commit": "0a2e291c0d9c0c7675d445703e51750363a549ef"
+      }
+    },
+    {
+      "id": "NuGet.Common",
+      "version": "6.13.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/nuget.common/6.13.1/nuget.common.nuspec",
+      "sha256": "1e203d184eb2519082cc7a3d47c00d15b70e03c691483b4f9db734df53040e89",
+      "license": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/NuGet/NuGet.Client",
+        "commit": "3fd0e588e53525f0cd037d7b91174c0ca78ac65c"
+      }
+    },
+    {
+      "id": "NuGet.Configuration",
+      "version": "6.13.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/nuget.configuration/6.13.1/nuget.configuration.nuspec",
+      "sha256": "16ceecdf1f7dde2d7368662424142a73e54df79d697b1dfde582570028668fd1",
+      "license": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/NuGet/NuGet.Client",
+        "commit": "3fd0e588e53525f0cd037d7b91174c0ca78ac65c"
+      }
+    },
+    {
+      "id": "NuGet.Frameworks",
+      "version": "6.13.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/nuget.frameworks/6.13.1/nuget.frameworks.nuspec",
+      "sha256": "f768e97ed5b7b02339a375ca7842530b2dc9f84d9fd7a216bc62870096a09593",
+      "license": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/NuGet/NuGet.Client",
+        "commit": "3fd0e588e53525f0cd037d7b91174c0ca78ac65c"
+      }
+    },
+    {
+      "id": "NuGet.Packaging",
+      "version": "6.13.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/nuget.packaging/6.13.1/nuget.packaging.nuspec",
+      "sha256": "4f9405ea72ef25678085dc190f4659ad3642987201a1002b3f8800e36a21c651",
+      "license": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/NuGet/NuGet.Client",
+        "commit": "3fd0e588e53525f0cd037d7b91174c0ca78ac65c"
+      }
+    },
+    {
+      "id": "NuGet.Protocol",
+      "version": "6.13.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/nuget.protocol/6.13.1/nuget.protocol.nuspec",
+      "sha256": "61fb215a3d1b579be9efb4abff9e2654c838ec70a7e6c3edf359dc6daf6cca42",
+      "license": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/NuGet/NuGet.Client",
+        "commit": "3fd0e588e53525f0cd037d7b91174c0ca78ac65c"
+      }
+    },
+    {
+      "id": "NuGet.Resolver",
+      "version": "6.13.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/nuget.resolver/6.13.1/nuget.resolver.nuspec",
+      "sha256": "09230f1550e6ff0852f92a99da92fb39257fe499c518ae72993696cb364d5ecc",
+      "license": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/NuGet/NuGet.Client",
+        "commit": "3fd0e588e53525f0cd037d7b91174c0ca78ac65c"
+      }
+    },
+    {
+      "id": "NuGet.Versioning",
+      "version": "6.13.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/nuget.versioning/6.13.1/nuget.versioning.nuspec",
+      "sha256": "97084db726cdfd6228d96b8bd36f07d7c30b4d3d25a3c86957729d8810ff6300",
+      "license": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "licenseUrl": "https://licenses.nuget.org/Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/NuGet/NuGet.Client",
+        "commit": "3fd0e588e53525f0cd037d7b91174c0ca78ac65c"
+      }
+    },
+    {
+      "id": "Nuplane",
+      "version": "0.0.9-preview.61",
+      "url": "https://f.feedz.io/valence-works/nuplane/nuget/v3/packages/nuplane/0.0.9-preview.61/nuplane.0.0.9-preview.61.nupkg",
+      "packageSha256": "5c94947b3d726446585f72c877aeaa8f99b0eb798f0c55da9256bab76089a702",
+      "sha256": "732164e06fa2b3ceb3aff83de6e8a0557e4d647a18d306da04461874dc556293",
+      "license": {
+        "type": "file",
+        "value": "LICENSE"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/valence-works/nuplane",
+        "branch": "refs/heads/main",
+        "commit": "c292a10390ada26da54865d46820d3ec327c8888"
+      },
+      "noticeFiles": [
+        {
+          "path": "LICENSE",
+          "sha256": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f"
+        }
+      ]
+    },
+    {
+      "id": "Nuplane.Abstractions",
+      "version": "0.0.9-preview.61",
+      "url": "https://f.feedz.io/valence-works/nuplane/nuget/v3/packages/nuplane.abstractions/0.0.9-preview.61/nuplane.abstractions.0.0.9-preview.61.nupkg",
+      "packageSha256": "7a3c657162f53af31387612205b14f48d44560534774b6a5ebb1d031674b7c44",
+      "sha256": "52208ede698193570c4f195097797ecb3c5879362062a01ecc2d4dfd7f3b6552",
+      "license": {
+        "type": "file",
+        "value": "LICENSE"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/valence-works/nuplane",
+        "branch": "refs/heads/main",
+        "commit": "c292a10390ada26da54865d46820d3ec327c8888"
+      },
+      "noticeFiles": [
+        {
+          "path": "LICENSE",
+          "sha256": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f"
+        }
+      ]
+    },
+    {
+      "id": "Nuplane.Loading",
+      "version": "0.0.9-preview.61",
+      "url": "https://f.feedz.io/valence-works/nuplane/nuget/v3/packages/nuplane.loading/0.0.9-preview.61/nuplane.loading.0.0.9-preview.61.nupkg",
+      "packageSha256": "0b28c0ad6f64060d7659a9e8d14cda2f20deba2304cbffad4a5fb72b6fb37580",
+      "sha256": "cdeaace6cec39fc77cdbe5200389a3d65a05b9904388933f7039cf67f5dedca3",
+      "license": {
+        "type": "file",
+        "value": "LICENSE"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/valence-works/nuplane",
+        "branch": "refs/heads/main",
+        "commit": "c292a10390ada26da54865d46820d3ec327c8888"
+      },
+      "noticeFiles": [
+        {
+          "path": "LICENSE",
+          "sha256": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f"
+        }
+      ]
+    },
+    {
+      "id": "Nuplane.Loading.Abstractions",
+      "version": "0.0.9-preview.61",
+      "url": "https://f.feedz.io/valence-works/nuplane/nuget/v3/packages/nuplane.loading.abstractions/0.0.9-preview.61/nuplane.loading.abstractions.0.0.9-preview.61.nupkg",
+      "packageSha256": "4c0b2c3e2f40b4bc596e84f4942b759ce8a15cfb11885b2552276993f336b607",
+      "sha256": "6278e163566c9f521eb8c1507b2eca23fbbbdbcb81c6948125f6fa8f35255dac",
+      "license": {
+        "type": "file",
+        "value": "LICENSE"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/valence-works/nuplane",
+        "branch": "refs/heads/main",
+        "commit": "c292a10390ada26da54865d46820d3ec327c8888"
+      },
+      "noticeFiles": [
+        {
+          "path": "LICENSE",
+          "sha256": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f"
+        }
+      ]
+    },
+    {
+      "id": "Nuplane.Sources.Directory",
+      "version": "0.0.9-preview.61",
+      "url": "https://f.feedz.io/valence-works/nuplane/nuget/v3/packages/nuplane.sources.directory/0.0.9-preview.61/nuplane.sources.directory.0.0.9-preview.61.nupkg",
+      "packageSha256": "a64dffeac893b1c6dfa4163e3df2c79725e242e45c54939b5ff909a70bf2203e",
+      "sha256": "2bad63d487647c2d540fc22586455f9aa6d5ca85faed89ca5b17c2f6401a372c",
+      "license": {
+        "type": "file",
+        "value": "LICENSE"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/valence-works/nuplane",
+        "branch": "refs/heads/main",
+        "commit": "c292a10390ada26da54865d46820d3ec327c8888"
+      },
+      "noticeFiles": [
+        {
+          "path": "LICENSE",
+          "sha256": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f"
+        }
+      ]
+    },
+    {
+      "id": "Orbyss.Foundation.Analyzers",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.analyzers/0.2.2/orbyss.foundation.analyzers.nuspec",
+      "sha256": "1cf0c0a02a01e6743ac47f1e07650ed3cb3436e61ff5efc78bc88575bc28f710",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.authentication/0.2.2/orbyss.foundation.authentication.nuspec",
+      "sha256": "689a575d8fdf9c1877b0931b7622f82b19f398e243657670a99dc6f1c3deff52",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.Assurance",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.authentication.assurance/0.2.2/orbyss.foundation.authentication.assurance.nuspec",
+      "sha256": "f023853e5882054941dc28697be26941421d1273f25df7f6a9a683bf3f375bbb",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.BffCookie",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.authentication.bffcookie/0.2.2/orbyss.foundation.authentication.bffcookie.nuspec",
+      "sha256": "dc5d1148676b8c14214e8ab060c286cd6e3696da6e3c3e2f91667917db8e3b96",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.ClientCredentials",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.authentication.clientcredentials/0.2.2/orbyss.foundation.authentication.clientcredentials.nuspec",
+      "sha256": "6b9406f61a1a86ec85723852933975a11b86155219a910b00acdd7fe75e47a91",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.DPoP",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.authentication.dpop/0.2.2/orbyss.foundation.authentication.dpop.nuspec",
+      "sha256": "ce8f4d81e22564b3505d885f2ac00faf889c01f06affce1232bddc2a99a8b603",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.DownstreamApi",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.authentication.downstreamapi/0.2.2/orbyss.foundation.authentication.downstreamapi.nuspec",
+      "sha256": "0820d46040782816715c82e08362e061ba79fc918414835777672becaf65e8f0",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.SpaPkce",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.authentication.spapkce/0.2.2/orbyss.foundation.authentication.spapkce.nuspec",
+      "sha256": "79a3f5bb70d88fc40b56daad73b6d17db8722c63f029cf19480c96c1893aad5f",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.TokenExchange",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.authentication.tokenexchange/0.2.2/orbyss.foundation.authentication.tokenexchange.nuspec",
+      "sha256": "e0a76ed53ced1a40870e3a980eaf3a24a6a60f844480a15266d965a330320525",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.DomainEvents",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.domainevents/0.2.2/orbyss.foundation.domainevents.nuspec",
+      "sha256": "63a5dad8a36412dadf92773f5f5f77cfae6bde6c6a428e654980d5a02f1d84c6",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.DomainEvents.Abstractions",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.domainevents.abstractions/0.2.2/orbyss.foundation.domainevents.abstractions.nuspec",
+      "sha256": "54fae0709f8af6de91085a0ed26a023e34ce6fa6ad4fc672e149ab57dd4bce22",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Identity.Admin.Abstractions",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.identity.admin.abstractions/0.2.2/orbyss.foundation.identity.admin.abstractions.nuspec",
+      "sha256": "52cf1b3821e0e4d24ebec56a276e04ea2a287b4c79519cfc8b4f20e06b054067",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Identity.Keycloak.Admin",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.identity.keycloak.admin/0.2.2/orbyss.foundation.identity.keycloak.admin.nuspec",
+      "sha256": "17360eff49983511ad14080559f0dbc4965eb8de1045d43365f8187f21e04e45",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Json",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.json/0.2.2/orbyss.foundation.json.nuspec",
+      "sha256": "e9dcd750cc666c24e7690512a8cdf0b222bd8f145638494502994bc833095332",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Json.AspNetCore",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.json.aspnetcore/0.2.2/orbyss.foundation.json.aspnetcore.nuspec",
+      "sha256": "571a2a15b388fb5964848028cb0b25b16ec2a078109cf30231ba0b58daa6f638",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Mcp.AspNetCore",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.mcp.aspnetcore/0.2.2/orbyss.foundation.mcp.aspnetcore.nuspec",
+      "sha256": "aac09795d50ab72b4f1a7f0cf1213ee31d33a1a240d08c1e9a8a823752401649",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.OpenApi.Exporter",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.openapi.exporter/0.2.2/orbyss.foundation.openapi.exporter.nuspec",
+      "sha256": "8188b4a6be502129026b24ecbc0829ed5f3511f45ac9952b51dbe01226832f9d",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Tasks",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.tasks/0.2.2/orbyss.foundation.tasks.nuspec",
+      "sha256": "33085699a6abec34b656f683cad45feb0b75c6804cca49f8f711d61c796168b0",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Tasks.Abstractions",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.tasks.abstractions/0.2.2/orbyss.foundation.tasks.abstractions.nuspec",
+      "sha256": "2d3217d75f14d133e94409d763a211bca9c2229954fdabcc28aa7d65a51773db",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Web.Discovery",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.web.discovery/0.2.2/orbyss.foundation.web.discovery.nuspec",
+      "sha256": "3cd6d4c5ca7371b558d0bdfb23eabba828cdf1606f0be49e4d231a44b85e06ff",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Web.Discovery.Abstractions",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.web.discovery.abstractions/0.2.2/orbyss.foundation.web.discovery.abstractions.nuspec",
+      "sha256": "7fc1b46928ab9548dbfe5eccf13a9e2cc78bc70f5ae04a5b1f97985dfea54c2f",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Web.HostedPages",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.web.hostedpages/0.2.2/orbyss.foundation.web.hostedpages.nuspec",
+      "sha256": "1cd638e0031c3bec2ccad188265a501bebae15ced8444e18dbc6c23540ab65bc",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Web.OpenApi",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.web.openapi/0.2.2/orbyss.foundation.web.openapi.nuspec",
+      "sha256": "efe56e36e260550b1644605ed8a47547295adc8fdfe9f92d15cc9efb873d0cd9",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.Web.ProblemDetails",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.web.problemdetails/0.2.2/orbyss.foundation.web.problemdetails.nuspec",
+      "sha256": "e5294e64b36646e5c104b4b6a95a7c06759c96b81c0e87a8268d12b59f0b94c4",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Orbyss.Foundation.WebDefaults",
+      "version": "0.2.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.webdefaults/0.2.2/orbyss.foundation.webdefaults.nuspec",
+      "sha256": "9b42512886032d1cfeed5bd5a4181787f114987898cd8a119a4c5747f3674443",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/orbyss-io/dotnet-foundation",
+        "commit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf"
+      }
+    },
+    {
+      "id": "Polly.Core",
+      "version": "8.6.5",
+      "url": "https://api.nuget.org/v3-flatcontainer/polly.core/8.6.5/polly.core.nuspec",
+      "sha256": "08a113add950c6a6ef52459beeda414d2be76b679ea56aa76b6a20e98eea04bc",
+      "license": {
+        "type": "expression",
+        "value": "BSD-3-Clause"
+      },
+      "licenseUrl": "https://licenses.nuget.org/BSD-3-Clause",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/App-vNext/Polly",
+        "commit": "74bf31fff0e0907034994be4df22424aa71818f1"
+      }
+    },
+    {
+      "id": "Polly.Extensions",
+      "version": "8.6.5",
+      "url": "https://api.nuget.org/v3-flatcontainer/polly.extensions/8.6.5/polly.extensions.nuspec",
+      "sha256": "71588bea003a00133cb049b39d5c84322aa2f6eb59ec88d8f2495964a55feb7a",
+      "license": {
+        "type": "expression",
+        "value": "BSD-3-Clause"
+      },
+      "licenseUrl": "https://licenses.nuget.org/BSD-3-Clause",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/App-vNext/Polly",
+        "commit": "74bf31fff0e0907034994be4df22424aa71818f1"
+      }
+    },
+    {
+      "id": "Polly.RateLimiting",
+      "version": "8.4.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/polly.ratelimiting/8.4.2/polly.ratelimiting.nuspec",
+      "sha256": "a785cc8c7297dffa06f6b2aa93f3a775502101087fdd4999aecffc7829c4dd99",
+      "license": {
+        "type": "expression",
+        "value": "BSD-3-Clause"
+      },
+      "licenseUrl": "https://licenses.nuget.org/BSD-3-Clause",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/App-vNext/Polly",
+        "commit": "077cf388fc5a85a7f6cd0fdcb2b68d17a898019e"
+      }
+    },
+    {
+      "id": "System.Security.Cryptography.Pkcs",
+      "version": "6.0.4",
+      "url": "https://api.nuget.org/v3-flatcontainer/system.security.cryptography.pkcs/6.0.4/system.security.cryptography.pkcs.nuspec",
+      "sha256": "25889757a22a42c0785cc2932e2b540b6ddfe50453e32240c5a3e66b1a6c6777",
+      "license": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dotnet/runtime",
+        "commit": "e37fab9fc9f7bce120a7165491ed392a73f8ab51"
+      }
+    },
+    {
+      "id": "System.Security.Cryptography.ProtectedData",
+      "version": "4.4.0",
+      "url": "https://api.nuget.org/v3-flatcontainer/system.security.cryptography.protecteddata/4.4.0/system.security.cryptography.protecteddata.nuspec",
+      "sha256": "5cdde9c66717b21559b3b1e6df86739e67c3ffacc0224a5bbf01d4669bad169a",
+      "license": null,
+      "licenseUrl": "https://github.com/dotnet/corefx/blob/master/LICENSE.TXT",
+      "repository": null
+    }
+  ],
+  "hostDistribution": {
+    "inventoryCommand": "docker buildx imagetools inspect ghcr.io/orbyss-io/foundation-host@sha256:622353f8c3888ae173819abad493ecde786307e72f661cdfa3bf3afa84cf6cde --format \"{{json .SBOM}}\"",
+    "platforms": [
+      "linux/amd64",
+      "linux/arm64"
+    ],
+    "packagesPerPlatform": 129,
+    "nugetMetadataRule": "SBOM package identities are checked against exact nuspecs through installed source mapping; scanner-derived assembly versions are not assumed NuGet releases.",
+    "noticeFiles": [
+      {
+        "path": "/usr/share/doc/libmount1/copyright",
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "bytes": 23160
+      },
+      {
+        "path": "/usr/share/doc/gzip/copyright",
+        "sha256": "1ca5dd5098fe2e1c0f0d05196f5b3da8b414a807702e6ca8b536eb5fd3059130",
+        "bytes": 2895
+      },
+      {
+        "path": "/usr/share/doc/passwd/copyright",
+        "sha256": "a4c3e5b19700dd3cc5961663d204bd7150f65f913314682aede5931548c436d5",
+        "bytes": 7044
+      },
+      {
+        "path": "/usr/share/doc/libaudit1/copyright",
+        "sha256": "6c7011e93f643b112c4cc3622131e28a30477afad6c4f5efe466b13aa7f603cc",
+        "bytes": 1596
+      },
+      {
+        "path": "/usr/share/doc/debconf/copyright",
+        "sha256": "57163c71bd8a5289660892827dd0dfaa7fef47f89deedc9dc6711ced7d0a28d7",
+        "bytes": 2764
+      },
+      {
+        "path": "/usr/share/doc/libproc2-0/copyright",
+        "sha256": "90a66617c36d83068b52bbb77cbfef1234f526bfa287156d9d05f7df4d339539",
+        "bytes": 3974
+      },
+      {
+        "path": "/usr/share/doc/libnpth0t64/copyright",
+        "sha256": "df6909abb38f4e84d237d8617e948bdbb391b2004ecf573863011d54a88ccf22",
+        "bytes": 1164
+      },
+      {
+        "path": "/usr/share/doc/libc6/copyright",
+        "sha256": "d3c95b56fa33e28b57860580f0baf4e4f4de2a268a2b80f1d031a5191bade265",
+        "bytes": 26462
+      },
+      {
+        "path": "/usr/share/doc/libtasn1-6/copyright",
+        "sha256": "572ad60ad184d8f52c6dc66d83a61a68f137db560b3452ce00588c9ecf128a65",
+        "bytes": 3451
+      },
+      {
+        "path": "/usr/share/doc/login/copyright",
+        "sha256": "a4c3e5b19700dd3cc5961663d204bd7150f65f913314682aede5931548c436d5",
+        "bytes": 7044
+      },
+      {
+        "path": "/usr/share/doc/libpam-runtime/copyright",
+        "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+        "bytes": 9477
+      },
+      {
+        "path": "/usr/share/doc/libbz2-1.0/copyright",
+        "sha256": "832ed535ff3c3d025a8d2348eb1b697b89addcf2eaadbc17650262040b9145e2",
+        "bytes": 2228
+      },
+      {
+        "path": "/usr/share/doc/sed/copyright",
+        "sha256": "719320e425e8e6da53a55e0fcfa2f2ed9b1332cea16abd65321bd651b2a88568",
+        "bytes": 8618
+      },
+      {
+        "path": "/usr/share/doc/zlib1g/copyright",
+        "sha256": "9e5b96d63773a5d177ba264254390f792be07e41748ebd94730981c6cac31cc6",
+        "bytes": 2927
+      },
+      {
+        "path": "/usr/share/doc/libp11-kit0/copyright",
+        "sha256": "d33af1e069981d1c1b576cb22e4bc260a134ffa2fce6ddd3cbbbb5b181113f0c",
+        "bytes": 15380
+      },
+      {
+        "path": "/usr/share/doc/dpkg/copyright",
+        "sha256": "6511e06b27f2297fde6ee8fb2e59807b7712dda61837ca00a0980da1e5df07ac",
+        "bytes": 5661
+      },
+      {
+        "path": "/usr/share/doc/liblz4-1/copyright",
+        "sha256": "d3be0f43fe14da244f97c451bbae789c0acf868612598a69f5f22a289abeca40",
+        "bytes": 3275
+      },
+      {
+        "path": "/usr/share/doc/base-files/copyright",
+        "sha256": "fd7e4aae7e7b05f217bcf2d02322825c360e66c52c4c2f1b28d784d6297a1c23",
+        "bytes": 1208
+      },
+      {
+        "path": "/usr/share/doc/libapt-pkg6.0t64/copyright",
+        "sha256": "b4701305243d8d746f4acaafe15d94f946251b05691bd6917fef41dd15e9ee12",
+        "bytes": 7668
+      },
+      {
+        "path": "/usr/share/doc/libgmp10/copyright",
+        "sha256": "7d366aef5ba325150246de1d7820c4c9926cd27ca61a69948492b26cd3b61601",
+        "bytes": 4153
+      },
+      {
+        "path": "/usr/share/doc/libuuid1/copyright",
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "bytes": 23160
+      },
+      {
+        "path": "/usr/share/doc/unminimize/copyright",
+        "sha256": "3d2c2c55ac1cc4a77652fa1d33aa7cb9b3f3cbc92c200c69f52b32825585085f",
+        "bytes": 948
+      },
+      {
+        "path": "/usr/share/doc/libcom-err2/copyright",
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "bytes": 15209
+      },
+      {
+        "path": "/usr/share/doc/libpam-modules-bin/copyright",
+        "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+        "bytes": 9477
+      },
+      {
+        "path": "/usr/share/doc/libhogweed6t64/copyright",
+        "sha256": "2cecdc7ac1913beb31299a41a8092fc936d9e6a1d00872fc3bf6e2263aecf842",
+        "bytes": 24280
+      },
+      {
+        "path": "/usr/share/doc/libassuan0/copyright",
+        "sha256": "d704d521eb7ba7b9e3d82d85ac6caac4dfb4c784a4762f61a95fbb2733b05ff3",
+        "bytes": 3373
+      },
+      {
+        "path": "/usr/share/doc/grep/copyright",
+        "sha256": "42d9b4d610396b1e8d1303dcb9487af3f5a2d2709623cf03a04cf76acdf6c5e3",
+        "bytes": 1807
+      },
+      {
+        "path": "/usr/share/doc/libgnutls30t64/copyright",
+        "sha256": "51da5214308b87d6a0a2fbcaea1f7dbd15510be733e5921d9548ff6b88d84dd8",
+        "bytes": 54039
+      },
+      {
+        "path": "/usr/share/doc/gcc-14-base/copyright",
+        "sha256": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79",
+        "bytes": 69004
+      },
+      {
+        "path": "/usr/share/doc/gpgv/copyright",
+        "sha256": "2be9a9a5d7db2584cf984de83379d395bb4a33478404160d1d77d0060b5a1bd1",
+        "bytes": 12624
+      },
+      {
+        "path": "/usr/share/doc/libacl1/copyright",
+        "sha256": "9a2dfb4a5abc7e84be2cc41f1089be665519c9409549296f6c19de57ab1d37c2",
+        "bytes": 2048
+      },
+      {
+        "path": "/usr/share/doc/libnettle8t64/copyright",
+        "sha256": "2cecdc7ac1913beb31299a41a8092fc936d9e6a1d00872fc3bf6e2263aecf842",
+        "bytes": 24280
+      },
+      {
+        "path": "/usr/share/doc/libcap-ng0/copyright",
+        "sha256": "567997de097e3738564c90e6fe13343b2daae21a7926d6fb161df41322c1840b",
+        "bytes": 1621
+      },
+      {
+        "path": "/usr/share/doc/libsepol2/copyright",
+        "sha256": "78d2a34606a0302057ec499a3b3c07bcbc43ca334064ce4c80891a0f69c8f6c6",
+        "bytes": 3750
+      },
+      {
+        "path": "/usr/share/doc/apt/copyright",
+        "sha256": "b4701305243d8d746f4acaafe15d94f946251b05691bd6917fef41dd15e9ee12",
+        "bytes": 7668
+      },
+      {
+        "path": "/usr/share/doc/bash/copyright",
+        "sha256": "06319d84c3e5ed096036f6a9310a030c7e84e50dff2b8a6792285c83ec0ada73",
+        "bytes": 9764
+      },
+      {
+        "path": "/usr/share/doc/coreutils/copyright",
+        "sha256": "d23a4fb17c4a2e5bc46dafe9d22192ecf3905473317e17139d210339dcf50fa9",
+        "bytes": 5551
+      },
+      {
+        "path": "/usr/share/doc/libselinux1/copyright",
+        "sha256": "864f1bb189f609075d580b8c4aada16d85a44546884f1687989e1cacc8c56751",
+        "bytes": 1957
+      },
+      {
+        "path": "/usr/share/doc/libsemanage2/copyright",
+        "sha256": "fe5876a94047cafbeb8b164fd98304912d94b6028e19415f08b7a8a2f90645fe",
+        "bytes": 1921
+      },
+      {
+        "path": "/usr/share/doc/mount/copyright",
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "bytes": 23160
+      },
+      {
+        "path": "/usr/share/doc/ubuntu-keyring/copyright",
+        "sha256": "191cdb1291b2fc3b9fdcd8648b16ab7f9e4f15b74dc5b30959a9fdcfb4782b6c",
+        "bytes": 1242
+      },
+      {
+        "path": "/usr/share/doc/libsystemd0/copyright",
+        "sha256": "a7d06854714a1ca99f6dbd1a1641dde5bcf28635be149f6554449618f8f427f3",
+        "bytes": 12776
+      },
+      {
+        "path": "/usr/share/doc/ncurses-base/copyright",
+        "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+        "bytes": 4670
+      },
+      {
+        "path": "/usr/share/doc/libgcrypt20/copyright",
+        "sha256": "40162167dff80843a4b24aa8d0a4ffc50be5338d004ebe38f86ae3397ba9de3e",
+        "bytes": 24896
+      },
+      {
+        "path": "/usr/share/doc/libxxhash0/copyright",
+        "sha256": "53acfd069ef57d3a68fc03d3ecdbcb7939c8083bae3fe52851da69b0383d7ee0",
+        "bytes": 3213
+      },
+      {
+        "path": "/usr/share/doc/base-passwd/copyright",
+        "sha256": "0f1cde79bd80a75f9029ae9a8c252b642223027ef36f6989c63a8230aae576a7",
+        "bytes": 798
+      },
+      {
+        "path": "/usr/share/doc/libtinfo6/copyright",
+        "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+        "bytes": 4670
+      },
+      {
+        "path": "/usr/share/doc/libpam0g/copyright",
+        "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+        "bytes": 9477
+      },
+      {
+        "path": "/usr/share/doc/debianutils/copyright",
+        "sha256": "aeb68ea374f488431b8963df24f05482692edfa70d7556d7e528dd06d255461c",
+        "bytes": 9062
+      },
+      {
+        "path": "/usr/share/doc/libmd0/copyright",
+        "sha256": "4365ef6255ad553fce69dd4bc0e093472c5d0e41b8ea493a545cc926ce171aa6",
+        "bytes": 8018
+      },
+      {
+        "path": "/usr/share/doc/bsdutils/copyright",
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "bytes": 23160
+      },
+      {
+        "path": "/usr/share/doc/libblkid1/copyright",
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "bytes": 23160
+      },
+      {
+        "path": "/usr/share/doc/ncurses-bin/copyright",
+        "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+        "bytes": 4670
+      },
+      {
+        "path": "/usr/share/doc/logsave/copyright",
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "bytes": 15209
+      },
+      {
+        "path": "/usr/share/doc/liblzma5/copyright",
+        "sha256": "a2dc8fac0f496e1c58aff67018cf0c6b88336316afa5642f9335b71642e28aa8",
+        "bytes": 15465
+      },
+      {
+        "path": "/usr/share/doc/libzstd1/copyright",
+        "sha256": "35e85e8e9bbb71492c5f5dddf39ed65b68775a02ad8d710c25d097b497f06c49",
+        "bytes": 5389
+      },
+      {
+        "path": "/usr/share/doc/libc-bin/copyright",
+        "sha256": "d3c95b56fa33e28b57860580f0baf4e4f4de2a268a2b80f1d031a5191bade265",
+        "bytes": 26462
+      },
+      {
+        "path": "/usr/share/doc/libattr1/copyright",
+        "sha256": "0cbec745d85ea775450b2d54fac55277197f429e52d611f72852ed420450620e",
+        "bytes": 1947
+      },
+      {
+        "path": "/usr/share/doc/util-linux/copyright",
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "bytes": 23160
+      },
+      {
+        "path": "/usr/share/doc/tar/copyright",
+        "sha256": "a0a44d41b2a045eb5946a8952487151cfa6ff0cd080bbf4b2eec220751d23024",
+        "bytes": 6560
+      },
+      {
+        "path": "/usr/share/doc/libffi8/copyright",
+        "sha256": "737ff68f0eb104d3b0d96b291c3a8f40a775a3ec2b53f9b2e4bcfe3188bde118",
+        "bytes": 10165
+      },
+      {
+        "path": "/usr/share/doc/libudev1/copyright",
+        "sha256": "a7d06854714a1ca99f6dbd1a1641dde5bcf28635be149f6554449618f8f427f3",
+        "bytes": 12776
+      },
+      {
+        "path": "/usr/share/doc/sensible-utils/copyright",
+        "sha256": "4405a7fb92b693f790887d5f1d6b190e2fd00d824d80ef0b3d10e64cf21275dc",
+        "bytes": 6752
+      },
+      {
+        "path": "/usr/share/doc/libext2fs2t64/copyright",
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "bytes": 15209
+      },
+      {
+        "path": "/usr/share/doc/libidn2-0/copyright",
+        "sha256": "41702469f28e8ff406345e3d1dd0c741f11bdfca319264f67036efd6aaa79e4b",
+        "bytes": 5348
+      },
+      {
+        "path": "/usr/share/doc/libpam-modules/copyright",
+        "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+        "bytes": 9477
+      },
+      {
+        "path": "/usr/share/doc/libunistring5/copyright",
+        "sha256": "dbbfee567c5eb53ad1c75ce666779e596b5f794b52be7f5834685ddd633185ea",
+        "bytes": 6564
+      },
+      {
+        "path": "/usr/share/doc/libss2/copyright",
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "bytes": 15209
+      },
+      {
+        "path": "/usr/share/doc/libpcre2-8-0/copyright",
+        "sha256": "030511beb4d9d620ad09914c369c36ec0528dcf301d1923cc643c948ee7c6a38",
+        "bytes": 6626
+      },
+      {
+        "path": "/usr/share/doc/libgpg-error0/copyright",
+        "sha256": "0250e9e7cbf6c68c2bd05b6db1ea684988f91cd95da69f2936064cf302729fe5",
+        "bytes": 4903
+      },
+      {
+        "path": "/usr/share/doc/dash/copyright",
+        "sha256": "d98c53f281321baad38164aa9ae6e368a9253be6ec51bd26a759b5e72b326f4a",
+        "bytes": 3878
+      },
+      {
+        "path": "/usr/share/doc/libssl3t64/copyright",
+        "sha256": "6a7da622fe0637a334d2a8fc470852d2ffb77d9a2b2f930f854e32a41ad6ef35",
+        "bytes": 2543
+      },
+      {
+        "path": "/usr/share/doc/mawk/copyright",
+        "sha256": "f6b94f461b09398ef192207356d89d7bf59833fe03082a14b910b3c740f2a318",
+        "bytes": 22806
+      },
+      {
+        "path": "/usr/share/doc/procps/copyright",
+        "sha256": "90a66617c36d83068b52bbb77cbfef1234f526bfa287156d9d05f7df4d339539",
+        "bytes": 3974
+      },
+      {
+        "path": "/usr/share/doc/libdb5.3t64/copyright",
+        "sha256": "8b53da37d73289d9df7317b3a2dbe16491f1fa9fec8b77b86d69704b40ce2c26",
+        "bytes": 17177
+      },
+      {
+        "path": "/usr/share/doc/libsemanage-common/copyright",
+        "sha256": "fe5876a94047cafbeb8b164fd98304912d94b6028e19415f08b7a8a2f90645fe",
+        "bytes": 1921
+      },
+      {
+        "path": "/usr/share/doc/findutils/copyright",
+        "sha256": "601cc227b3e22ad219beeed7c86b9e146ddf9c88c25620f78169fd5451d4f966",
+        "bytes": 24779
+      },
+      {
+        "path": "/usr/share/doc/libcrypt1/copyright",
+        "sha256": "5a5e7ca0e9f3f9679977e3a3e9ede45ad92885a3297ea78e766979f9866c5a16",
+        "bytes": 6010
+      },
+      {
+        "path": "/usr/share/doc/libdebconfclient0/copyright",
+        "sha256": "cf63099896d1c0f6529c41b8d95738e6fea342ffba609187d339c4f38ce36ecc",
+        "bytes": 5856
+      },
+      {
+        "path": "/usr/share/doc/libaudit-common/copyright",
+        "sha256": "6c7011e93f643b112c4cc3622131e28a30477afad6c4f5efe466b13aa7f603cc",
+        "bytes": 1596
+      },
+      {
+        "path": "/usr/share/doc/init-system-helpers/copyright",
+        "sha256": "7534601cc4fa513804d16490359f5831e7b6a1212da3bbf948bebdd4c8799783",
+        "bytes": 3133
+      },
+      {
+        "path": "/usr/share/doc/e2fsprogs/copyright",
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "bytes": 15209
+      },
+      {
+        "path": "/usr/share/doc/libcap2/copyright",
+        "sha256": "e60a5642e12e340060e4e519a65b2eb0330be2917854841c644e36268f607d54",
+        "bytes": 4631
+      },
+      {
+        "path": "/usr/share/doc/sysvinit-utils/copyright",
+        "sha256": "53c7ef3839f64b24cc25a0937d11ce228517a48be0cc794f0d67b7e209b2a9ba",
+        "bytes": 5881
+      },
+      {
+        "path": "/usr/share/doc/diffutils/copyright",
+        "sha256": "ac6fcf18142bab7569188ae75b204a9e1c73c050c0f9467adaf080759e516123",
+        "bytes": 16445
+      },
+      {
+        "path": "/usr/share/doc/hostname/copyright",
+        "sha256": "94189fc5a9a7b7224d96e1a0cfdfe9be0df2018b04bf21d591627ab96b30cad1",
+        "bytes": 1273
+      },
+      {
+        "path": "/usr/share/doc/perl-base/copyright",
+        "sha256": "657ac19622868be1f2bf8ac3823a952b28c7a2a467f61353743e9c9d89291921",
+        "bytes": 108292
+      },
+      {
+        "path": "/usr/share/doc/libsmartcols1/copyright",
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "bytes": 23160
+      },
+      {
+        "path": "/usr/share/doc/libseccomp2/copyright",
+        "sha256": "6da0653a365b80ab31478dbfe9e7c358e80d58b6d2b52b4e16b4dbb42d7d9f5c",
+        "bytes": 1429
+      },
+      {
+        "path": "/usr/share/doc/tzdata-legacy/copyright",
+        "sha256": "97fad960bf4aea7cb5faf6dc8a536bf91bf85a69a7869cfa8254a0162134c1d8",
+        "bytes": 3794
+      },
+      {
+        "path": "/usr/share/doc/tzdata/copyright",
+        "sha256": "97fad960bf4aea7cb5faf6dc8a536bf91bf85a69a7869cfa8254a0162134c1d8",
+        "bytes": 3794
+      },
+      {
+        "path": "/usr/share/doc/libicu74/copyright",
+        "sha256": "5bbff5f646ce750ac0a347e7f91793279b7422a1119820b5f75d98879c201c68",
+        "bytes": 2214
+      },
+      {
+        "path": "/usr/share/doc/ca-certificates/examples/ca-certificates-local/debian/copyright",
+        "sha256": "ccfe62f0f73541f1c76a6d33aed26290391685c43f914a5e24c6b1f72cddcdff",
+        "bytes": 164
+      },
+      {
+        "path": "/usr/share/doc/ca-certificates/copyright",
+        "sha256": "e85e1bcad3a915dc7e6f41412bc5bdeba275cadd817896ea0451f2140a93967c",
+        "bytes": 18940
+      },
+      {
+        "path": "/usr/share/dotnet/LICENSE.txt",
+        "sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310",
+        "bytes": 1116
+      },
+      {
+        "path": "/usr/share/dotnet/ThirdPartyNotices.txt",
+        "sha256": "2dc8f8c5a39401e928b5784ab564eb8b3ceb99ead3df8f260e0cab7e0bbecc7a",
+        "bytes": 77436
+      }
+    ],
+    "sourceAttribution": "Foundation source LICENSE, THIRD-PARTY-NOTICES.md and Host/NOTICE.md above. Runtime and OS notices are retained at the paths below in the immutable image.",
+    "metadataExceptions": [
+      {
+        "id": "Orbyss.Foundation.Host@0.2.2",
+        "resolution": "Published OCI application, not a NuGet package. Source LICENSE and Host/NOTICE.md identify attribution."
+      },
+      {
+        "id": "System.Security.Cryptography.ProtectedData@4.6.25519.03",
+        "resolution": "SBOM assembly-derived identity has no corresponding NuGet metadata endpoint; retain separately from the package 4.4.0. Runtime/base-image notices preserved; no per-assembly license conclusion inferred."
+      }
+    ]
+  },
+  "assessment": {
+    "bootstrap": "Use publisher source/license, exact direct/transitive metadata and immutable distribution notice inventory for bounded managed-baseline research. Runtime compatibility must still execute on the selected combination.",
+    "retainedObligations": [
+      "Recheck the actual restored consumer transitive graph and applicable notices before distributing its feature packages/bundle.",
+      "Retain publisher, .NET and base-image notices; do not claim the complete host is MIT.",
+      "A concrete consumer licensing restriction, unaccounted required artifact or conflicting term remains an owned design blocker; this record cannot waive it.",
+      "Missing GitHub Release objects are not proof of missing registry publication. Use exact source, registry and workflow evidence."
+    ],
+    "limits": [
+      "No blanket legal/compliance or vulnerability clearance.",
+      "SBOM NOASSERTION remains unknown; source/package declarations and distribution notice text are separate evidence.",
+      "Production operations/support and redistribution assessment remain due at their own gates."
+    ]
+  }
+}

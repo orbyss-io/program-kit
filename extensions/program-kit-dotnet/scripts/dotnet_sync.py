@@ -11,6 +11,7 @@ from xml.etree import ElementTree
 import reconciliation
 import identity_fixture
 import spa_profile
+import persistence_selection
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -84,13 +85,23 @@ def apply_structured_migrations(
     document = json.loads(content.decode("utf-8"))
     changed = False
     for migration, transform in matching:
-        removals = transform.get("remove")
+        removals = transform.get("remove", [])
         if not isinstance(removals, list):
             raise ValueError(f"migration {migration['id']} has no JSON removal list")
         for operation in removals:
             if not isinstance(operation, dict):
                 raise ValueError(f"migration {migration['id']} has an invalid JSON removal")
             changed = remove_authenticated_json_value(document, operation, migration["id"]) or changed
+        for operation in transform.get("replaceArrayField", []):
+            if not isinstance(operation, dict) or not all(key in operation for key in ("array", "field", "old", "new")):
+                raise ValueError(f"migration {migration['id']} has an invalid array-field replacement")
+            rows = document.get(operation["array"], [])
+            if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+                raise ValueError(f"migration {migration['id']} requires an array of objects")
+            for row in rows:
+                if row.get(operation["field"]) == operation["old"]:
+                    row[operation["field"]] = operation["new"]
+                    changed = True
     return (json.dumps(document, indent=2) + "\n").encode("utf-8") if changed else content
 
 
@@ -332,10 +343,11 @@ def main() -> int:
     )
     parser.add_argument(
         "--persistence-profile",
-        choices=("none", "ef-postgresql", "ef-sqlserver", "ef-sqlite"),
-        default="none",
-        help="Explicit governed persistence profile; none keeps all providers inactive",
+        choices=("auto", "none", "ef-postgresql", "ef-sqlserver", "ef-sqlite"),
+        default="auto",
+        help="Resolve approved data-owner persistence intent; explicit profiles without admission remain proposals",
     )
+    parser.add_argument('--feature-dir', help='Feature admission scope, relative to the consuming repository')
     args = parser.parse_args()
 
     if not args.profile_selected:
@@ -406,6 +418,9 @@ def main() -> int:
 
     state_path = target / ".program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
+    persistence = persistence_selection.resolve(target, feature=args.feature_dir, requested=args.persistence_profile)
+    effective_persistence = persistence_selection.effective(persistence)
+    args.persistence_profile = persistence['summary']
     old_files = state.get("files")
     if not isinstance(old_files, dict):
         raise ValueError(f"Invalid managed-file state in {state_path}")
@@ -456,6 +471,16 @@ def main() -> int:
         content = desired_content(
             source, relative, dotnet_sdk, web_profile, spa_configuration, template_root
         )
+        if relative == persistence_selection.AGGREGATE:
+            content = persistence_selection.render(persistence, template_root / 'files')
+            rendered = True
+        if relative == '.program-kit/eng/.config/dotnet-tools.json':
+            tools = json.loads(content)
+            persistence_pins = persistence_selection.pins(effective_persistence, template_root / 'files')
+            if 'Microsoft.EntityFrameworkCore.Design' in persistence_pins:
+                tools['tools']['dotnet-ef'] = {'version': persistence_pins['Microsoft.EntityFrameworkCore.Design'], 'commands': ['dotnet-ef']}
+                content = (json.dumps(tools, indent=2) + '\n').encode('utf-8')
+                rendered = True
         desired_by_path[relative] = {
             **entry,
             "sourceIdentity": source.relative_to(template_root).as_posix(),
@@ -479,6 +504,16 @@ def main() -> int:
         destination = target / relative
         desired = desired_entry["content"]
         desired_hash = desired_entry["hash"]
+        if relative == "nuplane.settings.json" and not destination.exists():
+            # Preserve the runtime feed/loading choices of an existing consumer.
+            # The transaction creates the dedicated authoring file; hostsettings
+            # stays consumer-owned. Packaging rejects conflicting duplicate values.
+            legacy_host = target / "hostsettings.json"
+            if legacy_host.is_file():
+                legacy = load_json(legacy_host, {})
+                if isinstance(legacy.get("Nuplane"), dict):
+                    desired = (json.dumps({"Nuplane": legacy["Nuplane"]}, indent=2) + "\n").encode("utf-8")
+                    desired_hash = sha256_bytes(desired)
         previous = old_files.get(relative)
         previous_contribution = None
         if isinstance(previous, dict):
@@ -539,6 +574,13 @@ def main() -> int:
                 final_hash = desired_hash
                 final_baseline = desired_hash
                 final_written = desired_hash
+            elif (relative == 'Directory.Packages.props' and isinstance(previous, dict)
+                  and current_hash == last_written_hash and current_hash == baseline_hash
+                  and persistence_selection.pins(persistence, template_root / 'files')):
+                # Upgrade an authenticated untouched scaffold; customized consumer files stay preserved.
+                updated.append(relative)
+                actions.append({'kind': 'update', 'path': relative, 'content': desired})
+                final_hash = final_baseline = final_written = desired_hash
             elif (
                 isinstance(previous, dict)
                 and current_hash == last_written_hash
@@ -652,6 +694,7 @@ def main() -> int:
             "persistenceProfile": state.get("persistenceProfile"),
         },
         "to": {"webProfile": web_profile, "persistenceProfile": args.persistence_profile},
+        "persistence": persistence,
         "actions": [
             {
                 "kind": action["kind"],
@@ -696,7 +739,9 @@ def main() -> int:
         "webProfileContract": f"{web_profile}-v1",
         "webThreatModel": "program-kit-web-threat-model-v1" if web_profile != "none" else "none",
         "webSecurityEvidence": "program-kit-web-security-evidence-v1" if web_profile != "none" else "none",
-        "persistenceProfile": args.persistence_profile,
+        "persistenceProfile": effective_persistence['summary'],
+        "desiredPersistenceProfile": args.persistence_profile,
+        "persistenceOwners": effective_persistence['owners'],
         "desiredManifestDigest": plan_core["desiredManifestDigest"],
         "appliedMigrations": applied_migrations,
         "files": next_files,

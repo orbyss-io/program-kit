@@ -36,6 +36,32 @@ def make_source(model: dict, document: dict) -> dict:
 
 
 class AuthoringTests(unittest.TestCase):
+    def test_constraint_metadata_default_does_not_invent_decision_authority(self):
+        model = {'constraints': [{'id': 'one'}, {'id': 'two', 'decision_refs': ['existing-adr']}]}
+        authoring.defaults(model)
+        self.assertEqual([], model['constraints'][0]['decision_refs'])
+        self.assertEqual(['existing-adr'], model['constraints'][1]['decision_refs'])
+
+    def test_independent_draft_errors_are_aggregated_without_replacing_outputs(self):
+        self.build()
+        before = {p: p.read_bytes() for p in self.intent.parent.iterdir() if p.name != 'intake-authoring.json'}
+        self.source['map']['strategic_model']['contracts'][0]['kind'] = 'capability'
+        existing_id = self.source['intake']['evidence'][0]['id']
+        self.source['intake']['open_items'] = [{'id': existing_id, 'classification': 'research', 'blocks': '', 'trigger': ''}]
+        with self.assertRaises(ValueError) as error:
+            self.build()
+        for required in ('synchronous-capability', 'Duplicate intake ID', 'must name what it blocks'):
+            self.assertIn(required, str(error.exception))
+        self.assertEqual(before, {p: p.read_bytes() for p in before})
+
+    def test_language_labels_are_canonical_without_rewriting_evidence(self):
+        self.source['intake']['routing']['languages'] = ['C# (.NET managed default)', 'CSharp']
+        choices = copy.deepcopy(self.source['intake']['choices'])
+        self.build()
+        document = intake.validate_intake(self.root, allowed_statuses={'draft'})
+        self.assertEqual(['c#'], document['routing']['languages'])
+        self.assertEqual(choices, document['choices'])
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix='program-kit-authoring-test-')
         self.addCleanup(self.temporary.cleanup)
@@ -61,6 +87,82 @@ class AuthoringTests(unittest.TestCase):
         before = {p.name: p.read_bytes() for p in self.intent.parent.iterdir()}
         self.build()
         self.assertEqual(before, {p.name: p.read_bytes() for p in self.intent.parent.iterdir()})
+
+    def test_repeated_interaction_and_compound_slice_survive_build_and_projection(self):
+        strategic = self.source['map']['strategic_model']
+        first = strategic['journeys'][0]
+        first['steps'].append({**first['steps'][0], 'order': 2, 'description': 'Repeat the operation.'})
+        second = copy.deepcopy(first)
+        second.update(id='second-journey', source_journey='journey-second', view='second-view')
+        strategic['journeys'].append(second)
+        view = copy.deepcopy(self.source['map']['views'][-1])
+        view['key'] = 'second-view'
+        self.source['map']['views'].append(view)
+        strategic['candidate_slices'][0]['supporting_journeys'] = ['second-journey']
+        self.build()
+        model = json.loads((self.root / 'docs/architecture/architecture-map.json').read_text(encoding='utf-8'))
+        dynamic = next(v for v in model['views'] if v['key'] == first['view'])
+        self.assertEqual(['submits-request'], dynamic['relationships'])
+        self.assertEqual(['submits-request', 'submits-request'], dynamic['order'])
+        dsl = (self.root / 'docs/architecture/workspace.dsl').read_text(encoding='utf-8')
+        self.assertIn('2: submits_request', dsl)
+        imported = architecture.StructurizrDslImporter().import_path(
+            self.root / 'docs/architecture/workspace.dsl', base=model).model
+        restored = next(v for v in imported['views'] if v['key'] == first['view'])
+        self.assertEqual(dynamic['relationships'], restored['relationships'])
+        self.assertEqual(dynamic['order'], restored['order'])
+        bad = copy.deepcopy(model)
+        bad['strategic_model']['candidate_slices'][0]['supporting_journeys'] = ['missing']
+        with self.assertRaises(architecture.ArchitectureMapError):
+            architecture.validate_model(bad)
+
+    def test_confirmation_rejects_unanswered_consumer_question_but_draft_preserves_it(self):
+        self.source['intake']['open_items'] = [{
+            'id': 'interface-choice', 'question': 'Does browser access fit the intended use?',
+            'classification': 'human-decision', 'disposition': 'Consumer must choose the access surface',
+            'blocks': 'Selecting the first journey interface', 'trigger': '',
+            'evidence': [self.source['intake']['evidence'][0]['id']]}]
+        self.build()
+        document = intake.validate_intake(self.root, allowed_statuses={'draft'})
+        document['status'] = 'confirmed'
+        write_json(self.root / intake.CANONICAL_INTAKE, document)
+        with self.assertRaisesRegex(intake.IntakeError, 'consumer answer'):
+            intake.validate_intake(self.root)
+
+    def test_confirmation_rejects_capability_that_still_needs_a_human_answer(self):
+        self.build()
+        document = intake.validate_intake(self.root, allowed_statuses={'draft'})
+        document['capability_assessments'] = [{
+            'id': 'access-surface', 'need': 'Select the intended interface',
+            'mechanism_coverage': 'insufficient-evidence', 'program_kit_capabilities': [],
+            'semantic_owner': 'consumer', 'semantic_profile': '', 'integration_owner': 'consumer',
+            'provider_selection': '', 'decision_state': 'human-answer-required',
+            'evidence': [document['evidence'][0]['id']]}]
+        document['status'] = 'confirmed'
+        write_json(self.root / intake.CANONICAL_INTAKE, document)
+        with self.assertRaisesRegex(intake.IntakeError, 'consumer answer'):
+            intake.validate_intake(self.root)
+
+    def test_deferred_item_cannot_conceal_an_immediate_blocker(self):
+        self.source['intake']['open_items'] = [{
+            'id': 'interface-choice', 'question': 'Does browser access fit the intended use?',
+            'classification': 'deferred', 'disposition': 'Consumer to answer later',
+            'blocks': 'Selecting the first journey interface', 'trigger': 'Architecture',
+            'evidence': [self.source['intake']['evidence'][0]['id']]}]
+        with self.assertRaisesRegex(ValueError, 'deferred item cannot also block'):
+            self.build()
+
+    def test_confirmed_intake_retains_real_device_verification_at_delivery(self):
+        self.source['intake']['open_items'] = [{
+            'id': 'device-verification', 'question': 'Does the implemented interface work on actual devices?',
+            'classification': 'deferred', 'disposition': 'Feature verification owner runs device checks',
+            'blocks': '', 'trigger': 'Delivery before actual use',
+            'evidence': [self.source['intake']['evidence'][0]['id']]}]
+        self.build()
+        document = intake.validate_intake(self.root, allowed_statuses={'draft'})
+        document['status'] = 'confirmed'
+        write_json(self.root / intake.CANONICAL_INTAKE, document)
+        self.assertEqual('confirmed', intake.validate_intake(self.root)['status'])
 
     def test_confirmed_intake_cannot_be_replaced(self):
         self.build()
@@ -145,6 +247,21 @@ class AuthoringTests(unittest.TestCase):
             self.assertNotIn('registration', result['ownerOptions'][field])
             self.assertEqual(result['semanticRules'][field]['literals'], sorted(literals))
         self.assertEqual(self.source, before)
+        self.assertIn('not-declared', ' '.join(result['coverageRules']))
+
+    def test_missing_managed_capabilities_are_batched_without_guessing_ids(self):
+        model = self.semantic_fixture()
+        bindings = model['strategic_model']['capability_bindings']
+        self.assertTrue(bindings)
+        for binding in bindings:
+            binding['mechanism_coverage'] = 'guided'
+            binding['program_kit_capabilities'] = []
+        before = copy.deepcopy(model)
+        errors = authoring.authoring_semantic_errors(model)
+        for binding in bindings:
+            self.assertIn(binding['assessment'], '\n'.join(errors))
+        self.assertIn('not-declared', '\n'.join(errors))
+        self.assertEqual(before, model)
 
     def test_descriptor_cli_lists_sections_and_returns_actionable_invalid_section(self):
         command = [sys.executable, str(SCRIPTS / 'intake_authoring.py'), 'describe', '--document', 'intake']

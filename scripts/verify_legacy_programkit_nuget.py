@@ -101,8 +101,8 @@ def replacement_packages(manifest_path: Path, required_versions: dict[str, str])
             if package.get("version") != required_version:
                 raise ValueError(f"{package_id} does not match the {name} release version.")
         replacements.extend((package_id, required_version) for package_id in family_packages)
-    if len(replacements) != 50 or len({package_id for package_id, _ in replacements}) != 50:
-        raise ValueError("Replacement manifest must contain exactly 50 unique NuGet package IDs.")
+    if len(replacements) != 53 or len({package_id for package_id, _ in replacements}) != 53:
+        raise ValueError("Replacement manifest must contain exactly 53 unique NuGet package IDs.")
     return sorted(replacements)
 
 

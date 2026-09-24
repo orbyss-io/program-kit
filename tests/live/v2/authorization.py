@@ -11,9 +11,18 @@ from typing import Any
 from .common import LiveContractError, atomic_write_json, canonical_sha256, load_object, utc_now, validate
 
 
-SESSION_LIMITS = {"bootstrap-checkpoint": 7, "building-block-consumer": 1,
-                  "workflow-fresh": 8, "workflow-failure": 8, "workflow-resume": 8}
-PHASES = set(SESSION_LIMITS)
+PHASES = {"bootstrap-checkpoint", "building-block-consumer"}
+PHASES.update({'workflow-fresh', 'workflow-failure', 'workflow-resume', 'feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer', 'upgrade-continuation'})
+
+
+def session_limit(phase: str, bootstrap_sessions: int | None = None) -> int:
+    if phase.startswith('workflow-'):
+        return 8
+    if phase != 'bootstrap-checkpoint':
+        return 1
+    if type(bootstrap_sessions) is not int or bootstrap_sessions < 1:
+        raise LiveContractError('LIVE_AUTHORIZATION_VERIFIED_WORKFLOW_LIMIT_REQUIRED')
+    return bootstrap_sessions
 
 
 def issue_authorization(
@@ -26,11 +35,12 @@ def issue_authorization(
     agent_profile: dict[str, object],
     checkpoint: dict[str, str] | None,
     expires_minutes: int = 30,
+    bootstrap_sessions: int | None = None,
     workflow: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if phase not in PHASES:
         raise LiveContractError(f"LIVE_AUTHORIZATION_UNKNOWN_PHASE: {phase}")
-    if phase == "building-block-consumer" and checkpoint is None:
+    if phase != "bootstrap-checkpoint" and not phase.startswith("workflow-") and checkpoint is None:
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED")
     if phase == "bootstrap-checkpoint" and checkpoint is not None:
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_FORBIDDEN")
@@ -52,7 +62,7 @@ def issue_authorization(
         "checkpoint": checkpoint,
         "agentProfile": agent_profile,
         "limits": {
-            "maximumPaidSessions": SESSION_LIMITS[phase],
+            "maximumPaidSessions": session_limit(phase, bootstrap_sessions),
             "workerNetwork": "model-transport-only",
             "restoreNetworkOwner": "supervisor",
         },
@@ -86,6 +96,7 @@ def validate_authorization(
     scenario_digest: str,
     candidate_receipt_digest: str,
     checkpoint_digest: str | None,
+    bootstrap_sessions: int | None = None,
 ) -> dict[str, Any]:
     manifest = load_object(path)
     validate(manifest, schema)
@@ -104,7 +115,7 @@ def validate_authorization(
     now = datetime.now(timezone.utc)
     if now < _parse_time(manifest["issuedAt"], "issuedAt") or now >= _parse_time(manifest["expiresAt"], "expiresAt"):
         raise LiveContractError("LIVE_AUTHORIZATION_EXPIRED")
-    expected_sessions = SESSION_LIMITS[phase]
+    expected_sessions = session_limit(phase, bootstrap_sessions)
     if manifest["limits"]["maximumPaidSessions"] != expected_sessions:
         raise LiveContractError("LIVE_AUTHORIZATION_SESSION_LIMIT")
     return manifest

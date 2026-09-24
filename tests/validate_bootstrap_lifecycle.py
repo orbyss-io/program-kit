@@ -56,13 +56,16 @@ def item(identity='provider', slices=None, disposition='architecture', trigger='
             'rationale': 'The public slice requires a durable result', 'status': 'open', 'evidence': []}
 
 
-def setup(root):
-    for name in ('program-kit-governance', 'program-kit-building-blocks'):
+def setup(root, *, web=None):
+    for name in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet'):
         shutil.copytree(ROOT / 'extensions' / name, root / '.specify/extensions' / name)
+    from schema_runtime import runtime_path
+    if not runtime_path(root).exists():
+        shutil.copytree(runtime_path(ROOT), runtime_path(root))
     fixture.write_installation(root, '0.3.1')
     semantic = module('lifecycle_semantic', ROOT / 'tests/validate_bootstrap_semantics.py')
     architecture = governance._load_architecture_module()
-    fixture.write_assessment(governance, root, semantic, architecture)
+    fixture.write_assessment(governance, root, semantic, architecture, web=web)
     governance.begin()
     (root / governance.CONSTITUTION).write_text(fixture.constitution(), encoding='utf-8')
     governance.write_review('constitution')
@@ -91,7 +94,9 @@ def setup(root):
     selection_path = root / governance.BUILDING_BLOCK_SELECTION
     blocks.draft_selection(root, selection_path, catalog, [])
     selection = blocks.load_json(selection_path)
-    selection['authority'] = {'architectureMap': governance.ARCHITECTURE_MAP.as_posix(), 'decisionIds': [candidate], 'rationale': 'Reviewed fixture placement'}
+    selection['authority'] = {'architectureMap': governance.ARCHITECTURE_MAP.as_posix(),
+                              'decisionIds': sorted(scope, reverse=True),
+                              'rationale': ' Reviewed fixture placement '}
     selection['scopes'] = [{'id': 'application', 'kind': 'application', 'environment': 'test'}]
     selection['targets'] = [
         {'id': 'feature', 'kind': 'dotnet-project', 'path': 'src/Fixture/Fixture.csproj', 'role': 'implementation', 'scope': 'application'},
@@ -120,6 +125,9 @@ def workflow_gate(root):
     import copy
     shipped = yaml.safe_load((ROOT / 'workflows/program-kit-bootstrap/workflow.yml').read_text(encoding='utf-8'))
     steps = [copy.deepcopy(s) for s in shipped['steps'] if s['id'] in {'readiness', 'validate-readiness-output', 'require-readiness', 'complete-bootstrap'}]
+    # Preserve regression coverage for historical agent-produced verdicts. New
+    # native flows use the separately tested deterministic readiness shell.
+    steps[0] = {'id': 'readiness', 'type': 'command', 'command': 'speckit.program-kit-governance.readiness'}
     steps[0]['integration'] = 'codex'
     steps[0]['input'] = {'args': 'Deterministic fixture; agent dispatch is mocked'}
     for step in steps[1:]:
@@ -137,7 +145,49 @@ def workflow_gate(root):
     assert not (root / governance.BOOTSTRAP_COMPLETION).exists()
 
 
+def browser_baseline_checks():
+    previous = Path.cwd()
+    for profile in ('none-v1', 'bff-cookie-v1', 'spa-pkce-v1'):
+        with tempfile.TemporaryDirectory(prefix='program-kit-browser-baseline-') as directory:
+            root = Path(directory)
+            os.chdir(root)
+            try:
+                web = fixture.decisions()['web']
+                web.update(secure_profile=profile, profile_source='explicit-intake',
+                           override_reason='Explicit test architecture selection.')
+                if profile == 'none-v1':
+                    web.update(threat_model='none-v1', security_evidence='none-v1')
+                with contextlib.redirect_stdout(io.StringIO()):
+                    setup(root, web=web)
+                    # Remove inherited labels from the authored fixture, so an
+                    # anonymous baseline cannot pass by accidentally retaining them.
+                    for relative in (governance.ARCHITECTURE, Path('docs/architecture/technology-radar.md'),
+                                     governance.DECISIONS / 'bootstrap-baseline.md'):
+                        path = root / relative
+                        text = path.read_text(encoding='utf-8').replace('bff-cookie-v1', profile)
+                        text = text.replace(governance.WEB_THREAT_MODEL, 'assurance-omitted')
+                        text = text.replace(governance.WEB_SECURITY_EVIDENCE, 'assurance-omitted')
+                        path.write_text(text, encoding='utf-8')
+                    if profile != 'none-v1':
+                        fails(lambda: governance.validate_bootstrap(False, True), 'security assurance')
+                        path = root / governance.ARCHITECTURE
+                        with path.open('a', encoding='utf-8') as stream:
+                            stream.write(f'\nInherits {web["threat_model"]} and {web["security_evidence"]}.\n')
+                    # Reflect the deliberately authored test documents before the
+                    # complete gate; production never refreshes arbitrary drift.
+                    model = lifecycle.load(root / governance.ARCHITECTURE_MAP)
+                    for document in model['documentation']:
+                        document['sha256'] = lifecycle.digest(root / document['path'])
+                    lifecycle.write(root / governance.ARCHITECTURE_MAP, model)
+                    governance.synchronize_lifecycle()
+                    governance.synchronize_roadmap_views()
+                    governance.validate_bootstrap(False, True)
+            finally:
+                os.chdir(previous)
+
+
 def main():
+    browser_baseline_checks()
     previous = Path.cwd()
     with tempfile.TemporaryDirectory(prefix='program-kit-lifecycle-') as directory:
         root = Path(directory)
@@ -145,16 +195,83 @@ def main():
         try:
             with contextlib.redirect_stdout(io.StringIO()):
                 unscoped, newly_scoped = setup(root)
+                # Real consumers may catalog mutable lifecycle inputs as map
+                # documentation. Refresh those bindings only after validation.
+                original_map = (root / governance.ARCHITECTURE_MAP).read_bytes()
+                model = lifecycle.load(root / governance.ARCHITECTURE_MAP)
+                unrelated = root / 'docs/architecture/quality-attributes.md'
+                model['documentation'].append({'id': 'quality-attributes',
+                                               'path': unrelated.relative_to(root).as_posix(),
+                                               'sha256': lifecycle.digest(unrelated), 'scope': 'bootstrap'})
+                for relative in (lifecycle.LEDGER, lifecycle.SCOPE):
+                    model['documentation'].append({'id': relative.stem, 'path': relative.as_posix(),
+                                                   'sha256': '0' * 64, 'scope': 'bootstrap'})
+                lifecycle.write(root / governance.ARCHITECTURE_MAP, model)
+                governance.synchronize_lifecycle()
+                refreshed = lifecycle.load(root / governance.ARCHITECTURE_MAP)
+                for document in refreshed['documentation']:
+                    if document['path'] in {lifecycle.LEDGER.as_posix(), lifecycle.SCOPE.as_posix()}:
+                        assert document['sha256'] == lifecycle.digest(root / document['path'])
+                # Roadmap authoring owns the ledger and roadmap as well as its two
+                # navigation views. Registered hashes must follow validated edits.
+                refreshed['documentation'].append({'id': 'roadmap',
+                    'path': governance.ROADMAP.as_posix(), 'sha256': '0' * 64, 'scope': 'bootstrap'})
+                lifecycle.write(root / governance.ARCHITECTURE_MAP, refreshed)
+                original_ledger_bytes = (root / lifecycle.LEDGER).read_bytes()
+                (root / lifecycle.LEDGER).write_bytes(original_ledger_bytes + b'\n')
+                governance.synchronize_roadmap_views()
+                synchronized = [root / p for p in (governance.ARCHITECTURE_MAP,
+                    governance.ARCHITECTURE, governance.TRACEABILITY, governance.WORKSPACE_DSL)]
+                stable_outputs = {p: p.read_bytes() for p in synchronized}
+                refreshed = lifecycle.load(root / governance.ARCHITECTURE_MAP)
+                for document in refreshed['documentation']:
+                    if document['path'] in {lifecycle.LEDGER.as_posix(), governance.ROADMAP.as_posix()}:
+                        assert document['sha256'] == lifecycle.digest(root / document['path'])
+                governance.synchronize_roadmap_views()
+                assert all(p.read_bytes() == b for p, b in stable_outputs.items())
+                valid_ledger = (root / lifecycle.LEDGER).read_bytes()
+                ledger(root, [{**item(), 'status': 'closed'}])
+                fails(governance.synchronize_roadmap_views, 'evidence')
+                assert all(p.read_bytes() == b for p, b in stable_outputs.items())
+                (root / lifecycle.LEDGER).write_bytes(valid_ledger)
+                quality_before = unrelated.read_bytes()
+                unrelated.write_bytes(quality_before + b'\nUnreviewed unrelated edit.\n')
+                fails(governance.synchronize_roadmap_views, 'documentation is missing or stale')
+                assert all(p.read_bytes() == b for p, b in stable_outputs.items())
+                unrelated.write_bytes(quality_before)
+                stable_map = (root / governance.ARCHITECTURE_MAP).read_bytes()
+                original_scope = (root / lifecycle.SCOPE).read_bytes()
+                lifecycle.write(root / lifecycle.SCOPE, {'schema_version': '1.0', 'decisions': {}})
+                fails(governance.synchronize_lifecycle, 'all founding decisions')
+                assert (root / governance.ARCHITECTURE_MAP).read_bytes() == stable_map
+                (root / lifecycle.SCOPE).write_bytes(original_scope)
+                original_ledger = (root / lifecycle.LEDGER).read_bytes()
+                ledger(root, [{**item(), 'status': 'closed'}])  # No proof: never bless this checksum.
+                fails(governance.synchronize_lifecycle, 'evidence')
+                assert (root / governance.ARCHITECTURE_MAP).read_bytes() == stable_map
+                (root / lifecycle.LEDGER).write_bytes(original_ledger)
+                unrelated_bytes = unrelated.read_bytes()
+                unrelated.write_bytes(unrelated_bytes + b'\nUnreviewed unrelated edit.\n')
+                try:
+                    governance.synchronize_lifecycle()
+                except Exception as error:
+                    assert 'Architecture documentation is missing or stale' in str(error), str(error)
+                else:
+                    raise AssertionError('Unrelated document drift must still fail')
+                assert (root / governance.ARCHITECTURE_MAP).read_bytes() == stable_map
+                unrelated.write_bytes(unrelated_bytes)
+                (root / governance.ARCHITECTURE_MAP).write_bytes(original_map)
                 # Preamble and unchecked fields cannot bypass prerequisite eligibility.
                 base = fixture.roadmap()
                 for changed in [base.replace('# Specification roadmap', '# Specification roadmap\n\nunresolved provider decision must close before implementation'),
                                 base.replace('First module data', 'unresolved provider decision must close before implementation')]:
                     (root / governance.ROADMAP).write_text(changed, encoding='utf-8')
-                    fails(lambda: governance.validate_roadmap(True), 'hides an unresolved')
+                    governance.validate_roadmap(True)  # Narrative phrasing is not lifecycle authority.
                 (root / governance.ROADMAP).write_text(base, encoding='utf-8')
                 dependency = item()
                 ledger(root, [dependency])
-                fails(lambda: governance.validate_roadmap(True), 'provider blocks SPEC-001')
+                governance.validate_roadmap(True)
+                assert not lifecycle.phase_eligibility(root, governance.roadmap_records(root / governance.ROADMAP), 'SPEC-001', 'implementation')['eligible']
                 # Accepted ADR metadata cannot close a retained condition or replace proof.
                 dependency['status'] = 'closed'
                 ledger(root, [dependency])
@@ -171,10 +288,21 @@ def main():
                 recipe = root / 'docs/architecture/compatibility/port.py'
                 recipe.parent.mkdir(parents=True)
                 recipe.write_text("import sqlite3\nfrom pathlib import Path\nassert not Path('docs').exists()\nc=sqlite3.connect('probe.db')\nc.execute('create table result(value text)')\nc.execute(\"insert into result values ('saved')\")\nc.commit()\nc.close()\nc=sqlite3.connect('probe.db')\nassert c.execute('select value from result').fetchone()==('saved',)\nprint(sqlite3.sqlite_version)\n", encoding='utf-8')
+                with recipe.open('a', encoding='utf-8') as handle:
+                    handle.write("from pathlib import Path\nPath('compatibility-results.xml').write_text('<testsuite><testcase classname=\"Port\" name=\"roundtrip\"/></testsuite>')\n")
+                contract = {'schemaVersion': 1, 'result': 'compatibility-results.xml',
+                            'checks': [{'id': 'port-roundtrip', 'kind': 'runtime-compatibility', 'testCases': ['Port.roundtrip']}]}
+                recipe.with_suffix('.contract.json').write_text(json.dumps(contract), encoding='utf-8')
+                availability = recipe.with_name('availability.py')
+                availability.write_text("print('package exists')", encoding='utf-8')
+                availability.with_suffix('.contract.json').write_text(json.dumps(contract), encoding='utf-8')
+                missing_tests = lifecycle.run_proof(root, 'availability', availability.relative_to(root).as_posix(), 30)
+                assert missing_tests['exit_code'] == 126
                 proof = lifecycle.run_proof(root, 'provider', recipe.relative_to(root).as_posix(), 30)
                 assert proof.pop('exit_code') == 0
                 slow_recipe = recipe.with_name('timeout.py')
                 slow_recipe.write_text("import subprocess, sys, time\nsubprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])\nprint('child started', flush=True)\ntime.sleep(60)\n", encoding='utf-8')
+                slow_recipe.with_suffix('.contract.json').write_text(json.dumps(contract), encoding='utf-8')
                 timed_out = lifecycle.run_proof(root, 'timeout', slow_recipe.relative_to(root).as_posix(), 1)
                 assert timed_out['exit_code'] == 124
                 assert len(lifecycle.load(root / timed_out['path'])['streams']) == 2
@@ -226,7 +354,9 @@ def main():
                     fails(lambda: governance.accept_bootstrap('approve'), 'acceptance failed after founding ADR promotion')
                 assert reviewed_hashes == governance._artifact_hashes(governance.bootstrap_artifacts())
                 assert not (root / governance.BOOTSTRAP_APPROVAL).exists()
+                reviewed_design = lifecycle.design_digest(root / governance.BUILDING_BLOCK_SELECTION)
                 governance.accept_bootstrap('approve')
+                assert lifecycle.design_digest(root / governance.BUILDING_BLOCK_SELECTION) == reviewed_design
                 governance.validate_bootstrap(True, True)
                 assert lifecycle.load(root / governance.BUILDING_BLOCK_SELECTION)['status'] == 'Accepted'
                 assert not (root / 'src/Fixture/Fixture.csproj').exists()
@@ -273,6 +403,13 @@ def main():
                 assert report.stat().st_size > 3072 and report.stat().st_size < 4096
                 result = cli(root, 'bootstrap_recovery.py', 'prepare', '--run-id', run_id)
                 assert result.returncode == 0, result.stderr
+                if os.name == 'nt':
+                    published = str(recovery.location(root, run_id)).replace("'", "''")
+                    acl = subprocess.run([shutil.which('pwsh') or 'powershell.exe', '-NoProfile', '-NonInteractive', '-Command',
+                        f"(Get-Acl -LiteralPath '{published}').AreAccessRulesProtected"],
+                        capture_output=True, text=True)
+                    assert acl.returncode == 0, (acl.stdout, acl.stderr)
+                    assert acl.stdout.strip() == 'False', 'Published handoff must inherit workspace ACLs'
                 saved_run = lifecycle.digest(run / 'state.json')
                 saved_approval = lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)
                 assert recovery.evaluate(root, run_id)['target_exceeded_count'] == 1
@@ -292,11 +429,16 @@ def main():
                 lifecycle.write(root / lifecycle.SCOPE, scope)
                 ledger(root, [dependency])
                 (root / governance.ROADMAP).write_text(fixture.roadmap('`provider-closure`'), encoding='utf-8')
+                lifecycle.write(root / 'docs/architecture/bootstrap-proof-plan.json', {
+                    'schemaVersion': 1, 'probes': [{'id': 'provider', 'recipe': recipe.relative_to(root).as_posix(), 'timeout': 30}],
+                    'readyWhenProven': []})
                 recovery.synchronize(root, run_id)
                 recovery.review(root, run_id)
+                assert recovery.require_prepared_review(root, run_id)
                 review_path = recovery.location(root, run_id) / 'review.md'
                 original_review = review_path.read_bytes()
                 review_path.write_bytes(original_review + b'\nChanged after review.\n')
+                fails(lambda: recovery.require_prepared_review(root, run_id), 'stale')
                 fails(lambda: recovery.accept(root, run_id, 'approve'), 'stale')
                 review_path.write_bytes(original_review)
                 assert lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL) == saved_approval

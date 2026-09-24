@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><PackageId>ProgramKit.Compatibility.Feature</PackageId><AssemblyName>ProgramKit.Compatibility.Feature</AssemblyName><Version>1.0.0</Version><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><ImportDirectoryBuildProps>false</ImportDirectoryBuildProps><ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets></PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../Core/Core.csproj" />
+    <PackageReference Include="CShells.AspNetCore.Abstractions" Version="0.0.29-preview.147" PrivateAssets="all" />
+    <PackageReference Include="Orbyss.Foundation.Json.AspNetCore" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.WebDefaults" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.Web.ProblemDetails" Version="0.2.2" />
+    <PackageReference Include="Orbyss.Foundation.Web.OpenApi" Version="0.2.2" />
+    <PackageReference Include="System.Text.Json" Version="10.0.11" />
+  </ItemGroup>
+</Project>

@@ -41,7 +41,7 @@ Then request only the needed record:
 `elements`, or a schema definition such as `subdomain`, `bounded_context`, `module`, `contract`,
 `capability_binding`, `journey`, or `journey_step`. Use the section you need, not the whole schema.
 Targeted schema inspection is allowed if the descriptor leaves a question; implementation browsing
-is a last resort. Required JSON names and enum spellings must never be inferred from prose.
+is a last resort. Required JSON names and enum spellings must never be inferred from prose. Before first drafting contracts or open items, describe `map/contract` and `intake/open_items`; a capability contract uses the exact enum `synchronous-capability`, not `capability`. Intake evidence, facts, scope, choices, capability assessments, domain-analysis records and open items share one ID namespace: use distinct record IDs, and existing IDs only as references. Non-deferred open items name `blocks`; deferred items name `trigger` and leave `blocks` empty. Canonical routing language names contain no provenance annotations; preserve explicit/default attribution in choices.source and evidence.
 `root` is a compact navigation summary, not a recursive schema dump. For inline intake records,
 use collection names such as `open_items` and `choices`, not invented singular section names.
 
@@ -118,6 +118,10 @@ the rationale and consequences for final review.
   candidate contexts must still be covered. Do not narrow the map's references to contexts only.
 - `open_items` contain `id`, `question`, `classification`, `disposition`, `blocks`, `trigger`, and
   `evidence`. Classification is `human-decision`, `research`, `project-owned-design`, or `deferred`.
+  For deferred items, keep `blocks` empty and name the owner/next action in `disposition` and actual
+  later dependency in `trigger`. Drafts may retain human decisions; confirmed intake cannot retain
+  `human-decision` items or `human-answer-required` capability assessments. Record resolved choices
+  and their provenance instead. Confirmation is not a substitute for answering a required question.
 - `routing` contains string arrays named `languages`, `frameworks`, `interfaces`,
   `included_surfaces`, `excluded_surfaces`, and `capabilities`.
 

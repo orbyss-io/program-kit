@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "repository-sync",
+  "version": "1",
+  "status": "stage-runner-available-not-authorized",
+  "claim": "The candidate guides a real consumer through feature planning, implementation setup, and upgrade with fewer avoidable setup discoveries while retaining governance and dependency checks.",
+  "inputs": {
+    "request": "PROJECT_REQUEST.md",
+    "consumerSeed": "bootstrap-seed",
+    "feature": "RM01",
+    "futureFeature": "RM02",
+    "registryCredentialReference": "PROGRAM_KIT_NPM_TOKEN"
+  },
+  "cases": [
+    {
+      "id": "fresh-baseline",
+      "candidate": "baseline",
+      "start": "accepted-bootstrap-checkpoint",
+      "stages": ["feature-intake", "specify", "plan-package-requests", "supervisor-package-resolution", "plan-and-tasks", "implementation-setup", "supervisor-restore", "implementation-and-verification", "unchanged-sync"],
+      "assertions": ["human-intake-confirmed", "spec-plan-tasks-traceability", "strict-package-evidence", "mixed-stack-build", "functional-smoke", "future-feature-unmaterialized"],
+      "comparisonRole": "control"
+    },
+    {
+      "id": "fresh-candidate",
+      "candidate": "candidate",
+      "start": "equivalent-accepted-bootstrap-checkpoint",
+      "stages": ["feature-intake", "specify", "plan-package-requests", "supervisor-package-resolution", "plan-and-tasks", "implementation-setup", "supervisor-restore", "implementation-and-verification", "unchanged-sync"],
+      "assertions": ["human-intake-confirmed", "spec-plan-tasks-traceability", "strict-package-evidence", "mixed-stack-build", "functional-smoke", "future-feature-unmaterialized", "first-lookup-correct-registry", "no-consumer-setup-helpers", "current-phase-readiness", "unchanged-sync-no-work"],
+      "comparisonRole": "treatment"
+    },
+    {
+      "id": "upgrade-candidate",
+      "candidate": "candidate",
+      "start": "fresh-baseline-verified-checkpoint",
+      "stages": ["capture-consumer-hashes", "offline-upgrade", "upgrade-readiness", "supervisor-restore-if-stale", "resume-feature-flow", "verification", "unchanged-upgrade"],
+      "assertions": ["same-sync-coordinator", "consumer-edits-preserved", "offline-upgrade-no-network", "obsolete-command-removed", "future-feature-unmaterialized", "stale-evidence-rejected", "mixed-stack-build", "functional-smoke", "unchanged-sync-no-work"],
+      "comparisonRole": "upgrade"
+    }
+  ],
+  "metrics": ["setupDiscoveryCommands", "wrongRegistryRequests", "packageResolutionAttempts", "repeatedUnchangedOperations", "consumerSetupHelpers", "setupFailures", "humanInterventions"],
+  "evidenceRules": {
+    "successRequiresIndependentAssertions": true,
+    "unknownIsNotZero": true,
+    "compareOnlyEquivalentSuccessfulRuns": true,
+    "recordExternalServiceFailuresSeparately": true,
+    "wallClockIsDescriptiveOnly": true,
+    "workerCredentials": false,
+    "packageNetworkOwner": "supervisor",
+    "oneUseAuthorizationPerPaidStage": true,
+    "automaticRetry": false
+  }
+}

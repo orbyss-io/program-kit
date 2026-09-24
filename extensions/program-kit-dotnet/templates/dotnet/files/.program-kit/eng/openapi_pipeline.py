@@ -119,9 +119,9 @@ def validate_contract(
         or len(features) != len(set(features))
     ):
         raise ValueError("PKO204 features must be a non-empty array of unique identities.")
-    if str(value.get("packageClosure", "")).replace("\\", "/") != "artifacts/runnable-host/packages":
+    if str(value.get("packageClosure", "")).replace("\\", "/") != "artifacts/release-bundle/packages":
         raise ValueError(
-            "PKO204 packageClosure must be the validated artifacts/runnable-host/packages closure."
+            "PKO204 packageClosure must be the validated artifacts/release-bundle/packages closure."
         )
     compatibility = value.get("compatibility")
     if not isinstance(compatibility, dict) or not isinstance(compatibility.get("oasdiffVersion"), str):
@@ -408,7 +408,7 @@ def main() -> int:
         if exporter is None:
             restore_exporter(dotnet, manifest, repository, nuget_environment)
         effective_shells = repository / ".program-kit/cache/openapi/effective-shells.json"
-        shell_composition.write(repository / "artifacts/runnable-host", effective_shells)
+        shell_composition.write(repository / "artifacts/release-bundle", effective_shells)
         evidence = []
         seen: set[str] = set()
         for item in contracts:

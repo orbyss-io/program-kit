@@ -4,6 +4,11 @@ scripts:
   py: scripts/governance_state.py
 ---
 
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage roadmap --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+
+For required sources, execute `reading_policy.read_command` and follow its pages; it batches only the required files under one aggregate byte limit and compacts JSON without dropping values. Reuse content already received. For an omitted decisive fact use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <exact-indexed-path> --keys` to discover JSON keys, then `--pointer /known/key`; omit the pointer for the root. Repeat `--path` to bundle small documents under the same total limit. Do not read future outputs or dump optional evidence/catalogs. Use the exact installed helper path; do not reconstruct it. Return each bounded page once, with an output budget of at least 6000 tokens; do not aggregate several pages into another tool response.
+
+
 ## Preconditions
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
@@ -19,6 +24,11 @@ rediscover either contract; run the supplied validator and respond only to a spe
 Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after every write, including edits to
 existing files.
+Use `stage_plan.entry_template` for the exact parser syntax and `stage_plan.prerequisite_scope`
+to assign every retained condition to real roadmap IDs in bootstrap-prerequisites.json. Preserve
+source bindings, ownership and due phases. A before-implementation proof does not make an otherwise
+specifiable entry Blocked. Dependencies name/link ledger IDs, never repeat their open/closed status.
+Use links to ADR metadata for acceptance state. The generated views own changing status.
 
 Validate the ratified constitution before doing any work:
 
@@ -33,7 +43,7 @@ is missing or stale.
 Use the compact approved decision and Accepted baseline records from the stage brief. Open a source
 only for a decisive field omitted from that projection. Explicit intake choices and adopted Program
 Kit defaults do not appear as unresolved ADR prerequisites.
-Genuinely unresolved decisions block only the roadmap entries they materially affect. Deferred
+Genuinely unresolved decisions gate only their affected slice and due phase. Ready means specification-ready, not implementation-ready. Deferred
 production, scale, retention, recovery, or long-running-operation choices do not block an unrelated
 first vertical slice before their named trigger.
 
@@ -52,8 +62,11 @@ update `docs/architecture/architecture.md` and `docs/architecture/traceability.m
 copied status fields or tables for roadmap entries and no stale claims that a roadmap record does not
 yet exist. Preserve their design, decision, ownership, and verification traceability. Do not write or
 edit the marked `PROGRAM-KIT:ROADMAP-VIEW` section; the deterministic synchronization step owns it.
+The terminal validation batch runs that existing synchronization before closure context is built,
+refreshes the two documents' canonical hashes and DSL, and checks consistency and final byte budgets.
+Do not refresh hashes by hand or run an additional synchronization command after the batch.
 Make the smallest link-only edits needed outside the new roadmap, do not restate roadmap fields, and
-check the final byte count of each edited file against `output_contract.artifact_byte_budgets`.
+use the supplied sizing command to check each edited file against `output_contract.artifact_byte_budgets`; it reports authored, generated and total bytes separately.
 
 For each record use the heading `### <ID>: <Title>` and include exactly these list-item forms, with
 the colon outside the bold label (for example `- **User-visible outcome**: ...`):
@@ -73,11 +86,10 @@ the colon outside the bold label (for example `- **User-visible outcome**: ...`)
 
 Statuses are `Candidate`, `Blocked`, `Ready`, `Active`, `Delivered`, and `Superseded`. Bootstrap may
 create Candidate, Blocked, and Ready records. `Ready` means ready to write the feature specification,
-then proceed through planning, tasks, and implementation while making feature-owned decisions in
-those lifecycle artifacts. It does not mean every field-level, data-model, business-rule, failure,
+Planning, implementation and delivery have separate phase eligibility checks against the same prerequisite ledger. It does not mean every field-level, data-model, business-rule, failure,
 or implementation choice was decided during architecture bootstrap.
 
-Put only architecture-significant prerequisites in `Required Accepted ADRs`. Use `None` or a
+Put only architecture-significant decisions needed to specify this journey in `Required Accepted ADRs`. Retain later architecture choices in the prerequisite ledger with their actual due phase. Use `None` or a
 semicolon-separated list of exact existing ADR identifiers; wrap non-`ADR-*` identifiers in
 backticks. The Proposed founding ADRs named by the stage brief are bound to this same bootstrap
 review and will be promoted atomically before readiness, so they may be listed without making the
@@ -90,12 +102,13 @@ separate design task or ADR only when the evidence identifies an unresolved arch
 outside the slice that changes an accepted boundary, shared store, cross-domain/public contract,
 security profile, or deployment topology.
 
-A record is Ready only when those architecture prerequisites, dependencies, and ownership are
-explicit and it has no hidden external decision or approval gate. Never hide such a gate in
-Dependencies, Verification responsibility, or Recommended sequence. When confirmed intake contains
-an end-to-end user journey and the accepted baseline or pending founding bundle supplies its system
-boundaries, produce at least one Ready entry unless you can cite the specific architecture-significant
-choice outside that slice that still prevents specification.
+A record is Ready when its outcome, boundary and ownership are sufficient for specification and
+its specification-due decisions are resolved. `before-implementation` obligations do not prohibit
+Ready or Active: they prohibit dependent implementation. Candidate or Blocked entries may remain
+after bootstrap, even when no entry is Ready. Never invent a journey start/end or provider choice
+to obtain completion. The final report identifies which phase can proceed for each slice.
+Use architecture-map journey `discovery` IDs for unclear boundaries, retaining Proposed status,
+empty steps/view and a Candidate roadmap entry with owned `before-specification` obligations.
 
 Design tasks remain separate. They produce evidence, alternatives, Proposed ADRs, updated views, and
 unlocked roadmap entries; they are not feature specifications or application implementation work.
@@ -110,6 +123,11 @@ the installed `references/bootstrap-lifecycle.md` contract. It binds all unresol
 assessment items and retained ADR conditions to exact affected entries, owners, triggers and
 closure evidence. Program Kit owns IDs and paths. Read the full roadmap including its preamble;
 never redefine Ready as specification-ready or place a global before-code gate outside records.
+
+For a retained ADR condition assigned to feature/later work, bind that cataloged ADR in `sources`
+with the exact condition ID. This is phase-assignment authority, not closure evidence: leave the
+condition open until its own gate. Cover compound slices through their declared primary and
+`supporting_journeys` IDs, never narrative-only claims.
 Keep open architecture dependencies Blocked. The subsequent bootstrap-closure command executes
 bounded compatibility tasks and reconciles eligibility before final review. An all-Blocked draft
 is a valid portfolio assessment and does not authorize implementation or bootstrap completion.
@@ -121,8 +139,14 @@ step only copies the status already justified here; it never chooses or promotes
 
 Report blocked records and the exact design task or ADR that can unlock each one.
 
-Start with one roadmap entry per normalized user-visible journey unless accepted architecture
-requires a split. Reuse the compact authority and normalized brief rather than reconstructing the
+The approved `first_slice.journey_ids` is one selected specification boundary. Create exactly
+one first entry whose Scope includes every canonical candidate ID projected in
+`stage_plan.first_entry.candidate_ids`, and no candidate for a future journey. If this boundary
+contains several supporting journeys, describe them in that one entry; four separate entries
+plus prose saying they share a specification do not satisfy the handoff. Do not enlarge or shrink
+the approved boundary. Create separate portfolio entries for the remaining user-visible journeys.
+Without a structured first_slice, start with one entry per journey unless accepted architecture
+requires another boundary. Reuse the compact authority and normalized brief rather than reconstructing the
 design from every downstream document. Report entry IDs, statuses, final byte counts, and validation
 counts only; do
 not print the complete roadmap or repository-wide diffs.

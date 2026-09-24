@@ -1,0 +1,230 @@
+"""Native shell proof-stage regressions; real Python probes, no coding agent."""
+import json
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
+from bootstrap_proof_plan import execute, PLAN, require_proven_closure
+from bootstrap_lifecycle import LEDGER, load, write, source_digest
+from validate_governance_state import roadmap
+
+
+class ProofPlanTests(unittest.TestCase):
+    def test_no_transition_preserves_near_budget_roadmap_bytes(self):
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        self.plan['readyWhenProven'] = []
+        write(self.root / PLAN, self.plan)
+        original = path.read_bytes().replace(b'\r\n', b'\n')
+        original += b'\n<!-- ' + b'x' * (6140 - len(original) - 11) + b' -->\n'
+        self.assertEqual(6140, len(original))
+        path.write_bytes(original)
+        execute(self.root)
+        self.assertEqual(original, path.read_bytes())
+        # A second execution with existing receipts must also leave CRLF bytes intact.
+        crlf = original.replace(b'\n', b'\r\n')
+        path.write_bytes(crlf)
+        execute(self.root)
+        self.assertEqual(crlf, path.read_bytes())
+
+    def test_transition_preserves_crlf_and_only_changes_status(self):
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        before = path.read_text(encoding='utf-8').replace('\n', '\r\n').encode('utf-8')
+        path.write_bytes(before)
+        execute(self.root)
+        self.assertEqual(before.replace(b'**Status**: Blocked', b'**Status**: Ready'), path.read_bytes())
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='bootstrap-proof-plan-')
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        docs = self.root / 'docs/architecture'
+        docs.mkdir(parents=True)
+        write(docs / 'bootstrap-decisions.json', {})
+        write(docs / 'architecture-map.json', {'decisions': []})
+        (docs / 'specification-roadmap.md').write_text(roadmap(status='Blocked'), encoding='utf-8')
+        write(self.root / LEDGER, {'schema_version': '1.0', 'sources': [{
+            'path': 'docs/architecture/bootstrap-decisions.json', 'sha256': source_digest(docs / 'bootstrap-decisions.json'),
+            'prerequisites': ['runtime']}], 'prerequisites': [{
+            'id': 'runtime', 'source_ids': ['runtime'], 'affected_slices': ['SPEC-001'],
+            'disposition': 'architecture', 'trigger': 'before-implementation', 'owner': 'Fixture owner',
+            'task': 'Verify Python persistence protocol', 'rationale': 'A durable write must survive reopening',
+            'status': 'open', 'evidence': []}]})
+        self.recipe = docs / 'probe.py'
+        self.recipe.write_text("import sqlite3\nfrom pathlib import Path\nc=sqlite3.connect('probe.db')\nc.execute('create table evidence (value integer)')\nc.execute('insert into evidence values (7)')\nc.commit()\nc.close()\nc=sqlite3.connect('probe.db')\nassert c.execute('select value from evidence').fetchone() == (7,)\nc.close()\nPath('compatibility-results.xml').write_text('<testsuite><testcase classname=\"Probe\" name=\"persist\"/></testsuite>')\n", encoding='utf-8')
+        write(self.recipe.with_suffix('.contract.json'), {'schemaVersion': 1, 'checks': [
+            {'id': 'persist', 'kind': 'runtime-compatibility', 'testCases': ['Probe.persist']}]})
+        self.plan = {'schemaVersion': 1, 'probes': [{'id': 'runtime', 'recipe': 'docs/architecture/probe.py', 'timeout': 10}],
+                     'readyWhenProven': [{'id': 'SPEC-001', 'prerequisites': ['runtime'], 'rationale': 'Only remaining architecture condition'}]}
+        write(self.root / PLAN, self.plan)
+
+    def test_actual_proof_closes_only_scoped_condition_and_resume_reuses(self):
+        self.assertEqual(1, len(execute(self.root)))
+        self.assertEqual(['runtime'], require_proven_closure(self.root))
+        self.assertEqual('closed', load(self.root / LEDGER)['prerequisites'][0]['status'])
+        self.assertIn('**Status**: Ready', (self.root / 'docs/architecture/specification-roadmap.md').read_text(encoding='utf-8'))
+        self.assertEqual([], execute(self.root))
+        self.assertEqual(1, len(list(self.root.rglob('proof.json'))))
+
+    def select_first_slice(self):
+        docs = self.root / 'docs/architecture'
+        write(docs / 'bootstrap-decisions.json', {'first_slice': {
+            'journey_ids': ['shopping'], 'outcome': 'Remember a needed item'}})
+        write(docs / 'architecture-map.json', {'decisions': [], 'strategic_model': {
+            'journeys': [{'id': 'shopping-journey', 'source_journey': 'shopping', 'steps': []}],
+            'candidate_slices': [{'id': 'first-shopping', 'journey': 'shopping-journey', 'contexts': ['household']} ]}})
+        path = docs / 'specification-roadmap.md'
+        path.write_text(path.read_text(encoding='utf-8').replace('One end-to-end vertical slice.', 'first-shopping'), encoding='utf-8')
+        ledger = load(self.root / LEDGER)
+        ledger['sources'][0]['sha256'] = source_digest(docs / 'bootstrap-decisions.json')
+        write(self.root / LEDGER, ledger)
+
+    def test_selected_first_slice_can_retain_its_unready_status(self):
+        self.select_first_slice()
+        self.plan['readyWhenProven'] = []
+        write(self.root / PLAN, self.plan)
+        self.assertEqual([], execute(self.root, validate_only=True))
+        self.assertEqual(1, len(execute(self.root)))
+        self.assertIn('**Status**: Blocked', (self.root / 'docs/architecture/specification-roadmap.md').read_text())
+        self.assertEqual('closed', load(self.root / LEDGER)['prerequisites'][0]['status'])
+
+    def test_unplanned_provider_remains_owned_while_known_probe_runs(self):
+        self.select_first_slice()
+        ledger = load(self.root / LEDGER)
+        import copy
+        missing = copy.deepcopy(ledger['prerequisites'][0])
+        missing.update(id='provider', owner='Provider compatibility owner', task='Prove selected provider interoperability')
+        ledger['prerequisites'].append(missing)
+        write(self.root / LEDGER, ledger)
+        self.plan['readyWhenProven'] = []
+        write(self.root / PLAN, self.plan)
+        self.assertEqual(1, len(execute(self.root)))
+        remaining = load(self.root / LEDGER)['prerequisites'][1]
+        self.assertEqual('open', remaining['status'])
+        self.assertEqual('Provider compatibility owner', remaining['owner'])
+        self.assertEqual(1, len(list(self.root.rglob('proof.json'))))
+
+    def test_selected_first_slice_complete_plan_reaches_ready_and_is_reusable(self):
+        self.select_first_slice()
+        self.assertEqual([], execute(self.root, validate_only=True))
+        self.assertEqual(1, len(execute(self.root)))
+        self.assertEqual(['runtime'], require_proven_closure(self.root))
+        self.assertEqual([], execute(self.root))
+
+    def test_first_handoff_recovery_returns_to_closure_owner(self):
+        from bootstrap_stages import STAGE_STARTS
+        self.assertEqual('prepare-closure-context', STAGE_STARTS['require-first-feature-handoff'])
+
+    def test_reuse_rejects_unproven_and_different_planned_recipe(self):
+        with self.assertRaisesRegex(ValueError, 'must pass'):
+            require_proven_closure(self.root)
+
+        execute(self.root)
+        other = self.recipe.with_name('other.py')
+        other.write_bytes(self.recipe.read_bytes())
+        other.with_suffix('.contract.json').write_bytes(self.recipe.with_suffix('.contract.json').read_bytes())
+        self.plan['probes'][0]['recipe'] = 'docs/architecture/other.py'
+        write(self.root / PLAN, self.plan)
+        with self.assertRaisesRegex(ValueError, 'matching passing proof'):
+            require_proven_closure(self.root)
+
+
+    def test_changed_recipe_invalidates_only_its_evidence_and_preserves_history(self):
+        execute(self.root)
+        original = next(self.root.rglob('proof.json'))
+        original_bytes = original.read_bytes()
+        self.recipe.write_text(self.recipe.read_text(encoding='utf-8') + '\n# corrected recipe input\n', encoding='utf-8')
+        self.assertEqual(1, len(execute(self.root)))
+        self.assertEqual(original_bytes, original.read_bytes())
+        self.assertEqual(2, len(list(self.root.rglob('proof.json'))))
+        archives = list((self.root / '.specify/governance/compatibility/invalidations').glob('*.json'))
+        self.assertEqual(['runtime'], load(archives[0])['prerequisites'])
+        self.assertEqual(['runtime'], require_proven_closure(self.root))
+
+    def test_windows_long_nuget_paths_are_removed_without_losing_sibling_evidence(self):
+        import os
+        from bootstrap_lifecycle import compatibility_scratch
+        attempt = self.root / 'attempt'
+        attempt.mkdir()
+        preserved = attempt / 'stderr.txt'
+        preserved.write_text('preserved failure', encoding='utf-8')
+        with compatibility_scratch(attempt) as directory:
+            scratch = Path(directory)
+            long = scratch / ('a' * 100) / ('b' * 100) / ('c' * 80)
+            native = Path('\\\\?\\' + str(long)) if os.name == 'nt' else long
+            native.mkdir(parents=True)
+            (native / 'package.nuspec').write_text('evidence', encoding='utf-8')
+        self.assertFalse(scratch.exists())
+        self.assertEqual('preserved failure', preserved.read_text(encoding='utf-8'))
+
+    def test_failed_proof_preserved_without_promoting_or_retrying(self):
+        self.recipe.write_text('raise RuntimeError("intentional probe rejection")', encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'Compatibility failed'):
+            execute(self.root)
+        self.assertEqual('open', load(self.root / LEDGER)['prerequisites'][0]['status'])
+        self.assertIn('**Status**: Blocked', (self.root / 'docs/architecture/specification-roadmap.md').read_text(encoding='utf-8'))
+        self.assertEqual(1, len(list(self.root.rglob('proof.json'))))
+
+    def test_incomplete_conditional_scope_fails_before_execution(self):
+        self.plan['readyWhenProven'][0]['prerequisites'] = []
+        write(self.root / PLAN, self.plan)
+        with self.assertRaisesRegex(ValueError, 'every affected|/readyWhenProven/0/prerequisites'):
+            execute(self.root)
+        self.assertEqual([], list(self.root.rglob('proof.json')))
+
+    def test_failure_preserves_redacted_case_before_cleanup(self):
+        import os
+        from unittest.mock import patch
+        secret = 'fixture-credential-not-for-evidence'
+        self.recipe.write_text("import os,sys\nfrom pathlib import Path\ns=os.environ['PROBE_TEST_SECRET']\nprint(s)\nPath('compatibility-results.xml').write_text('<testsuite><testcase classname=\"Probe\" name=\"persist\"><failure>provider unavailable '+s+'</failure></testcase></testsuite>')\nsys.exit(7)\n", encoding='utf-8')
+        with patch.dict(os.environ, {'PROBE_TEST_SECRET': secret}):
+            self.assertEqual(7, execute(self.root)[0]['exit_code'])
+        self.assertEqual('open', load(self.root / LEDGER)['prerequisites'][0]['status'])
+        receipt = load(next(self.root.rglob('proof.json')))
+        self.assertEqual('verification-failed', receipt['failure_category'])
+        result = self.root / receipt['test_result']['path']
+        self.assertIn('provider unavailable', result.read_text())
+        self.assertNotIn(secret, result.read_text())
+        self.assertTrue(receipt['diagnostic_artifacts']['test-results.xml']['redacted'])
+        self.assertFalse(list(result.parent.glob('scratch-*')))
+        for stream in receipt['streams']:
+            self.assertNotIn(secret, (self.root / stream['path']).read_text())
+
+    def test_invalid_missing_and_oversized_results_cannot_close(self):
+        for result in (None, '<broken>', 'x' * (256 * 1024 + 1)):
+            with self.subTest(result='missing' if result is None else len(result)):
+                self.recipe.write_text('from pathlib import Path\n' + ('' if result is None else 'Path("compatibility-results.xml").write_text(' + repr(result) + ')'), encoding='utf-8')
+                with self.assertRaisesRegex(ValueError, 'Compatibility failed'):
+                    execute(self.root)
+                receipts = sorted(self.root.rglob('proof.json'), key=lambda p: p.stat().st_mtime_ns)
+                receipt = load(receipts[-1])
+                self.assertEqual('invalid-test-results', receipt['failure_category'])
+                self.assertEqual('open', load(self.root / LEDGER)['prerequisites'][0]['status'])
+
+    def test_timeout_has_diagnostic_category(self):
+        self.recipe.write_text('import time\ntime.sleep(30)', encoding='utf-8')
+        self.plan['probes'][0]['timeout'] = 1
+        write(self.root / PLAN, self.plan)
+        with self.assertRaisesRegex(ValueError, 'Compatibility failed'):
+            execute(self.root)
+        self.assertEqual('timeout', load(next(self.root.rglob('proof.json')))['failure_category'])
+
+    def test_later_invalid_recipe_blocks_before_any_probe(self):
+        ledger = load(self.root / LEDGER)
+        import copy
+        second = copy.deepcopy(ledger['prerequisites'][0])
+        second['id'] = 'later'
+        ledger['prerequisites'].append(second)
+        write(self.root / LEDGER, ledger)
+        self.plan['probes'].append({'id': 'later', 'recipe': 'docs/architecture/missing.py', 'timeout': 10})
+        self.plan['readyWhenProven'][0]['prerequisites'].append('later')
+        write(self.root / PLAN, self.plan)
+        with self.assertRaisesRegex(ValueError, 'existing repository-local Python'):
+            execute(self.root)
+        self.assertEqual([], list(self.root.rglob('proof.json')))
+
+
+if __name__ == '__main__':
+    unittest.main()

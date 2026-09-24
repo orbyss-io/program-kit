@@ -449,7 +449,9 @@ def evaluate_preflight(
             }
     resolved = resolve_integration(integration, project_root)
     if is_codex_agent_invocation(integration=resolved, environ=environ):
-        return {"action": "agent-boundary-blocked", "diagnostic": diagnostic()}
+        from proxy_bootstrap import active
+        if not current_run_id or not active(project_root, current_run_id):
+            return {"action": "agent-boundary-blocked", "diagnostic": diagnostic()}
     if resolved != "codex":
         return {"action": "continue", "script_flavor": "not-applicable"}
 

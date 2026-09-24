@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><PackageId>ProgramKit.Compatibility.Core</PackageId><AssemblyName>ProgramKit.Compatibility.Core</AssemblyName><Version>1.0.0</Version><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><ImportDirectoryBuildProps>false</ImportDirectoryBuildProps><ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets></PropertyGroup>
+  <PropertyGroup Condition="'$(InjectForbiddenReference)' == 'true'"><DefineConstants>$(DefineConstants);FORBIDDEN</DefineConstants></PropertyGroup>
+  <ItemGroup Condition="'$(InjectForbiddenReference)' == 'true'"><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+</Project>

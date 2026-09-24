@@ -156,6 +156,19 @@ HTTP boundary. A web feature maps a feature-owned `RouteGroupBuilder` from
 `IWebShellFeature.MapEndpoints`; each slice contributes a small mapping method and co-located wire
 contracts, policies, handler/orchestration, and tests.
 
+For multiple operations, use `Operations/<Operation>/` inside the owning `.Api` project: place the
+endpoint mapping and the request, response, validation and mapping types that operation actually
+needs together. Mirror operation ownership in tests. `IWebShellFeature` composes registrations and
+route mappings; it does not accumulate DTOs, validators or business orchestration. A small/bodyless
+operation may keep one simple mapping with a reviewed rationale; no mediator, handler class, empty
+request model or new layer is required. Keep domain behavior in its owned semantic capability.
+
+Declare scoped stable `apiOperations` in `artifact-ownership.json` before source generation. Plan
+paths and responsibility boundaries in `api-proof.json` using `api-proof.schema.json`; this supplies
+the existing api-contracts obligation's operation and compatibility checks. Delivery verifies the
+generated operation IDs/routes and source placement, while attributed review checks actual thin
+composition and domain ownership. A folder name alone is not semantic proof.
+
 Require every public operation to define:
 
 - a stable route, HTTP method, endpoint name or operation identity, and owning feature;
@@ -188,7 +201,7 @@ and dynamic endpoint refresh when those CShells capabilities are used.
 
 For an externally consumed OpenAPI surface, register a consumer-owned contract in
 `.program-kit/openapi-contracts.json` before implementation readiness. The contract names the shell and
-every route-contributing feature, uses `artifacts/runnable-host/packages` as its package closure, and pins
+every route-contributing feature, uses `artifacts/release-bundle/packages` as its package closure, and pins
 the managed `Orbyss.Foundation.OpenApi.Exporter` and oasdiff versions. Start an empty registry with
 `.program-kit/eng/openapi_init.py`; these managed tools are adopted baseline choices, not a new consumer
 ADR. `.program-kit/eng/Build.ps1` then composes those feature packages
@@ -265,10 +278,14 @@ profile as a package-version pin. Primary sources accessed 2026-08-25:
 
 When .NET is selected, `../dotnet-engineering.md` is the mandatory language/runtime profile and
 `../dotnet-runtime-and-application-bundles.md` is the mandatory CShells hosting and deployment profile.
-Installing Program Kit does not select .NET and does not scaffold these files. The optional sync is not a
-prerequisite for technology-neutral governance or proposed quality gates. Run
-`speckit.program-kit-dotnet.sync` in write mode only after an Accepted .NET technology decision, an Accepted
-ADR selecting the Orbyss Foundation host and building blocks, and explicit human approval for the independently
-pinned packages and NuGet sources. The command installs or updates the hash-tracked repository baseline. The standard
+Installing Program Kit does not select .NET and does not scaffold these files. The public
+`speckit.program-kit-governance.sync` coordinator selects adapters from accepted repository decisions.
+Its .NET adapter applies only after an Accepted .NET technology decision, an Accepted ADR selecting
+the Orbyss Foundation host and building blocks, and explicit human approval for the independently
+pinned packages and NuGet sources. Review the coordinator's phase-specific plan before applying it.
+The .NET adapter installs or updates the hash-tracked repository baseline; JavaScript repositories
+use the shared package context without requiring that baseline. The standard
 runtime is `Orbyss.Foundation.Host`; consuming repositories generate
-feature packages and a digest-identified runnable application image, not a custom host project.
+feature packages and an application release bundle targeting the unchanged digest-pinned published
+Foundation host image. Consumers neither build host images nor produce host DLLs; follow
+`dotnet-runtime-and-application-bundles.md` for shell, host and Nuplane configuration and optional feeds.

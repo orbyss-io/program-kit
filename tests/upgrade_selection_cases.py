@@ -140,7 +140,7 @@ def validate_selection_upgrades(installed: Path, upgrade_test) -> None:
         for root in (target, applied):
             result = upgrade_test.run(sys.executable, str(upgrade_test.UPDATER), "--release-root", str(release),
                                       "--target", str(root), "--integration", "codex", cwd=root)
-            upgrade_test.require_success(result, "accepted selection sequential upgrade")
+            upgrade_test.require_offline_setup(result, "accepted selection sequential upgrade")
             for path, data in immutable.items():
                 assert (root / path.relative_to(target)).read_bytes() == data
         assert not lock_path.exists()

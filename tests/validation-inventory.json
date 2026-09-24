@@ -1,0 +1,1244 @@
+{
+  "schemaVersion": 1,
+  "checks": [
+    {
+      "id": "validate_codex_bootstrap",
+      "command": [
+        "{python}",
+        "tests/validate_codex_bootstrap.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Codex bootstrap contract validation."
+    },
+    {
+      "id": "validate_test_suites",
+      "command": [
+        "{python}",
+        "tests/validate_test_suites.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Test suites contract validation."
+    },
+    {
+      "id": "validate_validation_runner",
+      "command": [
+        "{python}",
+        "tests/validate_validation_runner.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Receipt coverage and dependency-selection regressions; no external execution."
+    },
+    {
+      "id": "source-install",
+      "command": [
+        "{powershell}",
+        "-NoProfile",
+        "-File",
+        "scripts/Test-LocalInstall.ps1"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows"
+      ],
+      "purpose": "Install source components and verify registered skills, hooks and view-only behavior on Windows."
+    },
+    {
+      "id": "public-availability",
+      "command": [
+        "{python}",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py",
+        "--target",
+        ".",
+        "--catalog",
+        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        "--all",
+        "--evidence",
+        "artifacts/building-block-public-availability.json"
+      ],
+      "group": "registry",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "credentials": "PROGRAM_KIT_NPM_TOKEN",
+      "purpose": "Public-availability contract validation."
+    },
+    {
+      "id": "legacy-public",
+      "command": [
+        "{python}",
+        "scripts/verify_legacy_programkit_nuget.py",
+        "--verify-public"
+      ],
+      "group": "registry",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Legacy-public contract validation."
+    },
+    {
+      "id": "validate_proxy_intake",
+      "command": [
+        "{python}",
+        "tests/validate_proxy_intake.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Proxy provenance and authority boundary regressions; no coding agents."
+    },
+    {
+      "id": "validate_bootstrap_handoffs",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_handoffs.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Deterministic default/decision/maintained-recipe integration; no coding agents."
+    },
+    {
+      "id": "validate_bootstrap_provider_context",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_provider_context.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Provider handoff and source visibility regressions; no network or coding agents."
+    },
+    {
+      "id": "validate_bootstrap_profiles",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_profiles.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Regression coverage for managed sign-in adopted after technology-neutral intake."
+    },
+    {
+      "id": "validate_dependency_audit",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_audit.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Dependency evidence stays immutable and cannot become a hidden application target."
+    },
+    {
+      "id": "validate_components",
+      "command": [
+        "{python}",
+        "tests/validate_components.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Components contract validation."
+    },
+    {
+      "id": "validate_phase_obligations",
+      "command": [
+        "{python}",
+        "tests/validate_phase_obligations.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline negative controls for missing, stale and incomplete knowledge evidence."
+    },
+    {
+      "id": "validate_api_proof",
+      "command": [
+        "{python}",
+        "tests/validate_api_proof.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "API ownership gates reject missing, stale and mismatched contract evidence."
+    },
+    {
+      "id": "validate_persistence_selection",
+      "command": [
+        "{python}",
+        "tests/validate_persistence_selection.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exercise consumer persistence intent, multiple owners and non-destructive shared sync."
+    },
+    {
+      "id": "validate_postgresql_service",
+      "command": [
+        "{python}",
+        "tests/validate_postgresql_service.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bounded lifecycle, secret isolation and failure cleanup for the trial database supervisor."
+    },
+    {
+      "id": "validate_knowledge_inventory",
+      "command": [
+        "{python}",
+        "tests/validate_knowledge_inventory.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Knowledge inventory coverage; this is bookkeeping, not semantic correctness proof."
+    },
+    {
+      "id": "validate_feature_knowledge",
+      "command": [
+        "{python}",
+        "tests/validate_feature_knowledge.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Scoped canonical knowledge, ownership inheritance and lifecycle-view freshness."
+    },
+    {
+      "id": "validate_architecture_recipe",
+      "command": [
+        "{python}",
+        "tests/validate_architecture_recipe.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Architecture recipe regression inputs, including evaluated/imported and compiled-only edges."
+    },
+    {
+      "id": "validate_capability_proof",
+      "command": [
+        "{python}",
+        "tests/validate_capability_proof.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Missing runtime/adoption proof must fail even with a plausible architecture plan."
+    },
+    {
+      "id": "validate_learning_metrics",
+      "command": [
+        "{python}",
+        "tests/validate_learning_metrics.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "No model calls: usage completeness, cache semantics and avoidability accounting."
+    },
+    {
+      "id": "validate_learning_report",
+      "command": [
+        "{python}",
+        "tests/validate_learning_report.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Whole-exercise report rejects missing/tampered usage and retains failed attempts."
+    },
+    {
+      "id": "validate_lending_oracle",
+      "command": [
+        "{python}",
+        "tests/validate_lending_oracle.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Real loopback/process-restart calibration; never a coding agent or reference admission."
+    },
+    {
+      "id": "validate_reference_baseline",
+      "command": [
+        "{python}",
+        "tests/validate_reference_baseline.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Reference provenance, human admission and parent-type guards; no agents or real approvals."
+    },
+    {
+      "id": "validate_specification_intake",
+      "command": [
+        "{python}",
+        "tests/validate_specification_intake.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bounded offline feature-grilling gate regressions; no coding agent is started."
+    },
+    {
+      "id": "validate_sync_live_fixtures",
+      "command": [
+        "{python}",
+        "tests/validate_sync_live_fixtures.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Sync live fixtures contract validation."
+    },
+    {
+      "id": "validate_package_execution",
+      "command": [
+        "{python}",
+        "tests/validate_package_execution.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Package execution contract validation."
+    },
+    {
+      "id": "validate_repository_sync",
+      "command": [
+        "{python}",
+        "tests/validate_repository_sync.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Repository sync contract validation."
+    },
+    {
+      "id": "validate_sync_readiness",
+      "command": [
+        "{python}",
+        "tests/validate_sync_readiness.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Sync readiness contract validation."
+    },
+    {
+      "id": "validate_sync_stages",
+      "command": [
+        "{python}",
+        "tests/validate_sync_stages.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Deterministic stage authorization and checkpoint contracts; no paid processes."
+    },
+    {
+      "id": "validate_live_trial_candidate",
+      "command": [
+        "{python}",
+        "tests/validate_live_trial_candidate.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Development trial receipts never imply Release validation or authorize a paid worker."
+    },
+    {
+      "id": "validate_retired_sync",
+      "command": [
+        "{python}",
+        "tests/validate_retired_sync.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exercise actual Spec Kit registration/removal with consumer-edit protection."
+    },
+    {
+      "id": "validate_scoped_materialization",
+      "command": [
+        "{python}",
+        "tests/validate_scoped_materialization.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Scoped materialization contract validation."
+    },
+    {
+      "id": "validate_intake_session",
+      "command": [
+        "{python}",
+        "tests/validate_intake_session.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bounded offline launcher tests. No installation or coding agent is started."
+    },
+    {
+      "id": "validate_discovery_fixture",
+      "command": [
+        "{python}",
+        "tests/validate_discovery_fixture.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Protect discovery-input isolation; optionally inspect real PrepareOnly evidence."
+    },
+    {
+      "id": "validate_intake_handoff",
+      "command": [
+        "{python}",
+        "tests/validate_intake_handoff.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Synthetic handoff contract tests; no human session or paid acceptance is claimed."
+    },
+    {
+      "id": "validate_intake_authoring",
+      "command": [
+        "{python}",
+        "tests/validate_intake_authoring.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline authoring regression tests; optional replay of a preserved human intake."
+    },
+    {
+      "id": "validate_json_schema",
+      "command": [
+        "{python}",
+        "tests/validate_json_schema.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline behavior tests for shipped JSON Schema tools and independent installations."
+    },
+    {
+      "id": "validate_orbyss_building_blocks",
+      "command": [
+        "{python}",
+        "tests/validate_orbyss_building_blocks.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Orbyss building blocks contract validation."
+    },
+    {
+      "id": "validate_building_blocks",
+      "command": [
+        "{python}",
+        "tests/validate_building_blocks.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Building blocks contract validation."
+    },
+    {
+      "id": "validate_architecture_placement",
+      "command": [
+        "{python}",
+        "tests/validate_architecture_placement.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline greenfield placement and recovery regressions; starts no agents."
+    },
+    {
+      "id": "validate_placement_contract",
+      "command": [
+        "{python}",
+        "tests/validate_placement_contract.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Producer-visible placement contracts reject the real bootstrap's failed path forms."
+    },
+    {
+      "id": "validate_bootstrap_lifecycle",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_lifecycle.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Deterministic fresh approval and accepted/aborted recovery regression tests (no agents)."
+    },
+    {
+      "id": "validate_readiness_scope",
+      "command": [
+        "{python}",
+        "tests/validate_readiness_scope.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Enforce accepted slice scope without treating proposal prose as lifecycle state."
+    },
+    {
+      "id": "validate_readiness_projection",
+      "command": [
+        "{python}",
+        "tests/validate_readiness_projection.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Native terminal readiness is a state projection, without an agent verdict."
+    },
+    {
+      "id": "validate_phase_readiness",
+      "command": [
+        "{python}",
+        "tests/validate_phase_readiness.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Phase-local eligibility with incomplete knowledge; real validators, no coding agents."
+    },
+    {
+      "id": "validate_bootstrap_handoff_quality",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_handoff_quality.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Consumer quality authority and batched authoring diagnostics; no agents."
+    },
+    {
+      "id": "validate_bootstrap_proof_plan",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_proof_plan.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Native shell proof-stage regressions; real Python probes, no coding agent."
+    },
+    {
+      "id": "validate_workflow_resumption",
+      "command": [
+        "{python}",
+        "tests/validate_workflow_resumption.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Native engine regression: stage retry, NOT READY, preserved history and completion."
+    },
+    {
+      "id": "validate_workflow_runtimes",
+      "command": [
+        "{python}",
+        "tests/validate_workflow_runtimes.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Workflow entry runtime preflight; no coding-agent sessions."
+    },
+    {
+      "id": "validate_live_fixture_catalog",
+      "command": [
+        "{python}",
+        "tests/validate_live_fixture_catalog.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Verify selectable committed live inputs, approval binding and tamper rejection."
+    },
+    {
+      "id": "validate_live_workflow_acceptance",
+      "command": [
+        "{python}",
+        "tests/validate_live_workflow_acceptance.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Deterministic paid-workflow guards; never starts a coding agent."
+    },
+    {
+      "id": "validate_building_block_availability",
+      "command": [
+        "{python}",
+        "tests/validate_building_block_availability.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Building block availability contract validation."
+    },
+    {
+      "id": "validate_legacy_programkit_nuget",
+      "command": [
+        "{python}",
+        "tests/validate_legacy_programkit_nuget.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Legacy programkit nuget contract validation."
+    },
+    {
+      "id": "validate_generated_contract_schemas",
+      "command": [
+        "{python}",
+        "tests/validate_generated_contract_schemas.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Generated contract schemas contract validation."
+    },
+    {
+      "id": "validate_governance_state",
+      "command": [
+        "{python}",
+        "tests/validate_governance_state.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Governance state contract validation."
+    },
+    {
+      "id": "validate_runnable_host_pins",
+      "command": [
+        "{python}",
+        "tests/validate_runnable_host_pins.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline central-package resolution and fail-closed runnable-host staging regressions."
+    },
+    {
+      "id": "validate_release_bundle",
+      "command": [
+        "{python}",
+        "tests/validate_release_bundle.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline bundle production/admission and published-runtime boundary checks; no agent."
+    },
+    {
+      "id": "bundle-validate",
+      "command": [
+        "specify",
+        "bundle",
+        "validate",
+        "--path",
+        ".",
+        "--offline"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Validate Spec Kit bundle metadata."
+    },
+    {
+      "id": "validate_public_component_use",
+      "command": [
+        "{python}",
+        "tests/validate_public_component_use.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Actual released .NET component integration through the shared restore executor; no agent."
+    },
+    {
+      "id": "validate_dotnet_engineering",
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_engineering.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Compile with the published analyzer and selected SDK; execute runtime counterexamples."
+    },
+    {
+      "id": "validate_persistence_runtime",
+      "command": [
+        "{python}",
+        "tests/validate_persistence_runtime.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Execute pinned EF/Npgsql against a real disposable PostgreSQL, including database restart."
+    },
+    {
+      "id": "validate_ui_experience",
+      "command": [
+        "{python}",
+        "tests/validate_ui_experience.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Ui experience contract validation."
+    },
+    {
+      "id": "validate_local_upgrade",
+      "command": [
+        "{python}",
+        "tests/validate_local_upgrade.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Local upgrade contract validation."
+    },
+    {
+      "id": "validate_bootstrap_context",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_context.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bootstrap context contract validation."
+    },
+    {
+      "id": "validate_bootstrap_intake",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_intake.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bootstrap intake contract validation."
+    },
+    {
+      "id": "validate_bootstrap_semantics",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_semantics.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bootstrap semantics contract validation."
+    },
+    {
+      "id": "validate_c4_view",
+      "command": [
+        "{python}",
+        "tests/validate_c4_view.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "C4 view contract validation."
+    },
+    {
+      "id": "validate_live_bootstrap_acceptance",
+      "command": [
+        "{python}",
+        "tests/validate_live_bootstrap_acceptance.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Live bootstrap acceptance contract validation."
+    },
+    {
+      "id": "validate_lifecycle_profiles",
+      "command": [
+        "{python}",
+        "tests/validate_lifecycle_profiles.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Lifecycle profiles contract validation."
+    },
+    {
+      "id": "validate_js_toolchain",
+      "command": [
+        "{python}",
+        "tests/validate_js_toolchain.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Js toolchain contract validation."
+    },
+    {
+      "id": "validate_dotnet_scaffold",
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_scaffold.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Dotnet scaffold contract validation."
+    },
+    {
+      "id": "validate_dotnet_build_contract",
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_build_contract.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Dotnet build contract contract validation."
+    },
+    {
+      "id": "validate_dotnet_test_discovery",
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_test_discovery.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Dotnet test discovery contract validation."
+    },
+    {
+      "id": "validate_repository_verification_hook",
+      "command": [
+        "{python}",
+        "tests/validate_repository_verification_hook.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Repository verification hook contract validation."
+    },
+    {
+      "id": "build-release",
+      "command": [
+        "{python}",
+        "scripts/build_release.py"
+      ],
+      "group": "package",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Build-release contract validation."
+    },
+    {
+      "id": "validate_installed_bootstrap_flow",
+      "command": [
+        "{python}",
+        "tests/validate_installed_bootstrap_flow.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "All shipped bootstrap steps, real shell validators, fictional authoring/reviews."
+    },
+    {
+      "id": "validate_bootstrap_consistency_e2e",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_consistency_e2e.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bootstrap consistency e2e contract validation."
+    },
+    {
+      "id": "validate_packaged_ui",
+      "command": [
+        "{python}",
+        "tests/validate_packaged_ui.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Packaged ui contract validation."
+    },
+    {
+      "id": "validate_release_install",
+      "command": [
+        "{python}",
+        "tests/validate_release_install.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Release install contract validation."
+    },
+    {
+      "id": "candidate-upgrade",
+      "command": [
+        "{python}",
+        "tests/validate_public_upgrade.py",
+        "--candidate-dir",
+        "artifacts"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Candidate-upgrade contract validation."
+    },
+    {
+      "id": "validate_bootstrap_runtime",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_runtime.py"
+      ],
+      "group": "integration",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "credentials": "",
+      "purpose": "Real published host compatibility. No coding agent or consumer mutation."
+    },
+    {
+      "id": "ui-browser",
+      "command": [
+        "{python}",
+        "tests/validate_ui_browser.py",
+        "--install",
+        "--install-browser",
+        "--engines={engines}"
+      ],
+      "group": "integration",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Ui-browser contract validation."
+    },
+    {
+      "id": "validate_bootstrap_compatibility",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_compatibility.py"
+      ],
+      "group": "integration",
+      "needs": [
+        "ui-browser"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Deterministic scratch provisioning protocol; Python stand-in, never a coding agent."
+    },
+    {
+      "id": "validate_published_forms_browser",
+      "command": [
+        "{python}",
+        "tests/validate_published_forms_browser.py",
+        "--engines={engines}"
+      ],
+      "group": "integration",
+      "needs": [
+        "ui-browser"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "credentials": "PROGRAM_KIT_NPM_TOKEN",
+      "purpose": "Published Forms package/renderer integration. Never invokes a coding agent."
+    }
+  ],
+  "groups": {
+    "development": "Bounded source contracts and behavioral regressions; no coding agents.",
+    "release": "Additional release-only source and installation regressions.",
+    "package": "Build and test the distributable payload and upgrade paths.",
+    "integration": "Execute real managed runtimes, containers and browsers.",
+    "registry": "Read-only public package/image and legacy availability."
+  },
+  "evidencePolicy": {
+    "directory": "artifacts/validation-runs/<unique-run>",
+    "success": "Every required check passes; prerequisite failures block dependents.",
+    "receipt": "Requires exact source, inventory, commands, platform and hashed successful logs.",
+    "credentials": "Only checks declaring a credential reference receive the npm token."
+  }
+}

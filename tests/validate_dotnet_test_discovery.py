@@ -162,7 +162,7 @@ def run_build(shell: str, repository: Path, tools: Path) -> tuple[subprocess.Com
             "Bypass",
             "-File",
             str(repository / ".program-kit/eng/Build.ps1"),
-            "-SkipRunnableHost",
+            "-SkipReleaseBundle",
         ],
         cwd=repository,
         env=environment,

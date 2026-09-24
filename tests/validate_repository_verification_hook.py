@@ -60,7 +60,7 @@ def main() -> int:
         environment = os.environ.copy()
         environment["PROGRAMKIT_TEST_VERIFICATION_MARKER"] = str(marker)
         (managed / "Build.ps1").write_text(
-            "param([switch]$SkipRunnableHost, [switch]$LockedMode)\n"
+            "param([switch]$SkipReleaseBundle, [switch]$LockedMode)\n"
             "Set-Content -LiteralPath $env:PROGRAMKIT_TEST_VERIFICATION_MARKER -Value 'fallback'\n",
             encoding="utf-8",
         )

@@ -66,9 +66,35 @@ authorizes moving a tag by itself.
 
 ## Optional live acceptance
 
+### Optional non-authorizing proxy intake
+
+An explicit user request for a proxy intake/rehearsal authorizes the current session to simulate
+fictional consumer answers and create draft artifacts in a disposable consumer. Use the shipped
+`speckit.program-kit-governance.proxy-intake` command. This is a separate optional tool: default to
+one question round for a quick scan, or perform full draft intake when requested. Setup uses
+`Start-IntakeSession.ps1 -PrepareOnly`; never launch its interactive mode for the proxy.
+Disclose simulated answers, preserve the proxy marker, and stop before confirmation/bootstrap.
+This supplies no paid-worker, live-acceptance, implementation, architecture or release authority.
+The following live-acceptance requirements remain unchanged for actual automated workers.
+
+An explicit later request can extend the same-session rehearsal through bootstrap using
+`speckit.program-kit-governance.proxy-bootstrap`. Its dedicated adapter pauses native command steps
+for the current session, labels review decisions simulated, retains the draft intake and runs real
+validators. This is a separate exception for an adapter that cannot dispatch a coding agent; never
+use ordinary outer Codex bootstrap for a proxy or promote its results to consumer authority.
+Stop before feature implementation. The paid-worker manifest rules still apply to actual workers.
+
 Paid live acceptance is entirely user-invoked. Do not ask whether to run it during publication, and
 do not report it as skipped when it was not requested. Deterministic local and CI-compatible Release
 tests remain mandatory.
+
+When the user requests paid learning trials before release preparation, use an explicitly selected
+development-trial receipt from `tests/live/v2/trial_candidate.py`. It binds clean source, platform,
+toolchains, locally built and installation-tested archives, and the actual preparation logs. It
+does not require the complete Release suite or claim public-package/browser/Release acceptance.
+Select it with `New-LiveAcceptanceAuthorization.ps1 -TrialReceipt`; the exact one-use phase,
+checkpoint, model, worker sandbox and human confirmation rules below still apply. Development-trial
+evidence can inform fixes but never satisfies or substitutes for the publication Release gate.
 
 - A user request authorizes only issuance of the exact phase-specific manifest they confirm through
   `New-LiveAcceptanceAuthorization.ps1`; it is not a reusable preference or authorization for a

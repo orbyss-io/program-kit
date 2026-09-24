@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.11.0"
+  version: "0.12.0"
   description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
@@ -21,6 +21,12 @@ provides:
       file: "scripts/schema_runtime.py"
       description: "Explicit project-local dependency setup and installed-copy checks."
   commands:
+    - name: "speckit.program-kit-governance.phase-context"
+      file: "commands/speckit.program-kit-governance.phase-context.md"
+      description: "Project applicable knowledge before planning and task generation."
+    - name: "speckit.program-kit-governance.sync"
+      file: "commands/speckit.program-kit-governance.sync.md"
+      description: "Coordinate phase-specific repository setup, dependency context and readiness."
     - name: "speckit.program-kit-governance.json-schema"
       file: "commands/speckit.program-kit-governance.json-schema.md"
       description: "Validate a JSON file against a schema or inspect a schema section."
@@ -30,6 +36,12 @@ provides:
     - name: "speckit.program-kit-governance.grilling"
       file: "commands/speckit.program-kit-governance.grilling.md"
       description: "Relentlessly stress-test a plan, decision, or idea through a dependency-aware design tree."
+    - name: "speckit.program-kit-governance.proxy-intake"
+      file: "commands/speckit.program-kit-governance.proxy-intake.md"
+      description: "Explicit non-authorizing proxy intake with simulated answers; stop before bootstrap."
+    - name: "speckit.program-kit-governance.proxy-bootstrap"
+      file: "commands/speckit.program-kit-governance.proxy-bootstrap.md"
+      description: "Explicit same-session bootstrap rehearsal with simulated reviews and native validators."
     - name: "speckit.program-kit-governance.specification-intake"
       file: "commands/speckit.program-kit-governance.specification-intake.md"
       description: "Grill and confirm the selected feature before specification creation or updates."
@@ -121,11 +133,29 @@ hooks:
       optional: false
       condition: null
       description: "Refuse clarified specifications that conflict with accepted architecture or conceal new decisions."
+  before_plan:
+    - command: "speckit.program-kit-governance.phase-context"
+      priority: 1
+      optional: false
+      description: "Project applicable semantic, architecture and capability obligations before drafting the plan."
+    - command: "speckit.program-kit-governance.sync"
+      priority: 5
+      optional: false
+      description: "Establish the approved repository and exact package execution context before planning."
   after_plan:
-    command: "speckit.program-kit-governance.architecture-check"
-    priority: 5
+    - command: "speckit.program-kit-governance.architecture-check"
+      priority: 5
+      optional: false
+      description: "Refuse plans that conflict with accepted architecture or unapproved technology choices."
+    - command: "speckit.program-kit-governance.sync"
+      priority: 10
+      optional: false
+      description: "Require current strict dependency graph evidence for the planned feature."
+  before_tasks:
+    command: "speckit.program-kit-governance.phase-context"
+    priority: 1
     optional: false
-    description: "Refuse plans that conflict with accepted architecture or unapproved technology choices."
+    description: "Carry the reviewed obligations and their check identities into task generation."
   after_tasks:
     - command: "speckit.analyze"
       priority: 5

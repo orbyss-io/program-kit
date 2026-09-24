@@ -10,6 +10,7 @@ import subprocess
 import sys
 import uuid
 from pathlib import Path
+import retired_sync_integration
 
 from openapi_upgrade_reconciliation import (
     ReconciliationError,
@@ -342,6 +343,7 @@ def managed_mutation_destinations(
         (".specify/extensions", "extension installation"),
         (".specify/workflows", "workflow installation"),
         (".specify/presets", "preset installation"),
+        (".program-kit/sync", "shared repository setup context and receipts"),
     ):
         add_root(target / relative, reason)
 
@@ -620,6 +622,8 @@ def building_block_upgrade_state(target: Path, release: Path) -> str | None:
             installed_catalog = target / ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
             previous = module.resolve(target, selection_path, installed_catalog, current_version(target))
             actual = module.load_json(lock_path)
+            if actual.get("materializationScope") == "existing-compositions":
+                previous = module.materialized_plan(target, previous)
             if actual != previous:
                 raise UpgradeError("PKU116 generated building-block lock is stale or corrupt; repair materialized state before upgrading")
             module.check_materialization(target, actual)
@@ -706,28 +710,16 @@ def stale_program_kit_locks(target: Path, component_versions: dict[str, str]) ->
 
 
 def lock_renewal_commands(target: Path, locks: list[Path]) -> list[str]:
-    solutions = sorted([*target.glob("*.slnx"), *target.glob("*.sln")])
-    if len(solutions) == 1:
-        subjects = [solutions[0].relative_to(target).as_posix()]
-    else:
-        subjects = []
-        for lock in locks:
-            projects = sorted([*lock.parent.glob("*.csproj"), *lock.parent.glob("*.fsproj")])
-            if len(projects) != 1:
-                raise UpgradeError(
-                    f"PKU113 cannot select one project for stale lock {lock}; add one root solution or renew it explicitly"
-                )
-            subjects.append(projects[0].relative_to(target).as_posix())
-        subjects = sorted(set(subjects))
-    commands: list[str] = []
-    for subject in subjects:
-        commands.extend(
-            [
-                f"pwsh -NoProfile -File .program-kit/eng/Restore.ps1 -Subject {subject} -ForceEvaluate",
-                f"pwsh -NoProfile -File .program-kit/eng/Restore.ps1 -Subject {subject} -LockedMode",
-            ]
-        )
-    return commands
+    coordinator = "python .specify/extensions/program-kit-governance/scripts/repository_sync.py"
+    executor = "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py"
+    context = ".program-kit/sync/dependencies.json"
+    request = ".program-kit/evidence/building-block-restore-request.json"
+    return [
+        f"{coordinator} request-renew --phase upgrade",
+        f"{executor} renew --approved --lock {context} --request {request}",
+        f"{coordinator} request-locked --phase upgrade",
+        f"{executor} locked --approved --lock {context} --request {request}",
+    ]
 
 
 def write_lock_renewal(target: Path, component_versions: dict[str, str], locks: list[Path]) -> list[str]:
@@ -754,25 +746,41 @@ def write_lock_renewal(target: Path, component_versions: dict[str, str], locks: 
     return commands
 
 
-def satisfy_lock_renewal(target: Path, component_versions: dict[str, str]) -> None:
+def satisfy_lock_renewal(target: Path, component_versions: dict[str, str], pending: list[str], verifier) -> bool:
     path = target / ".program-kit/evidence/dotnet-lock-renewal.json"
     if not path.is_file():
-        return
+        return not pending
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise UpgradeError(f"PKU113 cannot verify NuGet lock renewal evidence {path}: {error}") from error
     if not isinstance(value, dict) or value.get("schemaVersion") != 1:
         raise UpgradeError(f"PKU113 NuGet lock renewal evidence is malformed: {path}")
+    pending = list(pending)
+    # Previously affected native locks must belong to actual restored projects.
+    # A hand-edited orphan lock is not executable dependency verification.
+    if not pending and value.get('affectedLocks'):
+        try:
+            plan = json.loads((target / '.program-kit/sync/dependencies.json').read_text(encoding='utf-8'))
+            evidence = json.loads((target / '.program-kit/evidence/building-block-restore.json').read_text(encoding='utf-8'))
+            verifier.verify_evidence(target, plan, evidence)
+            project_locks = {(Path(item['path']).parent / 'packages.lock.json').as_posix()
+                             for item in plan.get('targets', []) if item['path'].endswith('.csproj')}
+            if not set(value['affectedLocks']) <= project_locks:
+                raise ValueError('Affected NuGet lock has no restored project owner')
+        except (OSError, ValueError, KeyError) as error:
+            pending.append('Renewal needs current shared restore proof for every affected native lock: ' + str(error))
     value["targetPackageVersions"] = dict(sorted(component_versions.items()))
     value.pop("targetRuntimeVersion", None)
-    value["reason"] = "orbyss-building-block-locks-verified"
-    value["satisfied"] = True
+    value["reason"] = "shared-dependency-verification-pending" if pending else "shared-dependencies-verified"
+    value["satisfied"] = not pending
+    value["pendingPackageVerification"] = pending
     path.write_text(
         json.dumps(value, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
         newline="\n",
     )
+    return not pending
 
 
 def acquire_lock(target: Path) -> tuple[int, Path]:
@@ -814,6 +822,7 @@ def main() -> int:
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
         previous_version = current_version(target)
+        retired_sync_integration.preflight(target)
         building_block_state = building_block_upgrade_state(target, release)
         profile = load_managed_profile(target)
         has_bootstrap_decisions = (target / "docs/architecture/bootstrap-decisions.json").is_file()
@@ -864,8 +873,7 @@ def main() -> int:
         ]
         total = (
             len(steps)
-            + (2 if profile else 0)
-            + (1 if building_block_state else 0)
+            + 2
             + 1
             + (1 if has_bootstrap_decisions else 0)
             + (1 if reconciliation else 0)
@@ -873,31 +881,28 @@ def main() -> int:
         for number, (command, label) in enumerate(steps, 1):
             run_step(command, target, label, number, total)
         runtime.record_copy(target)
+        retired_sync_integration.verify_removed(target)
         next_step = len(steps) + 1
-        if profile:
-            web, persistence = profile
-            sync = target / ".specify/extensions/program-kit-dotnet/scripts/dotnet_sync.py"
-            write = [
-                sys.executable, str(sync), "--target", str(target), "--profile-selected",
-                "--foundation-host-accepted", "--building-block-sources-approved",
-                "--persistence-profile", persistence, "--web-profile", web,
-            ]
-            check = [
-                sys.executable, str(sync), "--target", str(target), "--profile-selected",
-                "--persistence-profile", persistence, "--web-profile", web, "--check",
-            ]
-            run_step(write, target, "Resynchronize managed .NET baseline", next_step, total)
-            run_step(check, target, "Verify managed .NET baseline convergence", next_step + 1, total)
-            next_step += 2
-        if building_block_state:
-            if building_block_state == "materialized":
-                print(f"[{next_step}/{total}] Refresh compatible building-block lock provenance")
-                resynchronize_building_block_provenance(target)
-            else:
-                print(f"[{next_step}/{total}] Verify accepted planned placement without materializing dependencies")
-                if building_block_upgrade_state(target, release) != "planned":
-                    raise UpgradeError("PKU116 planned building-block state changed during upgrade")
-            next_step += 1
+        print(f"[{next_step}/{total}] Synchronize existing repository setup")
+        sync_source = target / ".specify/extensions/program-kit-governance/scripts/repository_sync.py"
+        sys.path.insert(0, str(sync_source.parent))
+        try:
+            sync_spec = importlib.util.spec_from_file_location("program_kit_upgrade_sync", sync_source)
+            sync_module = importlib.util.module_from_spec(sync_spec)
+            sys.modules[sync_spec.name] = sync_module
+            sync_spec.loader.exec_module(sync_module)
+            restore_verifier = sync_module.provider('program-kit-building-blocks/scripts/restore_dependencies.py')
+            receipt = sync_module.upgrade(target)
+            print(f"[{next_step + 1}/{total}] Verify offline repository convergence")
+            report = sync_module.readiness(target, "upgrade")
+            if not report["ready"]:
+                raise UpgradeError("PKU116 repository setup did not converge: " + json.dumps(report))
+            print(json.dumps(report, indent=2))
+        finally:
+            sys.path.remove(str(sync_source.parent))
+        if building_block_state == "planned" and building_block_upgrade_state(target, release) != "planned":
+            raise UpgradeError("PKU116 planned building-block state changed during upgrade")
+        next_step += 2
         validator = target / ".specify/extensions/program-kit-governance/scripts/governance_state.py"
         run_step(
             [sys.executable, str(validator), "validate-installation"],
@@ -943,7 +948,20 @@ def main() -> int:
             )
             renewal_required = True
         else:
-            satisfy_lock_renewal(target, component_versions)
+            pending = report.get("pendingPackageVerification", [])
+            if not satisfy_lock_renewal(target, component_versions, pending, restore_verifier):
+                renewal_required = True
+                print("PKU113 managed setup is coherent; dependency verification remains pending. "
+                      + " ; then ".join(lock_renewal_commands(target, [])), file=sys.stderr)
+        sys.path.insert(0, str(sync_source.parent))
+        try:
+            remediation_module = sync_module.provider('program-kit-governance/scripts/upgrade_remediation.py')
+            remediation = remediation_module.assess(target)
+        finally:
+            sys.path.remove(str(sync_source.parent))
+        if not remediation['applicationReady']:
+            print('PKU117 managed setup assessment is separate from pending consumer phase proof; '
+                  'continue from .specify/governance/upgrade-remediation.json. Existing product sources remain owned by the consumer.')
         if renewal_required:
             return 3
         print(

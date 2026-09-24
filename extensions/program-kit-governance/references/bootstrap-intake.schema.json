@@ -119,7 +119,7 @@
       "additionalProperties": false,
       "required": ["languages", "frameworks", "interfaces", "included_surfaces", "excluded_surfaces", "capabilities"],
       "properties": {
-        "languages": { "$ref": "#/$defs/string_list" },
+        "languages": { "$ref": "#/$defs/string_list", "description": "Language identities, e.g. c#, .net, typescript, python. Keep selection provenance in choices.source and evidence, not parenthetical display labels. Unknown languages remain consumer constraints." },
         "frameworks": { "$ref": "#/$defs/string_list" },
         "interfaces": { "$ref": "#/$defs/string_list" },
         "included_surfaces": { "$ref": "#/$defs/string_list" },

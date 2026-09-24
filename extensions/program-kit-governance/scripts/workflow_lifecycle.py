@@ -38,37 +38,7 @@ class WorkflowLifecycleError(ValueError):
     pass
 
 
-STAGE_STARTS = {
-    'validate-assessment-output': 'prepare-assessment-context',
-    'validate-assessment': 'prepare-assessment-context',
-    'write-assessment-review': 'prepare-assessment-context',
-    'accept-assessment': 'prepare-assessment-context',
-    'assessment': 'prepare-assessment-context',
-    'research': 'prepare-research-context',
-    'validate-research-output': 'prepare-research-context',
-    'constitution-draft': 'constitution-draft',
-    'validate-constitution-draft': 'constitution-draft',
-    'write-constitution-review': 'constitution-draft',
-    'ratify-constitution': 'constitution-draft',
-    'architecture-dispatch': 'prepare-architecture-context',
-    'validate-architecture-output': 'prepare-architecture-context',
-    'validate-architecture-alignment': 'prepare-architecture-context',
-    'write-bootstrap-review': 'prepare-architecture-context',
-    'accept-bootstrap': 'prepare-architecture-context',
-    'tooling': 'prepare-tooling-context',
-    'validate-tooling-output': 'prepare-tooling-context',
-    'specification-roadmap': 'prepare-roadmap-context',
-    'validate-roadmap-output': 'prepare-roadmap-context',
-    'architecture-prerequisite-closure': 'architecture-prerequisite-closure',
-    'validate-prerequisite-closure': 'architecture-prerequisite-closure',
-    'recovery-closure': 'verify-recovery-source',
-    'recovery-synchronize': 'verify-recovery-source',
-    'recovery-review': 'verify-recovery-source',
-    'recovery-accept': 'verify-recovery-source',
-    'recovery-readiness': 'recovery-readiness',
-    'recovery-evaluate': 'recovery-readiness',
-    'recovery-require-ready': 'verify-recovery-source',
-}
+from bootstrap_stages import STAGE_STARTS
 FINAL_FAILURES = {'readiness', 'validate-readiness-output', 'require-readiness', 'complete-bootstrap'}
 
 
@@ -104,6 +74,41 @@ def installed_interpreter() -> Path:
     # Preserve a virtual environment's interpreter symlink on POSIX. Resolving
     # it to the base binary would lose that environment's installed packages.
     return interpreter.absolute()
+
+
+def prepare_schema_runtimes(root: Path) -> None:
+    """Provision and verify both engine and PATH-shell Python before dispatch.
+
+    Native shell steps use `python`; lifecycle completion also imports the
+    engine and may re-enter its isolated interpreter. Their version-specific
+    schema caches must both exist. Never share binary dependencies between them.
+    """
+    shell_python = shutil.which('python')
+    if not shell_python:
+        raise WorkflowLifecycleError('WORKFLOW_RUNTIME_PREFLIGHT: python is unavailable on PATH')
+    scripts = root / '.specify/extensions/program-kit-governance/scripts'
+    probe = ('import sys; sys.path.insert(0, sys.argv[1]); '
+             'import schema_runtime; schema_runtime.activate(); '
+             'from json_schema import validate_value; '
+             'assert validate_value({}, {"$schema": "https://json-schema.org/draft/2020-12/schema", '
+             '"type": "object"})["valid"]')
+    interpreters = dict.fromkeys((os.path.normcase(os.path.abspath(sys.executable)),
+                                 os.path.normcase(os.path.abspath(shell_python))))
+    for interpreter in interpreters:
+        commands = ([interpreter, str(scripts / 'schema_runtime.py'), 'setup', '--project-root', str(root)],
+                    [interpreter, '-I', '-c', probe, str(scripts)])
+        for command in commands:
+            try:
+                result = subprocess.run(command, cwd=root, capture_output=True,
+                                        encoding='utf-8', errors='replace', timeout=360, check=False)
+            except (OSError, subprocess.SubprocessError) as error:
+                raise WorkflowLifecycleError(
+                    f'WORKFLOW_RUNTIME_PREFLIGHT: {interpreter}: {error}') from error
+            if result.returncode:
+                from compatibility_diagnostics import sanitize
+                detail = sanitize(result.stderr or result.stdout)[-4000:]
+                raise WorkflowLifecycleError(
+                    f'WORKFLOW_RUNTIME_PREFLIGHT: {interpreter} failed before agent dispatch: {detail}')
 
 
 @contextlib.contextmanager
@@ -178,6 +183,8 @@ def definition_for(root: Path, run_id: str) -> WorkflowDefinition:
 
 
 def require_enabled(root: Path, state: RunState | None = None) -> None:
+    from proxy_intake import forbid_authority
+    forbid_authority(root)
     owner = getattr(state, 'installed_registry_root', None)
     if owner:
         owner_path = Path(owner)
@@ -195,15 +202,58 @@ def require_enabled(root: Path, state: RunState | None = None) -> None:
 
 def migrate_suffix(root: Path, state: RunState, saved: WorkflowDefinition, restart: str) -> WorkflowDefinition:
     if state.inputs.get('source_run'):
-        # A continuation is pinned by its lineage manifest, not the fresh workflow.
-        return saved
+        # Only the known historical readiness suffix may change. The original
+        # lineage manifest and approved prefix remain immutable history.
+        installed = continuation_definition(root)
+        if saved.version == installed.version or restart not in {'recovery-readiness', 'prepare-recovery-readiness'}:
+            return saved
+        projection_migration = saved.version in {'0.12.0', '0.12.1'} and installed.version == '0.13.0'
+        if not projection_migration and (saved.version, installed.version) != ('0.12.0', '0.12.1'):
+            raise WorkflowLifecycleError('No reviewed continuation readiness migration for this version')
+        recovery.manifest(root, state.inputs['source_run'])
+        governance.validate_bootstrap(True, False)
+        old_index = next(i for i, s in enumerate(saved.steps) if s['id'] == 'recovery-readiness')
+        new_index = next(i for i, s in enumerate(installed.steps) if s['id'] == 'prepare-recovery-readiness')
+        old_tail = saved.steps[old_index:]
+        new_tail = installed.steps[new_index + 1:]
+        expected_producer = ({'id': 'recovery-readiness', 'type': 'command',
+                              'command': 'speckit.program-kit-governance.readiness',
+                              'integration': '{{ inputs.integration }}'} if projection_migration else
+                             {k: v for k, v in new_tail[0].items() if k != 'input'})
+        if (len(old_tail) != len(new_tail) or old_tail[1:] != new_tail[1:]
+                or {k: v for k, v in old_tail[0].items() if k != 'input'} != expected_producer):
+            raise WorkflowLifecycleError('Unknown saved continuation readiness suffix; maintenance required')
+        if old_index and saved.steps[old_index - 1]['id'] == 'prepare-recovery-readiness':
+            if saved.steps[old_index - 1] != installed.steps[new_index]:
+                raise WorkflowLifecycleError('Unknown saved continuation readiness context')
+            old_index -= 1
+        data = copy.deepcopy(saved.data)
+        data['workflow']['version'] = installed.version
+        data['steps'] = copy.deepcopy(saved.steps[:old_index]) + copy.deepcopy(installed.steps[new_index:])
+        result = WorkflowDefinition(data)
+        errors = validate_workflow(result)
+        if errors:
+            raise WorkflowLifecycleError('Invalid continuation migration: ' + '; '.join(errors))
+        destination = run_directory(root, state.run_id) / 'workflow.yml'
+        before = lifecycle.digest(destination)
+        import yaml
+        temporary = destination.with_suffix('.yml.tmp')
+        temporary.write_text(yaml.safe_dump(data, sort_keys=False), encoding='utf-8')
+        temporary.replace(destination)
+        state.append_log({'event': 'continuation_readiness_migration', 'from_version': saved.version,
+                          'to_version': installed.version, 'previous_sha256': before,
+                          'current_sha256': lifecycle.digest(destination)})
+        return result
     installed_path = root / '.specify/workflows/program-kit-bootstrap/workflow.yml'
     if not installed_path.is_file():
         return saved
     installed = WorkflowEngine(root).load_workflow('program-kit-bootstrap')
     if saved.version == installed.version:
         return saved
-    if (saved.version, installed.version) not in {('0.10.1', '0.11.0'), ('0.10.2', '0.11.0')}:
+    if (saved.version, installed.version) not in {
+        ('0.10.1', '0.11.0'), ('0.10.2', '0.11.0'),
+        ('0.10.1', '0.12.0'), ('0.10.2', '0.12.0'), ('0.11.0', '0.12.0'),
+    }:
         raise WorkflowLifecycleError(f'No reviewed saved-workflow migration from {saved.version} to {installed.version}')
     old_index = next((i for i, s in enumerate(saved.steps) if s['id'] == restart), None)
     new_index = next((i for i, s in enumerate(installed.steps) if s['id'] == restart), None)
@@ -263,6 +313,33 @@ def execution_owner(root: Path, run_id: str):
             lifecycle.write(path, {'run_id': run_id, 'active': False})
 
 
+def expected_handoff_pause(root, state):
+    """Only a structured producer handoff is a normal pause; crashes stay failed."""
+    step = state.current_step_id or ''
+    for stage in __import__('bootstrap_stages').STAGES:
+        if step not in {f'require-{stage}-handoff', f'require-{stage}-answers', f'validate-{stage}-output'}:
+            continue
+        path = run_directory(root, state.run_id) / f'handoff-{stage}.json'
+        if path.is_file():
+            value = lifecycle.load(path)
+            if value.get('status') in {'needs-user-answer', 'needs-design-decision'} and value.get('questions'):
+                return value
+    return None
+
+
+def normalize_handoff_pause(root, state):
+    handoff = expected_handoff_pause(root, state) if state.status == RunStatus.FAILED else None
+    output = state.step_results.get(state.current_step_id, {}).get('output', {})
+    diagnostic = str(output.get('stderr', '')) + str(output.get('stdout', ''))
+    if handoff and handoff['status'] + ':' in diagnostic and 'Traceback (most recent call last)' not in diagnostic:
+        state.append_log({'event': 'awaiting-resolution', 'stage': handoff['stage'],
+                          'questions': [q['id'] for q in handoff['questions']]})
+        state.status = RunStatus.PAUSED
+        state.error = None
+        state.save()
+    return state
+
+
 def execute_definition(root: Path, definition: WorkflowDefinition, inputs: dict, run_id: str) -> RunState:
     require_enabled(root)
     errors = validate_workflow(definition)
@@ -271,8 +348,8 @@ def execute_definition(root: Path, definition: WorkflowDefinition, inputs: dict,
     if run_directory(root, run_id).exists():
         raise WorkflowLifecycleError('Run ID already exists; use resume to preserve its history')
     with execution_owner(root, run_id):
-        return WorkflowEngine(root).execute(definition, inputs=inputs, run_id=run_id,
-                                            installed_workflow_id='program-kit-bootstrap')
+        return normalize_handoff_pause(root, WorkflowEngine(root).execute(definition, inputs=inputs, run_id=run_id,
+                                            installed_workflow_id='program-kit-bootstrap'))
 
 
 def validate_engine_completion(root: Path) -> None:
@@ -329,16 +406,32 @@ def continuation_definition(root: Path) -> WorkflowDefinition:
 
 def source_ready(root: Path, source_run: str) -> bool:
     recovery.manifest(root, source_run)
-    try:
-        governance.validate_bootstrap(True, True)
-        return bool(lifecycle.verdict(root)['eligible'])
-    except (governance.GovernanceStateError, lifecycle.LifecycleError):
-        return False
+    # Report prose cannot force re-authoring already-valid accepted decisions.
+    # Changed authority, missing proofs or pending owned questions still route
+    # to correction before any approval can be reused.
+    return governance.readiness_authority(source_run)['eligible']
 
 
-def continuation(root: Path, source: RunState, inputs: dict) -> RunState:
+def prepare_recovery_readiness(root: Path, run_id: str, source_run: str) -> dict:
+    """Generate the same bounded input/output contract as fresh readiness."""
+    recovery.manifest(root, source_run)
+    governance.validate_bootstrap(True, False)
+    path, payload = bootstrap_context.build_context(root, run_id, 'readiness')
+    bootstrap_context.validate_context(root, run_id, 'readiness')
+    # Fail before paid dispatch on missing/unreadable declared inputs. Worker-side
+    # access is additionally verified by the cross-identity Windows regression.
+    for name in payload['reading_policy']['allowed_sources']:
+        (root / name).read_bytes()
+    return {'context': path.relative_to(root).as_posix(),
+            'sha256': lifecycle.digest(path), 'bytes': path.stat().st_size,
+            'validation_commands': payload['output_contract']['validation_commands']}
+
+
+def continuation(root: Path, source: RunState, inputs: dict, *, reuse_prepared_recovery: bool = False) -> RunState:
     mapping_path = root / '.specify/workflows/resumptions' / f'{source.run_id}.json'
     if mapping_path.is_file():
+        if reuse_prepared_recovery:
+            raise WorkflowLifecycleError('Prepared recovery reuse applies only when creating the continuation; resume the existing continuation without the flag')
         mapping = lifecycle.load(mapping_path)
         if (mapping['source_state_sha256'] != lifecycle.digest(run_directory(root, source.run_id) / 'state.json')
                 or mapping['source_workflow_sha256'] != lifecycle.digest(run_directory(root, source.run_id) / 'workflow.yml')):
@@ -349,11 +442,21 @@ def continuation(root: Path, source: RunState, inputs: dict) -> RunState:
     else:
         recovery.prepare(root, source.run_id)
         definition = continuation_definition(root)
+        prepared_hash = None
+        if reuse_prepared_recovery:
+            prepared_hash = recovery.require_prepared_review(root, source.run_id)
+            data = copy.deepcopy(definition.data)
+            # Only the correction producer is omitted. Proof validation, packet
+            # generation, human approval, readiness and completion remain native.
+            data['steps'] = [step for step in data['steps'] if step['id'] != 'route-recovery-correction']
+            definition = WorkflowDefinition(data)
         child = f'{source.run_id}-r-{uuid.uuid4().hex[:8]}'
         mapping = {'source_run': source.run_id, 'continuation_run': child,
                    'continuation_definition': definition.data,
                    'source_state_sha256': lifecycle.digest(run_directory(root, source.run_id) / 'state.json'),
                    'source_workflow_sha256': lifecycle.digest(run_directory(root, source.run_id) / 'workflow.yml')}
+        if prepared_hash:
+            mapping['prepared_review_sha256'] = prepared_hash
         lifecycle.write(mapping_path, mapping)
     definition = WorkflowDefinition(mapping['continuation_definition'])
     values = {'source_run': source.run_id, 'integration': source.inputs.get('integration', 'codex')}
@@ -365,10 +468,22 @@ def continuation(root: Path, source: RunState, inputs: dict) -> RunState:
     return state
 
 
-def resume_unlocked(root: Path, run_id: str, inputs: dict) -> RunState:
+def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False) -> RunState:
     state = RunState.load(run_id, root)
     require_enabled(root, state)
     definition = definition_for(root, run_id)
+    if reuse_prepared_recovery:
+        if inputs:
+            raise WorkflowLifecycleError('Prepared recovery reuse cannot supply inputs or preapprove its future review gate')
+        if (reuse_proven_closure or state.status != RunStatus.FAILED
+                or state.current_step_id not in FINAL_FAILURES or state.inputs.get('source_run')):
+            raise WorkflowLifecycleError('Prepared recovery reuse requires an original failed approved-bootstrap readiness run')
+        return continuation(root, state, inputs, reuse_prepared_recovery=True)
+    if reuse_proven_closure:
+        if state.status != RunStatus.FAILED or state.current_step_id != 'execute-compatibility-proofs':
+            raise WorkflowLifecycleError('Proven closure reuse applies only to a failed compatibility shell step')
+        from bootstrap_proof_plan import require_proven_closure
+        require_proven_closure(root)
     # Resolve lineage before checking a verdict against the child's actual gate.
     if (root / '.specify/workflows/resumptions' / f'{run_id}.json').is_file():
         return continuation(root, state, inputs)
@@ -416,8 +531,37 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict) -> RunState:
             state.append_log({'event': 'paused_workflow_migration', 'snapshot': str(archived),
                               'invalidated_steps': sorted(invalidated), 'restart_step': restart})
             state.save()
-    if state.status == RunStatus.FAILED:
+    if state.status == RunStatus.FAILED or (state.status == RunStatus.PAUSED and expected_handoff_pause(root, state)):
         restart = STAGE_STARTS.get(state.current_step_id, state.current_step_id)
+        if state.current_step_id.startswith('require-') and state.current_step_id.endswith('-answers'):
+            from bootstrap_handoff import retry_stage
+            from bootstrap_stages import STAGES
+            stage = state.current_step_id.removeprefix('require-').removesuffix('-answers')
+            owner = retry_stage(root, run_id, stage, completing=True)
+            if owner:
+                restart = STAGES[owner]['restart']
+        if state.current_step_id.startswith('require-') and state.current_step_id.endswith('-handoff'):
+            from bootstrap_stages import STAGES
+            from bootstrap_handoff import retry_stage
+            stage = state.current_step_id.removeprefix('require-').removesuffix('-handoff')
+            if stage in STAGES:
+                owner = retry_stage(root, run_id, stage)
+                if owner:
+                    restart = STAGES[owner]['restart']
+        if state.inputs.get('source_run'):
+            if state.current_step_id == 'recovery-require-ready':
+                verdict = lifecycle.verdict(root)
+                if {item['id'] for item in verdict.get('blockers', [])} == {'READINESS-CURRENT-EVIDENCE'}:
+                    # This is a producer-input failure, not a request to redraft
+                    # already-approved architecture or rerun compatibility proofs.
+                    restart = 'prepare-recovery-readiness'
+            if restart == 'prepare-recovery-readiness':
+                recovery.manifest(root, state.inputs['source_run'])
+                governance.validate_bootstrap(True, False)
+                if not any(s['id'] == restart for s in definition.steps):
+                    restart = 'recovery-readiness'  # migrate the historical suffix below
+        if reuse_proven_closure:
+            restart = 'execute-compatibility-proofs'
         starts = [index for index, step in enumerate(definition.steps) if step['id'] == restart]
         if not starts:
             # A nested gate/acceptance failure must return to its owning stage,
@@ -430,7 +574,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict) -> RunState:
         invalidated.update(all_step_ids(definition.steps[index:]))
         state.step_results = {key: value for key, value in state.step_results.items() if key not in invalidated}
         state.current_step_index = index
-        state.current_step_id = restart
+        state.current_step_id = definition.steps[index]['id']
         for name in ('assessment_verdict', 'constitution_verdict', 'bootstrap_verdict', 'recovery_verdict'):
             if name in state.inputs:
                 state.inputs[name] = ''
@@ -438,30 +582,76 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict) -> RunState:
             state.inputs['auto_approve_and_ratify'] = False
         state.inputs = WorkflowEngine(root)._resolve_inputs(definition, state.inputs)
         # Keep approved prefix authority. Downstream completion is no longer valid.
+        if restart in {'prepare-assessment-context', 'prepare-research-context', 'require-research-handoff'}:
+            # A producer must be able to correct its own decisions before a fresh
+            # review. The original approval is preserved in the snapshot above.
+            (root / governance.ASSESSMENT_APPROVAL).unlink(missing_ok=True)
+            (root / governance.BOOTSTRAP_APPROVAL).unlink(missing_ok=True)
         for relative in (governance.BOOTSTRAP_COMPLETION, lifecycle.RESULT):
             (root / relative).unlink(missing_ok=True)
-        state.append_log({'event': 'stage_resumption', 'restart_step': restart,
+        state.append_log({'event': 'stage_resumption', 'restart_step': state.current_step_id,
                           'invalidated_steps': sorted(invalidated), 'snapshot': str(archived),
                           'saved_workflow_sha256': lifecycle.digest(run_directory(root, run_id) / 'workflow.yml')})
         state.save()
+    if (state.status == RunStatus.PAUSED and state.inputs.get('source_run')
+            and state.current_step_id == 'recovery-readiness'):
+        prepare_recovery_readiness(root, run_id, state.inputs['source_run'])
     with execution_owner(root, run_id):
-        result = WorkflowEngine(root).resume(run_id, inputs=inputs or None)
+        result = normalize_handoff_pause(root, WorkflowEngine(root).resume(run_id, inputs=inputs or None))
     if result.status == RunStatus.COMPLETED:
         governance.validate_completion()
         validate_engine_completion(root)
     return result
 
 
-def resume(root: Path, run_id: str, inputs: dict | None = None) -> RunState:
+def resume(root: Path, run_id: str, inputs: dict | None = None, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False) -> RunState:
     with execution_lock(root):
-        return resume_unlocked(root, run_id, inputs or {})
+        return resume_unlocked(root, run_id, inputs or {}, reuse_proven_closure=reuse_proven_closure,
+                               reuse_prepared_recovery=reuse_prepared_recovery)
+
+
+def reopen(root: Path, run_id: str, stage: str) -> dict:
+    """Explicit operator reopens decision authority without dispatching a producer."""
+    from bootstrap_stages import STAGES
+    if stage not in {'assessment', 'research', 'architecture'}:
+        raise WorkflowLifecycleError('Reopen the owning assessment, research or architecture stage')
+    with execution_lock(root):
+        state = RunState.load(run_id, root)
+        if state.status not in {RunStatus.FAILED, RunStatus.PAUSED, RunStatus.COMPLETED} or state.inputs.get('source_run'):
+            raise WorkflowLifecycleError('Reopen requires a stopped primary bootstrap run')
+        definition = WorkflowDefinition.from_yaml(run_directory(root, run_id) / 'workflow.yml')
+        restart = 'require-research-handoff' if stage == 'research' else STAGES[stage]['restart']
+        matches = [i for i, step in enumerate(definition.steps) if step['id'] == restart]
+        if not matches:
+            raise WorkflowLifecycleError('This historical workflow has no supported decision handoff; preserve it and start a new trial')
+        archived = snapshot(root, state)
+        response = run_directory(root, run_id) / 'decision-responses.json'
+        if response.is_file():
+            shutil.copyfile(response, archived / response.name)
+            response.unlink()
+        index = matches[0]
+        invalidated = all_step_ids(definition.steps[index:])
+        state.step_results = {k: v for k, v in state.step_results.items() if k not in invalidated}
+        state.current_step_index, state.current_step_id = index, restart
+        state.status, state.error = RunStatus.FAILED, 'Operator reopened ' + stage + ' decisions'
+        for name in ('assessment_verdict', 'constitution_verdict', 'bootstrap_verdict'):
+            state.inputs[name] = ''
+        state.inputs['auto_approve_and_ratify'] = False
+        for relative in (governance.BOOTSTRAP_APPROVAL, governance.BOOTSTRAP_COMPLETION, lifecycle.RESULT):
+            (root / relative).unlink(missing_ok=True)
+        if stage in {'assessment', 'research'}:
+            (root / governance.ASSESSMENT_APPROVAL).unlink(missing_ok=True)
+        state.append_log({'event': 'operator_reopened_decisions', 'stage': stage, 'snapshot': str(archived)})
+        state.save()
+        return {'run_id': run_id, 'status': 'reopened', 'stage': stage, 'next': 'Record corrected answers, then resume the same run'}
 
 
 def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: str | None) -> dict:
     state = RunState.load(run_id, root)
     expected = {'complete': 'complete-bootstrap', 'verify-source': 'verify-recovery-source',
                 'review': 'recovery-review', 'accept': 'recovery-accept',
-                'synchronize': 'recovery-synchronize', 'evaluate': 'recovery-evaluate'}
+                'synchronize': 'recovery-synchronize', 'evaluate': 'recovery-evaluate',
+                'readiness-context': 'prepare-recovery-readiness'}
     if (state.status != RunStatus.RUNNING or state.current_step_id != expected.get(action)
             or state.inputs.get('source_run') != source_run):
         raise WorkflowLifecycleError('This helper executes only as its matching native workflow step')
@@ -482,25 +672,37 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
         return recovery.synchronize(root, source_run)
     if action == 'evaluate':
         return recovery.evaluate(root, source_run)
+    if action == 'readiness-context':
+        return prepare_recovery_readiness(root, run_id, source_run)
     raise WorkflowLifecycleError(f'Unknown internal step {action}')
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['run', 'resume', 'step', 'validate-completion'])
+    parser.add_argument('command', choices=['run', 'resume', 'reopen', 'step', 'validate-completion'])
     parser.add_argument('action', nargs='?')
     parser.add_argument('--run-id')
     parser.add_argument('--source-run')
     parser.add_argument('--verdict')
+    parser.add_argument('--stage', choices=['assessment', 'research', 'architecture'])
     parser.add_argument('--input', action='append', default=[])
+    parser.add_argument('--reuse-proven-closure', action='store_true', help='Resume repaired compatibility proofs without repeating their paid authoring stage; requires current passing evidence for every planned probe')
+    parser.add_argument('--reuse-prepared-recovery', action='store_true', help='Create an approved-bootstrap continuation from a current prepared recovery review and passing proofs, retaining the human approval gate')
     args = parser.parse_args()
     root = Path.cwd().resolve()
     try:
+        if (args.reuse_proven_closure or args.reuse_prepared_recovery) and args.command != 'resume':
+            raise WorkflowLifecycleError('Recovery reuse flags require resume')
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
+        if args.command in {'run', 'resume', 'reopen'}:
+            with execution_lock(root):
+                prepare_schema_runtimes(root)
         governance.configure_paths()
         with contextlib.redirect_stdout(io.StringIO()) if args.command == 'step' else contextlib.nullcontext():
-            if args.command == 'step':
+            if args.command == 'reopen':
+                value = reopen(root, args.run_id, args.stage)
+            elif args.command == 'step':
                 value = step(root, args.action, args.run_id, args.source_run, args.verdict)
             elif args.command == 'validate-completion':
                 governance.validate_completion()
@@ -509,7 +711,8 @@ def main() -> int:
             else:
                 inputs = dict(item.split('=', 1) for item in args.input)
                 if args.command == 'resume':
-                    state = resume(root, args.run_id, inputs)
+                    state = resume(root, args.run_id, inputs, reuse_proven_closure=args.reuse_proven_closure,
+                                   reuse_prepared_recovery=args.reuse_prepared_recovery)
                 else:
                     with execution_lock(root):
                         require_enabled(root)
@@ -520,8 +723,15 @@ def main() -> int:
                             validate_engine_completion(root)
                 value = {'run_id': state.run_id, 'status': state.status.value,
                          'current_step': state.current_step_id, 'error': state.error}
+                if state.status in {RunStatus.FAILED, RunStatus.PAUSED}:
+                    from compatibility_diagnostics import sanitize
+                    output = state.step_results.get(state.current_step_id, {}).get('output', {})
+                    detail = output.get('stderr') or output.get('stdout')
+                    if detail:
+                        value['diagnostic'] = sanitize(str(detail))[-4000:]
+                    value['evidence'] = str(run_directory(root, state.run_id) / 'state.json')
         print(json.dumps(value))
-        return 0 if args.command == 'step' or value.get('status', 'completed') == 'completed' else 2
+        return 0 if args.command in {'step', 'reopen'} or value.get('status', 'completed') in {'completed', 'paused'} else 2
     except (ValueError, OSError, KeyError, governance.GovernanceStateError, lifecycle.LifecycleError, bootstrap_context.ContextError) as error:
         print(f'Program Kit workflow lifecycle: {error}', file=sys.stderr)
         return 1

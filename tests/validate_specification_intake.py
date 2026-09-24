@@ -35,7 +35,7 @@ class IntakeTests(unittest.TestCase):
             self.addCleanup(mocked.stop)
         self.records = [{"id": "SPC-001", "title": "Invoice export", "Status": "Ready",
                          "Scope": "Own invoices", "Required Accepted ADRs": "none"}]
-        mocked = patch.object(intake.governance, "validate_roadmap", side_effect=lambda ready: self.records)
+        mocked = patch.object(intake.governance, "validate_roadmap", side_effect=lambda ready, **kwargs: self.records)
         mocked.start()
         self.addCleanup(mocked.stop)
         for path in (intake.governance.CONSTITUTION, intake.governance.ARCHITECTURE):
@@ -74,6 +74,60 @@ class IntakeTests(unittest.TestCase):
         self.confirm()
         for path in ("specs", ".git", ".specify/feature.json"):
             self.assertFalse((self.repository / path).exists())
+
+    def test_bootstrap_feature_obligations_are_scoped_carried_and_bound_to_review(self):
+        ledger = self.repository / 'docs/architecture/bootstrap-prerequisites.json'
+        item = {'id': 'persistence-policy', 'source_ids': ['durable-write'], 'owner': 'Feature owner',
+                'task': 'Plan provider admission and replay policy', 'rationale': 'Durable results',
+                'trigger': 'feature-plan', 'disposition': 'feature', 'affected_slices': ['SPC-001'], 'status': 'open', 'evidence': []}
+        from bootstrap_lifecycle import source_digest
+        source = self.repository / 'docs/architecture/bootstrap-decisions.json'
+        intake.atomic_write(source, {})
+        intake.atomic_write(self.repository / "docs/architecture/architecture-map.json", {"decisions": []})
+        self.records.append({**self.records[0], 'id': 'SPC-002', 'Status': 'Candidate'})
+        intake.atomic_write(ledger, {'schema_version': '1.0',
+            'sources': [{'path': source.relative_to(self.repository).as_posix(), 'sha256': source_digest(source), 'prerequisites': []}],
+            'prerequisites': [item, {**item, 'id': 'future', 'affected_slices': ['SPC-002']}]})
+        self.assertEqual(['persistence-policy'], [i['id'] for i in intake.context(self.repository, 'SPC-001')['bootstrapObligations']])
+        with self.assertRaisesRegex(ValueError, 'needs exactly one linked'):
+            intake.review(self.repository, 'SPC-001')
+        self.brief['decisions'].append({
+            'id': 'Q2', 'bootstrapPrerequisite': 'persistence-policy', 'question': 'How is replay handled?',
+            'answer': 'Plan provider-backed admission within accepted storage ownership',
+            'provenance': 'Bootstrap persistence-policy', 'rationale': 'Feature plan owns details',
+            'dependsOn': [], 'disposition': 'deferred', 'blocking': False,
+            'owner': 'Feature owner', 'trigger': 'Before tasks', 'duePhase': 'delivery'})
+        self.save()
+        with self.assertRaisesRegex(ValueError, 'owning phase gate'):
+            intake.review(self.repository, 'SPC-001')
+        self.brief['decisions'][-1]['duePhase'] = 'planning'
+        self.save()
+        self.confirm()
+        import phase_obligations
+        from validate_governance_state import roadmap
+        (self.repository / intake.governance.ROADMAP).write_text(roadmap().replace('SPEC-001', 'SPC-001') + '\n' + roadmap(status='Candidate').replace('SPEC-001', 'SPC-002'))
+        intake.atomic_write(self.repository / '.specify/feature.json', {'roadmap_entry_id': 'SPC-001'})
+        with self.assertRaisesRegex(ValueError, 'persistence-policy'):
+            phase_obligations.deferred(self.repository, 'planning')
+        self.brief['decisions'][-1].update(disposition='answered', answer='Reviewed replay policy and its verification plan')
+        self.save()
+        self.confirm()
+        phase_obligations.deferred(self.repository, 'planning')
+        item['task'] = 'Changed admission requirement'
+        changed = intake.read(ledger)
+        changed['prerequisites'][0] = item
+        intake.atomic_write(ledger, changed)
+        with self.assertRaisesRegex(ValueError, 'stale'):
+            intake.check(self.repository, 'SPC-001')
+
+    def test_bootstrap_carryover_rejects_duplicate_unknown_and_excluded_links(self):
+        obligation = {'id': 'retained'}
+        for decisions in ([{'bootstrapPrerequisite': 'retained', 'disposition': 'excluded'}],
+                          [{'bootstrapPrerequisite': 'retained', 'disposition': 'answered'}] * 2,
+                          [{'bootstrapPrerequisite': 'retained', 'disposition': 'answered'},
+                           {'bootstrapPrerequisite': 'unknown', 'disposition': 'answered'}]):
+            with self.subTest(decisions=decisions), self.assertRaises(ValueError):
+                intake.require_bootstrap_carryover({'decisions': decisions}, [obligation])
 
     def test_mutation_invalidates_confirmation_and_can_be_reconfirmed(self):
         self.confirm()
@@ -130,7 +184,7 @@ class IntakeTests(unittest.TestCase):
                 brief["decisions"][0].update(modification)
                 with self.assertRaises(ValueError):
                     intake.validate_brief(brief, "SPC-001")
-        self.brief["decisions"][0].update(disposition="deferred", blocking=False, owner="Planning owner", trigger="Before plan approval")
+        self.brief["decisions"][0].update(disposition="deferred", blocking=False, owner="Planning owner", trigger="Before plan approval", duePhase="after-plan")
         self.save()
         self.confirm()
         self.brief["decisions"].append({**self.brief["decisions"][0], "id": "Q2", "disposition": "answered", "dependsOn": ["Q1"]})

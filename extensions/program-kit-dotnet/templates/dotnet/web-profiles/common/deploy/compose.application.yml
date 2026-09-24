@@ -2,7 +2,12 @@ name: program-kit-application
 
 services:
   application:
-    image: program-kit-consumer:local
+    image: ${ORBYSS_FOUNDATION_HOST_IMAGE:?Set the published Foundation host digest}
+    volumes:
+      - ../artifacts/release-bundle/hostsettings.json:/app/hostsettings.json:ro
+      - ../artifacts/release-bundle/shells.json:/app/shells.json:ro
+      - ../artifacts/release-bundle/nuplane.settings.json:/app/nuplane.settings.json:ro
+      - ../artifacts/release-bundle/packages:/app/packages:ro
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       CShells__Shells__default__Configuration__Foundation__Web__ClientSecret: local-program-kit-secret

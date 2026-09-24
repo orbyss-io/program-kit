@@ -23,7 +23,7 @@ NPMRC_BEGIN = "# Program Kit building-block registry routing: begin"
 NPMRC_END = "# Program Kit building-block registry routing: end"
 
 
-@dataclass(frozen=True)
+@dataclass
 class ResolverError(ValueError):
     code: str
     detail: str
@@ -145,6 +145,7 @@ def resolution_projection(catalog: dict) -> dict:
                 "materialization",
                 "requires",
                 "activations",
+                "supportsBuildTime",
                 "configuration",
             )
             if field in package
@@ -156,6 +157,7 @@ def resolution_projection(catalog: dict) -> dict:
             for field in (
                 "scopeKind",
                 "targetSlots",
+                "buildTimeSlots",
                 "requirements",
                 "optionGroups",
                 "conflicts",
@@ -298,7 +300,14 @@ def validate_requirements(catalog: dict, composition_id: str, value: object, slo
             fail("PKB106", f"catalog composition {composition_id} cannot place {requirement['package']} in slot {requirement['targetSlot']}")
         if not set(slot["allowedRoles"]) & set(materialization["allowedRoles"]):
             fail("PKB106", f"catalog composition {composition_id} slot {requirement['targetSlot']} has no valid role for {requirement['package']}")
-        validate_activation_slots(catalog, composition_id, requirement["package"], slots, set())
+        build_slots = catalog['compositions'][composition_id].get('buildTimeSlots', [])
+        if not isinstance(build_slots, list) or any(s not in slots or slots[s]['kind'] != 'dotnet-project' for s in build_slots):
+            fail('PKB106', 'Build-time slots must be declared .NET producer projects')
+        if requirement['targetSlot'] in build_slots:
+            if package.get('supportsBuildTime') is not True:
+                fail('PKB106', f"{requirement['package']} does not declare supported public build-time use")
+        else:
+            validate_activation_slots(catalog, composition_id, requirement["package"], slots, set())
 
 
 def validate_activation_slots(catalog: dict, composition_id: str, package_key: str, slots: dict, seen: set[str]) -> None:
@@ -434,6 +443,11 @@ def index_selection(selection: dict) -> tuple[dict[str, dict], dict[str, dict]]:
     return scopes, targets
 
 
+def placement_kind_contracts() -> dict:
+    schema = load_json(Path(__file__).resolve().parents[1] / 'references/building-block-selection.schema.json')
+    return {rule['properties']['kind']['const']: rule for rule in schema['$defs']['targetKindPlacement']['oneOf']}
+
+
 def validate_placements(repository: Path, selection: dict, require_all: bool = False) -> None:
     """Validate architecture declarations without creating their consumer-owned files.
 
@@ -442,6 +456,9 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
     The map's source hashes provide freshness without duplicating ADR hashes across approval.
     """
     _, targets = index_selection(selection)
+    for target in targets.values():
+        if target.get("kind") == "host-image" and Path(target.get("path", "")).name != "hostsettings.json":
+            fail("PKB303", "host-image must bind hostsettings.json to the published Foundation image; review legacy Dockerfile/DLL placement before synchronization. Approved selection is not rewritten automatically.")
     declared = [target for target in targets.values() if "placement" in target]
     if require_all and (not targets or len(declared) != len(targets)):
         fail("PKB306", "architecture must declare placement provenance for every target")
@@ -449,6 +466,7 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
         fail("PKB306", "architecture must declare composition instances and their bindings")
     if not declared:
         return
+    kind_contracts = placement_kind_contracts()
     architecture = load_json(repository_path(repository, normalize_path(
         selection["authority"]["architectureMap"], "architecture map")))
     owners = {item["id"]: item for item in architecture.get("elements", [])}
@@ -494,19 +512,14 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
             fail("PKB306", f"{label} claims an observed file that is absent")
         if require_all and placement["state"] == "planned" and path.is_file():
             fail("PKB306", f"{label} must preserve the already observed file's identity and ownership")
-        name = path.name.casefold()
-        valid_kind = {
-            "repository": name == "directory.build.props",
-            "dotnet-project": name.endswith(".csproj"),
-            "npm-package": name == "package.json",
-            "cshell-shell": name == "shells.json",
-            "dotnet-tool-manifest": name == "dotnet-tools.json",
-            "host-image": name == "dockerfile" or name.startswith("dockerfile."),
-        }.get(target.get("kind"), False)
-        if not valid_kind:
-            fail("PKB303", f"{label} path does not match its target kind")
-        if target["kind"] == "cshell-shell":
-            require_id(target.get("shell"), f"{label} shell")
+        rule = kind_contracts.get(target.get('kind'))
+        if rule is None:
+            fail('PKB303', f"{label} has no supported target-kind contract")
+        if not re.search(rule['properties']['path']['pattern'], target['path']):
+            fail('PKB303', f"{label} path {target['path']!r} does not match {target['kind']!r}: {rule['description']}")
+        for field in rule['required']:
+            if field not in {'kind', 'path'}:
+                require_id(target.get(field), f"{label} {field}: {rule['properties'][field]['description']}")
 
 
 def binding_targets(instance: dict, slot: str, targets: dict[str, dict]) -> list[dict]:
@@ -604,7 +617,7 @@ def resolve(
     resolved_instances: list[dict] = []
     configuration_requirements: list[dict] = []
 
-    def assign(package_key: str, target: dict, origin: str, instance: dict, active: set[tuple[str, str]]) -> None:
+    def assign(package_key: str, target: dict, origin: str, instance: dict, active: set[tuple[str, str, bool]], build_time: bool = False) -> None:
         package = packages[package_key]
         materialization = package["materialization"]
         if target.get("kind") not in materialization["allowedTargetKinds"]:
@@ -613,9 +626,9 @@ def resolve(
             fail("PKB303", f"{origin} cannot place {package_key} in target role {target.get('role')!r}")
         environment = scopes[target["scope"]]["environment"]
         allowed_environments = materialization.get("allowedEnvironments")
-        if allowed_environments and environment not in allowed_environments:
+        if allowed_environments and environment not in allowed_environments and not build_time:
             fail("PKB304", f"{origin} cannot place {package_key} in {environment!r} scope {target['scope']!r}")
-        identity = (package_key, target["id"])
+        identity = (package_key, target["id"], build_time)
         if identity in active:
             assignments[target["id"]][package_key]["origins"].add(origin)
             return
@@ -645,8 +658,12 @@ def resolve(
             else:
                 companions = binding_targets(instance, requirement["targetSlot"], targets)
             for companion_target in companions:
-                assign(requirement["package"], companion_target, f"{origin}/requires/{requirement['package']}", instance, active)
-        for activation in package.get("activations", []):
+                assign(requirement["package"], companion_target, f"{origin}/requires/{requirement['package']}", instance, active,
+                       build_time if requirement['targetSlot'] == 'same-target' else
+                       requirement['targetSlot'] in compositions[instance['composition']].get('buildTimeSlots', []))
+        if build_time and package.get('supportsBuildTime') is not True:
+            fail('PKB106', f'{package_key} is not a supported build-time dependency')
+        for activation in ([] if build_time else package.get("activations", [])):
             for shell_target in binding_targets(instance, activation["targetSlot"], targets):
                 key = (shell_target["id"], activation["featureIdentity"], package_key)
                 activations[key] = {
@@ -685,12 +702,13 @@ def resolve(
                     fail("PKB205", f"selection instance {instance_id!r} option {group_id}/{choice} is not allowed in {environment}")
                 requirements.extend(option["requirements"])
             option_summary[group_id] = sorted(choices)
-        active: set[tuple[str, str]] = set()
+        active: set[tuple[str, str, bool]] = set()
         origin_packages: list[str] = []
         for requirement in requirements:
             origin = f"{instance_id}/{requirement['package']}"
             for target in binding_targets(instance, requirement["targetSlot"], targets):
-                assign(requirement["package"], target, origin, instance, active)
+                assign(requirement["package"], target, origin, instance, active,
+                       requirement['targetSlot'] in composition.get('buildTimeSlots', []))
             origin_packages.append(requirement["package"])
         for config in composition["configuration"]:
             configuration_requirements.append({**copy.deepcopy(config), "origin": instance_id, "scope": instance["scope"]})
@@ -782,6 +800,54 @@ def output_record(kind: str, path: str, entries: list[dict], target_ids: list[st
     if target_ids:
         record["targetIds"] = sorted(target_ids)
     return record
+
+
+def materialized_plan(repository: Path, lock: dict) -> dict:
+    """Project accepted choices onto complete, existing composition targets without scaffolding.
+
+    Authority still comes from resolve(). A later composition cannot acquire package assignments
+    or shared-shell activations merely because one of its other targets already exists.
+    """
+    selection = load_json(repository_path(repository, lock["inputs"]["selection"]["path"]))
+    targets = {target["id"]: target for target in selection["targets"]}
+    eligible: set[str] = set()
+    deferred: list[str] = []
+    for instance in selection["instances"]:
+        bound = {target_id for binding in instance["targetBindings"].values()
+                 for target_id in (binding if isinstance(binding, list) else [binding])}
+        missing = [target_id for target_id in bound
+                   if targets[target_id]["kind"] in {"dotnet-project", "npm-package", "dotnet-tool-manifest"}
+                   and not repository_path(repository, targets[target_id]["path"]).is_file()]
+        if missing:
+            deferred.append(instance["id"])
+        else:
+            eligible.add(instance["id"])
+    result = copy.deepcopy(lock)
+    result.pop("planDigest", None)
+    result["materializationScope"] = "existing-compositions"
+    result["deferredInstances"] = sorted(deferred)
+    result["instances"] = [instance for instance in result["instances"] if instance["id"] in eligible]
+    selected_targets = []
+    for target in result["targets"]:
+        retained = []
+        for package in target["packages"]:
+            package["origins"] = [origin for origin in package["origins"] if origin.split("/", 1)[0] in eligible]
+            if package["origins"]:
+                retained.append(package)
+        if retained:
+            target["packages"] = retained
+            selected_targets.append(target)
+    result["targets"] = selected_targets
+    target_packages = {target["id"]: {package["packageKey"] for package in target["packages"]} for target in selected_targets}
+    source_ids = {package["source"] for target in selected_targets for package in target["packages"]}
+    result["activations"] = [activation for activation in result["activations"] if activation["origin"].split("/", 1)[0] in eligible]
+    result["configurationRequirements"] = [requirement for requirement in result["configurationRequirements"]
+                                           if (requirement.get("origin") in target_packages.get(requirement.get("targetId"), set()) if "targetId" in requirement
+                                               else requirement.get("origin") in eligible)]
+    result["registryRequirements"] = [source for source in result["registryRequirements"] if source["sourceId"] in source_ids]
+    result["managedOutputs"] = managed_output_records(result)
+    result["planDigest"] = canonical_sha256(result)
+    return result
 
 
 def managed_output_records(lock: dict) -> list[dict]:
@@ -1007,6 +1073,7 @@ def check_output(repository: Path, output: dict) -> None:
 def check_materialization(repository: Path, lock: dict) -> None:
     for output in lock.get("managedOutputs", []):
         check_output(repository, output)
+    audit_unmanaged_dependencies(repository, load_json(default_catalog(Path(__file__))), lock)
 
 
 def repository_files(repository: Path, pattern: str) -> list[Path]:
@@ -1020,6 +1087,19 @@ def repository_files(repository: Path, pattern: str) -> list[Path]:
 
 def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock: dict | None) -> None:
     owned = output_map(ownership_lock or {})
+    # The coordinator's engineering baseline and retained proof inputs have their own
+    # authorities. Never infer ownership from a docs/specs directory name.
+    governance = Path(__file__).resolve().parents[2] / 'program-kit-governance/scripts'
+    exempt = set()
+    if (governance / 'dependency_audit.py').is_file():
+        sys.path.insert(0, str(governance))
+        try:
+            from dependency_audit import audit_exemptions
+            exempt = audit_exemptions(repository, ownership_lock or {})
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            fail('PKB405', str(error))
+        finally:
+            sys.path.remove(str(governance))
     nuget_ids = {
         package["packageId"].casefold()
         for package in catalog["packages"].values()
@@ -1034,6 +1114,8 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
     reference_pattern = re.compile(r'<PackageReference\s+[^>]*Include="([^"]+)"', re.IGNORECASE)
     version_pattern = re.compile(r'<PackageVersion\s+[^>]*Include="([^"]+)"', re.IGNORECASE)
     for path in repository_files(repository, "*.csproj"):
+        if path.resolve() in exempt:
+            continue
         relative = path.relative_to(repository).as_posix()
         content = read_text(path)
         prior = owned.get(relative)
@@ -1046,18 +1128,20 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
         relative = path.relative_to(repository).as_posix()
         if relative in owned and owned[relative]["kind"] == "nuget-central-pins":
             continue
-        if relative == ".program-kit/eng/ProgramKit.Packages.props":
+        if path.resolve() in exempt:
             continue
         for package_id in version_pattern.findall(read_text(path)):
             if package_id.casefold() in nuget_ids:
                 findings.append(f"unmanaged NuGet pin {package_id} in {relative}")
     for path in repository_files(repository, "package.json"):
+        if path.resolve() in exempt:
+            continue
         relative = path.relative_to(repository).as_posix()
         value = load_json(path)
         prior = owned.get(relative)
         previous_entries = prior["entries"] if prior and prior["kind"] == "npm-package" else []
         previous_ids = {entry["packageId"] for entry in previous_entries}
-        for section_name in ("dependencies", "devDependencies"):
+        for section_name in ("dependencies", "devDependencies", "optionalDependencies", "peerDependencies"):
             section = value.get(section_name, {})
             if not isinstance(section, dict):
                 fail("PKB405", f"{relative} {section_name} must be an object")
@@ -1065,6 +1149,8 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
                 if package_id in npm_ids and package_id not in previous_ids:
                     findings.append(f"unmanaged npm dependency {package_id} in {relative}")
     for path in repository_files(repository, "dotnet-tools.json"):
+        if path.resolve() in exempt:
+            continue
         relative = path.relative_to(repository).as_posix()
         value = load_json(path)
         tools = value.get("tools", {})
@@ -1297,7 +1383,8 @@ def apply_materialization(repository: Path, lock_path: Path, lock: dict, catalog
     previous_lock = load_json(lock_path) if lock_path.is_file() else None
     if previous_lock:
         check_materialization(repository, previous_lock)
-    audit_unmanaged_dependencies(repository, catalog, previous_lock)
+    else:
+        audit_unmanaged_dependencies(repository, catalog, None)
     previous_outputs = output_map(previous_lock or {})
     desired_outputs = output_map(lock)
     paths = sorted(set(previous_outputs) | set(desired_outputs), key=str.casefold)
@@ -1308,7 +1395,6 @@ def apply_materialization(repository: Path, lock_path: Path, lock: dict, catalog
         )
     transaction_id = commit_transaction(repository, changes, lock_path, lock)
     check_materialization(repository, lock)
-    audit_unmanaged_dependencies(repository, catalog, lock)
     return transaction_id
 
 
@@ -1319,7 +1405,7 @@ def find_program_kit_version(script: Path) -> str:
             value = candidate.read_text(encoding="utf-8").strip()
             if value:
                 return value
-    return "0.11.0"
+    return "0.12.0"
 
 
 def default_catalog(script: Path) -> Path:
@@ -1391,8 +1477,10 @@ def accept_selection(
     selection["catalog"] = catalog_binding(catalog)
     selection["authority"] = {
         "architectureMap": normalize_path(architecture_relative, "architecture map path"),
-        "decisionIds": sorted(unique([require_id(item, "decision ID") for item in decision_ids], "decision IDs")),
-        "rationale": rationale.strip(),
+        # Preserve reviewed authority bytes across promotion: proof bindings
+        # exclude lifecycle status, not changes to this selected design.
+        "decisionIds": unique([require_id(item, "decision ID") for item in decision_ids], "decision IDs"),
+        "rationale": rationale,
     }
     validate_selection(selection)
     verify_catalog_binding(selection, catalog)
@@ -1473,6 +1561,9 @@ def main() -> int:
         command.add_argument("--selection", default="docs/architecture/building-block-selection.json")
         command.add_argument("--catalog")
         command.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
+        if name in {"plan", "check", "apply"}:
+            command.add_argument("--materialized-only", action="store_true",
+                                 help="Reconcile only complete existing composition targets; keep future targets deferred.")
         if name in {"validate-draft", "validate-accepted"}:
             command.add_argument("--require-placement-provenance", action="store_true")
         if name == "apply":
@@ -1529,6 +1620,11 @@ def main() -> int:
             find_program_kit_version(script),
             require_accepted=args.command != "validate-draft",
         )
+        scoped = getattr(args, "materialized_only", False)
+        if args.command in {"plan", "check", "apply"} and lock_path.is_file():
+            scoped = scoped or load_json(lock_path).get("materializationScope") == "existing-compositions"
+        if scoped:
+            lock = materialized_plan(repository, lock)
         if args.command == "validate-draft":
             validate_placements(repository, load_json(selection_path), args.require_placement_provenance)
             print(f"Draft building-block selection is complete and resolves provisionally: {lock['planDigest']}")

@@ -210,12 +210,13 @@ class _SystemAwakeLease:
     def acquire(self) -> None:
         if os.name != "nt":
             return
-        if not _kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED):
+        self.previous = _kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)
+        if not self.previous:
             raise LiveContractError(f"LIVE_SYSTEM_AWAKE_LEASE_FAILED: {ctypes.get_last_error()}")
 
     def release(self) -> None:
         if os.name == "nt":
-            _kernel32.SetThreadExecutionState(ES_CONTINUOUS)
+            _kernel32.SetThreadExecutionState(getattr(self, 'previous', ES_CONTINUOUS))
 
 
 def _log_record(path: Path, summary: RedactionSummary) -> CapturedLog:
@@ -237,6 +238,8 @@ def run_supervised(
     evidence_directory: Path,
     timeout_seconds: int,
     secrets: list[str] | None = None,
+    on_poll=None,
+    on_started=None,
 ) -> ProcessResult:
     if timeout_seconds < 1:
         raise LiveContractError("LIVE_SUPERVISOR_INVALID_TIMEOUT")
@@ -267,7 +270,24 @@ def run_supervised(
         operator_cancelled = False
         forced_descendants = False
         try:
-            process.wait(timeout=timeout_seconds)
+            if on_started is not None:
+                on_started(process.pid)
+            if on_poll is None:
+                process.wait(timeout=timeout_seconds)
+            else:
+                deadline = time.monotonic() + timeout_seconds
+                while True:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise subprocess.TimeoutExpired(command, timeout_seconds)
+                    if on_poll(remaining) is False:
+                        tree.terminate(process)
+                        break
+                    try:
+                        process.wait(timeout=min(.25, max(.001, deadline - time.monotonic())))
+                        break
+                    except subprocess.TimeoutExpired:
+                        continue
         except subprocess.TimeoutExpired:
             timed_out = True
             tree.terminate(process)
@@ -285,11 +305,14 @@ def run_supervised(
             if active not in (None, 0):
                 tree.force(process)
                 forced_descendants = True
-                time.sleep(0.1)
+                cleanup_deadline = time.monotonic() + 5
+                while tree.active_processes() not in (None, 0) and time.monotonic() < cleanup_deadline:
+                    time.sleep(0.01)
+            descendants_complete = os.name != 'nt' or tree.active_processes() == 0
             stdout_capture.join(timeout=10)
             stderr_capture.join(timeout=10)
             logs_drained = not stdout_capture.is_alive() and not stderr_capture.is_alive()
-            cleanup_complete = process.poll() is not None and logs_drained
+            cleanup_complete = process.poll() is not None and logs_drained and descendants_complete
             tree.close()
         for capture in (stdout_capture, stderr_capture):
             if capture.error is not None:

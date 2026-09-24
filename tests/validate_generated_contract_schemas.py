@@ -64,9 +64,9 @@ def validate(instance: object, schema: dict, path: str = "$") -> None:
 
 
 def main() -> int:
-    producer = load_module(TEMPLATE / ".program-kit/eng/runnable_host.py")
+    producer = load_module(TEMPLATE / ".program-kit/eng/release_bundle.py")
     schema = json.loads(
-        (TEMPLATE / ".program-kit/runnable-host.schema.json").read_text(encoding="utf-8")
+        (TEMPLATE / ".program-kit/application-bundle.schema.json").read_text(encoding="utf-8")
     )
     with tempfile.TemporaryDirectory(prefix="program-kit-runnable-schema-") as value:
         root = Path(value)
@@ -75,7 +75,8 @@ def main() -> int:
         repository.mkdir()
         staged.mkdir(parents=True)
         (repository / "VERSION").write_text("1.0.0\n", encoding="utf-8")
-        (staged / "hostsettings.json").write_text("{}\n", encoding="utf-8")
+        (staged / "hostsettings.json").write_text('{"Nuplane": {}}\n', encoding="utf-8")
+        (staged / "nuplane.settings.json").write_text('{"Nuplane": {}}\n', encoding="utf-8")
         (staged / "shells.json").write_text(
             json.dumps({"CShells": {"Shells": {"default": {"Features": {}}}}}) + "\n",
             encoding="utf-8",
@@ -99,7 +100,7 @@ def main() -> int:
                 else:
                     profile_path.parent.mkdir(parents=True, exist_ok=True)
                     profile_path.write_text(json.dumps(profile_shells) + "\n", encoding="utf-8")
-                output = root / "runnable-host.json"
+                output = root / "application-bundle.json"
                 producer.runtime_closure.write_success(
                     repository,
                     staged,
@@ -109,7 +110,7 @@ def main() -> int:
                 producer.describe(
                     repository,
                     staged,
-                    "ghcr.io/example/consumer",
+                    "ghcr.io/orbyss-io/foundation-host",
                     "v1.0.0",
                     "sha256:" + "b" * 64,
                     output,

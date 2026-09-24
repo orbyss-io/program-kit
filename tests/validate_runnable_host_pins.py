@@ -13,7 +13,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files"
 sys.path.insert(0, str(TEMPLATES / ".program-kit/eng"))
-import runnable_host as host
+import release_bundle as host
 sys.path.insert(0, str(ROOT / "extensions/program-kit-building-blocks/scripts"))
 import building_blocks
 
@@ -34,10 +34,11 @@ class CentralPinsTests(unittest.TestCase):
         )}
         (self.repository / "shells.json").write_text(json.dumps({"CShells": {"Shells": {"default": {"Features": self.features}}}}), encoding="utf-8")
         (self.repository / "hostsettings.json").write_text("{}\n", encoding="utf-8")
+        (self.repository / "nuplane.settings.json").write_text('{"Nuplane": {}}\n', encoding="utf-8")
         (self.repository / "NuGet.config").write_text('<configuration><packageSources /></configuration>', encoding="utf-8")
         self.packages = self.repository / "artifacts/packages"
         self.packages.mkdir(parents=True)
-        self.output = self.repository / "artifacts/runnable-host"
+        self.output = self.repository / "artifacts/release-bundle"
         self.downloads = []
         self.addCleanup(patch.stopall)
         patch.object(host, "package_base_addresses", return_value=["https://example.invalid/flat"]).start()

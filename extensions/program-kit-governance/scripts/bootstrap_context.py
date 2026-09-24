@@ -11,6 +11,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+_scripts_path = str(Path(__file__).resolve().parent)
+if _scripts_path not in sys.path:
+    sys.path.insert(0, _scripts_path)
+from bootstrap_stages import STAGE_ARTIFACTS, STAGE_FULL_READS, STAGE_FOCUS, INTAKE_STAGE_FIELDS, MAP_STAGE_FIELDS, STAGE_RECORD_FIELDS, OUTPUT_CONTRACTS, STAGES
+from bootstrap_profiles import effective_stage_intake, validate_profile_dependencies
+
 
 SCHEMA_VERSION = "4.0"
 CONTEXT_DIRECTORY = Path(".specify/workflows/runs")
@@ -22,122 +28,10 @@ INTAKE_ARTIFACTS = (
     INTAKE_PATH.as_posix(),
 )
 
-STAGE_ARTIFACTS: dict[str, tuple[str, ...]] = {
-    "assessment": (),
-    "research": (
-        "docs/architecture/bootstrap-assessment.md",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-    ),
-    "architecture": (
-        ".specify/memory/constitution.md",
-        ".specify/memory/constitution-ratification.json",
-        ".specify/governance/bootstrap-assessment-approval.json",
-        "docs/architecture/bootstrap-assessment.md",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-        "docs/architecture/tooling-evaluation.md",
-    ),
-    "tooling": (
-        ".specify/memory/constitution.md",
-        ".specify/memory/constitution-ratification.json",
-        ".specify/governance/bootstrap-assessment-approval.json",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-        "docs/architecture/tooling-evaluation.md",
-        "docs/architecture/architecture.md",
-        "docs/architecture/quality-attributes.md",
-        "docs/architecture/technology-radar.md",
-        "docs/architecture/traceability.md",
-        "docs/architecture/decisions/bootstrap-baseline.md",
-    ),
-    "roadmap": (
-        ".specify/memory/constitution.md",
-        ".specify/memory/constitution-ratification.json",
-        ".specify/governance/bootstrap-assessment-approval.json",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-        "docs/architecture/tooling-evaluation.md",
-        "docs/architecture/architecture.md",
-        "docs/architecture/quality-attributes.md",
-        "docs/architecture/quality-system.md",
-        "docs/architecture/technology-radar.md",
-        "docs/architecture/traceability.md",
-        "docs/architecture/decisions/bootstrap-baseline.md",
-    ),
-    "readiness": (
-        ".specify/memory/constitution.md",
-        ".specify/memory/constitution-ratification.json",
-        ".specify/governance/bootstrap-assessment-approval.json",
-        ".specify/governance/bootstrap-approval.json",
-        "docs/architecture/bootstrap-decisions.json",
-        "docs/architecture/decision-backlog.md",
-        "docs/architecture/tooling-evaluation.md",
-        "docs/architecture/architecture.md",
-        "docs/architecture/quality-attributes.md",
-        "docs/architecture/quality-system.md",
-        "docs/architecture/specification-roadmap.md",
-        "docs/architecture/technology-radar.md",
-        "docs/architecture/traceability.md",
-        "docs/architecture/decisions/bootstrap-baseline.md",
-    ),
-}
 
-STAGE_FULL_READS = {
-    "assessment": (),
-    "research": ("docs/architecture/bootstrap-decisions.json",),
-    "architecture": (
-        ".specify/memory/constitution.md",
-        "docs/architecture/architecture-map.json",
-    ),
-    "tooling": (".specify/memory/constitution.md",),
-    "roadmap": (".specify/memory/constitution.md",),
-    "readiness": (".specify/memory/constitution.md",),
-}
 
-STAGE_FOCUS = {
-    "assessment": "Project confirmed intake into a proportional decision baseline without reopening accepted choices.",
-    "research": "Verify only selected technologies and capabilities; excluded surfaces are out of scope.",
-    "architecture": "Define the smallest governed architecture that realizes the confirmed intake journeys.",
-    "tooling": "Adopt only controls required by selected capabilities and accepted boundaries.",
-    "roadmap": "Create outcome-oriented specification entries from confirmed journeys and accepted decisions.",
-    "readiness": "Prove the first Ready entry has accepted authority, owned risks, and sufficient evidence.",
-}
 
-INTAKE_STAGE_FIELDS = {
-    "assessment": (
-        "facts", "scope", "actors", "journeys", "quality_requirements", "integrations",
-        "choices", "capability_assessments", "domain_analysis", "open_items",
-        "candidate_slice_signals", "routing",
-    ),
-    "research": (
-        "quality_requirements", "choices", "capability_assessments", "open_items", "routing",
-    ),
-    "architecture": (
-        "facts", "scope", "actors", "journeys", "quality_requirements", "integrations", "choices",
-        "domain_analysis", "open_items", "candidate_slice_signals", "routing",
-    ),
-    "tooling": (
-        "scope", "quality_requirements", "open_items", "routing",
-    ),
-    "roadmap": (
-        "scope", "actors", "journeys", "open_items", "candidate_slice_signals",
-    ),
-    "readiness": (
-        "actors", "journeys", "open_items", "candidate_slice_signals",
-    ),
-}
 
-MAP_STAGE_FIELDS = {
-    "assessment": ("constraints", "elements", "relationships", "views"),
-    "research": ("constraints", "elements", "relationships", "views"),
-    # Architecture edits the canonical seed, so a second lossy copy in the brief is actively
-    # harmful. The seed is a required full read and this projection carries only its identity.
-    "architecture": (),
-    "tooling": ("decisions", "constraints", "elements", "relationships"),
-    "roadmap": ("decisions", "constraints", "elements", "relationships", "views"),
-    "readiness": ("decisions", "constraints", "elements", "relationships", "views"),
-}
 
 MAP_RECORD_FIELDS = {
     "sources": ("id", "path", "sha256", "format", "importer"),
@@ -160,32 +54,10 @@ MAP_RECORD_FIELDS = {
     "extensions": ("id", "kind", "policy", "source"),
 }
 
-STAGE_RECORD_FIELDS = {
-    "tooling": {
-        "decisions": ("id", "title", "status", "scope"),
-        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
-        "relationships": ("id", "source", "target", "status", "decision_refs"),
-    },
-    "roadmap": {
-        "decisions": ("id", "title", "status", "scope"),
-        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
-        "relationships": ("id", "source", "target", "status", "decision_refs"),
-        "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
-    },
-    "readiness": {
-        "decisions": ("id", "title", "status", "scope"),
-        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
-        "relationships": ("id", "source", "target", "status", "decision_refs"),
-        "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
-    },
-}
 
-MAX_INDEX_HEADINGS = 24
-MAX_INDEX_SIGNALS = 8
-MAX_INDEX_SIGNAL_CHARS = 160
+MAX_INDEX_HEADINGS = 12
+MAX_INDEX_SIGNALS = 4
+MAX_INDEX_SIGNAL_CHARS = 120
 MAX_BUILDING_BLOCK_TARGETS = 128
 
 GOVERNANCE_CONFIGS = (
@@ -193,63 +65,6 @@ GOVERNANCE_CONFIGS = (
     Path(".specify/extensions/program-kit-governance/program-kit-governance-config.local.yml"),
 )
 
-OUTPUT_CONTRACTS = {
-    "assessment": {
-        "write_paths": [
-            "docs/architecture/bootstrap-assessment.md",
-            "docs/architecture/decision-backlog.md",
-            "docs/architecture/bootstrap-decisions.json",
-        ],
-        "contract_references": [
-            ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
-        ],
-    },
-    "research": {
-        "write_paths": [
-            "docs/architecture/tooling-evaluation.md",
-            "docs/architecture/bootstrap-decisions.json",
-        ],
-        "contract_references": [
-            ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
-        ],
-    },
-    "architecture": {
-        "write_paths": [
-            "docs/architecture/README.md",
-            "docs/architecture/architecture.md",
-            "docs/architecture/quality-attributes.md",
-            "docs/architecture/technology-radar.md",
-            "docs/architecture/traceability.md",
-            "docs/architecture/bootstrap-prerequisites.json",
-            "docs/architecture/architecture-map.json",
-            "docs/architecture/building-block-selection.json",
-            "docs/architecture/workspace.dsl",
-            "docs/architecture/decisions/README.md",
-            "docs/architecture/decisions/bootstrap-baseline.md",
-        ],
-        "contract_references": [
-            ".specify/extensions/program-kit-governance/references/architecture-map.schema.json",
-            ".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md",
-            ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
-        ],
-    },
-    "tooling": {
-        "write_paths": ["docs/architecture/quality-system.md"],
-        "contract_references": [],
-    },
-    "roadmap": {
-        "write_paths": [
-            "docs/architecture/specification-roadmap.md",
-            "docs/architecture/architecture.md",
-            "docs/architecture/traceability.md",
-        ],
-        "contract_references": [".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md"],
-    },
-    "readiness": {
-        "write_paths": ["docs/architecture/readiness-report.md"],
-        "contract_references": [".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md"],
-    },
-}
 
 ARTIFACT_BYTE_BUDGETS = {
     "docs/architecture/bootstrap-prerequisites.json": 32 * 1024,
@@ -303,6 +118,7 @@ ASSESSMENT_OPTIONAL_REFERENCES = (
 
 DOTNET_REFERENCES = (
     ".specify/extensions/program-kit-dotnet/references/dotnet-engineering.md",
+    ".specify/extensions/program-kit-dotnet/references/persistence-profiles.md",
     ".specify/extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
 )
 
@@ -586,6 +402,20 @@ def validate_intake(
 ) -> dict:
     try:
         module = _load_intake_module()
+        # A continuation owns fresh context but retains the original confirmed
+        # intake. Require recorded lineage; never invent or rewrite child inputs.
+        inputs = load_json(safe_run_directory(project_root, run_id) / 'inputs.json').get('inputs', {})
+        source_run = inputs.get('source_run')
+        if source_run:
+            source = safe_run_directory(project_root, source_run)
+            mapping = load_json(project_root / '.specify/workflows/resumptions' / f'{source_run}.json')
+            if (mapping.get('continuation_run') != run_id or source_run == run_id
+                    or mapping.get('source_state_sha256') != sha256_file(source / 'state.json')
+                    or mapping.get('source_workflow_sha256') != sha256_file(source / 'workflow.yml')):
+                raise ContextError('Readiness context requires unchanged recorded continuation lineage')
+            import bootstrap_recovery
+            bootstrap_recovery.manifest(project_root, source_run)
+            run_id = source_run
         _, intake = module.intake_from_run(
             project_root,
             run_id,
@@ -623,7 +453,13 @@ def intake_projection(intake: dict, stage: str) -> dict:
         "schema_version": intake["schema_version"],
         "status": intake["status"],
         "project": intake["project"],
-        **{field: intake[field] for field in fields},
+        **{field: intake[field] for field in fields
+           if field != "domain_analysis" or stage not in {"architecture", "roadmap", "readiness"}},
+        **({"domain_analysis": {
+            "source": "docs/architecture/bootstrap-intake.json#/domain_analysis",
+            "projection": "architecture_map.strategic_model",
+            "rule": "Use the canonical semantic model below; intake alignment is validated before projection.",
+        }} if stage in {"architecture", "roadmap", "readiness"} else {}),
     }
 
 
@@ -641,6 +477,24 @@ def _nonempty_projection(value: object) -> object:
             if (projected := _nonempty_projection(item)) not in (None, "", [], {})
         ]
     return value
+
+
+def semantic_projection(model: dict) -> dict:
+    """Lossless tables avoid repeating field labels across large semantic collections.
+
+    Each row follows its table's columns; missing optional keys stay distinguishable
+    from explicit null via a missing-key index. Values and record order are retained.
+    """
+    result = {"projection": "record-tables", "sourcePointer": "/strategic_model"}
+    for key, value in model.items():
+        if isinstance(value, list) and value and all(isinstance(item, dict) for item in value):
+            columns = list(dict.fromkeys(k for item in value for k in item))
+            result[key] = {"columns": columns,
+                           "rows": [[item.get(k) for k in columns] for item in value],
+                           "missing": [[i for i, k in enumerate(columns) if k not in item] for item in value]}
+        else:
+            result[key] = value
+    return result
 
 
 def architecture_projection(project_root: Path, architecture_map: dict, stage: str) -> dict:
@@ -668,11 +522,21 @@ def architecture_projection(project_root: Path, architecture_map: dict, stage: s
                 for item in architecture_map[field]
             ]
             if field in MAP_RECORD_FIELDS
-            else architecture_map[field]
-            for field in fields
+            else semantic_projection(architecture_map[field]) if field == "strategic_model" else architecture_map[field]
+            for field in fields if field in architecture_map
         },
     }
-    return _nonempty_projection(projected)
+    semantic = projected.pop("strategic_model", None)
+    result = _nonempty_projection(projected)
+    if semantic is not None:
+        result["strategic_model"] = semantic
+    if stage in {"roadmap", "readiness"}:
+        # These stages consume semantic rows; repeated structural field labels add no context.
+        for key in ("elements", "relationships", "views"):
+            if result.get(key):
+                result[key] = semantic_projection({key: result[key]})[key]
+        result["table_format"] = "Each table row follows columns in order; missing lists column indexes absent in that row."
+    return result
 
 
 def markdown_index(text: str) -> tuple[list[dict], list[dict]]:
@@ -717,7 +581,8 @@ def compact_authority(name: str, payload: dict) -> dict:
             key: payload[key]
             for key in (
                 "schema_version", "default_profile", "selected_profiles", "dotnet", "web",
-                "toolchain", "unresolved", "deferred",
+                "toolchain", "persistence", "unresolved", "deferred",
+                "identity", "first_slice",
             )
             if key in payload
         }
@@ -820,16 +685,21 @@ def governance_contract(project_root: Path) -> dict:
     return {"paths": values, "configuration_sources": sources}
 
 
+def stage_validation_command(stage: str, run_id: str) -> str:
+    return ("python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
+            f"validate-stage --stage {stage} --run-id {run_id}"
+            + (" --json" if stage == 'readiness' else ""))
+
+
 def resolved_output_contract(stage: str, paths: dict[str, str], run_id: str = "") -> dict:
     contract = OUTPUT_CONTRACTS[stage]
     write_paths = [replace_governance_path(path, paths) for path in contract["write_paths"]]
     return {
         "write_paths": write_paths,
         "contract_references": list(contract["contract_references"]),
-        "validation_commands": [
-            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
-            f"validate-stage --stage {stage} --run-id {run_id}"
-        ],
+        "validation_commands": [stage_validation_command(stage, run_id)],
+        "draft_size_command": f"python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py inspect-output --stage {stage}",
+        "budget_basis": "Authored UTF-8 bytes; exact canonical generated views are reported separately. Never trim generated views.",
         "artifact_byte_budgets": {
             replace_governance_path(path, paths): ARTIFACT_BYTE_BUDGETS[path]
             for path in contract["write_paths"]
@@ -844,7 +714,7 @@ def resolved_output_contract(stage: str, paths: dict[str, str], run_id: str = ""
 
 
 def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
-    if stage not in {"assessment", "research"}:
+    if stage not in {"assessment", "research", "architecture", "tooling", "closure"}:
         return ()
     routing = intake["routing"]
     languages = {item.casefold() for item in routing["languages"]}
@@ -861,11 +731,12 @@ def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
         result.append(
             ".specify/extensions/program-kit-governance/references/software-language.md"
         )
-    if any(".net" in item for item in languages | frameworks) or "c#" in languages:
+    if (any(".net" in item for item in languages | frameworks) or "c#" in languages
+            or capabilities.intersection({"authenticated-browser-bff", "browser-spa-pkce", "dotnet-host-runtime"})):
         result.extend(DOTNET_REFERENCES)
     secure_web = (
         "authenticated-browser-bff" in capabilities
-        or any("bff" in item for item in interfaces | surfaces)
+        or any("bff" in item or "pkce" in item for item in capabilities | interfaces | surfaces)
     )
     if secure_web:
         result.extend(SECURE_WEB_REFERENCES)
@@ -941,7 +812,7 @@ def building_block_target_inventory(project_root: Path) -> dict:
             kind = kinds.get(lowered)
             if lowered.endswith(".csproj"):
                 kind = "dotnet-project"
-            elif lowered == "dockerfile" or lowered.startswith("dockerfile."):
+            elif lowered == "hostsettings.json":
                 kind = "host-image"
             if kind is None:
                 continue
@@ -1016,16 +887,28 @@ def building_block_stage_contract(project_root: Path, intake: dict) -> dict | No
             "option_groups": option_groups,
         }
     inventory = building_block_target_inventory(project_root)
+    placement_schema_path = '.specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json'
+    placement_schema = load_json(project_root / placement_schema_path)
+    try:
+        kind_contracts = {rule['properties']['kind']['const']: rule
+                          for rule in placement_schema['$defs']['targetKindPlacement']['oneOf']}
+        needed_kinds = {slot['kind'] for contract in contracts.values() for slot in contract['target_slots'].values()}
+        projected_kinds = {kind: kind_contracts[kind] for kind in sorted(needed_kinds)}
+    except (KeyError, TypeError) as error:
+        raise ContextError('Installed selection schema lacks an executable target-kind placement contract; repair installed component coherence before dispatch.') from error
     available = {item["kind"] for item in inventory["candidates"] if item["exists"]}
     planning = {
         "owner": "architecture",
         "declaration": "docs/architecture/building-block-selection.json#/targets/*/placement",
         "authorized": True,
+        "target_kind_contracts": projected_kinds,
+        "contract_source": {"path": placement_schema_path, "sha256": sha256_file(project_root / placement_schema_path)},
         "missing_observed_kinds": sorted({slot["kind"] for contract in contracts.values()
                                           for slot in contract["target_slots"].values()} - available),
         "rules": [
             "Derive physical layout from context/module ownership, deployment boundaries, repository conventions and explicit preferences. Do not ask users for filenames, target IDs or other mechanical placement details.",
             "Each target declares placement.state (observed or planned), owner (canonical element ID with ownership), decisionIds (current owner-linked founding ADRs), and rationale. Planned paths need not exist.",
+            "Use target_kind_contracts for exact filename and required identity fields before writing. Examples illustrate legal forms, not mandatory directories. Preserve observed casing. Composition slot IDs bind selection target IDs; a cshell-shell target's shell field is the runtime shell identity.",
             "Preserve observed paths, identities and ownership; new placements need an explicit Proposed or Accepted architecture decision. Do not copy extension templates into the observed inventory.",
             "Keep selection Draft and ADRs Proposed pending review. Do not scaffold, restore or materialize during architecture. Ask only about consequential unresolved product constraints or trade-offs.",
         ],
@@ -1044,6 +927,7 @@ def building_block_stage_contract(project_root: Path, intake: dict) -> dict | No
         "placement_planning": planning,
         "rules": [
             "Use this projection instead of running --help or searching/dumping the installed catalog.",
+            "A planned target and its bound instance must resolve to the same ancestor of composition.scope_kind, even for Directory.Build.props. Target kind/path does not determine its logical scope. For an application composition, a target scoped only to the repository is outside that application; retain the repository file path and bind its scope to the owning application.",
             "The draft command initializes suggestions only. Architecture authors exact scopes, targets with placement provenance, instances, bindings, and compatible options before validation.",
             "Managed option groups constrain research: an unsupported renderer (for example Blazor for forms_runtime) remains unresolved until architecture chooses a supported option or an explicitly reviewed custom adapter/override. Never silently substitute a renderer or change approved product semantics.",
         ],
@@ -1069,8 +953,12 @@ def managed_web_control_projection(project_root: Path, authorities: dict[str, di
         for item in evidence.get("controls", [])
         if isinstance(item, dict) and isinstance(item.get("id"), str)
     }
+    if not control_ids or len(set(control_ids)) != len(control_ids) or any(identity not in controls for identity in control_ids):
+        raise ContextError('Managed web evidence has an incomplete or duplicate control projection for ' + profile)
     return {
         "profile": profile,
+        "source": evidence_path.relative_to(project_root).as_posix(),
+        "sha256": sha256_file(evidence_path),
         "threat_model": evidence.get("threatModel"),
         "evidence_profile": evidence.get("id"),
         "controls": [
@@ -1085,12 +973,38 @@ def managed_web_control_projection(project_root: Path, authorities: dict[str, di
     }
 
 
+def runtime_release_projection(project_root: Path, intake: dict) -> dict | None:
+    if "dotnet-host-runtime" not in intake.get("routing", {}).get("capabilities", []):
+        return None
+    relative = ".specify/extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md"
+    path = project_root / relative
+    if not path.is_file():
+        raise ContextError("Selected Foundation runtime is missing its installed release-bundle reference before dispatch")
+    content = path.read_text(encoding="utf-8")
+    heading = "## Application release bundle"
+    if heading not in content:
+        raise ContextError("Installed runtime reference lacks the application release bundle contract; synchronize installation before dispatch")
+    section = content.split(heading, 1)[1].split("\n## ", 1)[0].strip()
+    catalog_relative = ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
+    catalog_path = project_root / catalog_relative
+    catalog = load_json(catalog_path)
+    host_key = "oci:ghcr.io/orbyss-io/foundation-host"
+    host = catalog["packages"][host_key]
+    return {
+        "source": relative, "sha256": sha256_file(path), "contract": section,
+        "managed_host": {
+            "catalog": catalog_relative, "sha256": sha256_file(catalog_path),
+            "package": host_key, "version": host["version"],
+            "tag": host["materialization"]["tagTemplate"].format(version=host["version"]),
+            "source": catalog["sources"][host["source"]],
+            "evidence_boundary": "Catalog identity is a managed pin, not an observed digest or compatibility proof. Bootstrap closure verifies the published artifact before acceptance.",
+        },
+    }
+
+
 def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[str, dict], run_id: str) -> dict:
     terminal = {
-        "command": (
-            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
-            f"validate-stage --stage {stage} --run-id {run_id}"
-        ),
+        "command": stage_validation_command(stage, run_id),
         "on_success": (
             "Stop immediately. Do not read another file, inspect a diff, measure output again, "
             "or run another command; report only artifact paths, byte counts, and validation counts."
@@ -1098,13 +1012,21 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
         "on_failure": "Repair only the named diagnostic, rerun this same batch once, and stop when it passes.",
     }
     if stage == "assessment":
+        from bootstrap_defaults import resolve
         return {
             "mode": "confirmed-intake-projection",
+            "resolved_defaults": resolve(intake, {}),
+            "managed_web_dependency": {
+                "source": ".specify/extensions/program-kit-dotnet/references/secure-web-profiles.md#selection",
+                "rule": "Managed BFF/SPA-PKCE authentication uses Foundation/.NET. If adopted, select dotnet plus browser-web (or typescript-web), disclose the host and package dependencies for assessment review. UI-experience alone is insufficient. No language in intake means no consumer preference, not approval of a backend-free managed profile. Preserve explicit alternate-stack constraints and surface any conflict before approval.",
+            },
             "rules": [
                 "Use the projected intake and map; do not reconstruct them from repository discovery.",
                 "Read required_full_reads once; routed optional references are diagnostic sources only.",
                 "Write all three assessment outputs once, then run the supplied validation batch once.",
                 "The assessment batch intentionally does not require tooling-evaluation.md; research owns that later prerequisite.",
+                "Treat resolved_defaults as executable policy, preserve explicit intake selections and record their structured overrides. Select first_slice.journey_ids, outcome and rationale in the decision register. Future journeys remain a portfolio, not detailed first-slice requirements.",
+                "Each unresolved item needs owner, due_stage and kind (user-answer or design-decision). Use a default when available. Required human answers use the durable handoff, never unattended asynchronous questions.",
             ],
             "terminal_condition": terminal,
         }
@@ -1125,16 +1047,19 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "classification": item["decision_state"],
             }
             for item in intake["capability_assessments"]
-            if item["decision_state"] == "research-required"
+            if item["decision_state"] in {"research-required", "project-owned-design"}
             or item["mechanism_coverage"] in {"conflict", "insufficient-evidence"}
         )
         plan = {
             "mode": "focused-research" if questions else "baseline-verification",
+            "provider_inputs": __import__('bootstrap_provider_context').project(project_root, load_json(project_root / 'docs/architecture/bootstrap-decisions.json'), require_selection=False),
             "research_questions": questions,
+            "decision_handoff": __import__('bootstrap_handoff').projection(project_root, run_id),
             "rules": [
                 "Do not survey alternatives unless a listed research question requires it.",
                 "For an accepted managed baseline, verify only material compatibility, support, license, or supply-chain risk.",
                 "Do not repeat product overviews or re-research accepted architecture choices.",
+                "Resolve first-use provider decisions, including consumer-owned design. Apply documented defaults where no selection exists. Record resolution and evidence in the existing register; defer unrelated production decisions to their actual trigger.",
                 "Use observed_toolchain below; do not run local --version, runtime-list, repository-status, or source-tree probes.",
             ],
             "observed_toolchain": observed_toolchain(),
@@ -1149,6 +1074,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
     if stage == "architecture":
         return {
             "mode": "patch-canonical-seed",
+            "decision_handoff": __import__('bootstrap_handoff').projection(project_root, run_id),
             "required_order": [
                 "Read the canonical seed, constitution, and both output schemas once.",
                 "Write founding ADRs and patch the existing map; do not reconstruct it from scratch.",
@@ -1161,7 +1087,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "Every strategic module references a domain-capability element whose parent equals module.context; every domain-capability has exactly one module record.",
                 "Every non-empty capability binding module references one of those strategic modules, never a container.",
                 "A C4 component has a container parent. A shell or host directly owned by the software system is a container, not a component.",
-                "Keep one unique dynamic view for every confirmed intake journey and preserve each seed journey view's relationship selection and order exactly.",
+                "Keep journey identity and consumer evidence. Provisional models may evolve through the map's traceable refinements; explicit consumer constraints remain fixed. Future journeys need traceability, not feature design.",
             ],
             "structural_validation_command": (
                 "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
@@ -1177,6 +1103,62 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             },
             "terminal_condition": terminal,
         }
+    if stage == 'roadmap':
+        from architecture_map import candidate_journeys
+        from governance_state import REQUIRED_RECORD_FIELDS
+        first = authorities.get('assessment_decisions', {}).get('first_slice')
+        model = load_json(project_root / 'docs/architecture/architecture-map.json')
+        strategic = model.get('strategic_model', {})
+        journeys = {j['id'] for j in strategic.get('journeys', [])
+                    if first and j['source_journey'] in first['journey_ids']}
+        return {
+            'mode': 'bounded-generation',
+            'entry_template': '### RM-01: <outcome>\n\n' + '\n'.join(
+                f'- **{field}**: <value>' for field in sorted(REQUIRED_RECORD_FIELDS)),
+            'prerequisite_scope': [{k: i[k] for k in ('id', 'affected_slices', 'trigger', 'status')}
+                for i in load_json(project_root / 'docs/architecture/bootstrap-prerequisites.json').get('prerequisites', [])]
+                if (project_root / 'docs/architecture/bootstrap-prerequisites.json').is_file() else [],
+            'first_entry': {
+                'journey_ids': first['journey_ids'],
+                'candidate_ids': [c['id'] for c in strategic.get('candidate_slices', [])
+                                  if candidate_journeys(c) & journeys],
+                'rule': 'Exactly one roadmap entry Scope covers these canonical candidate IDs and no future candidate. Supporting journeys in an approved combined first slice belong to that one specification, not separate entries linked only by prose.',
+            } if first else None,
+            'rules': ['Preserve the approved first specification boundary; keep other journeys as separate portfolio entries.',
+                      'Use entry_template exact heading/field syntax. Assign every prerequisite_scope item to actual roadmap IDs; preserve its source binding and due phase. Dependencies link to ledger IDs without repeating open/closed state.',
+                      'before-implementation proofs do not block Ready for specification. Run the terminal batch before handing off to closure.'],
+            'terminal_condition': terminal,
+        }
+    if stage == 'closure':
+        return {
+            'mode': 'maintained-proof-planning',
+            'provider_inputs': __import__('bootstrap_provider_context').project(project_root, authorities.get('assessment_decisions', {})),
+            'first_slice': authorities.get('assessment_decisions', {}).get('first_slice'),
+            'source_hashes': __import__('bootstrap_lifecycle').source_paths(project_root),
+            'source_binding_status': __import__('bootstrap_lifecycle').source_binding_status(project_root),
+            'source_status_command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_lifecycle.py source-status',
+            'recipe_catalog': __import__('managed_compatibility').catalog(),
+            'rules': [
+                'Select maintained recipes for managed toolchains. Custom recipes are only for consumer-specific risk; do not reconstruct generic package, subprocess or JUnit machinery.',
+                'Use provider_inputs for exact selected packages, activation identities, registry/publisher sources and the pinned local identity image. Query indexed tooling-evaluation.md for researched conditions. An empty decision_handoff means no pending questions, not missing provider decisions.',
+                'Verify missing license/source evidence against the exact selected publisher/package sources; do not ask the consumer to supply managed package facts or claim the pin itself proves admission.',
+                'Inventory source conditions using the named source paths, querying only the relevant conditions. Every prerequisite has an owner, affected slices and due trigger.',
+                'A toolchain smoke test cannot close provider, activation or product behavior obligations. Plan bounded checks with known inputs; retain unknowns at their affected phase.',
+                'Bootstrap can complete with Candidate entries and open proofs. Empty probe/transition lists are valid. Never fabricate a Ready entry; retain owned obligations with exact phase gates.',
+                'Separate a consumer choice, an external compatibility risk and verification of future feature code. Preserve approved defaults and due phases; do not convert device testing or consumer business tests into bootstrap design decisions.',
+                'Return after the exact validation batch. Native execution owns restore, probes, conditional readiness and retry.',
+                'Use source_binding_status and source_status_command for normalized ledger bindings; raw file hashes cannot establish ADR drift. Native proof execution owns Docker/toolchain availability; a sandboxed authoring process failure does not establish host incompatibility. Fixture tooling receipts do not discharge future consumer delivery tests.',
+            ],
+            'terminal_condition': terminal,
+        }
+    if stage == 'tooling':
+        from bootstrap_quality import projection
+        quality = projection(project_root)
+        return {'mode': 'bounded-generation', 'consumer_quality_cases': quality,
+                'authored_target_bytes': 5500,
+                'rules': ['Reference consumer case IDs; do not redefine WEB-Q cases. Terminal validation generates their exact view from quality-attributes.md. Exact generated views are measured separately from authored prose.',
+                          'Link to ADR metadata and prerequisite ledger for current status; do not repeat Proposed/Accepted or open/closed in authored prose.'],
+                'terminal_condition': terminal}
     return {
         "mode": "bounded-generation",
         "rules": [
@@ -1231,30 +1213,114 @@ def check_architecture_blocked(project_root: Path, run_id: str = "") -> None:
                        f"Resolution: {report['resolution']}. Dispatch/process exit is not architecture completion.")
 
 
+def artifact_sizes(project_root: Path, relative: str, paths: dict) -> dict:
+    """Exclude only byte-equivalent canonical generated views, never arbitrary marked prose."""
+    path = project_root / relative
+    data = path.read_bytes()
+    generated = 0
+    if path.suffix == '.md':
+        text = data.decode('utf-8')
+        for kind in ('LIFECYCLE', 'ROADMAP-VIEW', 'QUALITY-CASES'):
+            start, end = f'<!-- PROGRAM-KIT:{kind}:START -->', f'<!-- PROGRAM-KIT:{kind}:END -->'
+            if start not in text and end not in text:
+                continue
+            if text.count(start) != 1 or text.count(end) != 1 or text.index(start) >= text.index(end):
+                raise ContextError(f'Malformed {kind} generated view in {relative}')
+            expected = None
+            if kind == 'LIFECYCLE':
+                from bootstrap_lifecycle import lifecycle_view
+                model = project_root / 'docs/architecture/architecture-map.json'
+                if model.is_file():
+                    expected = lifecycle_view(load_json(model))
+            elif kind == 'ROADMAP-VIEW':
+                from governance_state import _roadmap_view, roadmap_records
+                roadmap = Path(replace_governance_path('docs/architecture/specification-roadmap.md', paths))
+                if (project_root / roadmap).is_file():
+                    try:
+                        expected = _roadmap_view(roadmap_records(project_root / roadmap), roadmap).rstrip('\n')
+                    except ValueError as error:
+                        raise ContextError(f'Cannot verify generated roadmap view in {relative}: {error}') from error
+            else:
+                from bootstrap_quality import render, projection
+                try:
+                    expected = render(projection(project_root)['cases'])
+                except ValueError as error:
+                    raise ContextError(f'Cannot verify generated quality view in {relative}: {error}') from error
+            block = text[text.index(start):text.index(end) + len(end)]
+            # Preserve physical CRLF byte accounting while comparing generated semantics.
+            if expected is not None and block.replace('\r\n', '\n') == expected:
+                generated += len(block.encode('utf-8'))
+    return {'bytes': len(data), 'authored_bytes': len(data) - generated, 'generated_bytes': generated}
+
+
+def inspect_stage_output(project_root: Path, stage: str, run_id: str = "") -> dict:
+    """Advisory, read-only sizing before terminal validation; never an acceptance verdict."""
+    contract = resolved_output_contract(stage, governance_contract(project_root)['paths'], run_id)
+    artifacts = []
+    for relative, budget in contract['artifact_byte_budgets'].items():
+        path = project_root / relative
+        sizes = artifact_sizes(project_root, relative, governance_contract(project_root)['paths']) if path.is_file() else {'bytes': None, 'authored_bytes': None, 'generated_bytes': None}
+        size = sizes['authored_bytes']
+        target = contract['artifact_target_bytes'][relative]
+        artifacts.append({'path': relative, **sizes, 'target_bytes': target,
+                          'budget_bytes': budget, 'headroom_bytes': None if size is None else budget - size,
+                          'above_target_bytes': None if size is None else max(0, size - target)})
+    return {'stage': stage, 'advisory_only': True, 'artifacts': artifacts}
+
+
+def validate_final_narrative_sizes(project_root: Path) -> None:
+    """Use the same accounting after final lifecycle/navigation synchronization."""
+    paths = governance_contract(project_root)['paths']
+    problems = []
+    for source in ('docs/architecture/architecture.md', 'docs/architecture/traceability.md',
+                   'docs/architecture/quality-system.md', 'docs/architecture/specification-roadmap.md'):
+        relative = replace_governance_path(source, paths)
+        if not (project_root / relative).is_file():
+            continue  # The existing required-artifact validator owns missing files.
+        sizes = artifact_sizes(project_root, relative, paths)
+        if sizes['authored_bytes'] > ARTIFACT_BYTE_BUDGETS[source]:
+            problems.append(f"{relative}: {sizes['authored_bytes']} authored bytes exceeds its hard byte budget "
+                            f"{ARTIFACT_BYTE_BUDGETS[source]} ({sizes['generated_bytes']} generated bytes separately)")
+    if problems:
+        raise ContextError('\n'.join(problems))
+
+
 def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> dict:
     if stage == "architecture":
         check_architecture_blocked(project_root, run_id)
     governance_paths = governance_contract(project_root)["paths"]
     contract = resolved_output_contract(stage, governance_paths, run_id)
     artifacts: list[dict] = []
+    problems: list[str] = []
     for relative_path, budget in contract["artifact_byte_budgets"].items():
         path = project_root / relative_path
         if not path.is_file():
-            raise ContextError(f"Required {stage} output is missing: {relative_path}")
-        size = path.stat().st_size
+            problems.append(f"Required {stage} output is missing: {relative_path}")
+            continue
+        sizes = artifact_sizes(project_root, relative_path, governance_paths)
+        size = sizes['authored_bytes']
         if size > budget:
-            raise ContextError(
+            problems.append(
                 f"{stage} output exceeds its hard byte budget: "
-                f"{relative_path} is {size} bytes; maximum {budget}"
+                f"{relative_path} is {size} authored bytes ({sizes['bytes']} total); maximum {budget}; "
+                f"revise toward target {contract['artifact_target_bytes'][relative_path]} bytes "
+                "to retain headroom for downstream edits"
             )
         target = contract["artifact_target_bytes"][relative_path]
         artifacts.append({
             "path": relative_path,
-            "bytes": size,
+            **sizes,
             "target_bytes": target,
             "budget_bytes": budget,
             "target_exceeded": size > target,
         })
+    if problems:
+        raise ContextError('\n'.join(problems))
+    if stage in {"assessment", "research"}:
+        try:
+            validate_profile_dependencies(load_json(project_root / "docs/architecture/bootstrap-decisions.json"))
+        except ValueError as error:
+            raise ContextError(str(error)) from error
     return {
         "stage": stage,
         "artifacts": artifacts,
@@ -1305,7 +1371,10 @@ def validate_architecture_structure(project_root: Path, run_id: str, *, allow_ac
     )
     checks = ["architecture-map"]
     selection_path = project_root / "docs/architecture/building-block-selection.json"
-    intake = load_json(project_root / INTAKE_PATH)
+    intake = effective_stage_intake(
+        load_json(project_root / INTAKE_PATH),
+        load_json(project_root / "docs/architecture/bootstrap-decisions.json"),
+    )
     if building_block_stage_contract(project_root, intake) is not None or selection_path.is_file():
         selection_command = "validate-draft"
         if allow_accepted and selection_path.is_file() and load_json(selection_path).get("status") == "Accepted":
@@ -1341,13 +1410,75 @@ def validate_architecture_structure(project_root: Path, run_id: str, *, allow_ac
     return {"checks": checks}
 
 
+def approved_assessment_inputs(project_root: Path) -> list[dict]:
+    """Project the existing human approval boundary; never renew its hashes."""
+    relative = '.specify/governance/bootstrap-assessment-approval.json'
+    receipt = project_root / relative
+    if not receipt.is_file():
+        return []
+    approval = load_json(receipt)
+    if approval.get('status') != 'Approved':
+        return []
+    return [{'path': relative, 'sha256': sha256_file(receipt)},
+            *({'path': path, 'sha256': digest} for path, digest in approval.get('artifacts', {}).items())]
+
+
+def validate_approved_inputs(project_root: Path, records: list[dict]) -> None:
+    changed = []
+    for record in records:
+        relative = record['path']
+        path = (project_root / relative).resolve()
+        if not path.is_relative_to(project_root.resolve()):
+            raise ContextError(f'Approved input escapes the project: {relative}')
+        if not path.is_file() or sha256_file(path) != record['sha256']:
+            changed.append(relative)
+    if changed:
+        raise ContextError('Approved assessment inputs changed: ' + ', '.join(changed)
+                           + '. Preserve the approved bytes and receipt. Record later design clarification '
+                           'in a Proposed follow-on ADR and prerequisite ledger, linking the unchanged source. '
+                           'A substantive replacement needs the owning assessment review; never refresh approval hashes.')
+
+
 def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
     checks: list[str] = []
     verdict: dict = {}
+    if stage not in {'assessment', 'research'}:
+        protected = approved_assessment_inputs(project_root)
+        if run_id:
+            brief = context_path(safe_run_directory(project_root, run_id), stage)
+            if brief.is_file():
+                protected = load_json(brief).get('stage_plan', {}).get('approved_inputs', protected)
+        validate_approved_inputs(project_root, protected)
+        checks.append('approved-assessment-inputs')
+    if stage in {'tooling', 'closure'}:
+        from bootstrap_quality import synchronize, validate
+        try:
+            if stage == 'tooling':
+                synchronize(project_root)
+            validate(project_root)
+        except ValueError as error:
+            raise ContextError(str(error)) from error
+        checks.append('consumer-quality-case-mapping')
+    decision_path = project_root / 'docs/architecture/bootstrap-decisions.json'
+    if stage in {'assessment', 'research'} and decision_path.is_file() and load_json(decision_path).get('first_slice'):
+        from bootstrap_defaults import apply
+        apply(project_root)
+        checks.append('resolved-defaults')
     if stage == "architecture":
         checks.extend(validate_architecture_structure(project_root, run_id)["checks"])
     output = validate_stage_output(project_root, stage, run_id)
     checks.append("output-contract")
+    # Standalone readiness validation can use a label without native run state.
+    # Native producers always have inputs; their shell handoff remains strict.
+    if run_id and (safe_run_directory(project_root, run_id) / 'inputs.json').is_file():
+        from bootstrap_handoff import require
+        require(project_root, run_id, stage, questions_only=True)
+        checks.append('owned-decisions-and-answers')
+    workflow_path = project_root / '.specify/workflows/runs' / run_id / 'workflow.yml'
+    if stage == 'assessment' and workflow_path.is_file() and 'require-research-handoff' in workflow_path.read_text(encoding='utf-8'):
+        from bootstrap_handoff import require
+        require(project_root, run_id, 'assessment')
+        checks.append('first-slice-and-default-handoff')
     governance_script = (
         ".specify/extensions/program-kit-governance/scripts/governance_state.py"
     )
@@ -1369,6 +1500,31 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
             "roadmap governance",
         )
         checks.append("roadmap-governance")
+        from bootstrap_handoff import first_feature
+        try:
+            first_feature(project_root)
+        except ValueError as exc:
+            raise ContextError(str(exc)) from exc
+        checks.append("first-entry-coverage")
+        # Roadmap owns link-only edits to architecture and traceability. Close
+        # their derived hashes/projection before the next context validates the
+        # canonical map; waiting until post-proof synchronization is too late.
+        _run_project_validator(
+            project_root, governance_script, ["synchronize-roadmap"], "roadmap synchronization"
+        )
+        checks.append("roadmap-synchronization")
+        _run_project_validator(
+            project_root, governance_script, ["validate-bootstrap-consistency"], "roadmap consistency"
+        )
+        checks.append("roadmap-consistency")
+        # Synchronization adds marked navigation. Enforce budgets on those final
+        # bytes as well, so a passing handoff cannot conceal an oversized output.
+        output = validate_stage_output(project_root, stage, run_id)
+        checks.append("synchronized-output-contract")
+    elif stage == 'closure':
+        from bootstrap_proof_plan import execute
+        execute(project_root, validate_only=True)
+        checks.append('executable-proof-plan')
     elif stage == "readiness":
         result = subprocess.run(
             [sys.executable, str(project_root / governance_script), "evaluate-readiness"],
@@ -1386,6 +1542,7 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
         "checks": checks,
         "check_count": len(checks),
         "artifact_count": len(output["artifacts"]),
+        "artifacts": output["artifacts"],
         "target_exceeded_count": output["target_exceeded_count"],
         **({"readiness": verdict, "completion_eligible": verdict["eligible"]} if verdict else {}),
     }
@@ -1402,15 +1559,23 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     intake = validate_intake(
         project_root,
         run_id,
-        allow_architecture_evolution=stage in {"tooling", "roadmap", "readiness"},
+        allow_architecture_evolution=stage in {"architecture", "tooling", "roadmap", "closure", "readiness"},
     )
     architecture_map = load_json(project_root / "docs/architecture/architecture-map.json")
     governance = governance_contract(project_root)
     governance_paths = governance["paths"]
     output_contract = resolved_output_contract(stage, governance_paths, run_id)
     contract_references = tuple(output_contract["contract_references"])
-    routed = routed_references(intake, stage)
-    required_routed = required_routed_references(intake, stage)
+    decision_path = project_root / "docs/architecture/bootstrap-decisions.json"
+    decisions = load_json(decision_path) if stage != "assessment" and decision_path.is_file() else {}
+    if stage != "assessment":
+        try:
+            validate_profile_dependencies(decisions)
+        except ValueError as error:
+            raise ContextError(str(error)) from error
+    effective_intake = effective_stage_intake(intake, decisions)
+    routed = routed_references(effective_intake, stage)
+    required_routed = required_routed_references(effective_intake, stage)
     stage_artifacts = INTAKE_ARTIFACTS + tuple(
         replace_governance_path(path, governance_paths) for path in STAGE_ARTIFACTS[stage]
     ) + routed + contract_references
@@ -1419,6 +1584,11 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "docs/architecture/bootstrap-acceptance-scope.json",
     ) if stage in {"roadmap", "readiness"} and (project_root / path).is_file())
     stage_artifacts += lifecycle_sources
+    if stage in {'architecture', 'tooling', 'roadmap', 'readiness', 'closure'}:
+        # Named decisions must be queryable when the compact projection omits
+        # decisive conditions. Index them without requiring a bulk full read.
+        stage_artifacts = tuple(dict.fromkeys((*stage_artifacts,
+            *(item['path'] for item in architecture_map.get('decisions', [])))))
     artifacts: list[dict] = []
     authorities: dict[str, dict] = {}
     authority_paths = dict(AUTHORITY_JSON)
@@ -1434,7 +1604,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         managed_profile_pin_authority(
             project_root, authorities.get("assessment_decisions", {})
         )
-        if stage == "research"
+        if stage in {"research", "closure"}
         else None
     )
     # Research must edit and therefore fully read the decision register. Do not also spend model
@@ -1454,7 +1624,8 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "run_id": run_id,
         "stage": stage,
         "stage_focus": STAGE_FOCUS[stage],
-        "stage_plan": stage_plan(project_root, intake, stage, authorities, run_id),
+        "stage_plan": stage_plan(project_root, effective_intake, stage, authorities, run_id),
+        "runtime_release": runtime_release_projection(project_root, effective_intake),
         "bootstrap_intake": intake_record(project_root, run_id),
         "intake": intake_projection(intake, stage),
         "architecture_map": architecture_projection(project_root, architecture_map, stage),
@@ -1477,18 +1648,85 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
             "rules": [
                 "Read this stage brief in full.",
                 "Treat intake and architecture_map as stage projections; query the canonical source only for an omitted decisive fact.",
-                "Do not print or read the evidence index in full; query one artifact and heading range or JSON field at a time.",
-                "Do not open an allowed source unless this brief lacks a fact required for the current output.",
-                "Read every listed contract reference once before the first write; do not inspect validator implementation.",
-                "Excluded intake routing surfaces are out of scope unless contradictory evidence is cited.",
-                "Prefer one targeted source-read batch, one write batch, and one validation batch; expand only for a specific failure.",
-                "Aim for artifact_target_bytes initially; only artifact_byte_budgets is a hard validation boundary. Retain decisive evidence above target and do not add ad hoc size assertions.",
-                "After writes report only paths, byte counts, status, and targeted diagnostics; never print full files or diffs.",
+                "Query one indexed source only for a decisive omitted fact. Read output contracts before writing; executor source is not an authoring dependency.",
+                "Read every listed contract reference once before the first write.",
+                "Use one source batch, write batch and terminal validation batch. Report paths, counts and diagnostics; no full files or diffs.",
+                "Targets guide initial drafting; only artifact_byte_budgets are hard limits. Preserve decisive evidence.",
             ],
             "provenance": "The evidence index binds optional source sections to paths and SHA-256 values.",
         },
     }
+
+    if stage != 'readiness':  # Readiness is rendered deterministically, with no agent source reads.
+        payload['reading_policy']['read_command'] = (
+            f'python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py '
+            f'read-sources --stage {stage} --run-id {run_id} --page 1')
+    payload['stage_plan']['handoff_contract'] = STAGES[stage]
+    if stage not in {'assessment', 'research'}:
+        protected = approved_assessment_inputs(project_root)
+        validate_approved_inputs(project_root, protected)
+        # Readiness is rendered deterministically, not authored by a producer.
+        if stage != 'readiness':
+            payload['stage_plan']['approved_inputs'] = protected
+            payload['stage_plan']['approved_input_policy'] = (
+                'These files and their approval receipt are read-only in this stage, including tooling-evaluation.md. '
+                'Resolve later design or phase assignments in a Proposed follow-on ADR and prerequisite ledger, '
+                'citing the unchanged approved source. Do not edit historical research to agree with the new design '
+                'or refresh approval hashes. Substantive replacement returns to the owning assessment review.')
+    payload['stage_plan']['registry_sha256'] = sha256_file(Path(__file__).with_name('bootstrap_stages.py'))
+    payload['stage_plan']['question_transport'] = {
+        'command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py ask --run-id ' + run_id + ' --stage ' + stage,
+        'arguments': ['--question-id', '--question', '--owner', '--recommendation', '--kind'],
+        'rule': 'user-answer = intent; design-decision = missing knowledge; artifact-conflict = inconsistent artifacts. Use --required-now only if a valid baseline cannot be produced without the answer. Use supplied provider sources. Carry ordinary unknowns with bootstrap_handoff.py defer before review; never invent answers or ask consumers for kit metadata.',
+    }
+    payload['stage_plan']['decision_handoff'] = __import__('bootstrap_handoff').projection(project_root, run_id)
+    if stage == 'closure':
+        payload['stage_plan']['first_feature_handoff'] = __import__('bootstrap_handoff').first_feature(project_root)
+    if any(q.get('kind') == 'design-decision' for q in payload['stage_plan']['decision_handoff']):
+        payload['stage_plan']['design_resolution'] = 'Resolve what evidence permits; otherwise carry the exact question into the prerequisite ledger before final review using bootstrap_handoff.py defer --run-id <run> --question-id <id> --entry <roadmap-id> --phase specification|planning|implementation|delivery|production --rationale <reason>. Do not invent answers. Artifact conflicts must be corrected. Before assessment approval, record resolution in the register. After approval, preserve the register: explain the design in an existing Proposed ADR, insert the exact resolution_marker from decision_handoff as a metadata line, and refresh that ADR hash in the canonical map. This closes design authoring only, not human acceptance or compatibility proof. User answers cannot close design work.'
+    first_ids = set(decisions.get('first_slice', {}).get('journey_ids', []))
+    if first_ids and stage != 'assessment':
+        projection = payload['intake']
+        if 'journeys' in projection:
+            projection['future_portfolio'] = [{k: j[k] for k in ('id', 'name', 'outcome') if k in j}
+                                               for j in intake['journeys'] if j['id'] not in first_ids]
+            projection['journeys'] = [j for j in intake['journeys'] if j['id'] in first_ids]
+        payload['stage_plan']['first_slice'] = decisions['first_slice']
+    bind_projected_sources(project_root, payload, evidence)
     return context_path(run_directory, stage), payload, evidence_destination, evidence
+
+
+def bind_projected_sources(project_root, payload, evidence):
+    """Named installed sources and hash-bound project sources remain queryable."""
+    paths = set()
+
+    def visit(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if (key in {'path', 'source', 'catalog'} and isinstance(child, str)
+                        and (child.startswith('.specify/extensions/')
+                             or key == 'path' and 'sha256' in value and child.startswith('docs/'))):
+                    relative = child.split('#', 1)[0]
+                    resolved = (project_root / relative).resolve()
+                    if not resolved.is_relative_to(project_root.resolve()) or not resolved.is_file():
+                        raise ContextError('STAGE-INPUT-MISSING: projected source is unavailable: ' + relative)
+                    paths.add(relative)
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    for key in ('stage_plan', 'managed_profile_pins', 'runtime_release'):
+        visit(payload.get(key))
+    known = {item['path'] for item in evidence['artifacts']}
+    for relative in sorted(paths - known):
+        record, _ = artifact_record(project_root, relative)
+        evidence['artifacts'].append(record)
+    payload['reading_policy']['allowed_sources'] = list(dict.fromkeys([
+        *payload['reading_policy']['allowed_sources'], *sorted(paths)]))
+    payload['evidence_index']['bytes'] = len(compact_json(evidence).encode('utf-8'))
+    payload['evidence_index']['sha256'] = sha256_bytes(compact_json(evidence).encode('utf-8'))
+    return sorted(paths)
 
 
 def build_context(project_root: Path, run_id: str, stage: str) -> tuple[Path, dict]:
@@ -1530,9 +1768,18 @@ def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
         raise ContextError("Architecture recovery requires a failed bootstrap at validate-architecture-output")
     if (project_root / ".specify/governance/bootstrap-approval.json").exists():
         raise ContextError("Architecture recovery cannot revise an already approved bootstrap")
-    # Validate before writing evidence or replacing context. This keeps confirmed intake and
-    # approved assessment semantics authoritative, including for old persisted workflow YAML.
-    create_documents(project_root, run_id, "architecture")
+    # A failed structural batch may already have evolved the canonical map but stopped
+    # before its deterministic DSL export. Validate the map and immutable intake semantics
+    # before deriving that view; never rewrite confirmed intake hashes to bless new bytes.
+    intake_module = _load_intake_module()
+    architecture_module = intake_module._load_architecture_module()
+    model = load_json(project_root / 'docs/architecture/architecture-map.json')
+    try:
+        architecture_module.validate_model(model, project_root)
+        architecture_module.validate_bootstrap_alignment(model, load_json(project_root / INTAKE_PATH))
+        projection = architecture_module.StructurizrDslExporter().export(model)
+    except architecture_module.ArchitectureMapError as error:
+        raise ContextError(str(error)) from error
     preserved = [run / name for name in ("state.json", "inputs.json", "workflow.yml", "log.jsonl")]
     preserved += [context_path(run, "architecture"), evidence_path(run, "architecture")]
     paths = governance_contract(project_root)["paths"]
@@ -1552,9 +1799,23 @@ def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
             raise ContextError(f"Preserved recovery evidence has an invalid hash: {backup}")
         records.append({"path": source.relative_to(project_root).as_posix(), "sha256": digest,
                         "preserved_path": backup.relative_to(project_root).as_posix()})
-    destination, payload = build_context(project_root, run_id, "architecture")
+    projection_path = project_root / 'docs/architecture/workspace.dsl'
+    original_projection = projection_path.read_bytes()
+    projection_before = sha256_file(projection_path)
+    if projection_path.read_text(encoding='utf-8') != projection:
+        projection_path.write_text(projection, encoding='utf-8', newline='\n')
+    # Full native intake validation still requires the original project intent, unchanged
+    # confirmed semantics, valid current map and its exact deterministic projection.
+    try:
+        destination, payload = build_context(project_root, run_id, "architecture")
+    except Exception:
+        # A rejected authority or intake must not leave a refreshed view behind.
+        projection_path.write_bytes(original_projection)
+        raise
     result = {
         "run_id": run_id, "status": "ready-for-architecture-retry", "preserved": records,
+        "derived_projection": {"path": 'docs/architecture/workspace.dsl',
+                               "before_sha256": projection_before, "sha256": sha256_file(projection_path)},
         "context": result_payload(project_root, destination, payload),
         "architecture_skill_input": "$speckit-program-kit-governance-architecture "
                                     "docs/architecture/bootstrap-intake.json; bootstrap context: "
@@ -1562,7 +1823,7 @@ def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
         "validate_command": "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
                             f"validate-stage --stage architecture --run-id {run_id} --json",
         "resume_after_validation": f"specify workflow resume {run_id}",
-        "boundary": "Run the installed architecture skill in a user-owned session, review its new Proposed decisions, then validate before resuming. Resume alone only retries the validator. No workflow state or approval was changed.",
+        "boundary": "Run the installed architecture skill in a user-owned session, review its new Proposed decisions, then validate before resuming. Resume alone only retries the validator. Only the derived DSL and context were refreshed; no confirmed intake, canonical map, workflow state or approval was changed.",
     }
     manifest = run / "architecture-recovery" / (sha256_bytes(compact_json(result).encode()) + ".json")
     manifest.write_text(compact_json(result), encoding="utf-8")
@@ -1578,7 +1839,33 @@ def result_payload(project_root: Path, path: Path, payload: dict) -> dict:
         "bytes": path.stat().st_size,
         "evidence_path": index["path"],
         "evidence_bytes": index["bytes"],
+        "read_command": f"python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage {payload['stage']} --run-id {payload['run_id']} --page 1",
     }
+
+
+def read_brief(project_root: Path, run_id: str, stage: str, page: int) -> dict:
+    """Lossless bounded display; reading does not rebuild or validate mutable stage inputs."""
+    path = context_path(safe_run_directory(project_root, run_id), stage)
+    text = compact_json(load_json(path))
+    # Character offsets preserve Unicode without splitting UTF-8 byte sequences.
+    page_chars = 8000
+    pages = max(1, (len(text) + page_chars - 1) // page_chars)
+    if not 1 <= page <= pages:
+        raise ContextError(f'Brief page must be between 1 and {pages}')
+    start = (page - 1) * page_chars
+    return {'path': path.relative_to(project_root).as_posix(), 'sha256': sha256_file(path),
+            'page': page, 'pages': pages, 'start_character': start,
+            'text': text[start:start + page_chars], 'next_page': page + 1 if page < pages else None}
+
+
+def read_sources(project_root: Path, run_id: str, stage: str, page: int) -> dict:
+    """Read only the explicitly required source set, compacted and aggregate-budgeted."""
+    from bounded_read import read_bundle
+    brief = load_json(context_path(safe_run_directory(project_root, run_id), stage))
+    try:
+        return read_bundle(project_root, brief['reading_policy']['required_full_reads'], page)
+    except (ValueError, KeyError, IndexError, TypeError) as exc:
+        raise ContextError(f'Required source read failed: {exc}') from exc
 
 
 def main() -> int:
@@ -1592,6 +1879,9 @@ def main() -> int:
             "build",
             "validate",
             "validate-output",
+            "inspect-output",
+            "read-brief",
+            "read-sources",
             "validate-intake",
             "validate-profile-pins",
             "validate-architecture-alignment",
@@ -1608,10 +1898,11 @@ def main() -> int:
     parser.add_argument("--reason")
     parser.add_argument("--owner")
     parser.add_argument("--resolution")
+    parser.add_argument("--page", type=int, default=1)
     args = parser.parse_args()
     project_root = Path(args.project_root).resolve()
     try:
-        if args.command != "validate-output" and not args.run_id:
+        if args.command not in {"validate-output", "inspect-output"} and not args.run_id:
             raise ContextError(f"--run-id is required for {args.command}")
         if args.command == "prepare-architecture-recovery":
             result = prepare_architecture_recovery(project_root, args.run_id)
@@ -1649,10 +1940,17 @@ def main() -> int:
             if not args.stage:
                 raise ContextError("--stage is required for validate-stage")
             result = validate_stage_batch(project_root, args.run_id, args.stage)
-        elif args.command == "validate-output":
+        elif args.command in {"validate-output", "inspect-output", "read-brief", "read-sources"}:
             if not args.stage:
-                raise ContextError("--stage is required for validate-output")
-            result = validate_stage_output(project_root, args.stage, args.run_id or "")
+                raise ContextError(f"--stage is required for {args.command}")
+            if args.command == 'read-sources':
+                result = read_sources(project_root, args.run_id, args.stage, args.page)
+            elif args.command == 'read-brief':
+                result = read_brief(project_root, args.run_id, args.stage, args.page)
+            elif args.command == 'inspect-output':
+                result = inspect_stage_output(project_root, args.stage, args.run_id or '')
+            else:
+                result = validate_stage_output(project_root, args.stage, args.run_id or "")
         else:
             if not args.stage:
                 raise ContextError(f"--stage is required for {args.command}")
@@ -1666,6 +1964,18 @@ def main() -> int:
         return 2
     if args.json or args.command == "prepare-architecture-recovery":
         print(json.dumps(result))
+    elif args.command == 'read-sources':
+        print(f"Required sources sha256={result['sha256']} page {result['page']}/{result['pages']}")
+        print(result['text'])
+        print(f"Next page: {result['next_page']}" if result['next_page'] else 'End of required sources.')
+    elif args.command == 'read-brief':
+        print(f"Brief {result['path']} sha256={result['sha256']} page {result['page']}/{result['pages']} (character {result['start_character']})")
+        print(result['text'], end='\n')
+        print(f"Next page: {result['next_page']}" if result['next_page'] else 'End of brief; all pages are required.')
+    elif args.command == 'inspect-output':
+        print('Advisory sizing only; terminal validation is still required.')
+        for artifact in result['artifacts']:
+            print(f"{artifact['path']}: {artifact['authored_bytes']} authored + {artifact['generated_bytes']} generated = {artifact['bytes']} total bytes; authored target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}; headroom {artifact['headroom_bytes']}; above target {artifact['above_target_bytes']}")
     elif args.command == "validate-intake":
         print(f"Program Kit confirmed bootstrap intake is valid: {result['path']}")
     elif args.command == "validate-profile-pins":
@@ -1685,6 +1995,8 @@ def main() -> int:
             f"Program Kit {args.stage} terminal validation batch passed "
             f"({result['check_count']} checks; {result['target_exceeded_count']} above generation target)"
         )
+        for artifact in result['artifacts']:
+            print(f"{artifact['path']}: {artifact['authored_bytes']} authored + {artifact['generated_bytes']} generated = {artifact['bytes']} total bytes; authored target {artifact['target_bytes']}; maximum {artifact['budget_bytes']}")
     elif args.command == "validate-output":
         print(
             f"Program Kit {args.stage} outputs are within hard byte budgets "

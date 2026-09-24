@@ -2,7 +2,7 @@ schema_version: "1.0"
 workflow:
   id: program-kit-bootstrap
   name: Program Kit bootstrap continuation
-  version: "0.11.0"
+  version: "0.13.0"
   description: Engine-owned continuation of an approved bootstrap after technical readiness failure.
 inputs:
   source_run:
@@ -29,12 +29,15 @@ steps:
           command: speckit.program-kit-governance.bootstrap-recovery
           integration: "{{ inputs.integration }}"
           input:
-            args: "Workflow continuation {{ context.run_id }} from {{ inputs.source_run }}. Read .specify/governance/bootstrap-recovery/{{ inputs.source_run }}/handoff.md. Produce only bounded closure, scoped follow-on decisions, ledger and corrected architecture artifacts. The workflow owns synchronization, review, approval and readiness. Preserve existing valid proofs and immutable authority. Do not invoke repair acceptance/completion commands or another workflow."
+            args: "Workflow continuation {{ context.run_id }} from {{ inputs.source_run }}. Read .specify/governance/bootstrap-recovery/{{ inputs.source_run }}/handoff.md. Produce only bounded closure, scoped follow-on decisions, ledger, bootstrap-proof-plan.json and corrected architecture artifacts. Prepare probes without executing them; the next shell step owns execution. The workflow owns synchronization, review, approval and readiness. Preserve existing valid proofs and immutable authority. Do not invoke repair acceptance/completion commands or another workflow."
   - id: route-recovery-synchronization
     type: switch
     expression: "{{ steps.verify-recovery-source.output.data.reuse_approval }}"
     cases:
       false:
+        - id: recovery-execute-compatibility-proofs
+          type: shell
+          run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_proof_plan.py"
         - id: recovery-synchronize
           type: shell
           run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step synchronize --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"
@@ -69,12 +72,14 @@ steps:
                 type: shell
                 run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step accept --run-id {{ context.run_id }} --source-run {{ inputs.source_run }} --verdict {{ steps.review-recovery.output.choice }}"
                 output_format: json
+  - id: prepare-recovery-readiness
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step readiness-context --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"
+    output_format: json
   - id: recovery-readiness
-    type: command
-    command: speckit.program-kit-governance.readiness
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "Workflow continuation {{ context.run_id }} from {{ inputs.source_run }}. Use .specify/governance/bootstrap-recovery/{{ inputs.source_run }}/handoff.md and the current approved artifacts and proofs. Produce an honest readiness report with explicit owned blockers if non-ready. The workflow owns evaluation and completion. Do not use stale historical stage context or invoke independent completion."
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py render-readiness --run-id {{ context.run_id }}"
+    output_format: json
   - id: recovery-evaluate
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step evaluate --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "reviewed": "2026-09-16",
+  "profiles": {
+    "ef-postgresql": {
+      "provider": "postgresql",
+      "version": "18.6",
+      "image": "postgres@sha256:7341002d2b8c7c5bdd7542a671a95b36196c0b5b888daf454ae4fc33ba5346d7",
+      "scope": "disposable local compatibility; not a production topology or automatic service installation",
+      "packagePins": "templates/dotnet/files/.program-kit/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props",
+      "sources": [
+        "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:7341002d2b8c7c5bdd7542a671a95b36196c0b5b888daf454ae4fc33ba5346d7",
+        "https://github.com/docker-library/postgres",
+        "https://www.postgresql.org/docs/release/18.6/",
+        "https://www.postgresql.org/about/licence/",
+        "https://learn.microsoft.com/en-us/ef/core/saving/concurrency",
+        "https://www.npgsql.org/efcore/modeling/concurrency.html"
+      ],
+      "evidence": "Registry manifest and local immutable image inspected: PG_VERSION=18.6-1.pgdg13+2. The maintained bootstrap recipe verifies the running server version and actual EF/Npgsql behavior."
+    }
+  }
+}

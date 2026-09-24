@@ -15,6 +15,9 @@
     "deferred"
   ],
   "properties": {
+    "identity": {"type": "object","additionalProperties": false,"required": ["provider","source","scope","production_trigger"],"properties": {"provider": {"$ref": "#/$defs/text", "description": "Provider identity. Managed local Keycloak is matched case-insensitively without rewriting approved text; other providers and consumer-service scope remain consumer-owned."},"source": {"enum": ["explicit-intake","program-kit-default","override"]},"scope": {"enum": ["local-evaluation","consumer-service"]},"production_trigger": {"$ref": "#/$defs/text"}}},
+    "first_slice": {"type": "object","additionalProperties": false,"required": ["journey_ids","outcome","rationale"],"properties": {"journey_ids": {"type": "array","minItems": 1,"uniqueItems": true,"items": {"$ref": "#/$defs/id"}},"outcome": {"$ref": "#/$defs/text"},"rationale": {"$ref": "#/$defs/text"}}},
+    "persistence": {"$ref": "persistence.schema.json#/$defs/owners"},
     "schema_version": { "const": "1.0" },
     "default_profile": {
       "type": "object",
@@ -107,6 +110,12 @@
         "properties": {
           "id": { "$ref": "#/$defs/id" },
           "question": { "$ref": "#/$defs/text" },
+          "owner": {"$ref": "#/$defs/text"},
+          "due_stage": {"enum": ["research","architecture","tooling","roadmap","closure","readiness","feature-plan","implementation","delivery","production"]},
+          "recommendation": {"$ref": "#/$defs/text"},
+          "required_now": {"type": "boolean"},
+          "kind": {"enum": ["user-answer","design-decision","artifact-conflict"]},
+          "resolution": {"$ref": "#/$defs/text"},
           "blocks": { "$ref": "#/$defs/text" }
         }
       }

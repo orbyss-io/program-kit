@@ -20,6 +20,7 @@ import threading
 import time
 import uuid
 import zipfile
+from local_catalog_server import CatalogHandler
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = Path('.agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md')
@@ -34,6 +35,18 @@ This is intake only: do not run bootstrap, install/update components, start
 another agent, or implement the product. Stop after the intake review and handoff.
 Keep the skill's compact question/decision record current, including partial
 answers, corrections and pending questions. Do not claim user confirmation early.
+If acceptance/ is present, read its fixed observable trial contracts during intake.
+These describe what the later implementation must demonstrate; do not implement them now.
+"""
+
+CONSUMER_INSTRUCTIONS = """# Consumer trial
+
+For the interactive intake task, read INTAKE-SESSION.md and follow its installed
+intake skill. Those interview-only instructions apply only to that task.
+For a separately authorized bootstrap stage or feature task, follow the installed
+skill named by that task and its supplied context. Do not repeat the intake or
+reread its skill unless the task explicitly returns to intake. This file grants
+no approval, workflow execution, installation or paid-agent authorization.
 """
 
 
@@ -64,7 +77,7 @@ def candidate_catalogs(record: Path):
     """Serve only candidate archives, on loopback, for the real bundle installer."""
     directory = record / 'candidate-catalogs'
     directory.mkdir()
-    class Handler(http.server.SimpleHTTPRequestHandler):
+    class Handler(CatalogHandler):
         def log_message(self, *_args):
             pass
     server = http.server.ThreadingHTTPServer(
@@ -82,11 +95,9 @@ def candidate_catalogs(record: Path):
             catalog['catalog_url'] = f'{base}/{kind}.json'
             for name in names:
                 source = ROOT / kind / name
-                with zipfile.ZipFile(directory / f'{name}.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
-                    for path in checked_files(source):
-                        if '__pycache__' not in path.parts and path.suffix != '.pyc':
-                            archive.write(path, path.relative_to(source).as_posix())
+                candidate_archive(source, directory / f'{name}.zip')
                 catalog[kind][name]['download_url'] = f'{base}/{name}.zip'
+                catalog[kind][name]['sha256'] = digest(directory / f'{name}.zip')
             save(directory / f'{kind}.json', catalog)
         if os.name == 'nt':
             # Windows archive transfers need the same isolated server process used by live setup.
@@ -94,7 +105,7 @@ def candidate_catalogs(record: Path):
             server.server_close()
             server_log = (record / 'catalog-server.log').open('w', encoding='utf-8')
             process = subprocess.Popen(
-                [sys.executable, '-m', 'http.server', str(port), '--bind', '127.0.0.1', '--directory', str(directory)],
+                [sys.executable, str(ROOT / 'scripts/local_catalog_server.py'), str(port), '--directory', str(directory)],
                 stdin=subprocess.DEVNULL, stdout=server_log, stderr=subprocess.STDOUT,
                 creationflags=subprocess.CREATE_NO_WINDOW)
             deadline = time.monotonic() + 10
@@ -126,6 +137,14 @@ def candidate_catalogs(record: Path):
             server_log.close()
 
 
+def candidate_archive(source: Path, destination: Path) -> None:
+    # Keep the intake's strict reparse guard, then share the actual release payload
+    # rules. Local builds must not silently become consumer distribution inputs.
+    checked_files(source)
+    from build_release import deterministic_zip
+    deterministic_zip(source, destination)
+
+
 def install_components(specify: str, git: str, workspace: Path, record: Path) -> None:
     launcher = [specify]
     if os.name == 'nt':
@@ -153,11 +172,39 @@ def install_components(specify: str, git: str, workspace: Path, record: Path) ->
             print(f'Installing consumer components ({index}/{len(steps)})...', flush=True)
             if command[0] == specify:
                 command = launcher + command[1:]
-            if run(command, workspace, record / 'setup.log'):
-                raise RuntimeError(f'Installation failed at step {index}; see {record / "setup.log"}')
+            log = record / 'setup.log'
+            # Only retry an owned local transfer when the native bundle transaction
+            # explicitly reports rollback. Never retry agents, approvals or arbitrary
+            # setup failures; retain each diagnostic and keep the attempt count bounded.
+            for attempt in range(3):
+                offset = log.stat().st_size if log.exists() else 0
+                code = run(command, workspace, log)
+                if code == 0:
+                    break
+                if index != 6 or not log.is_file():
+                    raise RuntimeError(f'Installation failed at step {index}; see {log}')
+                with log.open('rb') as stream:
+                    stream.seek(offset)
+                    diagnostic = stream.read().decode('utf-8', errors='replace')
+                transient = ('[WinError 10054]' in diagnostic or 'timed out' in diagnostic)
+                rolled_back_download = (index == 6 and 'Failed to install bundle' in diagnostic
+                                        and 'No changes were recorded' in diagnostic and transient)
+                if not rolled_back_download or attempt == 2:
+                    raise RuntimeError(f'Installation failed at step {index}; see {log}')
+                message = f'Local bundle transfer interrupted; native rollback confirmed. Retrying setup transfer ({attempt + 2}/3); no coding agent has started.'
+                with log.open('a', encoding='utf-8') as stream:
+                    stream.write(message + '\n')
+                print(message, flush=True)
 
 
-def prepare(record: Path) -> None:
+def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: Path | None = None) -> None:
+    if idea_file is not None and (not idea_file.is_file() or not idea_file.read_text(encoding='utf-8').strip()):
+        raise ValueError('The supplied idea file must contain the initial product request.')
+    if acceptance_contracts is not None:
+        if not acceptance_contracts.is_dir() or not checked_files(acceptance_contracts):
+            raise ValueError('Acceptance contracts must be a nonempty document directory.')
+        if any(p.suffix not in {'.md', '.json'} for p in checked_files(acceptance_contracts)):
+            raise ValueError('Acceptance context is restricted to Markdown and JSON contracts, without implementation files.')
     specify = shutil.which('specify')
     git = shutil.which('git')
     if not specify or not git:
@@ -170,6 +217,12 @@ def prepare(record: Path) -> None:
              'tempParent': str(workspace.parent), 'owner': nonce, 'source': str(ROOT),
              'startedAt': datetime.now(timezone.utc).isoformat(), 'status': 'preparing',
              'codexHome': str(Path(os.environ.get('CODEX_HOME', str(Path.home() / '.codex'))).resolve())}
+    if idea_file is not None:
+        shutil.copyfile(idea_file, workspace / 'product-idea.md')
+        state['initialIdea'] = {'source': str(idea_file.resolve()), 'sha256': digest(workspace / 'product-idea.md')}
+    if acceptance_contracts is not None:
+        shutil.copytree(acceptance_contracts, workspace / 'acceptance')
+        state['acceptanceContracts'] = {p.relative_to(acceptance_contracts).as_posix(): digest(p) for p in checked_files(acceptance_contracts)}
     save(record / 'session.json', state)
     print(f'Isolated consumer: {workspace}\nReview evidence: {record}', flush=True)
     source_git = [git, '-c', f'safe.directory={ROOT.as_posix()}', '-c', 'core.excludesFile=' if os.name == 'nt' else 'core.excludesFile=/dev/null']
@@ -201,7 +254,7 @@ def prepare(record: Path) -> None:
     (workspace / 'INTAKE-SESSION.md').write_text(INSTRUCTIONS, encoding='utf-8')
     # This is a consumer root, outside the contributor repository and its ancestor instructions.
     (workspace / 'AGENTS.md').write_text(
-        INSTRUCTIONS + '\nFor every Git command use git -c safe.directory=' + workspace.as_posix()
+        CONSUMER_INSTRUCTIONS + '\nFor every Git command use git -c safe.directory=' + workspace.as_posix()
         + (' -c core.excludesFile= ' if os.name == 'nt' else ' -c core.excludesFile=/dev/null ')
         + '<command>. Do not persist global Git exceptions.\n', encoding='utf-8')
     state['status'] = 'ready'
@@ -325,6 +378,29 @@ def finish(record: Path, exit_code: int, keep: bool = False, prepare_only: bool 
             state['intakeStatus'] = 'validation-error'
             state['validationError'] = str(error)
     state['archiveSha256'] = digest(archive)
+    workflows = []
+    for path in sorted((workspace / '.specify/workflows/runs').glob('*/state.json')):
+        value = json.loads(path.read_text(encoding='utf-8'))
+        workflows.append({'runId': value.get('run_id'), 'status': value.get('status'),
+                          'currentStep': value.get('current_step_id')})
+    state['observedWorkflows'] = workflows
+    if state['intakeStatus'] == 'invalid':
+        # A user may finish the intake terminal only after bootstrap has evolved
+        # the map. Do not present that original-hash check as a failed interview.
+        # Preserve the failed check and make no claim about current stage validity.
+        admitted = []
+        for path in sorted((workspace / '.specify/workflows/runs').glob('*/state.json')):
+            value = json.loads(path.read_text(encoding='utf-8'))
+            check = value.get('step_results', {}).get('validate-bootstrap-intake', {})
+            if check.get('status') == 'completed' and check.get('output', {}).get('exit_code') == 0:
+                admitted.append(value['run_id'])
+        if admitted:
+            state['intakeStatus'] = 'downstream-review-required'
+            state['intakeValidation'] = {'originalArtifactCheck': 'failed', 'admittedByRuns': admitted,
+                                         'currentStageValidity': 'not-established'}
+    workflow_note = ('Workflow state was observed: ' + json.dumps(workflows) +
+                     '. Standalone skill completion does not resume or complete that workflow. '
+                     'Intake validation checks original artifact hashes; downstream architecture edits may require stage-specific review.') if workflows else 'No workflow state was observed.'
     state['status'] = 'setup-only' if prepare_only else 'needs-human-review'
     save(record / 'session.json', state)
     # All copies and diagnostics must complete before the narrowly scoped deletion.
@@ -343,6 +419,7 @@ def finish(record: Path, exit_code: int, keep: bool = False, prepare_only: bool 
 - CLI exit: {exit_code}
 - Workspace: {workspace}
 - Cleanup: {state['cleanup']}
+- Workflow observations: {workflow_note}
 
 Return to the Program Kit development conversation and ask to review this folder:
 {record}
@@ -350,7 +427,7 @@ Return to the Program Kit development conversation and ask to review this folder
 Review conversation.md and the matched rollout JSONL (when captured), docs/architecture,
 validation.log (when an intake exists), setup.log, session.json, and consumer.zip.
 The zip preserves the installed candidate and full consumer for recovery; it is not
-a bootstrap checkpoint or a Release/live-acceptance receipt. No workflow was launched.
+a bootstrap checkpoint or a Release/live-acceptance receipt. The intake launcher itself starts no workflow.
 Missing conversation history is a review limitation, not an interview pass.
 If the workspace was removed, extract consumer.zip into a new empty directory to recover it.
 Evidence may contain private product details and conversation/tool output: do not publish it.
@@ -367,10 +444,13 @@ def main() -> int:
     parser.add_argument('--exit-code', type=int, default=1)
     parser.add_argument('--keep-workspace', action='store_true')
     parser.add_argument('--prepare-only', action='store_true')
+    parser.add_argument('--idea-file', type=Path)
+    parser.add_argument('--acceptance-contracts', type=Path)
     args = parser.parse_args()
     try:
         if args.action == 'prepare':
-            prepare(args.record.resolve())
+            prepare(args.record.resolve(), args.idea_file.resolve() if args.idea_file else None,
+                    args.acceptance_contracts.resolve() if args.acceptance_contracts else None)
         else:
             finish(args.record.resolve(), args.exit_code, args.keep_workspace, args.prepare_only)
         return 0

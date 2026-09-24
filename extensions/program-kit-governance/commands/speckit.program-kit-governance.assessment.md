@@ -4,6 +4,11 @@ scripts:
   py: scripts/governance_state.py validate-installation
 ---
 
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage assessment --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+
+For required sources, execute `reading_policy.read_command` and follow its pages; it batches only the required files under one aggregate byte limit and compacts JSON without dropping values. Reuse content already received. For an omitted decisive fact use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <exact-indexed-path> --keys` to discover JSON keys, then `--pointer /known/key`; omit the pointer for the root. Repeat `--path` to bundle small documents under the same total limit. Do not read future outputs or dump optional evidence/catalogs. Use the exact installed helper path; do not reconstruct it. Return each bounded page once, with an output budget of at least 6000 tokens; do not aggregate several pages into another tool response.
+
+
 ## Input
 
 `$ARGUMENTS` identifies the deterministically validated intake and the workflow-generated bootstrap
@@ -64,10 +69,10 @@ Create `docs/architecture/decision-backlog.md`. Each item must have a stable ID,
 
 Classify backlog entries as one of: resolved by explicit intake, resolved by Program Kit default,
 resolved by a derived default, genuinely unresolved, or deferred until a named lifecycle trigger.
-Only genuinely unresolved decisions may block an affected roadmap entry. Specification details,
+Unresolved decisions gate only their affected slice at the phase where an answer is necessary. Bootstrap may initialize with no Ready slice. Do not invent journey boundaries or technical selections. Specification details,
 acceptance criteria, and triggered production concerns are not foundation ADRs.
 
-Create `docs/architecture/bootstrap-decisions.json` with this exact shape and the standalone
+Create `docs/architecture/bootstrap-decisions.json` using this base shape and the standalone
 `.specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json` contract.
 Do not inspect `governance_state.py` to rediscover a contract already supplied here; run its
 validator after writing and use a specific diagnostic only if repair is needed.
@@ -77,6 +82,7 @@ validator after writing and use a specific diagnostic only if repair is needed.
   "schema_version": "1.0",
   "default_profile": { "id": "program-kit-standard", "version": "<installed-version>" },
   "selected_profiles": ["dotnet", "typescript-web"],
+  "first_slice": {"journey_ids": ["<source-journey-id>"], "outcome": "Useful first outcome", "rationale": "Why this boundary is independently useful"},
   "dotnet": {
     "host_runtime": "Orbyss.Foundation.Host",
     "host_source": "program-kit-default",
@@ -107,7 +113,7 @@ validator after writing and use a specific diagnostic only if repair is needed.
     { "id": "stable-id", "summary": "Consequential fact the reviewer must understand" }
   ],
   "unresolved": [
-    { "id": "stable-id", "question": "Decision only the human can safely answer", "blocks": "Affected roadmap item or gate" }
+    { "id": "stable-id", "question": "Decision only the human can safely answer", "blocks": "Affected roadmap item or gate", "owner": "consumer", "kind": "user-answer", "due_stage": "research", "recommendation": "Evidence-backed recommendation" }
   ],
   "deferred": [
     { "id": "stable-id", "question": "Decision that is not material yet", "trigger": "Lifecycle event that makes it material" }
@@ -117,11 +123,20 @@ validator after writing and use a specific diagnostic only if repair is needed.
 
 Allowed choice sources are `explicit-intake`, `program-kit-default`, `derived-default`, and
 `override`. Use empty arrays when a category has no entries. Every object in the remaining lists
-has the exact fields shown plus concise review-packet text. Unresolved and deferred entries name
+uses the schema fields shown. Declare provider/durability intent in the existing per-owner persistence records. The deterministic resolver supplies absent profile, host, local identity and toolchain defaults before approval. Unresolved and deferred entries name
 the affected roadmap item or lifecycle trigger rather than becoming global blockers.
 
+Audit inherited open items against the action they actually block. Unspecified cost, hosting or
+provider constraints do not prevent applicable local defaults. Do not schedule a generic unanswered
+constraints survey as a pre-architecture user-answer merely because intake assigned it to
+architecture. Preserve the unknown fact and its source; defer production/service commitments to
+their actual trigger. Require an earlier answer only for a concrete conflicting constraint or a
+necessary action that has no safe applicable default, explaining that dependency in `blocks`.
+If confirmed intake explicitly requires an answer before even local evaluation, preserve that
+instruction and route its clarification; do not silently reinterpret an explicit consumer limit.
+
 Do not guess exact toolchain versions during intake. The research stage receives the selected
-profile manifests through its generated `managed_profile_pins` authority and adds the schema's
+profile manifests through its generated `managed_profile_pins` authority and verifies the resolver's
 `toolchain` block from those exact values before deterministic validation.
 
 When .NET is selected, set `Orbyss.Foundation.Host` automatically unless intake explicitly opts out. An
@@ -140,7 +155,19 @@ also records `threat_model` as `program-kit-web-threat-model-v1` and `security_e
 `program-kit-web-security-evidence-v1`. Those IDs inherit the versioned attacker model, source-
 classified decision evidence, configurable-default rationale, residual risks, verification levels,
 and review triggers; do not recreate them as unresolved project questions. For a non-browser
-project, set `browser_ui` to false and `secure_profile` to `none-v1`.
+project, set `browser_ui` to false and `secure_profile` to `none-v1`. An explicitly anonymous browser
+is a separate supported exception: keep `browser_ui` true, select `none-v1` with source
+`explicit-intake` or `override`, record its scope/review trigger in `override_reason`, and retain
+the `secure-web-profile` choice. Its `threat_model` and `security_evidence` are `none-v1`, meaning
+no inherited authenticated-profile assurance; ordinary HTTP/JSON/assets protections and applicable
+security evidence remain required. Follow the existing secure-web-profiles.md selection contract.
+
+Record `browser-web` for a browser without an explicit TypeScript selection, or `typescript-web`
+when selected. Apply the managed authenticated profile's .NET dependency from that same selection
+contract: record `dotnet`, its host decision and dependency acknowledgement for the assessment
+review, even if intake left the language open. Describe the dependency as a Program Kit default,
+not an explicit consumer language choice. Do not defer the required backend while adopting its
+managed authentication. Surface conflicts with explicit consumer stack constraints before approval.
 
 Do not invent acceptance outside explicit intake, the versioned Program Kit defaults, safe derived
 defaults, or reviewed overrides. Record those sources as provisional baseline choices for the

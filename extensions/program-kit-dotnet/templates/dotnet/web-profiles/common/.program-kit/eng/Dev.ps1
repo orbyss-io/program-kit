@@ -87,13 +87,14 @@ if (-not $SkipBuild) {
     if ($LASTEXITCODE -ne 0) { throw 'The application build failed.' }
 }
 
-if ([string]::IsNullOrWhiteSpace($env:PROGRAMKIT_HOST_IMAGE)) {
-    throw 'Set PROGRAMKIT_HOST_IMAGE to the approved digest-pinned Orbyss.Foundation.Host image, then rerun Dev.ps1. Identity remains ready.'
+if ([string]::IsNullOrWhiteSpace($env:ORBYSS_FOUNDATION_HOST_IMAGE)) {
+    throw 'Set ORBYSS_FOUNDATION_HOST_IMAGE to the approved digest-pinned Orbyss.Foundation.Host image, then rerun Dev.ps1. Identity remains ready.'
 }
 
-$applicationImage = 'program-kit-consumer:local'
-docker build --build-arg "PROGRAMKIT_HOST_IMAGE=$($env:PROGRAMKIT_HOST_IMAGE)" -t $applicationImage $repository
-if ($LASTEXITCODE -ne 0) { throw 'The local application image build failed.' }
+if ($env:ORBYSS_FOUNDATION_HOST_IMAGE -notmatch '^ghcr\.io/orbyss-io/foundation-host@sha256:[a-f0-9]{64}$') {
+    throw 'ORBYSS_FOUNDATION_HOST_IMAGE must identify the published Foundation host by digest.'
+}
+
 
 $applicationComposeArguments += @('up', '-d', '--force-recreate', '--remove-orphans')
 docker @applicationComposeArguments

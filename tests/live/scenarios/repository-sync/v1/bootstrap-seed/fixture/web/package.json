@@ -1,0 +1,17 @@
+{
+  "name": "internal-forms-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {"build": "tsc -p tsconfig.json", "verify": "npm run build && node dist/smoke.js"},
+  "dependencies": {
+    "@jsonforms/core": "3.8.0",
+    "@jsonforms/react": "3.8.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "typescript": "7.0.2"
+  }
+}

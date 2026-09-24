@@ -2,7 +2,7 @@
   "$schema": "orbyss-building-blocks.schema.json",
   "schemaVersion": "1.0",
   "catalogId": "orbyss-building-blocks",
-  "resolutionRevision": 1,
+  "resolutionRevision": 2,
   "policy": {
     "source_ownership": "Program Kit owns AI guidance, scaffolding, selection rules, and compatibility tests; runtime source and release tests belong to the component repositories.",
     "versioning": "Pin Foundation, Forms, and Localization independently. Never infer a component version from the Program Kit version.",
@@ -51,11 +51,11 @@
   "families": {
     "foundation": {
       "repository": "https://github.com/orbyss-io/dotnet-foundation",
-      "releaseVersion": "0.1.0"
+      "releaseVersion": "0.2.2"
     },
     "forms": {
       "repository": "https://github.com/orbyss-io/forms",
-      "releaseVersion": "0.1.1"
+      "releaseVersion": "0.2.0"
     },
     "localization": {
       "repository": "https://github.com/orbyss-io/localization",
@@ -67,7 +67,7 @@
       "packageId": "Orbyss.Foundation.Analyzers",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Compile-time enforcement of Foundation feature identity and composition conventions.",
       "materialization": {
@@ -86,7 +86,7 @@
       "packageId": "Orbyss.Foundation.Authentication",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Provider-neutral bearer authentication, permission policies, claims transformation, and authentication errors.",
       "materialization": {
@@ -105,16 +105,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Authentication",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Authentication",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Authentication.Assurance": {
       "packageId": "Orbyss.Foundation.Authentication.Assurance",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Authentication-assurance and step-up authorization requirements.",
       "materialization": {
@@ -133,16 +135,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Authentication.Assurance",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Authentication.Assurance",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Authentication.BffCookie": {
       "packageId": "Orbyss.Foundation.Authentication.BffCookie",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Server-managed browser session, distributed ticket storage, and antiforgery profile.",
       "materialization": {
@@ -161,16 +165,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Authentication.BffCookie",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Authentication.BffCookie",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Authentication.ClientCredentials": {
       "packageId": "Orbyss.Foundation.Authentication.ClientCredentials",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Cached OAuth client-credentials tokens for machine callers.",
       "materialization": {
@@ -189,16 +195,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Authentication.ClientCredentials",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Authentication.ClientCredentials",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Authentication.DownstreamApi": {
       "packageId": "Orbyss.Foundation.Authentication.DownstreamApi",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Authenticated downstream HTTP calls using current, exchanged, or machine tokens.",
       "materialization": {
@@ -217,16 +225,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Authentication.DownstreamApi",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Authentication.DownstreamApi",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Authentication.DPoP": {
       "packageId": "Orbyss.Foundation.Authentication.DPoP",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "DPoP proof generation, validation, nonce, and replay protection.",
       "materialization": {
@@ -245,16 +255,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Authentication.DPoP",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Authentication.DPoP",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Authentication.SpaPkce": {
       "packageId": "Orbyss.Foundation.Authentication.SpaPkce",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Public-client SPA authorization-code plus PKCE profile marker and validation.",
       "materialization": {
@@ -273,16 +285,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Authentication.SpaPkce",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Authentication.SpaPkce",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Authentication.TokenExchange": {
       "packageId": "Orbyss.Foundation.Authentication.TokenExchange",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "RFC 8693 token exchange service and configuration.",
       "materialization": {
@@ -301,16 +315,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Authentication.TokenExchange",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Authentication.TokenExchange",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.DomainEvents": {
       "packageId": "Orbyss.Foundation.DomainEvents",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Default awaited, scoped, sequential in-process domain-event dispatcher.",
       "materialization": {
@@ -334,16 +350,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.DomainEvents",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.DomainEvents",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.DomainEvents.Abstractions": {
       "packageId": "Orbyss.Foundation.DomainEvents.Abstractions",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "In-process domain-event, handler, publisher, and dispatch-context contracts.",
       "materialization": {
@@ -367,7 +385,7 @@
       "packageId": "Orbyss.Foundation.Identity.Admin.Abstractions",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Provider-neutral identity administration contracts.",
       "materialization": {
@@ -391,7 +409,7 @@
       "packageId": "Orbyss.Foundation.Identity.Keycloak.Admin",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Opt-in Keycloak Admin REST adapter for identity administration.",
       "materialization": {
@@ -462,7 +480,7 @@
       "packageId": "Orbyss.Foundation.Mcp.AspNetCore",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Shared authenticated stateless MCP Streamable HTTP transport.",
       "materialization": {
@@ -481,16 +499,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Mcp.AspNetCore",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Mcp.AspNetCore",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.OpenApi.Exporter": {
       "packageId": "Orbyss.Foundation.OpenApi.Exporter",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Pinned CLI tool that exports the composed application OpenAPI contract.",
       "materialization": {
@@ -512,7 +532,7 @@
       "packageId": "Orbyss.Foundation.Tasks",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Default task discovery and shell-lifetime execution.",
       "materialization": {
@@ -536,16 +556,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "FoundationTasks",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "FoundationTasks",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Tasks.Abstractions": {
       "packageId": "Orbyss.Foundation.Tasks.Abstractions",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Startup, background, recurring, and shell-lifetime task contracts.",
       "materialization": {
@@ -569,7 +591,7 @@
       "packageId": "Orbyss.Foundation.Web.Discovery",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Explicit public discovery document publication feature.",
       "materialization": {
@@ -588,16 +610,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Web.Discovery",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Web.Discovery",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Web.Discovery.Abstractions": {
       "packageId": "Orbyss.Foundation.Web.Discovery.Abstractions",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Public-document catalog contracts.",
       "materialization": {
@@ -621,7 +645,7 @@
       "packageId": "Orbyss.Foundation.Web.OpenApi",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Shell-owned ASP.NET Core OpenAPI endpoint composition.",
       "materialization": {
@@ -640,16 +664,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Web.OpenApi",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Web.OpenApi",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.Web.ProblemDetails": {
       "packageId": "Orbyss.Foundation.Web.ProblemDetails",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Shell-owned Problem Details response composition.",
       "materialization": {
@@ -668,16 +694,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.Web.ProblemDetails",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Web.ProblemDetails",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Foundation.WebDefaults": {
       "packageId": "Orbyss.Foundation.WebDefaults",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "nuget-org",
       "role": "Correlation, security headers, and application-neutral ASP.NET Core defaults.",
       "materialization": {
@@ -696,16 +724,18 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Foundation.WebDefaults",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.WebDefaults",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Forms.Abstractions": {
       "packageId": "Orbyss.Forms.Abstractions",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Form definitions, releases, drafts, submissions, actions, attachments, and lifecycle contracts.",
       "materialization": {
@@ -723,13 +753,14 @@
         ]
       },
       "requires": [],
-      "configuration": []
+      "configuration": [],
+      "supportsBuildTime": true
     },
     "nuget:Orbyss.Forms.JsonForms": {
       "packageId": "Orbyss.Forms.JsonForms",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Deterministic compilation to JSON Forms-compatible artifacts.",
       "materialization": {
@@ -753,16 +784,19 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.JsonForms",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.JsonForms",
+          "targetSlot": "shell"
+        }
+      ],
+      "supportsBuildTime": true
     },
     "nuget:Orbyss.Forms.Localization": {
       "packageId": "Orbyss.Forms.Localization",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Bridge from form-localized text references to localization services.",
       "materialization": {
@@ -790,16 +824,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Localization",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Localization",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Forms.Management": {
       "packageId": "Orbyss.Forms.Management",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Trusted definition validation, compatibility analysis, catalog queries, and publication orchestration.",
       "materialization": {
@@ -818,16 +854,19 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Management",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Management",
+          "targetSlot": "shell"
+        }
+      ],
+      "supportsBuildTime": true
     },
     "nuget:Orbyss.Forms.Management.Mcp.AspNetCore": {
       "packageId": "Orbyss.Forms.Management.Mcp.AspNetCore",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Forms management MCP tool contributor for the shared Foundation transport.",
       "materialization": {
@@ -855,16 +894,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Management.Mcp.AspNetCore",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Management.Mcp.AspNetCore",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Forms.Management.Tool": {
       "packageId": "Orbyss.Forms.Management.Tool",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Trusted form authoring, validation, publication, and retirement tools.",
       "materialization": {
@@ -888,7 +929,7 @@
       "packageId": "Orbyss.Forms.Storage.Abstractions",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Replaceable form definition, release, draft, submission, and attachment storage ports.",
       "materialization": {
@@ -906,13 +947,14 @@
         ]
       },
       "requires": [],
-      "configuration": []
+      "configuration": [],
+      "supportsBuildTime": true
     },
     "nuget:Orbyss.Forms.Storage.FileSystem": {
       "packageId": "Orbyss.Forms.Storage.FileSystem",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Non-database filesystem adapter for form storage ports.",
       "materialization": {
@@ -936,16 +978,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Storage.FileSystem",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Storage.FileSystem",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Forms.Storage.InMemory": {
       "packageId": "Orbyss.Forms.Storage.InMemory",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Non-durable in-memory form storage adapter for tests and development.",
       "materialization": {
@@ -973,16 +1017,19 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Storage.InMemory",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Storage.InMemory",
+          "targetSlot": "shell"
+        }
+      ],
+      "supportsBuildTime": true
     },
     "nuget:Orbyss.Forms.Submissions": {
       "packageId": "Orbyss.Forms.Submissions",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Draft, submission, attachment, review, and release-migration application operations.",
       "materialization": {
@@ -1010,16 +1057,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Submissions",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Submissions",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Forms.Submissions.Mcp.AspNetCore": {
       "packageId": "Orbyss.Forms.Submissions.Mcp.AspNetCore",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Owner-scoped submission MCP tool contributor for the shared Foundation transport.",
       "materialization": {
@@ -1047,16 +1096,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Submissions.Mcp.AspNetCore",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Forms.Submissions.Tool": {
       "packageId": "Orbyss.Forms.Submissions.Tool",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Draft, submission, attachment, and review tools independent of MCP transport.",
       "materialization": {
@@ -1080,7 +1131,7 @@
       "packageId": "Orbyss.Forms.Web.Management",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Authenticated form management HTTP endpoints.",
       "materialization": {
@@ -1104,16 +1155,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Web.Management",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Web.Management",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Forms.Web.Runtime": {
       "packageId": "Orbyss.Forms.Web.Runtime",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Cacheable immutable form catalog and release HTTP endpoints.",
       "materialization": {
@@ -1137,16 +1190,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Web.Runtime",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Web.Runtime",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Forms.Web.Submissions": {
       "packageId": "Orbyss.Forms.Web.Submissions",
       "family": "forms",
       "ecosystem": "nuget",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "nuget-org",
       "role": "Authenticated owner-scoped draft, submission, and attachment HTTP endpoints.",
       "materialization": {
@@ -1170,16 +1225,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Forms.Web.Submissions",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Forms.Web.Submissions",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "npm:@orbyss-io/forms-actions": {
       "packageId": "@orbyss-io/forms-actions",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Framework-neutral governed form action execution contracts.",
       "materialization": {
@@ -1199,11 +1256,11 @@
       "packageId": "@orbyss-io/forms-ajv-build",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Build-time AJV validator compilation for form schemas.",
       "materialization": {
-        "kind": "npm-dependency",
+        "kind": "npm-dev-dependency",
         "allowedTargetKinds": [
           "npm-package"
         ],
@@ -1219,7 +1276,7 @@
       "packageId": "@orbyss-io/forms-angular",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Thin Angular renderer binding.",
       "materialization": {
@@ -1239,7 +1296,7 @@
       "packageId": "@orbyss-io/forms-contracts",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Frontend form artifact and runtime contracts.",
       "materialization": {
@@ -1259,7 +1316,7 @@
       "packageId": "@orbyss-io/forms-editor-contracts",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Shared editor and modeler integration contracts.",
       "materialization": {
@@ -1279,7 +1336,7 @@
       "packageId": "@orbyss-io/forms-jsonforms-runtime",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Framework-neutral JSON Forms runtime adapter.",
       "materialization": {
@@ -1299,7 +1356,7 @@
       "packageId": "@orbyss-io/forms-lookups",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Lookup-provider contracts and runtime support.",
       "materialization": {
@@ -1319,7 +1376,7 @@
       "packageId": "@orbyss-io/forms-react",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Thin React renderer binding and reference controls.",
       "materialization": {
@@ -1339,7 +1396,7 @@
       "packageId": "@orbyss-io/forms-renderer-registry",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Renderer registration, ranking, and selection.",
       "materialization": {
@@ -1359,7 +1416,7 @@
       "packageId": "@orbyss-io/forms-ui-theme",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "CSS-first semantic tokens, slots, class maps, and unstyled mode.",
       "materialization": {
@@ -1379,7 +1436,7 @@
       "packageId": "@orbyss-io/forms-vue",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Thin Vue renderer binding.",
       "materialization": {
@@ -1399,7 +1456,7 @@
       "packageId": "@orbyss-io/forms-wizard",
       "family": "forms",
       "ecosystem": "npm",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "source": "github-orbyss-npm",
       "role": "Framework-neutral wizard navigation and progress behavior.",
       "materialization": {
@@ -1437,7 +1494,8 @@
         ]
       },
       "requires": [],
-      "configuration": []
+      "configuration": [],
+      "supportsBuildTime": true
     },
     "nuget:Orbyss.Localization.Formats": {
       "packageId": "Orbyss.Localization.Formats",
@@ -1462,10 +1520,12 @@
       },
       "requires": [],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Formats",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Formats",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Localization.Management": {
       "packageId": "Orbyss.Localization.Management",
@@ -1499,10 +1559,12 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Management",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Management",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Localization.Management.Mcp.AspNetCore": {
       "packageId": "Orbyss.Localization.Management.Mcp.AspNetCore",
@@ -1536,10 +1598,12 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Management.Mcp.AspNetCore",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Management.Mcp.AspNetCore",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Localization.Management.Tool": {
       "packageId": "Orbyss.Localization.Management.Tool",
@@ -1593,10 +1657,12 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Runtime",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Runtime",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Localization.Runtime.Mcp.AspNetCore": {
       "packageId": "Orbyss.Localization.Runtime.Mcp.AspNetCore",
@@ -1630,10 +1696,12 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Runtime.Mcp.AspNetCore",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Localization.Runtime.Tool": {
       "packageId": "Orbyss.Localization.Runtime.Tool",
@@ -1711,10 +1779,12 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Storage.FileSystem",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Storage.FileSystem",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Localization.Storage.InMemory": {
       "packageId": "Orbyss.Localization.Storage.InMemory",
@@ -1748,10 +1818,12 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Storage.InMemory",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Storage.InMemory",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Localization.Web.Management": {
       "packageId": "Orbyss.Localization.Web.Management",
@@ -1781,10 +1853,12 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Web.Management",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Web.Management",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "nuget:Orbyss.Localization.Web.Runtime": {
       "packageId": "Orbyss.Localization.Web.Runtime",
@@ -1814,16 +1888,18 @@
         }
       ],
       "configuration": [],
-      "activations": [{
-        "featureIdentity": "Orbyss.Localization.Web.Runtime",
-        "targetSlot": "shell"
-      }]
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Localization.Web.Runtime",
+          "targetSlot": "shell"
+        }
+      ]
     },
     "oci:ghcr.io/orbyss-io/foundation-host": {
       "packageId": "ghcr.io/orbyss-io/foundation-host",
       "family": "foundation",
       "ecosystem": "oci",
-      "version": "0.1.0",
+      "version": "0.2.2",
       "source": "github-container-registry",
       "role": "Immutable external host for runnable Foundation feature composition.",
       "materialization": {
@@ -1838,6 +1914,95 @@
       },
       "requires": [],
       "configuration": []
+    },
+    "nuget:Orbyss.Foundation.Json": {
+      "packageId": "Orbyss.Foundation.Json",
+      "family": "foundation",
+      "ecosystem": "nuget",
+      "version": "0.2.2",
+      "source": "nuget-org",
+      "role": "Explicit strict/tolerant JSON contracts and bounded typed admission.",
+      "materialization": {
+        "kind": "nuget-project",
+        "allowedTargetKinds": [
+          "dotnet-project"
+        ],
+        "allowedRoles": [
+          "api",
+          "bridge",
+          "composition",
+          "helper",
+          "implementation",
+          "provider"
+        ]
+      },
+      "requires": [],
+      "configuration": []
+    },
+    "nuget:Orbyss.Foundation.Json.AspNetCore": {
+      "packageId": "Orbyss.Foundation.Json.AspNetCore",
+      "family": "foundation",
+      "ecosystem": "nuget",
+      "version": "0.2.2",
+      "source": "nuget-org",
+      "role": "Shell-local named JSON profiles explicitly consumed by endpoints.",
+      "materialization": {
+        "kind": "nuget-project",
+        "allowedTargetKinds": [
+          "dotnet-project"
+        ],
+        "allowedRoles": [
+          "api",
+          "bridge",
+          "composition",
+          "helper",
+          "implementation",
+          "provider"
+        ]
+      },
+      "requires": [
+        {
+          "package": "nuget:Orbyss.Foundation.Json",
+          "targetSlot": "same-target"
+        }
+      ],
+      "configuration": [],
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Json.AspNetCore",
+          "targetSlot": "shell"
+        }
+      ]
+    },
+    "nuget:Orbyss.Foundation.Web.HostedPages": {
+      "packageId": "Orbyss.Foundation.Web.HostedPages",
+      "family": "foundation",
+      "ecosystem": "nuget",
+      "version": "0.2.2",
+      "source": "nuget-org",
+      "role": "Typed hosted pages and admitted immutable Vite assets.",
+      "materialization": {
+        "kind": "nuget-project",
+        "allowedTargetKinds": [
+          "dotnet-project"
+        ],
+        "allowedRoles": [
+          "api",
+          "bridge",
+          "composition",
+          "helper",
+          "implementation",
+          "provider"
+        ]
+      },
+      "requires": [],
+      "configuration": [],
+      "activations": [
+        {
+          "featureIdentity": "Orbyss.Foundation.Web.HostedPages",
+          "targetSlot": "shell"
+        }
+      ]
     }
   },
   "capabilities": {
@@ -1858,7 +2023,7 @@
     },
     "forms": {
       "suggestedCompositions": [
-        "forms_runtime"
+        "forms_immutable_release"
       ]
     },
     "localization": {
@@ -2071,9 +2236,7 @@
           "validationPhase": "runtime"
         }
       ],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "browser_spa_pkce": {
       "when": "A static or independently hosted SPA holds access tokens.",
@@ -2191,9 +2354,7 @@
           "validationPhase": "runtime"
         }
       ],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "service_to_service": {
       "when": "A service calls an authenticated downstream API.",
@@ -2254,9 +2415,7 @@
       ],
       "conflicts": [],
       "configuration": [],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "identity_administration": {
       "when": "Trusted services administer users, clients, scopes, sessions, or provider configuration.",
@@ -2350,9 +2509,7 @@
       "optionGroups": [],
       "conflicts": [],
       "configuration": [],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "public_discovery": {
       "when": "The application explicitly publishes validated public metadata or documents.",
@@ -2389,9 +2546,7 @@
       "optionGroups": [],
       "conflicts": [],
       "configuration": [],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "domain_events": {
       "when": "A bounded context needs in-process domain-event dispatch.",
@@ -2467,9 +2622,7 @@
       "optionGroups": [],
       "conflicts": [],
       "configuration": [],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "forms_runtime": {
       "when": "A product renders immutable, schema-driven forms.",
@@ -2616,9 +2769,7 @@
       ],
       "conflicts": [],
       "configuration": [],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "forms_operations": {
       "when": "A product stores drafts, submissions, or attachments.",
@@ -2778,9 +2929,7 @@
       ],
       "conflicts": [],
       "configuration": [],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "forms_authoring_frontend": {
       "when": "Trusted operators need visual and source authoring or modeler integration.",
@@ -2870,9 +3019,7 @@
       ],
       "conflicts": [],
       "configuration": [],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "localization_storage": {
       "when": "Localization catalogs require a selected persistence adapter.",
@@ -3020,9 +3167,7 @@
       ],
       "conflicts": [],
       "configuration": [],
-      "notes": [
-        null
-      ]
+      "notes": []
     },
     "localization_management": {
       "when": "Trusted operators validate, import, publish, compare, or retire localization catalogs.",
@@ -3087,8 +3232,210 @@
       ],
       "conflicts": [],
       "configuration": [],
+      "notes": []
+    },
+    "forms_immutable_release": {
+      "when": "A product consumes immutable forms produced through public create/review/approve/publish APIs during its build.",
+      "scopeKind": "application",
+      "targetSlots": {
+        "producer": {
+          "kind": "dotnet-project",
+          "allowedRoles": [
+            "helper",
+            "composition"
+          ]
+        },
+        "frontend": {
+          "kind": "npm-package",
+          "allowedRoles": [
+            "frontend-authoring",
+            "frontend-runtime"
+          ]
+        }
+      },
+      "requirements": [
+        {
+          "package": "nuget:Orbyss.Forms.Abstractions",
+          "targetSlot": "producer"
+        },
+        {
+          "package": "nuget:Orbyss.Forms.JsonForms",
+          "targetSlot": "producer"
+        },
+        {
+          "package": "nuget:Orbyss.Forms.Management",
+          "targetSlot": "producer"
+        },
+        {
+          "package": "npm:@orbyss-io/forms-contracts",
+          "targetSlot": "frontend"
+        },
+        {
+          "package": "npm:@orbyss-io/forms-jsonforms-runtime",
+          "targetSlot": "frontend"
+        },
+        {
+          "package": "npm:@orbyss-io/forms-renderer-registry",
+          "targetSlot": "frontend"
+        },
+        {
+          "package": "nuget:Orbyss.Forms.Storage.InMemory",
+          "targetSlot": "producer"
+        },
+        {
+          "package": "npm:@orbyss-io/forms-ajv-build",
+          "targetSlot": "frontend"
+        }
+      ],
+      "optionGroups": [
+        {
+          "id": "renderer",
+          "minimum": 1,
+          "maximum": 1,
+          "options": {
+            "angular": {
+              "requirements": [
+                {
+                  "package": "npm:@orbyss-io/forms-angular",
+                  "targetSlot": "frontend"
+                }
+              ]
+            },
+            "react": {
+              "requirements": [
+                {
+                  "package": "npm:@orbyss-io/forms-react",
+                  "targetSlot": "frontend"
+                }
+              ]
+            },
+            "vue": {
+              "requirements": [
+                {
+                  "package": "npm:@orbyss-io/forms-vue",
+                  "targetSlot": "frontend"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "extensions",
+          "minimum": 0,
+          "maximum": 4,
+          "options": {
+            "actions": {
+              "requirements": [
+                {
+                  "package": "npm:@orbyss-io/forms-actions",
+                  "targetSlot": "frontend"
+                }
+              ]
+            },
+            "lookups": {
+              "requirements": [
+                {
+                  "package": "npm:@orbyss-io/forms-lookups",
+                  "targetSlot": "frontend"
+                }
+              ]
+            },
+            "wizard": {
+              "requirements": [
+                {
+                  "package": "npm:@orbyss-io/forms-wizard",
+                  "targetSlot": "frontend"
+                }
+              ]
+            },
+            "ui-theme": {
+              "requirements": [
+                {
+                  "package": "npm:@orbyss-io/forms-ui-theme",
+                  "targetSlot": "frontend"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "conflicts": [],
+      "configuration": [],
       "notes": [
-        null
+        "The build producer is not deployed management. Preserve the serialized published release and trusted manifest; runtime uses admitFormRelease, prepareJsonFormsRuntime and the selected facade."
+      ],
+      "buildTimeSlots": [
+        "producer"
+      ]
+    },
+    "json_profiles": {
+      "when": "Typed endpoints require explicit strict request or tolerant response profiles.",
+      "scopeKind": "application",
+      "targetSlots": {
+        "dotnet": {
+          "kind": "dotnet-project",
+          "allowedRoles": [
+            "api",
+            "bridge",
+            "composition",
+            "helper",
+            "implementation",
+            "provider"
+          ]
+        },
+        "shell": {
+          "kind": "cshell-shell",
+          "allowedRoles": [
+            "composition"
+          ]
+        }
+      },
+      "requirements": [
+        {
+          "package": "nuget:Orbyss.Foundation.Json.AspNetCore",
+          "targetSlot": "dotnet"
+        }
+      ],
+      "optionGroups": [],
+      "conflicts": [],
+      "configuration": [],
+      "notes": [
+        "Select from accepted intent; verify actual endpoint configuration and behavior."
+      ]
+    },
+    "hosted_pages": {
+      "when": "A public page uses the supported typed bootstrap and immutable Vite asset contract.",
+      "scopeKind": "application",
+      "targetSlots": {
+        "dotnet": {
+          "kind": "dotnet-project",
+          "allowedRoles": [
+            "api",
+            "bridge",
+            "composition",
+            "helper",
+            "implementation",
+            "provider"
+          ]
+        },
+        "shell": {
+          "kind": "cshell-shell",
+          "allowedRoles": [
+            "composition"
+          ]
+        }
+      },
+      "requirements": [
+        {
+          "package": "nuget:Orbyss.Foundation.Web.HostedPages",
+          "targetSlot": "dotnet"
+        }
+      ],
+      "optionGroups": [],
+      "conflicts": [],
+      "configuration": [],
+      "notes": [
+        "Select from accepted intent; verify actual endpoint configuration and behavior."
       ]
     }
   },

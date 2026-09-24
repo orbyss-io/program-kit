@@ -1,6 +1,50 @@
 # Changelog
 
-## Unreleased
+## 0.12.0 - 2026-09-23
+
+- Reduce bootstrap reading overhead with bounded required-source batches and lossless JSON
+  compaction. Preserve consumer intent, distinguish canonical ADR bindings from raw hashes,
+  and synchronize validated roadmap/prerequisite documentation without weakening drift checks.
+- Use published Foundation 0.2.2, Forms 0.2.0 and Localization 0.1.1 through the managed catalog.
+  Deploy consumer configuration/package bundles with the unchanged published Foundation host.
+- Enforce the complete deterministic source-validator inventory in CI and tagged Release,
+  including real component, .NET engineering and PostgreSQL checks with the managed SDK.
+
+- Separate feature planning decisions from delivery execution evidence; retain each obligation's
+  actual due phase through specification intake and use current native receipts without rewriting
+  bootstrap approvals. Generate consumer security-case mappings from quality attributes, provide
+  exact roadmap authoring contracts, and report all output-size failures in one batch.
+
+- Provision and verify schema dependencies for both the workflow engine Python and
+  native shell Python before bootstrap or resume dispatch, preventing mixed-interpreter
+  installations from failing only at the final completion step.
+
+- Separate bootstrap initialization from slice-phase eligibility. Preserve unanswered intent,
+  proposed journeys and open compatibility obligations in reviewed records without requiring
+  a Ready first slice. Gate specification, planning and implementation at their actual boundaries;
+  classify structured clarification/design handoffs as pauses and retain technical failures.
+
+- Derive terminal bootstrap readiness from validated authority instead of a late
+  agent-authored narrative verdict. Review substantive first-slice findings in
+  closure before acceptance; preserve ADR history without routine status-only
+  supersession. Share deterministic readiness with bounded native recovery.
+- Apply the existing .NET engineering knowledge through scoped phase obligations, attributable
+  source review, compiler diagnostics and executed behavior evidence. Include typed boundaries,
+  SOLID, deferred initialization, concurrency, lifetime, secure I/O and operation-level API proof.
+- Resolve persistence per data owner through the same setup and upgrade coordinator. Default
+  approved .NET server-relational intent to EF/PostgreSQL, require provider admission, preserve
+  accepted bootstrap intent and consumer customizations, and guard evaluated package ownership.
+- Prepare isolated PostgreSQL deployment and restart evidence for the fictional live fixture,
+  using the published Foundation host and consumer release bundle. Paid trials remain separately
+  authorized; deterministic validation alone does not establish live quality or token improvements.
+- Coordinate approved repository setup through governance sync at bootstrap handoff, planning,
+  implementation setup and upgrade. Retire the public .NET sync command without a compatibility alias.
+- Share exact Node/npm, catalog registry and CA context across package metadata, isolated strict
+  graphs and restore. Bind evidence to current inputs and resume unchanged completed operations.
+- Materialize only existing accepted composition targets, preserve future feature placements and
+  consumer edits, and distinguish offline convergence from locked package verification.
+- Add deterministic phase, conflict, recovery and upgrade checks plus one-use, checkpoint-bound
+  live feature/upgrade stages. Live functional acceptance and efficiency claims require actual evidence.
 
 ## 0.11.0 - 2026-09-12
 
@@ -343,8 +387,8 @@
   listener, starting consumer hosted services, or running shell initializers; materializes the raw
   ASP.NET Core document; normalizes and compatibility-checks it; runs a separately locked client
   generator; and finally compiles the consuming application's TypeScript graph.
-- Replace the incomplete post-build MSBuild hook—which assumed some unspecified actor had already
-  generated OpenAPI—with consumer-owned contract registration and explicit build orchestration.
+- Replace the incomplete post-build MSBuild hookâ€”which assumed some unspecified actor had already
+  generated OpenAPIâ€”with consumer-owned contract registration and explicit build orchestration.
   Empty registries restore no exporter or npm dependencies, while configured contracts preserve
   hash-bound producer, package, document, generator, and application evidence.
 - Reject implementation readiness with `PKA014` when .NET-to-TypeScript OpenAPI plans omit the

@@ -1,5 +1,23 @@
 # Interactive intake acceptance
 
+## Constraint and completion regressions
+
+Evaluate these cases in the existing interactive intake exercise; deterministic schema checks
+alone cannot establish correct interview semantics. Do not add these expected answers to the
+consumer's product idea or preselect its roadmap.
+
+| Consumer evidence | Required interview/handoff behavior |
+| --- | --- |
+| Small private application; accepts Program Kit recommendations; supplies no hard constraints | Adopt applicable local defaults. Record constraints as unspecified, without claiming they do not exist. No generic pre-architecture constraints question. |
+| Optional cost/provider follow-up receives no answer | Keep later production/service decisions at their actual trigger; do not promote the optional question into an immediate blocker. |
+| Consumer explicitly requires a particular identity service or forbids local containers | Preserve the constraint. Research compatibility and ask only for facts needed to resolve a concrete conflict with the managed baseline. |
+| Immediate outcome requires provisioning a paid hosted service, with no spending approval | The actual commitment remains blocked. Local defaults and blanket recommendation acceptance do not authorize spending. |
+| A necessary product/trust-boundary answer remains unknown and no default resolves it | Ask before confirming intake; assigning the question to architecture cannot conceal missing intake work. |
+| A future journey has unresolved detailed rules | Retain its owner and feature trigger without expanding the first slice or blocking unrelated bootstrap work. |
+
+Record both false blockers and missed required questions. Inspect source evidence, recommendations,
+accepted answers and final dispositions together; question count alone does not establish coverage.
+
 From the candidate checkout in a fresh user-owned PowerShell console:
 
 ```powershell

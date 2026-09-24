@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$Model = '',
+    [string]$IdeaFile = '',
+    [string]$AcceptanceContracts = '',
     [switch]$KeepWorkspace,
     [switch]$PrepareOnly
 )
@@ -25,7 +27,10 @@ try {
     $env:PYTHONUTF8 = '1'
     # Native stderr is not itself failure in Windows PowerShell 5.1. Exit codes are authoritative.
     $ErrorActionPreference = 'Continue'
-    & $python $helper prepare --record $record
+    $prepareArguments = @($helper, 'prepare', '--record', $record)
+    if ($IdeaFile) { $prepareArguments += @('--idea-file', (Resolve-Path -LiteralPath $IdeaFile).Path) }
+    if ($AcceptanceContracts) { $prepareArguments += @('--acceptance-contracts', (Resolve-Path -LiteralPath $AcceptanceContracts).Path) }
+    & $python @prepareArguments
     if ($LASTEXITCODE -ne 0) { throw "Intake setup failed. Evidence: $record" }
     $state = Get-Content -Raw -LiteralPath (Join-Path $record 'session.json') | ConvertFrom-Json
     if ($PrepareOnly) { $sessionExit = 0 }
@@ -33,9 +38,11 @@ try {
         Write-Host "Review evidence: $record"
         Write-Host 'This opens an interactive Codex intake using your normal login and configured model (unless -Model is given). Normal model usage applies.'
         Write-Host 'The conversation and workspace are saved locally for review. Do not enter secrets. Exit Codex with /quit when finished; bootstrap will not be started.'
-        $idea = Read-Host 'What product do you want to build? (You can elaborate inside Codex)'
-        if ([string]::IsNullOrWhiteSpace($idea)) { throw 'A product idea is required.' }
-        [IO.File]::WriteAllText((Join-Path $state.workspace 'product-idea.md'), $idea, (New-Object Text.UTF8Encoding($false)))
+        if (-not $IdeaFile) {
+            $idea = Read-Host 'What product do you want to build? (You can elaborate inside Codex)'
+            if ([string]::IsNullOrWhiteSpace($idea)) { throw 'A product idea is required.' }
+            [IO.File]::WriteAllText((Join-Path $state.workspace 'product-idea.md'), $idea, (New-Object Text.UTF8Encoding($false)))
+        }
         $arguments = @('--cd', $state.workspace, '--sandbox', 'workspace-write',
             '--ask-for-approval', 'on-request', '--no-alt-screen')
         if ($Model) { $arguments += @('--model', $Model) }

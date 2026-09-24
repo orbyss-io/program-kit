@@ -1,0 +1,69 @@
+{
+  "repository": "https://github.com/orbyss-io/forms",
+  "release": "0.2.0",
+  "scope": "Released npm package integration and renderer regression, not live-agent or fictional consumer acceptance.",
+  "adaptations": [
+    "Exact released dependencies replace local workspaces.",
+    "Browser output confined to new disposable fixture.",
+    "Theme copied as test-owned CSS."
+  ],
+  "files": [
+    {
+      "path": "package.json",
+      "sha256": "73c68db0af360c3cd87452b7af3f77cc736c2b93791e5066ffb7622806e55835"
+    },
+    {
+      "path": "tests/fixtures/published-product.json",
+      "sha256": "3444562dda9bee2502ca8e59d5969c54c0d0bd65eae146274110709d33893731"
+    },
+    {
+      "path": "tests/forms-browser/app.tsx",
+      "sha256": "4b9b26cb98066e92ffca24189193c0f6bee27743095fa7c4d80931dcd4f22efc"
+    },
+    {
+      "path": "tests/forms-browser/browser.mjs",
+      "sha256": "a946b583ae808c789dd34828f0e2d455f8c76830a352b6e6ebbb0fb1c245e96a"
+    },
+    {
+      "path": "tests/forms-browser/build.mjs",
+      "sha256": "233fe6852cdda893620361dae94616bf7b081edec0d4cd73f2a33690452e008f"
+    },
+    {
+      "path": "tests/forms-browser/deployment.mjs",
+      "sha256": "d1c73a01706e4b16c8836b87ea6738f2528605b8d84e22656d873d419d329ddc"
+    },
+    {
+      "path": "tests/forms-browser/index.html",
+      "sha256": "c73cc412311cfd21d3afa06f05b5d31ef2792a9d652b787ebbf59643d182a045"
+    },
+    {
+      "path": "tests/forms-browser/locales.mjs",
+      "sha256": "43f38b3be5e17b77d58f368f554e5b620968586d7ad00218c9699aedf234363c"
+    },
+    {
+      "path": "tests/forms-browser/program-kit-validator.d.ts",
+      "sha256": "73b1da90e8bc03c965a4d5f572df3a8edcbfa030f91aae31483b1bebae6ea168"
+    },
+    {
+      "path": "tests/forms-browser/reference-theme.css",
+      "sha256": "4d4d3985be3987fceb15c7282b040e7086eb87818f32ac8124afe8591c500e3c"
+    },
+    {
+      "path": "tests/forms-browser/schema.mjs",
+      "sha256": "5a2492589665068eef7cc275a6536abb6bc275f53aae428450711284eaa413ac"
+    },
+    {
+      "path": "tests/forms-browser/styles.css",
+      "sha256": "bb44749ee2a9eb33913d898a4a19bcbeabfd41965f89ebf3516a4d5868c5b27b"
+    },
+    {
+      "path": "tests/forms-browser/tsconfig.json",
+      "sha256": "aac0935ad113a321ffd4dc2c4a321b390eeb9871de5815d5f86c29daba4751e0"
+    },
+    {
+      "path": "tests/release-integration.test.mjs",
+      "sha256": "46b2c919019de6c944d0b86e1b100f2374b7bfe2aa02f9b20390955ea193755b"
+    }
+  ],
+  "hashEncoding": "UTF-8 bytes with CRLF normalized to LF; all other bytes preserved"
+}

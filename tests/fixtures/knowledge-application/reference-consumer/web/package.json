@@ -1,0 +1,5 @@
+{
+  "name": "equipment-lending-reference", "version": "1.0.0", "private": true,
+  "type": "module", "scripts": {"build": "tsc && node build.mjs", "verify": "npm run build"},
+  "devDependencies": {"typescript": "7.0.2"}
+}

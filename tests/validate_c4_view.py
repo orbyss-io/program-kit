@@ -371,6 +371,10 @@ def main() -> int:
         registered["status"] = "confirmed"
         write(intake_path, json.dumps(registered, indent=2) + "\n")
         confirmed = viewer.validate_projection(project)
+        marker = project / '.specify/proxy-intake.json'
+        write(marker, '{}')
+        expect_failure(lambda: viewer.validate_projection(project), 'PROXY_INTAKE_NON_AUTHORIZING')
+        marker.unlink()
         if confirmed["review_mode"] != "confirmed-baseline-review" or confirmed["intake_binding"] != "confirmed-intake":
             raise AssertionError(f"Confirmed intake review regressed: {confirmed}")
 

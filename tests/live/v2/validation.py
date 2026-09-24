@@ -59,7 +59,9 @@ def validate_consumer(project: Path, expectation: dict[str, Any]) -> dict[str, o
     if any("value" in item for item in requirements if isinstance(item, dict)):
         raise LiveContractError("LIVE_VALIDATION_CONFIGURATION_VALUE_PRESENT")
     hosts = load_object(project / ".program-kit/building-blocks.hosts.json").get("hosts", [])
-    if len(hosts) != 1 or hosts[0].get("reference") != "ghcr.io/orbyss-io/foundation-host:v0.1.0":
+    expected_hosts = {entry.removeprefix('oci:').rsplit('@', 1)[0] + ':v' + entry.rsplit('@', 1)[1]
+                      for entry in expected_packages if entry.startswith('oci:')}
+    if {host.get('reference') for host in hosts} != expected_hosts or len(hosts) != len(expected_hosts):
         raise LiveContractError("LIVE_VALIDATION_HOST_REFERENCE_MISMATCH")
     return {
         "compositionCount": len(actual_compositions),

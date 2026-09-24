@@ -2,6 +2,23 @@
 description: Research current architecture, delivery, and quality tooling for the detected context.
 ---
 
+Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage research --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
+
+For required sources, execute `reading_policy.read_command` and follow its pages; it batches only the required files under one aggregate byte limit and compacts JSON without dropping values. Reuse content already received. For an omitted decisive fact use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <exact-indexed-path> --keys` to discover JSON keys, then `--pointer /known/key`; omit the pointer for the root. Repeat `--path` to bundle small documents under the same total limit. Do not read future outputs or dump optional evidence/catalogs. Use the exact installed helper path; do not reconstruct it. Return each bounded page once, with an output budget of at least 6000 tokens; do not aggregate several pages into another tool response.
+
+
+## Stage responsibility
+
+Separate bounded external mechanism proofs (bootstrap closure) from application behavior tests
+(feature delivery). Do not require unimplemented consumer journeys during closure; assign their
+test design to feature planning and execution to delivery, retaining exact owners and triggers.
+
+Resolve the first-slice provider and stack worklist, including consumer-owned design. Apply the
+resolved defaults and use recorded answers from stage_plan.decision_handoff. Mark research-owned
+questions resolved with evidence before handoff; production-only concerns keep their actual due
+trigger. A newly discovered necessary human answer uses stage_plan.question_transport, followed
+by an immediate return. Do not ask an unattended asynchronous question and continue as if answered.
+
 ## Input
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
@@ -22,14 +39,33 @@ Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
 counts; do not trade away required evidence merely to reach a target.
 
-For a single-journey baseline verification, compose the first complete
+For baseline verification of the selected first slice, including its supporting journeys, compose the first complete
 `tooling-evaluation.md` draft in at most 700 words and aim below 5,500 UTF-8 bytes. Do not write a
-long draft and trim it toward the target, and do not measure it repeatedly. When updating multiple
+long draft and trim it toward the hard limit. Use output_contract.draft_size_command once after the write; if oversized, revise toward the generation target in one coherent edit, preserving source evidence. This advisory check does not replace terminal validation. When updating multiple
 files in one patch, use exactly one patch operation per path; never target the same file twice in a
 single patch call. Run the supplied terminal validation batch after the write and repair only a
 named diagnostic.
 
 ## Rules
+
+Use `stage_plan.provider_inputs` before external discovery. Its managed baseline
+evidence supplies exact publisher/registry identities, dated package declarations,
+distribution notices, maintenance evidence and explicit gaps even before architecture
+has written its selection. Query the named evidence file for a specific package or
+notice; do not read the full inventory or reconstruct publisher URLs. A missing GitHub
+Release page does not negate an observed registry artifact and successful publisher
+workflow. A failed web-page fetch warrants the supplied canonical metadata source,
+not an unbounded new admission prerequisite.
+
+Assess license/support risk against actual consumer constraints and the due activity.
+Preserve source attribution, preview risk and unknown scanner fields. Bootstrap needs
+bounded evidence for selecting/testing the managed mechanism; actual consumer lockfile
+notices and redistribution obligations belong before packaging/distribution unless a
+concrete restriction blocks the selected design now. Never certify the whole host as
+MIT, invent support guarantees, or silently waive a known conflicting term. Name the
+specific artifact, question, source route, owner and due action for any retained gap.
+The projected persistence runtime supplies the test server pin; its package pins come
+from the existing profile props. Explicit alternatives retain their own provider work.
 
 Use `stage_plan.building_blocks.composition_contracts` when supplied to check managed capability
 options before proposing a stack. Distinguish supported managed options from unverified adapter
@@ -100,7 +136,12 @@ defined by intake for every other collection. Keep the human-facing decision set
 implementation details into later specifications and adoption triggers rather than creating a
 separate blocking ADR for every tool.
 
-Evaluate API Evolve when the project introduces a versioned external API, event, RPC, or schema contract. Evaluate Reqnroll BDD when multistep externally observable behavior benefits from executable examples. Evaluate ArchUnitNET when .NET assembly dependency rules are present. These are evaluation triggers, not automatic acceptance.
+For versioned external contracts, apply the evaluated API evolution decision in
+`modularity-and-contracts.md` and the existing contract pipeline. Research an unresolved protocol or
+runtime version-negotiation gap; do not repeatedly evaluate or install the incompatible API Evolve
+v1.0.0 hooks. Evaluate Reqnroll BDD when multistep externally observable behavior benefits from
+executable examples. Evaluate ArchUnitNET when .NET assembly dependency rules are present. These
+are evaluation triggers, not automatic acceptance.
 
 When .NET modularity or multi-tenancy is present, evaluate CShells and CShells.AspNetCore against the
 triggers and risks in the .NET technology profile. When ASP.NET Core HTTP endpoints are present,

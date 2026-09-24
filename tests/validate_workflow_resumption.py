@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import os
+import re
 import sys
 import tempfile
 import yaml
@@ -49,6 +50,7 @@ def ready_tail():
 
 def setup(root):
     fixture.setup(root)
+    life.write(root / 'docs/architecture/bootstrap-proof-plan.json', {'schemaVersion': 1, 'probes': [], 'readyWhenProven': []})
     g.write_review('bootstrap')
     g.accept_bootstrap('approve')
     (root / g.READINESS_REPORT).write_text('**Status**: READY\n\nCurrent reviewed evidence agrees.\n', encoding='utf-8')
@@ -126,7 +128,20 @@ def main():
                     if args == 'readiness':
                         report.write_text('**Status**: NOT READY\n- Blocker: fixture | Owner: Architecture | Next: Reconcile evidence\n', encoding='utf-8')
                     elif command == 'speckit.program-kit-governance.readiness':
+                        matched = re.search(r'Read (\S+/program-kit-context/readiness.json) first', args)
+                        assert matched, 'Continuation readiness lacks its generated stage brief'
+                        brief = life.load(root / matched[1])
+                        assert brief['stage'] == 'readiness'
+                        assert brief['run_id'] in matched[1]
+                        assert brief['output_contract']['artifact_byte_budgets'][g.READINESS_REPORT.as_posix()] == 4096
+                        assert brief['output_contract']['validation_commands'] == [brief['stage_plan']['terminal_condition']['command']]
+                        for name in brief['reading_policy']['allowed_sources']:
+                            (root / name).read_bytes()
+                        evidence = root / brief['evidence_index']['path']
+                        assert life.digest(evidence) == brief['evidence_index']['sha256']
                         report.write_text('**Status**: READY\n\nReviewed unchanged authority and current evidence.\n', encoding='utf-8')
+                        result = fixture.context.validate_stage_batch(root, brief['run_id'], 'readiness')
+                        assert result['completion_eligible']
                     return {'exit_code': 0, 'stdout': 'fixture producer', 'stderr': ''}
                 with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
                     failed = WorkflowEngine(root).execute(definition(ready_tail()), run_id='readiness-retry')
@@ -153,21 +168,27 @@ def main():
                     aborted = WorkflowEngine(root).execute(historical, inputs={'bootstrap_verdict': 'abort'}, run_id='historical-abort')
                     assert aborted.status == RunStatus.ABORTED
                     old = (workflow.run_directory(root, aborted.run_id) / 'state.json').read_bytes()
-                    # Interrupt the real continuation engine at its readiness
-                    # dispatch; it must pause and resume without repeating closure.
+                    # Interrupt the deterministic readiness shell; resumption
+                    # must not repeat closure or start a readiness agent.
                     seen = []
                     def interrupted(self, command, integration, model, args, context):
                         seen.append(command)
-                        if command == 'speckit.program-kit-governance.readiness' and seen.count(command) == 1:
-                            raise KeyboardInterrupt()
+                        assert command != 'speckit.program-kit-governance.readiness'
                         return readiness_dispatch(self, command, integration, model, args, context)
-                    with patch.object(CommandStep, '_try_dispatch', interrupted):
+                    shell_attempts = []
+                    def interrupted_shell(self, config, context):
+                        if config['id'] == 'recovery-readiness':
+                            shell_attempts.append(config['id'])
+                        if config['id'] == 'recovery-readiness' and len(shell_attempts) == 1:
+                            raise KeyboardInterrupt()
+                        return execute(self, config, context)
+                    with patch.object(CommandStep, '_try_dispatch', interrupted), patch.object(ShellStep, 'execute', interrupted_shell):
                         paused = workflow.resume(root, aborted.run_id)
                         assert paused.status == RunStatus.PAUSED and paused.current_step_id == 'recovery-readiness'
                         assert not (root / g.BOOTSTRAP_COMPLETION).exists()
                         done = workflow.resume(root, aborted.run_id)
                         assert done.status == RunStatus.COMPLETED, done.error
-                        assert seen.count('speckit.program-kit-governance.bootstrap-recovery') == 1
+                        assert seen.count('speckit.program-kit-governance.bootstrap-recovery') == 0
                     assert (workflow.run_directory(root, aborted.run_id) / 'state.json').read_bytes() == old
                     assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == approval
                     workflow.validate_engine_completion(root)
@@ -190,6 +211,10 @@ def main():
                 with patch.object(CommandStep, '_try_dispatch', changed_dispatch):
                     failed = WorkflowEngine(root).execute(definition(ready_tail()), run_id='changed-authority')
                     assert failed.status == RunStatus.FAILED
+                    workflow.recovery.prepare(root, failed.run_id)
+                    # A real changed input, not an independently worded report,
+                    # requires correction and renewed review.
+                    architecture.write_bytes(architecture.read_bytes() + b'\nChanged consumer boundary.\n')
                     try:
                         workflow.resume(root, failed.run_id, {'recovery_verdict': 'approve'})
                     except workflow.WorkflowLifecycleError:
@@ -225,6 +250,145 @@ def main():
                 history = root / '.specify/workflows/resumption-history/architecture-retry'
                 assert any((entry / 'inputs.json').is_file() and (entry / 'workflow.yml').is_file()
                            for entry in history.iterdir())
+                # Reproduce the old published continuation's unavailable handoff.
+                # Resume must migrate only readiness and retain accepted authority.
+                (root / g.BOOTSTRAP_COMPLETION).unlink(missing_ok=True)
+                legacy = copy.deepcopy(workflow.continuation_definition(root).data)
+                legacy['workflow']['version'] = '0.12.0'
+                legacy['steps'] = [s for s in legacy['steps'] if s['id'] != 'prepare-recovery-readiness']
+                legacy_readiness = next(s for s in legacy['steps'] if s['id'] == 'recovery-readiness')
+                legacy_readiness.clear()
+                legacy_readiness.update(id='recovery-readiness', type='command',
+                    command='speckit.program-kit-governance.readiness', integration='{{ inputs.integration }}',
+                    input={'args': 'Legacy inaccessible handoff'})
+                def legacy_dispatch(self, command, integration, model, args, context):
+                    if args == 'Legacy inaccessible handoff':
+                        report.write_text('**Status**: NOT READY\n- Blocker: READINESS-CURRENT-EVIDENCE | Owner: Operator | Next: Repair input access\n', encoding='utf-8')
+                        return {'exit_code': 0, 'stdout': 'incomplete assessment', 'stderr': ''}
+                    return readiness_dispatch(self, command, integration, model, args, context)
+                with patch.object(CommandStep, '_try_dispatch', legacy_dispatch):
+                    legacy_source = WorkflowEngine(root).execute(definition(ready_tail()), run_id='legacy-context')
+                    with patch.object(workflow, 'continuation_definition', return_value=WorkflowDefinition(legacy)):
+                        legacy_failed = workflow.resume(root, legacy_source.run_id)
+                assert legacy_failed.current_step_id == 'recovery-require-ready'
+                source_before = (workflow.run_directory(root, legacy_source.run_id) / 'state.json').read_bytes()
+                approval_before = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
+                successful_prefix = copy.deepcopy(legacy_failed.step_results['verify-recovery-source'])
+                old_architecture = architecture.read_bytes()
+                architecture.write_bytes(old_architecture + b'\nUnapproved drift\n')
+                with patch.object(CommandStep, '_try_dispatch', side_effect=AssertionError('No dispatch with changed authority')):
+                    fixture.fails(lambda: workflow.resume(root, legacy_source.run_id), 'stale')
+                architecture.write_bytes(old_architecture)
+                retried_commands = []
+                def repaired_dispatch(self, command, integration, model, args, context):
+                    retried_commands.append(command)
+                    assert command == 'speckit.program-kit-governance.readiness'
+                    return readiness_dispatch(self, command, integration, model, args, context)
+                with patch.object(CommandStep, '_try_dispatch', repaired_dispatch):
+                    repaired = workflow.resume(root, legacy_source.run_id)
+                assert repaired.status == RunStatus.COMPLETED, repaired.error
+                assert len(retried_commands) == 0  # Migrated suffix renders deterministically.
+                assert repaired.step_results['verify-recovery-source'] == successful_prefix
+                assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == approval_before
+                assert (workflow.run_directory(root, legacy_source.run_id) / 'state.json').read_bytes() == source_before
+                workflow.validate_engine_completion(root)
+                mapping_path = root / '.specify/workflows/resumptions/legacy-context.json'
+                mapping_bytes = mapping_path.read_bytes()
+                mapping = life.load(mapping_path)
+                mapping['continuation_run'] = 'unrelated'
+                life.write(mapping_path, mapping)
+                fixture.fails(lambda: fixture.context.build_context(root, repaired.run_id, 'readiness'), 'lineage')
+                mapping_path.write_bytes(mapping_bytes)
+                # Reviewed manual correction skips only the authoring agent and
+                # still reaches the native human gate. The full prepared-review
+                # admission checks are exercised by validate_bootstrap_lifecycle.
+                (root / g.BOOTSTRAP_COMPLETION).unlink(missing_ok=True)
+                with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
+                    prepared_source = WorkflowEngine(root).execute(definition(ready_tail()), run_id='prepared-authority')
+                assert prepared_source.status == RunStatus.FAILED
+                workflow.recovery.prepare(root, prepared_source.run_id)
+                architecture.write_bytes(architecture.read_bytes() + b'\nPrepared scoped correction for review.\n')
+                workflow.recovery.synchronize(root, prepared_source.run_id)
+                workflow.recovery.review(root, prepared_source.run_id)
+                original_state = (root / '.specify/workflows/runs/prepared-authority/state.json').read_bytes()
+                try:
+                    workflow.resume(root, prepared_source.run_id, {'recovery_verdict': 'approve'}, reuse_prepared_recovery=True)
+                except workflow.WorkflowLifecycleError as error:
+                    assert 'preapprove' in str(error)
+                else:
+                    raise AssertionError('Prepared recovery preapproved a future gate')
+                with patch.object(workflow.recovery, 'require_prepared_review', side_effect=life.LifecycleError('stale prepared packet')):
+                    try:
+                        workflow.resume(root, prepared_source.run_id, reuse_prepared_recovery=True)
+                    except life.LifecycleError as error:
+                        assert 'stale prepared packet' in str(error)
+                    else:
+                        raise AssertionError('Stale prepared review dispatched a continuation')
+                assert not (root / '.specify/workflows/resumptions/prepared-authority.json').exists()
+                with patch.object(workflow.recovery, 'require_prepared_review', return_value='f' * 64), \
+                        patch.object(CommandStep, '_try_dispatch', side_effect=AssertionError('No agent before the recovery review')):
+                    prepared = workflow.resume(root, prepared_source.run_id, reuse_prepared_recovery=True)
+                    assert prepared.status == RunStatus.PAUSED and prepared.current_step_id == 'review-recovery', prepared.error
+                assert (root / '.specify/workflows/runs/prepared-authority/state.json').read_bytes() == original_state
+                assert not (root / g.BOOTSTRAP_COMPLETION).exists()
+                # A failed nested acceptance shell returns to packet preparation,
+                # retaining all completed authoring and proof stages.
+                acceptance_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
+                acceptance_calls = []
+                def acceptance_dispatch(self, command, integration, model, args, context):
+                    acceptance_calls.append(args)
+                    return {'exit_code': 0, 'stdout': 'prepared', 'stderr': ''}
+                acceptance_steps = [shell('accepted-prefix', 'python -c "print(1)"'),
+                    agent('architecture-prerequisite-closure'),
+                    shell('write-bootstrap-review', 'python -c "print(1)"'),
+                    {'id': 'route-bootstrap-approval', 'type': 'switch', 'expression': 'false',
+                     'cases': {}, 'default': [
+                        {'id': 'review-bootstrap', 'type': 'gate', 'message': 'Review acceptance repair',
+                         'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'},
+                        shell('accept-bootstrap', 'python -c "print(1); raise SystemExit(1)"')]}]
+                with patch.object(CommandStep, '_try_dispatch', acceptance_dispatch):
+                    pending = workflow.execute_definition(root, definition(acceptance_steps), {}, 'acceptance-repair')
+                    assert pending.status == RunStatus.PAUSED, pending.error
+                    broken = workflow.resume(root, pending.run_id, {'bootstrap_verdict': 'approve'})
+                    assert broken.status == RunStatus.FAILED and broken.current_step_id == 'accept-bootstrap', broken.error
+                    prefix = copy.deepcopy(broken.step_results['accepted-prefix'])
+                    repaired = workflow.resume(root, broken.run_id)
+                    assert repaired.status == RunStatus.PAUSED and repaired.current_step_id == 'review-bootstrap', repaired.error
+                    assert repaired.step_results['accepted-prefix'] == prefix
+                    assert acceptance_calls == ['architecture-prerequisite-closure']
+                    assert 'accept-bootstrap' not in repaired.step_results
+                    assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == acceptance_approval
+                # Explicit, proven shell recovery preserves paid producer work.
+                import bootstrap_proof_plan
+                closure_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
+                closure_calls = []
+                def closure_dispatch(self, command, integration, model, args, context):
+                    closure_calls.append(args)
+                    return {'exit_code': 0, 'stdout': 'prepared', 'stderr': ''}
+                closure_steps = [shell('accepted-prefix', 'python -c "print(1)"'),
+                    agent('architecture-prerequisite-closure'),
+                    shell('execute-compatibility-proofs', 'python -c "from pathlib import Path; print(1); raise SystemExit(0 if Path(\'proof-repaired\').exists() else 2)"'),
+                    {'id': 'review-bootstrap', 'type': 'gate', 'message': 'Review repaired closure',
+                     'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'}]
+                with patch.object(CommandStep, '_try_dispatch', closure_dispatch):
+                    broken = workflow.execute_definition(root, definition(closure_steps), {}, 'proof-repair')
+                    assert broken.status == RunStatus.FAILED
+                    preserved = copy.deepcopy(broken.step_results['accepted-prefix'])
+                    with patch.object(bootstrap_proof_plan, 'require_proven_closure', side_effect=life.LifecycleError('unproven')):
+                        try:
+                            workflow.resume(root, broken.run_id, reuse_proven_closure=True)
+                        except life.LifecycleError:
+                            pass
+                        else:
+                            raise AssertionError('Unproven closure reuse accepted')
+                    (root / 'proof-repaired').write_text('fixture', encoding='utf-8')
+                    with patch.object(bootstrap_proof_plan, 'require_proven_closure', return_value=['runtime']):
+                        resumed = workflow.resume(root, broken.run_id, reuse_proven_closure=True)
+                    assert resumed.status == RunStatus.PAUSED, resumed.error
+                    assert resumed.step_results['accepted-prefix'] == preserved
+                    assert closure_calls == ['architecture-prerequisite-closure']
+                    assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == closure_approval
+                    assert (root / g.CONSTITUTION).read_bytes() == constitution
                 # Saved-definition migration has separate unit evidence. Its
                 # fixture reaches a native gate; it does not claim live success.
                 migration = root / 'migration-case'

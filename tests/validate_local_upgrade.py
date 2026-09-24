@@ -98,6 +98,14 @@ def run(*command: str, cwd: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+def require_offline_setup(result, label):
+    if result.returncode == 3 and 'PKU113 managed setup is coherent; dependency verification remains pending' in result.stderr:
+        if '"readinessScope": "offline-setup"' not in result.stdout or '"blockers": []' not in result.stdout:
+            raise AssertionError('Upgrade did not establish offline setup: ' + result.stdout)
+        return
+    require_success(result, label)
+
+
 def require_success(result: subprocess.CompletedProcess[str], label: str) -> None:
     if result.returncode != 0:
         raise AssertionError(f"{label} failed:\n{result.stdout}{result.stderr}")
@@ -266,7 +274,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
                 "shell": "default",
                 "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": old_runtime},
                 "features": ["Catalog.Api"],
-                "packageClosure": "artifacts/runnable-host/packages",
+                "packageClosure": "artifacts/release-bundle/packages",
                 "rawDocument": "artifacts/openapi/catalog.raw.json",
                 "artifact": "contracts/openapi/catalog.json",
                 "baseline": "contracts/openapi/catalog.baseline.json",
@@ -560,7 +568,7 @@ def main() -> int:
             raise AssertionError("partial upgrade fixture did not leave the expected mixed component state")
 
         installed = run(*command, cwd=project)
-        require_success(installed, "local release upgrade")
+        require_offline_setup(installed, "local release upgrade")
         order = (
             "Resolve bundle composition record",
             "Install bootstrap workflow",
@@ -569,8 +577,8 @@ def main() -> int:
             "Install .NET extension",
             "Remove prior governance preset",
             "Install governance preset",
-            "Resynchronize managed .NET baseline",
-            "Verify managed .NET baseline convergence",
+            "Synchronize existing repository setup",
+            "Verify offline repository convergence",
             "Validate cross-component version coherence",
             "Record accepted governed upgrade",
         )
@@ -591,7 +599,7 @@ def main() -> int:
         }
         if final_versions != {expected}:
             raise AssertionError(f"Bundle record did not converge: {final_records}")
-        if "Resynchronize managed .NET baseline" not in installed.stdout:
+        if "Synchronize existing repository setup" not in installed.stdout:
             raise AssertionError("Updater did not report managed baseline synchronization")
         if bootstrap_decisions.read_bytes() != immutable_decisions:
             raise AssertionError("Updater rewrote immutable bootstrap decisions")
@@ -685,8 +693,10 @@ def main() -> int:
             (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
         )
         expected_commands = [
-            "pwsh -NoProfile -File .program-kit/eng/Restore.ps1 -Subject Program.slnx -ForceEvaluate",
-            "pwsh -NoProfile -File .program-kit/eng/Restore.ps1 -Subject Program.slnx -LockedMode",
+            "python .specify/extensions/program-kit-governance/scripts/repository_sync.py request-renew --phase upgrade",
+            "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py renew --approved --lock .program-kit/sync/dependencies.json --request .program-kit/evidence/building-block-restore-request.json",
+            "python .specify/extensions/program-kit-governance/scripts/repository_sync.py request-locked --phase upgrade",
+            "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py locked --approved --lock .program-kit/sync/dependencies.json --request .program-kit/evidence/building-block-restore-request.json",
         ]
         if (
             lock_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != target_runtime
@@ -729,20 +739,19 @@ def main() -> int:
             "post-reconciliation artifact ownership",
         )
         preflight = project / ".specify/extensions/program-kit-governance/scripts/implementation_preflight.py"
+        lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
         stale = run(
             sys.executable,
-            str(preflight),
+            str(lifecycle_script),
             "--repository",
             str(project),
             "--feature-dir",
             str(feature),
+            "verify-before-implement",
             cwd=project,
         )
         if stale.returncode != 11 or "PKL011" not in stale.stderr:
-            raise AssertionError(
-                "implementation preflight did not block invalidated lifecycle readiness:\n"
-                f"{stale.stdout}{stale.stderr}"
-            )
+            raise AssertionError(f"lifecycle gate did not block invalidated readiness: {stale.stdout}{stale.stderr}")
         lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
         require_success(
             run(
@@ -776,15 +785,28 @@ def main() -> int:
         require_success(
             run(
                 sys.executable,
-                str(preflight),
+                str(lifecycle_script),
                 "--repository",
                 str(project),
                 "--feature-dir",
                 str(feature),
+                "verify-before-implement",
                 cwd=project,
             ),
-            "full mandatory implementation preflight after renewal",
+            "lifecycle readiness after renewal",
         )
+        # This fixture has confirmed intake but has not authored the new phase evidence.
+        # Renewed analysis cannot bypass the independent knowledge-application gate.
+        unconfirmed = run(sys.executable, str(preflight), "--repository", str(project),
+                          "--feature-dir", str(feature), cwd=project)
+        if unconfirmed.returncode == 0 or "PKS003" not in unconfirmed.stderr:
+            raise AssertionError("renewed fixture bypassed accepted alternative-adapter authority: "
+                                 + unconfirmed.stdout + unconfirmed.stderr)
+
+        phase_gate = run(sys.executable, str(preflight.with_name('phase_obligations.py')), 'check',
+                         '--repository', str(project), '--feature-dir', str(feature), '--phase', 'implementation', cwd=project)
+        if phase_gate.returncode == 0 or 'phase-obligations.json' not in phase_gate.stderr:
+            raise AssertionError('Renewed analysis bypassed independent phase evidence: ' + phase_gate.stdout + phase_gate.stderr)
 
         lock_value = json.loads((project / "packages.lock.json").read_text(encoding="utf-8"))
         dependency = lock_value["dependencies"]["net10.0"]["Orbyss.Foundation.Authentication"]
@@ -794,14 +816,17 @@ def main() -> int:
             json.dumps(lock_value, indent=2) + "\n",
             encoding="utf-8",
         )
-        require_success(run(*command, cwd=project), "upgrade convergence after lock renewal")
+        renewed_metadata = run(*command, cwd=project)
+        if renewed_metadata.returncode != 3 or 'dependency verification remains pending' not in renewed_metadata.stderr:
+            raise AssertionError('Changing package lock metadata falsely satisfied shared dependency verification: '
+                                 + renewed_metadata.stdout + renewed_metadata.stderr)
         satisfied_renewal = json.loads(
             (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
         )
         if (
             satisfied_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != target_runtime
-            or satisfied_renewal.get("reason") != "orbyss-building-block-locks-verified"
-            or satisfied_renewal.get("satisfied") is not True
+            or satisfied_renewal.get("reason") != "shared-dependency-verification-pending"
+            or satisfied_renewal.get("satisfied") is not False
         ):
             raise AssertionError(f"NuGet lock renewal did not converge: {satisfied_renewal}")
 

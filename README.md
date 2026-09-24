@@ -52,7 +52,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/Initialize-ProgramKit-0.11.0.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.0/Initialize-ProgramKit-0.12.0.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -71,7 +71,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/Initialize-ProgramKit-0.11.0.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.0/Initialize-ProgramKit-0.12.0.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -152,8 +152,8 @@ Download and verify the full `program-kit-<version>.zip` release asset, extract 
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.11.0\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.11.0 `
+python C:\path\to\program-kit-0.12.0\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.12.0 `
   --target . `
   --integration codex
 ```
@@ -221,6 +221,19 @@ To evaluate the installed intake interactively from a candidate checkout, use th
 in a fresh user-owned terminal. It sets up a disposable consumer, asks for your product idea,
 and opens Codex for human Q&A. It preserves review evidence before cleanup and never starts
 bootstrap. See [interactive intake acceptance](tests/acceptance/intake-grilling.md).
+
+For an explicitly requested non-authorizing rehearsal, use
+`$speckit-program-kit-governance-proxy-intake` or ask for a "proxy intake rehearsal".
+It uses the current session to simulate fictional consumer answers in a disposable consumer:
+one question round for a quick scan, or full draft intake when requested. It preserves the
+questions and answers, validates the requested draft scope, and stops before confirmation and
+bootstrap. This is an optional diagnostic tool, not independent live acceptance or authorization
+for paid workers, implementation or release. See the [proxy intake command](extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-intake.md).
+
+You can explicitly extend a full draft through a same-session bootstrap rehearsal with
+`$speckit-program-kit-governance-proxy-bootstrap`. Native workflow stages and validators run while
+agent commands pause for the current session. Review decisions remain simulated, the intake stays
+draft, and the result has no consumer completion authority. See the [proxy bootstrap command](extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-bootstrap.md).
 
 For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
 ratification:
@@ -363,13 +376,20 @@ cancellation behavior, OpenAPI compatibility evidence, and traceability to its v
 Project-specific technology choices outside the approved bootstrap baseline remain Proposed until
 their ADR is accepted.
 
-Selecting the .NET profile adopts `Orbyss.Foundation.Host` by default and makes
-`speckit.program-kit-dotnet.sync` available. The sync command scaffolds central build/package management,
-safe managed-file synchronization, runnable-image staging, and release workflows. The generated application
-image layers packages and configuration onto a digest-pinned application-neutral host; the host never parses release
-metadata. A write requires the approved,
+`speckit.program-kit-governance.sync` coordinates repository setup across ecosystems. It runs before
+planning, checks package graph evidence after planning, and materializes existing approved targets at
+implementation setup. Metadata, graph and restore share exact runtime, registry and CA context.
+Offline upgrade invokes the same coordinator and reports outstanding package verification separately.
+The previous public .NET sync command is retired without an alias.
+
+Selecting the .NET profile adopts `Orbyss.Foundation.Host` by default. The coordinator's internal
+engineering adapter scaffolds central build/package management, safe managed-file synchronization,
+application-bundle staging, and release workflows. Consumers deploy the unchanged, digest-pinned
+published Foundation host with a bundle of shells.json, hostsettings.json, nuplane.settings.json,
+optional package feeds and a version/hash-bound descriptor. Consumers do not build a host DLL,
+Dockerfile or derived image. A write requires the approved,
 hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of the independently
-pinned packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
+pinned packages and NuGet sources; restore/build execution is separately authorized. This .NET adapter is not a
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
 never creates .NET files. See the [building-block selection guide](extensions/program-kit-building-blocks/references/orbyss-building-blocks.md)
 and its [machine-readable executable catalog](extensions/program-kit-building-blocks/references/orbyss-building-blocks.json).
@@ -452,11 +472,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.11.0.md`](docs/releasing-0.11.0.md).
+[`docs/releasing-0.12.0.md`](docs/releasing-0.12.0.md).
 
 ```powershell
-git tag v0.11.0
-git push origin v0.11.0
+git tag v0.12.0
+git push origin v0.12.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -481,8 +501,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.11.0.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.11.0.zip -Algorithm SHA256
+gh attestation verify program-kit-0.12.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.12.0.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery

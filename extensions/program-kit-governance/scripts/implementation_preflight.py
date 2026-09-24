@@ -25,6 +25,8 @@ def main() -> int:
     )
     parser.add_argument("--repository", default=".")
     parser.add_argument("--feature-dir", required=True)
+    parser.add_argument('--stage', choices=('setup', 'source'), default='source',
+                        help='setup permits only planned skeleton creation; source requires completed dependency setup')
     args = parser.parse_args()
     repository = Path(args.repository).resolve()
     feature_dir = Path(args.feature_dir)
@@ -70,12 +72,31 @@ def main() -> int:
             str(plan),
             "--tasks",
             str(tasks),
+            *(['--design-only'] if args.stage == 'setup' else []),
         ],
         repository,
     )
     if ownership != 0:
         return ownership
-    print("implementation preflight lifecycle and artifact ownership are coherent")
+    from dependency_audit import planned_selection_errors, read
+    try:
+        errors = planned_selection_errors(repository, read(manifest).get('runtimeComposition', {}).get('projects', []))
+        if errors:
+            print('\n'.join(errors), file=sys.stderr)
+            return 2
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    setup = run([sys.executable, str(scripts / "repository_sync.py"), "check", "--phase", 'after-plan' if args.stage == 'setup' else 'implementation',
+                 "--repository", str(repository), "--feature-dir", str(feature_dir)], repository)
+    if setup != 0:
+        return setup
+    knowledge = run([sys.executable, str(scripts / 'phase_obligations.py'), 'check',
+                     '--repository', str(repository), '--feature-dir', feature_dir.relative_to(repository).as_posix(),
+                     '--phase', 'after-plan' if args.stage == 'setup' else 'implementation'], repository)
+    if knowledge != 0:
+        return knowledge
+    print(f"implementation preflight {args.stage} lifecycle and artifact ownership are coherent")
     return 0
 
 

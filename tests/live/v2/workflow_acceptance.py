@@ -17,15 +17,16 @@ from pathlib import Path
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
-from live.v2.candidate import install_candidate_from_receipt, validate_release_receipt
+from live.v2.authorization import consume_authorization, issue_authorization, session_limit, validate_authorization
+from live.v2.candidate import install_candidate_from_receipt, validate_candidate_receipt
 from live.v2.cli import (SECRET_KEYS, WorkflowProgress, candidate_packages, execution_workspace,
                          preflight, repository_root, schemas, tool_version, validate_agent_launcher,
-                         worker_environment, worker_guidance)
+                         worker_environment, worker_guidance, bootstrap_runtime_preflight)
 from live.v2.common import (LiveContractError, atomic_write_json, canonical_sha256, file_inventory,
                             load_object, safe_relative, sha256_file, utc_now, validate)
 from live.v2.fixture_catalog import resolve_fixture
 from live.v2.supervisor import run_supervised
+from live.v2.learning_metrics import record_attempt, attempt_usage
 
 PHASES = ('workflow-fresh', 'workflow-failure', 'workflow-resume')
 
@@ -70,7 +71,7 @@ def review_gate(project: Path, run_id: str) -> dict | None:
 def parent_checkpoint(root: Path, path: Path) -> tuple[dict, Path]:
     parent = load_object(path)
     validate(parent, load_object(schemas(root) / 'workflow-run.schema.json'))
-    if parent.get('kind') != 'workflow-lifecycle' or parent.get('schemaVersion') != '2.1':
+    if parent.get('kind') != 'workflow-lifecycle' or parent.get('schemaVersion') not in {'2.1', '2.2'}:
         raise LiveContractError('LIVE_WORKFLOW_PARENT_REQUIRED')
     project = (root / safe_relative(parent['workspace'])).resolve()
     if not project.is_relative_to((root / 'artifacts/live-v2-w').resolve()):
@@ -105,8 +106,11 @@ def issue(args) -> int:
     if selected['kind'] != 'workflow-lifecycle':
         raise LiveContractError('LIVE_WORKFLOW_FIXTURE_KIND_REQUIRED')
     receipt_path = Path(args.release_receipt).resolve()
-    receipt, receipt_sha = validate_release_receipt(root, receipt_path, load_object(schemas(root) / 'release-receipt.schema.json'))
-    preflight(root, receipt)
+    source = Path(args.release_root).resolve() if args.release_root else root
+    receipt, receipt_sha = validate_candidate_receipt(source, receipt_path, schemas(root), args.receipt_kind)
+    preflight(source, receipt)
+    if args.displayed_session_limit != session_limit(args.phase):
+        raise LiveContractError('LIVE_AUTHORIZATION_SESSION_LIMIT')
     parent = None
     checkpoint = None
     if args.checkpoint:
@@ -125,7 +129,8 @@ def issue(args) -> int:
                 **reviewed_input(parent, args.verdict)}
     manifest = issue_authorization(Path(args.output).resolve(), load_object(schemas(root) / 'authorization.schema.json'),
         phase=args.phase, scenario=selected['authority'],
-        candidate={'releaseReceipt': str(receipt_path), 'releaseReceiptSha256': receipt_sha},
+        candidate={'releaseReceipt': str(receipt_path), 'releaseReceiptSha256': receipt_sha,
+                   'releaseRoot': str(source), 'receiptKind': args.receipt_kind},
         agent_profile=profile, checkpoint=checkpoint, expires_minutes=args.expires_minutes, workflow=workflow)
     print(json.dumps({'authorizationId': manifest['authorizationId'], 'path': args.output,
                       'fixture': selected['authority'], 'phase': args.phase}))
@@ -208,6 +213,12 @@ def driver(job_path: Path) -> int:
             self.live_run = run_id
             return super().resume(run_id, *args, **kwargs)
 
+        def _record_result(self, context, state, step_id, data):
+            super()._record_result(context, state, step_id, data)
+            if counter.is_file() and any(item['run_id'] == state.run_id and item['step'] == step_id
+                                         and 'usage' not in item for item in load_object(counter)['dispatches']):
+                record_attempt(counter, state.run_id, step_id, data)
+
         def before_step(self, step_id, label):
             definition = workflow.definition_for(project, self.live_run)
             current = next(step for step in workflow.walk_steps(definition.steps) if step['id'] == step_id)
@@ -218,8 +229,8 @@ def driver(job_path: Path) -> int:
 
     workflow.WorkflowEngine = SupervisedEngine
     inputs = {}
-    binding = consumed['workflow']
-    if binding['verdictInput']:
+    binding = consumed.get('workflow') or {}
+    if binding.get('verdictInput'):
         inputs[binding['verdictInput']] = binding['verdict']
     try:
         if job['sourceRun']:
@@ -229,7 +240,7 @@ def driver(job_path: Path) -> int:
                 definition = workflow.WorkflowEngine(project).load_workflow('program-kit-bootstrap')
                 state = workflow.execute_definition(project, definition,
                     {'bootstrap_intake': 'docs/architecture/bootstrap-intake.json', 'integration': 'codex',
-                     'auto_approve_and_ratify': False}, job['nativeRun'])
+                     'auto_approve_and_ratify': consumed['phase'] == 'bootstrap-checkpoint'}, job['nativeRun'])
         if state.status.value == 'completed':
             workflow.governance.validate_completion()
             workflow.validate_engine_completion(project)
@@ -251,9 +262,10 @@ def run(args) -> int:
         raise LiveContractError('LIVE_WORKFLOW_PHASE_REQUIRED')
     binding = raw['workflow']
     selected = resolve_fixture(binding['fixture'], binding['version'])
-    receipt, receipt_sha = validate_release_receipt(root, Path(raw['candidate']['releaseReceipt']),
-                                                   load_object(schemas(root) / 'release-receipt.schema.json'))
-    preflight(root, receipt)
+    source = Path(raw['candidate'].get('releaseRoot', root)).resolve()
+    receipt, receipt_sha = validate_candidate_receipt(source, Path(raw['candidate']['releaseReceipt']),
+                                                     schemas(root), raw['candidate'].get('receiptKind', 'release'))
+    preflight(source, receipt)
     parent = None
     project = None
     if binding['parentManifest']:
@@ -277,12 +289,15 @@ def run(args) -> int:
     if project is None:
         project = execution_workspace(root, token)
         shutil.copytree(Path(selected['directory']) / 'fixture', project)
-        setup = install_candidate_from_receipt(root, project, candidate_packages(root, token), receipt, evidence / 'setup')
+        setup = install_candidate_from_receipt(source, project, candidate_packages(root, token), receipt, evidence / 'setup')
         worker_guidance(project)
         scenario = load_object(Path(selected['directory']) / 'scenario.json')
         for record in scenario['fixtureInventory']:
             if sha256_file(project / safe_relative(record['path'])) != record['sha256']:
                 raise LiveContractError('LIVE_WORKFLOW_INSTALLED_FIXTURE_CHANGED')
+    setup.append(bootstrap_runtime_preflight(project, authorization['agentProfile'], evidence / 'setup'))
+    from live.v2.bootstrap_provisioning import BootstrapProvisioner
+    provisioner = BootstrapProvisioner(project, evidence)
     consumed_directory = root / 'artifacts/live-acceptance/v2/authorizations/consumed'
     consumption = consume_authorization(auth_path, authorization, consumed_directory)
     job = {'project': str(project), 'nativeRun': f'live-{token}',
@@ -300,9 +315,10 @@ def run(args) -> int:
         result = run_supervised([sys.executable, str(Path(__file__).resolve()), 'driver', '--job', str(job_path)],
             cwd=project, environment=environment, evidence_directory=evidence / 'worker',
             timeout_seconds=authorization['agentProfile']['timeoutSeconds'],
-            secrets=[os.environ.get(key, '') for key in SECRET_KEYS])
+            secrets=[os.environ.get(key, '') for key in SECRET_KEYS], on_poll=provisioner.poll)
     finally:
         progress.stop()
+        setup.extend(provisioner.receipts)
     result_path = evidence / 'native-result.json'
     native = load_object(result_path) if result_path.exists() else {
         'run_id': job['sourceRun'] or job['nativeRun'], 'status': 'inconclusive', 'current_step': None}
@@ -323,11 +339,11 @@ def run(args) -> int:
         shutil.copytree(native_directory, evidence / 'native-run')
     clean = result.cleanupComplete and result.logsDrained and not result.timedOut and not result.operatorCancellationRecorded
     gate = review_gate(project, native['run_id']) if native_directory.exists() else None
-    completed = native['status'] == 'completed' and result.exitCode == 0 and clean and result_path.exists()
+    completed = not provisioner.failed and native['status'] == 'completed' and result.exitCode == 0 and clean and result_path.exists()
     fault = load_object(evidence / 'fault.json') if (evidence / 'fault.json').exists() else None
-    status = 'completed' if completed else 'paused' if native['status'] == 'paused' and clean else 'failed'
+    status = 'completed' if completed else 'paused' if native['status'] == 'paused' and clean and not provisioner.failed else 'failed'
     dispatches = load_object(evidence / 'dispatches.json')['dispatches'] if (evidence / 'dispatches.json').exists() else []
-    manifest = {'schemaVersion': '2.1', 'kind': 'workflow-lifecycle', 'runId': run_id, 'phase': phase,
+    manifest = {'schemaVersion': '2.2', 'kind': 'workflow-lifecycle', 'runId': run_id, 'phase': phase,
         'status': status, 'native': native, 'review': gate, 'candidate': receipt_sha,
         'scenario': selected['authority'], 'authorization': consumption, 'agentProfile': authorization['agentProfile'],
         'parent': {'path': binding['parentManifest'], 'sha256': authorization['checkpoint']['digest']} if parent else None,
@@ -336,7 +352,7 @@ def run(args) -> int:
         'workspace': project.relative_to(root).as_posix(), 'projectInventory': file_inventory(project),
         'dispatches': dispatches,
         'process': result.as_dict(), 'setup': setup, 'finishedAt': utc_now(),
-        'usage': reported_usage(saved, dispatches, native['run_id'])}
+        'usage': attempt_usage(evidence / 'dispatches.json')}
     # Checking the catalog again proves the immutable repository fixture was not changed.
     if resolve_fixture(binding['fixture'], binding['version']) != selected:
         raise LiveContractError('LIVE_WORKFLOW_FIXTURE_CHANGED_DURING_RUN')
@@ -356,6 +372,9 @@ def main() -> int:
         auth.add_argument('--' + name, required=True)
     auth.add_argument('--fixture', default='price-calculator-approved-intake')
     auth.add_argument('--fixture-version', default='1')
+    auth.add_argument('--receipt-kind', choices=('release', 'development-trial'), default='release')
+    auth.add_argument('--release-root')
+    auth.add_argument('--displayed-session-limit', type=int, required=True)
     auth.add_argument('--checkpoint')
     auth.add_argument('--verdict')
     auth.add_argument('--timeout-seconds', type=int, default=7200)

@@ -19,12 +19,18 @@ EXPECTED_STEPS = [
     "validate-bootstrap-intake",
     "prepare-assessment-context",
     "assessment",
+    "require-assessment-answers",
+    "resolve-assessment-defaults",
     "validate-assessment-output",
+    "require-research-handoff",
     "prepare-research-context",
     "research",
+    "require-research-answers",
+    "resolve-research-defaults",
     "validate-research-output",
     "validate-profile-pins",
     "validate-assessment",
+    "require-architecture-handoff",
     "write-assessment-review",
     "route-assessment-approval",
     "constitution-draft",
@@ -33,25 +39,34 @@ EXPECTED_STEPS = [
     "route-constitution-ratification",
     "prepare-architecture-context",
     "architecture-dispatch",
+    "require-architecture-answers",
     "validate-architecture-output",
     "validate-architecture-alignment",
+    "require-tooling-handoff",
     "prepare-tooling-context",
     "tooling",
+    "require-tooling-answers",
     "validate-tooling-output",
+    "require-roadmap-handoff",
     "prepare-roadmap-context",
     "specification-roadmap",
+    "require-roadmap-answers",
     "validate-roadmap-output",
+    "require-closure-handoff",
+    "prepare-closure-context",
     "architecture-prerequisite-closure",
+    "require-closure-answers",
+    "validate-closure-output",
+    "execute-compatibility-proofs",
     "validate-prerequisite-closure",
     "synchronize-lifecycle",
     "synchronize-roadmap",
     "validate-bootstrap-consistency",
     "validate-bootstrap",
+    "require-first-feature-handoff",
     "write-bootstrap-review",
     "route-bootstrap-approval",
-    "prepare-readiness-context",
     "readiness",
-    "validate-readiness-output",
     "require-readiness",
     "complete-bootstrap",
 ]
@@ -60,6 +75,8 @@ EXPECTED_HOOKS = {
     "after_constitution",
     "before_specify",
     "after_specify",
+    "before_plan",
+    "before_tasks",
     "after_plan",
     "after_tasks",
     "before_implement",
@@ -97,8 +114,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 19:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 19")
+    if len(command_names) != 23:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 23")
     if "speckit.program-kit-governance.view-c4" not in command_names:
         raise AssertionError("Governance extension does not expose the C4 viewing skill")
     if "speckit.program-kit-governance.grilling" not in command_names:
@@ -144,8 +161,8 @@ def main() -> int:
         raise AssertionError("The .NET extension retained a second building-block catalog authority")
     dotnet_extension = yaml.safe_load(dotnet_extension_path.read_text(encoding="utf-8"))
     dotnet_commands = dotnet_extension["provides"]["commands"]
-    if [command["name"] for command in dotnet_commands] != ["speckit.program-kit-dotnet.sync"]:
-        raise AssertionError("The .NET extension must expose only its namespaced sync command")
+    if dotnet_commands:
+        raise AssertionError("The .NET extension must not expose a retired public sync command")
     preset = yaml.safe_load(preset_path.read_text(encoding="utf-8"))
     preset_templates = preset["provides"]["templates"]
     if {template["name"] for template in preset_templates} != {
@@ -201,7 +218,7 @@ def main() -> int:
         raise AssertionError("Governance assessment must consume the validated intake")
     if "initial_design" in workflow_path.read_text(encoding="utf-8"):
         raise AssertionError("The workflow must not retain the legacy initial_design route")
-    context_stages = ("assessment", "research", "architecture", "tooling", "roadmap", "readiness")
+    context_stages = ("assessment", "research", "architecture", "tooling", "roadmap", "closure")
     for stage in context_stages:
         context_id = f"prepare-{stage}-context"
         context_step = next(step for step in steps if step["id"] == context_id)
@@ -218,16 +235,20 @@ def main() -> int:
         ("architecture-dispatch", "architecture"),
         ("tooling", "tooling"),
         ("specification-roadmap", "roadmap"),
-        ("readiness", "readiness"),
+        ("architecture-prerequisite-closure", "closure"),
     ):
         command_step = next(step for step in steps if step["id"] == command_id)
         expected_context = f"steps.prepare-{stage}-context.output.data.path"
         if expected_context not in command_step.get("input", {}).get("args", ""):
             raise AssertionError(f"{command_id} does not consume its generated bootstrap context")
+    readiness_step = next(step for step in steps if step['id'] == 'readiness')
+    if (readiness_step.get('type') != 'shell' or
+            'governance_state.py render-readiness --run-id {{ context.run_id }}' not in readiness_step.get('run', '')):
+        raise AssertionError('Terminal readiness must project current authority without agent dispatch')
     for stage in context_stages:
         validation_step = next(step for step in steps if step["id"] == f"validate-{stage}-output")
         validation_command = validation_step.get("run", "")
-        expected_validator = "validate-stage" if stage in {"architecture", "roadmap", "readiness"} else "validate-output"
+        expected_validator = "validate-stage" if stage in {"architecture", "roadmap", "closure", "readiness"} else "validate-output"
         if (
             validation_step.get("type") != "shell"
             or validation_step.get("output_format") != "json"
@@ -235,7 +256,7 @@ def main() -> int:
             or f"--stage {stage}" not in validation_command
         ):
             raise AssertionError(f"{stage} output budgets are not deterministically validated")
-        if stage in {"architecture", "roadmap", "readiness"} and "--run-id {{ context.run_id }}" not in validation_command:
+        if stage in {"architecture", "roadmap", "closure", "readiness"} and "--run-id {{ context.run_id }}" not in validation_command:
             raise AssertionError("Stage validation must bind its workflow run")
     pin_validation = next(step for step in steps if step["id"] == "validate-profile-pins")
     if (
@@ -295,7 +316,7 @@ def main() -> int:
             "accept-assessment",
             "auto-accept-assessment",
             "docs/architecture/reviews/assessment-review.md",
-            "Gate 1/3 — Assessment approval",
+            "Confirm scope and proposed approach",
         ),
         (
             "route-constitution-ratification",
@@ -303,7 +324,7 @@ def main() -> int:
             "constitution-ratify",
             "auto-ratify-constitution",
             "docs/architecture/reviews/constitution-review.md",
-            "Gate 2/3 — Constitution ratification",
+            "Ratify the governing principles",
         ),
         (
             "route-bootstrap-approval",
@@ -311,7 +332,7 @@ def main() -> int:
             "accept-bootstrap",
             "auto-accept-bootstrap",
             "docs/architecture/reviews/bootstrap-review.md",
-            "Gate 3/3 — Final bootstrap approval",
+            "Accept the initialized architecture baseline, owned open decisions and per-slice phase handoff",
         ),
     ):
         route = next(step for step in steps if step["id"] == route_id)
@@ -441,10 +462,10 @@ def main() -> int:
         dotnet_root / "references/dotnet-runtime-and-application-bundles.md",
         "Orbyss.Foundation.Host",
         "application-neutral plumbing",
-        "runnable-host.json",
+        "application-bundle.json",
     )
     require_text(
-        dotnet_root / "commands/speckit.program-kit-dotnet.sync.md",
+        dotnet_root / "references/engineering-adapter.md",
         "--profile-selected",
         "--foundation-host-accepted",
         "--building-block-sources-approved",
@@ -481,11 +502,11 @@ def main() -> int:
         "stage_plan.managed_web_contract",
         "authorities.assessment_approval.bootstrap_decisions_sha256",
         "must cross the required layers end to end",
-        "preserve its relationship selection",
+        "record-refinement",
         "Do not construct a PowerShell file-inventory command",
         "stop immediately",
     )
-    for command_name in ("research", "tooling", "roadmap", "readiness"):
+    for command_name in ("research", "tooling", "roadmap"):
         require_text(
             extension_root
             / f"commands/speckit.program-kit-governance.{command_name}.md",
@@ -505,7 +526,8 @@ def main() -> int:
         "Never create a separate ADR",
         "at most 700 words",
         "never target the same file twice",
-        "do not measure it repeatedly",
+        "draft_size_command once",
+        "does not replace terminal validation",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.assessment.md",
@@ -522,9 +544,9 @@ def main() -> int:
         "Required Accepted ADRs",
         "Design tasks remain separate",
         "single command in `output_contract.validation_commands`",
-        "feature-owned decisions",
-        "pending founding bundle",
-        "only architecture-significant prerequisites",
+        "separate phase eligibility",
+        "no entry is Ready",
+        "Retain later architecture choices",
         "at most 550 words",
     )
     require_text(
@@ -535,10 +557,10 @@ def main() -> int:
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.readiness.md",
-        "--require-roadmap --require-ready",
-        "first feature specification",
-        "program-kit-web-security-evidence-v1",
-        "single command in `output_contract.validation_commands`",
+        "scripts/governance_state.py render-readiness",
+        "Do not independently author a verdict",
+        "Substantive conflicts must be resolved",
+        "without an agent dispatch",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.architecture-check.md",
@@ -583,7 +605,7 @@ def main() -> int:
         "Install .NET extension",
         "Remove prior governance preset",
         "Install governance preset",
-        "Resynchronize managed .NET baseline",
+        "Synchronize existing repository setup",
         "Validate cross-component version coherence",
         "program-kit-upgrade.lock",
         "--accept-openapi-producer-pin-reconciliation",
@@ -611,7 +633,8 @@ def main() -> int:
         extension_root / "scripts/implementation_preflight.py",
         "verify-before-implement",
         "artifact_ownership.py",
-        "implementation preflight lifecycle and artifact ownership are coherent",
+        "choices=('setup', 'source')",
+        "planned_selection_errors",
     )
     context_script = extension_root / "scripts/bootstrap_context.py"
     intake_script = extension_root / "scripts/bootstrap_intake.py"
@@ -769,7 +792,7 @@ def main() -> int:
             or step_ids.index('require-readiness') >= step_ids.index('complete-bootstrap')
             or 'confirm-completion-failure' in str(steps)):
         raise AssertionError('Non-ready must stop resumably before completion without an abort-only rejection gate')
-    if not (step_ids.index('architecture-prerequisite-closure') < step_ids.index('validate-prerequisite-closure') < final_review):
+    if not (step_ids.index('architecture-prerequisite-closure') < step_ids.index('execute-compatibility-proofs') < step_ids.index('validate-prerequisite-closure') < final_review):
         raise AssertionError('Executable prerequisite closure and validation must precede final approval')
     require_text(
         preset_path.parent / "templates/spec-governance.md",

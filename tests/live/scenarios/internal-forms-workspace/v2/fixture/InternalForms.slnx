@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/InternalForms.Api/InternalForms.Api.csproj" />
+  <Project Path="src/InternalForms.Bff/InternalForms.Bff.csproj" />
+  <Project Path="src/InternalForms.Forms/InternalForms.Forms.csproj" />
+</Solution>

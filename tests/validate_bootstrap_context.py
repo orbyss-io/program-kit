@@ -34,12 +34,16 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
             "extensions/program-kit-governance/references/bootstrap-lifecycle.md",
         ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json":
             "extensions/program-kit-governance/references/bootstrap-decisions.schema.json",
+        ".specify/extensions/program-kit-governance/references/bootstrap-proof-plan.schema.json":
+            "extensions/program-kit-governance/references/bootstrap-proof-plan.schema.json",
         ".specify/extensions/program-kit-governance/references/architecture-map.schema.json":
             "extensions/program-kit-governance/references/architecture-map.schema.json",
         ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json":
             "extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
         ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json":
             "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        ".specify/extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json":
+            "extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json",
     }
     for destination, source in contract_references.items():
         target = project / destination
@@ -222,6 +226,11 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
     write_json(project / "web/package.json", {"name": "price-web", "private": True})
 
 
+def decode_table(table):
+    return [{key: row[i] for i, key in enumerate(table['columns']) if i not in missing}
+            for row, missing in zip(table['rows'], table['missing'], strict=True)]
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     module = load_module(root)
@@ -292,6 +301,12 @@ def main() -> int:
                 raise AssertionError(f"{stage} context was not written")
             if path.stat().st_size >= 32 * 1024:
                 raise AssertionError(f"{stage} compact semantic stage brief exceeds 32 KiB")
+            if stage == 'closure':
+                assert 'first_feature_handoff' in payload['stage_plan']
+                allowed = payload['reading_policy']['allowed_sources']
+                for required in ('quality-attributes.md', 'quality-system.md', 'traceability.md'):
+                    assert 'docs/architecture/' + required in allowed
+                assert 'quality_requirements' in payload['intake']
             if payload["bootstrap_intake"]["path"] != "docs/architecture/bootstrap-intake.json":
                 raise AssertionError("Bootstrap-intake provenance is not canonical")
             if payload["intake"]["status"] != "confirmed":
@@ -316,6 +331,7 @@ def main() -> int:
             expected_validation = (
                 "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
                 f"validate-stage --stage {stage} --run-id {run_id}"
+                + (" --json" if stage == "readiness" else "")
             )
             if payload["output_contract"]["validation_commands"] != [expected_validation]:
                 raise AssertionError(f"{stage} context does not expose one terminal validation batch")
@@ -367,7 +383,7 @@ def main() -> int:
                 ):
                     raise AssertionError("Assessment removed routed diagnostic references entirely")
                 batch = module.validate_stage_batch(project, run_id, "assessment")
-                if batch["checks"] != ["output-contract"]:
+                if batch["checks"] != ["output-contract", "owned-decisions-and-answers"]:
                     raise AssertionError("Assessment terminal batch acquired a research prerequisite")
             if stage == "architecture":
                 if "elements" in payload["architecture_map"]:
@@ -382,10 +398,10 @@ def main() -> int:
                 if not any("C4 component" in item and "container parent" in item for item in invariants):
                     raise AssertionError("Architecture plan omits C4 component containment")
                 if not any(
-                    "seed journey view" in item and "relationship selection and order" in item
+                    "consumer evidence" in item and "traceable refinements" in item
                     for item in invariants
                 ):
-                    raise AssertionError("Architecture plan omits immutable journey-view structure")
+                    raise AssertionError("Architecture plan omits evidence-preserving proposal refinement")
                 building_blocks = payload["stage_plan"].get("building_blocks")
                 if not building_blocks or "forms" not in building_blocks["capabilities"]:
                     raise AssertionError("Architecture plan omitted the selected building-block projection")
@@ -408,6 +424,8 @@ def main() -> int:
                     raise AssertionError("Architecture brief omitted the approved decision-register hash")
             if stage != "architecture":
                 projected_elements = payload["architecture_map"].get("elements", [])
+                if isinstance(projected_elements, dict):
+                    projected_elements = decode_table(projected_elements)
                 source_map = json.loads(architecture_path.read_text(encoding="utf-8"))
                 source_parents = {
                     item["id"]: item["parent"]
@@ -427,12 +445,26 @@ def main() -> int:
                 }
                 if projected_parents != expected_parents:
                     raise AssertionError(f"{stage} architecture projection changed containment")
+            if stage in {"roadmap", "readiness"}:
+                source_semantics = source_map["strategic_model"]
+                projected_semantics = payload["architecture_map"]["strategic_model"]
+                recovered = {key: decode_table(value) if isinstance(value, dict) and "columns" in value else value
+                             for key, value in projected_semantics.items() if key not in {"projection", "sourcePointer"}}
+                if recovered != source_semantics:
+                    raise AssertionError("Compact projection lost domain semantics")
+                if payload["intake"]["quality_requirements"] != intake["quality_requirements"]:
+                    raise AssertionError("Compact projection lost quality requirements")
             if stage == "research":
                 if payload["managed_profile_pins"] is None:
                     raise AssertionError("Research context omitted managed profile pins")
                 observed = payload["stage_plan"].get("observed_toolchain", {})
                 if set(observed) != {"dotnet", "node", "npm", "python"}:
                     raise AssertionError("Research context omitted supervisor-observed toolchain facts")
+            elif stage == 'closure':
+                if payload['managed_profile_pins'] is None or 'provider_inputs' not in payload['stage_plan']:
+                    raise AssertionError('Closure omitted its executable provider/toolchain inputs')
+                if 'docs/architecture/tooling-evaluation.md' not in payload['reading_policy']['allowed_sources']:
+                    raise AssertionError('Closure cannot query the research handoff')
             elif payload["managed_profile_pins"] is not None:
                 raise AssertionError(f"{stage} context unnecessarily duplicated managed profile pins")
             for artifact, budget in output_contract["artifact_byte_budgets"].items():
@@ -459,6 +491,13 @@ def main() -> int:
             module.validate_context(project, run_id, stage)
 
             evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            if stage in {'architecture', 'tooling', 'roadmap', 'readiness', 'closure'}:
+                for decision in json.loads((project / 'docs/architecture/architecture-map.json').read_text(encoding='utf-8'))['decisions']:
+                    if decision['path'] not in payload['reading_policy']['allowed_sources']:
+                        raise AssertionError(f'{stage} cannot query a governing ADR')
+            for record in (payload.get('managed_profile_pins') or {}).get('sources', []):
+                if record['path'] not in payload['reading_policy']['allowed_sources']:
+                    raise AssertionError(f'{stage} hides a projected pin source')
             for artifact in evidence["artifacts"]:
                 if len(artifact.get("headings", [])) > module.MAX_INDEX_HEADINGS:
                     raise AssertionError("Evidence index contains too many headings")
@@ -494,13 +533,51 @@ def main() -> int:
             roadmap_batch = module.validate_stage_batch(project, run_id, "roadmap")
         finally:
             module._run_project_validator = original_validator
-        if roadmap_batch["checks"] != ["output-contract", "roadmap-governance"] or not any(
-            arguments == ["validate-roadmap"]
-            for _, arguments, _ in validator_calls
-        ):
-            raise AssertionError("Roadmap drafting must validate Blocked entries before compatibility closure")
+        if roadmap_batch["checks"] != [
+            "approved-assessment-inputs", "output-contract", "owned-decisions-and-answers", "roadmap-governance", "first-entry-coverage",
+            "roadmap-synchronization", "roadmap-consistency", "synchronized-output-contract",
+        ] or [arguments for _, arguments, _ in validator_calls] != [
+            ["validate-roadmap"], ["synchronize-roadmap"], ["validate-bootstrap-consistency"],
+        ]:
+            raise AssertionError("Roadmap handoff must close document hashes, projection and consistency before closure")
+
+        # A pre-sync size check alone misses navigation appended by the helper.
+        architecture_document = project / "docs/architecture/architecture.md"
+        architecture_bytes = architecture_document.read_bytes()
+        try:
+            def oversized_sync(_root, _script, arguments, _label):
+                if arguments == ["synchronize-roadmap"]:
+                    architecture_document.write_text(
+                        "x" * (module.ARTIFACT_BYTE_BUDGETS["docs/architecture/architecture.md"] + 1),
+                        encoding="utf-8",
+                    )
+            module._run_project_validator = oversized_sync
+            try:
+                module.validate_stage_batch(project, run_id, "roadmap")
+            except module.ContextError as exc:
+                if "exceeds its hard byte budget" not in str(exc):
+                    raise
+            else:
+                raise AssertionError("Roadmap synchronization escaped final artifact byte budgets")
+        finally:
+            architecture_document.write_bytes(architecture_bytes)
+            module._run_project_validator = original_validator
 
         assessment_path = project / "docs/architecture/bootstrap-assessment.md"
+        # Closure can edit the roadmap and must not escape its existing byte limit.
+        roadmap_path = project / 'docs/architecture/specification-roadmap.md'
+        roadmap_original = roadmap_path.read_bytes()
+        try:
+            roadmap_path.write_text('x' * (module.ARTIFACT_BYTE_BUDGETS['docs/architecture/specification-roadmap.md'] + 1), encoding='utf-8')
+            try:
+                module.validate_stage_output(project, 'closure')
+            except module.ContextError as exc:
+                if 'specification-roadmap.md' not in str(exc) or 'hard byte budget' not in str(exc):
+                    raise
+            else:
+                raise AssertionError('Closure roadmap edits escaped the byte budget')
+        finally:
+            roadmap_path.write_bytes(roadmap_original)
         assessment_text = assessment_path.read_text(encoding="utf-8")
         write(
             assessment_path,
@@ -615,6 +692,7 @@ constitution:
         }
         managed_decisions = {
             "selected_profiles": ["dotnet", "typescript-web"],
+            "dotnet": {"host_runtime": "Orbyss.Foundation.Host", "program_kit_host_opt_out": False},
             "toolchain": {
                 "source": "program-kit-default",
                 "pins": dict(pins),

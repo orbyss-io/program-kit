@@ -80,6 +80,9 @@
         "type": "object",
         "additionalProperties": false,
         "required": ["id", "kind", "path", "role", "scope"],
+        "allOf": [
+          { "if": { "required": ["placement"] }, "then": { "$ref": "#/$defs/targetKindPlacement" } }
+        ],
         "properties": {
           "id": { "$ref": "#/$defs/id" },
           "kind": { "enum": ["repository", "dotnet-project", "dotnet-tool-manifest", "npm-package", "cshell-shell", "host-image"] },
@@ -132,6 +135,60 @@
     }
   },
   "$defs": {
+    "targetKindPlacement": {
+      "description": "Executable file and identity conventions for architecture-owned placements. Used by the resolver and projected into bootstrap before drafting. Directories remain architecture-owned; examples are not observed files or mandatory layouts.",
+      "oneOf": [
+        {
+          "description": "Repository convention file Directory.Build.props; the root sentinel is not evidence that the file exists.",
+          "required": ["kind", "path"],
+          "properties": {
+            "kind": { "const": "repository" },
+            "path": { "pattern": "(^|/)[dD][iI][rR][eE][cC][tT][oO][rR][yY]\\.[bB][uU][iI][lL][dD]\\.[pP][rR][oO][pP][sS]$", "examples": ["Directory.Build.props"] }
+          }
+        },
+        {
+          "description": "Consumer .csproj manifest. Its directory and project name follow the accepted semantic ownership and repository layout.",
+          "required": ["kind", "path"],
+          "properties": {
+            "kind": { "const": "dotnet-project" },
+            "path": { "pattern": "(^|/)[^/]*\\.[cC][sS][pP][rR][oO][jJ]$", "examples": ["src/Reservations/Reservations.csproj"] }
+          }
+        },
+        {
+          "description": "Consumer npm package.json manifest; not its directory, lockfile or built assets.",
+          "required": ["kind", "path"],
+          "properties": {
+            "kind": { "const": "npm-package" },
+            "path": { "pattern": "(^|/)[pP][aA][cC][kK][aA][gG][eE]\\.[jJ][sS][oO][nN]$", "examples": ["web/package.json"] }
+          }
+        },
+        {
+          "description": "CShell activation document named shells.json. Set shell to the runtime shell identity inside that document, not the selection target ID. A C# composition class or arbitrary per-shell JSON filename is not this target kind.",
+          "required": ["kind", "path", "shell"],
+          "properties": {
+            "kind": { "const": "cshell-shell" },
+            "path": { "pattern": "(^|/)[sS][hH][eE][lL][lL][sS]\\.[jJ][sS][oO][nN]$", "examples": ["shells.json", "composition/shells.json"] },
+            "shell": { "$ref": "#/$defs/id", "description": "Runtime shell identity used by activation and materialization.", "examples": ["lending-local"] }
+          }
+        },
+        {
+          "description": "Consumer dotnet-tools.json manifest; not a tool executable or installed Program Kit internal file.",
+          "required": ["kind", "path"],
+          "properties": {
+            "kind": { "const": "dotnet-tool-manifest" },
+            "path": { "pattern": "(^|/)[dD][oO][tT][nN][eE][tT]-[tT][oO][oO][lL][sS]\\.[jJ][sS][oO][nN]$", "examples": [".config/dotnet-tools.json"] }
+          }
+        },
+        {
+          "description": "Consumer host configuration named hostsettings.json. This binds an external published Foundation image to a release bundle; it is not a consumer image build or host DLL.",
+          "required": ["kind", "path"],
+          "properties": {
+            "kind": { "const": "host-image" },
+            "path": { "pattern": "(^|/)hostsettings\\.json$", "examples": ["hostsettings.json", "runtime/lending/hostsettings.json"] }
+          }
+        }
+      ]
+    },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$" },
     "nonemptyIds": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1, "uniqueItems": true },
     "path": { "type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },

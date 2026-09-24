@@ -148,6 +148,21 @@ class SchemaTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'SCHEMA_RUNTIME_MISSING'):
                 runtime.setup(self.root, offline=True)
 
+    def test_uv_setup_uses_project_cache_without_machine_permissions(self):
+        commands = []
+        def execute(command, **kwargs):
+            commands.append(command)
+            if '--target' in command:
+                Path(command[command.index('--target') + 1]).mkdir()
+            return subprocess.CompletedProcess(command, 0)
+        with patch.object(runtime.importlib.util, 'find_spec', return_value=None), \
+                patch.object(runtime.shutil, 'which', return_value='uv'), \
+                patch.object(runtime.subprocess, 'run', side_effect=execute):
+            runtime.setup(self.root)
+        install = commands[0]
+        self.assertEqual(str(self.root / '.program-kit/cache/uv'), install[install.index('--cache-dir') + 1])
+        self.assertTrue((runtime.runtime_path(self.root) / '.ready').is_file())
+
     def test_nested_unsupported_dialect_is_not_silently_accepted(self):
         schema = dict(self.schema, properties={'x': {'$schema': 'https://unknown.invalid', 'type': 'string'}})
         with self.assertRaises(Exception):

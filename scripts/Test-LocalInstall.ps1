@@ -227,8 +227,11 @@ try {
         throw 'Installed .NET sync extension was not found.'
     }
     $dotnetSkill = '.agents\skills\speckit-program-kit-dotnet-sync\SKILL.md'
-    if (-not (Test-Path -LiteralPath $dotnetSkill -PathType Leaf)) {
-        throw 'Installed .NET sync skill was not found.'
+    if (Test-Path -LiteralPath $dotnetSkill) {
+        throw 'Retired public .NET sync skill was installed.'
+    }
+    if (-not (Test-Path -LiteralPath '.agents/skills/speckit-program-kit-governance-sync/SKILL.md')) {
+        throw 'Repository governance sync skill was not installed.'
     }
     $buildingBlocksSync = '.specify\extensions\program-kit-building-blocks\scripts\building_blocks.py'
     if (-not (Test-Path -LiteralPath $buildingBlocksSync -PathType Leaf)) {

@@ -12,6 +12,7 @@ import json
 import re
 import shutil
 import sys
+import uuid
 from pathlib import Path
 
 import bootstrap_lifecycle as lifecycle
@@ -93,10 +94,12 @@ def prepare(root: Path, run_id: str) -> dict:
     for relative in (governance.READINESS_REPORT, lifecycle.RESULT):
         if (root / relative).is_file():
             original[relative.as_posix()] = lifecycle.digest(root / relative)
-    import tempfile
     destination_directory = directory
     directory.parent.mkdir(parents=True, exist_ok=True)
-    directory = Path(tempfile.mkdtemp(prefix=f'.prepare-{run_id}-', dir=directory.parent))
+    # This directory is published as shared workspace evidence. mkdtemp applies
+    # owner-only Windows ACLs that survive rename and exclude sandbox workers.
+    directory = directory.parent / f'.prepare-{run_id}-{uuid.uuid4().hex}'
+    directory.mkdir()
     # Publish the manifest last. An interrupted preparation cannot authorize recovery.
     for name, expected_hash in original.items():
         # Flat content-addressed storage avoids duplicating deep Windows workflow paths.
@@ -126,8 +129,9 @@ review. Retain the earlier approval; the new approval supersedes only its mutabl
 When the native review gate pauses, the user reviews that packet and resumes the workflow with
 `workflow_lifecycle.py resume --run-id {run_id} --input recovery_verdict=approve`.
 
-The workflow then invokes the readiness producer using this handoff and current constitution, prerequisite ledger,
-canonical map, roadmap, approval and scoped evidence. Its output is `docs/architecture/readiness-report.md`.
+The workflow renders readiness deterministically from the current constitution, prerequisite ledger,
+canonical map, roadmap, approval and scoped evidence. No readiness agent reinterprets historical
+status prose. Its output is `docs/architecture/readiness-report.md`.
 Generation target: 3072 UTF-8 bytes; hard limit: 4096. Keep decisive blockers even above target.
 The native evaluation step records eligible=false and actionable blockers for valid non-ready output.
 The eligibility step stops non-ready execution before completion. Only the final native completion
@@ -223,12 +227,31 @@ def accept(root: Path, run_id: str, verdict: str) -> dict:
                     'recovery': {'run_id': run_id, 'previous_approval_sha256': reviewed['bootstrap_approval_sha256'],
                                  'review_sha256': lifecycle.digest(directory / 'review.json')}}
         lifecycle.write(root / governance.BOOTSTRAP_APPROVAL, approval)
-        governance.validate_bootstrap(True, True)
+        governance.validate_bootstrap(True, False)
     except Exception:
         for path, content in originals.items():
             (root / path).write_bytes(content)
         raise
     return {'status': 'Approved', 'next': 'Continue to native readiness, eligibility and completion steps.'}
+
+
+@pending_review
+def require_prepared_review(root: Path, run_id: str) -> str:
+    """Read-only admission for skipping already completed recovery authoring."""
+    directory, _ = manifest(root, run_id)
+    reviewed = lifecycle.load(directory / 'review.json')
+    if (reviewed['artifacts'] != basis()
+            or reviewed['packet_sha256'] != lifecycle.digest(directory / 'review.md')
+            or reviewed['bootstrap_approval_sha256'] != lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)):
+        raise lifecycle.LifecycleError('Prepared recovery review is stale; repair and regenerate it before reuse')
+    governance.validate_bootstrap(False, True)
+    from bootstrap_proof_plan import require_proven_closure
+    require_proven_closure(root)
+    import bootstrap_context
+    for stage in ('architecture', 'tooling', 'roadmap'):
+        bootstrap_context.validate_stage_output(root, stage, run_id)
+    bootstrap_context.validate_architecture_structure(root, run_id, allow_accepted=True)
+    return lifecycle.digest(directory / 'review.json')
 
 
 def evaluate(root: Path, run_id: str) -> dict:

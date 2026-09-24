@@ -6,20 +6,62 @@ from contextlib import nullcontext
 import json
 from pathlib import Path
 import shutil
+import sys
 import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 import uuid
 import zipfile
+import io
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
 spec = importlib.util.spec_from_file_location('intake_session', ROOT / 'scripts/intake_session.py')
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 
 class IntakeSessionTests(unittest.TestCase):
+    def test_persistent_guidance_routes_stages_without_repeating_intake(self):
+        self.assertIn('This is intake only', module.INSTRUCTIONS)
+        self.assertNotIn('This is intake only', module.CONSUMER_INSTRUCTIONS)
+        self.assertNotIn('bootstrap/SKILL.md', module.CONSUMER_INSTRUCTIONS)
+        self.assertIn('INTAKE-SESSION.md', module.CONSUMER_INSTRUCTIONS)
+        self.assertIn('no approval', module.CONSUMER_INSTRUCTIONS)
+
+    def test_catalog_copy_keeps_exact_binary_and_bounds_each_write(self):
+        from local_catalog_server import CatalogHandler
+        data = bytes(range(256)) * 5000
+        sizes = []
+        class Output(io.BytesIO):
+            def write(self, value):
+                sizes.append(len(value))
+                return super().write(value)
+        output = Output()
+        CatalogHandler.copyfile(None, io.BytesIO(data), output)
+        self.assertEqual(data, output.getvalue())
+        self.assertLessEqual(max(sizes), 64 * 1024)
+
+    def test_candidate_payload_matches_release_after_local_builds(self):
+        source = self.record / 'source'
+        source.mkdir()
+        (source / 'extension.yml').write_text('id: fixture')
+        (source / 'tool.csproj').write_text('<Project />')
+        clean = self.record / 'clean.zip'
+        module.candidate_archive(source, clean)
+        for relative in ('bin/Tool.exe', 'obj/assets.json', '__pycache__/cached.pyc',
+                         'node_modules/package.json', 'test-results/result.xml',
+                         'playwright-report/index.html', '.auth/session.json'):
+            path = source / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('local-only fixture')
+        dirty = self.record / 'dirty.zip'
+        module.candidate_archive(source, dirty)
+        self.assertEqual(clean.read_bytes(), dirty.read_bytes())
+        with zipfile.ZipFile(dirty) as archive:
+            self.assertEqual({'extension.yml', 'tool.csproj'}, set(archive.namelist()))
+
     def setUp(self):
         self.print_patch = patch('builtins.print')
         self.print_patch.start()
@@ -67,6 +109,37 @@ class IntakeSessionTests(unittest.TestCase):
         self.assertEqual(state['transcriptStatus'], 'unavailable')
         self.assertTrue(self.workspace.exists())
 
+    def test_downstream_workflow_status_is_separate_from_intake_hash_validation(self):
+        path = self.workspace / '.specify/workflows/runs/example/state.json'
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps({'run_id': 'example', 'status': 'failed', 'current_step_id': 'validate-architecture-output'}))
+        intake = self.workspace / 'docs/architecture/bootstrap-intake.json'
+        intake.parent.mkdir(parents=True)
+        intake.write_text('{"status":"confirmed"}')
+        with patch.object(module, 'run', return_value=2):
+            state = module.finish(self.record, 0, keep=True, prepare_only=True)
+        self.assertEqual(state['intakeStatus'], 'invalid')
+        self.assertEqual(state['observedWorkflows'][0]['status'], 'failed')
+        report = (self.record / 'REVIEW.md').read_text(encoding='utf-8')
+        self.assertIn('Standalone skill completion does not resume', report)
+        self.assertNotIn('No workflow was launched.', report)
+
+    def test_completed_intake_check_does_not_certify_evolved_architecture(self):
+        path = self.workspace / '.specify/workflows/runs/example/state.json'
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps({'run_id': 'example', 'status': 'failed',
+            'current_step_id': 'validate-roadmap-output', 'step_results': {
+                'validate-bootstrap-intake': {'status': 'completed', 'output': {'exit_code': 0}}}}))
+        intake = self.workspace / 'docs/architecture/bootstrap-intake.json'
+        intake.parent.mkdir(parents=True)
+        intake.write_text('{"status":"confirmed"}')
+        with patch.object(module, 'run', return_value=2):
+            state = module.finish(self.record, 0, keep=True, prepare_only=True)
+        self.assertEqual('downstream-review-required', state['intakeStatus'])
+        self.assertEqual('failed', state['intakeValidation']['originalArtifactCheck'])
+        self.assertEqual('not-established', state['intakeValidation']['currentStageValidity'])
+        self.assertEqual(['example'], state['intakeValidation']['admittedByRuns'])
+
     def test_validation_distinguishes_draft_confirmed_and_invalid(self):
         path = self.workspace / 'docs/architecture/bootstrap-intake.json'
         path.parent.mkdir(parents=True)
@@ -109,6 +182,36 @@ class IntakeSessionTests(unittest.TestCase):
         self.history()
         module.finish(self.record, 0, keep=True)
         self.assertTrue(self.workspace.exists())
+
+    def test_only_rolled_back_local_download_is_retried(self):
+        calls = []
+        diagnostic = "Failed to install bundle: [WinError 10054] reset. No changes were recorded."
+        def execute(command, workspace, log):
+            if 'bundle' in command:
+                calls.append(command)
+                if len(calls) == 1:
+                    with log.open('a', encoding='utf-8') as stream: stream.write(diagnostic)
+                    return 2
+            return 0
+        with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1234')), patch.object(module, 'run', side_effect=execute):
+            module.install_components('nonexistent-specify', 'git', self.workspace, self.record)
+        self.assertEqual(len(calls), 2)
+        self.assertIn(diagnostic, (self.record/'setup.log').read_text())
+        self.assertIn('no coding agent has started', (self.record/'setup.log').read_text())
+
+    def test_setup_retry_is_bounded_and_does_not_cover_other_failures(self):
+        for diagnostic, expected in [('schema failure', 1), ('Failed to install bundle: [WinError 10054] reset. No changes were recorded.', 3)]:
+            calls = []
+            def execute(command, workspace, log):
+                if 'bundle' in command:
+                    calls.append(command)
+                    with log.open('a', encoding='utf-8') as stream: stream.write(diagnostic + '\n')
+                    return 2
+                return 0
+            with patch.object(module, 'candidate_catalogs', return_value=nullcontext('http://127.0.0.1:1234')), patch.object(module, 'run', side_effect=execute):
+                with self.assertRaisesRegex(RuntimeError, 'step 6'):
+                    module.install_components('nonexistent-specify', 'git', self.workspace, self.record)
+            self.assertEqual(len(calls), expected)
 
     def test_archive_failure_never_deletes(self):
         with patch.object(module.zipfile, 'ZipFile', side_effect=OSError('disk full')):

@@ -10,7 +10,7 @@ Run `{SCRIPT}` and read the ratified constitution and active roadmap entry befor
 plan. A stale constitution or non-Ready/non-Active roadmap entry blocks implementation. Do not
 require some other entry to remain Ready after the selected specification becomes Active.
 
-Run `scripts/implementation_preflight.py --repository <repository> --feature-dir <feature-dir>` for
+Run `scripts/implementation_preflight.py --repository <repository> --feature-dir <feature-dir> --stage setup` for
 the active feature. This mandatory deterministic preflight runs both lifecycle verification and the
 complete artifact-ownership validator, including registered OpenAPI producer pins. It must prove that
 the feature references its current explicitly confirmed intake brief, and that
@@ -20,6 +20,17 @@ state is implementation progress and is excluded from the task design hash; task
 order, paths, and all other content remain hash-protected. Missing, interrupted, stale, or producer-pin-
 incoherent evidence blocks implementation. Do not substitute lifecycle verification alone for this
 preflight.
+
+Then run installed `scripts/repository_sync.py check --phase after-plan --repository <repository>
+--feature-dir <feature-dir>`. This verifies the planning package context before implementation starts.
+The first implementation work must create only approved feature-owned project/package skeletons,
+then run governance sync `implementation-setup`, execute reviewed renew/locked restore requests,
+and pass `implementation_preflight.py --repository <repository> --feature-dir <feature-dir> --stage source`
+before application source work. The setup stage validates the planned graph and its explicit catalog
+target bindings; it permits only skeleton setup. The source stage additionally checks physical direct
+references, materialized persistence and current locked restore. Do not count inherited engineering
+analyzer references as direct project references. Dependency changes require
+renewed verification. Read `speckit.program-kit-governance.sync` for the exact shared mechanism.
 
 Apply `.specify/extensions/program-kit-governance/references/programming-guardrails.md`,
 `software-language.md`, `vertical-slicing.md`, `modularity-and-contracts.md`, and any detected

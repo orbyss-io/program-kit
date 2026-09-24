@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "requirements": [
+    {
+      "id": "domain-semantics",
+      "when": "all",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/software-language.md",
+        "program-kit-governance/references/vertical-slicing.md"
+      ],
+      "requirement": "Define the slice's subjects, policies, legal transitions, effects, required admissions and outcomes. Test applicable denial, transition, acknowledgement, retry and cancellation behavior; review proportional nonapplicability."
+    },
+    {
+      "id": "implementation-quality",
+      "when": "all",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/programming-guardrails.md",
+        "program-kit-governance/references/vertical-slicing.md"
+      ],
+      "requirement": "Use typed admitted envelopes with parser/schema/runtime parity, cohesive operation paths and mirrored tests. Substantiate relevant SRP/OCP/LSP/ISP/DIP conclusions against source and behavior, including internal helpers and owner-scoped constants. Review bounded dynamic JSON, pure static and small-operation exceptions; do not invent unused abstractions."
+    },
+    {
+      "id": "architecture-authority",
+      "when": "all",
+      "due": "delivery",
+      "proof": "review",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md"
+      ],
+      "requirement": "Preserve accepted ownership and exact dependency decisions. Link each exception to explicit accepted authority and current verification."
+    },
+    {
+      "id": "dotnet-boundaries",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+        "program-kit-dotnet/references/technology-profiles/dotnet.md"
+      ],
+      "requirement": "Verify evaluated project and compiled type dependencies, Core purity, feature activation and resolution, and compatibility of owned extension protocols. Package shell, host and Nuplane settings with optional NuGet feeds as an application release bundle. Verify that bundle on the unchanged digest-pinned published Foundation host, including activation and restart where applicable. Consumer image builds/pushes and consumer host DLL production are forbidden."
+    },
+    {
+      "id": "api-contracts",
+      "when": "api",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/software-language.md",
+        "program-kit-dotnet/references/secure-web-profiles.md"
+      ],
+      "requirement": "Bind explicit wire/JSON admission semantics to DTOs and registered OpenAPI production; preserve versioned behavior with compatibility tests, not structural diff alone."
+    },
+    {
+      "id": "browser-experience",
+      "when": "web",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-governance/references/ui-experience-v1.md",
+        "program-kit-governance/references/ui-evaluation-v1.md"
+      ],
+      "requirement": "Materialize the selected UI profile and exercise the actual browser journey, accessibility and declared security boundary. Generated examples are not product acceptance."
+    },
+    {
+      "id": "capability-adoption",
+      "when": "capabilities",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/component-adoption.md",
+        "program-kit-building-blocks/references/orbyss-building-blocks.md"
+      ],
+      "requirement": "For each selected capability prove materialization, configured activation and actual supported public mechanism use; distinguish build-time producers from deployed runtime services."
+    },
+    {
+      "id": "dotnet-async",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Async and shell-owned work"
+        ]
+      },
+      "requirement": "Prove owned async completion, fault observation and cancellation; review Task/ValueTask consumption, direct-return lifetime and bounded CPU/fan-out decisions against affected source. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-concurrency",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Synchronization and collections"
+        ]
+      },
+      "requirement": "For shared state or producers, prove invariant coordination, successful-acquire release, cancellation and bounded completion under controlled scheduling. Review factories, lock ordering and singleton safety. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-lifetime",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Resource and memory ownership"
+        ]
+      },
+      "requirement": "Prove actual shell/DI scope ownership, partial startup and disposal paths. Disposition buffer leases, registrations and retention; require unload proof only when live reload is selected. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-construction",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Type and construction choices",
+          "Deferred initialization"
+        ]
+      },
+      "requirement": "Review typed value/default/equality/immutability and constructor invariants. When deferred initialization is used, prove factory, exception, cancellation and disposable-value ownership; do not defer required startup checks. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-queries",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "LINQ and query boundaries"
+        ]
+      },
+      "requirement": "When queries are used, prove cardinality, ordering, materialization and selected-provider translation; review pagination and N+1. Do not require a data store for a pure slice. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-runtime-io",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Time, configuration and I/O"
+        ]
+      },
+      "requirement": "Prove controlled-time deadlines, actual shell options validation and HTTP/file lifetime/admission where used; test cancellation and unsafe retry boundaries. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-runtime-security",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Secure runtime boundaries and observability"
+        ]
+      },
+      "requirement": "Apply existing WEB/JSON/assets controls; prove applicable malformed/oversized/denied input and redacted fault paths. Review protocol identity, process/path/URL boundaries and scoped advanced-runtime research. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-source-quality",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Method bodies and extraction",
+          "Source files and documentation",
+          "Orbyss style overlay",
+          "Enforcement classification"
+        ]
+      },
+      "requirement": "Bind actual compiler/analyzer versions, severities, scoped suppressions and generated-code handling. Review responsibility and documentation meaning; an analyzer pass does not certify SOLID or method cohesion. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "persistence-adoption",
+      "when": "persistence",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/persistence-profiles.md"
+      ],
+      "requirement": "Bind each scoped data owner to admitted profile, actual provider/project/central pins, activated semantic capability and real-provider tests. Prove transaction rollback/contention, replay/conflicting identity, retry/ambiguous commit and controlled migrations/recovery where required by the admission. No-store and read-only exceptions need reviewed evidence; package presence is not behavior."
+    },
+    {
+      "id": "http-operation-contracts",
+      "when": "http-api",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-dotnet/references/technology-profiles/dotnet.md"
+      ],
+      "requirement": "Bind scoped HTTP operations to operation-owned sources, thin IWebShellFeature composition, current generated OpenAPI identity and the existing registered baseline. Prove DTO/parser/schema parity, supported old-client/snapshot behavior and explicit version/deprecation decisions through api-proof.json. Review proportional small operations; non-HTTP contracts use their own compatibility mechanism."
+    }
+  ]
+}

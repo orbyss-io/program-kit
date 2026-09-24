@@ -51,6 +51,38 @@ def nonempty(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
+def bootstrap_obligations(repository: Path, entry: str) -> list[dict]:
+    """Project selected feature decisions and open architecture obligations, not closed proofs."""
+    path = repository / 'docs/architecture/bootstrap-prerequisites.json'
+    if not path.is_file():
+        return []
+    fields = ('id', 'source_ids', 'owner', 'task', 'rationale', 'trigger')
+    from bootstrap_lifecycle import verification_kind
+    return sorted(({**{k: item[k] for k in fields}, 'verification': verification_kind(item)} for item in read(path)['prerequisites']
+                   if entry in item['affected_slices'] and item['status'] != 'closed'
+                   and item['disposition'] in {'feature', 'architecture'}),
+                  key=lambda item: item['id'])
+
+
+def require_bootstrap_carryover(brief: dict, obligations: list[dict]) -> None:
+    for obligation in obligations:
+        matches = [item for item in brief['decisions'] if item.get('bootstrapPrerequisite') == obligation['id']]
+        require(len(matches) == 1, f"Bootstrap prerequisite {obligation['id']} needs exactly one linked intake decision "
+                '(bootstrapPrerequisite); resolve its policy or defer its planning work explicitly')
+        item = matches[0]
+        require(item['disposition'] in {'answered', 'default', 'deferred'},
+                f"Bootstrap prerequisite {obligation['id']} cannot be silently excluded")
+        if obligation.get('verification') == 'compatibility':
+            require(item['disposition'] == 'deferred',
+                    f"Bootstrap prerequisite {obligation['id']} requires executed evidence, not an intake answer; retain its due phase")
+        if item['disposition'] == 'deferred':
+            require(item.get('duePhase') == {'before-implementation': 'implementation', 'delivery': 'delivery'}.get(obligation['trigger'], 'planning'),
+                    f"Bootstrap prerequisite {obligation['id']} must preserve its owning phase gate")
+    known = {item['id'] for item in obligations}
+    require(all(item.get('bootstrapPrerequisite') in known for item in brief['decisions']
+                if 'bootstrapPrerequisite' in item), 'Unknown or out-of-scope bootstrap prerequisite link')
+
+
 def validate_brief(brief: dict, entry: str) -> None:
     require(brief.get("schemaVersion") == 1 and brief.get("roadmapEntry") == entry,
             "Brief schema or roadmap identity does not match")
@@ -76,6 +108,8 @@ def validate_brief(brief: dict, entry: str) -> None:
             require(not item["blocking"], f"{item['id']} blocks specification and cannot be deferred")
             require(nonempty(item.get("owner")) and nonempty(item.get("trigger")),
                     f"{item['id']} needs a deferral owner/next action and trigger")
+            require(item.get('duePhase') in {'planning', 'after-plan', 'after-tasks', 'implementation', 'delivery'},
+                    f"{item['id']} needs a structured duePhase; review the intended legacy trigger")
         if status in {"answered", "default"}:
             require(all(by_id[d].get("disposition") in {"answered", "default"} for d in dependencies),
                     f"{item['id']} relies on an unsettled premise")
@@ -100,10 +134,15 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
     governance.configure_paths()
     governance.validate_installation()
     governance.validate_ratification()
-    records = governance.validate_roadmap(False)
+    # Intake authority validation is also called from the delivery gate. Avoid
+    # recursively evaluating delivery while validating its own confirmed intent.
+    records = governance.validate_roadmap(False, verify_delivery=False)
     selected = [record for record in records if record["id"] == entry]
     require(len(selected) == 1, "Select exactly one existing roadmap entry")
     record = selected[0]
+    from bootstrap_lifecycle import phase_eligibility
+    eligibility = phase_eligibility(repository, records, entry, 'specification')
+    require(eligibility['eligible'], 'Selected journey needs resolution before specification: ' + '; '.join(b['id'] + ': ' + b['task'] for b in eligibility['blockers']))
     require(record["Status"] in ({"Ready", "Active", "Delivered"} if later else {"Ready", "Active"}),
             f"Selected roadmap entry {entry} is not Ready or Active")
     if record["Status"] == "Active" and not later:
@@ -113,6 +152,13 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
         spec = inside(repository, feature_directory) / "spec.md"
         require(spec_entries(spec.read_text(encoding="utf-8")) == [entry],
                 "An Active entry may only resume its existing specification; select a Ready entry for a new feature")
+    from feature_knowledge import project as project_knowledge, source_hash
+    brief_path = directory(repository, entry) / 'brief.json'
+    brief = read(brief_path) if brief_path.is_file() else {}
+    from bootstrap_handoff import first_feature
+    handoff = first_feature(repository)
+    inherited_scope = handoff['architectureScope'] if handoff and handoff['roadmapEntry'] == entry else None
+    knowledge = project_knowledge(repository, brief.get('architectureScope', inherited_scope))
     paths = [governance.CONSTITUTION, governance.ARCHITECTURE]
     for adr in governance.roadmap_required_adr_ids(record["Required Accepted ADRs"], entry):
         matches = [p for p in governance.project_path(governance.DECISIONS).rglob("*.md")
@@ -122,7 +168,9 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
     return {
         # Lifecycle progress and unrelated roadmap entries do not invalidate feature intent.
         "roadmap": {key: value for key, value in record.items() if key != "Status"},
-        "sources": {str(p).replace("\\", "/"): hashlib.sha256(inside(repository, str(p)).read_bytes()).hexdigest()
+        "canonicalKnowledge": knowledge,
+        "bootstrapObligations": bootstrap_obligations(repository, entry),
+        "sources": {str(p).replace("\\", "/"): source_hash(inside(repository, str(p)))
                     for p in sorted(set(paths))},
     }
 
@@ -138,7 +186,16 @@ def review_text(brief: dict, basis: dict) -> str:
                   f"Provenance: {item['provenance']}", f"Rationale: {item['rationale']}",
                   "Depends on: " + (", ".join(item["dependsOn"]) or "none")]
         if item["disposition"] == "deferred":
-            lines += [f"Owner / next action: {item['owner']}", f"Trigger: {item['trigger']}"]
+            lines += [f"Owner / next action: {item['owner']}", f"Trigger: {item['trigger']}", f"Due phase: {item['duePhase']}"]
+    if basis.get('canonicalKnowledge'):
+        from bootstrap_context import semantic_projection
+        lines += ["", "## Canonical architecture scope", "```json",
+                  json.dumps(semantic_projection(basis['canonicalKnowledge']), ensure_ascii=False, separators=(',', ':')), "```"]
+    if basis.get('bootstrapObligations'):
+        lines += ['', '## Inherited bootstrap planning obligations']
+        for item in basis['bootstrapObligations']:
+            lines += [f"- {item['id']} ({item['owner']}; {item['trigger']}): {item['task']}",
+                      f"  Source IDs: {', '.join(item['source_ids'])}. Rationale: {item['rationale']}"]
     lines += ["", "## Review basis", f"Brief SHA256: {digest(brief)}", f"Context SHA256: {digest(basis)}", ""]
     return "\n".join(lines)
 
@@ -148,6 +205,7 @@ def prepare(repository: Path, entry: str, *, later: bool = False) -> tuple[Path,
     brief = read(folder / "brief.json")
     validate_brief(brief, entry)
     basis = context(repository, entry, later=later)
+    require_bootstrap_carryover(brief, basis['bootstrapObligations'])
     return folder, brief, basis, review_text(brief, basis)
 
 
@@ -226,7 +284,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repository", default=".")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("begin", "review", "confirm", "check"):
+    for name in ("begin", "context", "review", "confirm", "check"):
         command = commands.add_parser(name)
         command.add_argument("--entry", required=True)
         if name == "begin":
@@ -243,6 +301,8 @@ def main() -> int:
         os.chdir(repository)
         if args.command == "begin":
             result = str(begin(repository, args.entry, args.request))
+        elif args.command == 'context':
+            result = context(repository, args.entry)
         elif args.command == "review":
             result = review(repository, args.entry)
         elif args.command == "confirm":

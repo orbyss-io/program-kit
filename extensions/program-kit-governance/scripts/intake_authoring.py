@@ -13,6 +13,7 @@ import tempfile
 import architecture_map as architecture
 import bootstrap_intake as intake_contract
 from contract_shapes import describe, errors, schema_for, sections
+from language_identity import canonical_language
 
 
 def encode(value: dict) -> str:
@@ -27,6 +28,9 @@ def defaults(model: dict) -> None:
     model.setdefault('schema_version', '1.1')
     for key in ('decisions', 'documentation', 'constraints', 'extensions'):
         model.setdefault(key, [])
+    for constraint in model['constraints'] if isinstance(model['constraints'], list) else []:
+        if isinstance(constraint, dict):
+            constraint.setdefault('decision_refs', [])
     model.setdefault('configuration', {'styles': [], 'themes': [], 'terminology': {}, 'branding': {}, 'properties': {}})
     for key in ('elements', 'relationships', 'views'):
         for item in model.get(key, []) if isinstance(model.get(key, []), list) else []:
@@ -69,12 +73,16 @@ def derive_structure(model: dict) -> None:
         if view['type'] != 'dynamic':
             raise ValueError(f'Journey {journey["id"]} must identify a dynamic view.')
         ordered = [step['relationship'] for step in journey['steps']]
-        view['relationships'] = list(ordered)
+        view['relationships'] = list(dict.fromkeys(ordered))
         view['order'] = list(ordered)
 
 
 def project_intake(model: dict, source: dict) -> dict:
     result = copy.deepcopy(source)
+    if isinstance(result.get('routing', {}).get('languages'), list) and all(
+            isinstance(v, str) for v in result['routing']['languages']):
+        result['routing']['languages'] = list(dict.fromkeys(
+            canonical_language(v) for v in result['routing']['languages']))
     result.setdefault('schema_version', '1.1')
     if result.get('status', 'draft') != 'draft':
         raise ValueError('Authoring source must be draft; this command cannot confirm intake.')
@@ -124,6 +132,12 @@ def owner_options(model: dict) -> dict:
 
 def describe_authoring(document: str, section: str, source: dict | None = None) -> dict:
     result = describe(document, section)
+    if document == 'intake':
+        result['identityRule'] = 'All intake record IDs share one namespace, including evidence, choices, assessments, scope and projected domain records. References reuse IDs; new records must not.'
+    if document == 'intake' and section == 'open_items':
+        result['semanticRules'] = ['Deferred requires a nonempty trigger and empty blocks; every other classification requires nonempty blocks.']
+    if document == 'intake' and section == 'routing':
+        result['semanticRules'] = ['Use canonical language names (c#, .net, typescript, python); put provenance in choices.source and evidence, not the language label.']
     if (document, section) in {('map', 'capability_binding'), ('intake', 'capability_assessments')}:
         result['semanticRules'] = {
             field: {'reference': 'map.strategic_model.bounded_contexts[].element',
@@ -132,6 +146,10 @@ def describe_authoring(document: str, section: str, source: dict | None = None) 
             for field, literals in architecture.CAPABILITY_OWNER_LITERALS.items()}
         if source is not None:
             result['ownerOptions'] = owner_options(source['map'])
+        result['coverageRules'] = [
+            'managed, guided and conflict require nonempty program_kit_capabilities naming the relevant catalog capability IDs.',
+            'Consumer-owned semantics alone do not imply guided mechanism coverage. Use not-declared when the catalog declares no mechanism; never invent a capability ID.',
+            'Managed mechanisms with consumer-owned semantics also require a semantic_profile.']
     if document == 'map' and section == 'context_relationship':
         result['semanticRules'] = [
             'Every individual cross-context map relationship ID needs exactly one context_relationship record, including module-level edges.',
@@ -141,12 +159,57 @@ def describe_authoring(document: str, section: str, source: dict | None = None) 
     return result
 
 
+def intake_source_errors(source: dict) -> list[str]:
+    """Independent draft diagnostics remain available even when map schema validation fails."""
+    document = source['intake']
+    diagnostics, seen = [], {}
+    def visit(value, path):
+        if isinstance(value, list):
+            for index, item in enumerate(value):
+                visit(item, f'{path}/{index}')
+        elif isinstance(value, dict):
+            identity = value.get('id')
+            if isinstance(identity, str):
+                if identity in seen:
+                    diagnostics.append(f'{path}/id: Duplicate intake ID {identity!r}; first declared at {seen[identity]}.')
+                else:
+                    seen[identity] = path + '/id'
+            for key, child in value.items():
+                if isinstance(child, (dict, list)):
+                    visit(child, path + '/' + key)
+    # Authoring input has no artifact records and contains only the independent intake records.
+    for key in ('evidence', *intake_contract.COLLECTIONS, 'scope', 'choices',
+                'capability_assessments', 'domain_analysis', 'open_items'):
+        visit(document.get(key), '$.intake/' + key)
+    items = document.get('open_items', [])
+    for index, item in enumerate(items if isinstance(items, list) else []):
+        if not isinstance(item, dict):
+            continue
+        path = f'$.intake/open_items/{index}'
+        classification = item.get('classification')
+        blocks, trigger = item.get('blocks'), item.get('trigger')
+        if classification == 'deferred':
+            if not isinstance(trigger, str) or not trigger.strip():
+                diagnostics.append(path + '/trigger: deferred item must name its lifecycle trigger.')
+            if isinstance(blocks, str) and blocks.strip():
+                diagnostics.append(path + '/blocks: deferred item cannot also block now.')
+        elif classification in {'human-decision', 'research', 'project-owned-design'}:
+            if not isinstance(blocks, str) or not blocks.strip():
+                diagnostics.append(path + '/blocks: item must name what it blocks.')
+    return diagnostics
+
+
 def authoring_semantic_errors(model: dict) -> list[str]:
     """Batch common authoring mistakes after schema validation; the full validator remains authoritative."""
     strategic = model['strategic_model']
     diagnostics = []
     options = owner_options(model)
     for index, binding in enumerate(strategic['capability_bindings']):
+        if binding['mechanism_coverage'] in {'managed', 'guided', 'conflict'} and not binding['program_kit_capabilities']:
+            diagnostics.append(f'$.map/strategic_model/capability_bindings/{index}/program_kit_capabilities: '
+                               f"assessment {binding['assessment']!r} with {binding['mechanism_coverage']} coverage "
+                               'must name relevant catalog capability IDs. Consumer ownership alone is not guided coverage; '
+                               'use not-declared if no mechanism is declared. Do not invent IDs.')
         for field, allowed in options.items():
             if binding[field] not in allowed:
                 diagnostics.append(f'$.map/strategic_model/capability_bindings/{index}/{field}: '
@@ -208,7 +271,7 @@ def build(root: Path, source_path: Path) -> dict:
         for record in records if isinstance(records, list) else []:
             if isinstance(record, dict) and record.get('path') == intent_relative.as_posix():
                 record['sha256'] = intake_contract.sha256_file(intent)
-    structural = errors(model, schema_for('map'), path='$.map')
+    structural = errors(model, schema_for('map'), path='$.map') + intake_source_errors(source)
     if structural:
         raise ValueError('\n'.join(structural))
     derive_structure(model)
@@ -217,6 +280,9 @@ def build(root: Path, source_path: Path) -> dict:
         raise ValueError('\n'.join(semantic))
     architecture.validate_model(model, root)
     document = project_intake(model, source['intake'])
+    projected_errors = intake_source_errors({'intake': document})
+    if projected_errors:
+        raise ValueError('\n'.join(projected_errors))
     # Stage and validate all three outputs before replacing anything. Confirmed consumers are
     # never reset to draft; failures preserve their current documents and source.
     with tempfile.TemporaryDirectory(prefix='.intake-authoring-', dir=root) as temporary:

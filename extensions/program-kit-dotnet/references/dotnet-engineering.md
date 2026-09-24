@@ -17,6 +17,12 @@ ownership rules are profile requirements.
   Shutdown is idempotent, cancels, awaits with a bound, drains before provider disposal, and has disposal fallback.
 - Custom schedulers, `Task.Factory.StartNew`, invisible fire-and-forget, and runtime work without an owner require
   an Accepted ADR and measured evidence.
+- Await asynchronous I/O directly. `Task.Run` does not improve server I/O scalability; CPU offload needs a
+  bounded execution policy. Returning a task directly is valid only when disposal, `finally` and exception
+  handling do not need to span its completion. Observe all child outcomes from `Task.WhenAll`, including
+  cancellation. Async streams propagate enumeration cancellation and dispose their enumerators.
+- Choose continuation behavior for the actual caller context; do not mechanically add or remove
+  `ConfigureAwait`. Distinguish per-process Foundation scheduling from distributed work ownership.
 
 ## Synchronization and collections
 
@@ -26,6 +32,11 @@ ownership rules are profile requirements.
 - Prefer concurrent collections only when their precise atomicity is understood. `ConcurrentDictionary`
   delegates can execute more than once and outside its internal locks; factories must tolerate that behavior.
 - Prefer message passing or bounded channels when ownership transfer is clearer than shared mutable state.
+- `Interlocked` supports individual atomic operations; compound invariants still need coordination.
+  `volatile` does not make read-modify-write atomic. Document lock order and keep uncontrolled callbacks,
+  external I/O and slow work outside critical sections. Singleton lifetime does not establish thread safety.
+- A channel design defines capacity, full mode, cancellation, completion and failed-consumer behavior.
+  Specialized locks and lock-free algorithms require a scoped investigation and measured justification.
 
 ## Resource and memory ownership
 
@@ -38,6 +49,12 @@ ownership rules are profile requirements.
   ownership and do not retain borrowed memory beyond the documented lifetime.
 - Assembly unloading is cooperative. Live reload requires weak-reference/collection tests and proof that old
   generation tasks, statics, subscriptions, and load contexts become collectible.
+- Check actual shell scopes for captive dependencies. Dispose cancellation registrations, timers and event
+  subscriptions with their owner; test cancellation and partial startup, not only successful shutdown.
+- With `ArrayPool`, `IMemoryOwner<T>` or pipelines, document each lease and return/disposal path, including
+  failures; clear sensitive pooled data as required. Never use memory after return or across an invalid lease.
+  Prefer `SafeHandle` for owned unmanaged handles. Pinning, forced GC, LOH optimizations and custom pooling
+  are conditional measured choices, not ordinary application defaults.
 
 ## LINQ and query boundaries
 
@@ -47,6 +64,10 @@ ownership rules are profile requirements.
 - Avoid side effects in query operators. Materialize when a stable snapshot or repeated traversal is intended.
 - PLINQ and parallel projection require measurement, bounded resource analysis, deterministic outcome semantics,
   and cancellation. Do not put unbounded async lambdas into synchronous LINQ operators.
+- Use `Any`, counts, `First` and `Single` according to the contract, including empty/multiple outcomes.
+  Specify stable ordering and pagination. Test projection, N+1 behavior and named helper translation on
+  the real selected provider; an in-memory substitute cannot prove database semantics. Do not replace
+  readable queries with loops without an actual correctness or measured performance reason.
 
 ## Type and construction choices
 
@@ -61,6 +82,51 @@ ownership rules are profile requirements.
 - Primary constructors are a suggestion when dependencies and state remain clearer. Do not force them when they
   create hidden mutable captures or obscure invariants.
 - Seal internal leaf types when there is no extension contract, but treat CA1852 as an opt-in repository policy.
+- Review `default(T)`, equality/hash semantics and copying/boxing for value contracts. Records and `init`
+  properties do not make referenced collections deeply immutable. Test promised substitution contracts.
+  Factories clean up partially acquired resources; static initialization must not hide required startup
+  validation or introduce unrecoverable initialization dependencies.
+
+## Deferred initialization
+
+Use `Lazy<T>` only for genuinely deferred, reusable initialization with an explicit lifetime. Define the
+factory's side effects, exception policy, thread-safety mode and disposal owner. `ExecutionAndPublication`
+coordinates initialization and can cache factory exceptions; it does not make the value thread-safe.
+`PublicationOnly` can run several factories: account for duplicate effects and losing disposable values.
+It is not an automatic retry policy. `Lazy<Task<T>>` can retain faulted or cancelled tasks; define shared
+failure and cancellation semantics instead of binding shared initialization to one caller's token.
+Required initialization uses the selected Foundation startup mechanism. Do not invent a universal
+AsyncLazy abstraction, hide synchronous blocking, or defer mandatory configuration validation.
+
+## Time, configuration and I/O
+
+- Use `TimeProvider` for replaceable time, monotonic timestamps for elapsed duration, and controlled-time
+  tests for deadlines. Use `PeriodicTimer` when its single-consumer semantics fit owned periodic work.
+- Bind typed options and validate at their actual activation boundary. Root `ValidateOnStart` alone is
+  not evidence for a CShells provider. Define reload and snapshot lifetimes and test invalid configuration.
+- Use a supported `HttpClient` lifetime/DNS strategy: factory-managed handlers or long-lived clients with
+  a configured pooled connection lifetime. Define deadlines and cancellation; retry only replay-safe
+  operations, accounting for effects and commit ambiguity. Use `IFileProvider` where it fits the resource
+  boundary; it does not by itself establish path admission or tenant isolation.
+
+## Secure runtime boundaries and observability
+
+Reuse the selected WEB controls and managed JSON/asset mechanisms in `secure-web-profiles.md`; these
+rules specialize runtime use, not their identities or policy. Known envelopes become typed after
+admission as defined in `programming-guardrails.md`.
+
+- Specify ordinal/culture and normalization semantics for protocol identifiers; do not let machine culture
+  change authorization, identity or persisted wire meaning. Bound untrusted parsing, regular expressions,
+  archives and decompression; use timeouts or an appropriate non-backtracking regex where supported.
+- Allowlist polymorphic input. Admit file paths, outbound URLs and process arguments at their trust
+  boundary; use structured process argument APIs and protect against traversal/SSRF. Use platform
+  cryptographic primitives and secure random APIs for security purposes, never custom cryptography.
+- Preserve exception stacks and distinguish cancellation from faults. Use structured logging and, when
+  meaningful, `ActivitySource`/`Meter`; bound cardinality and redact sensitive data. Test denied, malformed,
+  oversized and fault paths, including logs, rather than relying on a successful request.
+- Unsafe code, interop, runtime code generation, custom schedulers, distributed locks and live reload
+  trigger scoped security/compatibility research. Source generation, reflection caches, trimming and AOT
+  are conditional on measured needs and the selected deployment; verify that deployment before adoption.
 
 ## Method bodies and extraction
 
@@ -139,6 +205,27 @@ not automatically justified: it must make the caller easier to read or own an in
   mutation, and live reload without drain/unload evidence.
 
 ## Primary references
+
+The following primary sources were checked on 2026-09-13. They substantiate runtime semantics;
+Program Kit's mandatory/conditional choices above are product policy. Compile examples against the
+managed SDK and exact packages before claiming support. Phase obligations bind the relevant sections
+and executing verifier versions; semantic review must cite changed code and actual checks, not merely
+assert that this profile was read.
+
+- [Async scenarios](https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/async-scenarios),
+  [Interlocked](https://learn.microsoft.com/dotnet/api/system.threading.interlocked?view=net-10.0),
+  [volatile limitations](https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/volatile),
+  and [channels](https://learn.microsoft.com/dotnet/core/extensions/channels).
+- [Lazy semantics](https://learn.microsoft.com/dotnet/api/system.lazy-1?view=net-10.0),
+  [DI ownership](https://learn.microsoft.com/dotnet/core/extensions/dependency-injection/guidelines),
+  [disposal](https://learn.microsoft.com/dotnet/standard/garbage-collection/implementing-dispose),
+  and [memory leases](https://learn.microsoft.com/dotnet/standard/memory-and-spans/memory-t-usage-guidelines).
+- [TimeProvider](https://learn.microsoft.com/dotnet/standard/datetime/timeprovider-overview),
+  [options](https://learn.microsoft.com/dotnet/core/extensions/options),
+  and [HttpClient lifetime](https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines).
+- [Protocol strings](https://learn.microsoft.com/dotnet/standard/base-types/best-practices-strings),
+  [regex bounds](https://learn.microsoft.com/dotnet/standard/base-types/best-practices-regex),
+  and [SDK security diagnostics](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/security-warnings).
 
 - [Microsoft C# coding conventions](https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/coding-conventions)
   for coherent structure and contract-focused comments.

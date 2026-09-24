@@ -1,0 +1,21 @@
+{
+  "repository": "https://github.com/Orbyss-io/dotnet-foundation",
+  "purpose": "Public integration assertions retained from the 0.2.0 audit, now run against released 0.2.2 Foundation NuGet packages, with no project references to producer source. Original source-file hashes are preserved; these complement the independent fictional consumer oracles.",
+  "files": [
+    {
+      "source": "tests/dotnet/Orbyss.Foundation.Web.HostedPages.Probe/Program.cs",
+      "destination": "hosted-pages/Program.cs",
+      "sha256": "389d303b3940bb2195990004cb9a515e54d9222d68e748eae0bd915894eea2a4"
+    },
+    {
+      "source": "tests/dotnet/Orbyss.Foundation.WebDefaults.Probe/PolicyProbeFeature.cs",
+      "destination": "web-defaults/PolicyProbeFeature.cs",
+      "sha256": "d98deebd0c709cdb6d48576c1a06f145dbf38f3c170bf1f7f2e42fc842813bda"
+    },
+    {
+      "source": "tests/dotnet/Orbyss.Foundation.WebDefaults.Probe/Program.cs",
+      "destination": "web-defaults/Program.cs",
+      "sha256": "c9b068bd1c28dbcefbf73fc8dc7f473bbf19834246ef13dae5145c84b6a5bce3"
+    }
+  ]
+}

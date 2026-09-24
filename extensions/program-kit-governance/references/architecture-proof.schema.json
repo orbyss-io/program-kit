@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/architecture-proof.schema.json",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "graph": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "enum": [
+            "evaluated-compiled",
+            "equivalent"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checkIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "designRef": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "method",
+        "rationale",
+        "checkIds"
+      ],
+      "additionalProperties": false
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "shell": {
+            "type": "string",
+            "minLength": 1
+          },
+          "registration": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resolutionCheckIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "extensionCheckIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "contract": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "shell",
+          "registration",
+          "resolutionCheckIds",
+          "extensionCheckIds",
+          "contract"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "coreReferences": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "checkIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          }
+        },
+        "required": [
+          "checkIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "$schema": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "graph",
+    "bindings",
+    "coreReferences"
+  ],
+  "additionalProperties": false
+}

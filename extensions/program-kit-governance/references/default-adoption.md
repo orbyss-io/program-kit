@@ -1,5 +1,42 @@
 # Default adoption
 
+## Executable selection and first use
+
+The bootstrap workflow resolves defaults before validating assessment/research outputs and before
+approval. `bootstrap_defaults.py` writes missing structured selections to the existing decision
+register and records their source. It never changes confirmed intake or an approved register.
+The stage registry and `bootstrap_handoff.py` enforce when the resulting choices must be usable.
+
+When no application language or platform is selected, the managed application default is
+.NET with the published Foundation host. Managed BFF/SPA authentication also implies that
+dependency. A browser-only explicit anonymous profile does not require an invented backend.
+An explicit alternate language or host is preserved: a conflict with managed authentication or
+an unavailable engineering adapter must be resolved before adopting that combination.
+
+For managed sign-in without a provider selection, use the shipped Keycloak local adapter for
+development and bounded evaluation. Its version/configuration remains owned by the existing web
+profile, not by a second bootstrap pin. Production identity hosting is a separate decision due
+before production deployment; it does not prevent a local first slice. Preserve an explicitly
+selected consumer identity service. Applying this default does not authorize paid infrastructure.
+
+Declare persistence needs structurally per data owner in the existing `persistence` collection.
+The shared persistence resolver turns `server-relational` plus an absent/`auto` profile into
+`ef-postgresql` for .NET. It preserves explicit profiles and does not infer a durable store from
+free text. Assessment must translate confirmed durability needs into this declaration. Provider
+selection is distinct from later admission and real-provider behavior evidence.
+
+The register's `first_slice` names source journey IDs, a useful outcome and why that boundary is
+small enough. Each unresolved question declares an owner, kind and due stage. Apply a known
+default immediately; only consequential questions without a safe default need human answers.
+Unattended workers must not treat an asynchronous question as answered. Required answers are
+recorded against the exact question at the native handoff, then the user resumes the workflow.
+
+"No additional constraints supplied" is sufficient to adopt an applicable local default. It is
+not a claim that no constraints exist. A generic unanswered constraints question must not shadow
+resolved defaults with a new architecture blocker. Preserve known conflicts; require facts needed
+for an actual present action, and defer production hosting, paid services and operational choices
+until those actions become necessary. Default adoption never supplies spending authorization.
+
 ## Bootstrap promise
 
 Program Kit produces a complete, opinionated, usable baseline. Human attention is reserved for
@@ -37,6 +74,14 @@ are explicit intent. Examples, alternatives, future directions, and phrases such
 
 ## Adoption evidence
 
+For .NET persistence, apply `program-kit-dotnet/references/persistence-profiles.md` while resolving
+data-owner intent: no store means none; server-relational storage inherits EF/Npgsql/PostgreSQL unless
+an explicit alternative or existing provider takes precedence. Record the proposal per owner in
+`bootstrap-decisions.json.persistence` immediately. Admission, materialized packages and tested
+compatibility are separate later evidence; do not ask the user to redesign a selected database merely
+because a test harness lacks its service. Research unresolved consumer-owned packages against the
+managed pins and record compatibility or a concrete override.
+
 Write `docs/architecture/bootstrap-decisions.json` using schema version `1.0`. It records the
 versioned default profile, selected profiles, adopted choices and their sources, overrides,
 material acknowledgements, genuinely unresolved decisions, and deferred decisions. Every adopted
@@ -73,7 +118,7 @@ activation is not valid immediate verification evidence.
 
 ## .NET default
 
-When .NET is selected, the external application-neutral `Orbyss.Foundation.Host` and runnable-host release model are the
+When .NET is selected, the external application-neutral `Orbyss.Foundation.Host` and application release-bundle model are the
 automatic runtime default. Consumer repositories create packable feature projects and activation,
 configuration, package-closure, and release evidence—not a custom `.Host` project or application
 `Program.cs`. Adopt this model unless the confirmed bootstrap intake explicitly opts out. An opt-out records the alternate

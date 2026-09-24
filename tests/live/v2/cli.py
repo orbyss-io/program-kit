@@ -18,11 +18,12 @@ from typing import Any
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
-from live.v2.candidate import install_candidate_from_receipt, validate_release_receipt
+from live.v2.authorization import PHASES as AUTHORIZATION_PHASES, consume_authorization, issue_authorization, session_limit, validate_authorization
+from live.v2.candidate import bootstrap_session_limit, install_candidate_from_receipt, validate_candidate_receipt
 from live.v2.checkpoint import checkpoint_digest, materialize_checkpoint, seal_checkpoint
-from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, load_object, sha256_file, utc_now, validate
+from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, load_object, safe_relative, sha256_file, utc_now, validate
 from live.v2.evidence import EvidenceStore
+from live.v2.learning_metrics import native_usage, stream_usage, attempt_usage
 from live.v2.scenario import bind_selection, copied_fixture, load_scenario, scenario_authority
 from live.v2.supervisor import ProcessResult, run_supervised
 from live.v2.validation import validate_consumer
@@ -97,7 +98,7 @@ def schemas(root: Path) -> Path:
 
 
 def default_scenario(root: Path) -> Path:
-    return root / "tests/live/scenarios/internal-forms-workspace/v1"
+    return root / "tests/live/scenarios/internal-forms-workspace/v3"
 
 
 def execution_workspace(root: Path, run_token: str) -> Path:
@@ -175,12 +176,41 @@ def preflight(root: Path, receipt: dict[str, Any]) -> None:
         raise LiveContractError("LIVE_ACCEPTANCE_SOURCE_NOT_CLEAN")
 
 
+def compact_windows_path(value: str) -> str:
+    """Keep usable search directories in order within the owned live process tree."""
+    directories, seen = [], set()
+    for entry in value.split(os.pathsep):
+        entry = os.path.expandvars(entry.strip('"'))
+        if not entry:
+            continue
+        try:
+            if not Path(entry).is_dir():
+                continue
+        except OSError:
+            # An unreadable directory might still contain an executable the host can launch.
+            pass
+        identity = os.path.normcase(os.path.normpath(entry))
+        if identity not in seen:
+            seen.add(identity)
+            directories.append(entry)
+    compact = os.pathsep.join(directories)
+    if len(compact) >= 8191:
+        raise LiveContractError('LIVE_WORKER_WINDOWS_PATH_TOO_LONG: usable PATH still exceeds cmd.exe capacity')
+    for name in ('python', *LIVE_TOOLCHAINS, 'pwsh', 'rg', 'uv'):
+        before, after = shutil.which(name, path=value), shutil.which(name, path=compact)
+        if before != after:
+            raise LiveContractError(f'LIVE_WORKER_PATH_SELECTION_CHANGED: {name}')
+    return compact
+
+
 def worker_environment(project: Path, profile: dict[str, Any]) -> dict[str, str]:
     allowed = {
         "PATH", "PATHEXT", "SYSTEMROOT", "COMSPEC", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA",
         "CODEX_HOME", "SSL_CERT_FILE", "SSL_CERT_DIR", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY",
     }
     environment = {key: value for key, value in os.environ.items() if key.upper() in allowed}
+    if os.name == 'nt':
+        environment['PATH'] = compact_windows_path(environment.get('PATH', ''))
     for key in SECRET_KEYS:
         environment.pop(key, None)
     environment.update(
@@ -274,6 +304,18 @@ def operation(command: list[str], project: Path, evidence: Path, name: str, envi
     return result, receipt
 
 
+def bootstrap_runtime_preflight(project: Path, profile: dict, evidence: Path) -> dict:
+    # Exercise the installed resolver and Git/runtime boundary through the same shell before
+    # consuming paid authorization. This command does not invoke a coding agent.
+    command = ['python', '.specify/extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py', '--integration', 'codex']
+    if os.name == 'nt':
+        command = [os.environ.get('COMSPEC', r'C:\Windows\System32\cmd.exe'), '/d', '/c', ' '.join(command)]
+    result, receipt = operation(command, project, evidence, 'runtime-preflight', worker_environment(project, profile), timeout=60)
+    if result.exitCode != 0 or not result.cleanupComplete or not result.logsDrained:
+        raise LiveContractError(f'LIVE_BOOTSTRAP_RUNTIME_PREFLIGHT_FAILED: inspect {evidence / "runtime-preflight"}; authorization not consumed')
+    return receipt
+
+
 def store_logs(store: EvidenceStore, process: ProcessResult, directory: Path) -> list[dict[str, object]]:
     records = []
     for log in (process.stdout, process.stderr):
@@ -290,8 +332,18 @@ def issue(args: argparse.Namespace) -> int:
     scenario_root = Path(args.scenario).resolve() if args.scenario else default_scenario(root)
     authority = scenario_authority(scenario_root, schema_root)
     receipt_path = Path(args.release_receipt).resolve()
-    receipt, receipt_digest = validate_release_receipt(root, receipt_path, load_object(schema_root / "release-receipt.schema.json"))
-    preflight(root, receipt)
+    source = Path(args.release_root).resolve() if args.release_root else root
+    kind = args.receipt_kind
+    receipt, receipt_digest = validate_candidate_receipt(source, receipt_path, schema_root, kind)
+    preflight(source, receipt)
+    from live.v2.scenario import validate_candidate_catalog
+    validate_candidate_catalog(scenario_root, source, schema_root)
+    limit = bootstrap_session_limit(source, receipt) if args.phase == 'bootstrap-checkpoint' else 1
+    if args.displayed_session_limit != limit:
+        raise LiveContractError('LIVE_AUTHORIZATION_DISPLAYED_SESSION_LIMIT_CHANGED')
+    if git(root, 'status', '--porcelain=v1'):
+        raise LiveContractError('LIVE_ACCEPTANCE_HARNESS_NOT_CLEAN')
+    from live.v2.sync_stages import harness_digest
     checkpoint = None
     if args.checkpoint:
         checkpoint_path = Path(args.checkpoint).resolve()
@@ -313,8 +365,10 @@ def issue(args: argparse.Namespace) -> int:
     manifest = issue_authorization(
         destination, load_object(schema_root / "authorization.schema.json"), phase=args.phase,
         scenario={key: authority[key] for key in ("id", "version", "digest")},
-        candidate={"releaseReceipt": str(receipt_path), "releaseReceiptSha256": receipt_digest},
+        candidate={"releaseReceipt": str(receipt_path), "releaseReceiptSha256": receipt_digest,
+                   "receiptKind":kind, "releaseRoot":str(source), "harnessSha256":harness_digest()},
         checkpoint=checkpoint, agent_profile=profile, expires_minutes=args.expires_minutes,
+        bootstrap_sessions=limit if args.phase == 'bootstrap-checkpoint' else None,
     )
     print(f"Live authorization {manifest['authorizationId']}: {destination}")
     return 0
@@ -341,8 +395,17 @@ def _phase_inputs(args: argparse.Namespace, phase: str) -> tuple[Path, Path, Evi
     authorization_path = Path(args.authorization).resolve()
     authorization_raw = load_object(authorization_path)
     receipt_path = Path(authorization_raw["candidate"]["releaseReceipt"]).resolve()
-    receipt, receipt_digest = validate_release_receipt(root, receipt_path, load_object(schema_root / "release-receipt.schema.json"))
-    preflight(root, receipt)
+    candidate = authorization_raw['candidate']
+    source = Path(candidate.get('releaseRoot', root)).resolve()
+    receipt, receipt_digest = validate_candidate_receipt(source, receipt_path, schema_root, candidate.get('receiptKind', 'release'))
+    preflight(source, receipt)
+    from live.v2.scenario import validate_candidate_catalog
+    validate_candidate_catalog(scenario_root, source, schema_root)
+    from live.v2.sync_stages import harness_digest
+    if candidate.get('harnessSha256') and candidate['harnessSha256'] != harness_digest():
+        raise LiveContractError('LIVE_SYNC_AUTHORIZED_HARNESS_CHANGED')
+    if git(root, 'status', '--porcelain=v1'):
+        raise LiveContractError('LIVE_ACCEPTANCE_HARNESS_NOT_CLEAN')
     store = EvidenceStore(root / "artifacts/live-acceptance/v2")
     store.initialize()
     checkpoint_sha = checkpoint_digest(Path(args.checkpoint).resolve()) if getattr(args, "checkpoint", None) else None
@@ -353,6 +416,7 @@ def _phase_inputs(args: argparse.Namespace, phase: str) -> tuple[Path, Path, Evi
     authorization = validate_authorization(
         authorization_path, load_object(schema_root / "authorization.schema.json"), phase=phase,
         scenario_digest=authority["digest"], candidate_receipt_digest=receipt_digest, checkpoint_digest=checkpoint_sha,
+        bootstrap_sessions=bootstrap_session_limit(source, receipt) if phase == 'bootstrap-checkpoint' else None,
     )
     validate_agent_launcher(authorization["agentProfile"])
     return root, scenario_root, store, scenario, expectation, receipt, receipt_digest, authorization
@@ -366,8 +430,18 @@ def bootstrap(args: argparse.Namespace) -> int:
     project = execution_workspace(root, run_token)
     packages = candidate_packages(root, run_token)
     shutil.copytree(copied_fixture(scenario_root, scenario), project)
-    setup_receipts = install_candidate_from_receipt(root, project, packages, receipt, run_root / "setup")
+    source = Path(authorization['candidate'].get('releaseRoot', root)).resolve()
+    setup_receipts = install_candidate_from_receipt(source, project, packages, receipt, run_root / "setup")
     worker_guidance(project)
+    selection_intent = project / 'docs/architecture/building-block-selection-intent.json'
+    shutil.copyfile(scenario_root / safe_relative(scenario['selectionTemplate']), selection_intent)
+    with (project / 'AGENTS.md').open('a', encoding='utf-8') as guidance:
+        guidance.write('\n## Reviewed fixture choices\nBefore architecture selection, read docs/architecture/building-block-selection-intent.json. '
+                       'These are the fixture choices to carry through normal native design and final review. '
+                       'Create the actual selection and bind it in architecture documentation before approval. '
+                       'The supervisor checks it read-only afterward; it cannot repair approved authority.\n')
+    protected_intent = {p.relative_to(project).as_posix(): sha256_file(p) for p in
+                        (project / 'PROJECT_REQUEST.md', project / 'docs/architecture/project-intent.md', selection_intent) if p.is_file()}
     workflow_definition = packages / "workflow/workflow.yml"
     paid_steps = sum(1 for line in workflow_definition.read_text(encoding="utf-8").splitlines() if line.strip() == "type: command")
     if paid_steps < 1 or paid_steps > authorization["limits"]["maximumPaidSessions"]:
@@ -375,23 +449,34 @@ def bootstrap(args: argparse.Namespace) -> int:
             f"LIVE_AUTHORIZATION_SESSION_LIMIT_EXCEEDED: workflow has {paid_steps} paid steps; "
             f"authorization permits {authorization['limits']['maximumPaidSessions']}"
         )
+    setup_receipts.append(bootstrap_runtime_preflight(project, authorization['agentProfile'], run_root / 'setup'))
+    from live.v2.bootstrap_provisioning import BootstrapProvisioner
+    provisioner = BootstrapProvisioner(project, run_root)
     consumption = consume_authorization(Path(args.authorization).resolve(), authorization, store.authorizations / "consumed")
-    command = [
-        shutil.which("specify") or "specify", "workflow", "run", "program-kit-bootstrap",
-        "--input", "bootstrap_intake=docs/architecture/bootstrap-intake.json", "--input", "integration=codex",
-        "--input", "auto_approve_and_ratify=true", "--json",
-    ]
+    driver_job = run_root / 'job.json'
+    atomic_write_json(driver_job, {'project': str(project), 'nativeRun': run_id,
+        'sourceRun': None, 'faultPending': False,
+        'consumedAuthorization': str(store.authorizations / 'consumed' / f"{authorization['authorizationId']}.json"),
+        'consumption': consumption})
+    command = [sys.executable, str(Path(__file__).with_name('workflow_acceptance.py')), 'driver', '--job', str(driver_job)]
+    environment = worker_environment(project, authorization['agentProfile'])
+    environment['SPECKIT_INTEGRATION_CODEX_EXTRA_ARGS'] += ' --json'
     progress = WorkflowProgress(project)
     progress.start()
     try:
-        result = run_supervised(
-            command, cwd=project, environment=worker_environment(project, authorization["agentProfile"]),
-            evidence_directory=run_root / "worker", timeout_seconds=authorization["agentProfile"]["timeoutSeconds"],
-            secrets=[os.environ.get(key, "") for key in SECRET_KEYS],
-        )
+        from .postgresql_service import worker_service
+        with worker_service(project, run_root / 'database', supervisor_environment(), project / 'acceptance/services.json') as (service_environment, service_secrets):
+            result = run_supervised(
+                command, cwd=project, environment={**environment, **service_environment},
+                evidence_directory=run_root / "worker", timeout_seconds=authorization["agentProfile"]["timeoutSeconds"],
+                secrets=[os.environ.get(key, "") for key in SECRET_KEYS] + service_secrets, on_poll=provisioner.poll,
+            )
     finally:
         progress.stop()
+        setup_receipts.extend(provisioner.receipts)
     status, causes = process_failure(result)
+    if provisioner.failed:
+        status, causes = 'failed', ['environment']
     checkpoint_path: Path | None = None
     try:
         if result.exitCode != 0:
@@ -404,6 +489,8 @@ def bootstrap(args: argparse.Namespace) -> int:
         validation = subprocess.run([sys.executable, str(validator), "validate-bootstrap"], cwd=project, check=False)
         if validation.returncode != 0:
             raise LiveContractError("LIVE_BOOTSTRAP_DETERMINISTIC_VALIDATION_FAILED")
+        if any(not (project / name).is_file() or sha256_file(project / name) != expected for name, expected in protected_intent.items()):
+            raise LiveContractError('LIVE_BOOTSTRAP_APPROVED_FIXTURE_INTENT_CHANGED')
         _, selection_sha = bind_selection(scenario_root, project, scenario)
         plan = subprocess.run(
             [sys.executable, str(project / ".specify/extensions/program-kit-building-blocks/scripts/building_blocks.py"), "plan", "--target", str(project)],
@@ -415,15 +502,18 @@ def bootstrap(args: argparse.Namespace) -> int:
             store, project, load_object(schemas(root) / "checkpoint.schema.json"), phase="bootstrap-checkpoint",
             candidate_digest=receipt_digest, scenario_digest=scenario_authority(scenario_root, schemas(root))["digest"],
             expectation_digest=sha256_file(scenario_root / scenario["activeExpectation"]), selection_sha256=selection_sha,
+            scenario_root=str(scenario_root),
         )
         status = "checkpoint-created"
         causes = []
     except LiveContractError as error:
         (run_root / "failure.txt").write_text(str(error) + "\n", encoding="utf-8")
     logs = store_logs(store, result, run_root / "worker")
+    learning = attempt_usage(run_root / "dispatches.json") if "bootstrap" in run_id else stream_usage(run_root / "worker" / result.stdout.path, completed=result.exitCode == 0 and result.logsDrained and result.cleanupComplete)
     manifest = {
+        "learning": learning,
         "schemaVersion": "2.0", "runId": run_id, "phase": "bootstrap-checkpoint", "status": status, "causes": causes,
-        "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest},
+        "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest, "receiptKind":authorization['candidate'].get('receiptKind','release')},
         "scenario": scenario_authority(scenario_root, schemas(root)), "agentProfile": authorization["agentProfile"],
         "process": result.as_dict(), "logs": logs, "receipts": setup_receipts,
         "workspace": project.relative_to(root).as_posix(),
@@ -561,9 +651,11 @@ def building_blocks(args: argparse.Namespace) -> int:
     for receipt_value in receipts:
         validate(receipt_value, receipt_schema)
     logs = store_logs(store, result, run_root / "worker")
+    learning = attempt_usage(run_root / "dispatches.json") if "bootstrap" in run_id else stream_usage(run_root / "worker" / result.stdout.path, completed=result.exitCode == 0 and result.logsDrained and result.cleanupComplete)
     manifest = {
+        "learning": learning,
         "schemaVersion": "2.0", "runId": run_id, "phase": "building-block-consumer", "status": status, "causes": causes,
-        "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest},
+        "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest, "receiptKind":authorization['candidate'].get('receiptKind','release')},
         "scenario": scenario_authority(scenario_root, schemas(root)), "agentProfile": profile, "process": result.as_dict(),
         "logs": logs, "receipts": receipts, "oracle": validation_result if status == "passed" else {},
         "workspace": project.relative_to(root).as_posix(),
@@ -577,11 +669,17 @@ def building_blocks(args: argparse.Namespace) -> int:
 
 
 def parser() -> argparse.ArgumentParser:
+    from live.v2.sync_stages import PHASES, CASES
     value = argparse.ArgumentParser(description="Governed Program Kit live-acceptance v2 phases.")
     commands = value.add_subparsers(dest="command", required=True)
     authorize = commands.add_parser("authorize")
-    authorize.add_argument("--phase", required=True, choices=("bootstrap-checkpoint", "building-block-consumer"))
+    authorize.add_argument("--phase", required=True, choices=("bootstrap-checkpoint", "building-block-consumer", *PHASES))
+    authorize.add_argument("--case", choices=CASES)
+    authorize.add_argument("--release-root")
+    authorize.add_argument("--baseline-report")
     authorize.add_argument("--release-receipt", required=True)
+    authorize.add_argument('--receipt-kind', choices=('release','development-trial'), default='release')
+    authorize.add_argument('--displayed-session-limit', type=int, required=True)
     authorize.add_argument("--scenario")
     authorize.add_argument("--checkpoint")
     authorize.add_argument("--model", required=True)
@@ -591,6 +689,11 @@ def parser() -> argparse.ArgumentParser:
     authorize.add_argument("--expires-minutes", type=int, default=30)
     authorize.add_argument("--output", required=True)
     authorize.add_argument("--confirmed", action="store_true")
+    preview = commands.add_parser('session-limit')
+    preview.add_argument('--phase', required=True, choices=sorted(AUTHORIZATION_PHASES))
+    preview.add_argument('--release-root')
+    preview.add_argument('--release-receipt', required=True)
+    preview.add_argument('--receipt-kind', choices=('release','development-trial'), default='release')
     bootstrap_parser = commands.add_parser("bootstrap")
     bootstrap_parser.add_argument("--authorization", required=True)
     bootstrap_parser.add_argument("--scenario")
@@ -598,14 +701,43 @@ def parser() -> argparse.ArgumentParser:
     blocks.add_argument("--authorization", required=True)
     blocks.add_argument("--checkpoint", required=True)
     blocks.add_argument("--scenario")
+    stage = commands.add_parser('sync-stage')
+    stage.add_argument('--phase', required=True, choices=PHASES)
+    stage.add_argument('--case', required=True, choices=CASES)
+    stage.add_argument('--authorization', required=True)
+    stage.add_argument('--checkpoint', required=True)
+    stage.add_argument('--scenario')
+    confirm = commands.add_parser('confirm-sync-intake')
+    confirm.add_argument('--run-manifest', required=True)
+    confirm.add_argument('--review-sha256', required=True)
+    confirm.add_argument('--confirmation-text', required=True)
+    confirm.add_argument('--confirmation-source', required=True)
+    confirm_upgrade = commands.add_parser('confirm-upgrade-handoff')
+    confirm_upgrade.add_argument('--run-manifest', required=True)
     return value
 
 
 def main() -> int:
     args = parser().parse_args()
     try:
+        from live.v2 import sync_stages
+        if args.command == 'session-limit':
+            root = repository_root()
+            source = Path(args.release_root).resolve() if args.release_root else root
+            receipt, _ = validate_candidate_receipt(source, Path(args.release_receipt).resolve(), schemas(root), args.receipt_kind)
+            preflight(source, receipt)
+            print(bootstrap_session_limit(source, receipt) if args.phase == 'bootstrap-checkpoint' else session_limit(args.phase))
+            return 0
         if args.command == "authorize":
+            if args.phase in sync_stages.PHASES:
+                return sync_stages.issue(args)
             return issue(args)
+        if args.command == 'sync-stage':
+            return sync_stages.run(args)
+        if args.command == 'confirm-sync-intake':
+            return sync_stages.confirm_intake(args)
+        if args.command == 'confirm-upgrade-handoff':
+            return sync_stages.confirm_upgrade(args)
         if args.command == "bootstrap":
             return bootstrap(args)
         return building_blocks(args)

@@ -1,0 +1,24 @@
+{
+  "name": "program-kit-published-forms-probe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@orbyss-io/forms-contracts": "0.2.0",
+    "@orbyss-io/forms-jsonforms-runtime": "0.2.0",
+    "@orbyss-io/forms-renderer-registry": "0.2.0",
+    "@orbyss-io/forms-react": "0.2.0",
+    "@orbyss-io/forms-actions": "0.2.0",
+    "@orbyss-io/forms-wizard": "0.2.0",
+    "@jsonforms/core": "3.8.0",
+    "@jsonforms/react": "3.8.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@orbyss-io/forms-ajv-build": "0.2.0",
+    "@playwright/test": "1.62.1",
+    "@axe-core/playwright": "4.13.0",
+    "esbuild": "0.28.2"
+  }
+}

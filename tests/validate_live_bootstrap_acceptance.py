@@ -45,7 +45,7 @@ from live.run_bootstrap_acceptance import prepare_local_catalog_server, specify_
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS = ROOT / "tests/live/schemas/v2"
-SCENARIO = ROOT / "tests/live/scenarios/internal-forms-workspace/v1"
+SCENARIO = ROOT / "tests/live/scenarios/internal-forms-workspace/v3"
 CATALOG = ROOT / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
 RESOLVER = ROOT / "extensions/program-kit-building-blocks/scripts/building_blocks.py"
 RESTORE = ROOT / "extensions/program-kit-building-blocks/scripts/restore_dependencies.py"
@@ -119,7 +119,7 @@ def main() -> int:
         raise AssertionError("Interactive authorization no longer displays and binds the actual Codex launcher version")
     scenario, expectation, expectation_path = load_scenario(SCENARIO, SCHEMAS)
     authority = scenario_authority(SCENARIO, SCHEMAS)
-    if expectation["catalogSha256"] != "8017cec0be489e5a76c0a6a75a383f5785cdcfabaf358a322d18d20e3116539d":
+    if expectation["catalogSha256"] != "0ca415b7627d5d335c53582a3694dc98c6ece6a205c7dbf8425b3897b912ec81":
         raise AssertionError("Internal Forms expectation lost its reviewed catalog binding")
 
     resolver = load_module("live_v2_building_blocks", RESOLVER)
@@ -259,8 +259,27 @@ def main() -> int:
         architecture["decisions"] = [
             {"id": decision, "status": "Accepted"} for decision in scenario["acceptedDecisionIds"]
         ]
+        # This is fixture setup BEFORE read-only checkpoint admission, not a
+        # supervisor mutation after a real user's bootstrap approval.
+        candidate_selection = project / 'docs/architecture/building-block-selection.json'
+        atomic_write_json(candidate_selection, load_object(SCENARIO / scenario['selectionTemplate']))
+        architecture.setdefault('documentation', []).append({'id': 'building-block-selection',
+            'path': 'docs/architecture/building-block-selection.json', 'sha256': sha256_file(candidate_selection),
+            'scope': 'Fixture-authored accepted selection'})
         atomic_write_json(architecture_path, architecture)
+        before_admission = (architecture_path.read_bytes(), candidate_selection.read_bytes())
         selection_path, selection_sha = bind_selection(SCENARIO, project, scenario)
+        assert before_admission == (architecture_path.read_bytes(), candidate_selection.read_bytes())
+        rejected = load_object(candidate_selection)
+        rejected['instances'][0]['composition'] = 'invented-choice'
+        atomic_write_json(candidate_selection, rejected)
+        try:
+            bind_selection(SCENARIO, project, scenario)
+        except LiveContractError as error:
+            assert 'SELECTION_CHOICE_MISMATCH' in str(error)
+        else:
+            raise AssertionError('Unapproved fixture selection was accepted')
+        candidate_selection.write_bytes(before_admission[1])
         plan = resolver.resolve(project, selection_path, CATALOG, "0.10.0")
         lock_path = project / ".program-kit/building-blocks.lock.json"
         resolver.apply_materialization(project, lock_path, plan, catalog)
@@ -420,7 +439,8 @@ def main() -> int:
     if any(marker not in cli_text for marker in ("class WorkflowProgress", "Live workflow: starting", "still running", "progress.stop()")):
         raise AssertionError("Bootstrap live progress is no longer visible in the invoking terminal")
     aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
-    if "write_release_receipt.py" not in aggregate:
+    runner = (ROOT / "scripts/run_validation.py").read_text(encoding="utf-8")
+    if "--receipt" not in aggregate or "write_release_receipt.py" not in runner:
         raise AssertionError("The deterministic Release suite does not emit a machine-bound receipt")
     release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     if "Test-Live" in release or "live.v2.cli" in release:

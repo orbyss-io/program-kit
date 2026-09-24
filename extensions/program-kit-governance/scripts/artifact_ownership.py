@@ -72,6 +72,8 @@ EXTERNAL_HOST_REQUIREMENTS = {
     "FoundationFeatureIdentity": "feature identity metadata",
     "shells.json": "shell activation",
     "hostsettings.json": "external-host configuration",
+    "nuplane.settings.json": "runtime package feed/loading configuration",
+    "application-bundle": "consumer release bundle",
     "Orbyss.Foundation.Host": "the external Program Kit host",
 }
 
@@ -201,6 +203,11 @@ def validate_governance_context(feature_dir: Path, include_tasks: bool) -> None:
             continue
         text = path.read_text(encoding="utf-8")
         missing = [marker for marker in GOVERNANCE_CONTEXT[name] if marker not in text]
+        for marker in GOVERNANCE_CONTEXT[name]:
+            if marker.startswith('**') and marker in text:
+                matches = re.findall(re.escape(marker) + r'([^\r\n]*)', text)
+                if not any(value.strip().strip('`') for value in matches):
+                    missing.append(marker + ' requires a substantive value')
         if missing:
             errors.append(
                 f"PKA010 {path} is missing mandatory governance context: {', '.join(missing)}"
@@ -266,14 +273,14 @@ def planned_paths(feature_dir: Path, manifest: dict, include_tasks: bool) -> lis
     return result
 
 
-def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: bool) -> None:
+def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: bool, *, design_only: bool = False) -> None:
     if not external_program_kit_host_selected(feature_dir, manifest):
         return
     paths = planned_paths(feature_dir, manifest, include_tasks)
-    custom = sorted({f"{source} -> {path}" for source, path in paths if is_custom_host_path(path)})
+    custom = sorted({f"{source} -> {path}" for source, path in paths if is_custom_host_path(path) or re.fullmatch(r"Dockerfile(?:\..+)?", Path(path).name, re.IGNORECASE) or Path(path).name == "Orbyss.Foundation.Host.dll"})
     if custom:
         raise ValueError(
-            "PKA011 external Orbyss.Foundation.Host profile forbids a repository-owned host project or "
+            "PKA011 external Orbyss.Foundation.Host profile forbids a consumer Dockerfile, host DLL, host project or "
             "Program.cs; create packable feature projects and external-host activation/release inputs instead: "
             + "; ".join(custom)
         )
@@ -291,7 +298,7 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
         missing.append("validated package-closure staging")
     if not any(
         marker in combined
-        for marker in (".program-kit/evidence/host-image.json", "runnable-host.json", "digest-pinned")
+        for marker in (".program-kit/evidence/host-image.json", "application-bundle.json", "digest-pinned")
     ):
         missing.append("digest-bound external-host release evidence")
     if missing:
@@ -299,7 +306,7 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
             "PKA012 .NET feature planning is incomplete for the external Orbyss.Foundation.Host profile; "
             "missing " + ", ".join(missing) + "."
         )
-    validate_runtime_composition(feature_dir, manifest)
+    validate_runtime_composition(feature_dir, manifest, design_only=design_only)
 
 
 def direct_msbuild_references(project: Path, root: Path) -> tuple[set[str], set[str]]:
@@ -347,7 +354,7 @@ def activated_feature_identities(root: Path) -> set[str]:
     return identities
 
 
-def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
+def validate_runtime_composition(feature_dir: Path, manifest: dict, *, design_only: bool = False) -> None:
     composition = manifest.get("runtimeComposition")
     if not isinstance(composition, dict):
         raise ValueError(
@@ -589,7 +596,7 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
 
     for path, project in declared_projects.items():
         project_path = root / path
-        if not project_path.is_file():
+        if design_only or not project_path.is_file():
             continue
         actual_projects, actual_packages = direct_msbuild_references(project_path, root)
         if actual_projects != project["projectReferences"]:
@@ -713,13 +720,14 @@ def validate_npm_graph_evidence(feature_dir: Path, manifest: dict) -> None:
 
 def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: bool) -> None:
     profiles = {str(value).lower() for value in manifest.get("profiles", [])}
-    if "dotnet" not in profiles or not profiles & {"typescript-vite", "typescript-web", "browser-web"}:
+    if "dotnet" not in profiles:
         return
     documents = [feature_dir / "spec.md", feature_dir / "plan.md", feature_dir / "quickstart.md"]
     if include_tasks:
         documents.append(feature_dir / "tasks.md")
     combined = "\n".join(path.read_text(encoding="utf-8") for path in documents if path.is_file())
-    if not re.search(r"\bopenapi\b", combined, re.IGNORECASE):
+    declared_api = bool(manifest.get('externalContracts')) or bool(profiles & {"typescript-vite", "typescript-web", "browser-web"})
+    if not declared_api and not re.search(r"\bopenapi\b", combined, re.IGNORECASE):
         return
     root = repository_root(feature_dir)
     tool_manifest_path = root / ".program-kit/eng/.config/dotnet-tools.json"
@@ -790,9 +798,9 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
                 + ", ".join(untraced)
             )
         package_closure = normalize(str(contract.get("packageClosure", "")))
-        if package_closure != "artifacts/runnable-host/packages":
+        if package_closure != "artifacts/release-bundle/packages":
             raise ValueError(
-                "PKA014 OpenAPI production must compose the validated artifacts/runnable-host/packages closure"
+                "PKA014 OpenAPI production must compose the validated artifacts/release-bundle/packages closure"
             )
         for stage_name, output_name in (("generator", "generatedTypes"), ("application", "tsconfig")):
             stage = contract.get(stage_name)
@@ -827,6 +835,7 @@ def main() -> int:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--tasks")
     parser.add_argument("--plan")
+    parser.add_argument('--design-only', action='store_true', help='Validate planned ownership before dependency skeleton materialization; not source permission')
     args = parser.parse_args()
     try:
         manifest = load_manifest(Path(args.manifest))
@@ -836,7 +845,7 @@ def main() -> int:
             raise ValueError("PKA009 manifest must predeclare canonical Program Kit artifacts: " + ", ".join(missing))
         feature_dir = Path(args.manifest).resolve().parent
         validate_governance_context(feature_dir, bool(args.tasks))
-        validate_runtime_profile(feature_dir, manifest, bool(args.tasks))
+        validate_runtime_profile(feature_dir, manifest, bool(args.tasks), design_only=args.design_only)
         validate_authorization_ownership(feature_dir, manifest, bool(args.tasks))
         validate_npm_graph_evidence(feature_dir, manifest)
         validate_openapi_pipeline(feature_dir, manifest, bool(args.tasks))

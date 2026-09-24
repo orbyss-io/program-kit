@@ -46,7 +46,7 @@ def main() -> int:
             raise AssertionError(f"Package version is not pinned to its independent family release: {key}")
         by_family_ecosystem.setdefault((package["family"], package["ecosystem"]), set()).add(package["packageId"])
     expected_counts = {
-        ("foundation", "nuget"): 22,
+        ("foundation", "nuget"): 25,
         ("foundation", "oci"): 1,
         ("forms", "nuget"): 15,
         ("forms", "npm"): 12,
@@ -55,10 +55,12 @@ def main() -> int:
     actual_counts = {key: len(value) for key, value in by_family_ecosystem.items()}
     if actual_counts != expected_counts:
         raise AssertionError(f"Building-block family inventory drifted: {actual_counts}")
-    if len(manifest["compositions"]) != 16:
-        raise AssertionError("The executable catalog must retain all 16 governed compositions.")
+    if len(manifest["compositions"]) != 19:
+        raise AssertionError("The executable catalog must retain all 19 governed compositions.")
 
     expected_activated_packages = {
+        "Orbyss.Foundation.Json.AspNetCore",
+        "Orbyss.Foundation.Web.HostedPages",
         "Orbyss.Foundation.Authentication",
         "Orbyss.Foundation.Authentication.Assurance",
         "Orbyss.Foundation.Authentication.BffCookie",
@@ -120,7 +122,12 @@ def main() -> int:
         for group in composition["optionGroups"]:
             for option in group["options"].values():
                 possible.extend(option["requirements"])
-        if any(packages[key].get("activations") for key in package_closure(possible)):
+        runtime = [r for r in possible if r['targetSlot'] not in composition.get('buildTimeSlots', [])]
+        for requirement in possible:
+            if requirement['targetSlot'] in composition.get('buildTimeSlots', []):
+                if not all(packages[key].get('supportsBuildTime') is True for key in package_closure([requirement])):
+                    raise AssertionError(f'{composition_id} hides an unsupported runtime dependency in a build producer')
+        if any(packages[key].get("activations") for key in package_closure(runtime)):
             shell = composition["targetSlots"].get("shell")
             if shell != {"kind": "cshell-shell", "allowedRoles": ["composition"]}:
                 raise AssertionError(f"{composition_id} can select shell features but has no exact shell target slot.")
@@ -143,15 +150,17 @@ def main() -> int:
     template = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files"
     nuget = (template / "NuGet.config").read_text(encoding="utf-8")
     host = json.loads((template / "hostsettings.json").read_text(encoding="utf-8"))
-    dockerfile = (template / "Dockerfile").read_text(encoding="utf-8")
+    runtime_settings = json.loads((template / "nuplane.settings.json").read_text(encoding="utf-8"))
     release = (template / ".github/workflows/application-release.yml").read_text(encoding="utf-8")
     if 'pattern="Orbyss.*"' not in nuget:
         raise AssertionError("NuGet source mapping does not explicitly cover Orbyss building blocks.")
     if "Foundation" not in host or "ProgramKit" in host:
         raise AssertionError("Host configuration must use the Foundation configuration root.")
-    if host["Nuplane"]["Setup"]["Feeds"][0]["IncludePatterns"] != ["Orbyss.*"]:
-        raise AssertionError("Runnable package discovery must be constrained to Orbyss building blocks.")
-    for value in (dockerfile, release):
+    if runtime_settings["Nuplane"]["Setup"]["Feeds"][0]["IncludePatterns"] != ["*"]:
+        raise AssertionError("Runtime discovery must include validated consumer packages, not only Orbyss building blocks.")
+    if (template / "Dockerfile").exists() or "docker build" in release:
+        raise AssertionError("Consumer releases must package configuration and feeds without building images.")
+    for value in (release,):
         if "ORBYSS_FOUNDATION_HOST_IMAGE" not in value or "PROGRAMKIT_HOST_IMAGE" in value:
             raise AssertionError("Runnable releases must consume the independently published Foundation host.")
 

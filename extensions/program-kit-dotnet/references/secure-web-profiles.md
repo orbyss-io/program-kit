@@ -35,12 +35,31 @@ boundary and do not reopen inherited protocol decisions.
 
 ## Selection
 
+The managed authenticated profiles below select Foundation's .NET implementation, not a
+framework-neutral authentication recipe. Assessment must record `dotnet` and `browser-web`
+(or `typescript-web`) in `selected_profiles`, the .NET host decision and package-source
+acknowledgement. `ui-experience-v1` does not substitute for the browser boundary profile.
+Disclose these dependencies as provisional Program Kit defaults before assessment approval,
+even when intake names no language. Preserve an explicit alternate-stack constraint and resolve
+the conflict through assessment review; do not silently replace it. Identity-provider and
+consumer persistence choices remain separate. An explicit `none-v1` browser does not by itself
+require .NET. See the existing .NET host default/opt-out and application release bundle contract.
+
 | Application shape | Selected profile | Rule |
 | --- | --- | --- |
 | Browser UI, no explicit override | `bff-cookie-v1` | Secure default |
 | Same-origin or proxyable browser UI | `bff-cookie-v1` | Preferred |
 | Independently hosted static SPA that must call APIs directly | `spa-pkce-v1` | Explicit choice and acknowledgement |
-| No browser authentication boundary | `none-v1` | Explicit or derived non-web choice |
+| Explicitly anonymous browser, such as the isolated local trial | `none-v1` | Explicit intake or reviewed override, with rationale and review trigger |
+| No browser UI | `none-v1` | Explicit or derived non-web choice |
+
+For an explicitly anonymous browser, keep `browser_ui: true`, record the `secure-web-profile`
+choice and a nonempty `override_reason` describing the scope and when authentication must be reviewed.
+Set `threat_model` and `security_evidence` to `none-v1` to indicate that the authenticated-profile
+assurance contract is not inherited. This is not a security assurance claim. Anonymous endpoints
+still require explicit declaration and the applicable HTTP, JSON, assets, input-boundary and
+deployment protections and phase evidence. Do not invent an identity provider for an explicitly
+anonymous trial or silently select this exception when intake is merely silent about authentication.
 
 An unqualified request for “SPA authentication” does not select browser-held tokens. A SPA is a UI
 architecture; it can and normally should use the BFF profile.
@@ -341,7 +360,7 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 | Artifact | Ownership and supported change path |
 | --- | --- |
 | `.program-kit/spa-pkce.json` | Scaffold-owned typed SPA security input. Edit it, then rerun sync. |
-| `hostsettings.json` | Scaffold-owned host infrastructure only: eager activation and Nuplane package loading. It contains no auth profile configuration. |
+| `hostsettings.json` | Consumer-owned host infrastructure only, including eager activation. Bundle staging projects the separately owned `nuplane.settings.json` runtime feed/loading settings into this file for the published host. It contains no auth profile configuration. |
 | `deploy/keycloak/program-kit-realm.json` | Managed derived local fixture composed from shared provider state and exactly one selected-profile client. Never edit it; change the selected profile (or SPA input) and sync. |
 | `deploy/compose.application.yml` | Managed API-host composition. SPA-PKCE never receives a client secret. |
 | SPA process composition | Consumer-owned Compose overlay passed to `Dev.ps1 -ComposeOverlay <path>` or an independently managed static-server process. |

@@ -12,11 +12,16 @@ The user need not invoke grilling separately. A missing method is an incomplete 
 Use the triggering feature request and select its exact specification-roadmap entry from the
 configured roadmap. Resolve an unambiguous match yourself; if multiple entries fit, ask which one.
 An unrelated Ready entry does not authorize this feature. A new feature requires a Ready entry;
-an existing specification may resume its Active entry. A missing/Blocked entry needs roadmap or
-architecture work before this gate can proceed. Do not relabel an entry just to pass validation.
+an existing specification may resume its Active entry. A missing/Blocked entry needs scoped journey/decision resolution before this gate can proceed. Ready authorizes specification only; carry later architecture obligations into the brief and preserve their implementation gate. Do not relabel an entry just to pass validation.
 
 Run `scripts/specification_intake.py begin --entry <ID> --request <feature-request>` from the consumer
 root. This validates installation, ratification and the selected entry and resumes existing evidence.
+Read the scoped `context --entry <ID>` output before interviewing. Carry its `bootstrapObligations`
+into the reviewed decisions using each prerequisite's exact ID, verification kind and due phase.
+Resolve policy/test-design decisions in the interview; retain compatibility/execution obligations
+as deferred at their actual implementation or delivery phase. Do not ask the consumer to answer
+that software tests passed. The existing native proof receipts satisfy execution gates later.
+Do not rediscover these obligations by reading every bootstrap document.
 Keep the interview under `.program-kit/specification-intake/<ID>/`. Until the gate passes, do not
 create a spec directory, branch, `spec.md`, or `.specify/feature.json`; do not call `speckit.specify`
 recursively. Other pre-hooks that create branches must be ordered after this gate.

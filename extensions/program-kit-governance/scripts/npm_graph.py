@@ -9,6 +9,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+import package_execution
+
 
 def configure_utf8() -> None:
     for stream in (sys.stdout, sys.stderr):
@@ -52,6 +54,24 @@ def resolve(
     timeout: int,
 ) -> None:
     manifest = load_manifest(package_json)
+    reference = package_json.resolve().relative_to(repository.resolve()).as_posix() if package_json.resolve().is_relative_to(repository.resolve()) else str(package_json.resolve())
+    packages = sorted({name for collection in ("dependencies", "devDependencies", "optionalDependencies")
+                       for name in manifest.get(collection, {})})
+    if evidence.is_file() and not npm_command:
+        try:
+            previous = json.loads(evidence.read_text(encoding="utf-8"))
+            proof = package_execution.context_proof(repository, toolchain_evidence, packages)
+            if (previous.get("satisfied") is True and previous.get("packageJson") == reference
+                    and previous.get("packageJsonSha256") == digest(package_json)
+                    and previous.get("executionContext", {}).get("contextDigest") == proof["contextDigest"]
+                    and previous.get("lockfileSha256") == package_execution.canonical_hash(previous.get("lockfile"))):
+                package_execution.javascript_runtime().context(repository, toolchain_evidence)
+                print(f"PKN000 unchanged strict graph evidence reused: {evidence}")
+                return
+        except (OSError, ValueError):
+            pass
+    write_evidence(evidence, {"schemaVersion": 1, "packageJson": reference,
+                              "packageJsonSha256": digest(package_json), "command": [], "satisfied": False})
     candidate = {
         "name": manifest.get("name", "program-kit-dependency-candidate"),
         "version": manifest.get("version", "0.0.0"),
@@ -75,65 +95,37 @@ def resolve(
             "--no-audit",
             "--no-fund",
         ]
-        environment = None
+        context_proof = {}
         if npm_command:
             command = [npm_command, "--strict-ssl=true", *arguments]
+            result = subprocess.run(command, cwd=workspace, capture_output=True, text=True,
+                                    encoding="utf-8", errors="replace", timeout=timeout, check=False)
         else:
-            wrapper = repository / ".program-kit/eng/js_toolchain.py"
-            if not wrapper.is_file():
-                raise ValueError(
-                    "PKN003 managed JavaScript runtime wrapper is missing; synchronize the .NET profile first."
-                )
-            toolchain = json.loads(toolchain_evidence.read_text(encoding="utf-8"))
-            npm = toolchain.get("commands", {}).get("npm")
-            if not isinstance(npm, list) or not npm:
-                raise ValueError("PKN003 exact npm command evidence is missing; run toolchain.py first.")
-            command = [*npm, "--strict-ssl=true", *arguments]
-            invocation = [
-                sys.executable,
-                str(wrapper),
-                "--repository",
-                str(repository),
-                "--evidence",
-                str(toolchain_evidence),
-                "--timeout-seconds",
-                str(timeout),
-                "npm",
-                "--",
-                *arguments,
-            ]
-        result = subprocess.run(
-            command if npm_command else invocation,
-            cwd=workspace,
-            env=environment,
-            stdout=subprocess.PIPE,
-            stderr=None,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout,
-            check=False,
-        )
+            packages = sorted({name for collection in ("dependencies", "devDependencies", "optionalDependencies")
+                               for name in manifest.get(collection, {})})
+            result, context_proof = package_execution.execute(repository, toolchain_evidence, packages,
+                                                               arguments, workspace, timeout)
+            command = result.args
         lockfile = workspace / "package-lock.json"
         payload = {
             "schemaVersion": 1,
-            "packageJson": str(package_json.resolve()),
+            "packageJson": reference,
             "packageJsonSha256": digest(package_json),
             "command": command,
             "satisfied": result.returncode == 0 and lockfile.is_file(),
+            "executionContext": context_proof,
         }
         if lockfile.is_file():
-            payload["lockfileSha256"] = digest(lockfile)
+            payload["lockfile"] = json.loads(lockfile.read_text(encoding="utf-8"))
+            payload["lockfileSha256"] = package_execution.canonical_hash(payload["lockfile"])
         write_evidence(evidence, payload)
         if result.returncode != 0 or not lockfile.is_file():
-            detail = (result.stdout or "").strip()
+            detail = ((result.stdout or "") + "\n" + (result.stderr or "")).strip()
             if len(detail) > 2000:
                 detail = detail[-2000:]
-            raise ValueError(
-                "PKN002 exact npm graph failed strict peer/engine/platform resolution; choose "
-                "compatible versions or isolate the generator toolchain. Force and legacy-peer "
-                f"bypasses are forbidden. npm stdout: {detail or 'see the visible stderr and repository npm cache logs'}"
-            )
+            category = package_execution.classify_failure(detail)
+            raise ValueError(f"PKN002 exact npm graph failed ({category}); retain strict peer, engine and TLS checks. "
+                             f"Resolve the reported cause before retrying. npm: {detail or 'no lockfile produced'}")
     print(f"PKN000 exact npm dependency graph resolved with strict peers: {evidence}")
 
 

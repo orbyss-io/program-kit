@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "2.0",
+  "id": "equipment-lending-bootstrap",
+  "version": "2",
+  "claim": "Bootstrap from fictional governed intent without product implementation, then deliver the lending vertical slice and independently verify its behavior.",
+  "fixture": "fixture",
+  "acceptedDecisionIds": [
+    "decision-lending-boundary"
+  ],
+  "selectionTemplate": "selection-template.json",
+  "activeExpectation": "expectations/catalog-0ca415b7.json"
+}

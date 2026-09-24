@@ -1,0 +1,10 @@
+{
+  "feature": "RM02",
+  "intent": "Reporting belongs to a later feature and must remain planned during RM01 and upgrade.",
+  "absentPaths": [
+    "src/InternalForms.Reporting",
+    "web/reporting",
+    "specs/RM02-reporting/implementation"
+  ],
+  "approval": "These are exercise expectations. The architecture and ownership records must still pass their real review gates."
+}

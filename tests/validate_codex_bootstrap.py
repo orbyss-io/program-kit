@@ -408,7 +408,16 @@ def validate_populated_repository_initializer(root: Path) -> None:
         environment = os.environ.copy()
         for key in ("CODEX_SESSION_ID", "CODEX_THREAD_ID", "CODEX_INTERNAL_ORIGINATOR_OVERRIDE"):
             environment.pop(key, None)
-        environment["PATH"] = str(tool_dir) + os.pathsep + environment.get("PATH", "")
+        # The initializer uses only these stubs, Git and Windows system tools.
+        # A Desktop PATH can exceed CMD's environment limit and hide every stub.
+        if suffix == "cmd":
+            git_executable = shutil.which("git")
+            if not git_executable:
+                raise AssertionError("Git is required for the initializer fixture")
+            environment["PATH"] = os.pathsep.join([str(tool_dir), str(Path(git_executable).parent),
+                                                    str(Path(os.environ["SystemRoot"]) / "System32")])
+        else:
+            environment["PATH"] = str(tool_dir) + os.pathsep + environment.get("PATH", "")
         environment["PROGRAM_KIT_TEST_LOG"] = str(command_log)
         environment["PROGRAM_KIT_TEST_PYYAML"] = str(pyyaml_marker)
 
