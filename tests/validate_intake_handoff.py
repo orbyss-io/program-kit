@@ -1,5 +1,6 @@
 """Synthetic handoff contract tests; no human session or paid acceptance is claimed."""
 import json
+import hashlib
 from pathlib import Path
 import shutil
 import tempfile
@@ -29,6 +30,15 @@ class IntakeHandoffTests(unittest.TestCase):
         self.inputs = {p.relative_to(BASE / 'fixture').as_posix(): p.read_bytes()
                        for p in (BASE / 'fixture').rglob('*') if p.is_file()}
         self.inputs['product-idea.md'] = (BASE.parent / 'PROJECT_REQUEST.md').read_bytes()
+        # This is a synthetic session assembled from checkout files, whose line
+        # endings differ across platforms. Bind its initial bytes once; mutation
+        # tests must never rebind after tampering with the captured inputs.
+        intake_path = 'docs/architecture/bootstrap-intake.json'
+        intake = json.loads(self.inputs[intake_path])
+        for record in intake['artifacts'].values():
+            payload = self.inputs[record['path']]
+            record.update(sha256=hashlib.sha256(payload).hexdigest(), bytes=len(payload))
+        self.inputs[intake_path] = json.dumps(intake, indent=2).encode('utf-8')
         self.state = dict(id='12345678synthetic', status='needs-human-review', intakeStatus='valid-confirmed',
                           transcriptStatus='captured', sessionIds=['synthetic-test'], exitCode=0,
                           sourceChanges='', sourceCommit='a'*40)
@@ -71,6 +81,19 @@ class IntakeHandoffTests(unittest.TestCase):
         original.write_bytes(original.read_bytes() + b'changed')
         with self.assertRaisesRegex(LiveContractError, 'COPIED_INPUT_CHANGED'):
             scenario.scenario_authority(self.output, ROOT / 'tests/live/schemas/v2')
+
+    def test_lf_checkout_synthetic_session_preserves_exact_bytes(self):
+        intake_path = 'docs/architecture/bootstrap-intake.json'
+        intake = json.loads(self.inputs[intake_path])
+        for record in intake['artifacts'].values():
+            payload = self.inputs[record['path']].replace(b'\r\n', b'\n')
+            self.inputs[record['path']] = payload
+            record.update(sha256=hashlib.sha256(payload).hexdigest(), bytes=len(payload))
+        self.inputs[intake_path] = json.dumps(intake).encode('utf-8')
+        self.save_archive()
+        self.capture()
+        for record in intake['artifacts'].values():
+            self.assertEqual((self.output / 'fixture' / record['path']).read_bytes(), self.inputs[record['path']])
 
     def test_draft_setup_failed_or_uncaptured_session_rejected_before_output(self):
         for change in (dict(status='setup-only'), dict(intakeStatus='valid-draft'), dict(exitCode=1),
