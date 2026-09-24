@@ -57,6 +57,30 @@ the read-only public component-package gate. It writes
 `artifacts/release-receipt-0.12.0.json` for later inspection and does not run an optional paid
 Codex-worker phase.
 
+Local, PR CI and tagged Release select checks from `tests/validation-inventory.json`.
+The shared runner records each check's command, result, timestamps and hashed log under
+`artifacts/validation-runs/<run>/`; failed runs retain that evidence. Independent checks
+continue after a failure, while dependents are marked blocked. Existing version transcripts
+are archived before a new run. Receipt generation requires complete successful inventory
+coverage for the current platform, source, browser engines and artifact set.
+
+The inventory includes the published-host and Forms renderer integration probes. Registry
+checks require `PROGRAM_KIT_NPM_TOKEN` in the invoking terminal; it is passed only to checks
+declaring that need, and evidence is redacted. Browser provisioning precedes checks which
+consume it. The pinned host image is pulled explicitly rather than assumed to be cached.
+No host TLS-monitoring setting is removed by validation.
+
+`validate_installed_bootstrap_flow.py` runs the complete packaged workflow with real shell
+validators and explicitly fictional authoring/review decisions. It covers ordinary completion,
+owned implementation deferrals, discovery before specification, and retry after malformed
+producer output. Open obligations remain enforced after bootstrap completion. This establishes
+mechanical composition; it is not evidence of live-agent reasoning quality. The older packaged
+consistency test remains a focused terminal-governance regression.
+
+For one targeted check, use `python scripts/run_validation.py --check <inventory-id>`.
+This produces check evidence but cannot produce a Release receipt. Windows installation and
+mixed-interpreter checks have an explicit CI lane; Firefox remains required in Linux CI.
+
 Before the Program Kit stable tag, verify the component tags and published package/image
 propagation (a GitHub Release entry is not required for each component): `dotnet-foundation` `v0.2.2`, `forms` `v0.2.0`, and `localization` `v0.1.1`.
 

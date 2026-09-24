@@ -74,9 +74,17 @@ def main():
     args = parser.parse_args()
     checks = selected(args.suite)
     if args.check:
-        checks = [c for c in selected('Release') if c['id'] == args.check]
-        if not checks or args.receipt or args.suite == 'Release':
+        available = selected('Release')
+        by_id = {c['id']: c for c in available}
+        if args.check not in by_id or args.receipt or args.suite == 'Release':
             parser.error('--check requires a known platform check and cannot claim Release coverage')
+        required = {args.check}
+        while True:
+            expanded = required | {dep for identity in required for dep in by_id[identity]['needs']}
+            if expanded == required:
+                break
+            required = expanded
+        checks = [c for c in available if c['id'] in required]
     if args.list:
         for check in checks:
             print(check['id'] + ': ' + ' '.join(command(check, args.engines)))
@@ -102,6 +110,8 @@ def main():
     path = output / 'journal.json'
     environment = os.environ.copy()
     environment['PYTHONUTF8'] = '1'
+    sys.path.insert(0, str(ROOT / 'tests'))
+    from live.v2.supervisor import run_supervised
     results = {}
     print('Validation evidence: ' + str(output), flush=True)
     for check in checks:
@@ -120,9 +130,16 @@ def main():
                 code = 125
             else:
                 try:
-                    result = subprocess.run(cmd, cwd=ROOT, env=child_environment, stdout=stream,
-                                            stderr=subprocess.STDOUT, timeout=1800)
-                    code = result.returncode
+                    streams = output / identity
+                    result = run_supervised(cmd, cwd=ROOT, environment=child_environment,
+                                            evidence_directory=streams, timeout_seconds=1800,
+                                            secrets=[environment['PROGRAM_KIT_NPM_TOKEN']] if environment.get('PROGRAM_KIT_NPM_TOKEN') else [])
+                    code = result.exitCode
+                    if result.timedOut or not result.cleanupComplete or not result.logsDrained:
+                        code = 124
+                    for name in ('workflow.stdout.log', 'workflow.stderr.log'):
+                        stream.write((streams / name).read_text(encoding='utf-8', errors='replace'))
+                    (streams / 'process.json').write_text(json.dumps(result.as_dict(), indent=2) + '\n', encoding='utf-8')
                 except (OSError, subprocess.TimeoutExpired) as error:
                     stream.write(str(error))
                     code = 124

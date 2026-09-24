@@ -12,7 +12,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Codex bootstrap contract validation."
     },
     {
       "id": "validate_test_suites",
@@ -25,7 +26,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Test suites contract validation."
     },
     {
       "id": "validate_validation_runner",
@@ -38,7 +40,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Receipt coverage and dependency-selection regressions; no external execution."
     },
     {
       "id": "source-install",
@@ -52,7 +55,8 @@
       "needs": [],
       "platforms": [
         "Windows"
-      ]
+      ],
+      "purpose": "Install source components and verify registered skills, hooks and view-only behavior on Windows."
     },
     {
       "id": "public-availability",
@@ -73,7 +77,8 @@
         "Windows",
         "Linux"
       ],
-      "credentials": "PROGRAM_KIT_NPM_TOKEN"
+      "credentials": "PROGRAM_KIT_NPM_TOKEN",
+      "purpose": "Public-availability contract validation."
     },
     {
       "id": "legacy-public",
@@ -87,7 +92,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Legacy-public contract validation."
     },
     {
       "id": "validate_proxy_intake",
@@ -100,7 +106,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Proxy provenance and authority boundary regressions; no coding agents."
     },
     {
       "id": "validate_bootstrap_handoffs",
@@ -113,7 +120,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Deterministic default/decision/maintained-recipe integration; no coding agents."
     },
     {
       "id": "validate_bootstrap_provider_context",
@@ -126,7 +134,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Provider handoff and source visibility regressions; no network or coding agents."
     },
     {
       "id": "validate_bootstrap_profiles",
@@ -139,7 +148,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Regression coverage for managed sign-in adopted after technology-neutral intake."
     },
     {
       "id": "validate_dependency_audit",
@@ -152,7 +162,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Dependency evidence stays immutable and cannot become a hidden application target."
     },
     {
       "id": "validate_components",
@@ -165,7 +176,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Components contract validation."
     },
     {
       "id": "validate_phase_obligations",
@@ -178,7 +190,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Offline negative controls for missing, stale and incomplete knowledge evidence."
     },
     {
       "id": "validate_api_proof",
@@ -191,7 +204,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "API ownership gates reject missing, stale and mismatched contract evidence."
     },
     {
       "id": "validate_persistence_selection",
@@ -204,7 +218,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Exercise consumer persistence intent, multiple owners and non-destructive shared sync."
     },
     {
       "id": "validate_postgresql_service",
@@ -217,7 +232,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Bounded lifecycle, secret isolation and failure cleanup for the trial database supervisor."
     },
     {
       "id": "validate_knowledge_inventory",
@@ -230,7 +246,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Knowledge inventory coverage; this is bookkeeping, not semantic correctness proof."
     },
     {
       "id": "validate_feature_knowledge",
@@ -243,7 +260,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Scoped canonical knowledge, ownership inheritance and lifecycle-view freshness."
     },
     {
       "id": "validate_architecture_recipe",
@@ -256,7 +274,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Architecture recipe regression inputs, including evaluated/imported and compiled-only edges."
     },
     {
       "id": "validate_capability_proof",
@@ -269,7 +288,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Missing runtime/adoption proof must fail even with a plausible architecture plan."
     },
     {
       "id": "validate_learning_metrics",
@@ -282,7 +302,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "No model calls: usage completeness, cache semantics and avoidability accounting."
     },
     {
       "id": "validate_learning_report",
@@ -295,7 +316,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Whole-exercise report rejects missing/tampered usage and retains failed attempts."
     },
     {
       "id": "validate_lending_oracle",
@@ -308,7 +330,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Real loopback/process-restart calibration; never a coding agent or reference admission."
     },
     {
       "id": "validate_reference_baseline",
@@ -321,7 +344,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Reference provenance, human admission and parent-type guards; no agents or real approvals."
     },
     {
       "id": "validate_specification_intake",
@@ -334,7 +358,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Bounded offline feature-grilling gate regressions; no coding agent is started."
     },
     {
       "id": "validate_sync_live_fixtures",
@@ -347,7 +372,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Sync live fixtures contract validation."
     },
     {
       "id": "validate_package_execution",
@@ -360,7 +386,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Package execution contract validation."
     },
     {
       "id": "validate_repository_sync",
@@ -373,7 +400,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Repository sync contract validation."
     },
     {
       "id": "validate_sync_readiness",
@@ -386,7 +414,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Sync readiness contract validation."
     },
     {
       "id": "validate_sync_stages",
@@ -399,7 +428,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Deterministic stage authorization and checkpoint contracts; no paid processes."
     },
     {
       "id": "validate_live_trial_candidate",
@@ -412,7 +442,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Development trial receipts never imply Release validation or authorize a paid worker."
     },
     {
       "id": "validate_retired_sync",
@@ -425,7 +456,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Exercise actual Spec Kit registration/removal with consumer-edit protection."
     },
     {
       "id": "validate_scoped_materialization",
@@ -438,7 +470,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Scoped materialization contract validation."
     },
     {
       "id": "validate_intake_session",
@@ -451,7 +484,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Bounded offline launcher tests. No installation or coding agent is started."
     },
     {
       "id": "validate_discovery_fixture",
@@ -464,7 +498,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Protect discovery-input isolation; optionally inspect real PrepareOnly evidence."
     },
     {
       "id": "validate_intake_handoff",
@@ -477,7 +512,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Synthetic handoff contract tests; no human session or paid acceptance is claimed."
     },
     {
       "id": "validate_intake_authoring",
@@ -490,7 +526,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Offline authoring regression tests; optional replay of a preserved human intake."
     },
     {
       "id": "validate_json_schema",
@@ -503,7 +540,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Offline behavior tests for shipped JSON Schema tools and independent installations."
     },
     {
       "id": "validate_orbyss_building_blocks",
@@ -516,7 +554,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Orbyss building blocks contract validation."
     },
     {
       "id": "validate_building_blocks",
@@ -529,7 +568,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Building blocks contract validation."
     },
     {
       "id": "validate_architecture_placement",
@@ -542,7 +582,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Offline greenfield placement and recovery regressions; starts no agents."
     },
     {
       "id": "validate_placement_contract",
@@ -555,7 +596,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Producer-visible placement contracts reject the real bootstrap's failed path forms."
     },
     {
       "id": "validate_bootstrap_lifecycle",
@@ -568,7 +610,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Deterministic fresh approval and accepted/aborted recovery regression tests (no agents)."
     },
     {
       "id": "validate_readiness_scope",
@@ -581,7 +624,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Enforce accepted slice scope without treating proposal prose as lifecycle state."
     },
     {
       "id": "validate_readiness_projection",
@@ -594,7 +638,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Native terminal readiness is a state projection, without an agent verdict."
     },
     {
       "id": "validate_phase_readiness",
@@ -607,7 +652,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Phase-local eligibility with incomplete knowledge; real validators, no coding agents."
     },
     {
       "id": "validate_bootstrap_handoff_quality",
@@ -620,7 +666,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Consumer quality authority and batched authoring diagnostics; no agents."
     },
     {
       "id": "validate_bootstrap_proof_plan",
@@ -633,7 +680,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Native shell proof-stage regressions; real Python probes, no coding agent."
     },
     {
       "id": "validate_workflow_resumption",
@@ -646,7 +694,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Native engine regression: stage retry, NOT READY, preserved history and completion."
     },
     {
       "id": "validate_workflow_runtimes",
@@ -659,7 +708,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Workflow entry runtime preflight; no coding-agent sessions."
     },
     {
       "id": "validate_live_fixture_catalog",
@@ -672,7 +722,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Verify selectable committed live inputs, approval binding and tamper rejection."
     },
     {
       "id": "validate_live_workflow_acceptance",
@@ -685,7 +736,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Deterministic paid-workflow guards; never starts a coding agent."
     },
     {
       "id": "validate_building_block_availability",
@@ -698,7 +750,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Building block availability contract validation."
     },
     {
       "id": "validate_legacy_programkit_nuget",
@@ -711,7 +764,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Legacy programkit nuget contract validation."
     },
     {
       "id": "validate_generated_contract_schemas",
@@ -724,7 +778,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Generated contract schemas contract validation."
     },
     {
       "id": "validate_governance_state",
@@ -737,7 +792,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Governance state contract validation."
     },
     {
       "id": "validate_runnable_host_pins",
@@ -750,7 +806,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Offline central-package resolution and fail-closed runnable-host staging regressions."
     },
     {
       "id": "validate_release_bundle",
@@ -763,7 +820,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Offline bundle production/admission and published-runtime boundary checks; no agent."
     },
     {
       "id": "bundle-validate",
@@ -780,7 +838,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Validate Spec Kit bundle metadata."
     },
     {
       "id": "validate_public_component_use",
@@ -793,7 +852,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Actual released .NET component integration through the shared restore executor; no agent."
     },
     {
       "id": "validate_dotnet_engineering",
@@ -806,7 +866,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Compile with the published analyzer and selected SDK; execute runtime counterexamples."
     },
     {
       "id": "validate_persistence_runtime",
@@ -819,7 +880,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Execute pinned EF/Npgsql against a real disposable PostgreSQL, including database restart."
     },
     {
       "id": "validate_ui_experience",
@@ -832,7 +894,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Ui experience contract validation."
     },
     {
       "id": "validate_local_upgrade",
@@ -845,7 +908,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Local upgrade contract validation."
     },
     {
       "id": "validate_bootstrap_context",
@@ -858,7 +922,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Bootstrap context contract validation."
     },
     {
       "id": "validate_bootstrap_intake",
@@ -871,7 +936,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Bootstrap intake contract validation."
     },
     {
       "id": "validate_bootstrap_semantics",
@@ -884,7 +950,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Bootstrap semantics contract validation."
     },
     {
       "id": "validate_c4_view",
@@ -897,7 +964,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "C4 view contract validation."
     },
     {
       "id": "validate_live_bootstrap_acceptance",
@@ -910,7 +978,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Live bootstrap acceptance contract validation."
     },
     {
       "id": "validate_lifecycle_profiles",
@@ -923,7 +992,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Lifecycle profiles contract validation."
     },
     {
       "id": "validate_js_toolchain",
@@ -936,7 +1006,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Js toolchain contract validation."
     },
     {
       "id": "validate_dotnet_scaffold",
@@ -949,7 +1020,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Dotnet scaffold contract validation."
     },
     {
       "id": "validate_dotnet_build_contract",
@@ -962,7 +1034,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Dotnet build contract contract validation."
     },
     {
       "id": "validate_dotnet_test_discovery",
@@ -975,7 +1048,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Dotnet test discovery contract validation."
     },
     {
       "id": "validate_repository_verification_hook",
@@ -988,7 +1062,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Repository verification hook contract validation."
     },
     {
       "id": "build-release",
@@ -1001,7 +1076,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Build-release contract validation."
     },
     {
       "id": "validate_installed_bootstrap_flow",
@@ -1016,7 +1092,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "All shipped bootstrap steps, real shell validators, fictional authoring/reviews."
     },
     {
       "id": "validate_bootstrap_consistency_e2e",
@@ -1031,7 +1108,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Bootstrap consistency e2e contract validation."
     },
     {
       "id": "validate_packaged_ui",
@@ -1046,7 +1124,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Packaged ui contract validation."
     },
     {
       "id": "validate_release_install",
@@ -1061,7 +1140,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Release install contract validation."
     },
     {
       "id": "candidate-upgrade",
@@ -1078,7 +1158,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Candidate-upgrade contract validation."
     },
     {
       "id": "validate_bootstrap_runtime",
@@ -1092,7 +1173,8 @@
         "Windows",
         "Linux"
       ],
-      "credentials": ""
+      "credentials": "",
+      "purpose": "Real published host compatibility. No coding agent or consumer mutation."
     },
     {
       "id": "ui-browser",
@@ -1108,7 +1190,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Ui-browser contract validation."
     },
     {
       "id": "validate_bootstrap_compatibility",
@@ -1123,7 +1206,8 @@
       "platforms": [
         "Windows",
         "Linux"
-      ]
+      ],
+      "purpose": "Deterministic scratch provisioning protocol; Python stand-in, never a coding agent."
     },
     {
       "id": "validate_published_forms_browser",
@@ -1140,7 +1224,21 @@
         "Windows",
         "Linux"
       ],
-      "credentials": "PROGRAM_KIT_NPM_TOKEN"
+      "credentials": "PROGRAM_KIT_NPM_TOKEN",
+      "purpose": "Published Forms package/renderer integration. Never invokes a coding agent."
     }
-  ]
+  ],
+  "groups": {
+    "development": "Bounded source contracts and behavioral regressions; no coding agents.",
+    "release": "Additional release-only source and installation regressions.",
+    "package": "Build and test the distributable payload and upgrade paths.",
+    "integration": "Execute real managed runtimes, containers and browsers.",
+    "registry": "Read-only public package/image and legacy availability."
+  },
+  "evidencePolicy": {
+    "directory": "artifacts/validation-runs/<unique-run>",
+    "success": "Every required check passes; prerequisite failures block dependents.",
+    "receipt": "Requires exact source, inventory, commands, platform and hashed successful logs.",
+    "credentials": "Only checks declaring a credential reference receive the npm token."
+  }
 }

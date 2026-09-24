@@ -142,3 +142,33 @@ for execution and avoid exact prose checks where meaning-preserving edits are va
 
 Do not reduce safety gates, require every consumer decision to be resolved at bootstrap,
 or add paid agents to deterministic validation as a shortcut to green results.
+
+## Repair evidence
+
+The repairs replace the separate execution lists with `tests/validation-inventory.json`
+and a shared runner. Per-check logs, process-tree cleanup results and a failure-preserving
+journal replace the end-only journal. Required prerequisites precede their consumers;
+successful receipts require exact coverage and hashed logs. CI retains failed evidence.
+
+The two obsolete installation assertions are corrected. Packaged initializer bytes are
+normalized to CRLF. A controlled test now reproduces the original missing-label failure
+with LF and passes with CRLF. The initializer fixture also uses an explicit bounded PATH;
+the Desktop host's inherited PATH exceeded 19,000 characters and prevented CMD discovery.
+
+The complete packaged bootstrap now has four deterministic native-engine scenarios:
+ordinary completion, deferred implementation proof, discovery before specification, and
+missing-producer-output failure followed by native resume and separate simulated reviews.
+All shell steps are real. Only authoring and review decisions are fictional; no agent is
+started and no real consumer is approved. Completion does not waive the open phase gates.
+
+Host and published Forms integrations are now scheduled. Cold-host execution explicitly
+pulls the exact host digest; browser setup is a declared prerequisite. Forms source hashes
+use documented LF normalization so provenance does not depend on checkout line endings.
+Further stale hook assertions and the clean-consumer schema-runtime setup were corrected.
+The registry/upgrade test paths preserve host TLS-monitoring settings.
+
+Focused local checks passed for packaged installation, initializer behavior, journal
+coverage rejection, the installed workflow scenarios, terminal consistency, guarded live
+harness contracts, published host activation and published Forms (Chromium/WebKit). The
+bounded Development run passed. These are supplementary checks, not a local Release
+receipt; the complete user-owned Release suite remains mandatory before publication.
