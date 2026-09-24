@@ -125,6 +125,16 @@ def main():
         blocked = [dep for dep in check['needs'] if results.get(dep) != 0]
         print(('Blocked: ' if blocked else 'Running: ') + identity, flush=True)
         child_environment = environment.copy()
+        if identity == 'source-install' and os.name == 'nt':
+            # The fixture needs these tools only. Desktop PATHs can exceed CMD's
+            # limit, making native workflow preflight unable to resolve python.
+            directories = [str(Path(sys.executable).parent), str(Path(cmd[0]).parent)]
+            for tool in ('specify', 'git'):
+                executable = shutil.which(tool)
+                if executable:
+                    directories.append(str(Path(executable).parent))
+            directories.append(str(Path(os.environ['SystemRoot']) / 'System32'))
+            child_environment['PATH'] = os.pathsep.join(dict.fromkeys(directories))
         if not check.get('credentials'):
             child_environment.pop('PROGRAM_KIT_NPM_TOKEN', None)
         with log.open('w', encoding='utf-8') as stream:
