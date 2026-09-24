@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import ast
 import json
 import sys
 import yaml
@@ -49,6 +50,14 @@ def main() -> int:
         raise AssertionError("The deterministic aggregate must never launch paid Codex workers.")
 
     inventory = json.loads((ROOT / 'tests/validation-inventory.json').read_text())['checks']
+    # Catch stale late/post-publication expectations during the cheap source gate.
+    expected_hooks = set(yaml.safe_load((ROOT / 'extensions/program-kit-governance/extension.yml').read_text())['hooks'])
+    for filename in ('validate_components.py', 'validate_release_install.py', 'validate_public_install.py', 'validate_public_upgrade.py'):
+        tree = ast.parse((ROOT / 'tests' / filename).read_text(encoding='utf-8'))
+        declared = next(ast.literal_eval(node.value) for node in tree.body if isinstance(node, ast.Assign)
+                        and any(isinstance(target, ast.Name) and target.id == 'EXPECTED_HOOKS' for target in node.targets))
+        if declared != expected_hooks:
+            raise AssertionError(filename + ' has obsolete installation hook expectations')
     development = [c['id'] + '.py' for c in inventory if c['group'] == 'development']
     if 'validate_governance_state.py' not in development:
         raise AssertionError('Development must exercise governance behavior')
