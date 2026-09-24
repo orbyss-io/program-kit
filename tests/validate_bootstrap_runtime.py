@@ -31,8 +31,8 @@ def main():
     for mode in ('renew', 'locked'):
         write(request, executor.restore_request(target, lock, plan, mode))
         with (target / (mode + '.log')).open('w', encoding='utf-8') as log:
-            result = subprocess.run([sys.executable, str(executor.__file__), mode, '--target', str(target), '--lock', str(lock),
-                '--request', str(request), '--approved'], cwd=target, stdout=log, stderr=subprocess.STDOUT, timeout=300)
+            result = subprocess.run([sys.executable, str(executor.__file__), mode, '--target', str(target), '--lock', lock.relative_to(target).as_posix(),
+                '--request', request.relative_to(target).as_posix(), '--approved'], cwd=target, stdout=log, stderr=subprocess.STDOUT, timeout=300)
         if result.returncode:
             raise RuntimeError('Restore failed: ' + str(target / (mode + '.log')))
     with (target / 'runtime.log').open('w', encoding='utf-8') as log:

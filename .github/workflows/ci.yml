@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   validate:
@@ -29,160 +30,37 @@ jobs:
       - name: Prepare project-local JSON Schema runtime
         run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
 
-      - name: Validate Program Kit components
-        run: |
-          python tests/validate_components.py
-          python tests/validate_test_suites.py
-          python tests/validate_specification_intake.py
-          python tests/validate_intake_session.py
-          python tests/validate_intake_authoring.py
-          python tests/validate_json_schema.py
-
-      - name: Validate repository sync and guarded live-stage contracts without running agents
-        run: |
-          python tests/validate_package_execution.py
-          python tests/validate_repository_sync.py
-          python tests/validate_sync_readiness.py
-          python tests/validate_scoped_materialization.py
-          python tests/validate_retired_sync.py
-          python tests/validate_sync_live_fixtures.py
-          python tests/validate_sync_stages.py
-          python tests/validate_live_trial_candidate.py
-
-      - name: Set up pinned UI acceptance Node
+      - name: Set up pinned Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24.20.0"
 
-      - name: Set up pinned UI acceptance npm
+      - name: Set up pinned npm
         run: npm install --global npm@11.19.0 --ignore-scripts --no-audit --no-fund
-
-      - name: Validate UI experience and public content contracts
-        run: python tests/validate_ui_experience.py
-
-      - name: Validate UI accessibility, keyboard and analytics in Chromium
-        run: python tests/validate_ui_browser.py --install --install-browser
-
-      - name: Validate Orbyss building-block knowledge and repository boundaries
-        run: |
-          python tests/validate_orbyss_building_blocks.py
-          python tests/validate_building_blocks.py
-          python tests/validate_building_block_availability.py
-          python tests/validate_legacy_programkit_nuget.py
-
-      - name: Validate Codex agent bootstrap boundary
-        run: python tests/validate_codex_bootstrap.py
-
-      - name: Validate governance-state transitions
-        run: python tests/validate_governance_state.py
-
-      - name: Validate sequential offline/local upgrade
-        run: python tests/validate_local_upgrade.py
-
-      - name: Validate bootstrap context generation
-        run: python tests/validate_bootstrap_context.py
-
-      - name: Validate architecture placement and recovery
-        run: python tests/validate_architecture_placement.py
-      - name: Validate bootstrap readiness and accepted-run recovery
-        run: python tests/validate_bootstrap_lifecycle.py
-
-      - name: Validate native workflow resumption and versioned live fixtures without agents
-        run: |
-          python tests/validate_workflow_resumption.py
-          python tests/validate_workflow_runtimes.py
-          python tests/validate_phase_readiness.py
-          python tests/validate_bootstrap_handoff_quality.py
-          python tests/validate_live_fixture_catalog.py
-          python tests/validate_live_workflow_acceptance.py
-
-      - name: Validate conversational bootstrap intake and architecture map
-        run: python tests/validate_bootstrap_intake.py
-
-      - name: Validate strategic bootstrap semantics and journey projections
-        run: python tests/validate_bootstrap_semantics.py
-
-      - name: Validate C4 projection viewing and cleanup
-        run: python tests/validate_c4_view.py
-
-      - name: Validate live bootstrap acceptance contracts without running agents
-        run: python tests/validate_live_bootstrap_acceptance.py
-
-      - name: Validate profile-gated .NET scaffold
-        run: python tests/validate_dotnet_scaffold.py
-
-      - name: Validate managed .NET restore and build contract
-        run: |
-          python tests/validate_dotnet_build_contract.py
-          python tests/validate_runnable_host_pins.py
-
-      - name: Validate solution test-project discovery
-        run: python tests/validate_dotnet_test_discovery.py
-
-      - name: Validate bundle manifest
-        run: specify bundle validate --path . --offline
 
       - name: Set up managed .NET SDK
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
 
-      - name: Validate remaining deterministic Release contracts
-        run: |
-          python tests/validate_proxy_intake.py
-          python tests/validate_bootstrap_handoffs.py
-          python tests/validate_bootstrap_provider_context.py
-          python tests/validate_bootstrap_profiles.py
-          python tests/validate_dependency_audit.py
-          python tests/validate_phase_obligations.py
-          python tests/validate_api_proof.py
-          python tests/validate_persistence_selection.py
-          python tests/validate_postgresql_service.py
-          python tests/validate_knowledge_inventory.py
-          python tests/validate_feature_knowledge.py
-          python tests/validate_architecture_recipe.py
-          python tests/validate_capability_proof.py
-          python tests/validate_learning_metrics.py
-          python tests/validate_learning_report.py
-          python tests/validate_lending_oracle.py
-          python tests/validate_reference_baseline.py
-          python tests/validate_discovery_fixture.py
-          python tests/validate_intake_handoff.py
-          python tests/validate_placement_contract.py
-          python tests/validate_readiness_scope.py
-          python tests/validate_readiness_projection.py
-          python tests/validate_bootstrap_compatibility.py
-          python tests/validate_bootstrap_proof_plan.py
-          python tests/validate_generated_contract_schemas.py
-          python tests/validate_release_bundle.py
-          python tests/validate_public_component_use.py
-          python tests/validate_dotnet_engineering.py
-          python tests/validate_persistence_runtime.py
-          python tests/validate_lifecycle_profiles.py
-          python tests/validate_js_toolchain.py
-          python tests/validate_repository_verification_hook.py
+      - name: Run shared deterministic validation inventory
+        env:
+          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
+        run: python scripts/run_validation.py --suite Release --approved --engines=chromium,firefox,webkit
 
-      - name: Build release assets
-        run: python scripts/build_release.py
-
-      - name: Validate packaged UI in a clean consumer
-        run: python tests/validate_packaged_ui.py
-
-      - name: Validate clean-consumer bootstrap consistency
-        run: python tests/validate_bootstrap_consistency_e2e.py
-
-      - name: Test packaged components and bundle graph
-        run: python tests/validate_release_install.py
-
-      - name: Test candidate upgrade from previous stable release
-        run: python tests/validate_public_upgrade.py --candidate-dir artifacts
-
-      - name: Upload validation artifacts
+      - name: Preserve validation evidence on success or failure
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: program-kit-${{ github.sha }}
-          path: artifacts/
-          if-no-files-found: error
+          path: |
+            artifacts/validation-runs/
+            artifacts/*.json
+            artifacts/*.zip
+            artifacts/*.cmd
+            artifacts/*.sh
+            artifacts/SHA256SUMS
+          if-no-files-found: warn
           retention-days: 14
 
   windows-bootstrap:
@@ -206,6 +84,9 @@ jobs:
         run: |
           python extensions/program-kit-governance/scripts/schema_runtime.py setup
           python -c "import sys; print('PK_ENGINE_PYTHON=' + sys.executable)" >> $env:GITHUB_ENV
+
+      - name: Validate source installation on Windows
+        run: ./scripts/Test-LocalInstall.ps1
 
       - name: Set up distinct shell Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

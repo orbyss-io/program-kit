@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import re
+import json
+import sys
+import yaml
 from pathlib import Path
 
 
@@ -34,43 +37,35 @@ def main() -> int:
             "$Host.Name -eq 'Windows PowerShell ISE Host'",
             "standalone Windows PowerShell console",
             "$Suite -eq 'Release' -and -not $Approved",
-            "validate_test_suites.py",
-            "validate_runnable_host_pins.py",
-            "validate_ui_browser.py",
-            "build_release.py",
-            "validate_public_upgrade.py",
-            "Test-LocalInstall.ps1",
-            "verify_legacy_programkit_nuget.py",
-            "write_release_receipt.py",
+            "scripts/run_validation.py",
             "release-validation-$version.log",
             "Start-Transcript",
             "[Console]::OutputEncoding = $utf8NoBom",
             "$env:PYTHONIOENCODING = 'utf-8'",
             "[Console]::OutputEncoding = $previousConsoleOutputEncoding",
-            "Program Kit complete deterministic Release suite passed.",
         ),
     )
     if any(name in aggregate for name in ("Test-LiveBootstrap.ps1", "run_bootstrap_acceptance.py", "Start-IntakeSession.ps1")):
         raise AssertionError("The deterministic aggregate must never launch paid Codex workers.")
 
-    development_match = re.search(
-        r"\$developmentValidators\s*=\s*@\((.*?)\)\s*\$releaseOnlyValidators",
-        aggregate,
-        re.DOTALL,
-    )
-    if development_match is None:
-        raise AssertionError("Could not locate the bounded Development validator list.")
-    development = development_match.group(1)
+    inventory = json.loads((ROOT / 'tests/validation-inventory.json').read_text())['checks']
+    development = [c['id'] + '.py' for c in inventory if c['group'] == 'development']
     if 'validate_governance_state.py' not in development:
-        raise AssertionError('Development must exercise the actual assessment gate against current decision fields.')
-    for forbidden in (
-        "validate_local_upgrade.py",
-        "validate_lifecycle_profiles.py",
-        "validate_ui_browser.py",
-        "validate_release_install.py",
-    ):
+        raise AssertionError('Development must exercise governance behavior')
+    for forbidden in ('validate_local_upgrade.py', 'validate_lifecycle_profiles.py', 'validate_ui_browser.py', 'validate_release_install.py'):
         if forbidden in development:
-            raise AssertionError(f"Development suite regained release-only validator {forbidden}.")
+            raise AssertionError('Development includes a Release-only check: ' + forbidden)
+    ids = [c['id'] for c in inventory]
+    if len(set(ids)) != len(ids):
+        raise AssertionError('Duplicate validation ID')
+    for check in inventory:
+        if not set(check['needs']) <= set(ids):
+            raise AssertionError('Unknown check prerequisite')
+        if check['command'][0] == '{python}' and not (ROOT / check['command'][1]).is_file():
+            raise AssertionError('Missing validator: ' + check['id'])
+    for required in ('validate_bootstrap_runtime', 'validate_published_forms_browser', 'source-install', 'public-availability', 'legacy-public'):
+        if required not in ids:
+            raise AssertionError('Missing integration gate: ' + required)
 
     require(
         "contributor instructions",
@@ -104,24 +99,21 @@ def main() -> int:
             ),
         )
     for workflow, label in ((ci, "CI"), (release, "Release workflow")):
-        if "python tests/validate_test_suites.py" not in workflow:
-            raise AssertionError(f"{label} does not enforce the test-tier contract.")
-        if "python tests/validate_runnable_host_pins.py" not in workflow:
-            raise AssertionError(f"{label} does not enforce runnable-host central-pin regressions.")
-
-    # Every deterministic source validator selected by local Release must also
-    # execute before remote publication; keyword checks alone hid coverage drift.
-    release_match = re.search(r"\$releaseOnlyValidators\s*=\s*@\((.*?)\)", aggregate, re.DOTALL)
-    if release_match is None:
-        raise AssertionError("Could not locate Release validator list.")
-    required_validators = set(re.findall(r"'(validate_[^']+\.py)'", development + release_match.group(1)))
-    for workflow, label in ((ci, "CI"), (release, "Release workflow")):
-        invoked = set(re.findall(r"^\s+(?:run: )?python tests/(validate_[\w]+\.py)(?:\s|$)", workflow, re.MULTILINE))
-        missing = required_validators - invoked
-        if missing:
-            raise AssertionError(f"{label} omits deterministic Release validators: {sorted(missing)}")
+        definition = yaml.safe_load(workflow)
+        steps = next(iter(definition['jobs'].values()))['steps']
+        invocations = [s for s in steps if 'scripts/run_validation.py --suite Release --approved' in s.get('run', '')]
+        if len(invocations) != 1:
+            raise AssertionError(label + ' must run the shared inventory exactly once')
         if 'global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json' not in workflow:
-            raise AssertionError(f"{label} must install the managed SDK for executed component/persistence tests.")
+            raise AssertionError(label + ' lacks the pinned SDK')
+        if not any(s.get('if') == 'always()' and 'upload-artifact@' in s.get('uses', '') for s in steps):
+            raise AssertionError(label + ' must preserve failed validation evidence')
+        if label == 'Release workflow':
+            if '--receipt' not in invocations[0]['run']:
+                raise AssertionError('Tagged Release requires an executed-check receipt')
+            publish = next(i for i, s in enumerate(steps) if s.get('name') == 'Publish GitHub release')
+            if steps.index(invocations[0]) >= publish:
+                raise AssertionError('Validation must precede publication')
 
     require(
         "release evidence reuse",

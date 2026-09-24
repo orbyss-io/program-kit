@@ -26,48 +26,7 @@ EXPECTED_HOOKS = {
     "after_implement",
 }
 
-EXPECTED_STEPS = [
-    "codex-execution-preflight",
-    "codex-execution-boundary",
-    "prepare-utf8-runtime",
-    "validate-bootstrap-intake",
-    "prepare-assessment-context",
-    "assessment",
-    "validate-assessment-output",
-    "prepare-research-context",
-    "research",
-    "validate-research-output",
-    "validate-profile-pins",
-    "validate-assessment",
-    "write-assessment-review",
-    "route-assessment-approval",
-    "constitution-draft",
-    "validate-constitution-draft",
-    "write-constitution-review",
-    "route-constitution-ratification",
-    "prepare-architecture-context",
-    "architecture-dispatch",
-    "validate-architecture-output",
-    "validate-architecture-alignment",
-    "prepare-tooling-context",
-    "tooling",
-    "validate-tooling-output",
-    "prepare-roadmap-context",
-    "specification-roadmap",
-    "validate-roadmap-output",
-    "architecture-prerequisite-closure",
-    "execute-compatibility-proofs",
-    "validate-prerequisite-closure",
-    "synchronize-lifecycle",
-    "synchronize-roadmap",
-    "validate-bootstrap-consistency",
-    "validate-bootstrap",
-    "write-bootstrap-review",
-    "route-bootstrap-approval",
-    "readiness",
-    "require-readiness",
-    "complete-bootstrap",
-]
+
 
 
 def run(*args: str, cwd: Path) -> None:
@@ -120,7 +79,10 @@ def main() -> int:
     ):
         raise FileNotFoundError("Build release assets before running the install test")
     for suffix, initializer in initializers.items():
-        if initializer.read_bytes() != (root / f"Initialize-ProgramKit.{suffix}").read_bytes():
+        expected_bytes = (root / f"Initialize-ProgramKit.{suffix}").read_text(encoding="utf-8").encode("utf-8")
+        if suffix == "cmd":
+            expected_bytes = expected_bytes.replace(b"\n", b"\r\n")
+        if initializer.read_bytes() != expected_bytes:
             raise AssertionError(
                 f"Versioned {suffix} consumer initializer differs from the root template"
             )
@@ -558,8 +520,9 @@ def main() -> int:
         )
         steps = installed_workflow.get("steps", [])
         step_ids = [step["id"] for step in steps]
-        if step_ids != EXPECTED_STEPS:
-            raise AssertionError(f"Installed workflow steps {step_ids} != {EXPECTED_STEPS}")
+        expected_steps = [step["id"] for step in yaml.safe_load((root / "workflows/program-kit-bootstrap/workflow.yml").read_text(encoding="utf-8"))["steps"]]
+        if step_ids != expected_steps:
+            raise AssertionError(f"Installed workflow steps {step_ids} != {expected_steps}")
 
         # Spec Kit 1.0.1 resolves third-party primitives through their catalogs
         # even when a bundle is installed from a local ZIP. The archive is

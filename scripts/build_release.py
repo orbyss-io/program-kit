@@ -314,7 +314,7 @@ def main() -> int:
             f"Program Kit bundle contains {entry_count} entries; Spec Kit permits at most "
             f"{MAX_BUNDLE_ENTRIES}."
         )
-    shutil.copyfile(root / "Initialize-ProgramKit.cmd", expected[6])
+    expected[6].write_bytes((root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8").replace("\r\n", "\n").replace("\n", "\r\n").encode("utf-8"))
     shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[7])
 
     checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:8]]

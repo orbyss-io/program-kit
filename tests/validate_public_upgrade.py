@@ -34,9 +34,6 @@ EXPECTED_HOOKS = {
 
 def run(*args: str, cwd: Path, input_text: str | None = None) -> subprocess.CompletedProcess[str]:
     environment = os.environ.copy()
-    # Desktop hosts can inject a named-pipe TLS key logger that crashes the
-    # Windows Specify/OpenSSL process before catalog I/O begins.
-    environment.pop("SSLKEYLOGFILE", None)
     command = args
     specify_site_packages = environment.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
     if args and args[0] == "specify" and specify_site_packages:

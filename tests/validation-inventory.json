@@ -1,0 +1,1127 @@
+{
+  "schemaVersion": 1,
+  "checks": [
+    {
+      "id": "validate_codex_bootstrap",
+      "command": [
+        "{python}",
+        "tests/validate_codex_bootstrap.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_test_suites",
+      "command": [
+        "{python}",
+        "tests/validate_test_suites.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_validation_runner",
+      "command": [
+        "{python}",
+        "tests/validate_validation_runner.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "source-install",
+      "command": [
+        "{powershell}",
+        "-NoProfile",
+        "-File",
+        "scripts/Test-LocalInstall.ps1"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows"
+      ]
+    },
+    {
+      "id": "public-availability",
+      "command": [
+        "{python}",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py",
+        "--target",
+        ".",
+        "--catalog",
+        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        "--all",
+        "--evidence",
+        "artifacts/building-block-public-availability.json"
+      ],
+      "group": "registry",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "credentials": "PROGRAM_KIT_NPM_TOKEN"
+    },
+    {
+      "id": "legacy-public",
+      "command": [
+        "{python}",
+        "scripts/verify_legacy_programkit_nuget.py",
+        "--verify-public"
+      ],
+      "group": "registry",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_proxy_intake",
+      "command": [
+        "{python}",
+        "tests/validate_proxy_intake.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_handoffs",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_handoffs.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_provider_context",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_provider_context.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_profiles",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_profiles.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_dependency_audit",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_audit.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_components",
+      "command": [
+        "{python}",
+        "tests/validate_components.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_phase_obligations",
+      "command": [
+        "{python}",
+        "tests/validate_phase_obligations.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_api_proof",
+      "command": [
+        "{python}",
+        "tests/validate_api_proof.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_persistence_selection",
+      "command": [
+        "{python}",
+        "tests/validate_persistence_selection.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_postgresql_service",
+      "command": [
+        "{python}",
+        "tests/validate_postgresql_service.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_knowledge_inventory",
+      "command": [
+        "{python}",
+        "tests/validate_knowledge_inventory.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_feature_knowledge",
+      "command": [
+        "{python}",
+        "tests/validate_feature_knowledge.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_architecture_recipe",
+      "command": [
+        "{python}",
+        "tests/validate_architecture_recipe.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_capability_proof",
+      "command": [
+        "{python}",
+        "tests/validate_capability_proof.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_learning_metrics",
+      "command": [
+        "{python}",
+        "tests/validate_learning_metrics.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_learning_report",
+      "command": [
+        "{python}",
+        "tests/validate_learning_report.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_lending_oracle",
+      "command": [
+        "{python}",
+        "tests/validate_lending_oracle.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_reference_baseline",
+      "command": [
+        "{python}",
+        "tests/validate_reference_baseline.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_specification_intake",
+      "command": [
+        "{python}",
+        "tests/validate_specification_intake.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_sync_live_fixtures",
+      "command": [
+        "{python}",
+        "tests/validate_sync_live_fixtures.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_package_execution",
+      "command": [
+        "{python}",
+        "tests/validate_package_execution.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_repository_sync",
+      "command": [
+        "{python}",
+        "tests/validate_repository_sync.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_sync_readiness",
+      "command": [
+        "{python}",
+        "tests/validate_sync_readiness.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_sync_stages",
+      "command": [
+        "{python}",
+        "tests/validate_sync_stages.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_live_trial_candidate",
+      "command": [
+        "{python}",
+        "tests/validate_live_trial_candidate.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_retired_sync",
+      "command": [
+        "{python}",
+        "tests/validate_retired_sync.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_scoped_materialization",
+      "command": [
+        "{python}",
+        "tests/validate_scoped_materialization.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_intake_session",
+      "command": [
+        "{python}",
+        "tests/validate_intake_session.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_discovery_fixture",
+      "command": [
+        "{python}",
+        "tests/validate_discovery_fixture.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_intake_handoff",
+      "command": [
+        "{python}",
+        "tests/validate_intake_handoff.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_intake_authoring",
+      "command": [
+        "{python}",
+        "tests/validate_intake_authoring.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_json_schema",
+      "command": [
+        "{python}",
+        "tests/validate_json_schema.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_orbyss_building_blocks",
+      "command": [
+        "{python}",
+        "tests/validate_orbyss_building_blocks.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_building_blocks",
+      "command": [
+        "{python}",
+        "tests/validate_building_blocks.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_architecture_placement",
+      "command": [
+        "{python}",
+        "tests/validate_architecture_placement.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_placement_contract",
+      "command": [
+        "{python}",
+        "tests/validate_placement_contract.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_lifecycle",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_lifecycle.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_readiness_scope",
+      "command": [
+        "{python}",
+        "tests/validate_readiness_scope.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_readiness_projection",
+      "command": [
+        "{python}",
+        "tests/validate_readiness_projection.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_phase_readiness",
+      "command": [
+        "{python}",
+        "tests/validate_phase_readiness.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_handoff_quality",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_handoff_quality.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_compatibility",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_compatibility.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_proof_plan",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_proof_plan.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_workflow_resumption",
+      "command": [
+        "{python}",
+        "tests/validate_workflow_resumption.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_workflow_runtimes",
+      "command": [
+        "{python}",
+        "tests/validate_workflow_runtimes.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_live_fixture_catalog",
+      "command": [
+        "{python}",
+        "tests/validate_live_fixture_catalog.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_live_workflow_acceptance",
+      "command": [
+        "{python}",
+        "tests/validate_live_workflow_acceptance.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_building_block_availability",
+      "command": [
+        "{python}",
+        "tests/validate_building_block_availability.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_legacy_programkit_nuget",
+      "command": [
+        "{python}",
+        "tests/validate_legacy_programkit_nuget.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_generated_contract_schemas",
+      "command": [
+        "{python}",
+        "tests/validate_generated_contract_schemas.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_governance_state",
+      "command": [
+        "{python}",
+        "tests/validate_governance_state.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_runnable_host_pins",
+      "command": [
+        "{python}",
+        "tests/validate_runnable_host_pins.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_release_bundle",
+      "command": [
+        "{python}",
+        "tests/validate_release_bundle.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "bundle-validate",
+      "command": [
+        "specify",
+        "bundle",
+        "validate",
+        "--path",
+        ".",
+        "--offline"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_public_component_use",
+      "command": [
+        "{python}",
+        "tests/validate_public_component_use.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_dotnet_engineering",
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_engineering.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_persistence_runtime",
+      "command": [
+        "{python}",
+        "tests/validate_persistence_runtime.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_ui_experience",
+      "command": [
+        "{python}",
+        "tests/validate_ui_experience.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_local_upgrade",
+      "command": [
+        "{python}",
+        "tests/validate_local_upgrade.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_context",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_context.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_intake",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_intake.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_semantics",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_semantics.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_c4_view",
+      "command": [
+        "{python}",
+        "tests/validate_c4_view.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_live_bootstrap_acceptance",
+      "command": [
+        "{python}",
+        "tests/validate_live_bootstrap_acceptance.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_lifecycle_profiles",
+      "command": [
+        "{python}",
+        "tests/validate_lifecycle_profiles.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_js_toolchain",
+      "command": [
+        "{python}",
+        "tests/validate_js_toolchain.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_dotnet_scaffold",
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_scaffold.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_dotnet_build_contract",
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_build_contract.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_dotnet_test_discovery",
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_test_discovery.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_repository_verification_hook",
+      "command": [
+        "{python}",
+        "tests/validate_repository_verification_hook.py"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "build-release",
+      "command": [
+        "{python}",
+        "scripts/build_release.py"
+      ],
+      "group": "package",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_consistency_e2e",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_consistency_e2e.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_packaged_ui",
+      "command": [
+        "{python}",
+        "tests/validate_packaged_ui.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_release_install",
+      "command": [
+        "{python}",
+        "tests/validate_release_install.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "candidate-upgrade",
+      "command": [
+        "{python}",
+        "tests/validate_public_upgrade.py",
+        "--candidate-dir",
+        "artifacts"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_runtime",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_runtime.py"
+      ],
+      "group": "integration",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "credentials": ""
+    },
+    {
+      "id": "validate_published_forms_browser",
+      "command": [
+        "{python}",
+        "tests/validate_published_forms_browser.py",
+        "--engines={engines}"
+      ],
+      "group": "integration",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "credentials": "PROGRAM_KIT_NPM_TOKEN"
+    },
+    {
+      "id": "ui-browser",
+      "command": [
+        "{python}",
+        "tests/validate_ui_browser.py",
+        "--install",
+        "--install-browser",
+        "--engines={engines}"
+      ],
+      "group": "integration",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    }
+  ]
+}

@@ -16,7 +16,13 @@ def main():
     shutil.copytree(ROOT / 'tests/fixtures/knowledge-application/components', destination)
     template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
     shutil.copyfile(template / 'global.json', destination / 'global.json')
-    shutil.copyfile(template / 'NuGet.config', destination / 'NuGet.Config')
+    # Replace the copied fixture config using the executor's exact case. Windows
+    # otherwise retains the original directory-entry spelling after an overwrite.
+    (destination / 'NuGet.Config').unlink()
+    shutil.copyfile(template / 'NuGet.config', destination / 'NuGet.config')
+    config_names = [p.name for p in destination.iterdir() if p.name.casefold() == 'nuget.config']
+    if config_names != ['NuGet.config']:
+        raise AssertionError(f'Restore fixture needs one exactly named NuGet.config: {config_names}')
     pins = json.loads((destination / 'global.json').read_text(encoding='utf-8'))
     audit_toolchain(destination, {'dotnet': pins['sdk']['version']})
     projects = ['ComponentProbe.csproj', 'hosted-pages/Probe.csproj', 'web-defaults/Probe.csproj']

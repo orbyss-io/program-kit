@@ -14,155 +14,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$script:releaseReceiptSteps = @()
-$script:releaseReceiptStartedAt = [DateTimeOffset]::UtcNow.ToString('o')
-
 function Invoke-ProgramKitNative {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Executable,
-
-        [Parameter(Mandatory)]
-        [object[]]$ArgumentList,
-
-        [Parameter(Mandatory)]
-        [string]$FailureMessage
-    )
-
-    # Windows PowerShell 5.1 promotes any native stderr output to NativeCommandError. With the
-    # suite-wide Stop preference, harmless unittest progress on stderr would otherwise abort a
-    # successful validator. Merge and replay native output while retaining exit code as authority.
-    $stepStartedAt = [DateTimeOffset]::UtcNow.ToString('o')
-    $previousPreference = $ErrorActionPreference
-    try {
-        $ErrorActionPreference = 'Continue'
-        & $Executable @ArgumentList 2>&1 | ForEach-Object {
-            if ($_ -is [System.Management.Automation.ErrorRecord]) {
-                Write-Host $_.Exception.Message
-            }
-            else {
-                Write-Host $_.ToString()
-            }
-        }
-        $exitCode = $LASTEXITCODE
-    }
-    finally {
-        $ErrorActionPreference = $previousPreference
-    }
-    if ($exitCode -ne 0) {
-        throw "$FailureMessage (exit code $exitCode)"
-    }
-    if ($Suite -eq 'Release') {
-        $script:releaseReceiptSteps += [ordered]@{
-            id = "step-$($script:releaseReceiptSteps.Count + 1)"
-            command = @($Executable) + @($ArgumentList | ForEach-Object { $_.ToString() })
-            exitCode = 0
-            startedAt = $stepStartedAt
-            finishedAt = [DateTimeOffset]::UtcNow.ToString('o')
-        }
-    }
-}
-
-$developmentValidators = @(
-    'validate_proxy_intake.py',
-    'validate_bootstrap_handoffs.py',
-    'validate_bootstrap_provider_context.py',
-    'validate_bootstrap_profiles.py',
-    'validate_dependency_audit.py',
-    'validate_components.py',
-    'validate_phase_obligations.py',
-    'validate_api_proof.py',
-    'validate_persistence_selection.py',
-    'validate_postgresql_service.py',
-    'validate_knowledge_inventory.py',
-    'validate_feature_knowledge.py',
-    'validate_architecture_recipe.py',
-    'validate_capability_proof.py',
-    'validate_learning_metrics.py',
-    'validate_learning_report.py',
-    'validate_lending_oracle.py',
-    'validate_reference_baseline.py',
-    'validate_test_suites.py',
-    'validate_specification_intake.py',
-    'validate_sync_live_fixtures.py',
-    'validate_package_execution.py',
-    'validate_repository_sync.py',
-    'validate_sync_readiness.py',
-    'validate_sync_stages.py',
-    'validate_live_trial_candidate.py',
-    'validate_retired_sync.py',
-    'validate_scoped_materialization.py',
-    'validate_intake_session.py',
-    'validate_discovery_fixture.py',
-    'validate_intake_handoff.py',
-    'validate_intake_authoring.py',
-    'validate_json_schema.py',
-    'validate_orbyss_building_blocks.py',
-    'validate_building_blocks.py',
-    'validate_architecture_placement.py',
-    'validate_placement_contract.py',
-    'validate_bootstrap_lifecycle.py',
-    'validate_readiness_scope.py',
-    'validate_readiness_projection.py',
-    'validate_phase_readiness.py',
-    'validate_bootstrap_handoff_quality.py',
-    'validate_bootstrap_compatibility.py',
-    'validate_bootstrap_proof_plan.py',
-    'validate_workflow_resumption.py',
-    'validate_workflow_runtimes.py',
-    'validate_live_fixture_catalog.py',
-    'validate_live_workflow_acceptance.py',
-    'validate_building_block_availability.py',
-    'validate_legacy_programkit_nuget.py',
-    'validate_generated_contract_schemas.py'
-    'validate_governance_state.py'
-    'validate_runnable_host_pins.py'
-    'validate_release_bundle.py'
-)
-$releaseOnlyValidators = @(
-    'validate_public_component_use.py',
-    'validate_dotnet_engineering.py',
-    'validate_persistence_runtime.py',
-    'validate_ui_experience.py',
-    'validate_local_upgrade.py',
-    'validate_bootstrap_context.py',
-    'validate_bootstrap_intake.py',
-    'validate_bootstrap_semantics.py',
-    'validate_c4_view.py',
-    'validate_live_bootstrap_acceptance.py',
-    'validate_lifecycle_profiles.py',
-    'validate_js_toolchain.py',
-    'validate_dotnet_scaffold.py',
-    'validate_dotnet_build_contract.py',
-    'validate_dotnet_test_discovery.py',
-    'validate_repository_verification_hook.py',
-    'validate_codex_bootstrap.py'
-)
-$validators = if ($Suite -eq 'Release') {
-    @($developmentValidators + $releaseOnlyValidators)
-} else {
-    @($developmentValidators)
-}
-
-if ($List) {
-    Write-Host "$Suite validators:"
-    $validators | ForEach-Object { Write-Host "  $_" }
-    if ($Suite -eq 'Release') {
-        Write-Host '  validate_ui_browser.py'
-        Write-Host '  specify bundle validate'
-        Write-Host '  build_release.py'
-        Write-Host '  validate_bootstrap_consistency_e2e.py'
-        Write-Host '  validate_packaged_ui.py'
-        Write-Host '  validate_release_install.py'
-        Write-Host '  validate_public_upgrade.py --candidate-dir artifacts'
-        Write-Host '  Test-LocalInstall.ps1'
-        Write-Host '  public_availability.py --all'
-        Write-Host '  verify_legacy_programkit_nuget.py --verify-public (read-only)'
-        Write-Host '  write_release_receipt.py'
-    } else {
-        Write-Host '  specify bundle validate --offline'
-    }
-    return
+    param([string]$Executable, [object[]]$ArgumentList, [string]$FailureMessage)
+    & $Executable @ArgumentList
+    if ($LASTEXITCODE -ne 0) { throw $FailureMessage }
 }
 
 if ($Suite -eq 'Release' -and $Host.Name -eq 'Windows PowerShell ISE Host') {
@@ -176,7 +31,7 @@ run the approved Release command there.
 '@
 }
 
-if ($Suite -eq 'Release' -and -not $Approved) {
+if ($Suite -eq 'Release' -and -not $Approved -and -not $List) {
     throw @'
 PROGRAM_KIT_RELEASE_VALIDATION_APPROVAL_REQUIRED
 
@@ -197,14 +52,18 @@ $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'
 
 $transcribing = $false
-if ($Suite -eq 'Release') {
+if ($Suite -eq 'Release' -and -not $List) {
     if (-not $EvidencePath) {
         $version = (Get-Content -Raw -LiteralPath (Join-Path $projectRoot 'VERSION')).Trim()
         $EvidencePath = Join-Path $projectRoot "artifacts\release-validation-$version.log"
     }
     $EvidencePath = [System.IO.Path]::GetFullPath($EvidencePath)
     New-Item -ItemType Directory -Force -Path ([System.IO.Path]::GetDirectoryName($EvidencePath)) | Out-Null
-    Start-Transcript -LiteralPath $EvidencePath -Force | Out-Null
+    if (Test-Path -LiteralPath $EvidencePath) {
+        $archivePath = $EvidencePath + '.' + [DateTimeOffset]::UtcNow.ToString('yyyyMMddTHHmmssfff') + '.previous'
+        Move-Item -LiteralPath $EvidencePath -Destination $archivePath
+    }
+    Start-Transcript -LiteralPath $EvidencePath | Out-Null
     $transcribing = $true
     Write-Host "Release validation evidence: $EvidencePath"
 }
@@ -228,89 +87,13 @@ try {
         'setup', '--offline'
     ) 'Prepare the JSON Schema runtime for the suite interpreter using the command above; validation never downloads dependencies.'
 
-    foreach ($validator in $validators) {
-        Write-Host "Running $Suite validator: $validator"
-        Invoke-ProgramKitNative $python @((Join-Path $projectRoot "tests\$validator")) "Program Kit validator failed: $validator"
-    }
+    $arguments = @((Join-Path $projectRoot 'scripts/run_validation.py'), '--suite', $Suite, "--engines=$BrowserEngines")
+    if ($List) { $arguments += '--list' }
+    if ($Approved) { $arguments += '--approved' }
+    if ($Suite -eq 'Release' -and -not $List) { $arguments += '--receipt' }
+    & $python @arguments
+    if ($LASTEXITCODE -ne 0) { throw 'Program Kit validation failed. Inspect the preserved per-check journal and logs.' }
 
-    Invoke-ProgramKitNative $specify.Source @('bundle', 'validate', '--path', $projectRoot, '--offline') 'Bundle validation failed.'
-
-    if ($Suite -eq 'Development') {
-        Write-Host 'Program Kit development checks passed. Release-only validation was not requested.'
-        return
-    }
-
-    Invoke-ProgramKitNative $python @(
-        (Join-Path $projectRoot 'tests\validate_ui_browser.py'),
-        '--install',
-        '--install-browser',
-        "--engines=$BrowserEngines"
-    ) 'UI browser and analytics acceptance failed.'
-
-    Invoke-ProgramKitNative $python @((Join-Path $projectRoot 'scripts\build_release.py')) 'Release build failed.'
-
-    foreach ($validator in @(
-        'validate_bootstrap_consistency_e2e.py',
-        'validate_packaged_ui.py',
-        'validate_release_install.py'
-    )) {
-        Write-Host "Running packaged Release validator: $validator"
-        Invoke-ProgramKitNative $python @((Join-Path $projectRoot "tests\$validator")) "Packaged Program Kit validator failed: $validator"
-    }
-
-    Invoke-ProgramKitNative $python @(
-        (Join-Path $projectRoot 'tests\validate_public_upgrade.py'),
-        '--candidate-dir',
-        (Join-Path $projectRoot 'artifacts')
-    ) 'Candidate public-upgrade validation failed.'
-
-    Write-Host 'Running source-tree installation validator: Test-LocalInstall.ps1'
-    $localInstallStartedAt = [DateTimeOffset]::UtcNow.ToString('o')
-    & (Join-Path $PSScriptRoot 'Test-LocalInstall.ps1')
-    $script:releaseReceiptSteps += [ordered]@{
-        id = "step-$($script:releaseReceiptSteps.Count + 1)"
-        command = @((Join-Path $PSScriptRoot 'Test-LocalInstall.ps1'))
-        exitCode = 0
-        startedAt = $localInstallStartedAt
-        finishedAt = [DateTimeOffset]::UtcNow.ToString('o')
-    }
-
-    Invoke-ProgramKitNative $python @(
-        (Join-Path $projectRoot 'extensions/program-kit-building-blocks/scripts/public_availability.py'),
-        '--target',
-        $projectRoot,
-        '--catalog',
-        (Join-Path $projectRoot 'extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'),
-        '--all',
-        '--evidence',
-        'artifacts/building-block-public-availability.json'
-    ) 'Catalog-wide NuGet, npm, and host-image public availability failed.'
-
-    Invoke-ProgramKitNative $python @(
-        (Join-Path $projectRoot 'scripts\verify_legacy_programkit_nuget.py'),
-        '--verify-public'
-    ) 'Read-only legacy package compatibility verification failed.'
-
-    $receiptJournal = Join-Path $projectRoot 'artifacts\release-validation-steps.json'
-    $receiptJournalJson = $script:releaseReceiptSteps | ConvertTo-Json -Depth 8
-    [System.IO.File]::WriteAllText($receiptJournal, $receiptJournalJson, $utf8NoBom)
-    try {
-        Invoke-ProgramKitNative $python @(
-            (Join-Path $projectRoot 'scripts\write_release_receipt.py'),
-            '--root',
-            $projectRoot,
-            '--journal',
-            $receiptJournal,
-            '--browser-engines',
-            $BrowserEngines,
-            '--started-at',
-            $script:releaseReceiptStartedAt
-        ) 'Release receipt generation failed.'
-    }
-    finally {
-        Remove-Item -LiteralPath $receiptJournal -Force -ErrorAction SilentlyContinue
-    }
-    Write-Host 'Program Kit complete deterministic Release suite passed.'
 }
 finally {
     if ($transcribing) {

@@ -81,14 +81,13 @@ def main() -> int:
     dirty = git(root, "status", "--porcelain=v1", "--untracked-files=normal")
     if dirty:
         raise RuntimeError("Release receipt requires a clean source tree")
-    if args.journal:
-        journal_value = json.loads(Path(args.journal).read_text(encoding="utf-8"))
-        if not isinstance(journal_value, list) or not journal_value:
-            raise RuntimeError("Release receipt step journal must be a non-empty JSON array")
-        steps = journal_value
-    else:
-        timestamp = now()
-        steps = [{"id": "ci-deterministic-release", "command": ["github-actions", "release"], "exitCode": 0, "startedAt": args.started_at or timestamp, "finishedAt": timestamp}]
+    if not args.journal:
+        raise RuntimeError("Release receipt requires the executed validation inventory journal")
+    from run_validation import validate_journal
+    journal_value = json.loads(Path(args.journal).read_text(encoding="utf-8"))
+    if journal_value['browserEngines'] != args.browser_engines:
+        raise RuntimeError('Receipt browser coverage differs from execution')
+    steps = validate_journal(journal_value)
     availability = artifacts / "building-block-public-availability.json"
     if not availability.is_file():
         raise RuntimeError("Release receipt requires building-block public-availability evidence")
