@@ -45,6 +45,12 @@ $previousConsoleOutputEncoding = [Console]::OutputEncoding
 $previousPowerShellOutputEncoding = $OutputEncoding
 $previousPythonUtf8 = $env:PYTHONUTF8
 $previousPythonIoEncoding = $env:PYTHONIOENCODING
+$previousValidationPowerShell = $env:PROGRAM_KIT_POWERSHELL_EXECUTABLE
+$invokingPowerShell = Join-Path $PSHOME 'powershell.exe'
+if (-not (Test-Path -LiteralPath $invokingPowerShell)) {
+    $invokingPowerShell = Join-Path $PSHOME $(if ($env:OS -eq 'Windows_NT') { 'pwsh.exe' } else { 'pwsh' })
+}
+$env:PROGRAM_KIT_POWERSHELL_EXECUTABLE = $invokingPowerShell
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8NoBom
 $OutputEncoding = $utf8NoBom
@@ -96,6 +102,11 @@ try {
 
 }
 finally {
+    if ($null -eq $previousValidationPowerShell) {
+        Remove-Item Env:PROGRAM_KIT_POWERSHELL_EXECUTABLE -ErrorAction SilentlyContinue
+    } else {
+        $env:PROGRAM_KIT_POWERSHELL_EXECUTABLE = $previousValidationPowerShell
+    }
     if ($transcribing) {
         Stop-Transcript | Out-Null
     }

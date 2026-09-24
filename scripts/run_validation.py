@@ -37,7 +37,7 @@ def selected(suite, system=None):
 
 def command(check, engines):
     values = {'python': sys.executable, 'engines': engines,
-              'powershell': shutil.which('powershell.exe') or shutil.which('pwsh') or 'pwsh'}
+              'powershell': os.environ.get('PROGRAM_KIT_POWERSHELL_EXECUTABLE') or shutil.which('pwsh') or shutil.which('powershell.exe') or 'pwsh'}
     return [part.format(**values) for part in check['command']]
 
 
