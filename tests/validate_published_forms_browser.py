@@ -1,6 +1,7 @@
 """Published Forms package/renderer integration. Never invokes a coding agent."""
 import argparse
 import json
+import hashlib
 import os
 import shutil
 import sys
@@ -26,7 +27,7 @@ def main():
     from live.v2.common import sha256_file
     provenance = json.loads((source / 'provenance.json').read_text(encoding='utf-8'))
     for record in provenance['files']:
-        if sha256_file(source / record['path']) != record['sha256']:
+        if hashlib.sha256((source / record['path']).read_bytes().replace(b'\r\n', b'\n')).hexdigest() != record['sha256']:
             raise ValueError('Published Forms fixture source differs from reviewed provenance')
     if args.prepare_only:
         print(json.dumps({'prepared': True, 'paidSessionsStarted': 0, 'packageOperationsStarted': 0,
@@ -65,8 +66,8 @@ def main():
     request = destination / '.program-kit/evidence/building-block-restore-request.json'
     for mode in ('renew', 'locked'):
         write(request, executor.restore_request(destination, lock, plan, mode))
-        operation([sys.executable, str(executor.__file__), mode, '--target', str(destination), '--lock', str(lock),
-                   '--request', str(request), '--approved'], mode, True)
+        operation([sys.executable, str(executor.__file__), mode, '--target', str(destination), '--lock', lock.relative_to(destination).as_posix(),
+                   '--request', request.relative_to(destination).as_posix(), '--approved'], mode, True)
     operation([*node, '--test', 'tests/release-integration.test.mjs'], 'admission')
     operation([*node, 'tests/forms-browser/build.mjs'], 'bundle')
     operation([*node, 'tests/forms-browser/browser.mjs', '--engines=' + args.engines], 'browser')

@@ -25,6 +25,7 @@ EXPECTED_HOOKS = {
     "before_specify",
     "after_specify",
     "before_plan",
+    "before_tasks",
     "after_plan",
     "after_tasks",
     "before_implement",

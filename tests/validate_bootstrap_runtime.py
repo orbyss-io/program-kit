@@ -14,6 +14,9 @@ IMAGE = 'ghcr.io/orbyss-io/foundation-host@sha256:622353f8c3888ae173819abad493ec
 
 
 def main():
+    # The runtime recipe intentionally uses --pull=never. Provision its exact
+    # digest here instead of depending on a warm developer Docker cache.
+    subprocess.run(['docker', 'pull', IMAGE], check=True, timeout=300)
     target = ROOT / 'artifacts/bootstrap-runtime' / uuid.uuid4().hex[:8]
     shutil.copytree(ROOT / 'extensions/program-kit-governance/examples/bootstrap-runtime', target)
     template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
@@ -37,6 +40,8 @@ def main():
             raise RuntimeError('Restore failed: ' + str(target / (mode + '.log')))
     with (target / 'runtime.log').open('w', encoding='utf-8') as log:
         result = subprocess.run([sys.executable, 'runtime_probe.py'], cwd=target, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+    if result.returncode:
+        print((target / 'runtime.log').read_text(encoding='utf-8', errors='replace')[-12000:])
     print('Runtime evidence: ' + str(target))
     return result.returncode
 

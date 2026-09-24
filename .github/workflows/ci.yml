@@ -86,7 +86,7 @@ jobs:
           python -c "import sys; print('PK_ENGINE_PYTHON=' + sys.executable)" >> $env:GITHUB_ENV
 
       - name: Validate source installation on Windows
-        run: ./scripts/Test-LocalInstall.ps1
+        run: python scripts/run_validation.py --check source-install
 
       - name: Set up distinct shell Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

@@ -623,19 +623,6 @@
       ]
     },
     {
-      "id": "validate_bootstrap_compatibility",
-      "command": [
-        "{python}",
-        "tests/validate_bootstrap_compatibility.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ]
-    },
-    {
       "id": "validate_bootstrap_proof_plan",
       "command": [
         "{python}",
@@ -1017,6 +1004,21 @@
       ]
     },
     {
+      "id": "validate_installed_bootstrap_flow",
+      "command": [
+        "{python}",
+        "tests/validate_installed_bootstrap_flow.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
       "id": "validate_bootstrap_consistency_e2e",
       "command": [
         "{python}",
@@ -1093,21 +1095,6 @@
       "credentials": ""
     },
     {
-      "id": "validate_published_forms_browser",
-      "command": [
-        "{python}",
-        "tests/validate_published_forms_browser.py",
-        "--engines={engines}"
-      ],
-      "group": "integration",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "credentials": "PROGRAM_KIT_NPM_TOKEN"
-    },
-    {
       "id": "ui-browser",
       "command": [
         "{python}",
@@ -1122,6 +1109,38 @@
         "Windows",
         "Linux"
       ]
+    },
+    {
+      "id": "validate_bootstrap_compatibility",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_compatibility.py"
+      ],
+      "group": "integration",
+      "needs": [
+        "ui-browser"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ]
+    },
+    {
+      "id": "validate_published_forms_browser",
+      "command": [
+        "{python}",
+        "tests/validate_published_forms_browser.py",
+        "--engines={engines}"
+      ],
+      "group": "integration",
+      "needs": [
+        "ui-browser"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "credentials": "PROGRAM_KIT_NPM_TOKEN"
     }
   ]
 }

@@ -439,7 +439,8 @@ def main() -> int:
     if any(marker not in cli_text for marker in ("class WorkflowProgress", "Live workflow: starting", "still running", "progress.stop()")):
         raise AssertionError("Bootstrap live progress is no longer visible in the invoking terminal")
     aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
-    if "write_release_receipt.py" not in aggregate:
+    runner = (ROOT / "scripts/run_validation.py").read_text(encoding="utf-8")
+    if "--receipt" not in aggregate or "write_release_receipt.py" not in runner:
         raise AssertionError("The deterministic Release suite does not emit a machine-bound receipt")
     release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     if "Test-Live" in release or "live.v2.cli" in release:

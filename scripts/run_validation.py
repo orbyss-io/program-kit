@@ -25,6 +25,8 @@ def now():
 
 def selected(suite, system=None):
     system = system or platform.system()
+    if system not in ('Windows', 'Linux'):
+        raise ValueError('Validation coverage is not declared for platform: ' + system)
     checks = json.loads(INVENTORY.read_text(encoding='utf-8'))['checks']
     ids = [c['id'] for c in checks]
     if len(ids) != len(set(ids)):
@@ -68,8 +70,13 @@ def main():
     parser.add_argument('--list', action='store_true')
     parser.add_argument('--approved', action='store_true')
     parser.add_argument('--receipt', action='store_true')
+    parser.add_argument('--check', help='Run one declared check without claiming suite coverage')
     args = parser.parse_args()
     checks = selected(args.suite)
+    if args.check:
+        checks = [c for c in selected('Release') if c['id'] == args.check]
+        if not checks or args.receipt or args.suite == 'Release':
+            parser.error('--check requires a known platform check and cannot claim Release coverage')
     if args.list:
         for check in checks:
             print(check['id'] + ': ' + ' '.join(command(check, args.engines)))
@@ -142,7 +149,8 @@ def main():
         subprocess.run([sys.executable, str(ROOT / 'scripts/write_release_receipt.py'), '--root', str(ROOT),
                         '--journal', str(path), '--browser-engines', args.engines,
                         '--started-at', journal['startedAt']], cwd=ROOT, check=True)
-    print('Program Kit ' + ('complete deterministic Release' if args.suite == 'Release' else 'development') + ' suite passed.')
+    print(('Program Kit targeted check passed: ' + args.check) if args.check else
+          'Program Kit ' + ('complete deterministic Release' if args.suite == 'Release' else 'development') + ' suite passed.')
     return 0
 
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -84,6 +85,10 @@ def main() -> int:
             destinations[name].mkdir(parents=True, exist_ok=True)
             with zipfile.ZipFile(archive) as package:
                 package.extractall(destinations[name])
+
+        sys.path.insert(0, str(root / "extensions/program-kit-governance/scripts"))
+        from schema_runtime import runtime_path
+        shutil.copytree(runtime_path(root), runtime_path(project))
 
         write(
             project / ".specify/workflows/workflow-registry.json",
