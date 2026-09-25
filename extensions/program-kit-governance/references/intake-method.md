@@ -115,8 +115,10 @@ Maintain one current answer/disposition per Q ID. When corrected, update affecte
 dependent pending states and the current summary together; keep the old interpretation only in a
 compact, explicitly superseded history entry linked to its replacement. Do not repeat the full
 answer in several running narratives. Batch the affected record edits after each answered round.
-At convergence, reconcile the ledger once, mark the document `draft awaiting review`, and ensure
+At convergence, reconcile the ledger once, use `Intake status: see bootstrap-intake.json status`, and ensure
 no settled branch remains labelled open or superseded interpretation remains labelled current.
+The contract owns current draft/confirmed state. Do not duplicate it in the hash-bound prose;
+confirmation must not leave "draft awaiting review" or "not confirmed" as current assertions.
 Keep stable evidence locators when compacting; preserve rationale, exceptions and uncertainty.
 
 Keep explicit answers, Program Kit defaults, derived conclusions, and architectural proposals

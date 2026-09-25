@@ -55,7 +55,12 @@ def main():
             command([*tools['dotnet'], str(root / 'bin/Debug/net10.0/Probe.dll'), phase, str(result)], timeout=120)
         finally:
             if result.is_file():
-                suite.extend(ET.parse(result).getroot())
+                cases = ET.fromstring(result.read_text(encoding='utf-8').replace(password, '[REDACTED]'))
+                suite.extend(cases)
+                for case in cases.iter('testcase'):
+                    for failure in case.findall('failure'):
+                        detail = (failure.get('message', '') + '\n' + (failure.text or ''))[-4096:]
+                        print(f"{case.get('classname')}.{case.get('name')}: {detail}", file=sys.stderr)
 
     try:
         command(['docker', 'image', 'inspect', inputs['image']])

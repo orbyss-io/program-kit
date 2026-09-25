@@ -20,11 +20,17 @@ from live.v2.supervisor import run_supervised
 
 class CompatibilityTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='bootstrap-compatibility-')
-        self.addCleanup(self.temp.cleanup)
-        self.base = Path(self.temp.name)
+        self.base = Path(tempfile.mkdtemp(prefix='pk-compat-')).resolve()
+        self.addCleanup(self.cleanup)
         self.root = self.base / 'consumer'
         self.root.mkdir()
+
+    def cleanup(self):
+        # NuGet creates paths over MAX_PATH even under the short fixture root.
+        # Verify the owned target before using Windows extended-path deletion.
+        if self.base.parent != Path(tempfile.gettempdir()).resolve() or not self.base.name.startswith('pk-compat-'):
+            raise AssertionError('Compatibility cleanup escaped its temporary fixture')
+        shutil.rmtree('\\\\?\\' + str(self.base) if os.name == 'nt' else self.base)
 
     def test_fixture_cannot_escape_scratch(self):
         source = self.root / 'probe.cs'
@@ -51,6 +57,38 @@ class CompatibilityTests(unittest.TestCase):
         self.assertEqual(0, result['exit_code'], proof)
         self.assertEqual(['Managed.dotnet_runtime'], proof['checks'])
         self.assertIsNotNone(proof['provisioning']['lockedRestore'])
+
+    def test_maintained_postgresql_locks_execute_through_shared_restore(self):
+        import managed_provider_probes as probes
+        from bootstrap_provider_context import project
+        from bootstrap_lifecycle import run_proof, load
+        for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
+            shutil.copytree(ROOT / 'extensions' / name, self.root / '.specify/extensions' / name,
+                            ignore=shutil.ignore_patterns('bin', 'obj', '__pycache__', 'node_modules'))
+        manifest = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/global.json'
+        sdk = json.loads(manifest.read_text(encoding='utf-8'))['sdk']['version']
+        decisions = {
+            'selected_profiles': ['dotnet'],
+            'persistence': [{'owner': 'synthetic-store', 'profile': 'ef-postgresql'}],
+            'toolchain': {'source': 'program-kit-default', 'pins': {'dotnet-sdk': sdk}}}
+        compatibility.write(self.root / 'docs/architecture/bootstrap-decisions.json', decisions)
+        # This isolated provider test owns no host selection. The full renderer's
+        # selected-host admission is covered by validate_bootstrap_provider_context.
+        selected = project(self.root, decisions, require_selection=False)
+        with patch.object(probes, '__file__', str(self.root / '.specify/extensions/program-kit-governance/scripts/managed_provider_probes.py')):
+            plan = probes.render_postgresql(self.root, 'maintained-postgresql', selected)
+        result = run_proof(self.root, plan['id'], plan['recipe'], plan['timeout'])
+        proof = load(self.root / result['path'])
+        # Preserve both success and failure evidence beyond the disposable fixture.
+        import uuid
+        preserved = ROOT / 'artifacts/bootstrap-postgresql' / uuid.uuid4().hex[:8]
+        shutil.copytree((self.root / result['path']).parent, preserved)
+        self.assertEqual(0, result['exit_code'], f'Inspect {preserved}')
+        self.assertEqual(probes.CASES['ef-postgresql'], proof['checks'])
+        self.assertIn('PostgreSql.row_lock_exclusion_and_release', proof['checks'])
+        self.assertIn('PostgreSql.expected_lock_error_classification', proof['checks'])
+        self.assertIsNotNone(proof['provisioning']['lockedRestore'])
+        self.assertFalse(list((self.root / '.specify/governance/compatibility').rglob('scratch-*')))
 
     def test_maintained_browser_recipe_executes_through_shared_restore(self):
         from managed_compatibility import render

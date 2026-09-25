@@ -319,6 +319,40 @@ def _validate_domain_analysis(
         )
 
 
+def validate_intent_status_reference(path: Path) -> None:
+    """New drafts must not duplicate mutable confirmation state in source prose.
+
+    Prefer a stable pointer to the contract so confirmation never needs to rewrite
+    an already reviewed, hash-bound intent record. This is deliberately not a
+    general natural-language approval classifier.
+    """
+    text = path.read_text(encoding='utf-8')
+    fence = None
+    for line in text.splitlines():
+        marker = re.match(r'^ {0,3}(`{3,}|~{3,})', line)
+        if marker:
+            token = marker[1]
+            if fence is None:
+                fence = token
+            elif token[0] == fence[0] and len(token) >= len(fence):
+                fence = None
+            continue
+        if fence is not None:
+            continue
+        label = re.match(r'^(?:[-*] )?(?:\*\*)?(?:Intake status|Status)(?:\*\*)?\s*:(?:\*\*)?\s*(.*)$',
+                         line, re.IGNORECASE)
+        if not label:
+            continue
+        pending = re.match(r'(draft|unconfirmed|not confirmed|awaiting (?:review|confirmation))\b', label[1], re.IGNORECASE)
+        confirmed = re.match(r'confirmed\b', label[1], re.IGNORECASE)
+        if pending or confirmed:
+            raise IntakeError(
+                'project-intent.md duplicates mutable intake status; '
+                'use "Intake status: see bootstrap-intake.json status" before draft review. '
+                'Rebuild and review the draft; never silently refresh accepted evidence.'
+            )
+
+
 def validate_intake(
     project_root: Path,
     intake_path: Path = CANONICAL_INTAKE,
@@ -364,6 +398,11 @@ def validate_intake(
         )
         for key, expected in CANONICAL_ARTIFACTS.items()
     }
+    # Enforce stable prose before new draft review. Old confirmed snapshots retain
+    # their historical wording and exact hashes; editorial cleanup is not grounds
+    # for silently rewriting or invalidating previously confirmed consumer intent.
+    if intake['status'] == 'draft':
+        validate_intent_status_reference(artifact_paths['project_intent'])
 
     evidence_ids: set[str] = set()
     evidence = _list(intake.get("evidence"), "evidence")

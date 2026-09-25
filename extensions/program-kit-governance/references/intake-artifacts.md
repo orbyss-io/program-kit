@@ -203,5 +203,14 @@ the generated intake and run `bootstrap_intake.py validate --json`. The other fi
 hashes need no changes if the reviewed synthesis is unchanged. A changed intent needs rebuilding
 and review before confirmation; confirmed-artifact re-analysis remains a separate staged workflow.
 
+Before building, use `Intake status: see bootstrap-intake.json status` in project-intent.md,
+not a duplicate current "draft", "awaiting review", or "confirmed" assertion. Keep historical
+answers as historical evidence and explain that intake confirmation is not architecture/ADR
+acceptance. This stable reference remains true before and after confirmation without mutating
+reviewed source hashes. Draft validation rejects explicit duplicated current state labels;
+semantic review still checks the rest of the prose. Legacy confirmed artifacts retain their
+historical wording and exact hashes. The contract is authoritative; never rewrite completed trial
+evidence for editorial cleanup. Changed intent still requires staged re-analysis and review.
+
 Use validator diagnostics for a targeted repair. Do not print whole artifacts, schemas,
 implementations, or repository-wide diffs during verification.
