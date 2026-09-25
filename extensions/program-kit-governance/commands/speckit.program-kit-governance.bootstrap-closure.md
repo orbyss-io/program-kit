@@ -25,7 +25,7 @@ design-decision handoff to the owning stage, never a request for the consumer to
 `provider_inputs.persistence_runtimes` supplies exact selected test-server identities
 and existing profile package pins. Use maintained `ef-postgresql` for a retained
 EF/Npgsql/PostgreSQL compatibility condition: it proves write/read, expected-revision
-conflict, rollback and restart in an isolated database. Provision that exact image;
+conflict, row-lock exclusion/release, rollback and restart in an isolated database. Provision that exact image;
 do not invent another server version or delegate kit metadata to the consumer.
 `managed_baseline_evidence` supplies dated publisher/package/notice evidence and its
 limits. Review the named gap against those sources. If an already approved condition
@@ -72,6 +72,14 @@ delivery/security assurance. An alternate provider requires its own evidence, ne
 Only consumer-specific compatibility risks need custom Python recipes and adjacent contracts.
 Bind exact named runtime cases, source inputs and selected versions. When dependencies are needed,
 declare fixtures and dependencyTargets; the shared coordinator owns renew plus locked restore.
+Fixtures must be consumed runtime inputs, never raw ADR copies. ADR authority stays in the
+canonical prerequisite source ledger and decision evidence; status-only acceptance must not
+invalidate a raw fixture hash. Bind executable parameters separately without dropping ADR scope.
+Use the maintained PostgreSQL row-lock case for mechanism feasibility. For a genuinely custom
+case, an expected lock timeout may be a direct Npgsql PostgresException or EF's
+InvalidOperationException with that direct inner exception. Catch only SQLSTATE 55P03 at the
+contended query; unrelated provider errors and timeouts must fail. Preserve inner-exception
+diagnostics, and prove negative error classification as well as exclusion and lock release.
 Never implement another package resolver or invoke a network restore in a recipe.
 The recipe must declare inputs, versions, licenses and observable pass criteria,
 fail nonzero on failed checks, terminate its child processes, and keep credentials out of output.

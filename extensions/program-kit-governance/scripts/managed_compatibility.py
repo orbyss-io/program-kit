@@ -20,7 +20,7 @@ def catalog():
         'foundation-host': {'case': 'Managed.foundation_host', 'proves': 'published local image executes its ASP.NET runtime; no consumer shell activation'},
         'foundation-activation': {'case': 'PublishedHost.exact_image_activation', 'proves': 'synthetic package activation, shell replacement, HTTP/OpenAPI and restart on the published image; no consumer behavior', 'requires': '--host-image with registry-verified selected release digest'},
         'bff-keycloak': {'case': 'Identity.code_flow_permission_negatives_and_logout', 'proves': 'selected published BFF and local Keycloak code flow, 401/403/authorized endpoint, cookie/storage and logout checks; no consumer membership or complete web assurance', 'requires': '--host-image with registry-verified selected release digest; pinned local Keycloak and Chromium'},
-        'ef-postgresql': {'case': 'PostgreSql.atomic_expected_revision_conflict', 'proves': 'selected EF/Npgsql and exact PostgreSQL server write/read, stale-revision rejection, rollback and restart; no consumer schema, migrations or business policy', 'requires': 'selected ef-postgresql owner; exact image from provider_inputs.persistence_runtimes available locally'},
+        'ef-postgresql': {'case': 'PostgreSql.atomic_expected_revision_conflict', 'proves': 'selected EF/Npgsql and exact PostgreSQL server write/read, stale-revision rejection, row-lock exclusion/release, rollback and restart; no consumer schema, migrations or business policy', 'requires': 'selected ef-postgresql owner; exact image from provider_inputs.persistence_runtimes available locally'},
     }
 
 

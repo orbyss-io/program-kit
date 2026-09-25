@@ -14,6 +14,7 @@ CASES = {
         'Identity.code_flow_permission_negatives_and_logout'],
     'ef-postgresql': ['PostgreSql.exact_server', 'PostgreSql.write_read',
         'PostgreSql.atomic_expected_revision_conflict', 'PostgreSql.transaction_rollback',
+        'PostgreSql.expected_lock_error_classification', 'PostgreSql.row_lock_exclusion_and_release',
         'PostgreSql.restart_preserves_state'],
 }
 

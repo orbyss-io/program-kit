@@ -311,6 +311,74 @@ class DefaultAndHandoffTests(unittest.TestCase):
         self.assertNotIn('--answer', str(caught.exception))
         self.assertEqual('closure', handoff.retry_stage(self.root, 'trial', 'closure', completing=True))
 
+    def test_raw_adr_fixture_rejected_before_proof_execution(self):
+        import bootstrap_lifecycle as lifecycle
+        recipe = self.root / 'docs/architecture/compatibility/probe.py'
+        recipe.parent.mkdir(parents=True)
+        recipe.write_text('raise AssertionError("must not execute")', encoding='utf-8')
+        for source in ('docs/architecture/decisions/claim.md', 'design/custom-location.md'):
+            with self.subTest(source=source):
+                path = self.root / source
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('Status: Proposed\nLock writes to the owned row.\n', encoding='utf-8')
+                write(self.root / 'docs/architecture/architecture-map.json', {'decisions': [{'path': source}]})
+                contract = {'schemaVersion': 1, 'checks': [{'id': 'runtime', 'kind': 'runtime-compatibility',
+                            'testCases': ['Lock.exclusion']}], 'fixtures': {'design-source.md': source}}
+                write(recipe.with_suffix('.contract.json'), contract)
+                with self.assertRaisesRegex(lifecycle.LifecycleError, 'not ADR authority'):
+                    lifecycle.run_proof(self.root, 'lock', recipe.relative_to(self.root).as_posix(), 30)
+                self.assertFalse((self.root / '.specify/governance/compatibility').exists())
+                reviewed = lifecycle.source_digest(path)
+                path.write_text('Status: Accepted\nLock writes to the owned row.\n', encoding='utf-8')
+                self.assertEqual(reviewed, lifecycle.source_digest(path))
+                path.write_text('Status: Accepted\nAllow competing writes.\n', encoding='utf-8')
+                self.assertNotEqual(reviewed, lifecycle.source_digest(path))
+        # A separate, consumed runtime parameter remains byte-bound and admissible.
+        fixture = recipe.parent / 'parameters.json'
+        fixture.write_text('{"isolation":"ReadCommitted"}', encoding='utf-8')
+        contract['fixtures'] = {'parameters.json': fixture.relative_to(self.root).as_posix()}
+        write(recipe.with_suffix('.contract.json'), contract)
+        validate_recipe(self.root, 'lock', recipe.relative_to(self.root).as_posix())
+
+    def test_postgresql_failure_reports_inner_exception_and_redacts_password(self):
+        import io
+        from contextlib import chdir, redirect_stderr
+        from types import SimpleNamespace
+        from xml.etree import ElementTree as ET
+        source = ROOT / 'extensions/program-kit-governance/examples/bootstrap-postgresql/postgresql_probe.py'
+        spec = importlib.util.spec_from_file_location('postgresql_probe_test', source)
+        probe = importlib.util.module_from_spec(spec)
+        captured = {}
+
+        def execute(command, cwd, stdout, stderr, timeout):
+            if command[:2] == ['docker', 'port']:
+                stdout.write(b'127.0.0.1:55432\n')
+            elif command[:2] == ['docker', 'exec'] and command[-2:] == ['postgres', '--version']:
+                stdout.write(b'postgres (PostgreSQL) 18.6\n')
+            elif command[0] == 'test-dotnet' and command[-2] == 'exercise':
+                captured['password'] = os.environ['POSTGRES_PASSWORD']
+                suite = ET.Element('testsuite')
+                case = ET.SubElement(suite, 'testcase', classname='PostgreSql', name='row_lock_exclusion_and_release')
+                ET.SubElement(case, 'failure').text = ('InvalidOperationException -> PostgresException SQLSTATE 23505; '
+                                                     + captured['password'])
+                ET.ElementTree(suite).write(command[-1], encoding='utf-8')
+                return 1
+            return 0
+
+        with patch.dict(sys.modules, {'bounded_process': SimpleNamespace(run=execute)}):
+            spec.loader.exec_module(probe)
+        write(self.root / 'runtime-inputs.json', {'image': 'postgres@sha256:' + 'a' * 64, 'version': '18.6'})
+        write(self.root / '.program-kit/evidence/toolchain.json', {'commands': {'dotnet': ['test-dotnet']}})
+        output = io.StringIO()
+        with chdir(self.root), redirect_stderr(output), patch.dict(os.environ, {'POSTGRES_PASSWORD': 'original'}):
+            self.assertEqual(1, probe.main())
+            self.assertEqual('original', os.environ['POSTGRES_PASSWORD'])
+        evidence = (self.root / 'compatibility-results.xml').read_text(encoding='utf-8')
+        for content in (output.getvalue(), evidence):
+            self.assertIn('PostgresException SQLSTATE 23505', content)
+            self.assertIn('[REDACTED]', content)
+            self.assertNotIn(captured['password'], content)
+
     def test_recipe_uses_sync_resolved_tool_not_path(self):
         write(self.root / '.program-kit/evidence/toolchain.json', {'satisfied': True, 'commands': {'node': ['exact-managed-node']}})
         with patch.object(managed, 'run', return_value=0) as execute, patch.object(managed.shutil, 'which', side_effect=AssertionError('PATH discovery is forbidden after sync')):

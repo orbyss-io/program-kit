@@ -175,6 +175,55 @@ class AuthoringTests(unittest.TestCase):
             self.build()
         self.assertEqual(before, path.read_bytes())
 
+    def test_new_draft_rejects_status_that_would_be_stale_after_confirmation(self):
+        self.intent.write_text('# Intent\nStatus: draft awaiting review. The synthesis is not confirmed.\n', encoding='utf-8')
+        before = self.intent.read_bytes()
+        with self.assertRaisesRegex(intake.IntakeError, 'duplicates mutable intake status'):
+            self.build()
+        self.assertFalse((self.root / intake.CANONICAL_INTAKE).exists())
+        self.assertEqual(before, self.intent.read_bytes())
+
+    def test_legacy_confirmed_intent_retains_historical_wording_and_valid_hashes(self):
+        self.intent.write_text('# Intent\nStatus: draft awaiting review. The synthesis is not confirmed.\n', encoding='utf-8')
+        # Reproduce a valid v0.12.0 draft, whose builder allowed this label.
+        with patch.object(intake, 'validate_intent_status_reference'):
+            self.build()
+        path = self.root / intake.CANONICAL_INTAKE
+        document = intake.load_object(path)
+        document['status'] = 'confirmed'
+        write_json(path, document)
+        before = {p: p.read_bytes() for p in self.intent.parent.iterdir()}
+        self.assertEqual('confirmed', intake.validate_intake(self.root)['status'])
+        self.assertEqual(before, {p: p.read_bytes() for p in self.intent.parent.iterdir()})
+
+    def test_status_reference_survives_confirmation_without_changing_reviewed_sources(self):
+        self.intent.write_text('# Intent\nIntake status: see bootstrap-intake.json status\n'
+                              'Architecture status: draft; no ADR acceptance is implied by intake confirmation.\n'
+                              '> Historical answer: not confirmed.\n'
+                              'Historical excerpt:\n```text\nStatus: draft\n```\n', encoding='utf-8')
+        self.build()
+        before = {p: p.read_bytes() for p in self.intent.parent.iterdir() if p.name != 'bootstrap-intake.json'}
+        path = self.root / intake.CANONICAL_INTAKE
+        document = intake.load_object(path)
+        document['status'] = 'confirmed'
+        write_json(path, document)
+        self.assertEqual('confirmed', intake.validate_intake(self.root)['status'])
+        self.assertEqual(before, {p: p.read_bytes() for p in before})
+
+    def test_draft_cannot_claim_current_intake_confirmation(self):
+        self.intent.write_text('# Intent\nIntake status: confirmed\n', encoding='utf-8')
+        with self.assertRaisesRegex(intake.IntakeError, 'duplicates mutable intake status'):
+            self.build()
+        self.assertFalse((self.root / intake.CANONICAL_INTAKE).exists())
+
+    def test_new_drafts_reject_duplicate_status_in_markdown_labels(self):
+        for label in ('**Status:** confirmed; architecture remains draft.',
+                      '- **Intake status**: confirmed; architecture remains draft.'):
+            with self.subTest(label=label):
+                self.intent.write_text(label, encoding='utf-8')
+                with self.assertRaisesRegex(intake.IntakeError, 'duplicates mutable intake status'):
+                    intake.validate_intent_status_reference(self.intent)
+
     def test_source_cannot_confirm(self):
         self.source['intake']['status'] = 'confirmed'
         with self.assertRaisesRegex(ValueError, 'cannot confirm'):

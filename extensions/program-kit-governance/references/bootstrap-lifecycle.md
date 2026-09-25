@@ -215,6 +215,13 @@ stops the phase. Registry credentials never enter the paid worker environment. R
 overrides that need a different scratch configuration require the corresponding explicit handoff;
 the helper must not silently select a different version.
 
+Fixtures contain only inputs actually consumed at runtime. Do not copy cataloged ADRs into
+fixtures: their Proposed-to-Accepted promotion changes raw bytes at approval. Preflight rejects
+these declarations before restore/execution. Preserve ADR authority through the canonical
+prerequisite source ledger and decision evidence, which normalize only approval metadata and
+still reject substantive changes. Put any executable parameters in a separate bound fixture;
+do not remove source obligations or relax stream/recipe hashes to make acceptance pass.
+
 
 ## Native execution handoff
 

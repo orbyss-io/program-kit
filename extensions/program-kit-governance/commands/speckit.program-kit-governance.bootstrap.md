@@ -120,7 +120,7 @@ After the questions converge, create or update:
 
 Use `references/intake-artifacts.md` as the authoring contract. Author shared semantics once in
 `docs/architecture/intake-authoring.json` using the routed example and descriptor. Write the
-current intent record (including draft-review status, reconciled corrections and explicit-requirement
+current intent record (including a stable reference to confirmation authority, reconciled corrections and explicit-requirement
 coverage from `references/intake-method.md`) before building. Run
 `python .specify/extensions/program-kit-governance/scripts/intake_authoring.py build-draft --source docs/architecture/intake-authoring.json`.
 The builder derives shared intake fields and dynamic-view ordering, exports DSL, refreshes hashes,
@@ -128,6 +128,11 @@ and validates the staged draft before replacing outputs. It never confirms intak
 confirmed intake. Do not hand-copy shared analyses or reserialize JSON in PowerShell; the builder
 preserves UTF-8 multilingual text. Corrections to generated draft JSON belong in the authoring
 source; rebuild instead of overwriting those corrections with an obsolete source.
+Use `Intake status: see bootstrap-intake.json status` in the intent record. Do not duplicate
+current confirmation state with wording such as "draft awaiting review" or "not confirmed".
+Keep historical answers explicitly historical. Explain that intake confirmation establishes the
+accuracy of the provisional synthesis, not architecture or ADR acceptance. Write process guidance
+conditionally, so it remains accurate after confirmation and later bootstrap approval.
 Never print whole generated artifacts or repository-wide diffs during verification.
 
 The canonical map owns semantics. The DSL is a reviewable C4 projection and an import source. Mark
@@ -155,8 +160,10 @@ review; do not ask for a separate approval before preparing the draft artifacts.
 Ask for confirmation only after the
 semantic gates pass and there are no invisible or unclassified gaps. State explicitly that this
 confirmation does not approve architecture or ADRs. Do not mark the intake `confirmed` from silence or inference.
-After explicit confirmation, set its status to `confirmed`, refresh every artifact hash and byte
-count, and run (a narrow status edit is sufficient; do not reserialize the document):
+After explicit confirmation, set only the intake contract's status to `confirmed` and run
+(a narrow status edit is sufficient; do not reserialize the document). The reviewed intent, map,
+projection and their hashes stay unchanged. If any bound content must change, rebuild and review
+the draft before confirmation instead of refreshing hashes to disguise drift:
 
 `python .specify/extensions/program-kit-governance/scripts/bootstrap_intake.py validate --json`
 

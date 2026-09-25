@@ -423,11 +423,26 @@ def validate_recipe(root: Path, identity: str, recipe: str):
     targets = contract.get('dependencyTargets', [])
     if not isinstance(fixtures, dict) or not isinstance(targets, list):
         raise LifecycleError('Compatibility fixture/target declarations are invalid')
+    # ADR promotion changes bytes while preserving reviewed semantics. Those
+    # documents are already protected by the canonical prerequisite source ledger;
+    # treating them as runtime fixtures makes a valid acceptance stale its proof.
+    model_path = root / 'docs/architecture/architecture-map.json'
+    decisions = load(model_path).get('decisions', []) if model_path.is_file() else []
+    decision_paths = {local(root, item['path']) for item in decisions if item.get('path')}
+    decision_directory = local(root, 'docs/architecture/decisions')
     for relative, source in fixtures.items():
         local(root, relative)
         if any(part.casefold() in {'.git', '.specify', '.program-kit', 'node_modules', 'bin', 'obj'} for part in Path(relative).parts):
             raise LifecycleError('Compatibility fixture cannot supply managed/cache content')
-        if not local(root, source).is_file():
+        source_path = local(root, source)
+        if source_path in decision_paths or source_path.is_relative_to(decision_directory):
+            raise LifecycleError(
+                'Compatibility fixtures must contain executable/runtime inputs, not ADR authority: '
+                + source + '. Keep the ADR in the prerequisite source ledger; '
+                'bind any required runtime parameters in a separate fixture. '
+                'Do not remove or weaken the semantic ADR binding.'
+            )
+        if not source_path.is_file():
             raise LifecycleError('Compatibility fixture source is missing: ' + source)
     if len(targets) != len(set(targets)) or any(target not in fixtures or
             (Path(target).suffix != '.csproj' and Path(target).name != 'package.json') for target in targets):

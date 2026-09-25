@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.12.1 - Unreleased
+
+- Keep intake confirmation authority in bootstrap-intake.json instead of duplicating mutable
+  draft/confirmed wording in hash-bound intent prose. Reject duplicated state labels in new drafts
+  while preserving legacy confirmed inputs and the separate architecture approval boundary.
+- Extend the maintained EF/Npgsql/PostgreSQL compatibility proof with row-lock exclusion, rollback
+  release and strict direct/wrapped SQLSTATE 55P03 classification. Unrelated errors still fail;
+  retain inner-exception details and bounded, redacted failure diagnostics.
+- Reject raw ADR proof fixtures before restore or execution. Preserve canonical semantic ADR
+  bindings through Proposed-to-Accepted promotion without weakening runtime input/stream hashes.
+- Advance all Program Kit installable components together. Published runtime component pins are
+  unchanged. Existing trial evidence is not rewritten; existing raw-ADR fixture recipes need a
+  new proof before acceptance.
+
 ## 0.12.0 - 2026-09-23
 
 - Reduce bootstrap reading overhead with bounded required-source batches and lossless JSON
