@@ -5,6 +5,9 @@
 - Accept the shipped governance configuration's top-level `schema_version` scalar when
   PyYAML is unavailable. Keep malformed mapping-only configurations invalid and cover
   installation validation in an isolated Python interpreter.
+- Require roadmap ADR registrations to contain current file hashes, surface artifact-conflict
+  repair guidance, and route a stale ADR resolution back to architecture rather than its
+  later due gate. Existing run history and human review gates remain intact.
 - Advance all Program Kit installable components together. Published runtime component
   pins remain unchanged.
 

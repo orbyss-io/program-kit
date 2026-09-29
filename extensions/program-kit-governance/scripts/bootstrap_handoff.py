@@ -96,6 +96,10 @@ def pending_questions(root, run_id, stage, *, completing=False):
         due = q['due_stage']
         if due not in {*STAGES, 'feature-plan', 'implementation', 'delivery', 'production'}:
             raise ValueError('Unknown question due stage: ' + str(due))
+        repair = q.get('repair_stage')
+        if repair is not None and (repair not in STAGES or
+                                   due in STAGES and list(STAGES).index(repair) > list(STAGES).index(due)):
+            raise ValueError('Question ' + q['id'] + ' has an invalid repair stage')
         if due in order and order.index(due) <= order.index(stage):
             if (q['kind'] == 'user-answer' and not q['answer'] or
                     q['kind'] in {'design-decision', 'artifact-conflict'} and (completing or order.index(due) < order.index(stage))
@@ -194,7 +198,8 @@ def require(root, run_id, stage, *, questions_only=False):
         path.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
         raise
     if result['status'] == 'needs-design-decision':
-        result['retry_stage'] = result['questions'][0]['due_stage']
+        result['retry_stage'] = min((repair_stage(root, q) for q in result['questions']),
+                                    key=list(STAGES).index)
     path.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     if result['status'] != 'complete':
         lines = [result['status'] + ': ' + stage + (' output is incomplete.' if questions_only else ' handoff is blocked.')]
@@ -218,8 +223,20 @@ def retry_stage(root, run_id, stage, *, completing=False):
     if result['status'] == 'needs-user-answer':
         require(root, run_id, stage, questions_only=completing)
     if result['status'] == 'needs-design-decision':
-        return min((q['due_stage'] for q in result['questions']), key=list(STAGES).index)
+        return min((repair_stage(root, q) for q in result['questions']), key=list(STAGES).index)
     return None
+
+
+def repair_stage(root, question):
+    """Route an unresolved ADR artifact to its producer, not its due gate."""
+    if question.get('repair_stage'):
+        return question['repair_stage']
+    if question.get('kind') in {'design-decision', 'artifact-conflict'}:
+        marker = question.get('resolution_marker') or '- **Resolves**: ' + question['id'] + ' @ ' + fingerprint(question)
+        for path in (root / 'docs/architecture/decisions').glob('*.md'):
+            if marker in path.read_text(encoding='utf-8').splitlines():
+                return 'architecture'
+    return question['due_stage']
 
 
 def answer(root, run_id, identity, text):
@@ -247,13 +264,17 @@ def answer(root, run_id, identity, text):
         return {'recorded': identity, 'run_id': run_id}
 
 
-def ask(root, run_id, identity, question, owner, stage, recommendation, *, kind=None, required_now=False):
+def ask(root, run_id, identity, question, owner, stage, recommendation, *, kind=None, required_now=False,
+        repair_stage=None):
     if kind not in {'user-answer', 'design-decision', 'artifact-conflict'}:
         raise ValueError('Choose an explicit question kind: user-answer for consumer intent, design-decision for technical research/design evidence')
     if not identity or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,119}', identity):
         raise ValueError('Question requires a stable ID')
     if not all(isinstance(v, str) and v.strip() and len(v) <= 2000 for v in (question, owner, recommendation)) or stage not in STAGES:
         raise ValueError('Question requires text, owner, recommendation and a supported due stage')
+    if repair_stage is not None and (repair_stage not in STAGES or
+                                     list(STAGES).index(repair_stage) > list(STAGES).index(stage)):
+        raise ValueError('Question repair stage must be a supported stage no later than its due stage')
     path = directory(root, run_id)
     state = load(path / 'state.json', {})
     if state.get('status') != 'running':
@@ -268,8 +289,12 @@ def ask(root, run_id, identity, question, owner, stage, recommendation, *, kind=
     if identity in existing:
         raise ValueError('Question ID already exists; consume its current answer or use a distinct consequential question')
     data = load(path / 'decision-questions.json', {'questions': []})
-    data['questions'].append({'id': identity, 'question': question, 'owner': owner, 'due_stage': stage,
-                              'recommendation': recommendation, 'kind': kind, 'required_now': required_now, 'blocks': 'Dependent ' + stage + ' output'})
+    item = {'id': identity, 'question': question, 'owner': owner, 'due_stage': stage,
+            'recommendation': recommendation, 'kind': kind, 'required_now': required_now,
+            'blocks': 'Dependent ' + stage + ' output'}
+    if repair_stage is not None:
+        item['repair_stage'] = repair_stage
+    data['questions'].append(item)
     (path / 'decision-questions.json').write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
     return {'status': 'needs-user-answer' if kind == 'user-answer' else 'needs-design-decision',
             'question_id': identity, 'next': 'Return to the native workflow handoff; do not assume an answer or design evidence'}
@@ -319,6 +344,7 @@ if __name__ == '__main__':
     parser.add_argument('command', choices=['require', 'questions', 'ask', 'answer', 'defer', 'first-feature', 'eligibility'])
     parser.add_argument('--run-id')
     parser.add_argument('--stage', choices=list(STAGES))
+    parser.add_argument('--repair-stage', choices=list(STAGES))
     parser.add_argument('--question-id')
     parser.add_argument('--answer')
     parser.add_argument('--question')
@@ -345,7 +371,8 @@ if __name__ == '__main__':
         elif args.command == 'answer':
             result = answer(root, args.run_id, args.question_id, args.answer)
         elif args.command == 'ask':
-            result = ask(root, args.run_id, args.question_id, args.question, args.owner, args.stage, args.recommendation, kind=args.kind, required_now=args.required_now)
+            result = ask(root, args.run_id, args.question_id, args.question, args.owner, args.stage, args.recommendation,
+                         kind=args.kind, required_now=args.required_now, repair_stage=args.repair_stage)
         else:
             result = require(root, args.run_id, args.stage, questions_only=args.command == 'questions')
         print(json.dumps(result))

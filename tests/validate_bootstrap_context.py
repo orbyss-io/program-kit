@@ -513,6 +513,21 @@ def main() -> int:
             if budget_result["stage"] != stage or not budget_result["artifacts"]:
                 raise AssertionError(f"{stage} output budget validation produced no evidence")
 
+        question_path = project / '.specify/workflows/runs' / run_id / 'decision-questions.json'
+        write_json(question_path, {'questions': [{
+            'id': 'adr-scope', 'question': 'Correct the ADR scope', 'owner': 'Architecture maintainer',
+            'due_stage': 'roadmap', 'kind': 'artifact-conflict', 'required_now': True,
+            'recommendation': 'Register the corrected ADR hash',
+        }]})
+        try:
+            _, closure = module.build_context(project, run_id, 'closure')
+            if 'refresh that ADR SHA-256' not in closure['stage_plan'].get('design_resolution', ''):
+                raise AssertionError('Artifact-conflict producer guidance omitted ADR hash registration')
+            if '--repair-stage' not in closure['stage_plan']['question_transport']['arguments']:
+                raise AssertionError('Question transport omitted the owning repair stage')
+        finally:
+            question_path.unlink()
+
         managed_web = module.managed_web_control_projection(
             project,
             {"assessment_decisions": {"web": {"secure_profile": "bff-cookie-v1"}}},

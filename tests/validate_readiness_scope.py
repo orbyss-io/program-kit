@@ -99,6 +99,30 @@ class ReadinessScopeTests(unittest.TestCase):
         with self.assertRaisesRegex(g.GovernanceStateError, 'inventory is stale'):
             g.synchronize_roadmap_views()
 
+    def test_roadmap_rejects_stale_adr_until_registered_hash_is_current(self):
+        decision = self.follow_on()
+        path = self.root / decision['path']
+        with path.open('a', encoding='utf-8') as stream:
+            stream.write('\n- **Resolves**: reviewed-scope @ current-question-hash\n')
+        original_call = g.lifecycle_call
+        def without_prerequisite_inventory(name, *args):
+            # Isolate roadmap's own ADR check from the separate prerequisite
+            # inventory gate, which also catches this edit in this fixture.
+            return None if name == 'validate_prerequisites' else original_call(name, *args)
+        with patch.object(g, 'lifecycle_call', side_effect=without_prerequisite_inventory):
+            with self.assertRaisesRegex(g.GovernanceStateError, 'Architecture decision is missing or stale'):
+                g.validate_roadmap(True)
+            decision['sha256'] = life.digest(path)
+            self.save()
+            g.validate_roadmap(True)
+            digest = decision.pop('sha256')
+            self.save()
+            with self.assertRaisesRegex(g.GovernanceStateError, 'invalid registration'):
+                g.validate_roadmap(True)
+            decision['sha256'] = digest
+            self.save()
+            g.validate_roadmap(True)
+
     def test_missing_edge_requires_scope_then_actual_acceptance(self):
         self.edge['status'] = 'proposed'
         for item in self.scope['decisions'].values():
