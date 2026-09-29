@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.12.1 - Unreleased
+## 0.12.2 - Unreleased
+
+- Accept the shipped governance configuration's top-level `schema_version` scalar when
+  PyYAML is unavailable. Keep malformed mapping-only configurations invalid and cover
+  installation validation in an isolated Python interpreter.
+- Advance all Program Kit installable components together. Published runtime component
+  pins remain unchanged.
+
+## 0.12.1 - 2026-09-25
 
 - Keep intake confirmation authority in bootstrap-intake.json instead of duplicating mutable
   draft/confirmed wording in hash-bound intent prose. Reject duplicated state labels in new drafts

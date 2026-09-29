@@ -198,10 +198,14 @@ def _parse_simple_yaml(path: Path) -> dict[str, object]:
         if not line:
             continue
         top = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*):\s*", line)
+        top_scalar = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*):[ \t]+(.+)", line)
         nested = re.fullmatch(r"  ([A-Za-z][A-Za-z0-9_-]*):\s*(.+)", line)
         if top:
             current = {}
             result[top.group(1)] = current
+        elif top_scalar:
+            result[top_scalar.group(1)] = _parse_scalar(top_scalar.group(2))
+            current = None
         elif nested and current is not None:
             current[nested.group(1)] = _parse_scalar(nested.group(2))
         else:

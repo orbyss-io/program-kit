@@ -782,6 +782,20 @@
       "purpose": "Generated contract schemas contract validation."
     },
     {
+      "id": "validate_governance_config",
+      "command": [
+        "{python}",
+        "tests/validate_governance_config.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Shipped governance configuration and malformed input without PyYAML."
+    },
+    {
       "id": "validate_governance_state",
       "command": [
         "{python}",
