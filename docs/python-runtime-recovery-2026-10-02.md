@@ -35,13 +35,16 @@ intake still cannot be replaced by draft authoring.
 
 ## Consumer recovery
 
-The reported local constitution recovery is already complete: Draft validation
-and review-packet generation passed. Leave that Draft and run history untouched.
-Do not regenerate or ratify the recovered document just to test this source fix.
+At the original report, local Draft validation and review-packet generation had
+passed. The later 2026-10-03 report supersedes that status: this consumer's bootstrap
+is completed and its constitution is Ratified. Follow the
+[upgrade-only recovery](initialized-upgrade-recovery-2026-10-03.md); preserve the
+Ratified document and completed run. Do not resume bootstrap for this consumer.
 Human constitution review and ratification remain separate decisions.
 
-After the coordinated core and Program Kit updates are actually available, from
-a normal user-owned terminal:
+The steps below apply to an unfinished run. This consumer now uses the linked
+upgrade-only recovery instead. After the coordinated core and Program Kit updates
+are actually available, from a normal user-owned terminal:
 
 1. Preserve uncommitted work, confirmed intake, `.specify/workflows/runs/26232ea0`,
    approval/review evidence and their recorded hashes. Inspect the existing run's
@@ -62,7 +65,7 @@ a normal user-owned terminal:
    If PyYAML is missing, install `"PyYAML>=6,<7"` with
    `& $programKitPython -m pip install --disable-pip-version-check "PyYAML>=6,<7"`.
    Do not install into an unrelated interpreter or uninstall another Python.
-4. Resume only when the operator intends to continue, through the supported
+4. For an unfinished run only, resume when the operator intends to continue through the supported
    lifecycle entry point:
 
    ```powershell
@@ -92,8 +95,8 @@ The upstream parity collection's Bash availability probe skips tests on this hos
 the native fixture explicitly selects Git Bash. This does not claim the complete
 upstream suite or public package acceptance.
 
-This isolated branch began at prepared 0.12.2 source; it does not select a new
-publication version or alter the separately advancing release checkout. The
+This isolated branch began at prepared 0.12.2 source, merged published 0.12.3 main,
+and now prepares the combined 0.12.4 candidate without changing the main checkout. The
 coordinated core patch is not an upstream release, and this branch's existing CI
 pins still name unpatched 1.0.1. Reconcile the changes with the current release
 baseline, resolve the core dependency, and update its actual pins before publication.

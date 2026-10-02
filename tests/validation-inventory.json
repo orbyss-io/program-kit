@@ -2,6 +2,14 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_upgrade_boundaries",
+      "command": ["{python}", "tests/validate_upgrade_boundaries.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Offline persistence admission, original retry provenance, CLI runtime discovery and safe staging; no coding agents."
+    },
+    {
       "id": "validate_python_consistency",
       "command": ["{python}", "tests/validate_python_consistency.py"],
       "group": "development",

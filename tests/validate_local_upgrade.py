@@ -463,6 +463,10 @@ def main() -> int:
                 "acknowledgements": [],
                 "unresolved": [],
                 "deferred": [],
+                "persistence": [
+                    {"owner": owner, "storage": "server-relational", "profile": "ef-postgresql", "status": "proposed"}
+                    for owner in ("policy-portfolio", "owner-access")
+                ],
             }),
             encoding="utf-8",
         )
@@ -567,8 +571,34 @@ def main() -> int:
         if partial_records.get("version") != expected or version(manifests[0]) != old:
             raise AssertionError("partial upgrade fixture did not leave the expected mixed component state")
 
-        installed = run(*command, cwd=project)
+        post_install_cli = project / 'post_install_specify.py'
+        post_install_cli.write_text(
+            "import subprocess, sys\nfrom pathlib import Path\n"
+            "args = sys.argv[1:]\n"
+            "result = subprocess.run(['specify', *args], check=False)\n"
+            "if result.returncode == 0 and args[:2] == ['preset', 'add']:\n"
+            "    path = Path('.specify/extensions/program-kit-governance/scripts/repository_sync.py')\n"
+            "    with path.open('a', encoding='utf-8') as stream:\n"
+            "        stream.write('\\ndef readiness(*args, **kwargs):\\n    return {\\\"ready\\\": False, \\\"blockers\\\": [\\\"deliberate post-install convergence failure\\\"]}\\n')\n"
+            "raise SystemExit(result.returncode)\n", encoding='utf-8')
+        post_install = run(*command, '--specify-command-json', json.dumps([sys.executable, str(post_install_cli)]), cwd=project)
+        if post_install.returncode != 2 or 'deliberate post-install convergence failure' not in post_install.stderr:
+            raise AssertionError('Post-install convergence fixture did not fail honestly: ' + post_install.stdout + post_install.stderr)
+        if {version(path) for path in manifests} != {expected}:
+            raise AssertionError('Post-install fixture did not first install all target components')
+        if (project / '.specify/governance/program-kit-upgrades.json').exists():
+            raise AssertionError('Failed convergence fabricated accepted upgrade authority')
+        attempts = list((project / '.specify/governance/program-kit-upgrade-attempts').glob('*.json'))
+        failures = [json.loads(path.read_text()) for path in attempts]
+        if not any(value.get('diagnostic', '').startswith('PKU116') and value['previousInstalledVersion'] == old for value in failures):
+            raise AssertionError('Post-install failure lost its root diagnostic or original version')
+
+        # Exercise the documented plain-Python entry point as well as the CLI-owned guards.
+        plain_python = shutil.which('python') or sys.executable
+        installed = run(plain_python, *command[1:], cwd=project)
         require_offline_setup(installed, "local release upgrade")
+        if 'deferredPersistenceAdmissions' not in installed.stdout or 'policy-portfolio' not in installed.stdout:
+            raise AssertionError('Initialized consumer lost its explicit future admission obligations')
         order = (
             "Resolve bundle composition record",
             "Install bootstrap workflow",
@@ -719,6 +749,7 @@ def main() -> int:
                 "--web-profile",
                 "none",
                 "--check",
+                "--upgrade-existing",
                 cwd=project,
             ),
             "post-reconciliation managed sync check",

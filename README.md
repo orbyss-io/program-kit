@@ -52,7 +52,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.3/Initialize-ProgramKit-0.12.3.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.4/Initialize-ProgramKit-0.12.4.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -71,7 +71,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.3/Initialize-ProgramKit-0.12.3.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.4/Initialize-ProgramKit-0.12.4.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -148,18 +148,21 @@ Spec Kit 1.0.1's bundle adapter incorrectly routes a catalog workflow ID through
 
 ### Upgrade an existing Program Kit installation
 
-Download and verify the full `program-kit-<version>.zip` release asset, extract it, then run the
+Download and verify the full `program-kit-<version>.zip` release asset, extract it **outside the
+consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.12.3\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.12.3 `
+python C:\path\to\program-kit-0.12.4\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.12.4 `
   --target . `
   --integration codex
 ```
 
 Replace `codex` with the repository's installed integration. The updater does not use catalogs or
-the network. It validates that the extracted bundle, workflow, extensions, and preset all have the
+the network. It discovers and probes the installed Spec Kit CLI before importing its ownership
+guards; where needed, plain `python` delegates to that CLI's exact interpreter. `PKU119` reports
+an unavailable CLI runtime before mutation. It validates that the extracted bundle, workflow, extensions, and preset all have the
 same release version; takes an exclusive mutation lock; invokes every Spec Kit primitive
 sequentially; resynchronizes an existing managed .NET baseline; runs sync check; and then compares
 the bundle record, workflow manifest/registry, both extension manifests, preset manifest/registry,
@@ -190,6 +193,22 @@ This local-release path replaces the previous pair of remote `workflow update` a
 commands. Besides depending on live catalog transport, Spec Kit can advance a bundle record while an
 existing component remains old. Program Kit therefore does not treat a successful bundle message as
 upgrade evidence.
+
+Offline convergence preserves initialized consumers whose application targets are still planned.
+Proposed, uninstalled persistence owners with no materialized projects remain explicit future
+admission obligations in the convergence report and `upgrade-remediation.json`. Implementation
+admission, real-provider evidence and provider-transition acceptance still apply at their owning
+phase. Existing admitted persistence and materialized project assignments are validated before
+component mutation; `PKU118` requires repairing genuine admission failures first.
+
+After installation starts, each attempt records its original observed version, exact installation-input
+digest, immutable decision hash and outcome under `.specify/governance/program-kit-upgrade-attempts/`.
+`PKU121` preserves a failed attempt and its diagnostic. Fix the reported cause and retry the same
+verified release command; an already-installed target version is not successful upgrade authority.
+A matching retry retains the original previous version and references the earlier attempt without
+rewriting it. Older failures with no attempt record are not reconstructed as invented history:
+a corrective upgrade records the actually observed installed version and preserves the approved
+bootstrap baseline. See [the initialized-consumer recovery instructions](docs/initialized-upgrade-recovery-2026-10-03.md).
 
 Open the installed integration in the repository, invoke
 `$speckit-program-kit-governance-bootstrap`, and describe what you want to build. Intake uses the
@@ -472,11 +491,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.12.3.md`](docs/releasing-0.12.3.md).
+[`docs/releasing-0.12.4.md`](docs/releasing-0.12.4.md).
 
 ```powershell
-git tag v0.12.3
-git push origin v0.12.3
+git tag v0.12.4
+git push origin v0.12.4
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -501,8 +520,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.12.3.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.12.3.zip -Algorithm SHA256
+gh attestation verify program-kit-0.12.4.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.12.4.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery

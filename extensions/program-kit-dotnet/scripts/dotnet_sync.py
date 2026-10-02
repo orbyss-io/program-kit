@@ -348,6 +348,8 @@ def main() -> int:
         help="Resolve approved data-owner persistence intent; explicit profiles without admission remain proposals",
     )
     parser.add_argument('--feature-dir', help='Feature admission scope, relative to the consuming repository')
+    parser.add_argument('--upgrade-existing', action='store_true',
+                        help='Refresh an existing baseline; retain future unmaterialized admissions as obligations')
     args = parser.parse_args()
 
     if not args.profile_selected:
@@ -419,6 +421,13 @@ def main() -> int:
     state_path = target / ".program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
     persistence = persistence_selection.resolve(target, feature=args.feature_dir, requested=args.persistence_profile)
+    if args.upgrade_existing:
+        if not (target / '.program-kit/managed.json').is_file():
+            raise ValueError('PKP001 upgrade-existing requires an existing managed baseline')
+        persistence = persistence_selection.upgrade_scope(
+            target, persistence_selection.resolve(target, feature='', requested=args.persistence_profile))
+        if persistence['blockers']:
+            raise ValueError('PKP002 upgrade admission blocked: ' + '; '.join(persistence['blockers']))
     effective_persistence = persistence_selection.effective(persistence)
     args.persistence_profile = persistence['summary']
     old_files = state.get("files")
