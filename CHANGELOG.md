@@ -11,6 +11,12 @@
 - Require roadmap ADR registrations to contain current file hashes, surface artifact-conflict
   repair guidance, and route a stale ADR resolution back to architecture rather than its
   later due gate. Existing run history and human review gates remain intact.
+- Admit matching standalone native compatibility receipts without resetting Active or
+  Delivered roadmap state. Reject stale, changed or incomplete proof evidence.
+- Continue a completed bootstrap through explicit post-bootstrap recovery with archived
+  authority, protected intake and Accepted ADRs, renewed native proofs and fresh human review.
+- Stop Release validation early when concurrent source edits invalidate its candidate;
+  retain the journal and the clean-source receipt gate.
 - Advance all Program Kit installable components together. Published runtime component
   pins remain unchanged.
 

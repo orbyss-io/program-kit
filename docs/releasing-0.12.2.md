@@ -22,6 +22,14 @@ architecture with actionable conflict guidance rather than failing at the later 
 The historical 0.11.0 placement-contract omission is already fixed in published 0.12.1;
 this candidate does not change the current shell or host placement contracts.
 
+The combined candidate also admits the latest matching standalone native
+compatibility receipt while preserving Active/Delivered roadmap state. Explicit
+post-bootstrap continuation archives completed authority, protects intake,
+ratification and Accepted ADRs, renews stale executable proof inputs only in the
+matching continuation step, and requires fresh human review and completion.
+See [the post-bootstrap handoff](post-bootstrap-release-handoff-2026-10-02.md)
+for the exact admission and consumer recovery boundaries.
+
 All Program Kit installable components advance together from published v0.12.1 to
 0.12.2. Foundation, Forms, Localization and managed toolchain pins are unchanged.
 The initial regression test invokes `validate-installation` using an isolated Python
