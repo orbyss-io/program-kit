@@ -5,7 +5,7 @@ import argparse
 import re
 from pathlib import Path
 
-from bootstrap_lifecycle import LEDGER, LifecycleError, load, write, run_proof, validate_prerequisites, validate_recipe
+from bootstrap_lifecycle import LEDGER, LifecycleError, load, write, run_proof, validate_prerequisites, validate_recipe, current_compatibility_evidence
 
 PLAN = Path('docs/architecture/bootstrap-proof-plan.json')
 
@@ -20,7 +20,7 @@ def require_first_slice_plan(root, plan, ledger, records):
     first_feature(root)
 
 
-def invalidate_changed_recipes(root, plan, ledger):
+def invalidate_changed_recipes(root, plan, ledger, *, recovery_review=False):
     """Retain receipts while reopening only changed execution inputs before acceptance."""
     import copy
     import uuid
@@ -52,7 +52,7 @@ def invalidate_changed_recipes(root, plan, ledger):
             if changed:
                 stale.append(evidence)
         if stale:
-            if (root / '.specify/governance/bootstrap-approval.json').is_file():
+            if (root / '.specify/governance/bootstrap-approval.json').is_file() and not recovery_review:
                 raise LifecycleError('Accepted compatibility inputs changed; reopen the architecture review before renewal')
             item['status'] = 'open'
             item['evidence'] = [e for e in item['evidence'] if e not in stale]
@@ -67,7 +67,7 @@ def invalidate_changed_recipes(root, plan, ledger):
     newline = '\r\n' if b'\r\n' in original_bytes else '\n'
     original = original_bytes.decode('utf-8').replace('\r\n', '\n')
     affected = {s for i in updated['prerequisites'] if i['id'] in invalidated for s in i['affected_slices']}
-    if any(r['id'] in affected and r['Status'] in {'Active', 'Delivered'} for r in roadmap_records(path)):
+    if not recovery_review and any(r['id'] in affected and r['Status'] in {'Active', 'Delivered'} for r in roadmap_records(path)):
         raise LifecycleError('Active/delivered scope needs an explicit compatibility change review')
     text = original
     for identity in affected:
@@ -107,7 +107,23 @@ def require_proven_closure(root: Path):
     return [p['id'] for p in plan['probes']]
 
 
-def execute(root: Path, *, validate_only=False):
+def require_recovery_execution(root: Path, source_run: str):
+    """Renew accepted inputs only inside the linked native proof step."""
+    import bootstrap_recovery
+    bootstrap_recovery.manifest(root, source_run)
+    mapping = load(root / '.specify/workflows/resumptions' / f'{source_run}.json')
+    run = root / '.specify/workflows/runs' / mapping['continuation_run']
+    state = load(run / 'state.json')
+    inputs = load(run / 'inputs.json')['inputs']
+    if (mapping.get('source_run') != source_run or state.get('status') != 'running'
+            or state.get('workflow_id') != 'program-kit-bootstrap'
+            or state.get('run_id') != mapping['continuation_run']
+            or state.get('current_step_id') != 'recovery-execute-compatibility-proofs'
+            or inputs.get('source_run') != source_run):
+        raise LifecycleError('Accepted proof renewal requires the matching running native continuation step')
+
+
+def execute(root: Path, *, validate_only=False, recovery_source=None):
     from governance_state import roadmap_records, ROADMAP
     plan = load(root / PLAN)
     from json_schema import validate_value
@@ -118,8 +134,10 @@ def execute(root: Path, *, validate_only=False):
     if set(plan) - {'$schema'} != {'schemaVersion', 'probes', 'readyWhenProven'} or plan['schemaVersion'] != 1:
         raise LifecycleError('Bootstrap proof plan requires schemaVersion 1, probes and readyWhenProven')
     ledger = load(root / LEDGER)
+    if recovery_source is not None:
+        require_recovery_execution(root, recovery_source)
     if not validate_only:
-        ledger = invalidate_changed_recipes(root, plan, ledger)
+        ledger = invalidate_changed_recipes(root, plan, ledger, recovery_review=recovery_source is not None)
     records = roadmap_records(root / ROADMAP)
     validate_prerequisites(root, records, required=True, allow_proposed_authority=True)
     items = {item['id']: item for item in ledger['prerequisites']}
@@ -140,7 +158,7 @@ def execute(root: Path, *, validate_only=False):
     for promotion in promotions:
         identity = promotion['id']
         required = {i['id'] for i in items.values() if i['disposition'] == 'architecture' and identity in i['affected_slices']}
-        if identity not in by_id or by_id[identity]['Status'] not in {'Blocked', 'Candidate', 'Ready'} or not isinstance(promotion['rationale'], str) or not promotion['rationale'].strip():
+        if identity not in by_id or by_id[identity]['Status'] not in {'Blocked', 'Candidate', 'Ready', 'Active', 'Delivered'} or not isinstance(promotion['rationale'], str) or not promotion['rationale'].strip():
             raise LifecycleError('Conditional readiness must name an existing eligible candidate and rationale')
         if not required or set(promotion['prerequisites']) != required or any(items[i]['status'] != 'closed' and i not in ids for i in required):
             raise LifecycleError('Conditional readiness must cover every affected architecture prerequisite')
@@ -155,6 +173,12 @@ def execute(root: Path, *, validate_only=False):
     for probe in probes:
         item = items[probe['id']]
         if item['status'] == 'closed':
+            continue
+        evidence = current_compatibility_evidence(root, records, item, probe['recipe'])
+        if evidence:
+            item['evidence'].append(evidence)
+            item['status'] = 'closed'
+            write(root / LEDGER, ledger)
             continue
         result = run_proof(root, probe['id'], probe['recipe'], probe['timeout'])
         results.append(result)
@@ -208,9 +232,10 @@ if __name__ == '__main__':
     import sys
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', default='.')
+    parser.add_argument('--recovery-source', help='Internal native continuation source; verifies the exact running proof step before accepted-input renewal')
     args = parser.parse_args()
     try:
-        print(json.dumps({'proofs': execute(Path(args.repository).resolve())}))
+        print(json.dumps({'proofs': execute(Path(args.repository).resolve(), recovery_source=args.recovery_source)}))
     except (ValueError, RuntimeError, OSError, KeyError, TypeError) as error:
         print(str(error), file=sys.stderr)
         raise SystemExit(2)

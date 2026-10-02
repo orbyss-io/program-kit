@@ -8,11 +8,60 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 from bootstrap_proof_plan import execute, PLAN, require_proven_closure
-from bootstrap_lifecycle import LEDGER, load, write, source_digest
+from bootstrap_lifecycle import LEDGER, load, write, source_digest, run_proof, current_compatibility_evidence
 from validate_governance_state import roadmap
 
 
 class ProofPlanTests(unittest.TestCase):
+    def test_standalone_receipt_attaches_without_rerun_or_active_demotion(self):
+        path = self.root / 'docs/architecture/specification-roadmap.md'
+        original = path.read_bytes().replace(b'**Status**: Blocked', b'**Status**: Active')
+        path.write_bytes(original)
+        receipt = run_proof(self.root, 'runtime', 'docs/architecture/probe.py', 10)
+        preserved = (self.root / receipt['path']).read_bytes()
+        self.assertEqual([], execute(self.root))
+        self.assertEqual(original, path.read_bytes())
+        self.assertEqual(preserved, (self.root / receipt['path']).read_bytes())
+        item = load(self.root / LEDGER)['prerequisites'][0]
+        self.assertEqual('closed', item['status'])
+        self.assertEqual(receipt['path'], item['evidence'][0]['path'])
+        self.assertEqual(['runtime'], require_proven_closure(self.root))
+        self.assertEqual(1, len(list(self.root.rglob('proof.json'))))
+
+    def test_receipt_admission_rejects_changed_bindings_and_latest_interruption(self):
+        from governance_state import roadmap_records
+        item = load(self.root / LEDGER)['prerequisites'][0]
+        records = roadmap_records(self.root / 'docs/architecture/specification-roadmap.md')
+        receipt = run_proof(self.root, 'runtime', 'docs/architecture/probe.py', 10)
+        proof = load(self.root / receipt['path'])
+        def admitted():
+            return current_compatibility_evidence(self.root, records, item, 'docs/architecture/probe.py')
+        self.assertIsNotNone(admitted())
+        for bound in proof['inputs'] + proof['streams'] + [proof['test_result']]:
+            path = self.root / bound['path']
+            before = path.read_bytes()
+            path.write_bytes(before + b'\nchanged')
+            self.assertIsNone(admitted(), bound['path'])
+            path.write_bytes(before)
+        original_tooling = proof['tooling_sources']
+        proof['tooling_sources'] = {}
+        write(self.root / receipt['path'], proof)
+        self.assertIsNone(admitted())
+        proof['tooling_sources'] = original_tooling
+        write(self.root / receipt['path'], proof)
+        self.assertIsNotNone(admitted())
+        # An unrelated passing recipe cannot close the plan's reviewed contract.
+        other = self.recipe.with_name('other.py')
+        other.write_bytes(self.recipe.read_bytes())
+        other.with_suffix('.contract.json').write_bytes(self.recipe.with_suffix('.contract.json').read_bytes())
+        run_proof(self.root, 'runtime', 'docs/architecture/other.py', 10)
+        self.assertIsNone(admitted())
+        interruption = (self.root / receipt['path']).parent.parent / 'attempt-interrupted'
+        interruption.mkdir()
+        import os
+        os.utime(interruption, ns=(10**18 * 3, 10**18 * 3))
+        self.assertIsNone(admitted())
+
     def test_no_transition_preserves_near_budget_roadmap_bytes(self):
         path = self.root / 'docs/architecture/specification-roadmap.md'
         self.plan['readyWhenProven'] = []

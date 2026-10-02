@@ -11,6 +11,16 @@ current state and direct the human-owned terminal to the supported
 workflow workers from an ordinary agent session; only the authorized live harness has a
 separate exception for its disposable repository.
 
+For a completed source run, the supported human-owned entrypoint is
+`workflow_lifecycle.py resume --run-id <completed-source-id> --post-bootstrap`.
+Use the prepared handoff's current artifacts and preserved authority. Keep Active roadmap
+entries Active, preserve feature plans/code, and compact over-budget authored prose without
+changing the first-slice boundary or retained obligations. The native proof step attaches
+current exact receipts or renews stale execution inputs. It closes architecture obligations
+without relabeling them. All evolved architecture artifacts, including earlier changes, need
+the continuation's fresh review against the previous approval. Preparation does not approve
+the compact proposal and old bootstrap completion does not approve new authority.
+
 Invoke the bootstrap-closure instructions against the existing first slice. Own every filename,
 ID, manifest, target and placement decision. Preserve immutable intake/assessment, Accepted ADRs
 and ratified constitution. Use scoped follow-on decisions for changed design authority. Do not

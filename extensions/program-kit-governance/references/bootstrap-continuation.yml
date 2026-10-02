@@ -3,7 +3,7 @@ workflow:
   id: program-kit-bootstrap
   name: Program Kit bootstrap continuation
   version: "0.13.0"
-  description: Engine-owned continuation of an approved bootstrap after technical readiness failure.
+  description: Engine-owned continuation after approved readiness failure or explicit completed-bootstrap maintenance.
 inputs:
   source_run:
     type: string
@@ -37,7 +37,7 @@ steps:
       false:
         - id: recovery-execute-compatibility-proofs
           type: shell
-          run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_proof_plan.py"
+          run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_proof_plan.py --recovery-source {{ inputs.source_run }}"
         - id: recovery-synchronize
           type: shell
           run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step synchronize --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"

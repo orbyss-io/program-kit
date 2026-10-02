@@ -404,9 +404,15 @@ def validate_intake(
         module = _load_intake_module()
         # A continuation owns fresh context but retains the original confirmed
         # intake. Require recorded lineage; never invent or rewrite child inputs.
-        inputs = load_json(safe_run_directory(project_root, run_id) / 'inputs.json').get('inputs', {})
-        source_run = inputs.get('source_run')
-        if source_run:
+        visited = set()
+        while True:
+            if run_id in visited:
+                raise ContextError('Readiness context requires acyclic continuation lineage')
+            visited.add(run_id)
+            inputs = load_json(safe_run_directory(project_root, run_id) / 'inputs.json').get('inputs', {})
+            source_run = inputs.get('source_run')
+            if not source_run:
+                break
             source = safe_run_directory(project_root, source_run)
             mapping = load_json(project_root / '.specify/workflows/resumptions' / f'{source_run}.json')
             if (mapping.get('continuation_run') != run_id or source_run == run_id

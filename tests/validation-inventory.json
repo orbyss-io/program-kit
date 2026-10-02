@@ -692,6 +692,14 @@
       "purpose": "Native shell proof-stage regressions; real Python probes, no coding agent."
     },
     {
+      "id": "validate_post_bootstrap_continuation",
+      "command": ["{python}", "tests/validate_post_bootstrap_continuation.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Completed-bootstrap review, evidence preservation and Active lifecycle regressions; mocked dispatch, no coding agents."
+    },
+    {
       "id": "validate_workflow_resumption",
       "command": [
         "{python}",
