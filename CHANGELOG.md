@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.12.3 - 2026-10-02
+
+- Prepare completed-bootstrap maintenance after a legitimate constitution amendment
+  and regenerated readiness report. Validate current ratified authority independently
+  and recover exact historical completion bindings from local Git or verified archives.
+- Preserve original approval/completion evidence and require fresh human review,
+  current native compatibility proofs and engine-bound completion for the continuation.
+- Advance all Program Kit installable components together; runtime component and
+  managed toolchain pins remain unchanged.
+
 ## 0.12.2 - 2026-10-02
 
 - Select workspace-write explicitly for Codex bootstrap workers in each human-owned

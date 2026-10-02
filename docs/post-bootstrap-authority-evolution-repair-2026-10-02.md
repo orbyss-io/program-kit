@@ -70,7 +70,8 @@ normal terminal through `workflow_lifecycle.py resume --run-id dae559cf --post-b
 review its concrete packet at the native human gate. Rerun source preflight after
 successful continuation before continuing T002/T006 or business implementation.
 
-VERSION remains 0.12.2 in this source correction. Publication/version selection is
-separate. These are shipped helper/reference/command changes, requiring fresh Release
-evidence for the final publication candidate. Follow AGENTS.md: full Windows Release
-validation belongs in the user's terminal, and Firefox remains authoritative in CI.
+The source correction was committed before version selection. Publication preparation
+now targets 0.12.3; see [the release procedure](releasing-0.12.3.md). These are shipped
+helper/reference/command changes, requiring fresh Release evidence for the final
+candidate. Follow AGENTS.md: full Windows Release validation belongs in the user's
+terminal, and Firefox remains authoritative in CI.
