@@ -40,3 +40,14 @@ Merge the reviewed patch after local evidence and candidate CI pass. Push the ne
 Declare the version available only after that workflow and its public install and
 upgrade checks finish successfully. Do not create release assets manually to bypass
 the tagged workflow, or move the published 0.12.2 tag.
+
+## Reusing evidence after non-shipping corrections
+
+Follow [Reusing local Release evidence after non-shipping changes](../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes).
+Verify the complete diff against actual packaging inputs, receipt/log validity and
+artifact hashes; record both commits, supplementary checks and green CI.
+Preserve the original receipt unchanged.
+The tagged Release workflow still runs in full and produces its own exact-commit evidence.
+Failed-tag reuse additionally requires demonstrating a test/assertion or CI-only defect and that
+nothing was published from the failed candidate. Exact corrected-commit and same-tag approval is still required.
+If any reuse condition is unproven, obtain fresh local Release evidence.
