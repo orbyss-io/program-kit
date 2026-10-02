@@ -2,6 +2,14 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_codex_worker_policy",
+      "command": ["{python}", "tests/validate_codex_worker_policy.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Explicit scoped Codex workspace writes and early diagnostics; fixture subprocesses only, no coding agents."
+    },
+    {
       "id": "validate_codex_bootstrap",
       "command": [
         "{python}",

@@ -436,6 +436,7 @@ def evaluate_preflight(
     environ: Mapping[str, str] | None = None,
     platform_name: str | None = None,
     runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
+    check_worker_access: bool = False,
 ) -> dict[str, str]:
     if current_run_id:
         try:
@@ -447,10 +448,26 @@ def evaluate_preflight(
                 "action": "concurrent-run-blocked",
                 "diagnostic": concurrent_run_diagnostic(competing),
             }
-    resolved = resolve_integration(integration, project_root)
-    if is_codex_agent_invocation(integration=resolved, environ=environ):
+    requested = integration
+    if current_run_id and integration.strip().lower() in {'', 'auto'}:
+        # The shell preflight deliberately does not interpolate user input into
+        # command text. Resolve the engine's saved input through its data file.
+        inputs_path = project_root / '.specify/workflows/runs' / current_run_id / 'inputs.json'
+        if inputs_path.is_file():
+            try:
+                inputs = _read_json_object(inputs_path).get('inputs', {})
+                requested = inputs.get('integration', integration)
+                if not isinstance(requested, str):
+                    raise RuntimeError('Saved workflow integration must be a string')
+            except (RuntimeError, AttributeError) as error:
+                return {'action': 'run-state-blocked', 'diagnostic': str(error)}
+    resolved = resolve_integration(requested, project_root)
+    proxy_rehearsal = False
+    if current_run_id and resolved == 'codex':
         from proxy_bootstrap import active
-        if not current_run_id or not active(project_root, current_run_id):
+        proxy_rehearsal = active(project_root, current_run_id)
+    if is_codex_agent_invocation(integration=resolved, environ=environ):
+        if not proxy_rehearsal:
             return {"action": "agent-boundary-blocked", "diagnostic": diagnostic()}
     if resolved != "codex":
         return {"action": "continue", "script_flavor": "not-applicable"}
@@ -473,6 +490,15 @@ def evaluate_preflight(
             "action": "script-runtime-blocked",
             "diagnostic": script_runtime_diagnostic(str(exc)),
         }
+    # The explicit proxy adapter cannot dispatch an agent; it must not acquire
+    # a write contract for workers it cannot start.
+    if check_worker_access and not proxy_rehearsal:
+        from codex_worker_policy import EXTRA_ARGS, WorkerPolicyError, parse_extra
+        environment = environ if environ is not None else os.environ
+        try:
+            parse_extra(environment.get(EXTRA_ARGS, ''), require_write=True)
+        except WorkerPolicyError as error:
+            return {'action': 'worker-access-blocked', 'diagnostic': str(error)}
     return {"action": "continue", "script_flavor": flavor}
 
 
@@ -513,7 +539,7 @@ def main() -> int:
         print(f"Program Kit bootstrap run {args.abandon_run} is marked aborted.")
         return 0
     result = evaluate_preflight(
-        args.integration, project_root, current_run_id=args.run_id
+        args.integration, project_root, current_run_id=args.run_id, check_worker_access=True
     )
     if args.json:
         print(json.dumps(result))

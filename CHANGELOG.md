@@ -1,7 +1,10 @@
 # Changelog
 
-## 0.12.2 - Unreleased
+## 0.12.2 - 2026-10-02
 
+- Select workspace-write explicitly for Codex bootstrap workers in each human-owned
+  lifecycle run/resume. Verify the installed adapter argv and native Windows artifact
+  directory writes before dispatch; preserve config, run history and review gates.
 - Accept the shipped governance configuration's top-level `schema_version` scalar when
   PyYAML is unavailable. Keep malformed mapping-only configurations invalid and cover
   installation validation in an isolated Python interpreter.

@@ -690,11 +690,20 @@ def main() -> int:
     parser.add_argument('--reuse-prepared-recovery', action='store_true', help='Create an approved-bootstrap continuation from a current prepared recovery review and passing proofs, retaining the human approval gate')
     args = parser.parse_args()
     root = Path.cwd().resolve()
+    dispatch_scope = contextlib.ExitStack()
     try:
         if (args.reuse_proven_closure or args.reuse_prepared_recovery) and args.command != 'resume':
             raise WorkflowLifecycleError('Recovery reuse flags require resume')
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
+        if args.command in {'run', 'resume'}:
+            from codex_worker_policy import worker_environment
+            # Resume can restart after the original workflow preflight. Establish
+            # the same worker policy on every invocation before history changes.
+            with execution_lock(root):
+                saved_inputs = (RunState.load(args.run_id, root).inputs if args.command == 'resume'
+                                else dict(item.split('=', 1) for item in args.input))
+                dispatch_scope.enter_context(worker_environment(root, saved_inputs.get('integration', 'auto')))
         if args.command in {'run', 'resume', 'reopen'}:
             with execution_lock(root):
                 prepare_schema_runtimes(root)
@@ -735,6 +744,8 @@ def main() -> int:
     except (ValueError, OSError, KeyError, governance.GovernanceStateError, lifecycle.LifecycleError, bootstrap_context.ContextError) as error:
         print(f'Program Kit workflow lifecycle: {error}', file=sys.stderr)
         return 1
+    finally:
+        dispatch_scope.close()
 
 
 if __name__ == '__main__':

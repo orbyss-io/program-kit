@@ -73,6 +73,12 @@ steps:
           message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
           options: [abort]
           on_reject: abort
+      worker-access-blocked:
+        - id: confirm-worker-access-stop
+          type: gate
+          message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
+          options: [abort]
+          on_reject: abort
 
   - id: prepare-utf8-runtime
     type: shell

@@ -1315,6 +1315,11 @@ def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> d
             "target_exceeded": size > target,
         })
     if problems:
+        if any(problem.startswith(f'Required {stage} output is missing:') for problem in problems):
+            problems.append('PROGRAM_KIT_WORKER_ARTIFACT_CONTRACT: A dispatched worker exit code 0 '
+                            'does not prove artifact creation. Inspect the producer output, effective sandbox and write errors; '
+                            'Codex artifact-writing workers require --sandbox workspace-write. Resume the stopped '
+                            'run through workflow_lifecycle.py after resolving the producer blocker; preserve run history and human review gates.')
         raise ContextError('\n'.join(problems))
     if stage in {"assessment", "research"}:
         try:
@@ -1822,8 +1827,11 @@ def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
                                     + destination.relative_to(project_root).as_posix(),
         "validate_command": "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
                             f"validate-stage --stage architecture --run-id {run_id} --json",
-        "resume_after_validation": f"specify workflow resume {run_id}",
-        "boundary": "Run the installed architecture skill in a user-owned session, review its new Proposed decisions, then validate before resuming. Resume alone only retries the validator. Only the derived DSL and context were refreshed; no confirmed intake, canonical map, workflow state or approval was changed.",
+        "retry_command": "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py "
+                         f"resume --run-id {run_id}",
+        "resume_after_validation": "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py "
+                                   f"resume --run-id {run_id}",
+        "boundary": "Only the derived DSL and context were refreshed; no confirmed intake, canonical map, workflow state or approval was changed. From a normal user-owned terminal, retry_command reruns the architecture producer with the lifecycle worker policy and retains downstream validation and human review gates. A zero dispatch exit is not architecture completion. Do not run a separate producer and then this command: that would dispatch it twice. Raw Spec Kit resume only retries the failed validator and bypasses the lifecycle worker policy.",
     }
     manifest = run / "architecture-recovery" / (sha256_bytes(compact_json(result).encode()) + ".json")
     manifest.write_text(compact_json(result), encoding="utf-8")

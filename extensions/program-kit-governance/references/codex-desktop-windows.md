@@ -53,12 +53,31 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
    new workflow run. Do not pass `--skip-git-repo-check`.
 
 5. Let Spec Kit launch the sandboxed `codex exec` workers.
-6. Review every generated artifact and run each `specify workflow resume ...` from the same normal
-   shell. The human supplies every verdict.
+6. Review every generated artifact and run each
+   `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <id> ...`
+   from the same normal shell. The human supplies every verdict.
 7. Use Codex Desktop for ordinary repository work afterward.
 
 When the bootstrap skill is invoked from Codex, it must only display the complete command. It must
 not execute it, request an exception, create an approval rule, or start another Codex agent.
+
+The lifecycle entry point explicitly supplies `--sandbox workspace-write` to Codex workers on
+every run/resume. It checks the installed adapter argv and, on native Windows, runs a model-free
+sandbox write probe in the artifact directories before dispatch. It preserves probe evidence in
+`.specify/workflows/worker-preflights/` and restores the caller's environment afterward. No manual
+EXTRA_ARGS variable, user/project config edit, or full filesystem access is required.
+
+If `PROGRAM_KIT_CODEX_WORKSPACE_WRITE` stops the invocation, inspect its precise diagnostic for
+unsupported adapter arguments, Codex native sandbox support, managed requirements, or directory
+permissions. Resolve that cause from the normal shell and resume the same stopped run through
+the lifecycle entry point. Preserve history and human review gates. A raw `specify workflow`
+invocation does not receive Program Kit's dispatch scope.
+
+Codex `exec` defaults to read-only; project trust/config does not establish the explicit worker
+write contract. A process exit code 0 reports a completed agent turn and does not prove required
+files were created. Program Kit's artifact and semantic validators remain mandatory. See
+[non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode) and
+[configuration precedence](https://learn.chatgpt.com/docs/config-file/config-basic).
 
 Before intake or research, Program Kit inspects the resolver referenced by
 `.agents/skills/speckit-constitution/SKILL.md`. On native Windows the resolver must exist and execute.

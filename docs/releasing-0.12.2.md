@@ -1,10 +1,26 @@
 # Preparing Program Kit 0.12.2
 
-This patch candidate fixes governance installation validation when the Python interpreter
+This patch candidate establishes explicit `workspace-write` access for Codex bootstrap
+workers in every human-owned lifecycle run/resume. The installed Spec Kit adapter's
+default `codex exec` can return success after reporting that its filesystem is read-only,
+leaving required artifacts absent. The invocation-scoped policy verifies the adapter argv
+and native Windows writes before dispatch, rejects conflicting permission overrides and
+restores the caller's environment. It leaves persistent config, trust, history and human
+review gates intact. Raw Spec Kit resume is not the supported lifecycle entrypoint.
+Regression fixtures start no coding agents. A fresh normal-user Windows control verified
+that read-only denies writes and workspace-write permits write/readback/cleanup; this does
+not claim a new complete model-driven bootstrap acceptance run.
+
+The candidate also fixes governance installation validation when the Python interpreter
 running `governance_state.py` has no PyYAML. The supplied configuration starts with
 `schema_version: "1.0"`; the dependency-free mapping parser now accepts that scalar.
 It continues to reject malformed configuration structure. Consumers do not need to
 edit the supplied file or install PyYAML for governance validation.
+
+Roadmap registrations now require current ADR hashes. A stale resolution returns to
+architecture with actionable conflict guidance rather than failing at the later due gate.
+The historical 0.11.0 placement-contract omission is already fixed in published 0.12.1;
+this candidate does not change the current shell or host placement contracts.
 
 All Program Kit installable components advance together from published v0.12.1 to
 0.12.2. Foundation, Forms, Localization and managed toolchain pins are unchanged.
