@@ -59,12 +59,14 @@ by this handoff. Follow the repository's release process for version selection a
 packaging. This change modifies shipped scripts/references/commands, so old local
 Release evidence cannot be reused under the non-shipping exception.
 
-After preparing and committing the exact publication candidate, have the user run
-the mandatory full local gate in their normal terminal:
-
-```powershell
-./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
-```
+The user subsequently explicitly declined another local Release run and asked the
+other agent to take over publication including this fix. Do not ask them to repeat
+the same gate. Read [the concurrent-source handoff](release-0.12.2-handoff.md) first:
+the last human run passed 87/87 checks but correctly failed receipt creation after
+concurrent edits dirtied its checkout. It supplies no valid Release receipt for
+the combined candidate. The required release evidence remains unresolved; preserve
+the gate and resolve the remaining requirement under the user's direction rather
+than rewriting the failed journal or invoking the receipt writer alone.
 
 Keep that checkout committed and clean throughout validation. Inspect the preserved
 `artifacts/release-validation-<version>.log`, journal, receipt and generated artifacts.

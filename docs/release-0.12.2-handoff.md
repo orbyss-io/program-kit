@@ -42,11 +42,17 @@ It stops early with `PROGRAM_KIT_RELEASE_SOURCE_CHANGED`, names observed changes
 and preserves the current journal without producing a receipt. Seven deterministic
 runner regression tests pass, including an edit during a fixture check which
 prevents the next check and receipt invocation. The existing receipt gate is intact.
+During this handoff the other agent committed the combined code changes as
+`f4d3e0d` (`Fix post-bootstrap proof admission and prepare release handoff`),
+including the source-integrity guard, seven runner regression tests and the
+corrected local helper from this session. Contributor handoff documentation was
+also committed at `2035151`. This session leaves both commits intact; its final
+documentation update records the combined state and the user's refusal to rerun.
 The helper, runner checks and this documentation are contributor validation files,
 outside shipped bundle inputs; the new continuation fix changes shipped inputs.
 
-Finish and commit the other agent's changes separately, update PR 25 around the
-combined scope and validate the combined candidate. Keep release source frozen or
+Update PR 25 around the combined scope and validate the combined candidate.
+Keep release source frozen or
 develop in a separate checkout. Publication still requires the repository's valid
 Release evidence and complete tagged Release workflow. The user's refusal to rerun
 does not turn the dirty-source run into a receipt. Resolve the remaining evidence
