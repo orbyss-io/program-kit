@@ -43,6 +43,21 @@ Set-Location 'C:\Users\tech_\Code\program-kit'
 .\scripts\Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
 ```
 
+On this host the pinned runtimes are cached under `artifacts/toolchains`; a fresh
+terminal otherwise selects the global, incompatible SDK/Node versions. The local
+helper `scripts/Invoke-LocalRelease.ps1` selects cached .NET 10.0.202, Node 24.20.0
+and npm 11.19.0, uses the native `npm.cmd` executable and Windows system CA trust,
+bounds the owned process PATH and restores the caller's environment afterward.
+Its `-PrepareOnly` mode verifies setup without running the suite or a coding agent.
+The complete mode remains human-owned under AGENTS.md.
+
+Freeze this checkout throughout Release validation. Run other development in a
+separate checkout; concurrent source edits invalidate its evidence even when every
+check passes. The runner now checks source integrity before and after each check,
+preserves the journal and stops with `PROGRAM_KIT_RELEASE_SOURCE_CHANGED` as soon
+as it observes a changed commit, working tree or inventory. The receipt's clean
+source and exact-commit gates remain mandatory.
+
 Inspect `artifacts/release-validation-0.12.2.log`, the per-check journal, the
 generated archives, `SHA256SUMS` and `artifacts/release-receipt-0.12.2.json` before
 tagging. The v0.12.1 receipt cannot validate this changed shipped script. The tagged
