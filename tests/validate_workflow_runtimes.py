@@ -104,8 +104,9 @@ def mixed_python_trial(shell_python):
             installed.parent.mkdir(parents=True, exist_ok=True)
             installed.write_text(yaml.safe_dump(definition), encoding='utf-8')
             runner = root / 'terminal-test.py'
-            runner.write_text('''import json, sys
+            runner.write_text('''import contextlib, json, sys
 from pathlib import Path
+from unittest.mock import patch
 sys.path.insert(0, str(Path.cwd() / '.specify/extensions/program-kit-governance/scripts'))
 import workflow_lifecycle as workflow
 from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine, RunState
@@ -117,7 +118,11 @@ root = Path.cwd()
 mode = sys.argv[1]
 if mode in {'fixed', 'resume'}:
     sys.argv = ['workflow_lifecycle.py', 'run' if mode == 'fixed' else 'resume', '--run-id', 'fixed']
-    assert workflow.main() == 0
+    # This synthetic definition has only native validation steps, with agent
+    # dispatch forbidden above. Worker permission contracts have their own
+    # fixture coverage; this trial isolates the two real Python runtimes.
+    with patch('codex_worker_policy.worker_environment', return_value=contextlib.nullcontext()):
+        assert workflow.main() == 0
     state = RunState.load('fixed', root)
 else:
     state = WorkflowEngine(root).execute(WorkflowDefinition.from_yaml(root / 'terminal-test.yml'), run_id=mode)
