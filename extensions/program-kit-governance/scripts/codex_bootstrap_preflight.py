@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -245,7 +246,8 @@ def inspect_script_runtime(project_root: Path, integration: str) -> tuple[str, P
 
 def _resolver_command(flavor: str, resolver: Path) -> list[str]:
     if flavor == "py":
-        return [sys.executable, str(resolver), "constitution-template", "--json"]
+        from python_runtime import resolve
+        return [resolve(resolver.parents[3]), str(resolver), "constitution-template", "--json"]
     if flavor == "sh":
         executable = shutil.which("bash")
         if executable is None:
@@ -275,6 +277,12 @@ def verify_windows_resolver(
 ) -> None:
     """Execute the installed resolver exactly far enough to prove it is usable."""
     command = _resolver_command(flavor, resolver)
+    if flavor == 'py':
+        text = (project_root / CONSTITUTION_SKILL).read_text(encoding='utf-8')
+        if re.search(r'\bpython3\b', text) or command[0].replace('\\', '/') not in text.replace('\\', '/'):
+            raise RuntimeError('Generated core constitution instruction does not bind the selected interpreter '
+                               f'{command[0]}. Upgrade the core Spec Kit source fix and regenerate integration instructions; '
+                               'do not edit generated consumer files.')
     child_environment = os.environ.copy()
     if flavor == "py":
         child_environment["PYTHONIOENCODING"] = "utf-8"
@@ -297,7 +305,11 @@ def verify_windows_resolver(
         detail = (result.stderr or result.stdout or "no diagnostic output").strip()
         detail = " ".join(detail.split())[:600]
         raise RuntimeError(f"Resolver execution failed with exit code {result.returncode}: {detail}")
-    if "TEMPLATE_CONTENT" not in (result.stdout or ""):
+    try:
+        payload = json.loads(result.stdout or '')
+    except (ValueError, TypeError):
+        payload = {}
+    if not isinstance(payload, dict) or not isinstance(payload.get('TEMPLATE_CONTENT'), str) or not payload['TEMPLATE_CONTENT'].strip():
         raise RuntimeError("Resolver execution did not return the expected template payload")
 
 
@@ -370,8 +382,8 @@ alone may not repair ownership. Review the clean-start and ownership guidance:
 """
 
 
-def script_runtime_diagnostic(problem: str) -> str:
-    if "PyYAML is required" in problem or "No module named 'yaml'" in problem:
+def script_runtime_diagnostic(problem: str, interpreter: str = 'python') -> str:
+    if "PyYAML" in problem or "No module named 'yaml'" in problem:
         remediation = """Install the resolver's missing dependency into the exact Python interpreter
 used by the workflow, then verify the resolver directly:
 
@@ -381,7 +393,9 @@ used by the workflow, then verify the resolver directly:
 Do not rerun Spec Kit initialization for this dependency error; reinitialization
 does not install packages into the `python` interpreter."""
     else:
-        remediation = """Cleanly regenerate Spec Kit's integration files with the Python flavor:
+        remediation = """Install the coordinated core Spec Kit Python runtime source fix first if the
+generated instruction selects a different interpreter. Then cleanly regenerate
+Spec Kit's integration files with the Python flavor:
 
   specify init . --force --non-interactive --integration codex --script py
 
@@ -390,11 +404,13 @@ Then confirm that `.specify/scripts/python/resolve_template.py` exists and that
 the Program Kit workflow. This merge-style reinitialization preserves installed
 Program Kit extension registration, but review `git status` before continuing."""
 
+    invocation = ("& '" + interpreter.replace("'", "''") + "'" if os.name == 'nt' and interpreter != 'python'
+                  else shlex.quote(interpreter))
+    remediation = remediation.replace('  python ', '  ' + invocation + ' ')
     return f"""PROGRAM_KIT_SPEC_KIT_SCRIPT_RUNTIME
 
 Program Kit stopped before intake or research because the installed Codex
-constitution skill does not have a usable Spec Kit template resolver on
-Windows.
+constitution skill does not have a usable, consistently bound Spec Kit template resolver.
 
 {problem}
 
@@ -482,13 +498,16 @@ def evaluate_preflight(
 
     try:
         flavor, resolver = inspect_script_runtime(project_root, resolved)
-        current_platform = platform_name if platform_name is not None else os.name
-        if current_platform == "nt":
-            verify_windows_resolver(project_root, flavor, resolver, runner=runner)
-    except RuntimeError as exc:
+        verify_windows_resolver(project_root, flavor, resolver, runner=runner)
+    except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as exc:
+        from python_runtime import selected
+        try:
+            interpreter = selected(project_root)
+        except (ValueError, OSError, KeyError, TypeError):
+            interpreter = 'python'
         return {
             "action": "script-runtime-blocked",
-            "diagnostic": script_runtime_diagnostic(str(exc)),
+            "diagnostic": script_runtime_diagnostic(str(exc), interpreter),
         }
     # The explicit proxy adapter cannot dispatch an agent; it must not acquire
     # a write contract for workers it cannot start.

@@ -81,25 +81,29 @@ if errorlevel 1 (
 call git rev-parse --is-inside-work-tree >nul 2>nul
 if errorlevel 1 goto :git_not_initialized
 
+if defined SPECKIT_PYTHON goto :python_selected
 where python >nul 2>nul
 if errorlevel 1 (
   echo ERROR: Python must be available as `python` because Program Kit uses the Python Spec Kit runtime. 1>&2
   exit /b 2
 )
-call python --version >nul 2>nul
+for /f "delims=" %%P in ('python -c "import sys; print(sys.executable)"') do set "SPECKIT_PYTHON=%%P"
+:python_selected
+if not defined SPECKIT_PYTHON exit /b 2
+call "%SPECKIT_PYTHON%" -c "import sys; assert sys.version_info >= (3,11)" >nul 2>nul
 if errorlevel 1 (
-  echo ERROR: The `python` command was found but could not execute successfully. Repair Python and rerun the initializer. 1>&2
+  echo ERROR: The selected Python interpreter must support Python 3.11 or newer. 1>&2
   exit /b 2
 )
 
-call python -c "import yaml" >nul 2>nul
+call "%SPECKIT_PYTHON%" -c "import yaml" >nul 2>nul
 if errorlevel 1 (
-  call python -m pip --version >nul 2>nul
+  call "%SPECKIT_PYTHON%" -m pip --version >nul 2>nul
   if errorlevel 1 goto :pip_missing
   echo Installing the PyYAML dependency required by the Spec Kit Python resolver...
-  call python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+  call "%SPECKIT_PYTHON%" -m pip install --disable-pip-version-check "PyYAML>=6,<7"
   if errorlevel 1 goto :dependency_failed
-  call python -c "import yaml" >nul 2>nul
+  call "%SPECKIT_PYTHON%" -c "import yaml" >nul 2>nul
   if errorlevel 1 goto :dependency_failed
 )
 
@@ -130,11 +134,11 @@ if errorlevel 1 goto :failed
 echo [7/8] Installing Program Kit...
 call specify bundle install program-kit --integration %PROGRAM_KIT_INTEGRATION%
 if errorlevel 1 goto :failed
-call python ".specify\extensions\program-kit-governance\scripts\ensure_utf8.py" --target .
+call "%SPECKIT_PYTHON%" ".specify\extensions\program-kit-governance\scripts\ensure_utf8.py" --target .
 if errorlevel 1 goto :failed
-call python ".specify\extensions\program-kit-governance\scripts\schema_runtime.py" setup
+call "%SPECKIT_PYTHON%" ".specify\extensions\program-kit-governance\scripts\schema_runtime.py" setup
 if errorlevel 1 goto :failed
-call python ".specify\extensions\program-kit-governance\scripts\schema_runtime.py" record-copy
+call "%SPECKIT_PYTHON%" ".specify\extensions\program-kit-governance\scripts\schema_runtime.py" record-copy
 if errorlevel 1 goto :failed
 
 echo [8/8] Switching Program Kit catalogs to the update channel...

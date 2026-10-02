@@ -95,6 +95,7 @@ steps:
     output_format: json
 
   - id: assessment
+    artifact_validator: [".specify/extensions/program-kit-governance/scripts/bootstrap_context.py", "validate-output", "--stage", "assessment", "--run-id", "{{ context.run_id }}", "--json"]
     type: command
     command: "speckit.program-kit-governance.assessment"
     integration: "{{ inputs.integration }}"
@@ -127,6 +128,7 @@ steps:
     output_format: json
 
   - id: research
+    artifact_validator: [".specify/extensions/program-kit-governance/scripts/bootstrap_context.py", "validate-output", "--stage", "research", "--run-id", "{{ context.run_id }}", "--json"]
     type: command
     command: "speckit.program-kit-governance.research"
     integration: "{{ inputs.integration }}"
@@ -187,6 +189,8 @@ steps:
         run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-assessment --verdict \"{{ steps.review-assessment.output.choice }}\" --approval-mode interactive"
 
   - id: constitution-draft
+    required_artifacts: [".specify/memory/constitution.md"]
+    artifact_validator: [".specify/extensions/program-kit-governance/scripts/governance_state.py", "validate-constitution-draft"]
     type: command
     command: "speckit.constitution"
     integration: "{{ inputs.integration }}"
@@ -228,6 +232,7 @@ steps:
 
   # This step records process dispatch only. The following deterministic gate owns completion.
   - id: architecture-dispatch
+    artifact_validator: [".specify/extensions/program-kit-governance/scripts/bootstrap_context.py", "validate-output", "--stage", "architecture", "--run-id", "{{ context.run_id }}", "--json"]
     type: command
     command: "speckit.program-kit-governance.architecture"
     integration: "{{ inputs.integration }}"
@@ -260,6 +265,7 @@ steps:
     output_format: json
 
   - id: tooling
+    artifact_validator: [".specify/extensions/program-kit-governance/scripts/bootstrap_context.py", "validate-output", "--stage", "tooling", "--run-id", "{{ context.run_id }}", "--json"]
     type: command
     command: "speckit.program-kit-governance.tooling"
     integration: "{{ inputs.integration }}"
@@ -287,6 +293,7 @@ steps:
     output_format: json
 
   - id: specification-roadmap
+    artifact_validator: [".specify/extensions/program-kit-governance/scripts/bootstrap_context.py", "validate-output", "--stage", "roadmap", "--run-id", "{{ context.run_id }}", "--json"]
     type: command
     command: "speckit.program-kit-governance.roadmap"
     integration: "{{ inputs.integration }}"
@@ -314,6 +321,7 @@ steps:
     output_format: json
 
   - id: architecture-prerequisite-closure
+    artifact_validator: [".specify/extensions/program-kit-governance/scripts/bootstrap_context.py", "validate-output", "--stage", "closure", "--run-id", "{{ context.run_id }}", "--json"]
     type: command
     command: "speckit.program-kit-governance.bootstrap-closure"
     integration: "{{ inputs.integration }}"

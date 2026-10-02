@@ -80,7 +80,10 @@ files were created. Program Kit's artifact and semantic validators remain mandat
 [configuration precedence](https://learn.chatgpt.com/docs/config-file/config-basic).
 
 Before intake or research, Program Kit inspects the resolver referenced by
-`.agents/skills/speckit-constitution/SKILL.md`. On native Windows the resolver must exist and execute.
+`.agents/skills/speckit-constitution/SKILL.md`. The resolver must exist and execute on every platform,
+and the generated Python invocation must bind the recorded, validated interpreter. Upgrade the
+coordinated core Spec Kit source fix before regenerating a legacy instruction that selects a
+different Python environment. Program Kit blocks dispatch against an incompatible core contract.
 If the PowerShell flavor is blocked by local signing policy, stop and cleanly regenerate the Codex
 integration with `specify init . --force --non-interactive --integration codex --script py`. Confirm
 that `.specify/scripts/python/resolve_template.py` exists and that the constitution skill references
@@ -92,11 +95,19 @@ exact workflow interpreter and verify the resolver directly; do not reinitialize
 package dependency:
 
 ```powershell
-python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
-python .specify/scripts/python/resolve_template.py constitution-template --json
+$programKitPython = (Get-Content -Raw .specify/python-runtime.json | ConvertFrom-Json).executable
+& $programKitPython -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+& $programKitPython .specify/scripts/python/resolve_template.py constitution-template --json
 ```
 
 ## Existing affected repository
+
+The intake builder publishes validated outputs through destination siblings and
+preserves existing DACLs. Its three canonical outputs grant read/write to the
+workspace-root owner's SID; directories and unrelated permissions are unchanged.
+Old unreadable outputs require targeted owner/administrator repair. Preserve
+content hashes and confirmed intake; never recursively reset repository ACLs or
+rebuild confirmed intake as draft to repair permissions.
 
 Rerunning `specify init` alone does not repair ownership. Close Codex, back up the user-selected
 initial-design file and any other uncommitted work outside the repository, and inspect `git status`,

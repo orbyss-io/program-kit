@@ -1,0 +1,1245 @@
+diff --git a/extensions/agent-context/README.md b/extensions/agent-context/README.md
+index 53602c3..eb56cfd 100644
+--- a/extensions/agent-context/README.md
++++ b/extensions/agent-context/README.md
+@@ -50,7 +50,7 @@ All configuration flows through the extension's own config file at `.specify/ext
+ 
+ The bundled update scripts require **Python 3** with **PyYAML** for YAML/upsert processing (PowerShell can also use `ConvertFrom-Yaml` when available).
+ 
+-PyYAML ships with the `specify` CLI and is normally available via the same `python3` interpreter. If a hook reports _"PyYAML is required … not available in the current Python environment"_, it means the system `python3` differs from the one used to install Spec Kit. To resolve, run:
++PyYAML ships with the `specify` CLI and is normally available via the same `python` interpreter. If a hook reports _"PyYAML is required … not available in the current Python environment"_, it means the system `python` differs from the one used to install Spec Kit. To resolve, run:
+ 
+ ```bash
+ pip install pyyaml
+diff --git a/extensions/agent-context/scripts/bash/update-agent-context.sh b/extensions/agent-context/scripts/bash/update-agent-context.sh
+index 7fbe3ef..2a98864 100755
+--- a/extensions/agent-context/scripts/bash/update-agent-context.sh
++++ b/extensions/agent-context/scripts/bash/update-agent-context.sh
+@@ -28,9 +28,11 @@ fi
+ 
+ # Locate a Python 3 interpreter with PyYAML available.
+ _python=""
+-_python_candidates=()
+-[[ -n "${SPECKIT_PYTHON:-}" ]] && _python_candidates+=("$SPECKIT_PYTHON")
+-_python_candidates+=("python3" "python")
++_selected="${SPECKIT_PYTHON:-}"
++if [[ -z "$_selected" ]]; then
++    _selected=$(python -c 'import json,pathlib,sys; p=pathlib.Path(".specify/python-runtime.json"); print(json.loads(p.read_text())["executable"] if p.is_file() else sys.executable)')
++fi
++_python_candidates=("$_selected")
+ for _candidate in "${_python_candidates[@]}"; do
+   if command -v "$_candidate" >/dev/null 2>&1 \
+     && "$_candidate" - <<'PY' >/dev/null 2>&1
+@@ -39,7 +41,7 @@ try:
+     import yaml  # noqa: F401
+ except ImportError:
+     sys.exit(1)
+-sys.exit(0 if sys.version_info[0] == 3 else 1)
++sys.exit(0 if sys.version_info >= (3,11) else 1)
+ PY
+   then
+     _python="$_candidate"
+@@ -50,7 +52,7 @@ unset _candidate _python_candidates
+ 
+ if [[ -z "$_python" ]]; then
+   echo "agent-context: Python 3 with PyYAML not found on PATH; skipping update." >&2
+-  echo "  To resolve: pip install pyyaml (or install it into the environment used by python3)." >&2
++  echo "  To resolve: pip install pyyaml (or install it into the environment used by python)." >&2
+   exit 0
+ fi
+ _case_insensitive_context_files=0
+@@ -75,7 +77,7 @@ except ImportError:
+     print(
+         "agent-context: PyYAML is required to parse extension config but is not available "
+         "in the current Python environment.\n"
+-        "  To resolve: pip install pyyaml (or install it into the environment used by python3).\n"
++        "  To resolve: pip install pyyaml (or install it into the environment used by python).\n"
+         "  Context file will not be updated until PyYAML is importable.",
+         file=sys.stderr,
+     )
+diff --git a/extensions/agent-context/scripts/powershell/update-agent-context.ps1 b/extensions/agent-context/scripts/powershell/update-agent-context.ps1
+index 91d067c..4c445cf 100644
+--- a/extensions/agent-context/scripts/powershell/update-agent-context.ps1
++++ b/extensions/agent-context/scripts/powershell/update-agent-context.ps1
+@@ -201,15 +201,13 @@ if ($null -eq $Options) {
+ if ($null -eq $Options) {
+     # ConvertFrom-Yaml/Json unavailable or failed; fall back to Python+PyYAML.
+     $pythonCmd = $null
+-    $pythonCandidates = @()
+-    if ($env:SPECKIT_PYTHON) {
+-        $pythonCandidates += $env:SPECKIT_PYTHON
+-    }
+-    $pythonCandidates += @('python3', 'python')
++    $pythonCandidates = @(if ($env:SPECKIT_PYTHON) { $env:SPECKIT_PYTHON } elseif (Test-Path -LiteralPath '.specify/python-runtime.json') {
++        (Get-Content -Raw -LiteralPath '.specify/python-runtime.json' | ConvertFrom-Json).executable
++    } else { (Get-Command python -ErrorAction SilentlyContinue).Source })
+     foreach ($candidate in $pythonCandidates) {
+         if (Get-Command $candidate -ErrorAction SilentlyContinue) {
+             # Verify it is Python 3 with PyYAML available.
+-            $null = & $candidate -c "import sys; import yaml; sys.exit(0 if sys.version_info[0] == 3 else 1)" 2>$null
++            $null = & $candidate -c "import sys; import yaml; sys.exit(0 if sys.version_info >= (3,11) else 1)" 2>$null
+             if ($LASTEXITCODE -eq 0) {
+                 $pythonCmd = $candidate
+                 break
+diff --git a/extensions/agent-context/scripts/python/update_agent_context.py b/extensions/agent-context/scripts/python/update_agent_context.py
+index 669ec5b..01f1ccb 100644
+--- a/extensions/agent-context/scripts/python/update_agent_context.py
++++ b/extensions/agent-context/scripts/python/update_agent_context.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Refresh the managed Spec Kit section in the coding agent's context file(s).
+ 
+ Python port of ``update-agent-context.sh`` / ``update-agent-context.ps1``.
+@@ -313,7 +313,7 @@ def main(argv: list[str] | None = None) -> int:
+             "agent-context: PyYAML is required to parse extension config but is "
+             "not available in the current Python environment.\n"
+             "  To resolve: pip install pyyaml (or install it into the environment "
+-            "used by python3).\n"
++            "used by python).\n"
+             "  Context file will not be updated until PyYAML is importable."
+         )
+         _err("agent-context: skipping update (see above for details).")
+diff --git a/extensions/git/scripts/python/auto_commit.py b/extensions/git/scripts/python/auto_commit.py
+index c669289..b2bad62 100644
+--- a/extensions/git/scripts/python/auto_commit.py
++++ b/extensions/git/scripts/python/auto_commit.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Git extension: auto_commit.py
+ 
+ Automatically commit changes after a Spec Kit command completes.
+diff --git a/extensions/git/scripts/python/create_new_feature_branch.py b/extensions/git/scripts/python/create_new_feature_branch.py
+index e4b4135..994af70 100644
+--- a/extensions/git/scripts/python/create_new_feature_branch.py
++++ b/extensions/git/scripts/python/create_new_feature_branch.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Git extension: create_new_feature_branch.py
+ 
+ Creates a git feature branch only. The feature directory and spec file are
+diff --git a/extensions/git/scripts/python/git_common.py b/extensions/git/scripts/python/git_common.py
+index 9b23fba..fc2ed5f 100644
+--- a/extensions/git/scripts/python/git_common.py
++++ b/extensions/git/scripts/python/git_common.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Git-specific common helpers for the git extension.
+ 
+ Python port of ``git-common.sh`` / ``git-common.ps1`` — contains only
+diff --git a/extensions/git/scripts/python/initialize_repo.py b/extensions/git/scripts/python/initialize_repo.py
+index eaf604c..b897199 100644
+--- a/extensions/git/scripts/python/initialize_repo.py
++++ b/extensions/git/scripts/python/initialize_repo.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Git extension: initialize_repo.py
+ 
+ Initialize a Git repository with an initial commit.
+diff --git a/scripts/bash/common.sh b/scripts/bash/common.sh
+index 33f90b8..ee5fa20 100644
+--- a/scripts/bash/common.sh
++++ b/scripts/bash/common.sh
+@@ -91,17 +91,17 @@ get_current_branch() {
+ # Prints the raw value (possibly relative) to stdout, or empty string if the file
+ # is missing, unparseable, or does not contain the key. Always returns 0 so callers
+ # under `set -e` cannot be aborted by parser failure.
+-# Parser order mirrors the historical get_feature_paths behavior: jq -> python3 -> grep/sed.
++# Parser order mirrors the historical get_feature_paths behavior: jq -> python -> grep/sed.
+ read_feature_json_feature_directory() {
+     local repo_root="$1"
+     local fj="$repo_root/.specify/feature.json"
+     [[ -f "$fj" ]] || { printf '%s' ''; return 0; }
+ 
+-    # Try parsers in order (jq -> python3 -> grep/sed), falling through on
++    # Try parsers in order (jq -> python -> grep/sed), falling through on
+     # failure. Selection is by *parse success*, not mere availability: on
+-    # Windows `python3` commonly resolves to the Microsoft Store App Execution
++    # Windows `python` commonly resolves to the Microsoft Store App Execution
+     # Alias stub, which passes `command -v` but fails at runtime (exit 49), so
+-    # an availability-gated `elif` would pick python3, swallow its failure, and
++    # an availability-gated `elif` would pick python, swallow its failure, and
+     # never reach the grep/sed fallback -- leaving feature.json unreadable even
+     # though it is valid (issue #3304).
+     local _fd=''
+@@ -110,9 +110,9 @@ read_feature_json_feature_directory() {
+             _fd=''
+         fi
+     fi
+-    if [[ -z "$_fd" ]] && command -v python3 >/dev/null 2>&1; then
++    if [[ -z "$_fd" ]] && _python_command >/dev/null 2>&1; then
+         # Use Python so pretty-printed/multi-line JSON still parses correctly.
+-        if ! _fd=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); v=d.get('feature_directory'); print(v if v else '')" "$fj" 2>/dev/null); then
++        if ! _fd=$("$(_python_command)" -c "import json,sys; d=json.load(open(sys.argv[1])); v=d.get('feature_directory'); print(v if v else '')" "$fj" 2>/dev/null); then
+             _fd=''
+         fi
+     fi
+@@ -247,11 +247,11 @@ get_invoke_separator() {
+     local parsed=0
+ 
+     if [[ -f "$integration_json" ]]; then
+-        # Try parsers in order (jq -> python3 -> awk), falling through on
++        # Try parsers in order (jq -> python -> awk), falling through on
+         # failure. Selection is by *parse success*, not mere availability: on
+-        # Windows `python3` commonly resolves to the Microsoft Store App
++        # Windows `python` commonly resolves to the Microsoft Store App
+         # Execution Alias stub, which passes `command -v` but fails at runtime
+-        # (exit 49). An availability-gated branch would pick python3, swallow
++        # (exit 49). An availability-gated branch would pick python, swallow
+         # its failure, and — because this function historically had no text
+         # fallback — silently return "." even for `-`-separator integrations
+         # (e.g. forge, cline), yielding wrong command hints (issue #3304).
+@@ -264,9 +264,9 @@ get_invoke_separator() {
+             fi
+         fi
+ 
+-        if [[ "$parsed" -eq 0 ]] && command -v python3 >/dev/null 2>&1; then
++        if [[ "$parsed" -eq 0 ]] && _python_command >/dev/null 2>&1; then
+             local py_separator
+-            if py_separator=$(python3 - "$integration_json" <<'PY' 2>/dev/null
++            if py_separator=$("$(_python_command)" - "$integration_json" <<'PY' 2>/dev/null
+ import json
+ import sys
+ 
+@@ -293,7 +293,7 @@ PY
+ 
+         if [[ "$parsed" -eq 0 ]]; then
+             # Last-resort text fallback for environments with neither jq nor a
+-            # working python3 (e.g. stock Windows + Git Bash). Reads the active
++            # working python (e.g. stock Windows + Git Bash). Reads the active
+             # integration key (default_integration, else integration) and its
+             # invoke_separator from within the integration_settings object.
+             # Handles both pretty-printed (the written form) and compact JSON.
+@@ -398,16 +398,13 @@ json_escape() {
+ check_file() { [[ -f "$1" ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
+ check_dir() { [[ -d "$1" && -n $(ls -A "$1" 2>/dev/null) ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
+ 
+-_python3_command() {
+-    if command -v python3 >/dev/null 2>&1 &&
+-        python3 -c 'import sys; raise SystemExit(sys.version_info.major != 3)' >/dev/null 2>&1; then
+-        printf '%s\n' "python3"
+-    elif command -v python >/dev/null 2>&1 &&
+-        python -c 'import sys; raise SystemExit(sys.version_info.major != 3)' >/dev/null 2>&1; then
+-        printf '%s\n' "python"
+-    elif command -v py >/dev/null 2>&1 &&
+-        py -3 -c 'import sys' >/dev/null 2>&1; then
+-        printf '%s\n' "py -3"
++_python_command() {
++    local executable="${SPECKIT_PYTHON:-}"
++    if [[ -z "$executable" ]]; then
++        executable=$(python -c 'import json,pathlib,sys; p=pathlib.Path(".specify/python-runtime.json"); print(json.loads(p.read_text())["executable"] if p.is_file() else sys.executable)') || return 1
++    fi
++    if "$executable" -c 'import sys,yaml; assert sys.version_info >= (3,11)' >/dev/null 2>&1; then
++        printf '%s\n' "$executable"
+     else
+         return 1
+     fi
+@@ -416,9 +413,9 @@ _python3_command() {
+ _sorted_extension_ids() {
+     local ext_dir="$1"
+     local python_spec
+-    if python_spec=$(_python3_command); then
++    if python_spec=$(_python_command); then
+         local -a python_cmd
+-        read -r -a python_cmd <<< "$python_spec"
++        python_cmd=("$python_spec")
+         local py_stderr sorted_ids
+         py_stderr=$(mktemp)
+         if sorted_ids=$(SPECKIT_EXTENSIONS="$ext_dir" "${python_cmd[@]}" -c "
+@@ -515,13 +512,13 @@ resolve_template() {
+         local registry_file="$presets_dir/.registry"
+         local python_spec=""
+         local -a python_cmd=()
+-        if python_spec=$(_python3_command); then
+-            read -r -a python_cmd <<< "$python_spec"
++        if python_spec=$(_python_command); then
++            python_cmd=("$python_spec")
+         fi
+         if [ -f "$registry_file" ] && [ "${#python_cmd[@]}" -gt 0 ]; then
+             # Read preset IDs sorted by priority (lower number = higher precedence).
+-            # The python3 call is wrapped in an if-condition so that set -e does not
+-            # abort the function when python3 exits non-zero (e.g. invalid JSON).
++            # The python call is wrapped in an if-condition so that set -e does not
++            # abort the function when python exits non-zero (e.g. invalid JSON).
+             local sorted_presets=""
+             if sorted_presets=$(SPECKIT_REGISTRY="$registry_file" "${python_cmd[@]}" -c "
+ import json, re, sys, os
+@@ -543,8 +540,10 @@ try:
+ except Exception:
+     sys.exit(1)
+ " 2>/dev/null); then
+-                if [ -n "$sorted_presets" ]; then
+-                    # python3 succeeded and returned preset IDs — search in priority order
++                # Native Windows Python emits CRLF; strip CR from identifier lists only.
++        sorted_presets="${sorted_presets//$'\r'/}"
++        if [ -n "$sorted_presets" ]; then
++                    # python succeeded and returned preset IDs — search in priority order
+                     while IFS= read -r preset_id; do
+                         local candidate="$presets_dir/$preset_id/templates/${template_name}.md"
+                         [ -f "$candidate" ] && echo "$candidate" && return 0
+@@ -552,9 +551,9 @@ except Exception:
+                         [ -f "$candidate" ] && echo "$candidate" && return 0
+                     done <<< "$sorted_presets"
+                 fi
+-                # python3 succeeded but registry has no presets — nothing to search
++                # python succeeded but registry has no presets — nothing to search
+             else
+-                # python3 failed (missing, or registry parse error) — fall back to unordered directory scan
++                # python failed (missing, or registry parse error) — fall back to unordered directory scan
+                 for preset in "$presets_dir"/*/; do
+                     [ -d "$preset" ] || continue
+                     local candidate="$preset/templates/${template_name}.md"
+@@ -564,7 +563,7 @@ except Exception:
+                 done
+             fi
+         else
+-            # Fallback: alphabetical directory order (no python3 available)
++            # Fallback: alphabetical directory order (no python available)
+             for preset in "$presets_dir"/*/; do
+                 [ -d "$preset" ] || continue
+                 local candidate="$preset/templates/${template_name}.md"
+@@ -582,6 +581,7 @@ except Exception:
+         if ! sorted_extensions=$(_sorted_extension_ids "$ext_dir"); then
+             return 2
+         fi
++        sorted_extensions="${sorted_extensions//$'\r'/}"
+         while IFS= read -r extension_id; do
+             [ -n "$extension_id" ] || continue
+             local ext="$ext_dir/$extension_id"
+@@ -638,8 +638,8 @@ resolve_template_content() {
+         local registry_parsed=false
+         local python_spec=""
+         local -a python_cmd=()
+-        if python_spec=$(_python3_command); then
+-            read -r -a python_cmd <<< "$python_spec"
++        if python_spec=$(_python_command); then
++            python_cmd=("$python_spec")
+         fi
+         if [ -f "$registry_file" ] && [ "${#python_cmd[@]}" -gt 0 ]; then
+             if sorted_presets=$(SPECKIT_REGISTRY="$registry_file" "${python_cmd[@]}" -c "
+@@ -675,6 +675,8 @@ except Exception:
+             done
+         fi
+ 
++        # Native Windows Python emits CRLF; strip CR from identifier lists only.
++        sorted_presets="${sorted_presets//$'\r'/}"
+         if [ -n "$sorted_presets" ]; then
+             while IFS= read -r preset_id; do
+                 local strategy="replace"
+@@ -804,6 +806,7 @@ except Exception as exc:
+         if ! sorted_extensions=$(_sorted_extension_ids "$ext_dir"); then
+             return 2
+         fi
++        sorted_extensions="${sorted_extensions//$'\r'/}"
+         while IFS= read -r extension_id; do
+             [ -n "$extension_id" ] || continue
+             local ext="$ext_dir/$extension_id"
+diff --git a/scripts/powershell/common.ps1 b/scripts/powershell/common.ps1
+index 585e884..534b9bc 100644
+--- a/scripts/powershell/common.ps1
++++ b/scripts/powershell/common.ps1
+@@ -317,18 +317,14 @@ function Format-SpecKitCommand {
+     return "/speckit$separator$name"
+ }
+ 
+-# Find a usable Python 3 executable (python3, python, or py -3).
+-# Returns the command/arguments as an array, or $null if none found.
++# Use the selected runtime, validating version and composition dependencies.
+ function Get-Python3Command {
+-    if (Get-Command python3 -ErrorAction SilentlyContinue) { return @('python3') }
+-    if (Get-Command python -ErrorAction SilentlyContinue) {
+-        $ver = & python --version 2>&1
+-        if ($ver -match 'Python 3') { return @('python') }
+-    }
+-    if (Get-Command py -ErrorAction SilentlyContinue) {
+-        $ver = & py -3 --version 2>&1
+-        if ($ver -match 'Python 3') { return @('py', '-3') }
+-    }
++    $executable = if ($env:SPECKIT_PYTHON) { $env:SPECKIT_PYTHON } elseif (Test-Path -LiteralPath '.specify/python-runtime.json') {
++        (Get-Content -Raw -LiteralPath '.specify/python-runtime.json' | ConvertFrom-Json).executable
++    } else { (Get-Command python -ErrorAction SilentlyContinue).Source }
++    if (-not $executable) { return $null }
++    & $executable -c 'import sys,yaml; assert sys.version_info >= (3,11)' 2>$null
++    if ($LASTEXITCODE -eq 0) { return @($executable) }
+     return $null
+ }
+ 
+diff --git a/scripts/python/check_prerequisites.py b/scripts/python/check_prerequisites.py
+index a5dc3e7..ea2bfbf 100644
+--- a/scripts/python/check_prerequisites.py
++++ b/scripts/python/check_prerequisites.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Consolidated prerequisite checking script."""
+ 
+ from __future__ import annotations
+diff --git a/scripts/python/create_new_feature.py b/scripts/python/create_new_feature.py
+index f36064a..8370c30 100644
+--- a/scripts/python/create_new_feature.py
++++ b/scripts/python/create_new_feature.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Create a new feature directory and spec file."""
+ 
+ from __future__ import annotations
+diff --git a/scripts/python/resolve_template.py b/scripts/python/resolve_template.py
+index d2a7da8..1f791d3 100644
+--- a/scripts/python/resolve_template.py
++++ b/scripts/python/resolve_template.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Resolve composed template content from the project template stack."""
+ 
+ from __future__ import annotations
+diff --git a/scripts/python/setup_plan.py b/scripts/python/setup_plan.py
+index d25fdd7..8d77715 100644
+--- a/scripts/python/setup_plan.py
++++ b/scripts/python/setup_plan.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Setup implementation plan for a feature."""
+ 
+ from __future__ import annotations
+diff --git a/scripts/python/setup_tasks.py b/scripts/python/setup_tasks.py
+index a69fc3c..fc1e3e3 100644
+--- a/scripts/python/setup_tasks.py
++++ b/scripts/python/setup_tasks.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ """Check tasks prerequisites and resolve the tasks template."""
+ 
+ from __future__ import annotations
+diff --git a/src/specify_cli/__init__.py b/src/specify_cli/__init__.py
+index f8afcf4..5d43979 100644
+--- a/src/specify_cli/__init__.py
++++ b/src/specify_cli/__init__.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python3
++#!/usr/bin/env python
+ # /// script
+ # requires-python = ">=3.11"
+ # dependencies = [
+diff --git a/src/specify_cli/agents.py b/src/specify_cli/agents.py
+index dede50e..a222b6d 100644
+--- a/src/specify_cli/agents.py
++++ b/src/specify_cli/agents.py
+@@ -789,6 +789,7 @@ class CommandRegistrar:
+             from specify_cli.integrations.base import IntegrationBase  # noqa: PLC0415
+ 
+             body = IntegrationBase.resolve_command_refs(body, _sep, _prefix)
++            body = IntegrationBase.bind_python_commands(body, project_root)
+ 
+             output_name = self._compute_output_name(agent_name, cmd_name, agent_config)
+ 
+diff --git a/src/specify_cli/events.py b/src/specify_cli/events.py
+index 83da04d..ee71873 100644
+--- a/src/specify_cli/events.py
++++ b/src/specify_cli/events.py
+@@ -68,7 +68,7 @@ CANONICAL_EVENTS = frozenset({
+ 
+ # -- Events Dispatcher template ---------------------------------------------
+ 
+-_EVENTS_DISPATCHER_TEMPLATE = '''#!/usr/bin/env python3
++_EVENTS_DISPATCHER_TEMPLATE = '''#!/usr/bin/env python
+ """Specify CLI Event Dispatcher — dispatches agent runtime events.
+ 
+ Generated by: specify integration install/upgrade
+@@ -256,7 +256,7 @@ def _resolve_argv(template_path, project_root, ext_id):
+     if variant == "py":
+         # .py files aren't directly executable; run under the dispatcher's own
+         # Python (sys.executable), which is always available here.
+-        return [sys.executable or "python3", str(script_abs), *rest]
++        return [sys.executable or "python", str(script_abs), *rest]
+     if variant == "ps":
+         launcher = shutil.which("pwsh") or shutil.which("powershell")
+         if not launcher:
+@@ -435,16 +435,10 @@ function canImportSpecifyCli(py: string): boolean {{
+ 
+ function resolveDispatcher(directory: string): void {{
+   DISPATCHER = path.join(directory, '.specify', 'events.py');
+-  // Prefer a project-local venv interpreter that can import specify_cli (R2),
+-  // then fall back to a platform-appropriate PATH interpreter (S2: python on
+-  // Windows, where python3 is commonly absent; python3 on POSIX).
+-  const venvPy = path.join(directory, '.venv', 'bin', 'python');
+-  const venvWin = path.join(directory, '.venv', 'Scripts', 'python.exe');
+-  INTERPRETER = (
+-    (require('fs').existsSync(venvPy) && canImportSpecifyCli(venvPy) && venvPy) ||
+-    (require('fs').existsSync(venvWin) && canImportSpecifyCli(venvWin) && venvWin) ||
+-    (process.platform === 'win32' ? 'python' : 'python3')
+-  ) as string;
++  const record = path.join(directory, '.specify', 'python-runtime.json');
++  const saved = JSON.parse(require('fs').readFileSync(record, 'utf8'));
++  INTERPRETER = saved.executable;
++
+ }}
+ 
+ function runEvent(command: string, event: string, input: any, output: any, timeoutSec: number): string {{
+@@ -1102,31 +1096,13 @@ def _resolve_interpreter(project_root: Path) -> str:
+     """Resolve a portable Python interpreter for native hook commands (#16).
+ 
+     Delegates to ``IntegrationBase.resolve_python_interpreter`` so generated
+-    commands honor the project venv and never hard-code ``python3`` (which is
++    commands honor the project venv and never hard-code ``python`` (which is
+     commonly absent on Windows even when ``py.exe``/``python.exe`` exist).
+     """
+     from .integrations.base import IntegrationBase
+     return IntegrationBase.resolve_python_interpreter(project_root)
+ 
+ 
+-def _resolve_interpreter_for_target(target_os: str) -> str:
+-    """Resolve a Python interpreter for a target OS, independent of the host (#S4).
+-
+-    Copilot's native config carries both a ``bash`` (POSIX) and a
+-    ``powershell`` (Windows) variant in the same checked-in file. Resolving
+-    both with the *host* interpreter writes a Linux venv path into the
+-    PowerShell hook (or vice-versa), so the config fails on the other OS.
+-    Each variant instead gets a portable interpreter for its target shell;
+-    the dispatcher script's own ``_find_specify()`` does per-OS venv
+-    resolution at runtime.
+-    """
+-    if target_os == "windows":
+-        # Windows: ``python`` is the most portable on PATH; the py launcher
+-        # (``py -3``) is the recommended fallback when ``python`` is absent.
+-        return "python"
+-    # POSIX (bash): ``python3`` is universally available.
+-    return "python3"
+-
+ 
+ def _native_timeout(integration: IntegrationBase, timeout_seconds: Any) -> int:
+     """Return the timeout in the unit the integration's native config expects.
+@@ -1148,7 +1124,7 @@ def _shell_quote(value: str, target_os: str) -> str:
+     """Quote *value* as one argument for the target shell (R2).
+ 
+     ``host`` and ``posix`` targets use ``shlex.quote`` (POSIX shells). Safe
+-    tokens — ``python3``, ``speckit.ext.cmd`` — pass through bare, so a
++    tokens — ``python``, ``speckit.ext.cmd`` — pass through bare, so a
+     single-``command``-string hook (Claude/Gemini/etc.) stays invocable on
+     every platform. ``windows`` targets use a PowerShell single-quoted literal
+     with embedded quotes doubled, for Copilot's dedicated ``powershell`` field.
+@@ -1209,7 +1185,7 @@ def _dispatcher_command(
+     ``target_os`` selects an OS-appropriate interpreter for adapters that emit
+     both POSIX and Windows variants into one checked-in file (Copilot): ``host``
+     uses the host-resolved interpreter (venv-aware), while ``posix``/``windows``
+-    emit portable interpreters so the config works on either OS (#S4).
++    use the same recorded interpreter and require regeneration on another host.
+     ``cmd`` also uses the host-resolved interpreter but quotes for cmd.exe —
+     for agents that launch hooks through the native Windows shell (Vibe).
+ 
+@@ -1243,7 +1219,7 @@ def _dispatcher_command(
+         # cmd.exe (Vibe), and differs from "host" purely in quoting style.
+         interpreter = _resolve_interpreter(project_root)
+     else:
+-        interpreter = _resolve_interpreter_for_target(target_os)
++        interpreter = _resolve_interpreter(project_root)
+     q_interp = _shell_quote(interpreter, target_os)
+     q_command = _shell_quote(command_name, target_os)
+     q_event = _shell_quote(event_name, target_os)
+diff --git a/src/specify_cli/integrations/base.py b/src/specify_cli/integrations/base.py
+index 27c4358..de07bd4 100644
+--- a/src/specify_cli/integrations/base.py
++++ b/src/specify_cli/integrations/base.py
+@@ -650,54 +650,9 @@ class IntegrationBase(ABC):
+ 
+     @staticmethod
+     def resolve_python_interpreter(project_root: Path | None = None) -> str:
+-        """Resolve a portable Python interpreter command for ``{SCRIPT}``.
+-
+-        Used to build the invocation string for the ``py`` script type so
+-        that ``.py`` workflow scripts run consistently across platforms
+-        (notably Windows, where ``.py`` files are not directly executable).
+-
+-        Resolution order:
+-
+-        1. A project virtual environment (``.venv``) interpreter, if one
+-           exists under *project_root* (POSIX ``bin/python`` or Windows
+-           ``Scripts/python.exe``).  The returned path is **relative to the
+-           project root** (e.g. ``.venv/bin/python``) so generated
+-           ``{SCRIPT}`` invocations stay portable and runnable from the
+-           repo root regardless of where the project lives.
+-        2. ``python3`` on ``PATH``.
+-        3. ``python`` on ``PATH``.
+-
+-        Falls back to the running interpreter (``sys.executable``) when
+-        ``PATH`` resolution fails so the generated command is guaranteed
+-        to work in the current environment, and finally to ``"python3"``
+-        if even that is unavailable.
+-        """
+-        if project_root is not None:
+-            # (existence check path, repo-root-relative invocation string)
+-            venv_candidates = (
+-                (project_root / ".venv" / "bin" / "python", ".venv/bin/python"),
+-                (
+-                    project_root / ".venv" / "Scripts" / "python.exe",
+-                    ".venv/Scripts/python.exe",
+-                ),
+-            )
+-            for candidate, relative in venv_candidates:
+-                if candidate.exists():
+-                    return relative
+-        for name in ("python3", "python"):
+-            found = shutil.which(name)
+-            if not found:
+-                continue
+-            # On Windows, python3/python on PATH may be the Microsoft
+-            # Store App Execution Alias stub: it exists but only prints
+-            # an installer hint and exits non-zero, so existence is not
+-            # enough (see #3304 for the same defect in the sh scripts).
+-            if sys.platform == "win32" and not IntegrationBase._interpreter_runs(
+-                found
+-            ):
+-                continue
+-            return name
+-        return sys.executable or "python3"
++        """Resolve and validate the same interpreter used by core commands and hooks."""
++        from specify_cli.python_runtime import resolve_python_interpreter
++        return resolve_python_interpreter(project_root)
+ 
+     @staticmethod
+     def build_python_invocation(
+@@ -712,6 +667,14 @@ class IntegrationBase(ABC):
+             interpreter = shlex.quote(interpreter)
+         return f"{interpreter} {script_command}"
+ 
++    @staticmethod
++    def bind_python_commands(content: str, project_root: Path | None = None) -> str:
++        """Bind literal executable examples in installed extension instructions."""
++        if not re.search(r'\bpython (?=\.specify/|-m pip\b)', content):
++            return content
++        invocation = IntegrationBase.build_python_invocation('', project_root).rstrip()
++        return re.sub(r'\bpython (?=\.specify/|-m pip\b)', lambda _: invocation + ' ', content)
++
+     @staticmethod
+     def select_script_variant(
+         requested: object, script_commands: dict[str, str]
+@@ -875,7 +838,7 @@ class IntegrationBase(ABC):
+             content, invoke_separator, invocation_prefix
+         )
+ 
+-        return content
++        return IntegrationBase.bind_python_commands(content, project_root)
+ 
+     def setup(
+         self,
+diff --git a/src/specify_cli/integrations/codex/__init__.py b/src/specify_cli/integrations/codex/__init__.py
+index 2ffa59c..9e77c07 100644
+--- a/src/specify_cli/integrations/codex/__init__.py
++++ b/src/specify_cli/integrations/codex/__init__.py
+@@ -7,6 +7,11 @@ Commands are deprecated; ``--skills`` defaults to ``True``.
+ from __future__ import annotations
+ 
+ from ..base import IntegrationOption, SkillsIntegration
++import json
++import subprocess
++import tempfile
++import shutil
++from pathlib import Path
+ 
+ 
+ class CodexIntegration(SkillsIntegration):
+@@ -40,6 +45,38 @@ class CodexIntegration(SkillsIntegration):
+     events_config_file = ".codex/config.toml"
+     events_format = "toml"
+ 
++    def dispatch_command(self, command_name, args="", *, project_root=None,
++                         model=None, timeout=600, stream=True):
++        # Keep the terminal's process result separate from the model's outcome.
++        # Last-message files avoid guessing success from JSONL progress events.
++        schema = {"type": "object", "properties": {
++            "status": {"type": "string", "enum": ["completed", "blocked", "failed"]},
++            "diagnostic": {"type": "string"}}, "required": ["status", "diagnostic"],
++            "additionalProperties": False}
++        with tempfile.TemporaryDirectory(prefix="speckit-worker-result-") as temporary:
++            directory = Path(temporary)
++            schema_path, result_path = directory / 'schema.json', directory / 'result.json'
++            schema_path.write_text(json.dumps(schema), encoding='utf-8')
++            prompt = self.build_command_invocation(command_name, args)
++            prompt += '\nReturn status completed only after required artifacts and hooks succeed. Return blocked or failed with the root-cause diagnostic otherwise.'
++            argv = self.build_exec_args(prompt, model=model, output_json=True)
++            argv[0] = shutil.which(argv[0]) or argv[0]
++            argv += ['--output-schema', str(schema_path), '--output-last-message', str(result_path)]
++            try:
++                result = subprocess.run(argv, cwd=project_root, capture_output=True,
++                    encoding='utf-8', errors='replace', timeout=timeout, check=False)
++            except subprocess.TimeoutExpired as error:
++                return {'exit_code': 124, 'stdout': (error.stdout or b'').decode('utf-8', 'replace') if isinstance(error.stdout, bytes) else error.stdout or '',
++                    'stderr': 'Worker timed out\n' + ((error.stderr or b'').decode('utf-8', 'replace') if isinstance(error.stderr, bytes) else error.stderr or ''), 'worker_result': {'status': 'failed', 'diagnostic': 'Worker timed out'}}
++            try:
++                worker = json.loads(result_path.read_text(encoding='utf-8'))
++                if not isinstance(worker, dict) or set(worker) != {'status', 'diagnostic'} or not isinstance(worker['status'], str) or worker['status'] not in {'completed', 'blocked', 'failed'} or not isinstance(worker['diagnostic'], str):
++                    raise ValueError('Invalid worker result')
++            except (OSError, ValueError):
++                worker = {'status': 'failed', 'diagnostic': 'Worker ended without a valid structured result; inspect preserved stdout/stderr'}
++            return {'exit_code': result.returncode, 'stdout': result.stdout,
++                'stderr': result.stderr, 'worker_result': worker}
++
+     def build_exec_args(
+         self,
+         prompt: str,
+diff --git a/src/specify_cli/python_runtime.py b/src/specify_cli/python_runtime.py
+new file mode 100644
+index 0000000..77d2258
+--- /dev/null
++++ b/src/specify_cli/python_runtime.py
+@@ -0,0 +1,35 @@
++"""One validated product-script interpreter, distinct from the CLI supervisor."""
++from __future__ import annotations
++
++import json
++import os
++from pathlib import Path
++import shutil
++import subprocess
++
++CONTRACT_VERSION = 1
++
++
++def resolve_python_interpreter(project_root: Path | None = None) -> str:
++    record = project_root / '.specify/python-runtime.json' if project_root else None
++    saved = json.loads(record.read_text(encoding='utf-8')) if record and record.is_file() else {}
++    if not isinstance(saved, dict) or (saved and saved.get('contractVersion') != CONTRACT_VERSION):
++        raise ValueError('SPECKIT_PYTHON_RUNTIME: unsupported or invalid interpreter record')
++    requested = os.environ.get('SPECKIT_PYTHON') or saved.get('executable') or shutil.which('python')
++    if not isinstance(requested, str) or not requested or not Path(requested).is_absolute() or not Path(requested).is_file():
++        raise ValueError('SPECKIT_PYTHON_RUNTIME: select an absolute Python executable with SPECKIT_PYTHON or provide python on PATH')
++    if saved and os.environ.get('SPECKIT_PYTHON') and os.path.normcase(os.path.abspath(requested)) != os.path.normcase(saved['executable']):
++        raise ValueError('SPECKIT_PYTHON_RUNTIME: selected interpreter differs from generated commands; regenerate integration instructions explicitly')
++    probe = ('import sys,json; assert sys.version_info >= (3,11), "Python >=3.11 is required"; '
++             'import yaml; assert int(yaml.__version__.split(".")[0]) >= 6, "PyYAML >=6 is required"; '
++             'print(json.dumps({"executable":sys.executable,"version":list(sys.version_info[:3]),"yaml":yaml.__version__}))')
++    result = subprocess.run([requested, '-c', probe], capture_output=True, text=True,
++                            encoding='utf-8', errors='replace', timeout=30, check=False)
++    if result.returncode:
++        raise ValueError(f'SPECKIT_PYTHON_RUNTIME: {requested}: {result.stderr or result.stdout}')
++    payload = json.loads(result.stdout)
++    executable = os.path.abspath(payload['executable'])  # Preserve venv symlinks.
++    if record and not saved:
++        record.parent.mkdir(parents=True, exist_ok=True)
++        record.write_text(json.dumps({'contractVersion': CONTRACT_VERSION, **payload}, indent=2) + '\n', encoding='utf-8')
++    return executable
+diff --git a/src/specify_cli/workflows/steps/command/__init__.py b/src/specify_cli/workflows/steps/command/__init__.py
+index 8ab7770..568f26f 100644
+--- a/src/specify_cli/workflows/steps/command/__init__.py
++++ b/src/specify_cli/workflows/steps/command/__init__.py
+@@ -20,10 +20,10 @@ class CommandStep(StepBase):
+ 
+     .. note::
+ 
+-        CLI output is streamed to the terminal for live progress.
++        CLI streams and structured worker outcomes are preserved in step evidence.
+         ``output.exit_code`` is always captured and can be referenced
+         by later steps (e.g. ``{{ steps.specify.output.exit_code }}``).
+-        Full ``stdout``/``stderr`` capture is a planned enhancement.
++        Required artifacts and their configured validator determine artifact acceptance.
+     """
+ 
+     type_key = "command"
+@@ -129,6 +129,11 @@ class CommandStep(StepBase):
+         options.update(step_options)
+ 
+         # Attempt CLI dispatch
++        for field in ("required_artifacts", "artifact_validator"):
++            if field in config and (not isinstance(config[field], list) or not config[field] or
++                    any(not isinstance(value, str) or not value.strip() for value in config[field])):
++                return StepResult(status=StepStatus.FAILED,
++                    error=f"Command step: {field} must be a nonempty list of strings")
+         args_str = str(resolved_input.get("args", ""))
+         dispatch_result = self._try_dispatch(
+             command, integration, model, args_str, context
+@@ -143,6 +148,8 @@ class CommandStep(StepBase):
+         }
+ 
+         if dispatch_result is not None:
++            output["process_succeeded"] = dispatch_result["exit_code"] == 0
++            output["worker_result"] = dispatch_result.get("worker_result")
+             output["exit_code"] = dispatch_result["exit_code"]
+             output["stdout"] = dispatch_result["stdout"]
+             output["stderr"] = dispatch_result["stderr"]
+@@ -151,8 +158,26 @@ class CommandStep(StepBase):
+                 return StepResult(
+                     status=StepStatus.FAILED,
+                     output=output,
+-                    error=dispatch_result["stderr"] or f"Command exited with code {dispatch_result['exit_code']}",
++                    error=(output["worker_result"].get("diagnostic") if isinstance(output["worker_result"], dict) else None) or dispatch_result["stderr"] or f"Command exited with code {dispatch_result['exit_code']}",
+                 )
++            worker = output["worker_result"]
++            if worker is not None and (not isinstance(worker, dict) or worker.get("status") not in {"completed", "blocked", "failed"}):
++                return StepResult(status=StepStatus.FAILED, output=output, error="Worker returned an invalid structured outcome")
++            if worker and worker.get("status") != "completed":
++                return StepResult(status=StepStatus.FAILED, output=output,
++                    error=worker.get("diagnostic") or "Worker reported a blocked or failed outcome")
++            try:
++                from specify_cli.workflows.worker_result import check_artifacts
++                contract = dict(config)
++                for key in ("required_artifacts", "artifact_validator"):
++                    if key in contract:
++                        contract[key] = [evaluate_expression(value, context) for value in contract[key]]
++                output["artifacts"] = check_artifacts(contract, context.project_root)
++                output["artifact_status"] = "validated" if config.get("artifact_validator") else "presence-checked" if config.get("required_artifacts") else "not-validated"
++            except (ValueError, OSError) as error:
++                output["artifact_status"] = "failed"
++                output["artifact_diagnostic"] = str(error)
++                return StepResult(status=StepStatus.FAILED, output=output, error=str(error))
+             return StepResult(
+                 status=StepStatus.COMPLETED,
+                 output=output,
+@@ -224,12 +249,17 @@ class CommandStep(StepBase):
+                 args=args,
+                 project_root=project_root,
+                 model=model,
++                stream=False,
+             )
+         except (NotImplementedError, OSError):
+             return None
+ 
+     def validate(self, config: dict[str, Any]) -> list[str]:
+         errors = super().validate(config)
++        for field in ("required_artifacts", "artifact_validator"):
++            if field in config and (not isinstance(config[field], list) or not config[field] or
++                    any(not isinstance(value, str) or not value.strip() for value in config[field])):
++                errors.append(f"Command step: {field} must be a nonempty list of strings")
+         if "command" not in config:
+             errors.append(
+                 f"Command step {config.get('id', '?')!r} is missing 'command' field."
+diff --git a/src/specify_cli/workflows/worker_result.py b/src/specify_cli/workflows/worker_result.py
+new file mode 100644
+index 0000000..2adcf6e
+--- /dev/null
++++ b/src/specify_cli/workflows/worker_result.py
+@@ -0,0 +1,27 @@
++"""Worker outcomes are evidence; process exit is not artifact acceptance."""
++from __future__ import annotations
++import hashlib
++from pathlib import Path
++import subprocess
++
++CONTRACT_VERSION = 1
++
++
++def check_artifacts(config, project_root):
++    root = Path(project_root or '.').resolve()
++    records = []
++    for relative in config.get('required_artifacts', []):
++        path = (root / relative).resolve()
++        if not path.is_relative_to(root) or path == root:
++            raise ValueError('Required artifact escapes the workspace')
++        if not path.is_file() or not path.stat().st_size:
++            raise ValueError(f'Worker did not produce required artifact: {relative}')
++        records.append({'path': relative, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
++    validator = config.get('artifact_validator')
++    if validator:
++        from specify_cli.python_runtime import resolve_python_interpreter
++        result = subprocess.run([resolve_python_interpreter(root), *validator], cwd=root,
++            capture_output=True, encoding='utf-8', errors='replace', timeout=120, check=False)
++        if result.returncode:
++            raise ValueError(f'Worker artifact validation failed: {result.stderr or result.stdout}')
++    return records
+diff --git a/templates/commands/constitution.md b/templates/commands/constitution.md
+index 7b2f368..765dbaf 100644
+--- a/templates/commands/constitution.md
++++ b/templates/commands/constitution.md
+@@ -20,6 +20,11 @@ You **MUST** consider the user input before proceeding (if not empty).
+ 
+ ## Scope Guard
+ 
++Run the generated resolver invocation exactly as installed; it binds the validated
++Python runtime. If template resolution or a required hook fails, stop and report
++a blocked/failed outcome with its diagnostic. Process exit alone is not success.
++Do not report completion until the constitution was written and required hooks passed.
++
+ This command's own work is limited to updating the project constitution itself. Dependent templates
+ and commands read the constitution at runtime and are not modified here.
+ 
+diff --git a/tests/integrations/test_base.py b/tests/integrations/test_base.py
+index 5f99961..d462ab6 100644
+--- a/tests/integrations/test_base.py
++++ b/tests/integrations/test_base.py
+@@ -412,150 +412,61 @@ class TestResolveCommandRefs:
+ 
+ 
+ class TestResolvePythonInterpreter:
+-    def test_returns_python_on_path(self, monkeypatch):
+-        # Positive: when python3 is on PATH it is preferred over python.
+-        # Pin a POSIX platform so the Windows stub probe (tested separately
+-        # below) does not reject the fake PATH entries on Windows CI.
+-        def fake_which(name):
+-            return f"/usr/bin/{name}" if name in ("python3", "python") else None
+-
+-        monkeypatch.setattr("specify_cli.integrations.base.sys.platform", "linux")
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which", fake_which
+-        )
+-        assert IntegrationBase.resolve_python_interpreter() == "python3"
+-
+-    def test_falls_back_to_python_when_no_python3(self, monkeypatch):
+-        def fake_which(name):
+-            return "/usr/bin/python" if name == "python" else None
+-
+-        monkeypatch.setattr("specify_cli.integrations.base.sys.platform", "linux")
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which", fake_which
+-        )
+-        assert IntegrationBase.resolve_python_interpreter() == "python"
+-
+-    def test_falls_back_to_sys_executable_when_nothing_found(self, monkeypatch):
+-        # Negative: nothing on PATH and no venv -> the running interpreter
+-        # (sys.executable) is used so the command works in this environment.
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which", lambda name: None
+-        )
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.sys.executable", "/opt/py/bin/python"
+-        )
+-        assert IntegrationBase.resolve_python_interpreter() == "/opt/py/bin/python"
+-
+-    def test_falls_back_to_python3_when_no_interpreter_at_all(self, monkeypatch):
+-        # Negative edge: neither PATH nor sys.executable resolves.
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which", lambda name: None
+-        )
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.sys.executable", ""
+-        )
+-        assert IntegrationBase.resolve_python_interpreter() == "python3"
+-
+-    def test_prefers_project_venv_posix(self, monkeypatch, tmp_path):
+-        venv_python = tmp_path / ".venv" / "bin" / "python"
+-        venv_python.parent.mkdir(parents=True)
+-        venv_python.write_text("")
+-        # Even if python3 is on PATH, the project venv wins. The returned
+-        # path is relative to the project root for portability.
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which",
+-            lambda name: "/usr/bin/python3",
+-        )
+-        result = IntegrationBase.resolve_python_interpreter(tmp_path)
+-        assert result == ".venv/bin/python"
+-
+-    def test_prefers_project_venv_windows(self, monkeypatch, tmp_path):
+-        venv_python = tmp_path / ".venv" / "Scripts" / "python.exe"
+-        venv_python.parent.mkdir(parents=True)
+-        venv_python.write_text("")
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which", lambda name: None
+-        )
+-        result = IntegrationBase.resolve_python_interpreter(tmp_path)
+-        assert result == ".venv/Scripts/python.exe"
+-
+-    def test_ignores_missing_venv(self, monkeypatch, tmp_path):
+-        # Negative: no venv directory -> PATH resolution is used instead.
+-        monkeypatch.setattr("specify_cli.integrations.base.sys.platform", "linux")
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which",
+-            lambda name: "/usr/bin/python3" if name == "python3" else None,
+-        )
+-        assert IntegrationBase.resolve_python_interpreter(tmp_path) == "python3"
+-
+-    def test_windows_skips_store_alias_stub(self, monkeypatch):
+-        # On Windows, python3 on PATH may be the Microsoft Store App
+-        # Execution Alias stub: it exists but only prints an installer
+-        # hint and exits non-zero. Existence is not enough; the
+-        # interpreter must actually run (mirrors #3304 for the CLI).
+-        monkeypatch.setattr("specify_cli.integrations.base.sys.platform", "win32")
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which",
+-            lambda name: f"C:\\WindowsApps\\{name}.exe"
+-            if name in ("python3", "python")
+-            else None,
+-        )
+-        monkeypatch.setattr(
+-            IntegrationBase, "_interpreter_runs", staticmethod(lambda path: False)
+-        )
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.sys.executable", "C:\\Python\\python.exe"
+-        )
+-        result = IntegrationBase.resolve_python_interpreter()
+-        assert result == "C:\\Python\\python.exe"
+-
+-    def test_windows_keeps_working_interpreter(self, monkeypatch):
+-        # Positive: a real python3 on Windows PATH passes the run check.
+-        monkeypatch.setattr("specify_cli.integrations.base.sys.platform", "win32")
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which",
+-            lambda name: f"C:\\Python\\{name}.exe" if name == "python3" else None,
+-        )
+-        monkeypatch.setattr(
+-            IntegrationBase, "_interpreter_runs", staticmethod(lambda path: True)
+-        )
+-        assert IntegrationBase.resolve_python_interpreter() == "python3"
+-
+-    def test_windows_stub_python3_falls_through_to_working_python(self, monkeypatch):
+-        # python3 is the stub but python is a real install: pick python.
+-        monkeypatch.setattr("specify_cli.integrations.base.sys.platform", "win32")
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which",
+-            lambda name: f"C:\\somewhere\\{name}.exe"
+-            if name in ("python3", "python")
+-            else None,
+-        )
+-        monkeypatch.setattr(
+-            IntegrationBase,
+-            "_interpreter_runs",
+-            staticmethod(lambda path: path.endswith("python.exe")),
+-        )
+-        assert IntegrationBase.resolve_python_interpreter() == "python"
+-
+-    def test_posix_does_not_spawn_run_check(self, monkeypatch):
+-        # Non-Windows platforms have no App Execution Alias; existence
+-        # on PATH stays sufficient and no subprocess is spawned.
+-        monkeypatch.setattr("specify_cli.integrations.base.sys.platform", "linux")
+-        monkeypatch.setattr(
+-            "specify_cli.integrations.base.shutil.which",
+-            lambda name: "/usr/bin/python3" if name == "python3" else None,
+-        )
+-
+-        def boom(path):
+-            raise AssertionError("run check must not execute on POSIX")
+-
+-        monkeypatch.setattr(
+-            IntegrationBase, "_interpreter_runs", staticmethod(boom)
+-        )
+-        assert IntegrationBase.resolve_python_interpreter() == "python3"
++    @pytest.mark.parametrize('python3', ['unrelated-without-yaml', None])
++    def test_only_python_is_resolved_and_validated(self, monkeypatch, python3):
++        import json, subprocess
++        from specify_cli import python_runtime
++        monkeypatch.delenv('SPECKIT_PYTHON', raising=False)
++        selected = sys.executable
++        calls = []
++        def which(name):
++            calls.append(name)
++            return selected if name == 'python' else python3
++        monkeypatch.setattr(python_runtime.shutil, 'which', which)
++        monkeypatch.setattr(python_runtime.subprocess, 'run', lambda argv, **kwargs:
++            subprocess.CompletedProcess(argv, 0, json.dumps({'executable': selected, 'version': [3,13,7], 'yaml': '6.0.3'}), ''))
++        assert IntegrationBase.resolve_python_interpreter() == selected
++        assert calls == ['python']
++
++    def test_missing_python_has_no_unvalidated_fallback(self, monkeypatch):
++        from specify_cli import python_runtime
++        monkeypatch.delenv('SPECKIT_PYTHON', raising=False)
++        monkeypatch.setattr(python_runtime.shutil, 'which', lambda name: None)
++        with pytest.raises(ValueError, match='SPECKIT_PYTHON_RUNTIME'):
++            IntegrationBase.resolve_python_interpreter()
++
++    @pytest.mark.parametrize('diagnostic', ["No module named 'yaml'", 'Python >=3.11 is required'])
++    def test_dependency_and_version_errors_preserve_diagnostics(self, monkeypatch, diagnostic):
++        import subprocess
++        from specify_cli import python_runtime
++        monkeypatch.setenv('SPECKIT_PYTHON', sys.executable)
++        monkeypatch.setattr(python_runtime.subprocess, 'run', lambda argv, **kwargs:
++            subprocess.CompletedProcess(argv, 1, '', diagnostic))
++        with pytest.raises(ValueError, match=diagnostic):
++            IntegrationBase.resolve_python_interpreter()
++
++    def test_selected_runtime_is_recorded_and_mismatched_override_is_rejected(self, monkeypatch, tmp_path):
++        import json, subprocess
++        from specify_cli import python_runtime
++        selected = sys.executable
++        monkeypatch.setenv('SPECKIT_PYTHON', selected)
++        monkeypatch.setattr(python_runtime.subprocess, 'run', lambda argv, **kwargs:
++            subprocess.CompletedProcess(argv, 0, json.dumps({'executable': selected, 'version': [3,13,7], 'yaml': '6.0.3'}), ''))
++        assert IntegrationBase.resolve_python_interpreter(tmp_path) == selected
++        record = json.loads((tmp_path / '.specify/python-runtime.json').read_text())
++        assert record['executable'] == selected and record['contractVersion'] == 1
++        other = tmp_path / 'other-python'
++        other.write_text('unrelated environment')
++        monkeypatch.setenv('SPECKIT_PYTHON', str(other))
++        with pytest.raises(ValueError, match='differs from generated commands'):
++            IntegrationBase.resolve_python_interpreter(tmp_path)
+ 
+ 
+ class TestProcessTemplatePyScriptType:
++    @pytest.fixture(autouse=True)
++    def _pin_runtime(self, monkeypatch):
++        monkeypatch.setattr(IntegrationBase, 'resolve_python_interpreter', staticmethod(lambda project_root=None: 'python'))
++
+     CONTENT = (
+         "---\n"
+         "scripts:\n"
+@@ -572,10 +483,10 @@ class TestProcessTemplatePyScriptType:
+         monkeypatch.setattr("specify_cli.integrations.base.sys.platform", "linux")
+         monkeypatch.setattr(
+             "specify_cli.integrations.base.shutil.which",
+-            lambda name: "/usr/bin/python3" if name == "python3" else None,
++            lambda name: "/usr/bin/python" if name == "python" else None,
+         )
+         result = IntegrationBase.process_template(self.CONTENT, "agent", "py")
+-        assert "python3 .specify/scripts/python/check-prerequisites.py --json" in result
++        assert "python .specify/scripts/python/check-prerequisites.py --json" in result
+         # The scripts: frontmatter block is stripped.
+         assert "scripts:" not in result
+ 
+@@ -607,6 +518,7 @@ class TestProcessTemplatePyScriptType:
+         # An interpreter path containing whitespace (e.g. Windows
+         # ``Program Files``) must be quoted so it isn't split into args.
+         interpreter = r"C:\Program Files\Python\python.exe"
++        monkeypatch.setattr(IntegrationBase, "resolve_python_interpreter", staticmethod(lambda project_root=None: interpreter))
+         monkeypatch.setattr(
+             "specify_cli.integrations.base.shutil.which", lambda name: None
+         )
+@@ -627,19 +539,20 @@ class TestProcessTemplatePyScriptType:
+         # Negative: a whitespace-free interpreter is left unquoted.
+         monkeypatch.setattr(
+             "specify_cli.integrations.base.shutil.which",
+-            lambda name: "/usr/bin/python3" if name == "python3" else None,
++            lambda name: "/usr/bin/python" if name == "python" else None,
+         )
+         result = IntegrationBase.process_template(self.CONTENT, "agent", "py")
+         assert '"' not in result.split("check-prerequisites.py")[0]
+ 
+-    def test_py_uses_project_venv(self, monkeypatch, tmp_path):
++    def test_py_uses_explicitly_selected_runtime(self, monkeypatch, tmp_path):
+         venv_python = tmp_path / ".venv" / "bin" / "python"
+         venv_python.parent.mkdir(parents=True)
+         venv_python.write_text("")
++        monkeypatch.setattr(IntegrationBase, "resolve_python_interpreter", staticmethod(lambda project_root=None: str(venv_python)))
+         result = IntegrationBase.process_template(
+             self.CONTENT, "agent", "py", project_root=tmp_path
+         )
+-        assert ".venv/bin/python .specify/scripts/python/check-prerequisites.py" in result
++        assert str(venv_python) in result
+ 
+     def test_setup_py_falls_back_to_platform_shell(
+         self, monkeypatch, tmp_path
+diff --git a/tests/test_command_template_py_scripts.py b/tests/test_command_template_py_scripts.py
+index 07ef62c..317903e 100644
+--- a/tests/test_command_template_py_scripts.py
++++ b/tests/test_command_template_py_scripts.py
+@@ -41,21 +41,7 @@ PY_TEMPLATES = sorted(
+ 
+ @pytest.fixture(autouse=True)
+ def _pin_interpreter(monkeypatch):
+-    monkeypatch.setattr(
+-        "specify_cli.integrations.base.shutil.which",
+-        lambda name: "/usr/bin/python3" if name == "python3" else None,
+-    )
+-    # On Windows, ``resolve_python_interpreter`` guards the ``which`` result
+-    # with a real ``_interpreter_runs`` subprocess probe (#3304). The mocked
+-    # ``/usr/bin/python3`` path does not exist on a Windows runner, so the
+-    # probe would fail and the resolver would fall back to ``sys.executable``
+-    # (a ``...python.exe`` path), breaking the ``python3``-anchored assertion.
+-    # Pin the probe to True so the interpreter token stays ``python3`` on all
+-    # platforms.
+-    monkeypatch.setattr(
+-        "specify_cli.integrations.base.IntegrationBase._interpreter_runs",
+-        staticmethod(lambda path: True),
+-    )
++    monkeypatch.setattr(IntegrationBase, 'resolve_python_interpreter', staticmethod(lambda project_root=None: 'python'))
+ 
+ 
+ def test_py_templates_discovered():
+@@ -79,7 +65,7 @@ def test_template_renders_python_invocation(name: str):
+     result = IntegrationBase.process_template(content, "agent", "py")
+     assert "{SCRIPT}" not in result
+     assert re.search(
+-        r"python3 \.specify/scripts/python/\w+\.py(?: [\w-]+)*", result
++        r"python \.specify/scripts/python/\w+\.py(?: [\w-]+)*", result
+     ), f"{name} did not render a Python invocation"
+ 
+ 
+@@ -115,6 +101,7 @@ def test_missing_script_preference_keeps_available_shell(monkeypatch):
+ 
+ def test_spaced_python_interpreter_uses_powershell_call_operator(monkeypatch):
+     interpreter = r"C:\Program Files\Py$thon's\python.exe"
++    monkeypatch.setattr(IntegrationBase, 'resolve_python_interpreter', staticmethod(lambda project_root=None: interpreter))
+     quoted_interpreter = interpreter.replace("'", "''")
+     monkeypatch.setattr(
+         "specify_cli.integrations.base.shutil.which", lambda name: None
+@@ -138,6 +125,7 @@ def test_spaced_python_interpreter_uses_powershell_call_operator(monkeypatch):
+ 
+ def test_spaced_python_interpreter_uses_posix_shell_quoting(monkeypatch):
+     interpreter = "/opt/Python $HOME's/bin/python"
++    monkeypatch.setattr(IntegrationBase, "resolve_python_interpreter", staticmethod(lambda project_root=None: interpreter))
+     monkeypatch.setattr(
+         "specify_cli.integrations.base.shutil.which", lambda name: None
+     )
+@@ -174,6 +162,7 @@ def test_spaced_python_interpreter_invocation_runs_in_powershell(
+         )
+         interpreter.chmod(0o755)
+ 
++    monkeypatch.setattr(IntegrationBase, "resolve_python_interpreter", staticmethod(lambda project_root=None: str(interpreter)))
+     (tmp_path / "probe.py").write_text("print('ok')\n", encoding="utf-8")
+     monkeypatch.setattr(
+         "specify_cli.integrations.base.shutil.which", lambda name: None
+diff --git a/tests/test_programkit_runtime.py b/tests/test_programkit_runtime.py
+new file mode 100644
+index 0000000..a4267fb
+--- /dev/null
++++ b/tests/test_programkit_runtime.py
+@@ -0,0 +1,67 @@
++"""Core-owned regression coverage for Program Kit's interpreter/worker incident."""
++import json
++import os
++from pathlib import Path
++import shutil
++import subprocess
++from unittest.mock import patch
++
++from specify_cli.workflows.base import StepContext, StepStatus
++from specify_cli.workflows.steps.command import CommandStep
++from tests.parity_helpers import make_repo, install_scripts, install_composition_stack, py_cmd, ps_cmd, run, HAS_POWERSHELL
++
++
++def test_exit_zero_blocked_result_preserves_root_cause(tmp_path):
++    worker = {'status': 'blocked', 'diagnostic': 'PyYAML is required to resolve preset template composition.'}
++    response = {'exit_code': 0, 'stdout': 'worker evidence', 'stderr': '', 'worker_result': worker}
++    with patch.object(CommandStep, '_try_dispatch', return_value=response):
++        result = CommandStep().execute({'id': 'draft', 'command': 'constitution'}, StepContext(project_root=str(tmp_path)))
++    assert result.status == StepStatus.FAILED
++    assert result.output['process_succeeded']
++    assert result.output['worker_result'] == worker
++    assert result.error == worker['diagnostic']
++
++
++def test_exit_zero_without_artifact_is_failed(tmp_path):
++    response = {'exit_code': 0, 'stdout': '', 'stderr': '', 'worker_result': {'status': 'completed', 'diagnostic': ''}}
++    with patch.object(CommandStep, '_try_dispatch', return_value=response):
++        result = CommandStep().execute({'id': 'draft', 'command': 'constitution', 'required_artifacts': ['constitution.md']}, StepContext(project_root=str(tmp_path)))
++    assert result.status == StepStatus.FAILED
++    assert 'did not produce' in result.error
++
++
++def test_engine_persists_blocked_outcome_and_diagnostic(tmp_path):
++    from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine, RunState
++    definition = WorkflowDefinition({'workflow': {'id': 'worker-evidence', 'version': '1.0.0'},
++        'steps': [{'id': 'draft', 'type': 'command', 'command': 'constitution'}]})
++    worker = {'status': 'blocked', 'diagnostic': 'PyYAML is required for composition'}
++    response = {'exit_code': 0, 'stdout': 'unchanged original stream', 'stderr': '', 'worker_result': worker}
++    with patch.object(CommandStep, '_try_dispatch', return_value=response):
++        state = WorkflowEngine(tmp_path).execute(definition, run_id='worker-evidence')
++    saved = RunState.load(state.run_id, tmp_path)
++    assert saved.status.value == 'failed'
++    assert saved.step_results['draft']['status'] == 'failed'
++    assert saved.step_results['draft']['output']['worker_result'] == worker
++    assert saved.step_results['draft']['output']['stdout'] == 'unchanged original stream'
++    assert worker['diagnostic'] in saved.error
++
++
++def test_composition_uses_the_recorded_runtime_in_native_shells(tmp_path):
++    repo = make_repo(tmp_path)
++    install_scripts(repo, 'resolve-template')
++    expected = install_composition_stack(repo, 'constitution-template', '# Core\n')
++    import sys
++    selected = shutil.which('python') or sys.executable
++    (repo / '.specify/python-runtime.json').write_text(json.dumps({'contractVersion': 1, 'executable': selected}))
++    commands = [py_cmd(repo, 'resolve-template', 'constitution-template', '--json')]
++    if HAS_POWERSHELL:
++        commands.append(ps_cmd(repo, 'resolve-template', 'constitution-template', '-Json'))
++    bash = Path(os.environ.get('PROGRAM_KIT_BASH', 'C:/Program Files/Git/bin/bash.exe')) if os.name == 'nt' else Path(shutil.which('bash') or '/missing')
++    if bash.is_file():
++        commands.append([str(bash), str(repo / '.specify/scripts/bash/resolve-template.sh'), 'constitution-template', '--json'])
++    for argv in commands:
++        result = run(argv, repo)
++        assert result.returncode == 0, result.stderr
++        # PowerShell preserves native CRLF from fixture files; Python text
++        # reads normalize it. Compare composition content, not newline style.
++        assert json.loads(result.stdout)['TEMPLATE_CONTENT'].replace('\r\n', '\n') == expected

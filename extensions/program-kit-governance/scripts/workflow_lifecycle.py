@@ -83,9 +83,11 @@ def prepare_schema_runtimes(root: Path) -> None:
     engine and may re-enter its isolated interpreter. Their version-specific
     schema caches must both exist. Never share binary dependencies between them.
     """
-    shell_python = shutil.which('python')
-    if not shell_python:
-        raise WorkflowLifecycleError('WORKFLOW_RUNTIME_PREFLIGHT: python is unavailable on PATH')
+    from python_runtime import resolve
+    try:
+        shell_python = resolve(root)
+    except (ValueError, OSError, subprocess.SubprocessError) as error:
+        raise WorkflowLifecycleError(str(error)) from error
     scripts = root / '.specify/extensions/program-kit-governance/scripts'
     probe = ('import sys; sys.path.insert(0, sys.argv[1]); '
              'import schema_runtime; schema_runtime.activate(); '
@@ -705,6 +707,8 @@ def main() -> int:
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
         if args.command in {'run', 'resume'}:
+            from python_runtime import environment
+            dispatch_scope.enter_context(environment(root))
             from codex_worker_policy import worker_environment
             # Resume can restart after the original workflow preflight. Establish
             # the same worker policy on every invocation before history changes.
@@ -743,7 +747,8 @@ def main() -> int:
                 if state.status in {RunStatus.FAILED, RunStatus.PAUSED}:
                     from compatibility_diagnostics import sanitize
                     output = state.step_results.get(state.current_step_id, {}).get('output', {})
-                    detail = output.get('stderr') or output.get('stdout')
+                    value['worker_result'] = output.get('worker_result')
+                    detail = (output.get('worker_result') or {}).get('diagnostic') or output.get('artifact_diagnostic') or output.get('stderr') or output.get('stdout')
                     if detail:
                         value['diagnostic'] = sanitize(str(detail))[-4000:]
                     value['evidence'] = str(run_directory(root, state.run_id) / 'state.json')

@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 import shutil
+import sys
 import subprocess
 import tempfile
 from pathlib import Path
@@ -25,6 +26,7 @@ FORBIDDEN_WORKAROUND_PHRASES = (
 
 def load_module(root: Path):
     path = root / "extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py"
+    sys.path.insert(0, str(path.parent))
     spec = importlib.util.spec_from_file_location("codex_bootstrap_preflight", path)
     if spec is None or spec.loader is None:
         raise AssertionError(f"Cannot load {path}")
@@ -344,6 +346,8 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 "@echo off\n"
                 "if \"%1\"==\"--version\" exit /b 0\n"
                 "if \"%1\"==\"-c\" (\n"
+                "  echo %2 | findstr /c:sys.executable >nul && (echo %~dp0python.cmd & exit /b 0)\n"
+                "  echo %2 | findstr /c:version_info >nul && exit /b 0\n"
                 "  if exist \"%PROGRAM_KIT_TEST_PYYAML%\" exit /b 0\n"
                 "  exit /b 1\n"
                 ")\n"
@@ -385,6 +389,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 "#!/usr/bin/env sh\n"
                 "if [ \"${1:-}\" = '--version' ]; then exit 0; fi\n"
                 "if [ \"${1:-}\" = '-c' ]; then\n"
+                "  case \"${2:-}\" in *sys.executable*) printf '%s\\n' \"$0\"; exit 0;; *version_info*) exit 0;; esac\n"
                 "  [ -f \"$PROGRAM_KIT_TEST_PYYAML\" ]\n"
                 "  exit $?\n"
                 "fi\n"
@@ -695,9 +700,10 @@ def main() -> int:
                 "not from a Codex Desktop task or interactive Codex CLI agent",
                 "Program Kit is already installed",
                 "specify --version",
-                "python --version",
-                "python -m pip --version",
-                "python -m pip install --disable-pip-version-check",
+                "SPECKIT_PYTHON",
+                "sys.version_info >= (3,11)",
+                '-m pip --version',
+                '-m pip install --disable-pip-version-check',
                 "PyYAML>=6,<7",
                 "git --version",
                 "git rev-parse --is-inside-work-tree",
@@ -809,4 +815,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    from spec_kit_source_fixture import run_patched
+    code = run_patched(__file__)
+    raise SystemExit(main() if code is None else code)

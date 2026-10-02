@@ -2,6 +2,14 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_python_consistency",
+      "command": ["{python}", "tests/validate_python_consistency.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Interpreter selection, core source patch, resolver dependencies and structured artifact outcomes; fixture subprocesses only."
+    },
+    {
       "id": "validate_codex_worker_policy",
       "command": ["{python}", "tests/validate_codex_worker_policy.py"],
       "group": "development",

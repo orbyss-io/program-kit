@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -36,6 +38,45 @@ def make_source(model: dict, document: dict) -> dict:
 
 
 class AuthoringTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt', 'Windows destination DACL regression')
+    def test_staged_outputs_inherit_workspace_acl_and_preserve_existing_acl(self):
+        powershell = os.environ.get('PROGRAM_KIT_POWERSHELL_EXECUTABLE') or shutil.which('pwsh') or 'powershell.exe'
+        def acl(path):
+            # Paths travel as argv data, never interpolated into PowerShell code.
+            code = '$a=Get-Acl -LiteralPath $args[0]; @{sddl=$a.Sddl; protected=$a.AreAccessRulesProtected} | ConvertTo-Json -Compress'
+            script = self.root / 'read-acl.ps1'
+            script.write_text(code, encoding='utf-8')
+            result = json.loads(subprocess.check_output([powershell, '-NoProfile', '-File', str(script), str(path)], encoding='utf-8'))
+            # ReplaceFile may set the auto-inherited descriptor bit; this does
+            # not change any ACE or the inheritance protection policy.
+            result['sddl'] = result['sddl'].replace('D:AI', 'D:')
+            return result
+        ordinary = self.intent.parent / 'ordinary.txt'
+        ordinary.write_bytes(b'normal inherited permissions')
+        expected = acl(ordinary)
+        self.assertFalse(expected['protected'])
+        self.build()
+        outputs = [self.root / intake.CANONICAL_INTAKE,
+                   self.root / intake.CANONICAL_ARTIFACTS['architecture_map'],
+                   self.root / intake.CANONICAL_ARTIFACTS['c4_projection']]
+        for target in outputs:
+            self.assertFalse(acl(target)['protected'])
+            self.assertIn('(A;;0x12019f;;;', acl(target)['sddl'])
+        output_acls = {target: acl(target) for target in outputs}
+        # Protect only one disposable fixture file. Rebuilding must retain that
+        # deliberate DACL rather than resetting the directory or sibling files.
+        script = self.root / 'protect-acl.ps1'
+        script.write_text('$a=Get-Acl -LiteralPath $args[0]; $a.SetAccessRuleProtection($true,$true); Set-Acl -LiteralPath $args[0] -AclObject $a', encoding='utf-8')
+        subprocess.run([powershell, '-NoProfile', '-File', str(script), str(outputs[0])], check=True)
+        protected = acl(outputs[0])
+        self.assertTrue(protected['protected'])
+        self.build()
+        self.assertEqual(protected, acl(outputs[0]))
+        for target in outputs[1:]:
+            self.assertEqual(output_acls[target], acl(target))
+        self.assertEqual(expected, acl(ordinary))
+        self.assertFalse(list(self.intent.parent.glob('.*.tmp')))
+
     def test_constraint_metadata_default_does_not_invent_decision_authority(self):
         model = {'constraints': [{'id': 'one'}, {'id': 'two', 'decision_refs': ['existing-adr']}]}
         authoring.defaults(model)
@@ -414,12 +455,12 @@ class AuthoringTests(unittest.TestCase):
         targets = [self.root / relative for relative in (*intake.CANONICAL_ARTIFACTS.values(), intake.CANONICAL_INTAKE)]
         before = {path: path.read_bytes() for path in targets}
         self.source['map']['title'] = 'Changed title'
-        original = Path.replace
-        def replace(path, target):
+        original = authoring.replace_bytes
+        def replace(target, content, **kwargs):
             if str(target).endswith('workspace.dsl'):
                 raise OSError('simulated replace failure')
-            return original(path, target)
-        with patch.object(Path, 'replace', replace):
+            return original(target, content, **kwargs)
+        with patch.object(authoring, 'replace_bytes', replace):
             with self.assertRaises(OSError):
                 self.build()
         self.assertEqual(before, {path: path.read_bytes() for path in targets})

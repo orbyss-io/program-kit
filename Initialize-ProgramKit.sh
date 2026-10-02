@@ -80,25 +80,32 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   printf '  git status\n' >&2
   exit 2
 fi
-if ! command -v python >/dev/null 2>&1; then
-  printf 'ERROR: Python must be available as python because Program Kit uses the Python Spec Kit runtime.\n' >&2
+if [[ -z "${SPECKIT_PYTHON:-}" ]]; then
+  if ! command -v python >/dev/null 2>&1; then
+    printf 'ERROR: Python must be available as python because Program Kit uses the Python Spec Kit runtime.\n' >&2
+    exit 2
+  fi
+  if ! SPECKIT_PYTHON="$(python -c 'import sys; print(sys.executable)')"; then
+    printf 'ERROR: Cannot resolve the Python interpreter.\n' >&2
+    exit 2
+  fi
+fi
+export SPECKIT_PYTHON
+if ! "$SPECKIT_PYTHON" -c 'import sys; assert sys.version_info >= (3,11)' >/dev/null 2>&1; then
+  printf 'ERROR: The selected Python interpreter must support Python >=3.11.\n' >&2
   exit 2
 fi
-if ! python --version >/dev/null 2>&1; then
-  printf 'ERROR: The python command was found but could not execute successfully. Repair Python and rerun the initializer.\n' >&2
-  exit 2
-fi
-if ! python -c 'import yaml' >/dev/null 2>&1; then
-  if ! python -m pip --version >/dev/null 2>&1; then
+if ! "$SPECKIT_PYTHON" -c 'import yaml' >/dev/null 2>&1; then
+  if ! "$SPECKIT_PYTHON" -m pip --version >/dev/null 2>&1; then
     printf 'ERROR: PyYAML is missing and python -m pip is unavailable. Install pip for this Python interpreter, then install PyYAML>=6,<7 and rerun the initializer.\n' >&2
     exit 2
   fi
   printf 'Installing the PyYAML dependency required by the Spec Kit Python resolver...\n'
-  if ! python -m pip install --disable-pip-version-check 'PyYAML>=6,<7'; then
+  if ! "$SPECKIT_PYTHON" -m pip install --disable-pip-version-check 'PyYAML>=6,<7'; then
     printf 'ERROR: PyYAML could not be installed for the python command. Install PyYAML>=6,<7 for that interpreter and rerun the initializer.\n' >&2
     exit 2
   fi
-  if ! python -c 'import yaml' >/dev/null 2>&1; then
+  if ! "$SPECKIT_PYTHON" -c 'import yaml' >/dev/null 2>&1; then
     printf 'ERROR: PyYAML is still unavailable to the python command after installation.\n' >&2
     exit 2
   fi
@@ -125,9 +132,9 @@ specify workflow add program-kit-bootstrap
 
 printf '[7/8] Installing Program Kit...\n'
 specify bundle install program-kit --integration "$program_kit_integration"
-python .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target .
-python .specify/extensions/program-kit-governance/scripts/schema_runtime.py setup
-python .specify/extensions/program-kit-governance/scripts/schema_runtime.py record-copy
+"$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target .
+"$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/schema_runtime.py setup
+"$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/schema_runtime.py record-copy
 
 printf '[8/8] Switching Program Kit catalogs to the update channel...\n'
 specify extension catalog remove program-kit
