@@ -105,9 +105,9 @@ class DefaultAndHandoffTests(unittest.TestCase):
         self.assertEqual('provider', handoff.check(self.root, 'trial', 'architecture')['outstanding'][0]['id'])
         self.assertEqual('complete', handoff.check(self.root, 'trial', 'research', questions_only=True)['status'])
 
-    def design_fixture(self):
+    def design_fixture(self, due_stage='architecture'):
         question = {'id': 'design-boundary', 'question': 'Realize the context, contracts and UI placement',
-                    'blocks': 'tooling', 'required_now': True, 'kind': 'artifact-conflict', 'owner': 'architecture', 'due_stage': 'architecture'}
+                    'blocks': 'tooling', 'required_now': True, 'kind': 'artifact-conflict', 'owner': 'architecture', 'due_stage': due_stage}
         self.register['unresolved'] = [question]
         write(self.root / handoff.REGISTER, self.register)
         relative = 'docs/architecture/decisions/household.md'
@@ -147,6 +147,21 @@ class DefaultAndHandoffTests(unittest.TestCase):
         self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'tooling')['status'])
         write(self.root / 'docs/architecture/architecture-map.json', {'decisions': []})
         self.assertEqual('needs-design-decision', handoff.check(self.root, 'trial', 'tooling')['status'])
+
+    def test_stale_adr_due_at_roadmap_returns_to_architecture(self):
+        question, path, model = self.design_fixture(due_stage='roadmap')
+        path.write_bytes(path.read_bytes() + b'Clarified scope without registration\n')
+        self.assertEqual([], handoff.projection(self.root, 'trial')[0]['resolution_evidence'])
+        with self.assertRaisesRegex(ValueError, 'needs-design-decision'):
+            handoff.require(self.root, 'trial', 'closure', questions_only=True)
+        report = handoff.load(self.directory / 'handoff-closure.json')
+        self.assertEqual('architecture', report['retry_stage'])
+        self.assertEqual('architecture', handoff.retry_stage(self.root, 'trial', 'closure', completing=True))
+        import hashlib
+        model['decisions'][0]['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+        write(self.root / 'docs/architecture/architecture-map.json', model)
+        self.assertEqual('complete', handoff.require(self.root, 'trial', 'closure', questions_only=True)['status'])
+        self.assertIsNone(handoff.retry_stage(self.root, 'trial', 'closure', completing=True))
 
     def test_design_failure_does_not_request_user_answer_and_retries_owner(self):
         question, path, model = self.design_fixture()

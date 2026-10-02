@@ -222,6 +222,33 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
     return blockers
 
 
+def current_compatibility_evidence(root: Path, records: list[dict], item: dict, recipe: str | None = None):
+    """Admit only the latest native attempt, with all current bindings intact."""
+    parent = root / '.specify/governance/compatibility' / item['id']
+    attempts = sorted((p for p in parent.glob('attempt-*') if p.is_dir()),
+                      key=lambda p: (p.stat().st_mtime_ns, p.name), reverse=True)
+    if not attempts or not (attempts[0] / 'proof.json').is_file():
+        return None
+    receipt = attempts[0] / 'proof.json'
+    evidence = {'path': receipt.relative_to(root).as_posix(), 'sha256': digest(receipt), 'kind': 'compatibility'}
+    overlay = load(root / LEDGER)
+    overlay['prerequisites'] = [{**i, 'status': 'closed', 'evidence': [evidence]}
+                               if i['id'] == item['id'] else i for i in overlay['prerequisites']]
+    try:
+        validate_prerequisites(root, records, _ledger=overlay)
+        if recipe is not None:
+            recipe_path, contract_path, contract, names = validate_recipe(root, item['id'], recipe)
+            proof = load(receipt)
+            inputs = [recipe_path, contract_path] + [local(root, p) for p in contract.get('fixtures', {}).values()]
+            required = {(p.relative_to(root).as_posix(), digest(p)) for p in inputs}
+            if (not required <= {(p['path'], p['sha256']) for p in proof['inputs']}
+                    or proof['checks'] != names):
+                return None
+    except (ValueError, OSError, KeyError, TypeError):
+        return None
+    return evidence
+
+
 def satisfied_feature_proofs(root: Path, records: list[dict], items: list[dict]) -> set[str]:
     """Read current native receipts without rewriting the approved bootstrap ledger.
 
@@ -232,21 +259,8 @@ def satisfied_feature_proofs(root: Path, records: list[dict], items: list[dict])
     for item in items:
         if item['disposition'] != 'feature' or verification_kind(item) != 'compatibility' or item['status'] == 'closed':
             continue
-        parent = root / '.specify/governance/compatibility' / item['id']
-        attempts = sorted((p for p in parent.glob('attempt-*') if p.is_dir()),
-                          key=lambda p: (p.stat().st_mtime_ns, p.name), reverse=True)
-        if not attempts or not (attempts[0] / 'proof.json').is_file():
-            continue
-        receipt = attempts[0] / 'proof.json'
-        overlay = load(root / LEDGER)
-        overlay['prerequisites'] = [{**i, 'status': 'closed', 'evidence': [{
-            'path': receipt.relative_to(root).as_posix(), 'sha256': digest(receipt), 'kind': 'compatibility'}]}
-            if i['id'] == item['id'] else i for i in overlay['prerequisites']]
-        try:
-            validate_prerequisites(root, records, _ledger=overlay)
-        except (ValueError, OSError):
-            continue
-        satisfied.add(item['id'])
+        if current_compatibility_evidence(root, records, item):
+            satisfied.add(item['id'])
     return satisfied
 
 

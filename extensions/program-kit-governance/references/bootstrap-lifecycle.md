@@ -122,6 +122,12 @@ its bound recipe and both stream hashes. A recipe must contain the exact version
 and observable compatibility assertions; structural/Draft resolution tests or business fixtures
 alone are insufficient. Receipts prove what the recipe executed, not untested feature behavior.
 Accepted ADR metadata alone never counts as executed compatibility proof.
+For architecture-disposition conditions, the aggregate `bootstrap_proof_plan.py` executor can
+attach the latest passing standalone native receipt for its exact planned recipe without
+rerunning it. It preserves Active/Delivered status and promotes only Blocked/Candidate entries.
+After bootstrap completion, use the explicit reviewed post-bootstrap continuation in
+`workflow-resumption.md` to close the ledger and reconcile roadmap wording/byte budgets.
+Do not hand-close the approved ledger, relabel the obligation, or refresh approval hashes.
 Receipts also bind the current decision register and selected composition/pins, normalizing only
 selection approval metadata. Changed package selection requires fresh compatibility evidence.
 

@@ -404,9 +404,15 @@ def validate_intake(
         module = _load_intake_module()
         # A continuation owns fresh context but retains the original confirmed
         # intake. Require recorded lineage; never invent or rewrite child inputs.
-        inputs = load_json(safe_run_directory(project_root, run_id) / 'inputs.json').get('inputs', {})
-        source_run = inputs.get('source_run')
-        if source_run:
+        visited = set()
+        while True:
+            if run_id in visited:
+                raise ContextError('Readiness context requires acyclic continuation lineage')
+            visited.add(run_id)
+            inputs = load_json(safe_run_directory(project_root, run_id) / 'inputs.json').get('inputs', {})
+            source_run = inputs.get('source_run')
+            if not source_run:
+                break
             source = safe_run_directory(project_root, source_run)
             mapping = load_json(project_root / '.specify/workflows/resumptions' / f'{source_run}.json')
             if (mapping.get('continuation_run') != run_id or source_run == run_id
@@ -1315,6 +1321,11 @@ def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> d
             "target_exceeded": size > target,
         })
     if problems:
+        if any(problem.startswith(f'Required {stage} output is missing:') for problem in problems):
+            problems.append('PROGRAM_KIT_WORKER_ARTIFACT_CONTRACT: A dispatched worker exit code 0 '
+                            'does not prove artifact creation. Inspect the producer output, effective sandbox and write errors; '
+                            'Codex artifact-writing workers require --sandbox workspace-write. Resume the stopped '
+                            'run through workflow_lifecycle.py after resolving the producer blocker; preserve run history and human review gates.')
         raise ContextError('\n'.join(problems))
     if stage in {"assessment", "research"}:
         try:
@@ -1676,14 +1687,14 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     payload['stage_plan']['registry_sha256'] = sha256_file(Path(__file__).with_name('bootstrap_stages.py'))
     payload['stage_plan']['question_transport'] = {
         'command': 'python .specify/extensions/program-kit-governance/scripts/bootstrap_handoff.py ask --run-id ' + run_id + ' --stage ' + stage,
-        'arguments': ['--question-id', '--question', '--owner', '--recommendation', '--kind'],
-        'rule': 'user-answer = intent; design-decision = missing knowledge; artifact-conflict = inconsistent artifacts. Use --required-now only if a valid baseline cannot be produced without the answer. Use supplied provider sources. Carry ordinary unknowns with bootstrap_handoff.py defer before review; never invent answers or ask consumers for kit metadata.',
+        'arguments': ['--question-id', '--question', '--owner', '--recommendation', '--kind', '--repair-stage'],
+        'rule': 'user-answer = intent; design-decision = missing knowledge; artifact-conflict = inconsistent artifacts. Set --repair-stage to the producer stage when it differs from the due stage. Use --required-now only if a valid baseline cannot be produced without the answer. Use supplied provider sources. Carry ordinary unknowns with bootstrap_handoff.py defer before review; never invent answers or ask consumers for kit metadata.',
     }
     payload['stage_plan']['decision_handoff'] = __import__('bootstrap_handoff').projection(project_root, run_id)
     if stage == 'closure':
         payload['stage_plan']['first_feature_handoff'] = __import__('bootstrap_handoff').first_feature(project_root)
-    if any(q.get('kind') == 'design-decision' for q in payload['stage_plan']['decision_handoff']):
-        payload['stage_plan']['design_resolution'] = 'Resolve what evidence permits; otherwise carry the exact question into the prerequisite ledger before final review using bootstrap_handoff.py defer --run-id <run> --question-id <id> --entry <roadmap-id> --phase specification|planning|implementation|delivery|production --rationale <reason>. Do not invent answers. Artifact conflicts must be corrected. Before assessment approval, record resolution in the register. After approval, preserve the register: explain the design in an existing Proposed ADR, insert the exact resolution_marker from decision_handoff as a metadata line, and refresh that ADR hash in the canonical map. This closes design authoring only, not human acceptance or compatibility proof. User answers cannot close design work.'
+    if any(q.get('kind') in {'design-decision', 'artifact-conflict'} for q in payload['stage_plan']['decision_handoff']):
+        payload['stage_plan']['design_resolution'] = 'Correct artifact conflicts before review. Resolve design questions where evidence permits; otherwise carry the exact design question into the prerequisite ledger before final review using bootstrap_handoff.py defer --run-id <run> --question-id <id> --entry <roadmap-id> --phase specification|planning|implementation|delivery|production --rationale <reason>. Do not invent answers or defer artifact conflicts. Before assessment approval, record resolution in the register. After approval, preserve the register: explain the correction or design in an existing Proposed ADR, insert the exact resolution_marker from decision_handoff as a metadata line, and refresh that ADR SHA-256 in the canonical architecture-map decision catalog before validating or continuing. This closes design authoring only, not human acceptance or compatibility proof. User answers cannot close design work.'
     first_ids = set(decisions.get('first_slice', {}).get('journey_ids', []))
     if first_ids and stage != 'assessment':
         projection = payload['intake']
@@ -1822,8 +1833,11 @@ def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
                                     + destination.relative_to(project_root).as_posix(),
         "validate_command": "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
                             f"validate-stage --stage architecture --run-id {run_id} --json",
-        "resume_after_validation": f"specify workflow resume {run_id}",
-        "boundary": "Run the installed architecture skill in a user-owned session, review its new Proposed decisions, then validate before resuming. Resume alone only retries the validator. Only the derived DSL and context were refreshed; no confirmed intake, canonical map, workflow state or approval was changed.",
+        "retry_command": "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py "
+                         f"resume --run-id {run_id}",
+        "resume_after_validation": "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py "
+                                   f"resume --run-id {run_id}",
+        "boundary": "Only the derived DSL and context were refreshed; no confirmed intake, canonical map, workflow state or approval was changed. From a normal user-owned terminal, retry_command reruns the architecture producer with the lifecycle worker policy and retains downstream validation and human review gates. A zero dispatch exit is not architecture completion. Do not run a separate producer and then this command: that would dispatch it twice. Raw Spec Kit resume only retries the failed validator and bypasses the lifecycle worker policy.",
     }
     manifest = run / "architecture-recovery" / (sha256_bytes(compact_json(result).encode()) + ".json")
     manifest.write_text(compact_json(result), encoding="utf-8")

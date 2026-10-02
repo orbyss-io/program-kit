@@ -2,6 +2,14 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_codex_worker_policy",
+      "command": ["{python}", "tests/validate_codex_worker_policy.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Explicit scoped Codex workspace writes and early diagnostics; fixture subprocesses only, no coding agents."
+    },
+    {
       "id": "validate_codex_bootstrap",
       "command": [
         "{python}",
@@ -684,6 +692,14 @@
       "purpose": "Native shell proof-stage regressions; real Python probes, no coding agent."
     },
     {
+      "id": "validate_post_bootstrap_continuation",
+      "command": ["{python}", "tests/validate_post_bootstrap_continuation.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Completed-bootstrap review, evidence preservation and Active lifecycle regressions; mocked dispatch, no coding agents."
+    },
+    {
       "id": "validate_workflow_resumption",
       "command": [
         "{python}",
@@ -780,6 +796,20 @@
         "Linux"
       ],
       "purpose": "Generated contract schemas contract validation."
+    },
+    {
+      "id": "validate_governance_config",
+      "command": [
+        "{python}",
+        "tests/validate_governance_config.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Shipped governance configuration and malformed input without PyYAML."
     },
     {
       "id": "validate_governance_state",

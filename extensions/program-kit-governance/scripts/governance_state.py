@@ -198,10 +198,14 @@ def _parse_simple_yaml(path: Path) -> dict[str, object]:
         if not line:
             continue
         top = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*):\s*", line)
+        top_scalar = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*):[ \t]+(.+)", line)
         nested = re.fullmatch(r"  ([A-Za-z][A-Za-z0-9_-]*):\s*(.+)", line)
         if top:
             current = {}
             result[top.group(1)] = current
+        elif top_scalar:
+            result[top_scalar.group(1)] = _parse_scalar(top_scalar.group(2))
+            current = None
         elif nested and current is not None:
             current[nested.group(1)] = _parse_scalar(nested.group(2))
         else:
@@ -1999,6 +2003,7 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> li
                 + ", ".join(unresolved)
             )
     validate_roadmap_architecture_scope(records)
+    validate_roadmap_decision_sources()
     if verify_delivery and any(record['Status'] == 'Delivered' for record in records):
         from specification_intake import spec_entries
         from phase_obligations import check as check_phase
@@ -2020,6 +2025,21 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> li
     if require_ready and not any(record["Status"] == "Ready" for record in records):
         raise GovernanceStateError("Specification roadmap contains no Ready entry")
     return records
+
+
+def validate_roadmap_decision_sources() -> None:
+    """A roadmap cannot rely on an ADR whose registered bytes have changed."""
+    map_path = project_path(ARCHITECTURE_MAP)
+    if not map_path.is_file():
+        return
+    decisions_root = project_path(Path('docs/architecture/decisions'))
+    for decision in read_json(map_path).get('decisions', []):
+        if not isinstance(decision, dict) or not isinstance(decision.get('path'), str) or not isinstance(decision.get('sha256'), str):
+            raise GovernanceStateError('Architecture decision catalog has an invalid registration')
+        relative = Path(decision['path'])
+        path = project_path(relative)
+        if relative.is_absolute() or not path.is_relative_to(decisions_root) or not path.is_file() or sha256(path) != decision['sha256']:
+            raise GovernanceStateError(f"Architecture decision is missing or stale: {decision['path']}")
 
 
 def validate_roadmap_architecture_scope(records: list[dict]) -> None:

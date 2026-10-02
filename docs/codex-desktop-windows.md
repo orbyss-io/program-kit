@@ -76,7 +76,7 @@ Use a normal terminal owned by the human account:
    execution.
 4. Run `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run ...` there.
 5. Let Spec Kit launch its `codex exec` workflow workers. Those workers remain sandboxed.
-6. Run each human-reviewed `specify workflow resume ...` command from the same normal shell.
+6. Run each human-reviewed `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <id> ...` command from the same normal shell.
 7. Use Codex Desktop afterward for ordinary repository work and the installed skills.
 
 Example outer command:
@@ -90,7 +90,41 @@ skill always emits this as one physical line that can be pasted into any normal 
 Developers who review the complete result after the run can explicitly add
 `--input auto_approve_and_ratify=true`. This bypasses all three pauses but still writes and validates
 their review packets and marks the resulting governance evidence as automatic. The option defaults
-to `false`; without it, run each human-reviewed `specify workflow resume ...` command as usual.
+to `false`; without it, resume through `workflow_lifecycle.py` with the verdict for the current gate.
+
+## Explicit worker write access
+
+The lifecycle entry point selects `--sandbox workspace-write` for its Codex workers on every
+`run` and `resume`, including a resume after the initial workflow preflight. It supplies the
+installed Spec Kit adapter's arguments only for that invocation and restores the caller's
+environment afterward. It does not edit `.codex/config.toml`, project trust, or user settings.
+Model, profile, reasoning and output options are retained; conflicting permissions, alternate
+working roots and unsupported extra arguments stop before dispatch.
+
+On native Windows, a model-free `codex sandbox` probe uses the adapter-selected executable and
+profile to verify writes in the repository root, `docs/architecture`, `.specify/memory` and
+`.specify/governance`. It removes only its own probe files and empty directories it created.
+Each invocation records adapter argv and probe results in
+`.specify/workflows/worker-preflights/`. These results prove probe writes, not completion of a
+later worker turn. The artifact and semantic validators still decide stage acceptance.
+
+`PROGRAM_KIT_CODEX_WORKSPACE_WRITE` means write access could not be established or the adapter's
+argv contract is unsupported. Inspect the preserved diagnostic for Codex configuration,
+managed requirements, or an actual artifact-directory permission failure. Update Codex if its
+native sandbox command is unsupported; consult the policy administrator if workspace writes
+are prohibited. Keep the sandbox enabled. A direct raw Spec Kit launch cannot inherit Program
+Kit's invocation scope; use the lifecycle entry point for bootstrap and resumption.
+
+Codex documents that `exec` defaults to read-only and recommends explicit workspace-write for
+editing automation. Trust controls whether project config is loaded; trusting a repository
+does not select the required dispatch mode. See [non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode)
+and [configuration precedence](https://learn.chatgpt.com/docs/config-file/config-basic).
+
+For a fresh native Windows control from a normal user-owned terminal, run
+`scripts/Probe-CodexWorkerPermissions.ps1` in this source repository. It initializes a disposable
+Git/Spec Kit repository, captures actual adapter argv and redacted Codex diagnostics, and compares
+read-only and workspace-write sandbox writes. It starts no coding agent or bootstrap workflow.
+It is a permission control, not a new model-driven bootstrap acceptance run.
 
 Codex workflow workers require the repository root to be in a Git work tree. If an older Program
 Kit initializer was used in a directory without Git, repair it from the repository root before

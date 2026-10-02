@@ -1,6 +1,26 @@
 # Changelog
 
-## 0.12.1 - Unreleased
+## 0.12.2 - 2026-10-02
+
+- Select workspace-write explicitly for Codex bootstrap workers in each human-owned
+  lifecycle run/resume. Verify the installed adapter argv and native Windows artifact
+  directory writes before dispatch; preserve config, run history and review gates.
+- Accept the shipped governance configuration's top-level `schema_version` scalar when
+  PyYAML is unavailable. Keep malformed mapping-only configurations invalid and cover
+  installation validation in an isolated Python interpreter.
+- Require roadmap ADR registrations to contain current file hashes, surface artifact-conflict
+  repair guidance, and route a stale ADR resolution back to architecture rather than its
+  later due gate. Existing run history and human review gates remain intact.
+- Admit matching standalone native compatibility receipts without resetting Active or
+  Delivered roadmap state. Reject stale, changed or incomplete proof evidence.
+- Continue a completed bootstrap through explicit post-bootstrap recovery with archived
+  authority, protected intake and Accepted ADRs, renewed native proofs and fresh human review.
+- Stop Release validation early when concurrent source edits invalidate its candidate;
+  retain the journal and the clean-source receipt gate.
+- Advance all Program Kit installable components together. Published runtime component
+  pins remain unchanged.
+
+## 0.12.1 - 2026-09-25
 
 - Keep intake confirmation authority in bootstrap-intake.json instead of duplicating mutable
   draft/confirmed wording in hash-bound intent prose. Reject duplicated state labels in new drafts

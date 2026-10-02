@@ -18,6 +18,40 @@ are preserved. Changed authority goes through correction and review; readiness, 
 completion execute as native steps. Already recovered valid authority can be reused.
 Semantic user rejection is never converted into technical recovery.
 
+A completed bootstrap can explicitly enter bounded post-bootstrap maintenance from the
+human-owned terminal:
+
+```text
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <completed-source-id> --post-bootstrap
+```
+
+Plain resume of a completed run retains its existing meaning. The explicit flag verifies
+the bound completed engine, constitution, approval and original readiness evidence. It
+preserves the source run, completion, approval and current artifacts in content-addressed
+recovery storage before correction. Confirmed intake, assessment, ratification and existing
+Accepted ADRs remain protected. Current architecture/roadmap evolution is proposed authority;
+the review discloses every changed artifact against the previous approved bundle, including
+changes predating preparation. It always requires fresh human approval, even with no changes.
+
+This path admits current passing architecture compatibility receipts into the existing ledger
+and repairs authored roadmap sizing through review. Ready/Active/Delivered entries keep their
+status; a before-implementation condition gates source work. The proof step validates the latest
+attempt against the exact planned recipe, contract, runtime fixtures, selected design/pins,
+toolkit, named executed tests and both streams. It never revives an older success after a
+newer failed or incomplete attempt. Changed tooling or execution inputs require renewed native
+proofs; historical receipts are retained. Accepted-input renewal is allowed only in the matching
+running native continuation proof step, with unchanged decision/pin authority.
+
+For preparation without worker dispatch, use
+`bootstrap_recovery.py prepare --run-id <completed-source-id> --post-bootstrap`.
+After maintained correction, synchronization and review have passed, the human-owned terminal
+may combine `--post-bootstrap --reuse-prepared-recovery` on the initial resume to avoid repeating
+correction authoring. Neither preparation nor reuse approves the review. Resume the linked
+continuation normally at its actual human gate. A new approval explicitly supersedes the mutable
+bundle and records the previous approval hash; it never edits the archived approval or completion.
+New completion must bind the linked engine's own successful terminal outcome. Preserve existing
+feature plans and code; this maintenance flow does not implement a feature.
+
 When a maintainer has already prepared and validated the exact recovery review,
 `resume --run-id <original-id> --reuse-prepared-recovery` creates the continuation
 without repeating its correction-authoring agent. Admission verifies the preserved

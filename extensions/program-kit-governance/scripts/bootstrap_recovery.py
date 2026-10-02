@@ -56,10 +56,12 @@ def manifest(root: Path, run_id: str) -> tuple[Path, dict]:
     return directory, value
 
 
-def prepare(root: Path, run_id: str) -> dict:
+def prepare(root: Path, run_id: str, *, post_bootstrap: bool = False) -> dict:
     directory = location(root, run_id)
     if directory.exists():
-        manifest(root, run_id)
+        _, saved = manifest(root, run_id)
+        if post_bootstrap and saved.get('post_bootstrap') is not True:
+            raise lifecycle.LifecycleError('Existing recovery is not a post-bootstrap continuation')
         return {'handoff': (directory / 'handoff.md').relative_to(root).as_posix(), 'preserved': True}
     run = root / '.specify/workflows/runs' / run_id
     state = lifecycle.load(run / 'state.json')
@@ -67,7 +69,20 @@ def prepare(root: Path, run_id: str) -> dict:
         raise lifecycle.LifecycleError('Recovery requires the exact program-kit-bootstrap run')
     results = state.get('step_results', {})
     step = state.get('current_step_id')
-    if state.get('status') == 'aborted':
+    if post_bootstrap:
+        if state.get('status') != 'completed':
+            raise lifecycle.LifecycleError('Post-bootstrap continuation requires a completed source run')
+        import workflow_lifecycle
+        workflow_lifecycle.validate_engine_completion(root)
+        completion = lifecycle.load(root / governance.BOOTSTRAP_COMPLETION)
+        if (completion.get('status') != 'Completed' or completion.get('workflow', {}).get('run_id') != run_id
+                or completion.get('constitution_sha256') != lifecycle.digest(root / governance.CONSTITUTION)
+                or completion.get('bootstrap_approval_sha256') != lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)
+                or completion.get('readiness_report', {}).get('path') != governance.READINESS_REPORT.as_posix()
+                or completion.get('readiness_report', {}).get('sha256') != lifecycle.digest(root / governance.READINESS_REPORT)):
+            raise lifecycle.LifecycleError('Post-bootstrap continuation requires intact bound completion evidence')
+        governance.validate_setup_authority()
+    elif state.get('status') == 'aborted':
         failure = results.get('complete-bootstrap', {}).get('output', {})
         gate = results.get('confirm-completion-failure', {}).get('output', {})
         if (step != 'confirm-completion-failure' or failure.get('exit_code') in {None, 0}
@@ -75,23 +90,30 @@ def prepare(root: Path, run_id: str) -> dict:
             raise lifecycle.LifecycleError('This abort is not the technical abort-only completion failure; semantic rejection is not recoverable through this command')
     elif state.get('status') != 'failed' or step not in {'readiness', 'require-readiness', 'validate-readiness-output', 'complete-bootstrap'}:
         raise lifecycle.LifecycleError('Recovery requires a terminal failure after bootstrap approval')
-    if (root / governance.BOOTSTRAP_COMPLETION).exists():
+    if not post_bootstrap and (root / governance.BOOTSTRAP_COMPLETION).exists():
         raise lifecycle.LifecycleError('Bootstrap already has completion evidence')
     governance.validate_assessment_approval()
     governance.validate_ratification()
     approval = lifecycle.load(root / governance.BOOTSTRAP_APPROVAL)
     if approval.get('status') != 'Approved' or approval.get('gate_verdict') != 'approve':
         raise lifecycle.LifecycleError('No existing human bootstrap approval to preserve')
-    verify_hashes(root, approval['artifacts'])
+    if post_bootstrap:
+        # Current feature/roadmap evolution is proposed authority, not an implied
+        # amendment to the old approval. The new packet exposes all that drift.
+        verify_hashes(root, {d['path']: d['sha256'] for d in approval['accepted_founding_adrs']})
+    else:
+        verify_hashes(root, approval['artifacts'])
     governance.founding_adr_records('Accepted')
-    protected_paths = {*governance.ASSESSMENT_ARTIFACTS, governance.CONSTITUTION, governance.RATIFICATION}
+    protected_paths = {*governance.ASSESSMENT_ARTIFACTS, governance.CONSTITUTION, governance.RATIFICATION,
+                       governance.ASSESSMENT_APPROVAL, governance.BOOTSTRAP_INTAKE}
     model = lifecycle.load(root / governance.ARCHITECTURE_MAP)
     protected_paths.update(Path(d['path']) for d in model['decisions'] if d['status'] == 'Accepted')
     protected = {p.as_posix(): lifecycle.digest(root / p) for p in protected_paths}
     run_files = {p.relative_to(root).as_posix(): lifecycle.digest(p) for p in run.rglob('*') if p.is_file()}
-    original = {**approval['artifacts'], **protected, **run_files,
+    preserved_bundle = basis() if post_bootstrap else approval['artifacts']
+    original = {**preserved_bundle, **protected, **run_files,
                 governance.BOOTSTRAP_APPROVAL.as_posix(): lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)}
-    for relative in (governance.READINESS_REPORT, lifecycle.RESULT):
+    for relative in (governance.READINESS_REPORT, lifecycle.RESULT, governance.BOOTSTRAP_COMPLETION):
         if (root / relative).is_file():
             original[relative.as_posix()] = lifecycle.digest(root / relative)
     destination_directory = directory
@@ -109,6 +131,9 @@ def prepare(root: Path, run_id: str) -> dict:
     value = {'schema_version': '1.0', 'run_id': run_id, 'original': original,
              'protected': protected, 'run_files': run_files,
              'diagnosis': 'Technical readiness/completion failure after approval; abort-only choice is not semantic rejection.'}
+    if post_bootstrap:
+        value.update(post_bootstrap=True,
+                     diagnosis='Explicit post-bootstrap review of evolved architecture and current compatibility evidence.')
     handoff = directory / 'handoff.md'
     handoff.write_text(f'''# Accepted bootstrap recovery: {run_id}
 
@@ -118,7 +143,10 @@ Do not edit the original workflow run or restart intake/bootstrap. Mechanical ch
 The workflow continuation invokes `speckit.program-kit-governance.bootstrap-recovery` with this handoff.
 The architecture owner runs bootstrap-closure against the existing artifacts and exact first slice;
 dispositions are reviewed, provider proof is executed in isolation, and affected roadmap entries remain
-Blocked until the prerequisite closes. Add follow-on decisions instead of rewriting Accepted ADRs.
+at their current lifecycle status. Before-implementation conditions block source work, not Active status.
+Add follow-on decisions instead of rewriting Accepted ADRs. Compact over-budget authored roadmap prose
+without changing its approved first slice, IDs, statuses or retained obligations; the renewed review
+must disclose every architecture change since the previous approval, including earlier feature evolution.
 Do not edit the ratified constitution. A necessary constitutional change uses its governed amendment
 procedure separately; this bounded recovery deliberately refuses changed ratification authority.
 
@@ -161,7 +189,7 @@ def synchronize(root: Path, run_id: str) -> dict:
 @pending_review
 def review(root: Path, run_id: str) -> dict:
     directory, saved = manifest(root, run_id)
-    governance.validate_bootstrap(False, True)
+    governance.validate_bootstrap(False, not saved.get('post_bootstrap', False))
     governance.lifecycle_call('validate_prerequisites', governance.roadmap_records(root / governance.ROADMAP), required=True)
     governance.founding_adr_records('Accepted')
     if not (root / lifecycle.SCOPE).is_file():
@@ -172,10 +200,11 @@ def review(root: Path, run_id: str) -> dict:
         bootstrap_context.validate_stage_output(root, stage, run_id)
     bootstrap_context.validate_architecture_structure(root, run_id, allow_accepted=True)
     current = basis()
-    changed = {p: {'before': saved['original'].get(p), 'after': h}
-               for p, h in current.items() if saved['original'].get(p) != h}
     original_approval = directory / 'original' / saved['original'][governance.BOOTSTRAP_APPROVAL.as_posix()]
-    removed = {p: h for p, h in lifecycle.load(original_approval)['artifacts'].items()
+    previous = lifecycle.load(original_approval)['artifacts']
+    changed = {p: {'before': previous.get(p), 'after': h}
+               for p, h in current.items() if previous.get(p) != h}
+    removed = {p: h for p, h in previous.items()
                if p not in current}
     approval_hash = lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)
     receipt = {'artifacts': current, 'bootstrap_approval_sha256': approval_hash,
@@ -198,12 +227,12 @@ def review(root: Path, run_id: str) -> dict:
 def accept(root: Path, run_id: str, verdict: str) -> dict:
     if verdict != 'approve':
         raise lifecycle.LifecycleError('Recovery acceptance requires the exact approve verdict')
-    directory, _ = manifest(root, run_id)
+    directory, saved = manifest(root, run_id)
     reviewed = lifecycle.load(directory / 'review.json')
     if (reviewed['artifacts'] != basis() or reviewed['packet_sha256'] != lifecycle.digest(directory / 'review.md')
             or reviewed['bootstrap_approval_sha256'] != lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)):
         raise lifecycle.LifecycleError('Recovery review is stale; regenerate the packet and review again')
-    governance.validate_bootstrap(False, True)
+    governance.validate_bootstrap(False, not saved.get('post_bootstrap', False))
     model = lifecycle.load(root / governance.ARCHITECTURE_MAP)
     scope = governance.lifecycle_call('acceptance_scope', model)
     records = [{'candidate_id': d['id'], 'path': d['path'], 'sha256': lifecycle.digest(root / d['path'])}
@@ -221,7 +250,7 @@ def accept(root: Path, run_id: str, verdict: str) -> dict:
                 if result.returncode:
                     raise lifecycle.LifecycleError(f'Selection acceptance failed: {result.stderr or result.stdout}')
         governance.synchronize_lifecycle()
-        governance.validate_bootstrap(False, True)
+        governance.validate_bootstrap(False, not saved.get('post_bootstrap', False))
         approval = {'schema_version': '1.0', 'status': 'Approved', 'gate_verdict': 'approve', 'approval_mode': 'interactive',
                     'accepted_founding_adrs': accepted, 'artifacts': basis(),
                     'recovery': {'run_id': run_id, 'previous_approval_sha256': reviewed['bootstrap_approval_sha256'],
@@ -238,13 +267,13 @@ def accept(root: Path, run_id: str, verdict: str) -> dict:
 @pending_review
 def require_prepared_review(root: Path, run_id: str) -> str:
     """Read-only admission for skipping already completed recovery authoring."""
-    directory, _ = manifest(root, run_id)
+    directory, saved = manifest(root, run_id)
     reviewed = lifecycle.load(directory / 'review.json')
     if (reviewed['artifacts'] != basis()
             or reviewed['packet_sha256'] != lifecycle.digest(directory / 'review.md')
             or reviewed['bootstrap_approval_sha256'] != lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)):
         raise lifecycle.LifecycleError('Prepared recovery review is stale; repair and regenerate it before reuse')
-    governance.validate_bootstrap(False, True)
+    governance.validate_bootstrap(False, not saved.get('post_bootstrap', False))
     from bootstrap_proof_plan import require_proven_closure
     require_proven_closure(root)
     import bootstrap_context
@@ -285,14 +314,19 @@ def main() -> int:
     parser.add_argument('command', choices=['prepare', 'synchronize', 'review', 'accept', 'evaluate', 'complete'])
     parser.add_argument('--run-id', required=True)
     parser.add_argument('--verdict')
+    parser.add_argument('--post-bootstrap', action='store_true', help='Prepare preserved evidence for an explicit completed-bootstrap continuation; does not approve or dispatch it')
     args = parser.parse_args()
     root = Path.cwd().resolve()
     try:
         governance.configure_paths()
+        if args.post_bootstrap and args.command != 'prepare':
+            raise lifecycle.LifecycleError('--post-bootstrap applies only to prepare')
         if args.command == 'complete':
             governance.require_legacy_completion_cli()
         with contextlib.redirect_stdout(io.StringIO()):
-            if args.command == 'accept':
+            if args.command == 'prepare':
+                result = prepare(root, args.run_id, post_bootstrap=args.post_bootstrap)
+            elif args.command == 'accept':
                 result = accept(root, args.run_id, args.verdict)
             else:
                 result = globals()[args.command](root, args.run_id)

@@ -215,7 +215,8 @@ def main():
                      and (path.name in {"state.json", "inputs.json", "workflow.yml", "bootstrap-intake.json", "bootstrap-decisions.json"}
                           or "approval" in path.name or "constitution" in path.name)}
         result = context.prepare_architecture_recovery(root, run_id)
-        assert result["resume_after_validation"] == "specify workflow resume bd6be6ca"
+        assert result["retry_command"] == "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id bd6be6ca"
+        assert result["resume_after_validation"] == result["retry_command"]
         assert all(path.read_bytes() == data for path, data in protected.items())
         assert list((run / "program-kit-context").glob("architecture.blocked-*.json"))
         assert not (root / context.ARCHITECTURE_BLOCKED).exists()

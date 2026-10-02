@@ -41,6 +41,41 @@ def command(check, engines):
     return [part.format(**values) for part in check['command']]
 
 
+def require_unchanged_release_source(value, boundary):
+    """Reject concurrent source edits before continuing an exact-source gate."""
+    from write_release_receipt import git, sha256
+    commit = git(ROOT, 'rev-parse', 'HEAD')
+    tree = git(ROOT, 'rev-parse', 'HEAD^{tree}')
+    dirty = git(ROOT, 'status', '--porcelain=v1', '--untracked-files=normal')
+    reasons = []
+    if commit != value['source']['commit'] or tree != value['source']['tree']:
+        reasons.append('HEAD or its source tree changed')
+    if dirty:
+        reasons.append('Working tree changed:\n' + '\n'.join(dirty.splitlines()[:20]))
+    if sha256(INVENTORY) != value['inventorySha256']:
+        reasons.append('Validation inventory changed')
+    if reasons:
+        raise ValueError('PROGRAM_KIT_RELEASE_SOURCE_CHANGED\n'
+                         f'Release validation stopped {boundary}: ' + '\n'.join(reasons) + '\n'
+                         'The candidate must remain committed and clean throughout validation. '
+                         'Another editor, agent or process may have changed this checkout. '
+                         'Finish and commit the combined fixes, then freeze the release checkout '
+                         'or use a separate checkout for development. '
+                         'Preserve this journal; its check results cannot create a Release receipt '
+                         'for changed source. No publication was performed by this validator.')
+
+
+def guard_release_source(value, path, boundary):
+    try:
+        require_unchanged_release_source(value, boundary)
+    except ValueError as error:
+        value.update(status='source-changed', finishedAt=now(), diagnostic=str(error))
+        path.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+        print(str(error) + '\nEvidence: ' + str(path), flush=True)
+        return False
+    return True
+
+
 def validate_journal(value, suite='Release'):
     from write_release_receipt import git, sha256
     if value['source']['commit'] != git(ROOT, 'rev-parse', 'HEAD') or value['source']['tree'] != git(ROOT, 'rev-parse', 'HEAD^{tree}'):
@@ -119,6 +154,8 @@ def main():
     print('Validation evidence: ' + str(output), flush=True)
     for check in checks:
         identity = check['id']
+        if args.suite == 'Release' and not guard_release_source(journal, path, 'before ' + identity):
+            return 1
         cmd = command(check, args.engines)
         log = output / (identity + '.log')
         started = now()
@@ -169,11 +206,15 @@ def main():
         print(('Passed: ' if code == 0 else 'FAILED: ') + identity, flush=True)
         if code:
             print(log.read_text(encoding='utf-8', errors='replace')[-6000:], flush=True)
+        if args.suite == 'Release' and not guard_release_source(journal, path, 'after ' + identity):
+            return 1
     failed = [name for name, code in results.items() if code]
     if failed:
         print('Validation failed: ' + ', '.join(failed) + '\nEvidence: ' + str(path))
         return 1
     if args.suite == 'Release':
+        if not guard_release_source(journal, path, 'before receipt validation'):
+            return 1
         validate_journal(journal)
     if args.receipt:
         subprocess.run([sys.executable, str(ROOT / 'scripts/write_release_receipt.py'), '--root', str(ROOT),

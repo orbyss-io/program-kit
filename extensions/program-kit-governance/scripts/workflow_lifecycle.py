@@ -405,7 +405,9 @@ def continuation_definition(root: Path) -> WorkflowDefinition:
 
 
 def source_ready(root: Path, source_run: str) -> bool:
-    recovery.manifest(root, source_run)
+    _, saved = recovery.manifest(root, source_run)
+    if saved.get('post_bootstrap'):
+        return False  # Completed source authority never preapproves its amendment.
     # Report prose cannot force re-authoring already-valid accepted decisions.
     # Changed authority, missing proofs or pending owned questions still route
     # to correction before any approval can be reused.
@@ -427,7 +429,7 @@ def prepare_recovery_readiness(root: Path, run_id: str, source_run: str) -> dict
             'validation_commands': payload['output_contract']['validation_commands']}
 
 
-def continuation(root: Path, source: RunState, inputs: dict, *, reuse_prepared_recovery: bool = False) -> RunState:
+def continuation(root: Path, source: RunState, inputs: dict, *, reuse_prepared_recovery: bool = False, post_bootstrap: bool = False) -> RunState:
     mapping_path = root / '.specify/workflows/resumptions' / f'{source.run_id}.json'
     if mapping_path.is_file():
         if reuse_prepared_recovery:
@@ -440,7 +442,7 @@ def continuation(root: Path, source: RunState, inputs: dict, *, reuse_prepared_r
         if (run_directory(root, child) / 'state.json').is_file():
             return resume_unlocked(root, child, inputs)
     else:
-        recovery.prepare(root, source.run_id)
+        recovery.prepare(root, source.run_id, post_bootstrap=post_bootstrap)
         definition = continuation_definition(root)
         prepared_hash = None
         if reuse_prepared_recovery:
@@ -468,10 +470,14 @@ def continuation(root: Path, source: RunState, inputs: dict, *, reuse_prepared_r
     return state
 
 
-def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False) -> RunState:
+def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False, post_bootstrap: bool = False) -> RunState:
     state = RunState.load(run_id, root)
     require_enabled(root, state)
     definition = definition_for(root, run_id)
+    if post_bootstrap:
+        if inputs or reuse_proven_closure or state.status != RunStatus.COMPLETED:
+            raise WorkflowLifecycleError('Post-bootstrap continuation requires a completed source and cannot preapprove a future review')
+        return continuation(root, state, {}, reuse_prepared_recovery=reuse_prepared_recovery, post_bootstrap=True)
     if reuse_prepared_recovery:
         if inputs:
             raise WorkflowLifecycleError('Prepared recovery reuse cannot supply inputs or preapprove its future review gate')
@@ -604,10 +610,10 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
     return result
 
 
-def resume(root: Path, run_id: str, inputs: dict | None = None, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False) -> RunState:
+def resume(root: Path, run_id: str, inputs: dict | None = None, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False, post_bootstrap: bool = False) -> RunState:
     with execution_lock(root):
         return resume_unlocked(root, run_id, inputs or {}, reuse_proven_closure=reuse_proven_closure,
-                               reuse_prepared_recovery=reuse_prepared_recovery)
+                               reuse_prepared_recovery=reuse_prepared_recovery, post_bootstrap=post_bootstrap)
 
 
 def reopen(root: Path, run_id: str, stage: str) -> dict:
@@ -664,7 +670,8 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
     if action == 'review':
         value = recovery.review(root, source_run)
         approved = lifecycle.load(root / governance.BOOTSTRAP_APPROVAL)
-        value['needs_approval'] = approved['artifacts'] != recovery.basis()
+        _, saved = recovery.manifest(root, source_run)
+        value['needs_approval'] = bool(saved.get('post_bootstrap')) or approved['artifacts'] != recovery.basis()
         return value
     if action == 'accept':
         return recovery.accept(root, source_run, verdict)
@@ -688,13 +695,23 @@ def main() -> int:
     parser.add_argument('--input', action='append', default=[])
     parser.add_argument('--reuse-proven-closure', action='store_true', help='Resume repaired compatibility proofs without repeating their paid authoring stage; requires current passing evidence for every planned probe')
     parser.add_argument('--reuse-prepared-recovery', action='store_true', help='Create an approved-bootstrap continuation from a current prepared recovery review and passing proofs, retaining the human approval gate')
+    parser.add_argument('--post-bootstrap', action='store_true', help='Continue a completed bootstrap through preserved evidence, architecture correction and a fresh human review')
     args = parser.parse_args()
     root = Path.cwd().resolve()
+    dispatch_scope = contextlib.ExitStack()
     try:
-        if (args.reuse_proven_closure or args.reuse_prepared_recovery) and args.command != 'resume':
+        if (args.reuse_proven_closure or args.reuse_prepared_recovery or args.post_bootstrap) and args.command != 'resume':
             raise WorkflowLifecycleError('Recovery reuse flags require resume')
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
+        if args.command in {'run', 'resume'}:
+            from codex_worker_policy import worker_environment
+            # Resume can restart after the original workflow preflight. Establish
+            # the same worker policy on every invocation before history changes.
+            with execution_lock(root):
+                saved_inputs = (RunState.load(args.run_id, root).inputs if args.command == 'resume'
+                                else dict(item.split('=', 1) for item in args.input))
+                dispatch_scope.enter_context(worker_environment(root, saved_inputs.get('integration', 'auto')))
         if args.command in {'run', 'resume', 'reopen'}:
             with execution_lock(root):
                 prepare_schema_runtimes(root)
@@ -712,7 +729,7 @@ def main() -> int:
                 inputs = dict(item.split('=', 1) for item in args.input)
                 if args.command == 'resume':
                     state = resume(root, args.run_id, inputs, reuse_proven_closure=args.reuse_proven_closure,
-                                   reuse_prepared_recovery=args.reuse_prepared_recovery)
+                                   reuse_prepared_recovery=args.reuse_prepared_recovery, post_bootstrap=args.post_bootstrap)
                 else:
                     with execution_lock(root):
                         require_enabled(root)
@@ -735,6 +752,8 @@ def main() -> int:
     except (ValueError, OSError, KeyError, governance.GovernanceStateError, lifecycle.LifecycleError, bootstrap_context.ContextError) as error:
         print(f'Program Kit workflow lifecycle: {error}', file=sys.stderr)
         return 1
+    finally:
+        dispatch_scope.close()
 
 
 if __name__ == '__main__':

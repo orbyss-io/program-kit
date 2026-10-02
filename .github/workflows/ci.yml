@@ -80,6 +80,9 @@ jobs:
       - name: Validate Python-flavor Codex bootstrap on Windows
         run: python tests/validate_codex_bootstrap.py
 
+      - name: Validate scoped worker permissions with fixture subprocesses
+        run: python tests/validate_codex_worker_policy.py
+
       - name: Prepare engine schema runtime and preserve its interpreter
         run: |
           python extensions/program-kit-governance/scripts/schema_runtime.py setup
