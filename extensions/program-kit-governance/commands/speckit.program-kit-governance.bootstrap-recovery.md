@@ -20,6 +20,11 @@ current exact receipts or renews stale execution inputs. It closes architecture 
 without relabeling them. All evolved architecture artifacts, including earlier changes, need
 the continuation's fresh review against the previous approval. Preparation does not approve
 the compact proposal and old bootstrap completion does not approve new authority.
+Use the current valid ratification even if the constitution was amended after bootstrap.
+The prepared handoff separates completion-bound historical files from current protected
+authority. Never restore the old constitution/report over current files or edit the original
+completion. The review identifies both sets of hashes; native readiness and completion use
+current authority after the fresh review.
 
 Invoke the bootstrap-closure instructions against the existing first slice. Own every filename,
 ID, manifest, target and placement decision. Preserve immutable intake/assessment, Accepted ADRs

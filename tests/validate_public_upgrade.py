@@ -7,10 +7,12 @@ import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
 import threading
+import time
 from pathlib import Path
 from typing import Iterator
 
@@ -70,6 +72,58 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format: str, *args: object) -> None:
         pass
 
+    def copyfile(self, source, outputfile):
+        shutil.copyfileobj(source, outputfile, length=64 * 1024)
+
+
+@contextlib.contextmanager
+def running_catalog_server(server, directory: Path):
+    """Use the established Windows archive transport under suite supervision."""
+    thread = None
+    process = None
+    server_log = None
+    try:
+        if os.name == "nt":
+            port = server.server_port
+            server.server_close()
+            server_log = (directory / "catalog-server.log").open("w", encoding="utf-8")
+            script = Path(__file__).resolve().parents[1] / "scripts/local_catalog_server.py"
+            # This stdlib-only server must be the actual process we wait for:
+            # a uv venv launcher can outlive termination through its Python child.
+            interpreter = getattr(sys, "_base_executable", sys.executable)
+            process = subprocess.Popen(
+                [interpreter, str(script), str(port), "--directory", str(directory)],
+                stdin=subprocess.DEVNULL, stdout=server_log, stderr=subprocess.STDOUT,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+            deadline = time.monotonic() + 10
+            while True:
+                if process.poll() is not None or time.monotonic() >= deadline:
+                    raise RuntimeError("Upgrade catalog server did not start; see catalog-server.log")
+                try:
+                    with socket.create_connection(("127.0.0.1", port), timeout=0.2):
+                        break
+                except OSError:
+                    time.sleep(0.05)
+        else:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+        yield
+    finally:
+        if thread is not None:
+            server.shutdown()
+            thread.join(timeout=10)
+        server.server_close()
+        if process is not None and process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=10)
+        if server_log is not None:
+            server_log.close()
+
 
 @contextlib.contextmanager
 def candidate_catalogs(root: Path, artifacts: Path | None) -> Iterator[str]:
@@ -100,8 +154,6 @@ def candidate_catalogs(root: Path, artifacts: Path | None) -> Iterator[str]:
             *args, directory=str(server_root), **kwargs
         )
         server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
         base = f"http://127.0.0.1:{server.server_port}"
         try:
             for name, source in required.items():
@@ -126,11 +178,10 @@ def candidate_catalogs(root: Path, artifacts: Path | None) -> Iterator[str]:
                 (server_root / name).write_text(
                     json.dumps(value, indent=2) + "\n", encoding="utf-8"
                 )
-            yield base
+            with running_catalog_server(server, server_root):
+                yield base
         finally:
-            server.shutdown()
             server.server_close()
-            thread.join(timeout=5)
 
 
 def tag_file(root: Path, tag: str, relative: str) -> bytes:
@@ -174,8 +225,6 @@ def previous_release_catalogs(
             *args, directory=str(server_root), **kwargs
         )
         server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
         base = f"http://127.0.0.1:{server.server_port}"
         try:
             for name in archive_names:
@@ -201,11 +250,10 @@ def previous_release_catalogs(
                 (server_root / name).write_text(
                     json.dumps(value, indent=2) + "\n", encoding="utf-8"
                 )
-            yield base
+            with running_catalog_server(server, server_root):
+                yield base
         finally:
-            server.shutdown()
             server.server_close()
-            thread.join(timeout=5)
 
 
 def replace_catalogs(project: Path, base: str) -> None:

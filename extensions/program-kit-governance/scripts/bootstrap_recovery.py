@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import io
 import json
 import re
 import shutil
+import subprocess
 import sys
 import uuid
 from pathlib import Path
@@ -45,10 +47,54 @@ def verify_hashes(root: Path, hashes: dict) -> None:
             raise lifecycle.LifecycleError(f'Preserved recovery authority/evidence changed: {name}')
 
 
+def historical_binding(root: Path, relative: str, expected: str) -> tuple[bytes, dict]:
+    """Recover exact completed-bootstrap bytes without replacing current authority."""
+    path = lifecycle.local(root, relative)
+    if not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected):
+        raise lifecycle.LifecycleError('Historical completion binding requires a SHA-256 digest')
+    def matches(payload):
+        return hashlib.sha256(payload).hexdigest() == expected
+    if path.is_file():
+        payload = path.read_bytes()
+        if matches(payload):
+            return payload, {'kind': 'current', 'path': relative}
+    # Earlier continuations already retain content-addressed evidence. Admit its
+    # bytes by hash, never merely by filename or a caller-authored provenance file.
+    archives = root / '.specify/governance/bootstrap-recovery'
+    for candidate in sorted(archives.glob(f'*/original/{expected}')):
+        candidate = lifecycle.local(root, candidate.relative_to(root))
+        if candidate.is_file():
+            payload = candidate.read_bytes()
+            if matches(payload):
+                return payload, {'kind': 'recovery-archive', 'path': candidate.relative_to(root).as_posix()}
+    # Git reads return the blob bytes directly; shell/text decoding and checkout
+    # would change line endings. The exact completion digest is the authority,
+    # so no branch name or external JSON evidence can nominate substitute bytes.
+    git = ['git', '--no-replace-objects', '--literal-pathspecs',
+           '-c', f'safe.directory={root}', '-c', 'core.excludesFile=']
+    try:
+        history = subprocess.run([*git, 'rev-list', '--all', '--', relative], cwd=root,
+                                 capture_output=True, check=False, timeout=30)
+        if history.returncode == 0:
+            for commit in history.stdout.decode('ascii').splitlines():
+                if not re.fullmatch(r'[0-9a-f]{40,64}', commit):
+                    continue
+                blob = subprocess.run([*git, 'show', f'{commit}:{relative}'], cwd=root,
+                                      capture_output=True, check=False, timeout=30)
+                if blob.returncode == 0 and matches(blob.stdout):
+                    return blob.stdout, {'kind': 'git', 'commit': commit, 'path': relative}
+    except (OSError, subprocess.SubprocessError, UnicodeError):
+        pass
+    raise lifecycle.LifecycleError(f'Historical completion binding is not recoverable: {relative} ({expected}). '
+                                   'Preserve/restore its exact historical evidence; do not roll back current authority or edit completion hashes.')
+
+
 def manifest(root: Path, run_id: str) -> tuple[Path, dict]:
     directory = location(root, run_id)
     value = lifecycle.load(directory / 'manifest.json')
     verify_hashes(directory / 'original', {digest: digest for digest in value['original'].values()})
+    verify_hashes(directory / 'original', {item['sha256']: item['sha256']
+                                          for item in value.get('historical_completion', {}).values()})
     verify_hashes(root, value['protected'])
     verify_hashes(root, value['run_files'])
     governance.validate_assessment_approval()
@@ -69,6 +115,8 @@ def prepare(root: Path, run_id: str, *, post_bootstrap: bool = False) -> dict:
         raise lifecycle.LifecycleError('Recovery requires the exact program-kit-bootstrap run')
     results = state.get('step_results', {})
     step = state.get('current_step_id')
+    historical = {}
+    historical_payloads = {}
     if post_bootstrap:
         if state.get('status') != 'completed':
             raise lifecycle.LifecycleError('Post-bootstrap continuation requires a completed source run')
@@ -76,12 +124,18 @@ def prepare(root: Path, run_id: str, *, post_bootstrap: bool = False) -> dict:
         workflow_lifecycle.validate_engine_completion(root)
         completion = lifecycle.load(root / governance.BOOTSTRAP_COMPLETION)
         if (completion.get('status') != 'Completed' or completion.get('workflow', {}).get('run_id') != run_id
-                or completion.get('constitution_sha256') != lifecycle.digest(root / governance.CONSTITUTION)
                 or completion.get('bootstrap_approval_sha256') != lifecycle.digest(root / governance.BOOTSTRAP_APPROVAL)
-                or completion.get('readiness_report', {}).get('path') != governance.READINESS_REPORT.as_posix()
-                or completion.get('readiness_report', {}).get('sha256') != lifecycle.digest(root / governance.READINESS_REPORT)):
+                or completion.get('readiness_report', {}).get('path') != governance.READINESS_REPORT.as_posix()):
             raise lifecycle.LifecycleError('Post-bootstrap continuation requires intact bound completion evidence')
+        # Current ratification is independently authoritative. A generated report
+        # is an output, not consent; the linked workflow will render it again.
         governance.validate_setup_authority()
+        for name, relative, expected in (
+                ('constitution', governance.CONSTITUTION.as_posix(), completion.get('constitution_sha256')),
+                ('readiness_report', governance.READINESS_REPORT.as_posix(), completion['readiness_report'].get('sha256'))):
+            payload, source = historical_binding(root, relative, expected)
+            historical[name] = {'path': relative, 'sha256': expected, 'source': source}
+            historical_payloads[expected] = payload
     elif state.get('status') == 'aborted':
         failure = results.get('complete-bootstrap', {}).get('output', {})
         gate = results.get('confirm-completion-failure', {}).get('output', {})
@@ -128,11 +182,14 @@ def prepare(root: Path, run_id: str, *, post_bootstrap: bool = False) -> dict:
         destination = directory / 'original' / expected_hash
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(lifecycle.local(root, name), destination)
+    for expected_hash, payload in historical_payloads.items():
+        (directory / 'original' / expected_hash).write_bytes(payload)
     value = {'schema_version': '1.0', 'run_id': run_id, 'original': original,
              'protected': protected, 'run_files': run_files,
              'diagnosis': 'Technical readiness/completion failure after approval; abort-only choice is not semantic rejection.'}
     if post_bootstrap:
         value.update(post_bootstrap=True,
+                     historical_completion=historical,
                      diagnosis='Explicit post-bootstrap review of evolved architecture and current compatibility evidence.')
     handoff = directory / 'handoff.md'
     handoff.write_text(f'''# Accepted bootstrap recovery: {run_id}
@@ -149,6 +206,10 @@ without changing its approved first slice, IDs, statuses or retained obligations
 must disclose every architecture change since the previous approval, including earlier feature evolution.
 Do not edit the ratified constitution. A necessary constitutional change uses its governed amendment
 procedure separately; this bounded recovery deliberately refuses changed ratification authority.
+Already-ratified amendments remain current authority. The completion's historical constitution
+and readiness bytes are separately preserved by their exact recorded hashes; never restore them
+over current files. Current ratification is frozen for this continuation, and readiness is rendered
+again from current authority after fresh review. The old report supplies no current eligibility.
 
 After closure and narrative correction, return to the workflow. Its native synchronization and
 review steps validate architecture structure/alignment, governance and generated projections.
@@ -168,6 +229,7 @@ acceptance or completion commands. The original workflow remains terminal histor
 ''', encoding='utf-8')
     lifecycle.write(directory / 'manifest.json', value)
     verify_hashes(directory / 'original', {h: h for h in original.values()})
+    verify_hashes(directory / 'original', {h: h for h in historical_payloads})
     verify_hashes(root, original)
     directory.rename(destination_directory)
     return {'handoff': (destination_directory / 'handoff.md').relative_to(root).as_posix(), 'preserved': True}
@@ -215,6 +277,17 @@ def review(root: Path, run_id: str) -> dict:
               '| Artifact | Before SHA-256 | Reviewed SHA-256 |', '| --- | --- | --- |']
     packet += [f"| {p} | {h['before'] or 'new'} | {h['after']} |" for p, h in changed.items()]
     packet += [f'| {p} | {h} | removed |' for p, h in removed.items()]
+    if saved.get('historical_completion'):
+        authority = {'constitution': lifecycle.digest(root / governance.CONSTITUTION),
+                     'ratification': lifecycle.digest(root / governance.RATIFICATION)}
+        receipt['current_authority'] = authority
+        receipt['historical_completion'] = saved['historical_completion']
+        packet += ['', '## Historical completion and current ratified authority', '',
+                   'Historical files remain archived evidence. This review uses the currently ratified constitution; readiness will be rendered anew.', '',
+                   f"Current constitution SHA-256: `{authority['constitution']}`.",
+                   f"Current ratification SHA-256: `{authority['ratification']}`."]
+        for name, item in saved['historical_completion'].items():
+            packet.append(f"Historical {name}: `{item['path']}` SHA-256 `{item['sha256']}`; preserved at `original/{item['sha256']}`.")
     packet += ['', f'Acceptance scope: `{lifecycle.SCOPE}`. Promotion updates only its listed decisions/map semantics and deterministic projections.',
                '', f'At the paused review gate, after reviewing: `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id {run_id} --input recovery_verdict=approve`', '']
     (directory / 'review.md').write_text('\n'.join(packet), encoding='utf-8')
