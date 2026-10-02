@@ -26,12 +26,25 @@ python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py 
 ```
 
 Plain resume of a completed run retains its existing meaning. The explicit flag verifies
-the bound completed engine, constitution, approval and original readiness evidence. It
+the bound completed engine and intact approval, validates current ratification, and recovers
+the historical constitution/readiness bytes by their exact completion hashes. It
 preserves the source run, completion, approval and current artifacts in content-addressed
 recovery storage before correction. Confirmed intake, assessment, ratification and existing
 Accepted ADRs remain protected. Current architecture/roadmap evolution is proposed authority;
 the review discloses every changed artifact against the previous approved bundle, including
 changes predating preparation. It always requires fresh human approval, even with no changes.
+
+A constitution amended and ratified after bootstrap is current authority. A regenerated
+readiness report is current output, not approval. Neither needs to match the old completion's
+file hashes. Preparation finds the historical bytes in current files, prior content-addressed
+recovery archives, or local Git history at the same canonical paths; it checks the raw SHA-256
+and archives them separately as `historical_completion`. Git lookup is read-only, uses no
+network, and never checks out historical files. A caller-authored evidence JSON is not authority.
+Missing historical bytes, an unratified current constitution, changed bootstrap approval or
+invalid completed engine binding still blocks admission. The review packet identifies both
+historical hashes and current constitution/ratification hashes. Current ratification is frozen
+during this continuation; a later amendment uses its own governed review. Native readiness
+and new engine-bound completion bind the current authority, while the old completion stays archived.
 
 This path admits current passing architecture compatibility receipts into the existing ledger
 and repairs authored roadmap sizing through review. Ready/Active/Delivered entries keep their

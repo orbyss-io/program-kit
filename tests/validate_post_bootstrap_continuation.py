@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -55,6 +56,94 @@ class PostBootstrapTests(unittest.TestCase):
         if hasattr(self, 'shell'):
             self.shell.stop()
         self.temp.cleanup()
+
+    def preserve_git_history(self):
+        command = ['git', '-c', f'safe.directory={self.root}', '-c', 'core.excludesFile=',
+                   '-c', 'core.autocrlf=false', '-c', 'core.attributesFile=',
+                   '-c', 'user.name=Continuation fixture', '-c', 'user.email=fixture@example.invalid',
+                   '-c', 'commit.gpgsign=false', '-c', f'core.hooksPath={self.root / "no-hooks"}']
+        subprocess.run([*command, 'init', '--quiet'], cwd=self.root, check=True, capture_output=True)
+        (self.root / '.gitattributes').write_text('* -text\n', encoding='utf-8')
+        subprocess.run([*command, 'add', '--force', '--', '.gitattributes',
+                        g.CONSTITUTION.as_posix(), g.READINESS_REPORT.as_posix()],
+                       cwd=self.root, check=True, capture_output=True)
+        subprocess.run([*command, 'commit', '--quiet', '-m', 'Preserve actual completed-bootstrap bytes'],
+                       cwd=self.root, check=True, capture_output=True)
+
+    def amend_constitution(self):
+        g.begin()
+        path = self.root / g.CONSTITUTION
+        text = path.read_text(encoding='utf-8').replace('**Version**: 1.0.0', '**Version**: 2.0.0')
+        text = text.replace('**Status**: Ratified', '**Status**: Draft')
+        path.write_text(text + '\nRatified amendment: keep consumer decisions explicit.\n', encoding='utf-8', newline='\n')
+        g.write_review('constitution')
+        g.ratify('ratify')
+        self.assertEqual('2.0.0', g.validate_ratification()['constitution']['version'])
+
+    def test_legitimate_amendment_and_regenerated_report_complete_with_original_bindings(self):
+        original_constitution = (self.root / g.CONSTITUTION).read_bytes()
+        original_report = (self.root / g.READINESS_REPORT).read_bytes()
+        self.preserve_git_history()
+        self.amend_constitution()
+        current_constitution = (self.root / g.CONSTITUTION).read_bytes()
+        g.render_readiness()
+        self.assertNotEqual(original_report, (self.root / g.READINESS_REPORT).read_bytes())
+        self.test_completed_continuation_preserves_history_reviews_drift_and_keeps_active()
+        directory, saved = workflow.recovery.manifest(self.root, self.source.run_id)
+        for name, payload in (('constitution', original_constitution), ('readiness_report', original_report)):
+            bound = saved['historical_completion'][name]
+            self.assertEqual('git', bound['source']['kind'])
+            self.assertEqual(payload, (directory / 'original' / bound['sha256']).read_bytes())
+        self.assertEqual(current_constitution, (self.root / g.CONSTITUTION).read_bytes())
+        completion = life.load(self.root / g.BOOTSTRAP_COMPLETION)
+        self.assertEqual(life.digest(self.root / g.CONSTITUTION), completion['constitution_sha256'])
+        self.assertEqual(life.digest(self.root / g.READINESS_REPORT), completion['readiness_report']['sha256'])
+        review = life.load(directory / 'review.json')
+        self.assertEqual(life.digest(self.root / g.CONSTITUTION), review['current_authority']['constitution'])
+        historical = directory / 'original' / saved['historical_completion']['constitution']['sha256']
+        historical.write_bytes(original_constitution + b'\nchanged historical evidence')
+        with self.assertRaisesRegex(ValueError, 'Preserved recovery authority/evidence changed'):
+            workflow.recovery.manifest(self.root, self.source.run_id)
+
+    def test_evolution_requires_valid_current_ratification_and_recoverable_history(self):
+        self.preserve_git_history()
+        self.amend_constitution()
+        g.render_readiness()
+        constitution = self.root / g.CONSTITUTION
+        ratified = constitution.read_bytes()
+        constitution.write_bytes(ratified + b'\nunratified change')
+        with self.assertRaisesRegex(ValueError, 'changed after ratification'):
+            workflow.recovery.prepare(self.root, self.source.run_id, post_bootstrap=True)
+        constitution.write_bytes(ratified)
+        completion = self.root / g.BOOTSTRAP_COMPLETION
+        preserved = completion.read_bytes()
+        for name in ('constitution', 'readiness_report'):
+            value = life.load(completion)
+            if name == 'constitution':
+                value['constitution_sha256'] = '0' * 64
+            else:
+                value['readiness_report']['sha256'] = '0' * 64
+            life.write(completion, value)
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'Historical completion binding is not recoverable'):
+                workflow.recovery.prepare(self.root, self.source.run_id, post_bootstrap=True)
+            completion.write_bytes(preserved)
+        self.assertFalse(workflow.recovery.location(self.root, self.source.run_id).exists())
+
+    def test_archived_binding_requires_matching_bytes_and_no_git_history(self):
+        relative = g.READINESS_REPORT.as_posix()
+        expected = life.digest(self.root / g.READINESS_REPORT)
+        payload = (self.root / g.READINESS_REPORT).read_bytes()
+        archive = self.root / '.specify/governance/bootstrap-recovery/earlier/original' / expected
+        archive.parent.mkdir(parents=True)
+        archive.write_bytes(payload)
+        (self.root / g.READINESS_REPORT).write_bytes(b'current generated output')
+        with patch.object(workflow.recovery.subprocess, 'run', side_effect=AssertionError('Git must not be needed for valid archived bytes')):
+            recovered, source = workflow.recovery.historical_binding(self.root, relative, expected)
+        self.assertEqual(payload, recovered)
+        self.assertEqual('recovery-archive', source['kind'])
+        archive.write_bytes(b'false bytes under a true hash filename')
+        with self.assertRaisesRegex(ValueError, 'not recoverable'):
+            workflow.recovery.historical_binding(self.root, relative, expected)
 
     def test_completed_continuation_preserves_history_reviews_drift_and_keeps_active(self):
         run = workflow.run_directory(self.root, self.source.run_id)
