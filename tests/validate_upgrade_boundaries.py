@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 import upgrade_program_kit as upgrade
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
 import persistence_selection as persistence
+from upgrade_probe_fixtures import render_registered_probes
 
 
 class UpgradeBoundaryTests(unittest.TestCase):
@@ -140,6 +141,109 @@ class UpgradeBoundaryTests(unittest.TestCase):
         selected = upgrade.persistence_upgrade_preflight(self.root, ROOT)
         self.assertEqual([], selected['blockers'])
         self.assertEqual(['Portfolio'], [item['owner'] for item in selected['deferredAdmissions']])
+        self.assertEqual(before, self.snapshot())
+
+    def probe_consumer(self):
+        owners = [{**self.owner, 'owner': name} for name in ('policy-portfolio', 'owner-access')]
+        self.write(self.decisions, {'selected_profiles': ['dotnet'], 'persistence': owners,
+                                   'toolchain': {'pins': {'dotnet-sdk': '10.0.202'}}})
+        recipes = render_registered_probes(self.root)
+        self.write(self.root / 'docs/architecture/building-block-selection.json', {
+            'status': 'Accepted', 'targets': [{'path': 'src/App/App.csproj', 'placement': {'state': 'planned'}}]})
+        self.write(self.root / '.specify/workflows/runs/completed/history.json', {'status': 'completed', 'steps': ['complete-bootstrap']})
+        return recipes
+
+    def test_registered_bootstrap_probes_do_not_materialize_proposed_owners(self):
+        self.probe_consumer()
+        before = self.snapshot()
+        resolved = persistence.resolve(self.root, '')
+        self.assertEqual(26, len(resolved['blockers']))
+        selected = upgrade.persistence_upgrade_preflight(self.root, ROOT)
+        self.assertEqual([], selected['blockers'])
+        self.assertEqual({'policy-portfolio', 'owner-access'}, {item['owner'] for item in selected['deferredAdmissions']})
+        self.assertFalse((self.root / '.program-kit/managed.json').exists())
+        self.assertEqual(before, self.snapshot())
+
+    def test_real_application_or_documentation_projects_still_block_unassigned_owners(self):
+        self.probe_consumer()
+        for relative in ('src/App/App.csproj', 'docs/application/DocumentedApp.csproj'):
+            path = self.root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('<Project/>')
+            before = self.snapshot()
+            with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118.*before component mutation'):
+                upgrade.persistence_upgrade_preflight(self.root, ROOT)
+            self.assertEqual(before, self.snapshot())
+            path.unlink()
+
+    def test_invalid_or_unregistered_probe_contracts_do_not_exempt_projects(self):
+        recipes = self.probe_consumer()
+        contract = recipes[0].with_suffix('.contract.json')
+        original = contract.read_bytes()
+        plan = self.root / 'docs/architecture/bootstrap-proof-plan.json'
+        plan_bytes = plan.read_bytes()
+        for defect in ('unregistered', 'missing-recipe', 'malformed-contract', 'missing-source', 'not-a-target'):
+            with self.subTest(defect=defect):
+                contract.write_bytes(original)
+                plan.write_bytes(plan_bytes)
+                recipe_bytes = recipes[0].read_bytes()
+                value = json.loads(original)
+                if defect == 'unregistered':
+                    plan.unlink()
+                elif defect == 'missing-recipe':
+                    recipes[0].unlink()
+                elif defect == 'malformed-contract':
+                    contract.write_text('{}')
+                elif defect == 'missing-source':
+                    value['fixtures']['Program.cs'] = 'missing.cs'
+                    self.write(contract, value)
+                else:
+                    value['dependencyTargets'] = []
+                    self.write(contract, value)
+                before = self.snapshot()
+                with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118'):
+                    upgrade.persistence_upgrade_preflight(self.root, ROOT)
+                self.assertEqual(before, self.snapshot())
+                recipes[0].write_bytes(recipe_bytes)
+
+    def test_probe_registration_cannot_hide_a_real_application_source(self):
+        recipes = self.probe_consumer()
+        app = self.root / 'src/App/App.csproj'
+        app.parent.mkdir(parents=True)
+        app.write_text('<Project/>')
+        contract = recipes[0].with_suffix('.contract.json')
+        value = json.loads(contract.read_bytes())
+        value['fixtures']['Probe.csproj'] = 'src/App/App.csproj'
+        self.write(contract, value)
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118'):
+            upgrade.persistence_upgrade_preflight(self.root, ROOT)
+        self.assertEqual(before, self.snapshot())
+
+    def test_declared_application_target_cannot_be_exempted_by_probe_registration(self):
+        self.probe_consumer()
+        selection = self.root / 'docs/architecture/building-block-selection.json'
+        self.write(selection, {'status': 'Accepted', 'targets': [{'kind': 'dotnet-project',
+                   'path': 'docs/architecture/compatibility/managed-dotnet-runtime.csproj'}]})
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118'):
+            upgrade.persistence_upgrade_preflight(self.root, ROOT)
+        self.assertEqual(before, self.snapshot())
+
+    def test_registered_probes_do_not_waive_admitted_or_installed_transition_guards(self):
+        self.probe_consumer()
+        value = json.loads(self.decisions.read_bytes())
+        value['persistence'][0]['status'] = 'admitted'
+        self.write(self.decisions, value)
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118'):
+            upgrade.persistence_upgrade_preflight(self.root, ROOT)
+        installed = {**value['persistence'][0], 'profile': 'ef-postgresql'}
+        self.write(self.root / '.program-kit/managed.json', {'persistenceProfile': 'ef-postgresql', 'persistenceOwners': [installed]})
+        value['persistence'][0].update(status='proposed', profile='ef-sqlite')
+        self.write(self.decisions, value)
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'migration authority'):
+            upgrade.persistence_upgrade_preflight(self.root, ROOT)
         self.assertEqual(before, self.snapshot())
 
     def test_materialized_unassigned_owner_is_rejected_before_mutation(self):
