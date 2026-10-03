@@ -21,7 +21,7 @@ exact tagged v0.12.3 lifecycle source. Its normalized SHA-256 is
 `0643b11d315f50ff633204386eeef4d3773fffdd30a28b7089f9fadd0dd391ce`.
 `git apply --check --whitespace=error-all` passed in a disposable source copy.
 The candidate incorporates the source-owned helper and regression tests, adapting
-the lifecycle insertion to the existing coordinated Python-runtime correction.
+the lifecycle insertion to Program Kit's selected native Python runtime.
 
 `workflow_shell_preflight.verify_shell_launch` rejects an oversized inherited PATH
 before selecting/probing any executable. It previews the exact existing Python
@@ -86,8 +86,8 @@ journal is `artifacts/validation-runs/20261003T001102Z-7d100bc2/journal.json`;
 this is development evidence, not an exact-commit publication receipt.
 
 This correction is included in the unreleased 0.12.4 candidate. The combined
-candidate still requires the released coordinated Spec Kit dependency, updated
-actual pins and fresh full Release validation in the user-owned terminal described
+candidate retains public Spec Kit and requires fresh full Release validation in
+the user-owned terminal described
 in [the release guide](releasing-0.12.4.md). Preserve existing release evidence and
 keep Firefox in CI; do not publish or claim consumer recovery completion from these
 development checks.

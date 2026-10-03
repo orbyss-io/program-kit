@@ -1,6 +1,6 @@
 # Program Kit bootstrap from Windows and Codex
 
-For the interpreter mismatch and protected intake-output ACL defect, see the
+For the deferred interpreter mismatch and protected intake-output ACL repair, see the
 [source repair and consumer recovery handoff](python-runtime-recovery-2026-10-02.md).
 For cmd.exe lookup failures with an oversized inherited PATH, see the
 [workflow shell preflight correction](windows-workflow-shell-preflight-2026-10-03.md).

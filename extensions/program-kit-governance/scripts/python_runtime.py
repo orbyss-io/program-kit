@@ -1,4 +1,4 @@
-"""Bind native steps and worker instructions to one product Python runtime."""
+"""Select and scope Program Kit's native Python runtime; core generation stays upstream-owned."""
 from __future__ import annotations
 import contextlib
 import json

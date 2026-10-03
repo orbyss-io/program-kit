@@ -8,17 +8,17 @@
 - Preflight real workflow shell lookup before worker policy, schema provisioning, locks or
   run/resume/reopen changes. Reject oversized Windows PATH with command-lookup guidance;
   verify the recorded interpreter and retain the caller's environment and history.
-- Validate and bind the actual Python interpreter and resolver dependencies before worker
-  dispatch; coordinate core Spec Kit generation, native hooks and constitution instructions.
-  Preserve structured blocked/failure diagnostics and validate required artifacts before completion.
+- Validate the Python interpreter used by Program Kit native workflow steps and retain
+  native artifact diagnostics. Keep public Spec Kit compatibility and authoritative validators.
+  The core-generated `python3` and structured-worker source proposal is deferred from this release.
 - Publish staged intake/map/DSL outputs with destination permissions and workspace-owner access,
   preserving existing unrelated ACLs, confirmed intake and rollback behavior.
 - Keep initialized, unmaterialized persistence proposals as explicit future admission obligations
   during offline upgrades. Validate admitted/materialized persistence and transitions before mutation.
 - Discover the installed CLI runtime before ownership imports, reject release staging inside a
   consumer, and retain failed upgrade attempts plus original previous-version provenance on retry.
-- Prepare all Program Kit components at 0.12.4. Publication requires the coordinated released
-  Spec Kit dependency and fresh deterministic Release evidence; no consumer authority is fabricated.
+- Prepare all Program Kit components at 0.12.4 with the supported public Spec Kit dependency.
+  Publication requires fresh deterministic Release evidence; no consumer authority is fabricated.
 
 ## 0.12.3 - 2026-10-02
 

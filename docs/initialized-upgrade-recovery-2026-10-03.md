@@ -52,11 +52,11 @@ it is separate from the downloaded archive checksum, which the operator verifies
 ## Exact consumer recovery after publication
 
 The following command targets the prepared **0.12.4 candidate**. Do not use it until
-the coordinated core fix has been released, actual dependency pins updated, and
-the complete tagged Program Kit Release workflow has succeeded. Verify the full
+the complete tagged Program Kit Release workflow has succeeded. The revised
+candidate retains the supported public Spec Kit dependency and defers the core
+Python-command proposal. Verify the full
 archive's published checksum/attestation, then extract it to the indicated external
-directory. Install the required released core update through its supported tool
-installer and review regenerated integration instructions. Preserve the constitution
+directory. Use the existing supported Spec Kit installation. Preserve the constitution
 and confirmed intake; do not force reinitialization over consumer artifacts.
 
 From normal user-owned PowerShell:

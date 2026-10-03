@@ -75,6 +75,6 @@ verdict is provided here. Remaining readiness and engine completion must run
 before implementation eligibility can be claimed.
 
 This source fix is part of unreleased 0.12.4. See
-[the combined release guide](releasing-0.12.4.md): coordinated released Spec Kit
-source, actual dependency pins and fresh user-terminal Release evidence remain
+[the combined release guide](releasing-0.12.4.md): the supported public Spec Kit
+dependency is retained and fresh user-terminal Release evidence remains
 required before publication. Preserve all earlier release receipts unchanged.

@@ -213,9 +213,8 @@ def worker_environment(root: Path, requested: str, *, runner=subprocess.run):
     os.environ[EXTRA_ARGS] = shlex.join([*options, '--sandbox', 'workspace-write'])
     try:
         argv = inspect_adapter()
-        # Core owns generated instructions and dispatch results. Do not silently
-        # run an older core that interprets exit zero as artifact completion.
-        require_core_contract()
+        # Public Spec Kit remains the supported dispatcher. Native output and
+        # semantic validation steps own artifact acceptance independently.
         from codex_bootstrap_preflight import evaluate_preflight
         preflight = evaluate_preflight('codex', root)
         if preflight['action'] != 'continue':
@@ -245,12 +244,3 @@ def worker_environment(root: Path, requested: str, *, runner=subprocess.run):
             os.environ.pop(EXTRA_ARGS, None)
         else:
             os.environ[EXTRA_ARGS] = previous
-
-
-def require_core_contract():
-    try:
-        from specify_cli.workflows.worker_result import CONTRACT_VERSION
-        if CONTRACT_VERSION != 1:
-            raise ImportError('Unsupported worker-result contract')
-    except ImportError as error:
-        raise WorkerPolicyError(diagnostic('upgrade Spec Kit with the coordinated Python/worker-result source fix before dispatch')) from error

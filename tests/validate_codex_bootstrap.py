@@ -815,6 +815,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    from spec_kit_source_fixture import run_patched
-    code = run_patched(__file__)
-    raise SystemExit(main() if code is None else code)
+    raise SystemExit(main())

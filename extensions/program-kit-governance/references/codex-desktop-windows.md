@@ -81,9 +81,10 @@ files were created. Program Kit's artifact and semantic validators remain mandat
 
 Before intake or research, Program Kit inspects the resolver referenced by
 `.agents/skills/speckit-constitution/SKILL.md`. The resolver must exist and execute on every platform,
-and the generated Python invocation must bind the recorded, validated interpreter. Upgrade the
-coordinated core Spec Kit source fix before regenerating a legacy instruction that selects a
-different Python environment. Program Kit blocks dispatch against an incompatible core contract.
+with the selected Program Kit native interpreter. Core-generated commands retain their upstream
+invocation, which may use a separate `python3`; the native probe does not establish that command's
+interpreter identity. The core Python-generation proposal is deferred from this release, and public
+Spec Kit remains supported. Native artifact validators still reject missing or invalid output.
 If the PowerShell flavor is blocked by local signing policy, stop and cleanly regenerate the Codex
 integration with `specify init . --force --non-interactive --integration codex --script py`. Confirm
 that `.specify/scripts/python/resolve_template.py` exists and that the constitution skill references
@@ -95,7 +96,7 @@ exact workflow interpreter and verify the resolver directly; do not reinitialize
 package dependency:
 
 ```powershell
-$programKitPython = (Get-Content -Raw .specify/python-runtime.json | ConvertFrom-Json).executable
+$programKitPython = (python -c 'import sys; print(sys.executable)').Trim()
 & $programKitPython -m pip install --disable-pip-version-check "PyYAML>=6,<7"
 & $programKitPython .specify/scripts/python/resolve_template.py constitution-template --json
 ```

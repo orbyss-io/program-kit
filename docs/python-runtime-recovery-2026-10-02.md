@@ -1,4 +1,12 @@
-# Python interpreter and Windows intake output repair
+# Python diagnostic and Windows intake output repair
+
+**Revised release scope, 2026-10-03:** the user chose to defer the core `python3`
+and structured-worker proposal after successful local consumer recovery, and
+rejected a bundled or modified Spec Kit build. Program Kit 0.12.4 retains public
+Spec Kit and its generated instructions. The independent Windows ACL fix and
+native runtime/semantic validators remain in the candidate. No upstream release
+or private core contract is required. The original source proposal remains
+historical evidence and is excluded from release acceptance.
 
 Consumer report: InsurancePolicyEvaluator, Program Kit Governance 0.12.1,
 run `26232ea0`. `python` selected Python 3.13.7/PyYAML 6.0.3, while `python3`
@@ -7,20 +15,21 @@ resolver invocation using the latter. Program Kit probed a different interpreter
 and Spec Kit equated Codex exit zero with command completion. The unchanged
 constitution was correctly rejected by the subsequent artifact validator.
 
-Program Kit now resolves and validates the product interpreter before dispatch,
+Program Kit now resolves and validates its native interpreter before dispatch,
 checks Python >=3.11 and PyYAML, scopes the same executable to native workflow
-steps, and runs the actual constitution resolver on every platform. Its initializers
-resolve once and pass that executable into core generation. The CLI supervisor can
+steps, and probes the resolver script on every platform. This does not verify or
+rewrite the core-generated `python3` invocation. Its initializers resolve the native
+interpreter once; the stock core retains its generation behavior. The CLI supervisor can
 still use its isolated Specify environment; schema caches for supervisor and
 product Python remain version-specific. No interpreter is removed or modified.
 
-The [coordinated core source patch](../patches/README.md) fixes source ownership:
-core generation and hooks bind the recorded executable, the constitution template
-requires a blocked/failure report when resolution fails, and worker dispatch
-preserves a structured outcome plus both streams. Bootstrap producers have
-artifact checks before command-step completion. The constitution check invokes
-the existing authoritative Draft validator; unchanged scaffolding remains invalid.
-Original process results, diagnostics and successful artifact hashes remain evidence.
+The [deferred core source proposal](../patches/README.md) describes generation and
+structured-worker changes; those are not installed or claimed as fixed in this
+release. Public core can still mark an exit-zero command completed. Program Kit's
+following native artifact and semantic validators remain authoritative, including
+the Draft constitution validator that rejects unchanged scaffolding. Existing run
+results and artifact hashes remain evidence; no state is rewritten to correct a
+historical command-step status.
 
 The intake authoring defect came from moving validated files out of a private
 temporary staging directory. On Windows, those files can retain the staging DACL,
@@ -43,20 +52,19 @@ Ratified document and completed run. Do not resume bootstrap for this consumer.
 Human constitution review and ratification remain separate decisions.
 
 The steps below apply to an unfinished run. This consumer now uses the linked
-upgrade-only recovery instead. After the coordinated core and Program Kit updates
-are actually available, from a normal user-owned terminal:
+upgrade-only recovery instead. After Program Kit 0.12.4 is actually published,
+from a normal user-owned terminal:
 
 1. Preserve uncommitted work, confirmed intake, `.specify/workflows/runs/26232ea0`,
    approval/review evidence and their recorded hashes. Inspect the existing run's
    status without editing its state JSON.
-2. Install the released core fix and update Program Kit through its documented
-   updater. Regenerate integration instructions through core installation/init
-   with `--script py`; review the generated-file diff. Do not hand-patch the skill,
+2. Update Program Kit through its documented updater with the existing supported
+   public Spec Kit installation. Do not hand-patch the skill,
    constitution, confirmed intake, approval ledgers or saved workflow state.
-3. Verify the recorded executable and its real resolver:
+3. For a native-runtime problem, verify the selected executable and resolver:
 
    ```powershell
-   $programKitPython = (Get-Content -Raw .specify/python-runtime.json | ConvertFrom-Json).executable
+   $programKitPython = (python -c 'import sys; print(sys.executable)').Trim()
    & $programKitPython -c 'import sys,yaml; assert sys.version_info >= (3,11); print(sys.executable, yaml.__version__)'
    & $programKitPython .specify/scripts/python/resolve_template.py constitution-template --json
    & $programKitPython .specify/extensions/program-kit-governance/scripts/governance_state.py validate-constitution-draft
@@ -84,22 +92,22 @@ authoring against confirmed intake and do not recursively reset repository ACLs.
 
 ## Validation and release dependency
 
-Deterministic regressions cover different/absent `python3`, real missing-PyYAML
-environments, supported-version failures, generated consumers, actual resolver
-execution, exit-zero blocked workers, absent/invalid artifacts, original diagnostics,
-hash retention, Windows ACLs and rollback. No coding-agent session is started.
+Current deterministic regressions exercise the unmodified public package and its
+unchanged generated skill, Program Kit native selection with different/absent
+`python3`, missing native dependencies, supported-version failures, exit-zero
+workers without artifacts, Windows ACLs and rollback. Native validators reject
+missing output. The separate deferred proposal tests do not supply release
+acceptance. No coding-agent session is started.
 
-The bounded Development suite passed. Targeted upstream template/integration
-checks passed, and a native Python/PowerShell/Git Bash composition fixture passed.
-The upstream parity collection's Bash availability probe skips tests on this host;
-the native fixture explicitly selects Git Bash. This does not claim the complete
-upstream suite or public package acceptance.
+Earlier Development and upstream-proposal logs are historical. The revised
+candidate requires fresh targeted/Development checks with public Spec Kit, then
+the final publication Release gate. Proposal fixtures are not a released package.
 
 This isolated branch began at prepared 0.12.2 source, merged published 0.12.3 main,
 and now prepares the combined 0.12.4 candidate without changing the main checkout. The
-coordinated core patch is not an upstream release, and this branch's existing CI
-pins still name unpatched 1.0.1. Reconcile the changes with the current release
-baseline, resolve the core dependency, and update its actual pins before publication.
+core-dependent proposal is deferred. CI retains public Spec Kit 1.0.1 and no
+patched runtime is built or installed. Reconcile the revised scope with the
+current release baseline before publication.
 These are shipping changes, so
 earlier local Release receipts cannot be reused. After the user chooses publication,
 run the complete local gate in their own terminal from the final clean checkout:

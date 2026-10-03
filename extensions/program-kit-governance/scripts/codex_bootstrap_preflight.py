@@ -275,14 +275,8 @@ def verify_windows_resolver(
     *,
     runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
 ) -> None:
-    """Execute the installed resolver exactly far enough to prove it is usable."""
+    """Probe with Program Kit's native interpreter; core skills retain their upstream invocation."""
     command = _resolver_command(flavor, resolver)
-    if flavor == 'py':
-        text = (project_root / CONSTITUTION_SKILL).read_text(encoding='utf-8')
-        if re.search(r'\bpython3\b', text) or command[0].replace('\\', '/') not in text.replace('\\', '/'):
-            raise RuntimeError('Generated core constitution instruction does not bind the selected interpreter '
-                               f'{command[0]}. Upgrade the core Spec Kit source fix and regenerate integration instructions; '
-                               'do not edit generated consumer files.')
     child_environment = os.environ.copy()
     if flavor == "py":
         child_environment["PYTHONIOENCODING"] = "utf-8"
@@ -393,9 +387,8 @@ used by the workflow, then verify the resolver directly:
 Do not rerun Spec Kit initialization for this dependency error; reinitialization
 does not install packages into the `python` interpreter."""
     else:
-        remediation = """Install the coordinated core Spec Kit Python runtime source fix first if the
-generated instruction selects a different interpreter. Then cleanly regenerate
-Spec Kit's integration files with the Python flavor:
+        remediation = """For a missing or unusable resolver, cleanly regenerate
+the supported public Spec Kit integration files with the Python flavor:
 
   specify init . --force --non-interactive --integration codex --script py
 
@@ -410,7 +403,7 @@ Program Kit extension registration, but review `git status` before continuing.""
     return f"""PROGRAM_KIT_SPEC_KIT_SCRIPT_RUNTIME
 
 Program Kit stopped before intake or research because the installed Codex
-constitution skill does not have a usable, consistently bound Spec Kit template resolver.
+constitution skill does not have a usable Spec Kit template resolver in the native probe.
 
 {problem}
 

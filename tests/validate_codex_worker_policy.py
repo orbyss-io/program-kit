@@ -65,7 +65,6 @@ def main():
             return subprocess.run(child, **kwargs)
 
         with patch.dict(os.environ, ambient, clear=True), patch.object(policy, 'inspect_adapter', inspect), \
-             patch.object(policy, 'require_core_contract'), \
              patch.object(preflight, 'evaluate_preflight', return_value={'action': 'continue', 'script_flavor': 'py'}):
             with policy.worker_environment(root, 'codex', runner=sandbox_fixture):
                 assert shlex.split(os.environ[policy.EXTRA_ARGS]).count('--sandbox') == 1
