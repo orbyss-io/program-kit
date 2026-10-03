@@ -1,9 +1,11 @@
 # Preparing Program Kit 0.12.4
 
 This candidate combines interpreter/worker artifact consistency, Windows staged-output
-permissions and initialized-consumer offline upgrade recovery, on top of published
+permissions, initialized-consumer offline upgrade recovery and Windows workflow
+shell preflight, on top of published
 0.12.3. See [Python source coordination](../patches/README.md) and
-[upgrade recovery](initialized-upgrade-recovery-2026-10-03.md).
+[upgrade recovery](initialized-upgrade-recovery-2026-10-03.md), plus
+[shell-preflight evidence and recovery](windows-workflow-shell-preflight-2026-10-03.md).
 
 All installable Program Kit components advance together. Foundation, Forms,
 Localization and managed toolchain pins remain unchanged. Published 0.12.3 tags,

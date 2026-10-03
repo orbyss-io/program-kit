@@ -2,6 +2,14 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "test_workflow_shell_preflight",
+      "command": ["{python}", "tests/test_workflow_shell_preflight.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Native workflow shell lookup, PATH limits, recorded interpreter and pre-dispatch immutable history; no coding workers."
+    },
+    {
       "id": "validate_upgrade_boundaries",
       "command": ["{python}", "tests/validate_upgrade_boundaries.py"],
       "group": "development",

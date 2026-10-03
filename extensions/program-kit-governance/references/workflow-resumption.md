@@ -5,6 +5,18 @@ human gates, dispatch and the terminal outcome. Use the installed `scripts/workf
 run` or `resume --run-id <existing-id>` from the human-owned terminal. Agents derive run IDs
 and all mechanical paths. Do not start an outer worker workflow inside an ordinary agent stage.
 
+Run, resume and reopen verify bare Python through the actual workflow shell mode
+before worker policy, schema setup, execution locks or history changes. On Windows,
+`WORKFLOW_SHELL_PREFLIGHT` rejects an inherited or projected workflow PATH longer
+than cmd.exe's 8191-character limit. Absolute-path executable checks do not establish
+shell lookup. The probe binds the same recorded Python and scoped environment used
+by native steps and requires its structured success marker and interpreter identity.
+For command lookup failures, use a human-owned launcher with an explicitly selected,
+bounded process PATH covering the resolved tools required by this workflow; restore
+its caller's environment afterward. Program Kit preserves inherited tool directories
+and global environment settings. Retry the same lifecycle command after fixing the
+launch environment; saved run state and approval gates need no manual edits.
+
 A failed producer or validator resumes from its affected producer stage. Successful prefix
 stages remain recorded. The transition archives prior state, saved workflow and downstream
 authority artifacts, invalidates downstream step results and completion eligibility, and clears

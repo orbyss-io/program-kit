@@ -172,6 +172,7 @@ def main():
             if command == 'run':
                 arguments.extend(['--input', 'integration=codex'])
             with patch.object(sys, 'argv', arguments), patch.object(Path, 'cwd', return_value=root), \
+                 patch('workflow_shell_preflight.verify_shell_launch', side_effect=lambda *a: events.append('shell')), \
                  patch('python_runtime.environment', return_value=contextlib.nullcontext()), \
                  patch.object(policy, 'worker_environment', scope), \
                  patch.object(workflow.RunState, 'load', return_value=state), \
@@ -182,7 +183,7 @@ def main():
                  patch.object(workflow, 'execute_definition', side_effect=executed), \
                  patch.object(workflow, 'resume', side_effect=executed), contextlib.redirect_stdout(io.StringIO()):
                 assert workflow.main() == 0
-            assert events == ['enter', 'schemas', 'engine', 'exit'], (command, events)
+            assert events == ['shell', 'enter', 'schemas', 'engine', 'exit'], (command, events)
 
         # Distinguish the worker artifact contract from process success, while
         # retaining all existing semantic validators and review gates.

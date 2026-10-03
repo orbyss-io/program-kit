@@ -35,8 +35,9 @@ def resolve(root: Path) -> str:
 def environment(root: Path):
     executable = resolve(root)
     previous = {key: os.environ.get(key) for key in ('SPECKIT_PYTHON', 'PATH')}
-    os.environ['SPECKIT_PYTHON'] = executable
-    os.environ['PATH'] = str(Path(executable).parent) + os.pathsep + (previous['PATH'] or '')
+    values = invocation_values(executable)
+    os.environ['SPECKIT_PYTHON'] = values['SPECKIT_PYTHON']
+    os.environ['PATH'] = values['PATH']
     try:
         selected = shutil.which('python')
         if not selected or not os.path.samefile(selected, executable):
@@ -48,3 +49,11 @@ def environment(root: Path):
                 os.environ.pop(key, None)
             else:
                 os.environ[key] = value
+
+
+def invocation_values(executable: str) -> dict[str, str]:
+    """Preview the exact scoped runtime environment without probing or changing it."""
+    values = dict(os.environ)
+    values['SPECKIT_PYTHON'] = executable
+    values['PATH'] = str(Path(executable).parent) + os.pathsep + values.get('PATH', '')
+    return values

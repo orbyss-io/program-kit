@@ -704,11 +704,15 @@ def main() -> int:
     try:
         if (args.reuse_proven_closure or args.reuse_prepared_recovery or args.post_bootstrap) and args.command != 'resume':
             raise WorkflowLifecycleError('Recovery reuse flags require resume')
+        if args.command in {'run', 'resume', 'reopen'}:
+            from workflow_shell_preflight import verify_shell_launch
+            verify_shell_launch(root)
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
-        if args.command in {'run', 'resume'}:
+        if args.command in {'run', 'resume', 'reopen'}:
             from python_runtime import environment
             dispatch_scope.enter_context(environment(root))
+        if args.command in {'run', 'resume'}:
             from codex_worker_policy import worker_environment
             # Resume can restart after the original workflow preflight. Establish
             # the same worker policy on every invocation before history changes.

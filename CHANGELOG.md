@@ -2,6 +2,9 @@
 
 ## 0.12.4 - Unreleased
 
+- Preflight real workflow shell lookup before worker policy, schema provisioning, locks or
+  run/resume/reopen changes. Reject oversized Windows PATH with command-lookup guidance;
+  verify the recorded interpreter and retain the caller's environment and history.
 - Validate and bind the actual Python interpreter and resolver dependencies before worker
   dispatch; coordinate core Spec Kit generation, native hooks and constitution instructions.
   Preserve structured blocked/failure diagnostics and validate required artifacts before completion.

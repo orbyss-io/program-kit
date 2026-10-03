@@ -10,6 +10,7 @@ import unittest
 import json
 import shutil
 from unittest.mock import patch
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'extensions/program-kit-governance/scripts'))
 import workflow_lifecycle as workflow
@@ -64,17 +65,20 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
     def test_entry_commands_fail_before_engine_or_artifact_mutation(self):
         for command in ('run', 'resume', 'reopen'):
-            with self.subTest(command=command), patch.object(sys, 'argv', ['workflow_lifecycle.py', command]), \
+            with self.subTest(command=command), patch.object(sys, 'argv', ['workflow_lifecycle.py', command, '--run-id', 'runtime-fixture']), \
+                    patch('workflow_shell_preflight.verify_shell_launch'), \
                     patch.object(python_runtime, 'environment', return_value=contextlib.nullcontext()), \
                     patch('codex_worker_policy.worker_environment', return_value=contextlib.nullcontext()), \
                     patch.object(Path, 'cwd', return_value=self.root), \
-                    patch.object(workflow, 'prepare_schema_runtimes', side_effect=workflow.WorkflowLifecycleError('WORKFLOW_RUNTIME_PREFLIGHT')), \
+                    patch.object(workflow.RunState, 'load', return_value=SimpleNamespace(inputs={'integration': 'auto'})), \
+                    patch.object(workflow, 'prepare_schema_runtimes', side_effect=workflow.WorkflowLifecycleError('WORKFLOW_RUNTIME_PREFLIGHT')) as schemas, \
                     patch.object(workflow, 'WorkflowEngine') as engine, \
                     patch.object(workflow.governance, 'configure_paths') as configure, \
                     contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(1, workflow.main())
                 engine.assert_not_called()
                 configure.assert_not_called()
+                schemas.assert_called_once_with(self.root)
 
 
 def mixed_python_trial(shell_python):
