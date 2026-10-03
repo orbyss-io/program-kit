@@ -470,6 +470,11 @@ def main() -> int:
             }),
             encoding="utf-8",
         )
+        from upgrade_probe_fixtures import render_registered_probes
+        render_registered_probes(project)
+        probe_inputs = [project / 'docs/architecture/bootstrap-proof-plan.json',
+                        *(project / 'docs/architecture/compatibility').glob('*')]
+        immutable_probes = {path: path.read_bytes() for path in probe_inputs if path.is_file()}
         immutable_decisions = bootstrap_decisions.read_bytes()
         command = (
             sys.executable, str(UPDATER), "--release-root", str(ROOT),
@@ -633,6 +638,8 @@ def main() -> int:
             raise AssertionError("Updater did not report managed baseline synchronization")
         if bootstrap_decisions.read_bytes() != immutable_decisions:
             raise AssertionError("Updater rewrote immutable bootstrap decisions")
+        if any(path.read_bytes() != data for path, data in immutable_probes.items()):
+            raise AssertionError('Updater changed registered bootstrap probe recipes/contracts/sources')
         upgrade_state = json.loads(
             (project / ".specify/governance/program-kit-upgrades.json").read_text(
                 encoding="utf-8"

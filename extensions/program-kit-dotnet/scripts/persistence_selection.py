@@ -165,8 +165,15 @@ def upgrade_scope(root, selection):
                  if item.get('status') == 'admitted'}
     legacy_profile = read(root / '.program-kit/managed.json', {}).get('persistenceProfile', 'none')
     ignored = {'.git', '.specify', '.program-kit', 'artifacts', 'node_modules', 'bin', 'obj'}
+    # Reuse the maintained runtime contract validator without importing consumer
+    # recipes or running probes. Only registered scratch sources are exempt.
+    lifecycle_path = Path(__file__).resolve().parents[2] / 'program-kit-governance/scripts/bootstrap_probe_projects.py'
+    spec = importlib.util.spec_from_file_location('persistence_probe_classification', lifecycle_path)
+    lifecycle = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lifecycle)
+    probe_projects = lifecycle.registered_probe_projects(root)
     projects = [path for path in root.rglob('*.csproj')
-                if not set(path.relative_to(root).parts) & ignored]
+                if not set(path.relative_to(root).parts) & ignored and path.resolve() not in probe_projects]
     deferred, active, deferred_errors = [], [], set()
     for owner in selection['owners']:
         paths = [owner['providerProject']] if owner.get('providerProject') else []

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.12.5 - 2026-10-03
+
+- Distinguish valid proof-plan-registered bootstrap compatibility fixture projects from
+  application materialization during persistence upgrade preflight and offline convergence.
+  Defer proposed unassigned owners when only those probes exist; retain real-project,
+  admitted/installed provider and transition guards. Invalid or unregistered contracts
+  never exempt projects, and arbitrary documentation projects still count.
+- Preserve completed bootstrap history, approved artifact hashes and fixture registrations
+  through the supported sequential updater. Keep baseline and observed installed-version
+  provenance truthful; tools upgrades require no synthetic feature admission or bootstrap rerun.
+
 ## 0.12.4 - 2026-10-03
 
 - Include current authored-byte budgets in corrective handoffs and validate producer sizing
