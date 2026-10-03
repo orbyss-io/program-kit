@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -200,19 +201,40 @@ def release_fingerprint(release: Path) -> str:
     return digest.hexdigest()
 
 
+def retry_windows_sharing_lock(operation):
+    # Six attempts, at most 0.75s waiting. Never retry ACL/access-denied errors.
+    for attempt in range(6):
+        try:
+            return operation()
+        except OSError as error:
+            if sys.platform != 'win32' or getattr(error, 'winerror', None) not in (32, 33) or attempt == 5:
+                raise
+            time.sleep(0.05 * (attempt + 1))
+
+
 def write_attempt(path: Path, value: dict) -> None:
     # Use ordinary sibling creation to inherit workspace permissions, not protected temp ACLs.
     path.parent.mkdir(parents=True, exist_ok=True)
     sibling = path.with_name(path.name + '.' + uuid.uuid4().hex)
+    failure = None
     try:
         with sibling.open('x', encoding='utf-8', newline='\n') as stream:
             json.dump(value, stream, indent=2, sort_keys=True)
             stream.write('\n')
             stream.flush()
             os.fsync(stream.fileno())
-        sibling.replace(path)
+        retry_windows_sharing_lock(lambda: sibling.replace(path))
+    except BaseException as error:
+        failure = error
+        raise
     finally:
-        sibling.unlink(missing_ok=True)
+        try:
+            retry_windows_sharing_lock(lambda: sibling.unlink(missing_ok=True))
+        except OSError:
+            if failure is None:
+                raise
+            # Leave temporary evidence if still locked; retain the original
+            # replacement diagnostic rather than masking it in cleanup.
 
 
 def begin_attempt(target: Path, release: Path, version: str, observed: str) -> tuple[Path, dict]:

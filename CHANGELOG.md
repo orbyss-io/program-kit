@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.12.4 - Unreleased
+## 0.12.4 - 2026-10-03
 
 - Include current authored-byte budgets in corrective handoffs and validate producer sizing
   before provisioning/runtime proofs, including saved continuations. Retain canonical generated
@@ -17,6 +17,8 @@
   during offline upgrades. Validate admitted/materialized persistence and transitions before mutation.
 - Discover the installed CLI runtime before ownership imports, reject release staging inside a
   consumer, and retain failed upgrade attempts plus original previous-version provenance on retry.
+- Retry temporary Windows sharing locks during atomic upgrade-attempt writes within a bounded
+  interval; retain original diagnostics and evidence when replacement or cleanup remains blocked.
 - Prepare all Program Kit components at 0.12.4 with the supported public Spec Kit dependency.
   Publication requires fresh deterministic Release evidence; no consumer authority is fabricated.
 

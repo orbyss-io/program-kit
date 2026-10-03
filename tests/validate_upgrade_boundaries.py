@@ -1,10 +1,13 @@
 """Offline upgrade admission, runtime discovery and retry evidence; no workers."""
 import importlib.util
+import ctypes
 import json
+import os
 import sys
 import shutil
 import subprocess
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -33,6 +36,104 @@ class UpgradeBoundaryTests(unittest.TestCase):
     def snapshot(self):
         return {path.relative_to(self.root): path.read_bytes() for path in self.root.rglob('*')
                 if path.is_file() and '__pycache__' not in path.parts}
+
+    def test_attempt_replacement_retries_sharing_locks_without_partial_history(self):
+        target = self.root / 'attempt.json'
+        self.write(target, {'status': 'running'})
+        original = target.read_bytes()
+        unrelated = self.snapshot()
+        replace = Path.replace
+        for code in (32, 33):
+            calls = []
+            def locked_then_replace(source, destination):
+                calls.append(source)
+                if len(calls) <= 2:
+                    self.assertEqual(original, target.read_bytes())
+                    error = OSError('transient Windows sharing lock')
+                    error.winerror = code
+                    raise error
+                return replace(source, destination)
+            target.write_bytes(original)
+            with patch.object(upgrade.sys, 'platform', 'win32'), \
+                    patch.object(upgrade.time, 'sleep'), \
+                    patch.object(Path, 'replace', autospec=True, side_effect=locked_then_replace):
+                upgrade.write_attempt(target, {'status': 'completed'})
+            self.assertEqual(3, len(calls))
+            self.assertEqual('completed', json.loads(target.read_bytes())['status'])
+            self.assertEqual([target], list(self.root.glob('attempt.json*')))
+            for path, data in unrelated.items():
+                if path != Path('attempt.json'):
+                    self.assertEqual(data, (self.root / path).read_bytes())
+
+    def test_attempt_lock_exhaustion_and_permission_failure_preserve_original(self):
+        target = self.root / 'attempt.json'
+        self.write(target, {'status': 'running'})
+        before = self.snapshot()
+        for platform, code, expected_calls in (('win32', 32, 6), ('win32', 5, 1), ('linux', 32, 1)):
+            error = OSError('retained root cause')
+            error.winerror = code
+            with patch.object(upgrade.sys, 'platform', platform), \
+                    patch.object(upgrade.time, 'sleep'), \
+                    patch.object(Path, 'replace', side_effect=error) as replace:
+                with self.assertRaises(OSError) as caught:
+                    upgrade.write_attempt(target, {'status': 'completed'})
+            self.assertIs(error, caught.exception)
+            self.assertEqual(expected_calls, replace.call_count)
+            self.assertEqual(before, self.snapshot())
+
+    def test_failed_attempt_cleanup_retains_original_error_and_temporary_evidence(self):
+        target = self.root / 'attempt.json'
+        self.write(target, {'status': 'running'})
+        original = target.read_bytes()
+        failure = OSError('replacement root cause')
+        failure.winerror = 32
+        cleanup = OSError('cleanup lock')
+        cleanup.winerror = 33
+        with patch.object(upgrade.sys, 'platform', 'win32'), \
+                patch.object(upgrade.time, 'sleep'), \
+                patch.object(Path, 'replace', side_effect=failure), \
+                patch.object(Path, 'unlink', side_effect=cleanup):
+            with self.assertRaises(OSError) as caught:
+                upgrade.write_attempt(target, {'status': 'completed'})
+        self.assertIs(failure, caught.exception)
+        self.assertEqual(original, target.read_bytes())
+        evidence = [path for path in self.root.glob('attempt.json.*')]
+        self.assertEqual(1, len(evidence))
+        self.assertEqual('completed', json.loads(evidence[0].read_bytes())['status'])
+
+    @unittest.skipUnless(os.name == 'nt', 'native Windows sharing semantics')
+    def test_attempt_write_tolerates_native_windows_share_lock(self):
+        from ctypes import wintypes
+        target = self.root / 'attempt.json'
+        self.write(target, {'status': 'running'})
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                                      ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        kernel.CreateFileW.restype = wintypes.HANDLE
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel.CloseHandle.restype = wintypes.BOOL
+        threads = []
+        replace = Path.replace
+        def lock_source_once(source, destination):
+            if not threads:
+                handle = kernel.CreateFileW(str(source), 0x80000000, 3, None, 3, 0x80, None)
+                if handle == ctypes.c_void_p(-1).value:
+                    raise ctypes.WinError(ctypes.get_last_error())
+                def release():
+                    threading.Event().wait(0.15)
+                    kernel.CloseHandle(handle)
+                thread = threading.Thread(target=release)
+                threads.append(thread)
+                thread.start()
+            return replace(source, destination)
+        try:
+            with patch.object(Path, 'replace', autospec=True, side_effect=lock_source_once):
+                upgrade.write_attempt(target, {'status': 'completed'})
+        finally:
+            for thread in threads:
+                thread.join()
+        self.assertEqual('completed', json.loads(target.read_bytes())['status'])
+        self.assertEqual([target], list(self.root.glob('attempt.json*')))
 
     def test_planned_unmaterialized_admission_is_deferred_without_writes(self):
         before = self.snapshot()

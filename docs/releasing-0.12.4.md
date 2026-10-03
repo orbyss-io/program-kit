@@ -66,6 +66,19 @@ Failed evidence is preserved in
 `artifacts/validation-runs/20261003T082053Z-c15aabec/journal.json`; this run created
 no Release receipt. The corrected candidate requires a new complete local run.
 
+The second complete local run at commit `985346a` also passed 90 of 91 checks,
+including the corrected compatibility assertion. Sequential upgrade validation
+encountered a native Windows sharing lock on an upgrade-attempt temporary sibling.
+Evidence remains in
+`artifacts/validation-runs/20261003T083149Z-604e6b7c/journal.json`; no receipt was
+created. A native regression reproduced the same replacement failure and cleanup
+masking. The maintained updater now retries Windows sharing/lock violations only
+(six attempts, at most 0.75 seconds waiting per operation), retains original
+diagnostics and temporary evidence if cleanup remains blocked, and still fails
+permission errors immediately. Four added regression cases cover native locks,
+eventual replacement, exhaustion/access-denied and cleanup failure. Fresh local
+Release evidence and green CI are required for this shipped correction.
+
 ```powershell
 Set-Location C:\Users\tech_\.codex\worktrees\python-runtime-consistency\program-kit
 .\scripts\Invoke-LocalRelease.ps1
