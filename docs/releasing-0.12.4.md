@@ -22,6 +22,21 @@ the core correction, select its actual released version and update all installat
 build, CI and test pins before publication. Do not publish this candidate while
 that prerequisite remains unresolved or invent a public version for it.
 
+The publication-readiness check on 2026-10-03 confirmed that current main is
+included in this candidate and the latest official Spec Kit tag is `v1.1.0`.
+That tag still lacks `workflows.worker_result.CONTRACT_VERSION`, its command step
+uses process exit status as success, and its integration runtime resolver retains
+separate `python3` lookup paths. It also renames the workflow `steps` package to
+`step`; switching the dependency pin alone is not a compatible correction.
+Select the upstream-release or explicitly maintained-fork route before updating
+the actual dependency pins and obtaining final Release evidence. The source patch
+and its disposable tests do not establish public dependency availability.
+
+The user authorized publication of the corrected Program Kit version on
+2026-10-03. That authorization does not satisfy the unresolved dependency or the
+deterministic validation gates. No stable tag or release was created during this
+readiness check; published 0.12.3 remains unchanged.
+
 ## Local publication gate
 
 The final combined candidate must remain committed and clean throughout validation.
