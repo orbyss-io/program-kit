@@ -5,7 +5,7 @@ from phase_obligations import check
 from lifecycle_state import atomic_write
 
 
-def assess(root: Path):
+def assess(root: Path, deferred_persistence=None):
     from governance_state import roadmap_records, ROADMAP
     from specification_intake import spec_entries
     roadmap = root / ROADMAP
@@ -31,8 +31,9 @@ def assess(root: Path):
         features.append({'featureDirectory': feature.relative_to(root).as_posix(), 'checks': checks,
                          'continuation': 'Use installed feature intake if confirmed authority is stale; then phase-context, plan/tasks hooks and required verification. Preserve existing spec identity and consumer code. Review only affected evidence; never synthesize approval or passing receipts.'})
     result = {'schemaVersion': 1, 'scope': 'consumer-phase-readiness',
-              'applicationReady': all(c['ready'] for f in features for c in f['checks']),
+              'applicationReady': not deferred_persistence and all(c['ready'] for f in features for c in f['checks']),
               'features': features,
+              'deferredPersistenceAdmissions': deferred_persistence or [],
               'note': 'Offline managed setup completion does not establish consumer behavior or delivery acceptance.'}
     atomic_write(root / '.specify/governance/upgrade-remediation.json', result)
     return result

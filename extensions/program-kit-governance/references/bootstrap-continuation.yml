@@ -35,6 +35,10 @@ steps:
     expression: "{{ steps.verify-recovery-source.output.data.reuse_approval }}"
     cases:
       false:
+        - id: validate-recovery-producer-output
+          type: shell
+          run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step validate-producer-output --run-id {{ context.run_id }} --source-run {{ inputs.source_run }}"
+          output_format: json
         - id: recovery-execute-compatibility-proofs
           type: shell
           run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_proof_plan.py --recovery-source {{ inputs.source_run }}"

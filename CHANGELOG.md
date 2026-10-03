@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.12.4 - 2026-10-03
+
+- Include current authored-byte budgets in corrective handoffs and validate producer sizing
+  before provisioning/runtime proofs, including saved continuations. Retain canonical generated
+  regions, root diagnostics and failed output; resume bounded correction before fresh human review.
+- Preflight real workflow shell lookup before worker policy, schema provisioning, locks or
+  run/resume/reopen changes. Reject oversized Windows PATH with command-lookup guidance;
+  verify the recorded interpreter and retain the caller's environment and history.
+- Validate the Python interpreter used by Program Kit native workflow steps and retain
+  native artifact diagnostics. Keep public Spec Kit compatibility and authoritative validators.
+  The core-generated `python3` and structured-worker source proposal is deferred from this release.
+- Publish staged intake/map/DSL outputs with destination permissions and workspace-owner access,
+  preserving existing unrelated ACLs, confirmed intake and rollback behavior.
+- Keep initialized, unmaterialized persistence proposals as explicit future admission obligations
+  during offline upgrades. Validate admitted/materialized persistence and transitions before mutation.
+- Discover the installed CLI runtime before ownership imports, reject release staging inside a
+  consumer, and retain failed upgrade attempts plus original previous-version provenance on retry.
+- Retry temporary Windows sharing locks during atomic upgrade-attempt writes within a bounded
+  interval; retain original diagnostics and evidence when replacement or cleanup remains blocked.
+- Prepare all Program Kit components at 0.12.4 with the supported public Spec Kit dependency.
+  Publication requires fresh deterministic Release evidence; no consumer authority is fabricated.
+
 ## 0.12.3 - 2026-10-02
 
 - Prepare completed-bootstrap maintenance after a legitimate constitution amendment

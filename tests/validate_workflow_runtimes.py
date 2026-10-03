@@ -10,9 +10,11 @@ import unittest
 import json
 import shutil
 from unittest.mock import patch
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'extensions/program-kit-governance/scripts'))
 import workflow_lifecycle as workflow
+import python_runtime
 
 
 class WorkflowRuntimeTests(unittest.TestCase):
@@ -24,7 +26,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.shell = str(self.root / 'shell/python.exe')
 
     def test_both_interpreters_are_provisioned_then_isolated_validated(self):
-        with patch.object(sys, 'executable', self.engine), patch.object(workflow.shutil, 'which', return_value=self.shell), \
+        with patch.object(sys, 'executable', self.engine), patch.object(python_runtime, 'resolve', return_value=self.shell), \
                 patch.object(workflow.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '', '')) as run:
             workflow.prepare_schema_runtimes(self.root)
         commands = [call.args[0] for call in run.call_args_list]
@@ -36,7 +38,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(commands[0][1:], commands[2][1:])
 
     def test_same_interpreter_is_not_provisioned_twice(self):
-        with patch.object(workflow.shutil, 'which', return_value=sys.executable), \
+        with patch.object(python_runtime, 'resolve', return_value=sys.executable), \
                 patch.object(workflow.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '', '')) as run:
             workflow.prepare_schema_runtimes(self.root)
         self.assertEqual(2, run.call_count)
@@ -46,32 +48,37 @@ class WorkflowRuntimeTests(unittest.TestCase):
             results = [subprocess.CompletedProcess([], 0, '', '')] * failure_index
             results.append(subprocess.CompletedProcess([], 1, '', 'broken dependency'))
             with self.subTest(command=failure_index), patch.object(sys, 'executable', self.engine), \
-                    patch.object(workflow.shutil, 'which', return_value=self.shell), \
+                    patch.object(python_runtime, 'resolve', return_value=self.shell), \
                     patch.object(workflow.subprocess, 'run', side_effect=results) as run:
                 with self.assertRaisesRegex(workflow.WorkflowLifecycleError, 'before agent dispatch.*broken dependency'):
                     workflow.prepare_schema_runtimes(self.root)
                 self.assertEqual(failure_index + 1, run.call_count)
 
     def test_timeout_and_missing_shell_are_clear_preflight_errors(self):
-        with patch.object(workflow.shutil, 'which', return_value=None):
+        with patch.object(python_runtime, 'resolve', side_effect=ValueError('python is unavailable')):
             with self.assertRaisesRegex(workflow.WorkflowLifecycleError, 'python is unavailable'):
                 workflow.prepare_schema_runtimes(self.root)
-        with patch.object(workflow.shutil, 'which', return_value=sys.executable), \
+        with patch.object(python_runtime, 'resolve', return_value=sys.executable), \
                 patch.object(workflow.subprocess, 'run', side_effect=subprocess.TimeoutExpired('setup', 360)):
             with self.assertRaisesRegex(workflow.WorkflowLifecycleError, 'WORKFLOW_RUNTIME_PREFLIGHT'):
                 workflow.prepare_schema_runtimes(self.root)
 
     def test_entry_commands_fail_before_engine_or_artifact_mutation(self):
         for command in ('run', 'resume', 'reopen'):
-            with self.subTest(command=command), patch.object(sys, 'argv', ['workflow_lifecycle.py', command]), \
+            with self.subTest(command=command), patch.object(sys, 'argv', ['workflow_lifecycle.py', command, '--run-id', 'runtime-fixture']), \
+                    patch('workflow_shell_preflight.verify_shell_launch'), \
+                    patch.object(python_runtime, 'environment', return_value=contextlib.nullcontext()), \
+                    patch('codex_worker_policy.worker_environment', return_value=contextlib.nullcontext()), \
                     patch.object(Path, 'cwd', return_value=self.root), \
-                    patch.object(workflow, 'prepare_schema_runtimes', side_effect=workflow.WorkflowLifecycleError('WORKFLOW_RUNTIME_PREFLIGHT')), \
+                    patch.object(workflow.RunState, 'load', return_value=SimpleNamespace(inputs={'integration': 'auto'})), \
+                    patch.object(workflow, 'prepare_schema_runtimes', side_effect=workflow.WorkflowLifecycleError('WORKFLOW_RUNTIME_PREFLIGHT')) as schemas, \
                     patch.object(workflow, 'WorkflowEngine') as engine, \
                     patch.object(workflow.governance, 'configure_paths') as configure, \
                     contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(1, workflow.main())
                 engine.assert_not_called()
                 configure.assert_not_called()
+                schemas.assert_called_once_with(self.root)
 
 
 def mixed_python_trial(shell_python):

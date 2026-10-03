@@ -5,6 +5,18 @@ human gates, dispatch and the terminal outcome. Use the installed `scripts/workf
 run` or `resume --run-id <existing-id>` from the human-owned terminal. Agents derive run IDs
 and all mechanical paths. Do not start an outer worker workflow inside an ordinary agent stage.
 
+Run, resume and reopen verify bare Python through the actual workflow shell mode
+before worker policy, schema setup, execution locks or history changes. On Windows,
+`WORKFLOW_SHELL_PREFLIGHT` rejects an inherited or projected workflow PATH longer
+than cmd.exe's 8191-character limit. Absolute-path executable checks do not establish
+shell lookup. The probe binds the same recorded Python and scoped environment used
+by native steps and requires its structured success marker and interpreter identity.
+For command lookup failures, use a human-owned launcher with an explicitly selected,
+bounded process PATH covering the resolved tools required by this workflow; restore
+its caller's environment afterward. Program Kit preserves inherited tool directories
+and global environment settings. Retry the same lifecycle command after fixing the
+launch environment; saved run state and approval gates need no manual edits.
+
 A failed producer or validator resumes from its affected producer stage. Successful prefix
 stages remain recorded. The transition archives prior state, saved workflow and downstream
 authority artifacts, invalidates downstream step results and completion eligibility, and clears
@@ -91,6 +103,17 @@ re-authoring valid accepted decisions. Changed
 authority, unknown suffixes and invalid lineage stop before agent dispatch. The
 original lineage definition remains historical; the child's saved migrated workflow
 and final completion hash identify the actual executed suffix.
+
+Corrective handoffs include current authored-byte targets and hard limits. The producer uses
+`bootstrap_recovery.py inspect-output --run-id <source-run-id>` after its final writes, including
+for older handoffs. Native sizing validation runs before provisioning/runtime proofs and counts
+only verified canonical generated views separately. Malformed output reports
+`RECOVERY_PRODUCER_OUTPUT` with paths, authored/generated/total bytes and hard limits.
+Use the supported lifecycle resume for bounded correction; failed output and diagnostics are
+archived before retry. Older saved definitions enforce the same guard at proof-helper entry
+without changing their workflow snapshot. Protected authority failures retain governance diagnostics.
+Sizing supplies no structural acceptance or approval; synchronization, semantic validators,
+proof checks, the human review gate and engine completion remain authoritative.
 
 Repeated resume follows the same linked run. An OS execution lock prevents concurrent
 resumption and releases on process death. Interrupted state and invalidated step history stay

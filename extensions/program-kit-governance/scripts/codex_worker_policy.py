@@ -213,6 +213,12 @@ def worker_environment(root: Path, requested: str, *, runner=subprocess.run):
     os.environ[EXTRA_ARGS] = shlex.join([*options, '--sandbox', 'workspace-write'])
     try:
         argv = inspect_adapter()
+        # Public Spec Kit remains the supported dispatcher. Native output and
+        # semantic validation steps own artifact acceptance independently.
+        from codex_bootstrap_preflight import evaluate_preflight
+        preflight = evaluate_preflight('codex', root)
+        if preflight['action'] != 'continue':
+            raise WorkerPolicyError(preflight['diagnostic'])
         # New append-only evidence per invocation; never rewrite historic runs.
         evidence = root / '.specify/workflows/worker-preflights' / (uuid.uuid4().hex + '.json')
         evidence.parent.mkdir(parents=True, exist_ok=True)

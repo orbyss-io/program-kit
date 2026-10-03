@@ -244,6 +244,7 @@ STAGE_STARTS = {
     'execute-compatibility-proofs': 'execute-compatibility-proofs',
     'validate-prerequisite-closure': 'architecture-prerequisite-closure',
     'recovery-closure': 'verify-recovery-source',
+    'validate-recovery-producer-output': 'verify-recovery-source',
     'recovery-synchronize': 'verify-recovery-source',
     'recovery-review': 'verify-recovery-source',
     'recovery-accept': 'verify-recovery-source',

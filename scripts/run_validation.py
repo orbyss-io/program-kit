@@ -1,6 +1,6 @@
 """Shared deterministic validation inventory and failure-preserving execution.
 
-Never starts a coding agent. Full local Release remains user-owned.
+Never starts a coding agent. Full local Release requires explicit user authority.
 """
 from __future__ import annotations
 
@@ -98,6 +98,16 @@ def validate_journal(value, suite='Release'):
     return [{k: s[k] for k in ('id', 'command', 'exitCode', 'startedAt', 'finishedAt')} for s in value['steps']]
 
 
+def require_release_authority(suite, approved, authorized_codex_task, environment, system):
+    if suite == 'Release' and not approved:
+        raise ValueError('Release requires explicit publication approval (--approved)')
+    if authorized_codex_task and (suite != 'Release' or not approved):
+        raise ValueError('--authorized-codex-task requires Release and explicit publication approval')
+    if suite == 'Release' and system == 'nt' and any(environment.get(k) for k in
+            ('CODEX_THREAD_ID', 'CODEX_SESSION_ID', 'CODEX_INTERNAL_ORIGINATOR_OVERRIDE')) and not authorized_codex_task:
+        raise ValueError('Run complete local Release from a user-owned terminal, not a Codex task')
+
+
 def main():
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, 'reconfigure'):
@@ -107,6 +117,8 @@ def main():
     parser.add_argument('--engines', default='chromium,firefox,webkit')
     parser.add_argument('--list', action='store_true')
     parser.add_argument('--approved', action='store_true')
+    parser.add_argument('--authorized-codex-task', action='store_true',
+                        help='User explicitly authorized this Codex task to run local Release')
     parser.add_argument('--receipt', action='store_true')
     parser.add_argument('--check', help='Run one declared check without claiming suite coverage')
     args = parser.parse_args()
@@ -127,10 +139,10 @@ def main():
         for check in checks:
             print(check['id'] + ': ' + ' '.join(command(check, args.engines)))
         return 0
-    if args.suite == 'Release' and not args.approved:
-        parser.error('Release requires explicit publication approval (--approved)')
-    if args.suite == 'Release' and os.name == 'nt' and any(os.environ.get(k) for k in ('CODEX_THREAD_ID','CODEX_SESSION_ID','CODEX_INTERNAL_ORIGINATOR_OVERRIDE')):
-        parser.error('Run complete local Release from a user-owned terminal, not a Codex task')
+    try:
+        require_release_authority(args.suite, args.approved, args.authorized_codex_task, os.environ, os.name)
+    except ValueError as error:
+        parser.error(str(error))
     if args.receipt and args.suite != 'Release':
         parser.error('Only Release can create a release receipt')
     from write_release_receipt import git, sha256
@@ -144,7 +156,7 @@ def main():
     journal = {'schemaVersion': 1, 'suite': args.suite, 'platform': platform.system(),
                'source': {'commit': git(ROOT, 'rev-parse', 'HEAD'), 'tree': git(ROOT, 'rev-parse', 'HEAD^{tree}')},
                'inventorySha256': sha256(INVENTORY), 'browserEngines': args.engines,
-               'startedAt': now(), 'steps': []}
+               'startedAt': now(), 'authorizedCodexTask': args.authorized_codex_task, 'steps': []}
     path = output / 'journal.json'
     environment = os.environ.copy()
     environment['PYTHONUTF8'] = '1'

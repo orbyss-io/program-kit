@@ -103,6 +103,7 @@ class PersistenceTests(unittest.TestCase):
         selection = self.select({'owner': 'Reports', 'storage': 'none', 'profile': 'auto', 'status': 'admitted'})
         self.assertEqual({}, persistence.pins(selection, TEMPLATE))
         self.assertEqual([], selection['blockers'])
+        self.assertEqual([], persistence.upgrade_scope(self.root, selection)['deferredAdmissions'])
 
     def test_inherited_and_explicit_postgres_agree_before_materialization(self):
         for profile in ('auto', 'ef-postgresql'):
@@ -125,6 +126,59 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual({}, persistence.pins(selection, TEMPLATE))
         owner = self.owner(); owner['admission']['atomicity'] = ['missing.md']
         self.assertTrue(any('atomicity' in e for e in self.select(owner)['blockers']))
+
+    def test_upgrade_defers_two_unassigned_future_owners_but_implementation_still_blocks(self):
+        owners = [{'owner': name, 'storage': 'server-relational', 'profile': 'auto', 'status': 'proposed'}
+                  for name in ('policy-portfolio', 'owner-access')]
+        selected = self.select(*owners)
+        self.assertEqual(26, len(selected['blockers']))
+        before = (self.root / 'docs/architecture/bootstrap-decisions.json').read_bytes()
+        report = sync.readiness(self.root, 'upgrade', validate_authority=False)
+        self.assertTrue(report['ready'], report)
+        self.assertEqual(2, len(report['deferredPersistenceAdmissions']))
+        self.assertEqual(26, sum(len(item['blockers']) for item in report['deferredPersistenceAdmissions']))
+        self.assertTrue(sync.readiness(self.root, 'implementation', validate_authority=False)['blockers'])
+        self.assertEqual(before, (self.root / 'docs/architecture/bootstrap-decisions.json').read_bytes())
+        self.assertFalse((self.root / '.program-kit/managed.json').exists())
+
+    def test_upgrade_validates_installed_admission_even_with_an_unrelated_active_feature(self):
+        owner = self.owner()
+        selected = self.select(owner)
+        self.write('.program-kit/managed.json', {'persistenceOwners': selected['owners'], 'persistenceProfile': 'ef-postgresql'})
+        self.write('.specify/feature.json', {'feature_directory': 'specs/unrelated'})
+        self.write('specs/unrelated/artifact-ownership.json', {'persistenceOwners': []})
+        # The proof disappeared after installation. Active-feature scoping must not hide it.
+        (self.root / 'docs/architecture/persistence.md').unlink()
+        selected = persistence.upgrade_scope(self.root, persistence.resolve(self.root, ''))
+        self.assertTrue(any('atomicity' in item for item in selected['blockers']))
+        self.assertEqual([], selected['deferredAdmissions'])
+        self.assertTrue(sync.context(self.root, 'upgrade', None)['persistence']['blockers'])
+
+    def test_upgrade_never_defers_materialized_or_admitted_owners_or_transitions(self):
+        owner = self.owner(admitted=False)
+        project = self.root / owner['providerProject']
+        project.parent.mkdir(parents=True)
+        project.write_text('<Project/>')
+        selected = persistence.upgrade_scope(self.root, self.select(owner))
+        self.assertTrue(selected['blockers'])
+        self.assertEqual([], selected['deferredAdmissions'])
+        project.unlink()
+        owner['status'] = 'admitted'
+        owner['admission']['atomicity'] = ['missing.md']
+        self.assertTrue(persistence.upgrade_scope(self.root, self.select(owner))['blockers'])
+        previous = self.owner()
+        self.write('.program-kit/managed.json', {'persistenceOwners': [previous], 'persistenceProfile': 'ef-postgresql'})
+        owner = self.owner(profile='ef-sqlite', admitted=False)
+        selection = persistence.upgrade_scope(self.root, self.select(owner))
+        self.assertTrue(any('migration authority' in error for error in selection['blockers']))
+        self.assertEqual([], selection['deferredAdmissions'])
+
+    def test_upgrade_unassigned_owner_blocks_when_real_application_projects_exist(self):
+        project = self.root / 'src/app.csproj'
+        project.parent.mkdir(parents=True)
+        project.write_text('<Project/>')
+        selection = self.select({'owner': 'Unassigned', 'storage': 'server-relational', 'status': 'proposed'})
+        self.assertTrue(persistence.upgrade_scope(self.root, selection)['blockers'])
 
     def test_feature_admission_does_not_rewrite_approved_bootstrap_intent(self):
         owner = self.owner()

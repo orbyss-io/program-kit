@@ -9,6 +9,7 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
+from workspace_output import replace_bytes
 
 import architecture_map as architecture
 import bootstrap_intake as intake_contract
@@ -315,14 +316,14 @@ def build(root: Path, source_path: Path) -> dict:
         try:
             for target in targets:
                 target.parent.mkdir(parents=True, exist_ok=True)
-                (staged / target.relative_to(root)).replace(target)
+                replace_bytes(target, (staged / target.relative_to(root)).read_bytes(), owner_root=root)
                 replaced.append(target)
         except OSError:
             for target in replaced:
                 if before[target] is None:
                     target.unlink()
                 else:
-                    target.write_bytes(before[target])
+                    replace_bytes(target, before[target], owner_root=root)
             raise
     return {'status': 'valid-draft', 'outputs': [str(path) for path in targets],
             'semanticReview': semantic_review(model),

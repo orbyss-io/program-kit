@@ -83,6 +83,9 @@ jobs:
       - name: Validate scoped worker permissions with fixture subprocesses
         run: python tests/validate_codex_worker_policy.py
 
+      - name: Validate compatibility with unmodified public Spec Kit
+        run: python tests/validate_public_core_compatibility.py
+
       - name: Prepare engine schema runtime and preserve its interpreter
         run: |
           python extensions/program-kit-governance/scripts/schema_runtime.py setup
@@ -97,7 +100,10 @@ jobs:
           python-version: "3.12"
 
       - name: Validate mixed Python workflow run and resume without agents
+        # This is a positive native-runtime trial. Missing-dependency rejection
+        # remains covered separately by validate_public_core_compatibility.py.
         run: |
+          python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
           & $env:PK_ENGINE_PYTHON tests/validate_workflow_runtimes.py --mixed-python (Get-Command python).Source
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 

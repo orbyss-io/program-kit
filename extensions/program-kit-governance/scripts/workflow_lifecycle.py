@@ -83,9 +83,11 @@ def prepare_schema_runtimes(root: Path) -> None:
     engine and may re-enter its isolated interpreter. Their version-specific
     schema caches must both exist. Never share binary dependencies between them.
     """
-    shell_python = shutil.which('python')
-    if not shell_python:
-        raise WorkflowLifecycleError('WORKFLOW_RUNTIME_PREFLIGHT: python is unavailable on PATH')
+    from python_runtime import resolve
+    try:
+        shell_python = resolve(root)
+    except (ValueError, OSError, subprocess.SubprocessError) as error:
+        raise WorkflowLifecycleError(str(error)) from error
     scripts = root / '.specify/extensions/program-kit-governance/scripts'
     probe = ('import sys; sys.path.insert(0, sys.argv[1]); '
              'import schema_runtime; schema_runtime.activate(); '
@@ -555,6 +557,11 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
                 if owner:
                     restart = STAGES[owner]['restart']
         if state.inputs.get('source_run'):
+            if (state.current_step_id == 'recovery-execute-compatibility-proofs'
+                    and 'RECOVERY_PRODUCER_OUTPUT' in json.dumps({'error': state.error, 'result': current})):
+                # Historical definitions run the sizing guard inside the proof
+                # helper. Re-enter correction only for this producer diagnostic.
+                restart = 'verify-recovery-source'
             if state.current_step_id == 'recovery-require-ready':
                 verdict = lifecycle.verdict(root)
                 if {item['id'] for item in verdict.get('blockers', [])} == {'READINESS-CURRENT-EVIDENCE'}:
@@ -657,6 +664,7 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
     expected = {'complete': 'complete-bootstrap', 'verify-source': 'verify-recovery-source',
                 'review': 'recovery-review', 'accept': 'recovery-accept',
                 'synchronize': 'recovery-synchronize', 'evaluate': 'recovery-evaluate',
+                'validate-producer-output': 'validate-recovery-producer-output',
                 'readiness-context': 'prepare-recovery-readiness'}
     if (state.status != RunStatus.RUNNING or state.current_step_id != expected.get(action)
             or state.inputs.get('source_run') != source_run):
@@ -677,6 +685,8 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
         return recovery.accept(root, source_run, verdict)
     if action == 'synchronize':
         return recovery.synchronize(root, source_run)
+    if action == 'validate-producer-output':
+        return recovery.validate_output(root, source_run)
     if action == 'evaluate':
         return recovery.evaluate(root, source_run)
     if action == 'readiness-context':
@@ -702,8 +712,14 @@ def main() -> int:
     try:
         if (args.reuse_proven_closure or args.reuse_prepared_recovery or args.post_bootstrap) and args.command != 'resume':
             raise WorkflowLifecycleError('Recovery reuse flags require resume')
+        if args.command in {'run', 'resume', 'reopen'}:
+            from workflow_shell_preflight import verify_shell_launch
+            verify_shell_launch(root)
         if RunState is None and args.command != 'validate-completion':
             return subprocess.run([str(installed_interpreter()), str(Path(__file__).resolve()), *sys.argv[1:]], check=False).returncode
+        if args.command in {'run', 'resume', 'reopen'}:
+            from python_runtime import environment
+            dispatch_scope.enter_context(environment(root))
         if args.command in {'run', 'resume'}:
             from codex_worker_policy import worker_environment
             # Resume can restart after the original workflow preflight. Establish
@@ -743,7 +759,8 @@ def main() -> int:
                 if state.status in {RunStatus.FAILED, RunStatus.PAUSED}:
                     from compatibility_diagnostics import sanitize
                     output = state.step_results.get(state.current_step_id, {}).get('output', {})
-                    detail = output.get('stderr') or output.get('stdout')
+                    value['worker_result'] = output.get('worker_result')
+                    detail = (output.get('worker_result') or {}).get('diagnostic') or output.get('artifact_diagnostic') or output.get('stderr') or output.get('stdout')
                     if detail:
                         value['diagnostic'] = sanitize(str(detail))[-4000:]
                     value['evidence'] = str(run_directory(root, state.run_id) / 'state.json')

@@ -125,7 +125,8 @@ def context(repository: Path, phase: str, feature: str | None) -> dict:
     if feature:
         inputs.extend(f"{feature}/{name}" for name in ("spec.md", "plan.md", "artifact-ownership.json", "tasks.md"))
     web = managed.get("webProfile", "auto") if phase == "upgrade" else "auto"
-    persistence = provider('program-kit-dotnet/scripts/persistence_selection.py').resolve(repository, feature)
+    persistence = provider('program-kit-dotnet/scripts/persistence_selection.py').resolve(
+        repository, '' if phase == 'upgrade' else feature)
     selection = load(repository / "docs/architecture/building-block-selection.json", {})
     targets = [{"id": item["id"], "path": item["path"], "kind": item["kind"],
                 "state": "materialized" if contained(repository, item["path"]).is_file() else "planned"}
@@ -151,7 +152,7 @@ def provider_inputs() -> dict:
 def dotnet_command(repository: Path, setup: dict) -> list[str]:
     return [sys.executable, str(package_execution.extension_root() / "program-kit-dotnet/scripts/dotnet_sync.py"),
             "--target", str(repository), "--profile-selected", "--web-profile", setup["webProfile"],
-            "--persistence-profile", "auto"] + (["--feature-dir", setup["feature"]] if setup.get("feature") else [])
+            "--persistence-profile", "auto"] + (["--upgrade-existing"] if setup['phase'] == 'upgrade' else []) + (["--feature-dir", setup["feature"]] if setup.get("feature") else [])
 
 
 def toolchain_current(repository: Path, pins: dict) -> bool:
@@ -365,10 +366,15 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
     plan = describe(repository, phase, feature)
     restore = provider("program-kit-building-blocks/scripts/restore_dependencies.py")
     problems = sync_readiness.blockers(repository, plan["context"], plan["operations"], restore)
+    deferred_admissions = []
     if phase not in {'bootstrap', 'planning'}:
         persistence = provider('program-kit-dotnet/scripts/persistence_selection.py')
         template = package_execution.extension_root() / 'program-kit-dotnet/templates/dotnet/files'
-        problems.extend(persistence.coherence(repository, plan['context']['persistence'], template,
+        selection = plan['context']['persistence']
+        if phase == 'upgrade':
+            selection = persistence.upgrade_scope(repository, selection)
+            deferred_admissions = selection['deferredAdmissions']
+        problems.extend(persistence.coherence(repository, selection, template,
                         materialized=phase in {'implementation-setup', 'implementation', 'upgrade'}))
     if validate_authority and phase not in {'bootstrap', 'upgrade'}:
         try:
@@ -384,7 +390,8 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
             except (OSError, ValueError, RuntimeError) as error:
                 pending.append(str(error))
     return {"phase": phase, "ready": not problems, "readinessScope": "offline-setup" if phase == "upgrade" else phase,
-            "blockers": problems, "pendingPackageVerification": pending, "deferredTargets": plan["deferredTargets"]}
+            "blockers": problems, "pendingPackageVerification": pending, "deferredTargets": plan["deferredTargets"],
+            "deferredPersistenceAdmissions": deferred_admissions}
 
 
 def upgrade(repository: Path) -> dict:

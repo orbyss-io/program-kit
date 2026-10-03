@@ -32,6 +32,13 @@ and ratified constitution. Use scoped follow-on decisions for changed design aut
 remove a retained condition or change NOT READY to READY to make validation pass.
 
 Produce corrected ledger, scoped decisions, acceptance scope, bootstrap-proof-plan.json and architecture narrative. Prepare recipes without executing them; the next native shell step owns provisioning and proof.
+Read the handoff's explicit authored-byte targets and hard limits. Also run
+`python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py inspect-output --run-id <source-run-id>`
+after final writes to obtain current budgets and authored/generated/total counts, including when
+resuming an older handoff. Correct oversized authored prose before returning; preserve canonical
+generated regions byte-for-byte and retain decisive obligations. The native read-only producer
+sizing gate runs before provisioning/runtime proofs. A sizing pass supplies no structural
+acceptance, proof or human approval; later synchronization and validators remain authoritative.
 Reuse valid compatibility receipts and preserve failed-attempt evidence. Stop after reporting
 the produced artifacts and bounded blockers. The engine executes synchronization, review,
 human approval, readiness evaluation and completion in order. Do not invoke standalone

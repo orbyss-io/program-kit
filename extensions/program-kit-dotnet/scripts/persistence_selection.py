@@ -62,7 +62,7 @@ def resolve(root, feature=None, requested=None):
     if not declarations:
         declarations = [{'owner': 'unassigned-' + p, 'storage': 'relational', 'profile': p,
                          'status': 'proposed'} for p in sorted(hints)]
-    blockers, owners, identities = [], [], set()
+    blockers, owners, identities, owner_blockers = [], [], set(), {}
     previous = {item['owner']: item for item in managed.get('persistenceOwners', [])}
     admissions = ownership.get('persistenceAdmissions', {})
     if not isinstance(admissions, dict):
@@ -130,8 +130,9 @@ def resolve(root, feature=None, requested=None):
                 errors.append(f"provider transition from {old['profile']} requires accepted migration authority")
         resolved = {**item, 'profile': profile, 'baselineProfile': baseline_profile, 'status': status, 'admissionComplete': not errors}
         owners.append(resolved)
+        owner_blockers[owner] = [f'PKP002 {owner}: {error}' for error in errors]
         if not feature or owner in ownership.get('persistenceOwners', []):
-            blockers.extend(f'PKP002 {owner}: {error}' for error in errors)
+            blockers.extend(owner_blockers[owner])
     declared = {item['profile'] for item in owners}
     if (declared_profiles & set(PROFILES)) - (declared | {item['baselineProfile'] for item in owners}):
         blockers.append('PKP002 selected persistence profiles disagree with data-owner declarations')
@@ -150,7 +151,49 @@ def resolve(root, feature=None, requested=None):
     return {'schemaVersion': 1, 'owners': owners, 'profiles': selected,
             'scope': ownership.get('persistenceOwners', []) if feature else None,
             'summary': selected[0] if len(selected) == 1 else 'mixed' if selected else 'none',
-            'blockers': blockers, 'installedOwners': list(previous.values())}
+            'blockers': blockers, 'ownerBlockers': owner_blockers, 'installedOwners': list(previous.values())}
+
+
+def upgrade_scope(root, selection):
+    """Defer only proposed, uninstalled owners with no materialized projects.
+
+    Admission and provider transitions for installed or admitted owners remain guards.
+    An unassigned owner cannot be deferred once application projects exist: its placement
+    must first be clarified. Global declaration/transition blockers are never removed.
+    """
+    installed = {item['owner'] for item in selection.get('installedOwners', [])
+                 if item.get('status') == 'admitted'}
+    legacy_profile = read(root / '.program-kit/managed.json', {}).get('persistenceProfile', 'none')
+    ignored = {'.git', '.specify', '.program-kit', 'artifacts', 'node_modules', 'bin', 'obj'}
+    projects = [path for path in root.rglob('*.csproj')
+                if not set(path.relative_to(root).parts) & ignored]
+    deferred, active, deferred_errors = [], [], set()
+    for owner in selection['owners']:
+        paths = [owner['providerProject']] if owner.get('providerProject') else []
+        paths.extend(owner.get('testProjects', []))
+        pending = (owner['profile'] != 'none' and owner['status'] == 'proposed' and owner['owner'] not in installed
+                   and not (legacy_profile not in {'none', None} and not installed)
+                   and not owner.get('providerOverride') and not owner.get('transitionAuthority')
+                   and not any(inside(root, path).exists() for path in paths)
+                   and (bool(paths) or not projects))
+        if pending:
+            errors = selection.get('ownerBlockers', {}).get(owner['owner'])
+            if errors is None:  # Compatibility with consumers installed before structured owner blockers.
+                errors = [error for error in selection['blockers'] if error.startswith(f"PKP002 {owner['owner']}: ")]
+            deferred.append({'owner': owner['owner'], 'profile': owner['profile'],
+                             'requiredPhase': 'feature-persistence-admission',
+                             'blockers': errors})
+            deferred_errors.update(errors)
+        else:
+            active.append(owner)
+    profiles = sorted({owner['profile'] for owner in active} - {'none'})
+    blockers = [error for error in selection['blockers'] if error not in deferred_errors]
+    if legacy_profile not in {'none', None} and not selection['owners'] and not installed:
+        blockers.append(f'PKP002 existing {legacy_profile} requires declared admitted data owners')
+    return {**selection, 'owners': active, 'scope': None, 'profiles': profiles,
+            'summary': profiles[0] if len(profiles) == 1 else 'mixed' if profiles else 'none',
+            'blockers': blockers,
+            'deferredAdmissions': deferred}
 
 
 def packages(owner, template):

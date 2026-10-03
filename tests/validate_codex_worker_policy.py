@@ -64,7 +64,8 @@ def main():
             # Execute the probe script directly as a fixture, never Codex.
             return subprocess.run(child, **kwargs)
 
-        with patch.dict(os.environ, ambient, clear=True), patch.object(policy, 'inspect_adapter', inspect):
+        with patch.dict(os.environ, ambient, clear=True), patch.object(policy, 'inspect_adapter', inspect), \
+             patch.object(preflight, 'evaluate_preflight', return_value={'action': 'continue', 'script_flavor': 'py'}):
             with policy.worker_environment(root, 'codex', runner=sandbox_fixture):
                 assert shlex.split(os.environ[policy.EXTRA_ARGS]).count('--sandbox') == 1
             assert os.environ[policy.EXTRA_ARGS] == original
@@ -125,6 +126,7 @@ def main():
                 expect_block(policy.inspect_adapter)
 
         with patch.object(preflight, 'verify_git_worktree'), \
+             patch.object(preflight, 'verify_windows_resolver'), \
              patch.object(preflight, 'inspect_script_runtime', return_value=('py', root / 'resolver.py')):
             blocked = preflight.evaluate_preflight('codex', root, environ={}, platform_name='posix', check_worker_access=True)
             assert blocked['action'] == 'worker-access-blocked'
@@ -169,6 +171,8 @@ def main():
             if command == 'run':
                 arguments.extend(['--input', 'integration=codex'])
             with patch.object(sys, 'argv', arguments), patch.object(Path, 'cwd', return_value=root), \
+                 patch('workflow_shell_preflight.verify_shell_launch', side_effect=lambda *a: events.append('shell')), \
+                 patch('python_runtime.environment', return_value=contextlib.nullcontext()), \
                  patch.object(policy, 'worker_environment', scope), \
                  patch.object(workflow.RunState, 'load', return_value=state), \
                  patch.object(workflow, 'execution_lock', return_value=contextlib.nullcontext()), \
@@ -178,7 +182,7 @@ def main():
                  patch.object(workflow, 'execute_definition', side_effect=executed), \
                  patch.object(workflow, 'resume', side_effect=executed), contextlib.redirect_stdout(io.StringIO()):
                 assert workflow.main() == 0
-            assert events == ['enter', 'schemas', 'engine', 'exit'], (command, events)
+            assert events == ['shell', 'enter', 'schemas', 'engine', 'exit'], (command, events)
 
         # Distinguish the worker artifact contract from process success, while
         # retaining all existing semantic validators and review gates.

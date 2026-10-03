@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -8,7 +9,9 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 import retired_sync_integration
 
@@ -85,7 +88,7 @@ def load_managed_profile(target: Path) -> tuple[str, str] | None:
     web = value.get("webProfile")
     persistence = value.get("persistenceProfile")
     if web not in {"none", "bff-cookie", "spa-pkce"} or persistence not in {
-        "none", "ef-postgresql", "ef-sqlserver", "ef-sqlite",
+        "none", "ef-postgresql", "ef-sqlserver", "ef-sqlite", "mixed", "custom",
     }:
         raise UpgradeError(
             "PKU103 existing managed baseline does not record supported web and persistence profiles"
@@ -126,6 +129,137 @@ def require_existing_bundle(target: Path) -> None:
 def current_version(target: Path) -> str:
     manifest = target / ".specify/extensions/program-kit-governance/extension.yml"
     return manifest_version(manifest, "installed Program Kit Governance extension")
+
+
+def load_release_module(path: Path, name: str):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise UpgradeError(f'PKU101 missing release adapter: {path}')
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def persistence_upgrade_preflight(target: Path, release: Path) -> dict:
+    """Admission failures precede installation; new package pins are checked after sync."""
+    relative = 'extensions/program-kit-dotnet/scripts/persistence_selection.py'
+    module = load_release_module(release / relative, 'upgrade_persistence')
+    selection = module.upgrade_scope(target, module.resolve(target, ''))
+    problems = list(selection['blockers'])
+    installed = target / '.specify/extensions/program-kit-dotnet'
+    # Existing applied assignments must be coherent with the currently installed provider,
+    # not with the candidate's possibly renewed package pins.
+    if (installed / 'scripts/persistence_selection.py').is_file():
+        previous = load_release_module(installed / 'scripts/persistence_selection.py', 'upgrade_previous_persistence')
+        old = module.upgrade_scope(target, previous.resolve(target, ''))
+        problems.extend(previous.coherence(target, old, installed / 'templates/dotnet/files', materialized=True))
+    if problems:
+        raise UpgradeError('PKU118 persistence upgrade admission failed before component mutation: '
+                           + '; '.join(dict.fromkeys(problems)))
+    return selection
+
+
+def ensure_cli_runtime(command: list[str], release: Path) -> int | None:
+    """Load ownership guards in the already-probed CLI environment before importing them."""
+    if '--site-packages' in command and str(release / 'scripts/invoke_specify.py') in command:
+        site = Path(command[command.index('--site-packages') + 1]).resolve()
+        if not (site / 'specify_cli/__init__.py').is_file():
+            raise UpgradeError(f'PKU119 Spec Kit bridge package is missing: {site}')
+        sys.path.insert(0, str(site))
+        return None
+    environment = uv_windows_specify_environment(command)
+    interpreter = environment[0] if environment else None
+    if interpreter is None and len(command) == 1 and os.name != 'nt':
+        try:
+            first = Path(command[0]).read_text(encoding='utf-8').splitlines()[0]
+            candidate = Path(first[2:]) if first.startswith('#!') else None
+            if candidate and candidate.is_absolute() and candidate.is_file():
+                interpreter = candidate
+        except (OSError, UnicodeDecodeError, IndexError):
+            pass
+    if interpreter and interpreter.resolve() != Path(sys.executable).resolve():
+        print(f'PKU119 updater ownership guards require the installed Spec Kit runtime: {interpreter}', flush=True)
+        return subprocess.run([str(interpreter), str(Path(__file__).resolve()), *sys.argv[1:]],
+                              env={**os.environ, 'PYTHONUTF8': '1'}, check=False).returncode
+    if importlib.util.find_spec('specify_cli') is not None:
+        return None
+    raise UpgradeError('PKU119 the updater cannot import the installed Spec Kit ownership guards. '
+                       'Run this command with the Python interpreter belonging to the installed Spec Kit CLI; '
+                       'no component mutation started.')
+
+
+def release_fingerprint(release: Path) -> str:
+    digest = hashlib.sha256()
+    for directory in ('scripts', 'extensions', 'presets', 'workflows'):
+        for path in sorted((release / directory).rglob('*')):
+            if path.is_file() and '__pycache__' not in path.parts and path.suffix not in {'.pyc', '.pyo'}:
+                digest.update(path.relative_to(release).as_posix().encode() + b'\0'
+                              + hashlib.sha256(path.read_bytes()).digest())
+    for name in ('VERSION', 'bundle.yml'):
+        digest.update(name.encode() + b'\0' + hashlib.sha256((release / name).read_bytes()).digest())
+    return digest.hexdigest()
+
+
+def retry_windows_sharing_lock(operation):
+    # Six attempts, at most 0.75s waiting. Never retry ACL/access-denied errors.
+    for attempt in range(6):
+        try:
+            return operation()
+        except OSError as error:
+            if sys.platform != 'win32' or getattr(error, 'winerror', None) not in (32, 33) or attempt == 5:
+                raise
+            time.sleep(0.05 * (attempt + 1))
+
+
+def write_attempt(path: Path, value: dict) -> None:
+    # Use ordinary sibling creation to inherit workspace permissions, not protected temp ACLs.
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sibling = path.with_name(path.name + '.' + uuid.uuid4().hex)
+    failure = None
+    try:
+        with sibling.open('x', encoding='utf-8', newline='\n') as stream:
+            json.dump(value, stream, indent=2, sort_keys=True)
+            stream.write('\n')
+            stream.flush()
+            os.fsync(stream.fileno())
+        retry_windows_sharing_lock(lambda: sibling.replace(path))
+    except BaseException as error:
+        failure = error
+        raise
+    finally:
+        try:
+            retry_windows_sharing_lock(lambda: sibling.unlink(missing_ok=True))
+        except OSError:
+            if failure is None:
+                raise
+            # Leave temporary evidence if still locked; retain the original
+            # replacement diagnostic rather than masking it in cleanup.
+
+
+def begin_attempt(target: Path, release: Path, version: str, observed: str) -> tuple[Path, dict]:
+    decision = target / 'docs/architecture/bootstrap-decisions.json'
+    authority_hash = hashlib.sha256(decision.read_bytes()).hexdigest() if decision.is_file() else None
+    fingerprint = release_fingerprint(release)
+    directory = target / '.specify/governance/program-kit-upgrade-attempts'
+    previous = []
+    for path in directory.glob('*.json'):
+        value = json.loads(path.read_text(encoding='utf-8'))
+        if (value.get('schemaVersion') == 1 and value.get('targetVersion') == version
+                and value.get('releaseInputsSha256') == fingerprint and value.get('bootstrapDecisionsSha256') == authority_hash
+                and value.get('status') in {'running', 'incomplete'}):
+            previous.append((path, value))
+    prior = max(previous, key=lambda item: item[1]['startedAt']) if previous else None
+    value = {'schemaVersion': 1, 'id': uuid.uuid4().hex, 'targetVersion': version,
+             'observedInstalledVersion': observed,
+             'previousInstalledVersion': prior[1]['previousInstalledVersion'] if prior else observed,
+             'retryOf': prior[0].relative_to(target).as_posix() if prior else None,
+             'releaseInputsSha256': fingerprint, 'bootstrapDecisionsSha256': authority_hash,
+             'startedAt': datetime.now(timezone.utc).isoformat(), 'status': 'running',
+             'authorization': 'explicit-local-upgrade-command'}
+    path = directory / (value['id'] + '.json')
+    write_attempt(path, value)
+    return path, value
 
 
 def run_step(command: list[str], target: Path, label: str, number: int, total: int) -> None:
@@ -813,17 +947,29 @@ def main() -> int:
     args = parser.parse_args()
     descriptor: int | None = None
     lock_path: Path | None = None
+    attempt_path: Path | None = None
+    attempt: dict | None = None
     try:
         release = Path(args.release_root).resolve()
         target = Path(args.target).resolve()
+        if release.is_relative_to(target):
+            raise UpgradeError('PKU120 stage the verified release outside the consumer workspace before upgrading. '
+                               'Release examples and templates must not enter consumer dependency audits. '
+                               'No component mutation started.')
         version = validate_release(release)
         component_versions = building_block_versions(release)
         if not (target / ".specify").is_dir():
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
         previous_version = current_version(target)
-        retired_sync_integration.preflight(target)
+        integration = selected_integration(target, args.integration)
+        specify = resolve_specify_command(args.specify_command, args.specify_command_json)
+        specify = preflight_specify(specify, target, release)
+        delegated = ensure_cli_runtime(specify, release)
+        if delegated is not None:
+            return delegated
         building_block_state = building_block_upgrade_state(target, release)
+        persistence_upgrade_preflight(target, release)
         profile = load_managed_profile(target)
         has_bootstrap_decisions = (target / "docs/architecture/bootstrap-decisions.json").is_file()
         reconciliation = discover_openapi_reconciliation(target, release)
@@ -836,9 +982,7 @@ def main() -> int:
                 "--accept-openapi-producer-pin-reconciliation; it will update those consumer-owned pins "
                 "atomically, invalidate affected after_tasks readiness, and stop with the required renewal path."
             )
-        integration = selected_integration(target, args.integration)
-        specify = resolve_specify_command(args.specify_command, args.specify_command_json)
-        specify = preflight_specify(specify, target, release)
+        retired_sync_integration.preflight(target)
         stale_locks = stale_program_kit_locks(target, component_versions)
         preflight_mutation_destinations(
             target,
@@ -862,6 +1006,8 @@ def main() -> int:
         if not (runtime.runtime_path(target) / '.ready').is_file():
             raise UpgradeError('SCHEMA_RUNTIME_MISSING: prepare the target runtime before this offline upgrade: '
                                f'python "{runtime_source}" setup --project-root "{target}"')
+        attempt_path, attempt = begin_attempt(target, release, version, previous_version)
+        previous_version = attempt['previousInstalledVersion']
         steps = [
             (specify + ["bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),
             (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
@@ -956,21 +1102,34 @@ def main() -> int:
         sys.path.insert(0, str(sync_source.parent))
         try:
             remediation_module = sync_module.provider('program-kit-governance/scripts/upgrade_remediation.py')
-            remediation = remediation_module.assess(target)
+            remediation = remediation_module.assess(target, report.get('deferredPersistenceAdmissions', []))
         finally:
             sys.path.remove(str(sync_source.parent))
         if not remediation['applicationReady']:
             print('PKU117 managed setup assessment is separate from pending consumer phase proof; '
                   'continue from .specify/governance/upgrade-remediation.json. Existing product sources remain owned by the consumer.')
         if renewal_required:
+            attempt.update(status='completed', outcome='offline-coherent-package-verification-pending')
+            write_attempt(attempt_path, attempt)
             return 3
+        attempt.update(status='completed', outcome='offline-coherent')
+        write_attempt(attempt_path, attempt)
         print(
             f"Program Kit v{version} upgrade completed: workflow, extensions, preset, bundle record, "
             "managed baseline, and governed version authority are coherent."
         )
         return 0
-    except (OSError, UpgradeError, ReconciliationError, json.JSONDecodeError) as error:
+    except (OSError, ValueError, ReconciliationError) as error:
         print(str(error), file=sys.stderr)
+        if attempt is not None and attempt_path is not None:
+            attempt.update(status='incomplete', diagnostic=str(error))
+            try:
+                write_attempt(attempt_path, attempt)
+            except OSError as evidence_error:
+                print(f'PKU121 cannot seal attempt {attempt_path}: {evidence_error}; preserve the original diagnostic above.', file=sys.stderr)
+            else:
+                print(f'PKU121 upgrade attempt preserved at {attempt_path}; fix the reported cause and retry '
+                      'the same verified release command. Installation success and upgrade authority remain separate.', file=sys.stderr)
         return 2
     finally:
         if descriptor is not None:
