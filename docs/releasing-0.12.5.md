@@ -24,6 +24,13 @@ The bounded Development suite passed all 61 checks; all 20 targeted upgrade test
 and the real sequential local upgrade validator passed. The classifier is a new
 upgrade-only helper, so the existing proof-validation sources remain byte-identical.
 
+The first complete local run at `1c2abf7` preserved all 91 check results in
+`artifacts/validation-runs/20261003T095816Z-a0b79c61/journal.json`. It rejected
+stale 0.12.4 default pins in both standalone initializers, also blocking archive
+generation and its dependent install/upgrade checks. Both pins are corrected to
+0.12.5. No receipt, stable tag or publication resulted from that failed candidate;
+fresh complete validation is required after the shipping pin correction.
+
 A read-only check of InsurancePolicyEvaluator returned zero blockers and both
 deferred owners; 111 protected consumer files, including workflow files and probe
 registrations, had identical hashes before and after. No consumer upgrade, bootstrap,
