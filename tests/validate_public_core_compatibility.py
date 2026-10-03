@@ -73,7 +73,9 @@ class PublicCoreTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         skill = self.root / preflight.CONSTITUTION_SKILL
         original = skill.read_bytes()
-        self.assertIn(b'python3 ', original)
+        # Public core selects python when python3 is absent from the invocation
+        # PATH. Both upstream choices must remain accepted and unmodified.
+        self.assertRegex(original, rb'\bpython(?:3)? \.specify/scripts/python/resolve_template\.py constitution-template --json')
         with patch.dict(os.environ, {'SPECKIT_PYTHON': sys.executable}):
             flavor, resolver = preflight.inspect_script_runtime(self.root, 'codex')
             self.assertEqual('py', flavor)
