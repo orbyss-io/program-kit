@@ -136,6 +136,10 @@ def execute(root: Path, *, validate_only=False, recovery_source=None):
     ledger = load(root / LEDGER)
     if recovery_source is not None:
         require_recovery_execution(root, recovery_source)
+        # Saved continuations retain their exact workflow definition. Enforce the
+        # same read-only producer gate here before any invalidation or probe too.
+        from bootstrap_recovery import validate_output
+        validate_output(root, recovery_source)
     if not validate_only:
         ledger = invalidate_changed_recipes(root, plan, ledger, recovery_review=recovery_source is not None)
     records = roadmap_records(root / ROADMAP)

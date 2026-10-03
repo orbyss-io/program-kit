@@ -51,7 +51,10 @@ PATH from resolved tools, verifies the installed shell adapter and restores its
 caller's environment. The reported eight checks passed with a 672-character PATH,
 including the original npm Codex wrapper. This is launch evidence; the linked
 continuation's proof, review, human approval, readiness and engine-completion steps
-still need to run. No feature-implementation success is inferred.
+were still pending at the time of that report. The subsequent
+[producer-sizing follow-up](recovery-producer-sizing-2026-10-03.md) records passing
+runtime proofs and a bounded architecture correction; human approval, readiness
+and engine completion remain outstanding. No feature-implementation success is inferred.
 
 From the human-owned project terminal, when the operator intends to continue:
 

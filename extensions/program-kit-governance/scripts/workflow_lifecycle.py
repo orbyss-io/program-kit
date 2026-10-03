@@ -557,6 +557,11 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
                 if owner:
                     restart = STAGES[owner]['restart']
         if state.inputs.get('source_run'):
+            if (state.current_step_id == 'recovery-execute-compatibility-proofs'
+                    and 'RECOVERY_PRODUCER_OUTPUT' in json.dumps({'error': state.error, 'result': current})):
+                # Historical definitions run the sizing guard inside the proof
+                # helper. Re-enter correction only for this producer diagnostic.
+                restart = 'verify-recovery-source'
             if state.current_step_id == 'recovery-require-ready':
                 verdict = lifecycle.verdict(root)
                 if {item['id'] for item in verdict.get('blockers', [])} == {'READINESS-CURRENT-EVIDENCE'}:
@@ -659,6 +664,7 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
     expected = {'complete': 'complete-bootstrap', 'verify-source': 'verify-recovery-source',
                 'review': 'recovery-review', 'accept': 'recovery-accept',
                 'synchronize': 'recovery-synchronize', 'evaluate': 'recovery-evaluate',
+                'validate-producer-output': 'validate-recovery-producer-output',
                 'readiness-context': 'prepare-recovery-readiness'}
     if (state.status != RunStatus.RUNNING or state.current_step_id != expected.get(action)
             or state.inputs.get('source_run') != source_run):
@@ -679,6 +685,8 @@ def step(root: Path, action: str, run_id: str, source_run: str | None, verdict: 
         return recovery.accept(root, source_run, verdict)
     if action == 'synchronize':
         return recovery.synchronize(root, source_run)
+    if action == 'validate-producer-output':
+        return recovery.validate_output(root, source_run)
     if action == 'evaluate':
         return recovery.evaluate(root, source_run)
     if action == 'readiness-context':

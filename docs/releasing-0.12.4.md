@@ -2,10 +2,12 @@
 
 This candidate combines interpreter/worker artifact consistency, Windows staged-output
 permissions, initialized-consumer offline upgrade recovery and Windows workflow
-shell preflight, on top of published
+shell preflight and corrective-producer sizing before proofs, on top of published
 0.12.3. See [Python source coordination](../patches/README.md) and
 [upgrade recovery](initialized-upgrade-recovery-2026-10-03.md), plus
 [shell-preflight evidence and recovery](windows-workflow-shell-preflight-2026-10-03.md).
+The final [producer-sizing correction](recovery-producer-sizing-2026-10-03.md)
+preserves the existing limits, proof evidence and separate human review gates.
 
 All installable Program Kit components advance together. Foundation, Forms,
 Localization and managed toolchain pins remain unchanged. Published 0.12.3 tags,

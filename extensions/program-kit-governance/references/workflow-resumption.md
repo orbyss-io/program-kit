@@ -104,6 +104,17 @@ authority, unknown suffixes and invalid lineage stop before agent dispatch. The
 original lineage definition remains historical; the child's saved migrated workflow
 and final completion hash identify the actual executed suffix.
 
+Corrective handoffs include current authored-byte targets and hard limits. The producer uses
+`bootstrap_recovery.py inspect-output --run-id <source-run-id>` after its final writes, including
+for older handoffs. Native sizing validation runs before provisioning/runtime proofs and counts
+only verified canonical generated views separately. Malformed output reports
+`RECOVERY_PRODUCER_OUTPUT` with paths, authored/generated/total bytes and hard limits.
+Use the supported lifecycle resume for bounded correction; failed output and diagnostics are
+archived before retry. Older saved definitions enforce the same guard at proof-helper entry
+without changing their workflow snapshot. Protected authority failures retain governance diagnostics.
+Sizing supplies no structural acceptance or approval; synchronization, semantic validators,
+proof checks, the human review gate and engine completion remain authoritative.
+
 Repeated resume follows the same linked run. An OS execution lock prevents concurrent
 resumption and releases on process death. Interrupted state and invalidated step history stay
 inspectable. Unknown saved structures require maintenance rather than guessed jumps.

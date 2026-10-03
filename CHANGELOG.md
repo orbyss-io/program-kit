@@ -2,6 +2,9 @@
 
 ## 0.12.4 - Unreleased
 
+- Include current authored-byte budgets in corrective handoffs and validate producer sizing
+  before provisioning/runtime proofs, including saved continuations. Retain canonical generated
+  regions, root diagnostics and failed output; resume bounded correction before fresh human review.
 - Preflight real workflow shell lookup before worker policy, schema provisioning, locks or
   run/resume/reopen changes. Reject oversized Windows PATH with command-lookup guidance;
   verify the recorded interpreter and retain the caller's environment and history.
