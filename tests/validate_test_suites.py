@@ -49,6 +49,38 @@ def main() -> int:
     if any(name in aggregate for name in ("Test-LiveBootstrap.ps1", "run_bootstrap_acceptance.py", "Start-IntakeSession.ps1")):
         raise AssertionError("The deterministic aggregate must never launch paid Codex workers.")
 
+    sys.path.insert(0, str(ROOT / 'scripts'))
+    from run_validation import require_release_authority
+    for marker in ('CODEX_THREAD_ID', 'CODEX_SESSION_ID', 'CODEX_INTERNAL_ORIGINATOR_OVERRIDE'):
+        environment = {marker: 'fixture'}
+        try:
+            require_release_authority('Release', True, False, environment, 'nt')
+        except ValueError as error:
+            assert 'user-owned terminal' in str(error)
+        else:
+            raise AssertionError('Default Codex task restriction must remain effective')
+        require_release_authority('Release', True, True, environment, 'nt')
+        try:
+            require_release_authority('Release', False, True, environment, 'nt')
+        except ValueError as error:
+            assert 'publication approval' in str(error)
+        else:
+            raise AssertionError('Task opt-in must not authorize publication by itself')
+    require_release_authority('Release', True, False, {}, 'nt')
+    require_release_authority('Release', True, False, {}, 'posix')
+    require_release_authority('Development', False, False, {'CODEX_THREAD_ID': 'fixture'}, 'nt')
+    try:
+        require_release_authority('Development', True, True, {}, 'nt')
+    except ValueError as error:
+        assert 'requires Release' in str(error)
+    else:
+        raise AssertionError('Release task opt-in must not apply to other suites')
+    require('aggregate task opt-in', aggregate,
+            ('[switch]$AuthorizedCodexTask', "if ($AuthorizedCodexTask)", '--authorized-codex-task'))
+    runner = (ROOT / 'scripts/run_validation.py').read_text(encoding='utf-8')
+    require('recorded task authority', runner,
+            ("'authorizedCodexTask': args.authorized_codex_task", 'require_release_authority(args.suite'))
+
     inventory = json.loads((ROOT / 'tests/validation-inventory.json').read_text())['checks']
     # Catch stale late/post-publication expectations during the cheap source gate.
     expected_hooks = set(yaml.safe_load((ROOT / 'extensions/program-kit-governance/extension.yml').read_text())['hooks'])

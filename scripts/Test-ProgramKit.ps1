@@ -5,6 +5,9 @@ param(
 
     [switch]$Approved,
 
+    # Use only when the user explicitly authorizes this task to run local Release.
+    [switch]$AuthorizedCodexTask,
+
     [switch]$List,
 
     [string]$BrowserEngines = 'chromium,firefox,webkit',
@@ -96,6 +99,7 @@ try {
     $arguments = @((Join-Path $projectRoot 'scripts/run_validation.py'), '--suite', $Suite, "--engines=$BrowserEngines")
     if ($List) { $arguments += '--list' }
     if ($Approved) { $arguments += '--approved' }
+    if ($AuthorizedCodexTask) { $arguments += '--authorized-codex-task' }
     if ($Suite -eq 'Release' -and -not $List) { $arguments += '--receipt' }
     & $python @arguments
     if ($LASTEXITCODE -ne 0) { throw 'Program Kit validation failed. Inspect the preserved per-check journal and logs.' }

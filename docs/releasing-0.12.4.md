@@ -52,6 +52,11 @@ These shipped changes require fresh local Release evidence. Follow
 [AGENTS.md](../AGENTS.md): the complete Windows Release suite runs in a normal
 user-owned terminal after the candidate is ready for publication.
 
+On 2026-10-03 the user explicitly authorized the current Codex task to run this
+local suite and publish after green CI. This invocation uses the maintained
+`-AuthorizedCodexTask` opt-in, with authorization recorded in the journal and all
+normal approval, source identity, receipt and deterministic gates retained.
+
 ```powershell
 Set-Location C:\Users\tech_\.codex\worktrees\python-runtime-consistency\program-kit
 .\scripts\Invoke-LocalRelease.ps1

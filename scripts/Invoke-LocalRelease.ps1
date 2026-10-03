@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$PrepareOnly)
+param([switch]$PrepareOnly, [switch]$AuthorizedCodexTask)
 
 $ErrorActionPreference = 'Stop'
 $releaseRoot = Split-Path -Parent $PSScriptRoot
@@ -38,7 +38,7 @@ try {
         $env:PROGRAM_KIT_NPM_TOKEN = (& gh auth token --hostname github.com).Trim()
         if ($LASTEXITCODE -ne 0 -or -not $env:PROGRAM_KIT_NPM_TOKEN) { throw 'GitHub login did not provide a package token.' }
     }
-    & (Join-Path $releaseRoot 'scripts\Test-ProgramKit.ps1') -Suite Release -Approved -BrowserEngines 'chromium,webkit'
+    & (Join-Path $releaseRoot 'scripts\Test-ProgramKit.ps1') -Suite Release -Approved -BrowserEngines 'chromium,webkit' -AuthorizedCodexTask:$AuthorizedCodexTask
 }
 finally {
     foreach ($environmentName in $savedEnvironment.Keys) {

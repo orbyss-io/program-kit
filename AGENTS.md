@@ -21,7 +21,11 @@ Run `./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines
 publication. On this Windows host, do not start the complete Release suite from a Codex Desktop task;
 give the command to the user, let it finish in their user-owned terminal, then inspect the preserved
 `artifacts/release-validation-<version>.log` and generated artifacts. CI remains authoritative for
-the Firefox leg.
+the Firefox leg. If the user explicitly overrides this terminal restriction and
+authorizes the current task to run local Release, use
+`Invoke-LocalRelease.ps1 -AuthorizedCodexTask`. The opt-in retains `-Approved`,
+records the authorization in the journal, and does not remove Codex environment
+metadata or change any deterministic, publication or live-worker gate.
 
 The deterministic Development and Release suites do not invoke a coding agent. Tests whose names
 contain `codex` validate integration files, preflight behavior, and guarded harness contracts. Only
