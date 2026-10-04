@@ -1,8 +1,18 @@
-# Program Kit 0.12.6 candidate
+# Program Kit 0.12.6
 
-This Program Kit candidate is unpublished. Foundation exporter 0.2.4 and descriptor
+This release preserves accepted dependency versions independently from Program Kit
+installation and adds governed dependency transitions. Foundation exporter 0.2.4 and descriptor
 builder 0.1.0 have passed their independent protected publication and availability
-gates. A supported exporter profile still requires current consumer qualification.
+gates. The opt-in profile
+`foundation-0.2.2-exporter-0.2.4-forms-0.2.0-localization-0.1.1` passed the supported
+disposable-consumer upgrade, locked restore, build/pack/stage, canonical descriptor
+checks, native export, normalization, oasdiff against the existing baseline,
+TypeScript generation/compilation, renewed compatibility proofs and affected analysis.
+Its receipt restricts adoption to the tested Authentication, BFF, Assurance and Web
+activation closure. Forms and Localization pins remain unchanged; their feature
+activation and consumer test/browser/Delivery acceptance need separate evidence.
+The default profile remains unchanged. Read `dependency-profile-index-0.12.6.json`
+and its checksum-bound profile and qualification assets before selecting a transition.
 
 Program Kit upgrades capture and preserve the accepted dependency profile, exact
 catalog bytes, native lock and architecture choices. An exporter change requires
@@ -50,6 +60,10 @@ the original unfinished migration rather than treating installed files as succes
 Retry the same verified release after a failure. Original inputs are sealed in
 the upgrade attempt; missing, changed or contradictory evidence stops recovery.
 Preserve the failed attempt rather than inventing installed-version provenance.
+If a continuation stops after editing architecture documents, compare the actual
+bytes against their map bindings, repair only confirmed stale bindings, then resume
+the existing failed child without `--post-bootstrap`. Review altered authoring
+through the native lifecycle. Creating another continuation would repeat paid work.
 
 PR validation now selects from declared affected inputs and runs up to four workers
 on Linux with prerequisite and resource locks. Main runs Development and Windows

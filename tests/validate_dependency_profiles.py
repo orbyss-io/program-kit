@@ -17,6 +17,73 @@ import validate_building_blocks as fixtures
 
 
 class ProfileTests(unittest.TestCase):
+    def test_public_native_profile_preserves_runtime_and_restricts_scope(self):
+        identity = 'foundation-0.2.2-exporter-0.2.4-forms-0.2.0-localization-0.1.1'
+        registry = blocks.profile_registry()
+        catalog, selected = blocks.qualified_dependency_profile(registry, identity, blocks.load_json(fixtures.CATALOG))
+        historical = blocks.new_project_catalog()
+        changed = [key for key in catalog['packages'] if catalog['packages'][key]['version'] != historical['packages'][key]['version']]
+        self.assertEqual([profiles.producers.EXPORTER_KEY], changed)
+        self.assertEqual('0.2.4', catalog['packages'][profiles.producers.EXPORTER_KEY]['version'])
+        self.assertEqual('0.2.2', selected['families']['foundation']['releaseVersion'])
+        entry = blocks.load_json(registry / 'index.json')['profiles'][identity]
+        self.assertIn('Orbyss.Foundation.Authentication.Assurance', entry['allowedActivations'])
+        blocks.verify_qualification_scope(entry, [{'featureIdentity': value} for value in entry['allowedActivations']])
+        with self.assertRaisesRegex(ValueError, 'qualification scope'):
+            blocks.verify_qualification_scope(entry, [{'featureIdentity': 'Orbyss.Forms.Management'}])
+
+    def native_registry(self, directory):
+        registry = Path(directory) / 'profiles'
+        shutil.copytree(blocks.profile_registry(), registry)
+        index = blocks.load_json(registry / 'index.json')
+        entry = index['profiles'][index['default']]
+        selected = blocks.load_json(registry / entry['path'])
+        stages = ['locked-restore', 'consumer-build-pack-stage', 'canonical-consumer-descriptors',
+            'native-openapi-export', 'normalize-oasdiff-existing-baseline',
+            'typescript-generation-and-application-compilation', 'native-compatibility-renewal',
+            'native-engine-completion', 'affected-feature-readiness']
+        allowed = ['Orbyss.Foundation.Authentication.Assurance']
+        entry['allowedActivations'] = allowed
+        entry['excludedActivations'] = []
+        receipt = {'schemaVersion': 1, 'status': 'dependency-profile-qualified',
+            'catalog': {'sha256': selected['catalogResolutionSha256']},
+            'source': {'kind': 'verified-program-kit-bundle', 'commit': 'b' * 40,
+                'bundleSha256': 'c' * 64, 'releaseInputsSha256': 'd' * 64},
+            'scope': {'claim': 'native-export-and-runtime-compatibility', 'allowedActivations': allowed},
+            'steps': [{'id': stage, 'exitCode': 0, 'evidenceSha256': 'e' * 64} for stage in stages]}
+        fixtures.write_json(registry / entry['evidence']['path'], receipt)
+        entry['evidence']['sha256'] = blocks.raw_sha256(registry / entry['evidence']['path'])
+        fixtures.write_json(registry / 'index.json', index)
+        return registry, index, receipt
+
+    def test_native_qualification_binds_complete_stages_and_exact_activation_scope(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registry, index, receipt = self.native_registry(directory)
+            catalog = blocks.load_json(fixtures.CATALOG)
+            blocks.qualified_dependency_profile(registry, None, catalog)
+            entry = index['profiles'][index['default']]
+            blocks.verify_qualification_scope(entry, [{'featureIdentity': 'Orbyss.Foundation.Authentication.Assurance'}])
+            with self.assertRaisesRegex(ValueError, 'qualification scope'):
+                blocks.verify_qualification_scope(entry, [{'featureIdentity': 'Orbyss.Forms.Management'}])
+            mutations = [lambda value: value['steps'].pop(),
+                lambda value: value['steps'].append(value['steps'][0]),
+                lambda value: value['steps'][0].update(exitCode=1),
+                lambda value: value['steps'][0].update(evidenceSha256='missing'),
+                lambda value: value['scope'].update(allowedActivations=['Unqualified.Feature']),
+                lambda value: value['source'].update(bundleSha256='missing'),
+                lambda value: value['scope'].update(allowedActivations=[{}]),
+                lambda value: value.update(steps=[False]),
+                lambda value: value['steps'][0].update(id=[]),
+                lambda value: value.update(status='release-validation-passed')]
+            for mutate in mutations:
+                altered = copy.deepcopy(receipt)
+                mutate(altered)
+                fixtures.write_json(registry / entry['evidence']['path'], altered)
+                entry['evidence']['sha256'] = blocks.raw_sha256(registry / entry['evidence']['path'])
+                fixtures.write_json(registry / 'index.json', index)
+                with self.subTest(receipt=altered), self.assertRaises(ValueError):
+                    blocks.qualified_dependency_profile(registry, None, catalog)
+
     def test_installed_qualified_profile_binds_portable_checkout_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
             registry = Path(directory) / 'profiles'

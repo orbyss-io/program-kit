@@ -180,7 +180,12 @@ pin. New .NET projects use the qualified default in the installed building-block
 `references/dependency-profiles/index.json`. Scaffolding records that exact profile and the Draft
 selection retains it even if a later Program Kit version changes its default. Profile qualification
 scope is enforced during validation and acceptance; the historical v0.12.5 profile excludes Assurance
-export adoption. A private corrected exporter does not become a supported default automatically.
+export adoption. The opt-in profile
+`foundation-0.2.2-exporter-0.2.4-forms-0.2.0-localization-0.1.1` qualifies public
+Exporter 0.2.4 with the retained runtime pins for its listed Authentication, BFF,
+Assurance and Web activation closure. Its hashed receipt and profile ship offline
+and as immutable release assets. Forms and Localization activation and consumer
+Delivery acceptance remain outside that native qualification. The default is unchanged.
 
 Dependency changes use `dependency_profiles.py list`, then `draft --profile <id> --target .`.
 Review the exact profile, preserved originals and proposed producer-contract/planning changes;

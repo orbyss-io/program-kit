@@ -14,6 +14,17 @@ Verify offline guidance and immutable links in the installed extension and bundl
 Historical operational runbooks are retained in Git history; extract durable
 recovery guidance before retiring them.
 
+Keep the candidate checkout frozen throughout Release validation. Concurrent edits
+produce `PROGRAM_KIT_RELEASE_SOURCE_CHANGED`; preserve the failed journal and log.
+Passing individual checks does not authorize synthesizing a clean receipt for mixed
+source revisions. Never invoke the receipt writer alone to replace a failed suite.
+On this Windows host, `./scripts/Invoke-LocalRelease.ps1 -PrepareOnly` verifies
+cached exact tools without starting validation. In the user's terminal, the same
+helper without `-PrepareOnly` runs the required Release command with a bounded
+process PATH and restores the caller's environment. Windows native command lookup
+requires PATH below 8191 characters; use invocation-scoped tools rather than
+changing machine installations.
+
 When the user decides the candidate should proceed toward publication, freeze clean
 committed source and ask them to run in a user-owned terminal:
 
@@ -48,6 +59,23 @@ uploads each indexed guide. Verify those assets and immutable release URLs
 before declaring availability. Do not edit assets from a successful published
 release. Consumers can inspect applicable guidance with the updater's `--plan`
 mode; a plan grants no approval or migration-completion authority.
+
+Scoped dependency qualification assets also ship beside the bundle: a dependency
+profile index, exact profiles and their qualification receipts. The Release receipt
+verifies their bytes against the index and `SHA256SUMS`. Native consumer qualification
+does not substitute for full Program Kit Release validation or consumer Delivery.
+Preserve the source bundle commit and original evidence; do not relabel them to a
+later shipping commit. Keep untested activations outside the qualified profile scope.
+
+For post-bootstrap recovery, create a linked continuation only from an intact
+completed source run. Preserve original intake, ratification, approvals, receipts
+and the entire recovery lineage. Changed executable inputs require the supported
+proof renewal step and a fresh changed-artifact review. If an existing child fails
+after architecture authoring, verify document bytes and repair only stale hash
+bindings before resuming that same child without `--post-bootstrap`; another child
+would repeat worker execution. Carry new Accepted prerequisites through installed
+feature intake and renew affected analysis. Future feature and Delivery obligations
+remain open until their own evidence passes.
 
 Support starts at v0.12.5. Earlier consumers require a reviewed bridge that names
 their preserved source state, required decisions, verification and recovery.

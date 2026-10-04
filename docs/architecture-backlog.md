@@ -55,20 +55,14 @@ increments are provisional; no work on them is scheduled or started by this back
 
 ## PK-ARCH-003: Cumulative release migration guidance for agents
 
-- Status: Deferred — awaiting official intake; unscheduled
-- Trigger: the user explicitly chooses to begin the official intake for release migration guidance
-- Input: [Release migration guidance proposal](release-migration-guidance-proposal.md)
-- Decision: No implementation design accepted; retain the proposal as initial intake material
+- Status: Implemented in the 0.12.6 candidate; publication gate pending
+- Input: [Maintained release procedure](releasing.md) and [migration guidance](../releases/migration-0.12.6.md)
+- Decision: The user authorized cumulative assets, offline discovery and supported updater planning.
 
-Provide migration guidance with every release so an agent upgrading an older installation can
-understand all relevant changes across its version gap and determine the work needed to complete
-the upgrade. The initial proposal recommends cumulative, shipped migration guidance, an applicable
-upgrade plan, and evidence that distinguishes component installation from consumer readiness.
-
-Account for every intervening release, but require intermediate installations only when a supported
-migration needs them. Revisit historical compatibility claims against actual release artifacts,
-consumer states, and test evidence before promising an upgrade from any previous version.
-
-When selected for intake, revalidate the proposal's 0.10.1 findings, resolve its open questions, and
-agree scope and acceptance criteria through the official intake. The proposed increments and
-release-note corrections are deferred discussion inputs, not authorization to implement or publish.
+Reviewed entries under `releases/` generate checksum-bound cumulative guidance and a
+machine index as GitHub assets and installed offline references. The updater's
+`--plan` reports applicable migrations without granting authority; required exact
+review, dependency verification and phase evidence distinguish coherent installation
+from completed migration. Support starts at 0.12.5. Older installations require a
+reviewed bridge, without manufactured historical support claims. The qualified
+disposable consumer verified that boundary; full tagged Release remains required.

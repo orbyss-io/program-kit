@@ -76,13 +76,15 @@ jobs:
             artifacts/MIGRATIONS-*.md
             artifacts/migration-index-*.json
             artifacts/migration-*.md
+            artifacts/dependency-profile-*.json
+            artifacts/dependency-qualification-*.json
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          assets=(artifacts/*.zip artifacts/*.cmd artifacts/*.sh artifacts/SHA256SUMS artifacts/release-receipt-*.json artifacts/RELEASE-NOTES-*.md artifacts/MIGRATIONS-*.md artifacts/migration-index-*.json artifacts/migration-*.md)
+          assets=(artifacts/*.zip artifacts/*.cmd artifacts/*.sh artifacts/SHA256SUMS artifacts/release-receipt-*.json artifacts/RELEASE-NOTES-*.md artifacts/MIGRATIONS-*.md artifacts/migration-index-*.json artifacts/migration-*.md artifacts/dependency-profile-*.json artifacts/dependency-qualification-*.json)
           notes="artifacts/RELEASE-NOTES-$(tr -d '\r\n' < VERSION).md"
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber

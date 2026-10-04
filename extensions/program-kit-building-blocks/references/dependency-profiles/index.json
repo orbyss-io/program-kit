@@ -19,6 +19,31 @@
       "limitations": [
         "The historical exporter profile cannot be newly adopted for an Assurance export selection until that combination is separately qualified."
       ]
+    },
+    "foundation-0.2.2-exporter-0.2.4-forms-0.2.0-localization-0.1.1": {
+      "path": "dependency-profile-public-tools-0.12.6.json",
+      "sha256": "8ca97be9455755a8bfc9357c952defff116d08dd60b76b9030fd4e4e11eb8c89",
+      "status": "qualified",
+      "evidence": {
+        "path": "evidence/dependency-qualification-public-tools-0.12.6.json",
+        "sha256": "4d0479da8500d7bbb8a2610a5f924443e07ba534385cdef98b57aa4aff239230",
+        "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.12.6/dependency-qualification-public-tools-0.12.6.json"
+      },
+      "qualificationScope": "Native export, runtime compatibility and affected feature analysis for the exact listed activation closure.",
+      "allowedActivations": [
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults"
+      ],
+      "limitations": [
+        "Only the listed activation closure is qualified for native export and runtime compatibility; other activations require separate qualification.",
+        "Forms 0.2.0 and Localization 0.1.1 pins are retained, but their feature activation and browser behavior are outside this native profile qualification.",
+        "Consumer test and Delivery acceptance remain separate; the native build used SkipTests and the future RM-02 feature remains open.",
+        "The pipeline binds the verified candidate bundle commit below, not a full Program Kit Release receipt or the later shipping source commit."
+      ]
     }
   }
 }

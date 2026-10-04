@@ -43,11 +43,9 @@ def draft(root, catalog_path, identity, directory):
     blocks.verify_architecture_authority(root, selection_path, accepted)
     new, selected = supported(directory, identity, old)
     entry = blocks.load_json(Path(directory) / 'index.json')['profiles'][identity]
-    excluded = set(entry.get('excludedActivations', []))
     # Pins change independently; unchanged composition rules retain the actual activations.
     current_plan = blocks.resolve(root, selection_path, old_path, 'qualification-scope')
-    if excluded.intersection(item['featureIdentity'] for item in current_plan['activations']):
-        raise ValueError('PKB611 selected activation is outside the historical profile qualification scope')
+    blocks.verify_qualification_scope(entry, current_plan['activations'])
     digest = blocks.canonical_sha256(selected)
     source_digest = blocks.raw_sha256(selection_path)
     destination = root / 'docs/architecture/dependency-transitions' / (source_digest[:16] + '-' + digest)

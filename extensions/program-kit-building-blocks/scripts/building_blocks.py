@@ -1479,11 +1479,52 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
     proof = repository_path(directory, entry['evidence']['path'])
     if raw_sha256(proof) != entry['evidence']['sha256']: fail('PKB611', 'qualification evidence changed')
     receipt = load_json(proof)
-    if (receipt.get('status') != 'release-validation-passed' or not receipt.get('source', {}).get('clean')
-            or receipt.get('catalog', {}).get('sha256') != selected['catalogResolutionSha256']
-            or not receipt.get('steps') or any(step.get('exitCode') != 0 for step in receipt['steps'])):
+    steps = receipt.get('steps')
+    if (receipt.get('catalog', {}).get('sha256') != selected['catalogResolutionSha256']
+            or not isinstance(steps, list) or not steps
+            or any(not isinstance(step, dict) or type(step.get('exitCode')) is not int
+                   or step['exitCode'] != 0 for step in steps)):
+        fail('PKB611', 'qualification receipt does not establish this exact combination')
+    if receipt.get('status') == 'release-validation-passed':
+        if not receipt.get('source', {}).get('clean'):
+            fail('PKB611', 'qualification receipt requires clean Release source')
+    elif receipt.get('status') == 'dependency-profile-qualified':
+        required = {'locked-restore', 'consumer-build-pack-stage', 'canonical-consumer-descriptors',
+                    'native-openapi-export', 'normalize-oasdiff-existing-baseline',
+                    'typescript-generation-and-application-compilation', 'native-compatibility-renewal',
+                    'native-engine-completion', 'affected-feature-readiness'}
+        source = require_object(receipt.get('source'), 'qualification.source')
+        scope = require_object(receipt.get('scope'), 'qualification.scope')
+        allowed = scope.get('allowedActivations')
+        steps = receipt['steps']
+        if (receipt.get('schemaVersion') != 1 or source.get('kind') != 'verified-program-kit-bundle'
+                or not re.fullmatch(r'[0-9a-f]{40}', str(source.get('commit', '')))
+                or any(not re.fullmatch(r'[0-9a-f]{64}', str(source.get(key, '')))
+                       for key in ('bundleSha256', 'releaseInputsSha256'))
+                or scope.get('claim') != 'native-export-and-runtime-compatibility'
+                or not isinstance(allowed, list) or not allowed
+                or any(not isinstance(value, str) for value in allowed)
+                or allowed != sorted(set(allowed))
+                or entry.get('allowedActivations') != allowed
+                or any(not isinstance(step.get('id'), str) for step in steps)
+                or {step.get('id') for step in steps} != required or len(steps) != len(required)
+                or any(not re.fullmatch(r'[0-9a-f]{64}', str(step.get('evidenceSha256', ''))) for step in steps)):
+            fail('PKB611', 'native qualification requires complete bound evidence and exact activation scope')
+        identities = {activation['featureIdentity'] for package in result['packages'].values()
+                      for activation in package.get('activations', [])}
+        if not set(allowed) <= identities:
+            fail('PKB611', 'native qualification contains an unregistered activation')
+    else:
         fail('PKB611', 'qualification receipt does not establish this exact combination')
     return result, selected
+
+
+def verify_qualification_scope(entry: dict, activations: list[dict]) -> None:
+    identities = {activation['featureIdentity'] for activation in activations}
+    allowed = entry.get('allowedActivations')
+    if (identities.intersection(entry.get('excludedActivations', []))
+            or (allowed is not None and not identities <= set(allowed))):
+        fail('PKB611', 'selected activation is outside the profile qualification scope; qualify a supported dependency transition')
 
 
 def new_project_catalog(identity: str | None = None) -> dict:
@@ -1503,8 +1544,7 @@ def verify_new_project_profile(repository: Path, catalog: dict, activations: lis
     qualified, _ = qualified_dependency_profile(directory, qualification['profile'], catalog)
     if catalog_resolution_sha256(qualified) != catalog_resolution_sha256(catalog):
         fail('PKB611', 'new-project profile differs from its qualified exact dependencies')
-    if set(entry.get('excludedActivations', [])).intersection(a['featureIdentity'] for a in activations):
-        fail('PKB611', 'selected activation is outside the historical profile qualification scope; qualify a supported dependency transition')
+    verify_qualification_scope(entry, activations)
 
 
 def draft_qualified_selection(repository: Path, selection_path: Path, catalog: dict, capabilities: list[str], identity: str | None = None) -> None:

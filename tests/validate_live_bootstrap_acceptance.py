@@ -248,11 +248,17 @@ def main() -> int:
             "Initialize-ProgramKit-9.9.9.cmd", "Initialize-ProgramKit-9.9.9.sh", "SHA256SUMS",
             "RELEASE-NOTES-9.9.9.md", "MIGRATIONS-9.9.9.md",
             "migration-index-9.9.9.json", "migration-9.9.9.md",
+            "dependency-profile-index-9.9.9.json",
         }
         for name in candidate_names | {"program-kit-stale-1.0.0.zip"}:
             (artifacts / name).write_text(name, encoding="utf-8")
         atomic_write_json(artifacts / "migration-index-9.9.9.json",
                           {"entries": [{"guide": "migration-9.9.9.md"}]})
+        atomic_write_json(artifacts / "dependency-profile-index-9.9.9.json",
+                          {"schemaVersion": 1, "profiles": []})
+        (artifacts / 'SHA256SUMS').write_text(''.join(
+            f'{receipt_writer.sha256(artifacts / name)}  {name}\n'
+            for name in sorted(candidate_names - {'SHA256SUMS'})), encoding='utf-8')
         recorded_names = {Path(record["path"]).name for record in receipt_writer.artifact_records(artifacts, "9.9.9")}
         if recorded_names != candidate_names:
             raise AssertionError(f"Release receipt did not isolate the exact current candidate: {recorded_names}")

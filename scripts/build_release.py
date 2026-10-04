@@ -96,6 +96,38 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def build_dependency_qualification_assets(root: Path, output: Path, version: str) -> list[Path]:
+    registry = root / 'extensions/program-kit-building-blocks/references/dependency-profiles'
+    index = load_json(registry / 'index.json')
+    assets, profiles = [], []
+    for identity, entry in sorted(index['profiles'].items()):
+        proof = registry / entry['evidence']['path']
+        proof.resolve().relative_to(registry.resolve())
+        receipt = load_json(proof)
+        if receipt.get('status') != 'dependency-profile-qualified':
+            continue  # Historical Release receipts retain their original published assets.
+        profile = registry / entry['path']
+        profile.resolve().relative_to(registry.resolve())
+        record = {'id': identity, 'allowedActivations': entry['allowedActivations']}
+        for kind, source, expected_hash in (
+                ('profile', profile, entry['sha256']), ('evidence', proof, entry['evidence']['sha256'])):
+            if sha256(source) != expected_hash:
+                raise ValueError('Dependency qualification asset changed: ' + source.name)
+            if not source.name.startswith('dependency-profile-' if kind == 'profile' else 'dependency-qualification-'):
+                raise ValueError('Dependency qualification asset must have a publishable basename')
+            destination = output / source.name
+            if destination in assets:
+                raise ValueError('Repeated dependency qualification asset: ' + source.name)
+            shutil.copyfile(source, destination)
+            assets.append(destination)
+            record[kind] = {'file': source.name, 'sha256': expected_hash}
+        profiles.append(record)
+    manifest = output / f'dependency-profile-index-{version}.json'
+    manifest.write_text(json.dumps({'schemaVersion': 1, 'default': index['default'], 'profiles': profiles}, indent=2)
+                        + '\n', encoding='utf-8', newline='\n')
+    return [manifest, *assets]
+
+
 def repository_source_files(root: Path) -> list[Path]:
     """Return tracked and intentional untracked source, excluding ignored build output."""
     repository = root.resolve()
@@ -334,6 +366,8 @@ def main() -> int:
         )
     expected[6].write_bytes((root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8").replace("\r\n", "\n").replace("\n", "\r\n").encode("utf-8"))
     shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[7])
+
+    expected.extend(build_dependency_qualification_assets(root, output, version))
 
     checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected if path.name != 'SHA256SUMS']
     expected[8].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")

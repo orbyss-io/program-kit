@@ -16,6 +16,37 @@ from release_guidance import plan, load_index, require_review, completion
 
 
 class GuidanceTests(unittest.TestCase):
+    def test_qualification_assets_and_release_receipt_reject_missing_or_changed_bytes(self):
+        from build_release import build_dependency_qualification_assets
+        from write_release_receipt import artifact_records, sha256
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            assets = build_dependency_qualification_assets(ROOT, root, '0.12.6')
+            self.assertEqual(3, len(assets))
+            manifest = json.loads(assets[0].read_text())
+            self.assertEqual(1, len(manifest['profiles']))
+            required = [f'program-kit{suffix}-0.12.6.zip' for suffix in
+                ('', '-governance', '-building-blocks', '-dotnet', '-governance-preset', '-bootstrap')]
+            required += ['Initialize-ProgramKit-0.12.6.cmd', 'Initialize-ProgramKit-0.12.6.sh',
+                'RELEASE-NOTES-0.12.6.md', 'MIGRATIONS-0.12.6.md', 'migration-0.12.6.md']
+            for file in required: (root / file).write_text('candidate')
+            (root / 'migration-index-0.12.6.json').write_text(json.dumps({'entries': [{'guide': 'migration-0.12.6.md'}]}))
+            files = [p for p in root.iterdir() if p.name != 'SHA256SUMS']
+            (root / 'SHA256SUMS').write_text(''.join(f'{sha256(p)}  {p.name}\n' for p in files))
+            self.assertEqual({p.name for p in root.iterdir()}, {Path(p['path']).name for p in artifact_records(root, '0.12.6')})
+            proof = assets[-1]
+            original = proof.read_bytes()
+            proof.write_bytes(original + b'\n')
+            with self.assertRaisesRegex(RuntimeError, 'missing or changed'): artifact_records(root, '0.12.6')
+            proof.unlink()
+            with self.assertRaisesRegex(RuntimeError, 'missing or changed'): artifact_records(root, '0.12.6')
+            proof.write_bytes(original)
+            (root / 'MIGRATIONS-0.12.6.md').write_text('changed')
+            with self.assertRaisesRegex(RuntimeError, 'differs from its checksum'): artifact_records(root, '0.12.6')
+            manifest['profiles'][0]['evidence']['file'] = '../escape.json'
+            assets[0].write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(RuntimeError, 'basename'): artifact_records(root, '0.12.6')
+
     def test_missing_verification_cannot_complete_and_pending_origin_is_preserved(self):
         from upgrade_program_kit import migration_origin, UpgradeError
         with tempfile.TemporaryDirectory() as name:

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "status": "dependency-profile-qualified",
+  "profile": "foundation-0.2.2-exporter-0.2.4-forms-0.2.0-localization-0.1.1",
+  "catalog": {
+    "sha256": "a639142c4fa4ce82c1fe843a82a9e94094160a70644fe34b79629c0e3c03dc22",
+    "retainedCatalogSha256": "9bc4406cb66665b1069d350efad2bffbcd9b6934fc4effd9eaaf3bbd0acf92e3"
+  },
+  "source": {
+    "kind": "verified-program-kit-bundle",
+    "commit": "cb4fbca54b3c4d9cbeadeb1a02856e3936e72e2f",
+    "bundleSha256": "3440f8bb85ba7edfbf9c62bc2243aa6f47d24ce102e80ac05ef42b585b6bca79",
+    "releaseInputsSha256": "089d5ae38ce524ddd406808d0324670c8bf22a546ecb18a70d2ccbe298ac7310"
+  },
+  "scope": {
+    "claim": "native-export-and-runtime-compatibility",
+    "allowedActivations": [
+      "Orbyss.Foundation.Authentication",
+      "Orbyss.Foundation.Authentication.Assurance",
+      "Orbyss.Foundation.Authentication.BffCookie",
+      "Orbyss.Foundation.Web.OpenApi",
+      "Orbyss.Foundation.Web.ProblemDetails",
+      "Orbyss.Foundation.WebDefaults"
+    ]
+  },
+  "steps": [
+    {
+      "id": "locked-restore",
+      "exitCode": 0,
+      "evidenceSha256": "9e499c7000bdb2c5432d18b3c9ef63c0a576f3e4946f16659266eed57fe4c118"
+    },
+    {
+      "id": "consumer-build-pack-stage",
+      "exitCode": 0,
+      "evidenceSha256": "1b6bde0311466b642a60e974b7986b23eceb55ad825b3a3c97c8bb3b577adbd1"
+    },
+    {
+      "id": "canonical-consumer-descriptors",
+      "exitCode": 0,
+      "evidenceSha256": "69d4227a15ad97da6d4bf96a7254f931d3a803ee489b351537356519c85929e0"
+    },
+    {
+      "id": "native-openapi-export",
+      "exitCode": 0,
+      "evidenceSha256": "fb44f7d69f945b0b0486c53422d6b0f0d9974b1543710d363d628908dc2bfe98"
+    },
+    {
+      "id": "normalize-oasdiff-existing-baseline",
+      "exitCode": 0,
+      "evidenceSha256": "fb44f7d69f945b0b0486c53422d6b0f0d9974b1543710d363d628908dc2bfe98"
+    },
+    {
+      "id": "typescript-generation-and-application-compilation",
+      "exitCode": 0,
+      "evidenceSha256": "fb44f7d69f945b0b0486c53422d6b0f0d9974b1543710d363d628908dc2bfe98"
+    },
+    {
+      "id": "native-compatibility-renewal",
+      "exitCode": 0,
+      "evidenceSha256": "d22c1690bbf048b2774e01352abf3bbea79805af72e8727148cfea087ff732fc"
+    },
+    {
+      "id": "native-engine-completion",
+      "exitCode": 0,
+      "evidenceSha256": "f898aab6326c450cab5bab33d689c5418419ca434c9531f931c97e79144223e7"
+    },
+    {
+      "id": "affected-feature-readiness",
+      "exitCode": 0,
+      "evidenceSha256": "1c55b41cd89f6e59b248a92a52752bfb51420f26f65b39b9c68bf0d1dbebb9ef"
+    }
+  ],
+  "engineeringPackages": {
+    "orbyss.foundation.build": {
+      "sha256": "7cd2e34e0c74e9804d02b4b53c6b46fd59cadd56234161fe982d586634df1873"
+    },
+    "orbyss.foundation.openapi.exporter": {
+      "sha256": "5779ac96be697dd218939d271a708e0ca977d1a29f450a3fba66f5dfeade6f0a"
+    }
+  },
+  "canonicalConsumerFeatures": [
+    {
+      "package": "DeZaaglijst.Wandwerkvoorbereiding.0.1.0.nupkg",
+      "sha256": "15a9c62c8f3fc96beba5892dd10c606c4363b3c4a275a4354447cc6404883a97",
+      "descriptorSha256": "67956c0e2de4711f91656a8be112e31a0c697d051bdb8ee3b727301f4068f313"
+    },
+    {
+      "package": "DeZaaglijst.Wandwerkvoorbereiding.Api.0.1.0.nupkg",
+      "sha256": "ff8972601b929eeb592f91c6acf7c4f064a9800dd1c45610d7dff06f7891ff6c",
+      "descriptorSha256": "6d6640856024fe5d3e264036809c0b261a38d178ee39c18cffcb8325f5f1843d"
+    },
+    {
+      "package": "DeZaaglijst.Wandwerkvoorbereiding.PostgreSql.0.1.0.nupkg",
+      "sha256": "fbbd16d79cad37c96f88c9774364c96ceaf150a11b0832c4ec8c1274b4e942a0",
+      "descriptorSha256": "69f044792459ba1328ff8299468c46f023084a46e21847c788af5bfd6e1f0cd4"
+    }
+  ],
+  "pipeline": {
+    "sha256": "fb44f7d69f945b0b0486c53422d6b0f0d9974b1543710d363d628908dc2bfe98",
+    "producer": {
+      "kind": "Orbyss.Foundation.OpenApi.Exporter",
+      "version": "0.2.4"
+    },
+    "contracts": [
+      {
+        "application": {
+          "lockFileSha256": "be4d5fdd22a5982e64b39f5cbb9fd1fe127a14254ffd8bb0a9951dbdca190cae",
+          "packageJsonSha256": "5dd80bfc7df99ae49b328214ee55dddf6739f4986ebdbc13f9cf777527c9a56c",
+          "tsconfigSha256": "a519a06e601727392ee2eb45745c0b9e02cc2b5779b939240fa1a09ae3779a94"
+        },
+        "artifactSha256": "ed763f3eebb2b8cef5b5a767ddedfb5b40fbf7b05c8a300ecfd3d1d7d0569a39",
+        "baselineSha256": "ed763f3eebb2b8cef5b5a767ddedfb5b40fbf7b05c8a300ecfd3d1d7d0569a39",
+        "contractSha256": "34fa42649ccc43167573fd1f34793869b3f0b6a725c6d0d5d44f8f4a5c38b343",
+        "exportEvidenceSha256": "38da042a8ae67e68826baa1e051d2fb35d5a64204d2b8d31502d476a15937792",
+        "generator": {
+          "generatedTypesSha256": "dfb99de8350155d5135c6ee15170dbc3521f0cddf1510529f0c407c65f8a8e0a",
+          "lockFileSha256": "9cd832474a6f25f58be8d77a0def2fd1978069054a0fd611e9326162f35ac98d",
+          "packageJsonSha256": "c496e679b6358dfd7056de596b3c443301a896570290bda40f14641d0fdbff97"
+        },
+        "identity": "de-zaaglijst-private-v1",
+        "rawDocumentSha256": "dc71736d52d5da38729f5adcc750a98417adbf0eb86a53e7a8d4164f4d875de7"
+      }
+    ]
+  },
+  "compatibilityProofs": [
+    {
+      "id": "host-bff-interop",
+      "sha256": "d8e2f08e2c7481daf49576d3c05d51c9345c2444e44ea3db6b9bc777758590fa"
+    },
+    {
+      "id": "postgres-provider-compat",
+      "sha256": "6655a9752f7890b1e651442426c573b6bb65b3081ee4585c83e8117a74a512e3"
+    }
+  ],
+  "migration": {
+    "planSha256": "2330270bcaae038abfd4cdcf8d71dcbdad6dea21cd42101b19dadec07e55a768",
+    "completionSha256": "37224b946e9d859f375674ea1509a4f41e37105632fce1cd8800b3880ec061d4",
+    "migrationCompletionEstablished": true,
+    "acceptedSelectionPreserved": true,
+    "acceptedDependencyProfilePreserved": true
+  },
+  "limitations": [
+    "Only the listed activation closure is qualified for native export and runtime compatibility; other activations require separate qualification.",
+    "Forms 0.2.0 and Localization 0.1.1 pins are retained, but their feature activation and browser behavior are outside this native profile qualification.",
+    "Consumer test and Delivery acceptance remain separate; the native build used SkipTests and the future RM-02 feature remains open.",
+    "The pipeline binds the verified candidate bundle commit below, not a full Program Kit Release receipt or the later shipping source commit."
+  ],
+  "originalConsumerMutationPerformed": false,
+  "consumerDeliveryClaimed": false,
+  "programKitReleaseClaimed": false
+}
