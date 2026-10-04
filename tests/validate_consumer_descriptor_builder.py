@@ -23,6 +23,15 @@ def main() -> int:
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(TEMPLATE / relative, target)
+        # Consumer-owned targets may use the established Python command property.
+        hook = root / 'consumer-hook.py'
+        hook.write_text('from pathlib import Path; import sys; Path(sys.argv[1]).write_text("passed")', encoding='utf-8')
+        owned_targets = root / 'Directory.Build.targets'
+        owned_targets.write_text(owned_targets.read_text().replace('</Project>', '''
+<Target Name="ConsumerPythonHook" BeforeTargets="CoreCompile">
+  <Exec Command="&quot;$(ProgramKitPythonCommand)&quot; &quot;$(MSBuildThisFileDirectory)consumer-hook.py&quot; &quot;$(MSBuildThisFileDirectory)consumer-hook-result.txt&quot;" />
+</Target>
+</Project>'''), encoding='utf-8')
         feature = root / 'Feature/Example.Feature.csproj'
         feature.parent.mkdir()
         feature.write_text('''<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>
@@ -34,6 +43,12 @@ def main() -> int:
         (feature.parent / 'Feature.cs').write_text('namespace Example; /// <summary>Consumer feature.</summary>\npublic sealed class Feature {}', encoding='utf-8')
         output = root / 'packages'
         environment = dict(os.environ, MSBUILDDISABLENODEREUSE='1', DOTNET_CLI_USE_MSBUILD_SERVER='0')
+        if os.name == 'nt':
+            selected_dotnet = shutil.which('dotnet')
+            assert selected_dotnet, 'The selected .NET SDK is required'
+            system_root = Path(os.environ['SystemRoot'])
+            environment['PATH'] = os.pathsep.join(str(path) for path in
+                (Path(sys.executable).parent, Path(selected_dotnet).parent, system_root / 'System32', system_root))
 
         def run(*arguments: str, success: bool = True) -> str:
             result = subprocess.run(['dotnet', *arguments], cwd=root, env=environment,
@@ -49,6 +64,7 @@ def main() -> int:
         run('restore', str(feature), '--configfile', str(root / 'NuGet.config'), '--packages', str(cache))
         run('restore', str(feature), '--locked-mode', '--configfile', str(root / 'NuGet.config'), '--packages', str(cache))
         run('pack', str(feature), '--no-restore', '-c', 'Release', '--output', str(output))
+        assert (root / 'consumer-hook-result.txt').read_text() == 'passed'
         with zipfile.ZipFile(output / 'Example.Feature.1.0.0.nupkg') as archive:
             assert 'orbyss-foundation/feature.json' in archive.namelist()
             assert 'program-kit/feature.json' not in archive.namelist()

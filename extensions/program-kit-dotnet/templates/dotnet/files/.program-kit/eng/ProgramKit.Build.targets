@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <ProgramKitPythonCommand Condition="'$(ProgramKitPythonCommand)' == ''">python</ProgramKitPythonCommand>
     <ProgramKitFeatureDormant Condition="'$(ProgramKitFeatureDormant)' == ''">false</ProgramKitFeatureDormant>
   </PropertyGroup>
 
