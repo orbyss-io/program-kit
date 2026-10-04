@@ -32,6 +32,15 @@ and ratified constitution. Use scoped follow-on decisions for changed design aut
 remove a retained condition or change NOT READY to READY to make validation pass.
 
 Produce corrected ledger, scoped decisions, acceptance scope, bootstrap-proof-plan.json and architecture narrative. Prepare recipes without executing them; the next native shell step owns provisioning and proof.
+After the final authored changes, update the architecture map's documentation SHA-256
+bindings for each document you changed and regenerate its C4 projection. Preserve
+Accepted decision bindings and protected authority. The native synchronization step
+refreshes its own lifecycle and roadmap outputs; it deliberately rejects stale bindings
+for other documents, including quality-attributes.md. A sizing pass cannot detect that
+hash drift. If synchronization fails after passing proofs, correct the exact document
+bindings and resume the existing failed continuation, without `--post-bootstrap`.
+The native executor revalidates and reuses unchanged passing proofs; do not start a
+second continuation or reauthor recipes merely to repair a document hash.
 Read the handoff's explicit authored-byte targets and hard limits. Also run
 `python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py inspect-output --run-id <source-run-id>`
 after final writes to obtain current budgets and authored/generated/total counts, including when

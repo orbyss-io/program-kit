@@ -237,6 +237,48 @@ class PostBootstrapTests(unittest.TestCase):
             workflow.recovery.prepare(self.root, self.source.run_id, post_bootstrap=True)
         self.assertFalse(workflow.recovery.location(self.root, self.source.run_id).exists())
 
+    def test_document_hash_repair_resumes_same_child_without_worker_or_new_proof(self):
+        quality = self.root / 'docs/architecture/quality-attributes.md'
+        model = life.load(self.root / g.ARCHITECTURE_MAP)
+        model['documentation'].append({'id': 'quality-attributes',
+            'path': quality.relative_to(self.root).as_posix(),
+            'sha256': life.digest(quality), 'scope': 'bootstrap'})
+        life.write(self.root / g.ARCHITECTURE_MAP, model)
+        g.synchronize_lifecycle()
+        g.synchronize_roadmap_views()
+        calls = []
+        def dispatch(*args, **kwargs):
+            calls.append('producer')
+            quality.write_bytes(quality.read_bytes() + b'\nRetain the explicit verification obligation.\n')
+            return {'exit_code': 0, 'stdout': 'bounded architecture correction', 'stderr': ''}
+        with patch.object(fixture.CommandStep, '_try_dispatch', dispatch):
+            failed = workflow.resume(self.root, self.source.run_id, post_bootstrap=True)
+        self.assertEqual(fixture.RunStatus.FAILED, failed.status)
+        self.assertEqual('recovery-synchronize', failed.current_step_id)
+        self.assertIn('documentation is missing or stale', str(failed.step_results[failed.current_step_id]))
+        self.assertEqual(1, len(calls))
+        proofs = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob('proof.json')}
+        self.assertEqual(1, len(proofs))
+        run = workflow.run_directory(self.root, failed.run_id)
+        failed_state, saved_definition = (run / 'state.json').read_bytes(), (run / 'workflow.yml').read_bytes()
+        approval = (self.root / g.BOOTSTRAP_APPROVAL).read_bytes()
+        directory, saved = workflow.recovery.manifest(self.root, self.source.run_id)
+        model = life.load(self.root / g.ARCHITECTURE_MAP)
+        next(d for d in model['documentation'] if d['path'] == quality.relative_to(self.root).as_posix())['sha256'] = life.digest(quality)
+        life.write(self.root / g.ARCHITECTURE_MAP, model)
+        with patch.object(fixture.CommandStep, '_try_dispatch', side_effect=AssertionError('A shell repair must not dispatch another worker')):
+            paused = workflow.resume(self.root, failed.run_id)
+        self.assertEqual(fixture.RunStatus.PAUSED, paused.status, (paused.current_step_id, paused.error))
+        self.assertEqual('review-recovery', paused.current_step_id)
+        self.assertEqual(failed.run_id, paused.run_id)
+        self.assertEqual(proofs, {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob('proof.json')})
+        self.assertEqual(saved_definition, (run / 'workflow.yml').read_bytes())
+        self.assertEqual(approval, (self.root / g.BOOTSTRAP_APPROVAL).read_bytes())
+        self.assertEqual(life.digest(quality), life.load(directory / 'review.json')['changed'][quality.relative_to(self.root).as_posix()]['after'])
+        archives = self.root / '.specify/workflows/resumption-history' / failed.run_id
+        self.assertTrue(any(p.read_bytes() == failed_state for p in archives.glob('*/state.json')))
+        workflow.recovery.manifest(self.root, self.source.run_id)
+
 
     def producer_budget_retry(self, *, historical=False):
         import bootstrap_context
