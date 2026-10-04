@@ -215,11 +215,18 @@ def main() -> int:
     parser.add_argument("--catalog", required=True)
     parser.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
     parser.add_argument("--all", action="store_true", help="Verify the complete release catalog instead of the consumer lock.")
+    parser.add_argument('--profile', help='Qualified profile identity (or default); requires --all.')
     parser.add_argument("--evidence", default=".program-kit/evidence/building-block-availability.json")
     args = parser.parse_args()
     try:
         repository = Path(args.target).resolve()
         catalog = load_json(Path(args.catalog).resolve())
+        if args.profile:
+            if not args.all:
+                raise AvailabilityError('PKB602 profile availability requires --all; consumer locks retain their own pins')
+            import building_blocks as blocks
+            catalog, _ = blocks.qualified_dependency_profile(blocks.profile_registry(),
+                None if args.profile == 'default' else args.profile, catalog)
         lock = None if args.all else load_json(repository / args.lock)
         keys = selected_keys(catalog, lock)
         results = verify(catalog, keys)
@@ -236,7 +243,7 @@ def main() -> int:
         temporary.replace(path)
         print(f"Public availability evidence written: {path}")
         return 0
-    except (AvailabilityError, OSError, subprocess.SubprocessError) as error:
+    except (AvailabilityError, OSError, ValueError, subprocess.SubprocessError) as error:
         print(str(error), file=sys.stderr)
         return 2
 

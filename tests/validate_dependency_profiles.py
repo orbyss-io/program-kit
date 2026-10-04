@@ -15,13 +15,157 @@ import building_blocks as blocks
 import dependency_profiles as profiles
 import validate_building_blocks as fixtures
 
+HISTORICAL = 'foundation-0.2.2-exporter-0.2.2-forms-0.2.0-localization-0.1.1'
+CURRENT = 'foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
+
 
 class ProfileTests(unittest.TestCase):
+    def test_portable_receipt_builder_rejects_changed_or_failed_evidence(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from build_dependency_qualification import build
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            native, browser = root / 'native', root / 'browser'
+            index = blocks.load_json(blocks.profile_registry() / 'index.json')
+            entry = index['profiles'][CURRENT]
+            profile = blocks.profile_registry() / entry['path']
+            receipt = blocks.load_json(blocks.profile_registry() / entry['evidence']['path'])
+            browser_summary = receipt.pop('browserIntegration')
+            available = receipt.pop('availableArtifacts')
+            host_summary = receipt.pop('hostRuntime')
+            host = root / 'host'
+            host.mkdir()
+            from xml.etree import ElementTree as ET
+            cases = ET.Element('testsuite')
+            for identity in host_summary['cases']:
+                owner, name = identity.rsplit('.', 1)
+                ET.SubElement(cases, 'testcase', classname=owner, name=name)
+            ET.ElementTree(cases).write(host / 'compatibility-results.xml', encoding='utf-8')
+            host_summary['resultsSha256'] = blocks.raw_sha256(host / 'compatibility-results.xml')
+            fixtures.write_json(host / 'qualification-result.json', host_summary)
+            def build_receipt():
+                return build(profile, native, browser, root / 'availability.json', host)
+            receipt['status'] = 'generic-integration-passed'
+            receipt['steps'] = [s for s in receipt['steps'] if s['id'] not in {'published-forms-browser', 'public-artifact-availability', 'published-host-runtime'}]
+            for step in receipt['steps']:
+                name = {'publisher-descriptors': 'publisher-metadata.json', 'activation-export-matrix': 'activation-matrix.json'}.get(step['id'], step['id'] + '.log')
+                path = native / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('isolated unit-test evidence')
+                step['evidenceSha256'] = blocks.raw_sha256(path)
+            fixtures.write_json(native / 'qualification.json', receipt)
+            fixtures.write_json(root / 'availability.json', {'artifacts': available})
+            fixtures.write_json(browser / 'qualification-profile.json', browser_summary['profile'])
+            fixtures.write_json(browser / 'qualification-result.json', {'satisfied': True, 'engines': ['chromium', 'webkit']})
+            processes = []
+            for stage in browser_summary['stages']:
+                path = browser / 'evidence' / stage / 'process.json'
+                stream = path.with_name('output.log')
+                stream.parent.mkdir(parents=True, exist_ok=True)
+                stream.write_text('isolated unit-test stream')
+                record = {'exitCode': 0, 'timedOut': False, 'cleanupComplete': True, 'logsDrained': True,
+                          'stdout': {'path': stream.name, 'sha256': blocks.raw_sha256(stream)},
+                          'stderr': {'path': stream.name, 'sha256': blocks.raw_sha256(stream)}}
+                fixtures.write_json(path, record)
+                processes.append((path, record, stream))
+            self.assertEqual(9, len(build_receipt()['steps']))
+            path, record, stream = processes[0]
+            stream.write_text('changed execution output')
+            with self.assertRaisesRegex(ValueError, 'stream changed'):
+                build_receipt()
+            stream.write_text('isolated unit-test stream')
+            for mutate in (lambda value: value.update(cleanupComplete=False),
+                           lambda value: value.update(exitCode=1),
+                           lambda value: value['stdout'].update(path='../outside.log')):
+                changed = copy.deepcopy(record)
+                mutate(changed)
+                fixtures.write_json(path, changed)
+                with self.assertRaises(ValueError):
+                    build_receipt()
+            fixtures.write_json(path, record)
+            receipt['consumerContract'] = 'private-contract-must-not-ship'
+            fixtures.write_json(native / 'qualification.json', receipt)
+            with self.assertRaisesRegex(ValueError, 'unexpected generic report fields'):
+                build_receipt()
+
+    def test_generic_default_receipt_rejects_incomplete_or_changed_qualification(self):
+        catalog = blocks.load_json(fixtures.CATALOG)
+        with tempfile.TemporaryDirectory() as directory:
+            registry = Path(directory) / 'registry'
+            shutil.copytree(blocks.profile_registry(), registry)
+            index = blocks.load_json(registry / 'index.json')
+            self.assertEqual(CURRENT, index['default'])
+            entry = index['profiles'][CURRENT]
+            receipt = blocks.load_json(registry / entry['evidence']['path'])
+            blocks.qualified_dependency_profile(registry, None, catalog)
+            mutations = [lambda value: value['steps'].pop(),
+                lambda value: value['steps'][0].update(exitCode=1),
+                lambda value: value['activationMatrix'].pop(),
+                lambda value: value['activationMatrix'].append(value['activationMatrix'][0]),
+                lambda value: value['activationMatrix'][0].update(closure=[]),
+                lambda value: value['compositionMatrix'].pop(),
+                lambda value: value['compositionMatrix'][0].update(closure=['ProgramKitQualificationProbe']),
+                lambda value: value['scope']['allowedActivations'].pop(),
+                lambda value: value['source'].update(recipeSha256='a' * 64),
+                lambda value: value['artifacts']['Orbyss.Forms.Management'].update(version='0.2.0'),
+                lambda value: value['browserIntegration']['profile']['packages'].update({'@orbyss-io/forms-react': '0.2.0'}),
+                lambda value: value['browserIntegration']['stages'].pop('locked'),
+                lambda value: value['availableArtifacts'].pop(),
+                lambda value: value['hostRuntime']['inputs'].update(foundationRelease='0.2.2'),
+                lambda value: value['hostRuntime']['inputs'].update(hostImage=None),
+                lambda value: value['hostRuntime']['cases'].pop()]
+            for mutate in mutations:
+                changed = copy.deepcopy(receipt)
+                mutate(changed)
+                fixtures.write_json(registry / entry['evidence']['path'], changed)
+                entry['evidence']['sha256'] = blocks.raw_sha256(registry / entry['evidence']['path'])
+                fixtures.write_json(registry / 'index.json', index)
+                with self.subTest(mutation=mutate), self.assertRaises(ValueError):
+                    blocks.qualified_dependency_profile(registry, None, catalog)
+
+    def test_six_scaffold_choices_use_new_default_and_retain_historical_profile(self):
+        import subprocess
+        registry = blocks.profile_registry()
+        index = blocks.load_json(registry / 'index.json')
+        historical, _ = blocks.qualified_dependency_profile(registry, HISTORICAL, blocks.load_json(fixtures.CATALOG))
+        captured = {'profile': HISTORICAL, 'catalogResolutionSha256': blocks.catalog_resolution_sha256(historical),
+                    'entrySha256': blocks.canonical_sha256(index['profiles'][HISTORICAL])}
+        for web in ('none', 'spa-pkce', 'bff-cookie'):
+            for persistence in ('none', 'ef-postgresql'):
+                with self.subTest(web=web, persistence=persistence), tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    command = [sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                        '--target', str(root), '--profile-selected', '--foundation-host-accepted',
+                        '--building-block-sources-approved', '--persistence-profile', persistence, '--web-profile', web]
+                    if persistence != 'none':
+                        from validate_persistence_selection import PersistenceTests
+                        fixture = PersistenceTests()
+                        fixture.root = root
+                        fixture.write('docs/architecture/bootstrap-decisions.json', {'selected_profiles': ['dotnet']})
+                        fixture.select(fixture.owner(profile=persistence))
+                    result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+                    self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+                    managed_path = root / '.program-kit/managed.json'
+                    managed = blocks.load_json(managed_path)
+                    self.assertEqual(CURRENT, managed['newProjectDependencyProfile']['profile'])
+                    manifest = root / '.program-kit/eng/.config/dotnet-tools.json'
+                    self.assertEqual('0.2.4', blocks.load_json(manifest)['tools']['orbyss.foundation.openapi.exporter']['version'])
+                    # Model the same scaffold captured by 0.12.6. Sync must use its
+                    # original exact qualification, rather than the changed default.
+                    managed['newProjectDependencyProfile'] = captured
+                    fixtures.write_json(managed_path, managed)
+                    result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
+                    self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+                    self.assertEqual(captured, blocks.load_json(managed_path)['newProjectDependencyProfile'])
+                    self.assertEqual('0.2.2', blocks.load_json(manifest)['tools']['orbyss.foundation.openapi.exporter']['version'])
+                    result = subprocess.run(command + ['--check'], capture_output=True, text=True, encoding='utf-8')
+                    self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
     def test_public_native_profile_preserves_runtime_and_restricts_scope(self):
         identity = 'foundation-0.2.2-exporter-0.2.4-forms-0.2.0-localization-0.1.1'
         registry = blocks.profile_registry()
         catalog, selected = blocks.qualified_dependency_profile(registry, identity, blocks.load_json(fixtures.CATALOG))
-        historical = blocks.new_project_catalog()
+        historical = blocks.new_project_catalog(HISTORICAL)
         changed = [key for key in catalog['packages'] if catalog['packages'][key]['version'] != historical['packages'][key]['version']]
         self.assertEqual([profiles.producers.EXPORTER_KEY], changed)
         self.assertEqual('0.2.4', catalog['packages'][profiles.producers.EXPORTER_KEY]['version'])
@@ -36,6 +180,7 @@ class ProfileTests(unittest.TestCase):
         registry = Path(directory) / 'profiles'
         shutil.copytree(blocks.profile_registry(), registry)
         index = blocks.load_json(registry / 'index.json')
+        index['default'] = HISTORICAL
         entry = index['profiles'][index['default']]
         selected = blocks.load_json(registry / entry['path'])
         stages = ['locked-restore', 'consumer-build-pack-stage', 'canonical-consumer-descriptors',
@@ -97,7 +242,7 @@ class ProfileTests(unittest.TestCase):
             catalog, selected = blocks.qualified_dependency_profile(
                 registry, None, blocks.load_json(fixtures.CATALOG))
             self.assertEqual(index['default'], selected['id'])
-            self.assertEqual('0.2.2', catalog['packages'][profiles.producers.EXPORTER_KEY]['version'])
+            self.assertEqual('0.2.4', catalog['packages'][profiles.producers.EXPORTER_KEY]['version'])
             original = profile.read_bytes()
             profile.write_bytes(original + b'\n')
             with self.assertRaisesRegex(ValueError, 'qualified profile changed'):
@@ -157,7 +302,7 @@ class ProfileTests(unittest.TestCase):
                 version.write_text('extension:\n  version: "0.12.6"\n')
                 relative = self.producer_fixture(root, catalog)
                 registry = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'
-                identity = blocks.load_json(registry / 'index.json')['default']
+                identity = HISTORICAL
                 destination, packet = profiles.draft(root, installed, identity, registry)
                 self.assertIn(relative, packet['producerChanges'])
                 self.assertEqual((destination, packet), profiles.draft(root, installed, identity, registry))
@@ -217,7 +362,7 @@ class ProfileTests(unittest.TestCase):
             version.write_text('extension:\n  version: "0.12.6"\n')
             relative = self.producer_fixture(root, catalog)
             registry = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'
-            identity = blocks.load_json(registry / 'index.json')['default']
+            identity = HISTORICAL
             original = (root / relative).read_bytes()
             fixtures.write_json(root / relative, {'producer': {'kind': profiles.producers.PRODUCER_KIND, 'version': '0.2.3'}})
             with self.assertRaisesRegex(ValueError, 'original reviewed dependency profile'):
@@ -369,7 +514,7 @@ class ProfileTests(unittest.TestCase):
             version.parent.mkdir(parents=True, exist_ok=True)
             version.write_text('extension:\n  version: "0.12.5"\n')
             registry = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'
-            identity = blocks.load_json(registry / 'index.json')['default']
+            identity = HISTORICAL
             destination, packet = profiles.draft(root, installed, identity, registry)
             decision = root / 'docs/architecture/dependency-review.md'
             decision.write_text('Status: Accepted\nReviewed ' + packet['profileSha256'] + ' ' + packet['reviewSha256'])
@@ -436,7 +581,7 @@ class ProfileTests(unittest.TestCase):
             version.parent.mkdir(parents=True, exist_ok=True)
             version.write_text('extension:\n  version: "0.12.5"\n')
             registry = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'
-            identity = blocks.load_json(registry / 'index.json')['default']
+            identity = HISTORICAL
             original = selection.read_bytes()
             destination, packet = profiles.draft(root, installed, identity, registry)
             self.assertEqual(original, selection.read_bytes())

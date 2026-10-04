@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "default": "foundation-0.2.2-exporter-0.2.2-forms-0.2.0-localization-0.1.1",
+  "default": "foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2",
   "profiles": {
     "foundation-0.2.2-exporter-0.2.2-forms-0.2.0-localization-0.1.1": {
       "path": "public-v0.12.5.json",
@@ -44,6 +44,73 @@
         "Consumer test and Delivery acceptance remain separate; the native build used SkipTests and the future RM-02 feature remains open.",
         "The pipeline binds the verified candidate bundle commit below, not a full Program Kit Release receipt or the later shipping source commit."
       ]
+    },
+    "foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2": {
+      "path": "dependency-profile-default-0.12.7.json",
+      "sha256": "67d51da3406e9ffd5e3ad1992ca4d64702b8214c6a497d1346623a377dcf709e",
+      "status": "qualified",
+      "evidence": {
+        "path": "evidence/dependency-qualification-default-0.12.7.json",
+        "sha256": "bcfd99b37d4a81c95d545550760470a2f61313a7104b468e2d23cb60110a37dd",
+        "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.12.7/dependency-qualification-default-0.12.7.json"
+      },
+      "recipeSha256": "8ef866861f350345e3ee49ff073e8c1182e782c1e69df83157c4c1790020fc1d",
+      "qualificationScope": "Public publisher metadata and exporter admission for every registered activation closure and representative compositions; public Forms browser integration and published Foundation host compatibility.",
+      "allowedActivations": [
+        "FoundationTasks",
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Management",
+        "Orbyss.Forms.Management.Mcp.AspNetCore",
+        "Orbyss.Forms.Storage.FileSystem",
+        "Orbyss.Forms.Storage.InMemory",
+        "Orbyss.Forms.Submissions",
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+        "Orbyss.Forms.Web.Management",
+        "Orbyss.Forms.Web.Runtime",
+        "Orbyss.Forms.Web.Submissions",
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Authentication.ClientCredentials",
+        "Orbyss.Foundation.Authentication.DPoP",
+        "Orbyss.Foundation.Authentication.DownstreamApi",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.Authentication.TokenExchange",
+        "Orbyss.Foundation.DomainEvents",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Access",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Applications",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.AuthenticationFlows",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Enrollment",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.IdentityProviders",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Organizations",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.RealmOperations",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Scopes",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Sessions",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Users",
+        "Orbyss.Foundation.Json.AspNetCore",
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Foundation.Web.Discovery",
+        "Orbyss.Foundation.Web.HostedPages",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Management.Mcp.AspNetCore",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+        "Orbyss.Localization.Storage.FileSystem",
+        "Orbyss.Localization.Storage.InMemory",
+        "Orbyss.Localization.Web.Management",
+        "Orbyss.Localization.Web.Runtime"
+      ],
+      "limitations": [
+        "Publisher features marked composeForOpenApi=false are checked as metadata; this does not claim execution of those endpoints.",
+        "Consumer architecture, compatibility proofs and Delivery acceptance remain project-specific.",
+        "Local browser evidence covers Chromium and WebKit; Firefox remains a required tagged CI gate."
+      ],
+      "nativeLockSha256": "c300cd439ac582703f1aef1fbc050cb98e73bd991d222b9270b2375336f52e3b"
     }
   }
 }

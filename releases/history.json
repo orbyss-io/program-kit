@@ -11,7 +11,9 @@
       "verification": [
         "Validate installation coherence and retain the existing consumer readiness gates."
       ],
-      "verificationChecks": ["installation-coherence"],
+      "verificationChecks": [
+        "installation-coherence"
+      ],
       "recovery": [
         "Use the maintained updater retry command and preserve failed attempt evidence."
       ]
@@ -34,9 +36,34 @@
         "Verify refreshed feature locks and canonical-only packed descriptors; keep engineering packages out of runtime dependencies.",
         "Complete required analysis and compatibility renewal; pending evidence prevents application readiness."
       ],
-      "verificationChecks": ["installation-coherence", "dependency-verification", "required-phase-evidence"],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification",
+        "required-phase-evidence"
+      ],
       "recovery": [
         "Retry the same verified release using its sealed original-input archive; reject missing or contradictory provenance."
+      ]
+    },
+    {
+      "version": "0.12.7",
+      "previous": "0.12.6",
+      "guide": "migration-0.12.7.md",
+      "automatic": [
+        "Preserve accepted and scaffold-captured dependency profiles while updating Program Kit.",
+        "Use the qualified publisher-metadata profile only for new projects."
+      ],
+      "review": [],
+      "verification": [
+        "Verify installation coherence and exact retained dependency inputs.",
+        "Adopt different dependency versions only through a separate reviewed transition."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Retry the verified release with sealed original inputs; preserve failed attempt evidence."
       ]
     }
   ]

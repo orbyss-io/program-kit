@@ -185,7 +185,17 @@ export adoption. The opt-in profile
 Exporter 0.2.4 with the retained runtime pins for its listed Authentication, BFF,
 Assurance and Web activation closure. Its hashed receipt and profile ship offline
 and as immutable release assets. Forms and Localization activation and consumer
-Delivery acceptance remain outside that native qualification. The default is unchanged.
+Delivery acceptance remain outside that native qualification.
+
+New projects use
+`foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2`: Foundation
+runtime/analyzer and host 0.2.4, Exporter 0.2.4, Forms 0.2.1, and Localization
+0.1.2. Generic qualification covers canonical publisher metadata, all 47 registered
+activation closures at the exporter boundary, and public Forms browser integration.
+Publisher features excluded from OpenAPI composition are checked as metadata;
+consumer compatibility and Delivery acceptance remain separate. Installing a
+Program Kit upgrade preserves existing accepted and scaffold-captured profiles.
+Adopting different dependencies still requires the reviewed dependency transition.
 
 Dependency changes use `dependency_profiles.py list`, then `draft --profile <id> --target .`.
 Review the exact profile, preserved originals and proposed producer-contract/planning changes;
