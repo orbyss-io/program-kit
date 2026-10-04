@@ -139,7 +139,11 @@ def reject_active_references(root, evidence, lock):
 def engineering_outputs(root):
     """Require both the installed template and reconciler's exact ownership receipt."""
     state = read(root / '.program-kit/managed.json', {})
-    template = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files'
+    installed = root / '.specify/extensions/program-kit-dotnet'
+    # Upgrade admission checks the currently installed ownership before replacing
+    # components. A candidate's changed template cannot validate the old bytes.
+    template = (installed / 'templates/dotnet/files' if installed.is_dir()
+                else Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files')
     result = set()
     for relative in ('.program-kit/eng/ProgramKit.Packages.props', '.program-kit/eng/.config/dotnet-tools.json'):
         path = root / relative

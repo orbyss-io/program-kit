@@ -254,6 +254,37 @@ class AuditTests(unittest.TestCase):
         with self.assertRaisesRegex(self.blocks.ResolverError, 'candidate manifest changed'):
             self.run_audit()
 
+    def test_upgrade_admission_uses_installed_engineering_template_and_exact_receipt(self):
+        command = [sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                   '--target', str(self.root), '--profile-selected', '--foundation-host-accepted',
+                   '--building-block-sources-approved', '--web-profile', 'none']
+        result = subprocess.run(command, capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
+        installed = self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files'
+        for relative in ('.program-kit/eng/ProgramKit.Packages.props', '.program-kit/eng/.config/dotnet-tools.json'):
+            destination = installed / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes((source / relative).read_bytes())
+        relative = '.program-kit/eng/ProgramKit.Packages.props'
+        previous = (installed / relative).read_bytes().replace(b'    <PackageVersion Include="Orbyss.Foundation.Build" Version="0.1.0" />\n', b'')
+        self.assertNotEqual(previous, (source / relative).read_bytes())
+        (installed / relative).write_bytes(previous)
+        (self.root / relative).write_bytes(previous)
+        state_path = self.root / '.program-kit/managed.json'
+        state = json.loads(state_path.read_text())
+        for key in ('templateHash', 'lastWrittenHash', 'installedHash', 'baselineHash'):
+            state['files'][relative][key] = audit.sha(self.root / relative)
+        state_path.write_text(json.dumps(state))
+        self.assertEqual(2, len(audit.engineering_outputs(self.root)))
+        (self.root / relative).write_bytes(previous + b' ')
+        with self.assertRaisesRegex(ValueError, 'ownership hash changed'):
+            audit.engineering_outputs(self.root)
+        (self.root / relative).write_bytes(previous)
+        (installed / relative).unlink()
+        with self.assertRaisesRegex(ValueError, 'no installed ownership'):
+            audit.engineering_outputs(self.root)
+
     def test_planned_catalog_references_need_exact_target_binding(self):
         self.assertEqual([], audit.planned_selection_errors(self.root, [{'path': 'src/Test.Feature/Test.Feature.csproj', 'packageReferences': ['Orbyss.Foundation.DomainEvents']}]))
         errors = audit.planned_selection_errors(self.root, [{'path': 'tests/Tests.csproj', 'packageReferences': ['Orbyss.Foundation.Tasks', 'Orbyss.Foundation.Analyzers']}])
