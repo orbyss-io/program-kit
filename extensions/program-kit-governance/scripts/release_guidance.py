@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import re
+import sys
 from pathlib import Path
 
 BASELINE = '0.12.5'
@@ -75,7 +77,16 @@ def require_review(repository, migration_plan):
         raise ValueError('PKU131 migration needs an Accepted review binding plan SHA-256 ' + digest +
                          '; preserve the plan and review it before installation')
     review = json.loads(path.read_text(encoding='utf-8'))
-    from architecture_map import ID
+    # The updater loads this file directly from an extracted bundle. Its sibling
+    # scripts are not necessarily importable through the process module path.
+    module_name = 'program_kit_guidance_architecture_map'
+    specification = importlib.util.spec_from_file_location(module_name, Path(__file__).with_name('architecture_map.py'))
+    if specification is None or specification.loader is None:
+        raise ValueError('PKU131 bundled architecture ID validator is unavailable')
+    architecture = importlib.util.module_from_spec(specification)
+    sys.modules[module_name] = architecture
+    specification.loader.exec_module(architecture)
+    ID = architecture.ID
     decision_id = review.get('decisionId')
     if not isinstance(decision_id, str) or not ID.fullmatch(decision_id):
         raise ValueError('PKU131 migration review decisionId is not a stable Program Kit ID')

@@ -4,6 +4,7 @@ import json
 import hashlib
 import sys
 import tempfile
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -89,6 +90,14 @@ class GuidanceTests(unittest.TestCase):
             model = {'decisions': [{'id': 'bridge', 'status': 'Accepted', 'path': 'docs/architecture/bridge.md', 'sha256': hashlib.sha256(decision.read_bytes()).hexdigest()}]}
             (architecture / 'architecture-map.json').write_text(json.dumps(model))
             require_review(root, migration)
+            isolated = subprocess.run([sys.executable, '-I', '-c',
+                'import importlib.util,json,sys;'
+                's=importlib.util.spec_from_file_location("isolated_guidance",sys.argv[1]);'
+                'm=importlib.util.module_from_spec(s);s.loader.exec_module(m);'
+                'm.require_review(sys.argv[2],json.loads(sys.argv[3]))',
+                str(ROOT / 'extensions/program-kit-governance/scripts/release_guidance.py'),
+                str(root), json.dumps(migration)], capture_output=True, text=True)
+            self.assertEqual(0, isolated.returncode, isolated.stdout + isolated.stderr)
             original_review = (architecture / 'release-migration-review.json').read_bytes()
             for invalid in ('release-migration-0.12.6', 'Bridge', '', None, 'x' * 65):
                 review = {'schemaVersion': 1, 'decisionId': invalid, 'planSha256': digest}
