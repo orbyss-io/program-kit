@@ -24,6 +24,12 @@
       "version": "3",
       "path": "internal-forms-workspace/v3",
       "kind": "building-block-consumer"
+    },
+    {
+      "id": "internal-forms-workspace",
+      "version": "4",
+      "path": "internal-forms-workspace/v4",
+      "kind": "building-block-consumer"
     }
   ]
 }

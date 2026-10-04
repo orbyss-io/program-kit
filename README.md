@@ -52,7 +52,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.5/Initialize-ProgramKit-0.12.5.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.6/Initialize-ProgramKit-0.12.6.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -71,7 +71,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.5/Initialize-ProgramKit-0.12.5.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.6/Initialize-ProgramKit-0.12.6.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -153,8 +153,8 @@ consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.12.5\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.12.5 `
+python C:\path\to\program-kit-0.12.6\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.12.6 `
   --target . `
   --integration codex
 ```
@@ -169,8 +169,29 @@ the bundle record, workflow manifest/registry, both extension manifests, preset 
 and managed-baseline version. It reports success only when every value converges. Do not run
 `workflow`, `extension`, `preset`, or `bundle` mutations concurrently with it.
 
-If the target release changes the managed `Orbyss.Foundation.OpenApi.Exporter` pin while registered
-consumer contracts still name the older version, the updater stops before mutation with `PKU110`.
+Use `--plan` to read verified cumulative migration guidance before installation. Required reviews
+bind that exact plan. The updater records required verification in
+`.specify/governance/migration-completion.json`; `PKU132` and exit code 3 retain pending migration
+checks even when component installation is coherent. A repeat plan includes that unfinished
+migration. Consumer readiness continues to require its independent lifecycle evidence.
+
+Program Kit upgrades preserve the consumer's accepted dependency profile, including its exporter
+pin. New .NET projects use the qualified default in the installed building-block extension's
+`references/dependency-profiles/index.json`. Scaffolding records that exact profile and the Draft
+selection retains it even if a later Program Kit version changes its default. Profile qualification
+scope is enforced during validation and acceptance; the historical v0.12.5 profile excludes Assurance
+export adoption. A private corrected exporter does not become a supported default automatically.
+
+Dependency changes use `dependency_profiles.py list`, then `draft --profile <id> --target .`.
+Review the exact profile, preserved originals and proposed producer-contract/planning changes;
+record an Accepted decision naming the profile and review SHA-256, then use `accept` with that
+decision. Synchronize engineering pins, renew affected proofs and native locks, and verify the
+consumer through the existing lifecycle. Completed acceptance retains later analysis and proof
+history. These steps are separate from a Program Kit bundle upgrade.
+
+Existing installations can adopt the new release's exporter explicitly while retaining runtime
+dependencies through the bounded producer reconciliation below. If it finds registered contracts or
+planning references on older pins, the updater stops before mutation with `PKU110`.
 It lists every affected contract and specification/planning/research file. Review that list, then
 explicitly rerun the same command with:
 
@@ -491,11 +512,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.12.5.md`](docs/releasing-0.12.5.md).
+the maintained [release procedure](docs/releasing.md).
 
 ```powershell
-git tag v0.12.5
-git push origin v0.12.5
+git tag v0.12.6
+git push origin v0.12.6
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -513,6 +534,9 @@ The release workflow validates all manifests and catalog metadata, creates deter
 - `Initialize-ProgramKit-<version>.cmd`: Windows initializer compatible with PowerShell
   `AllSigned` environments because it is a command script, not a PowerShell script.
 - `SHA256SUMS`: exact artifact digests.
+- `RELEASE-NOTES-<version>.md`, `MIGRATIONS-<version>.md`, and
+  `migration-index-<version>.json`: reviewed release guidance and cumulative
+  migration applicability. The same guidance is available offline in the governance extension.
 - `release-receipt-<version>.json`: clean source, successful deterministic Release steps,
   toolchains, browser matrix, public-availability proof, and exact candidate artifact hashes used by
   optional live acceptance.
@@ -520,8 +544,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.12.5.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.12.5.zip -Algorithm SHA256
+gh attestation verify program-kit-0.12.6.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.12.6.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery

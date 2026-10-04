@@ -75,13 +75,15 @@ def render(root, kind, identity, host_image):
             fixture('themes/' + source.relative_to(theme).as_posix(), source)
         targets = ['Probe.csproj', 'package.json']
         entry = 'identity_probe'
+    from compatibility_scope import fixture_keys
+    scope = {'schemaVersion': 1, 'artifactKeys': fixture_keys(root, sources, ('oci:ghcr.io/orbyss-io/foundation-host',))}
     directory.mkdir(parents=True, exist_ok=True)
     config.write_text(json.dumps(parameters, indent=2) + '\n', encoding='utf-8')
     recipe.write_text('from pathlib import Path\nimport sys\nsys.path.insert(0, str(Path.cwd()))\n'
                       + 'from ' + entry + ' import main\nraise SystemExit(main())\n', encoding='utf-8')
     contract.write_text(json.dumps({'schemaVersion': 1, 'checks': [{'id': kind,
         'kind': 'runtime-compatibility', 'testCases': CASES[kind]}], 'fixtures': sources,
-        'dependencyTargets': targets}, indent=2) + '\n', encoding='utf-8')
+        'dependencyTargets': targets, 'dependencyScope': scope}, indent=2) + '\n', encoding='utf-8')
     return {'id': identity, 'recipe': recipe.relative_to(root).as_posix(), 'timeout': 600}
 
 
@@ -110,8 +112,10 @@ def render_postgresql(root, identity, selected):
     directory.mkdir(parents=True, exist_ok=True)
     project_file.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup><ItemGroup>' + references + '</ItemGroup></Project>\n', encoding='utf-8')
     config.write_text(json.dumps(runtime, indent=2) + '\n', encoding='utf-8')
+    from compatibility_scope import fixture_keys
+    scope = {'schemaVersion': 1, 'artifactKeys': fixture_keys(root, sources)}
     recipe.write_text('from pathlib import Path\nimport sys\nsys.path.insert(0, str(Path.cwd()))\nfrom postgresql_probe import main\nraise SystemExit(main())\n', encoding='utf-8')
     contract.write_text(json.dumps({'schemaVersion': 1, 'checks': [{'id': 'ef-postgresql',
         'kind': 'runtime-compatibility', 'testCases': CASES['ef-postgresql']}],
-        'fixtures': sources, 'dependencyTargets': ['Probe.csproj']}, indent=2) + '\n', encoding='utf-8')
+        'fixtures': sources, 'dependencyTargets': ['Probe.csproj'], 'dependencyScope': scope}, indent=2) + '\n', encoding='utf-8')
     return {'id': identity, 'recipe': recipe.relative_to(root).as_posix(), 'timeout': 600}

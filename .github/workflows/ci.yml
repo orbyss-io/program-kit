@@ -10,6 +10,10 @@ permissions:
   contents: read
   packages: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -46,7 +50,17 @@ jobs:
       - name: Run shared deterministic validation inventory
         env:
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
-        run: python scripts/run_validation.py --suite Release --approved --engines=chromium,firefox,webkit
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            python scripts/run_validation.py --suite PullRequest --changed-from "$BASE_SHA" --workers 4 --engines=chromium,firefox,webkit
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            python scripts/run_validation.py --suite PullRequest --workers 4 --engines=chromium,firefox,webkit
+          else
+            python scripts/run_validation.py --suite Development --workers 4 --engines=chromium,firefox,webkit
+          fi
 
       - name: Preserve validation evidence on success or failure
         if: always()

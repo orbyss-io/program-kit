@@ -98,9 +98,12 @@ def replacement_packages(manifest_path: Path, required_versions: dict[str, str])
         ]
         for package_id in family_packages:
             package = packages[f"nuget:{package_id}"]
-            if package.get("version") != required_version:
+            expected = family.get("toolVersions", {}).get(package_id, required_version)
+            if expected != required_version and package.get("materialization", {}).get("kind") != "dotnet-tool":
+                raise ValueError(f"{package_id} cannot override its runtime family release.")
+            if package.get("version") != expected:
                 raise ValueError(f"{package_id} does not match the {name} release version.")
-        replacements.extend((package_id, required_version) for package_id in family_packages)
+            replacements.append((package_id, expected))
     if len(replacements) != 53 or len({package_id for package_id, _ in replacements}) != 53:
         raise ValueError("Replacement manifest must contain exactly 53 unique NuGet package IDs.")
     return sorted(replacements)

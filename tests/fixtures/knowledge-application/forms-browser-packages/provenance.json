@@ -59,11 +59,13 @@
     {
       "path": "tests/forms-browser/tsconfig.json",
       "sha256": "aac0935ad113a321ffd4dc2c4a321b390eeb9871de5815d5f86c29daba4751e0"
-    },
-    {
-      "path": "tests/release-integration.test.mjs",
-      "sha256": "46b2c919019de6c944d0b86e1b100f2374b7bfe2aa02f9b20390955ea193755b"
     }
   ],
-  "hashEncoding": "UTF-8 bytes with CRLF normalized to LF; all other bytes preserved"
+  "hashEncoding": "UTF-8 bytes with CRLF normalized to LF; all other bytes preserved",
+  "publisherAcceptance": {
+    "owner": "https://github.com/orbyss-io/forms",
+    "path": "src/typescript/tests/release-integration.test.mjs",
+    "sha256": "46b2c919019de6c944d0b86e1b100f2374b7bfe2aa02f9b20390955ea193755b",
+    "coverage": "Eight component admission cases, executed by the publisher frontend CI; verified locally with 28/28 total cases passing."
+  }
 }

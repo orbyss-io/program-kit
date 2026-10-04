@@ -24,18 +24,58 @@ def sha(path):
 
 
 def evidence_inputs(root):
-    """Only exact inputs of current executed proofs qualify as non-application files."""
+    """Classify immutable executed scratch inputs; this grants no current readiness."""
     result = set()
     ledger = read(root / 'docs/architecture/bootstrap-prerequisites.json', {})
     proofs = [e for item in ledger.get('prerequisites', []) if item.get('status') == 'closed'
               for e in item.get('evidence', []) if e.get('kind') == 'compatibility']
     if proofs:
-        from bootstrap_lifecycle import validate_prerequisites
-        from governance_state import roadmap_records
-        validate_prerequisites(root, roadmap_records(root / 'docs/architecture/specification-roadmap.md'))
-        for evidence in proofs:
-            proof = read(inside(root, evidence['path']))
-            result.update(inside(root, entry['path']) for entry in proof['inputs'])
+        from bootstrap_lifecycle import proof_tooling
+        from phase_obligations import test_results
+        current = set(proof_tooling())
+        legacy = current - {
+            'program-kit-governance/scripts/managed_provider_probes.py',
+            'program-kit-governance/scripts/bootstrap_provider_context.py',
+            'program-kit-governance/scripts/compatibility_scope.py',
+            'program-kit-building-blocks/scripts/building_blocks.py',
+            'program-kit-dotnet/scripts/dependency_profile.py',
+            'program-kit-dotnet/templates/dotnet/files/.program-kit/eng/toolchain.py',
+            'program-kit-dotnet/templates/dotnet/files/.program-kit/eng/js_toolchain.py',
+        }
+        for item in ledger['prerequisites']:
+            if item.get('status') != 'closed': continue
+            for evidence in item.get('evidence', []):
+                if evidence.get('kind') != 'compatibility': continue
+                receipt = inside(root, evidence['path'])
+                if sha(receipt) != evidence['sha256']:
+                    raise ValueError('Retained compatibility receipt is missing or changed')
+                proof = read(receipt)
+                schema = proof.get('schema_version')
+                tooling = proof.get('tooling_sources', {})
+                allowed = (legacy, current) if schema == '1.1' else (set(proof_tooling(True)),)
+                if (schema not in {'1.1', '1.2'} or proof.get('prerequisite') != item['id'] or proof.get('exit_code') != 0
+                        or not proof.get('command') or not proof.get('inputs') or len(proof.get('streams', [])) != 2
+                        or set(tooling) not in allowed or any(not re.fullmatch('[a-f0-9]{64}', str(value)) for value in tooling.values())):
+                    raise ValueError('Retained compatibility input needs immutable executed proof provenance')
+                design = proof.get('design_sources', {})
+                if ('docs/architecture/bootstrap-decisions.json' not in design
+                        or set(design) - {'docs/architecture/bootstrap-decisions.json', 'docs/architecture/building-block-selection.json'}
+                        or any(not re.fullmatch('[a-f0-9]{64}', str(value)) for value in design.values())):
+                    raise ValueError('Retained compatibility proof lacks its historical selected-design provenance')
+                test = proof.get('test_result')
+                if not test or not proof.get('checks'):
+                    raise ValueError('Retained compatibility proof lacks executed named checks')
+                for entry in proof['inputs'] + proof['streams'] + [test]:
+                    if sha(inside(root, entry['path'])) != entry['sha256']:
+                        raise ValueError('Retained compatibility inputs/streams changed')
+                cases = test_results(inside(root, test['path']), 'junit')
+                if not all(cases.values()) or not all(cases.get(name) is True for name in proof['checks']):
+                    raise ValueError('Retained compatibility proof lacks passing required checks')
+                result.update(inside(root, entry['path']) for entry in proof['inputs'])
+        # Tooling/design drift still invalidates current closure in
+        # bootstrap_lifecycle.validate_prerequisites. It cannot turn an unchanged
+        # historical scratch project into an application dependency. The caller
+        # rejects any active project, import or solution reference to these inputs.
     graph = read(root / '.program-kit/evidence/npm-graph.json', {})
     if graph:
         from sync_readiness import graph_errors
@@ -110,6 +150,9 @@ def engineering_outputs(root):
         if not source.is_file() or entry.get('ownership') != 'managed' or entry.get('sourceIdentity') != 'files/' + relative:
             raise ValueError(f'engineering dependency output has no installed ownership: {relative}')
         expected = source.read_bytes()
+        from repository_sync import provider
+        profiles = provider('program-kit-dotnet/scripts/dependency_profile.py')
+        expected = profiles.render(root, relative, expected)
         if path.name == 'dotnet-tools.json':
             from repository_sync import provider
             persistence = provider('program-kit-dotnet/scripts/persistence_selection.py')

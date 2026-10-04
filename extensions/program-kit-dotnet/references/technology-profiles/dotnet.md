@@ -30,6 +30,19 @@ install/upgrade requirement and urge exact, side-by-side remediation. Keep the l
 truth only after the user explicitly approves the `managed-toolchain-version` override recorded by
 the bootstrap decision contract; current-version research alone is not an override.
 
+When global tools are missing or have different versions, verified publisher copies
+can be staged under `.program-kit/tools/dotnet/<approved-sdk>/` and
+`.program-kit/tools/node/<approved-node>/` (Node uses `bin/node` on POSIX).
+Stage the pinned npm package under
+`.program-kit/tools/npm/<approved-npm>/node_modules/npm/`. These directories hold
+complete tool distributions, not replacement executables copied without their
+support files. Verify publisher checksums/provenance before staging. The managed
+resolver discovers these exact versions on each sync and records their command
+paths; it does not need a machine-wide PATH change. Wrong versions in those
+directories still fail. The approved Microsoft installer path uses the repository
+SDK directory with no PATH modification, and npm remediation uses a repository
+prefix. Tool downloads/remediation retain their existing authorization boundary.
+
 ## Modular DDD topology
 
 Apply `modularity-and-contracts.md` and `vertical-slicing.md`. A default solution graph is:

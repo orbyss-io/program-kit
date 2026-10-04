@@ -102,6 +102,10 @@ def resolve_node(repository: Path, required: str, requested: str, manager: str) 
     if direct:
         candidates.append(direct)
     if requested == "node":
+        local_root = repository / '.program-kit/tools/node'
+        directories = [local_root / required]
+        directories.extend(sorted(local_root.glob('node-v' + required + '-*')))
+        candidates[0:0] = [directory / name for directory in directories for name in ('node.exe', 'bin/node')]
         candidates.extend(known_node_candidates(required))
     managed = manager_node(required, manager)
     if managed:
@@ -122,8 +126,13 @@ def resolve_node(repository: Path, required: str, requested: str, manager: str) 
     return None, actual
 
 
-def npm_candidates(node: Path, requested: str) -> list[list[str]]:
+def npm_candidates(node: Path, requested: str, repository: Path | None = None, required: str = '') -> list[list[str]]:
     result: list[list[str]] = []
+    if repository is not None and required:
+        for relative in ('node_modules/npm/bin/npm-cli.js', 'lib/node_modules/npm/bin/npm-cli.js', 'package/bin/npm-cli.js'):
+            local = repository / '.program-kit/tools/npm' / required / relative
+            if local.is_file():
+                result.append([str(node), str(local.resolve())])
     explicit = os.environ.get("PROGRAMKIT_NPM_EXECUTABLE") or requested
     if explicit:
         resolved = executable(explicit)
@@ -154,7 +163,7 @@ def resolve_npm(repository: Path, node: Path, required: str, requested: str) -> 
     actual: str | None = None
     environment = os.environ.copy()
     environment["PATH"] = str(node.parent) + os.pathsep + environment.get("PATH", "")
-    for command in npm_candidates(node, requested):
+    for command in npm_candidates(node, requested, repository, required):
         actual = version(command, repository, environment)
         if actual == required:
             return command, actual

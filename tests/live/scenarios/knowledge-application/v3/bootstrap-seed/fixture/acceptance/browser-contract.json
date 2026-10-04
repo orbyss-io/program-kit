@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "heading": "Equipment lending",
+  "reserveButton": "Reserve camera",
+  "acknowledgement": "I confirm this reservation",
+  "confirmButton": "Confirm reservation",
+  "cancelButton": "Cancel reservation",
+  "stateRole": "status",
+  "errorRole": "alert",
+  "acknowledgementError": "Confirm your acknowledgement before continuing.",
+  "states": [
+    "Reserved",
+    "Confirmed",
+    "Cancelled"
+  ],
+  "initialCapacity": 2
+}

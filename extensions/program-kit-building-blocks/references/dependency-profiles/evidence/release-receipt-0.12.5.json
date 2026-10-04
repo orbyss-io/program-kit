@@ -1,0 +1,1002 @@
+{
+  "artifacts": [
+    {
+      "path": "artifacts/Initialize-ProgramKit-0.12.5.cmd",
+      "sha256": "d4e3cacbc40ec499209a4379950e56e0c8bd9deba89e538f284529bc49c48c0e",
+      "size": 8629
+    },
+    {
+      "path": "artifacts/Initialize-ProgramKit-0.12.5.sh",
+      "sha256": "cbcc3d2b935628a30046de1f859329e7491e5380b674282e4652fd014c8d377d",
+      "size": 7080
+    },
+    {
+      "path": "artifacts/program-kit-0.12.5.zip",
+      "sha256": "fe6ad75f424fb60db59d49ecf39432817522ef864c2d2bf3073f524d0aab9f68",
+      "size": 803612
+    },
+    {
+      "path": "artifacts/program-kit-bootstrap-0.12.5.zip",
+      "sha256": "3f67fa9dd8f921ed516c4efa008c5901d6b43353561d00356314ede91c5a6769",
+      "size": 4064
+    },
+    {
+      "path": "artifacts/program-kit-building-blocks-0.12.5.zip",
+      "sha256": "99dd7db1cc19d03857b88dea285dd51a0a7757a23f35fc2cbff7e36aa0fdaf9d",
+      "size": 56237
+    },
+    {
+      "path": "artifacts/program-kit-dotnet-0.12.5.zip",
+      "sha256": "829e58a97c036c1698d3c69cb8ad6f35b5450ce67795cf0adefeafbc4d31e575",
+      "size": 176430
+    },
+    {
+      "path": "artifacts/program-kit-governance-0.12.5.zip",
+      "sha256": "9c4bb19eff20966d4bf4ae912109d5418353032bf0a3b64bc69a5cbfd09b9880",
+      "size": 507766
+    },
+    {
+      "path": "artifacts/program-kit-governance-preset-0.12.5.zip",
+      "sha256": "6a2e1a282001c5015bf858ac5cd417042868816e174d885c127f70ab3d355177",
+      "size": 5624
+    },
+    {
+      "path": "artifacts/SHA256SUMS",
+      "sha256": "2c4c66d4f30618d6bd5036841e4ef3a7ddbbb81db97a5d7e28660719f42fe437",
+      "size": 793
+    }
+  ],
+  "browserEngines": [
+    "chromium",
+    "firefox",
+    "webkit"
+  ],
+  "catalog": {
+    "availabilityEvidenceSha256": "580cd22b0724881a0ffd377c8c01f2c1a45d81124525d3537ce67c5b46588268",
+    "sha256": "0ca415b7627d5d335c53582a3694dc98c6ece6a205c7dbf8425b3897b912ec81"
+  },
+  "finishedAt": "2026-10-03T10:29:13.167919+00:00",
+  "platform": {
+    "machine": "x86_64",
+    "release": "6.17.0-1022-azure",
+    "system": "Linux"
+  },
+  "schemaVersion": "2.0",
+  "source": {
+    "clean": true,
+    "commit": "ae4738b16cda3333beca44b1e68df2478576a6df",
+    "tree": "e598e53b7ba7a25fbd82de899c59f66f98de02ac"
+  },
+  "startedAt": "2026-10-03T10:20:20.691744+00:00",
+  "status": "release-validation-passed",
+  "steps": [
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/test_workflow_shell_preflight.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:21.746305+00:00",
+      "id": "test_workflow_shell_preflight",
+      "startedAt": "2026-10-03T10:20:20.728904+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_upgrade_boundaries.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:22.484992+00:00",
+      "id": "validate_upgrade_boundaries",
+      "startedAt": "2026-10-03T10:20:21.768612+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_public_core_compatibility.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:23.405021+00:00",
+      "id": "validate_python_consistency",
+      "startedAt": "2026-10-03T10:20:22.507692+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_codex_worker_policy.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:23.743211+00:00",
+      "id": "validate_codex_worker_policy",
+      "startedAt": "2026-10-03T10:20:23.427553+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_codex_bootstrap.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:24.431716+00:00",
+      "id": "validate_codex_bootstrap",
+      "startedAt": "2026-10-03T10:20:23.765174+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_test_suites.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:24.569082+00:00",
+      "id": "validate_test_suites",
+      "startedAt": "2026-10-03T10:20:24.453915+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_validation_runner.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:24.706785+00:00",
+      "id": "validate_validation_runner",
+      "startedAt": "2026-10-03T10:20:24.591627+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py",
+        "--target",
+        ".",
+        "--catalog",
+        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        "--all",
+        "--evidence",
+        "artifacts/building-block-public-availability.json"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:34.366434+00:00",
+      "id": "public-availability",
+      "startedAt": "2026-10-03T10:20:24.729505+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "scripts/verify_legacy_programkit_nuget.py",
+        "--verify-public"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:42.369957+00:00",
+      "id": "legacy-public",
+      "startedAt": "2026-10-03T10:20:34.388757+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_proxy_intake.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:43.709989+00:00",
+      "id": "validate_proxy_intake",
+      "startedAt": "2026-10-03T10:20:42.392257+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_handoffs.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:44.498649+00:00",
+      "id": "validate_bootstrap_handoffs",
+      "startedAt": "2026-10-03T10:20:43.732004+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_provider_context.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:45.037480+00:00",
+      "id": "validate_bootstrap_provider_context",
+      "startedAt": "2026-10-03T10:20:44.521409+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_profiles.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:47.829931+00:00",
+      "id": "validate_bootstrap_profiles",
+      "startedAt": "2026-10-03T10:20:45.059774+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_dependency_audit.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:48.217879+00:00",
+      "id": "validate_dependency_audit",
+      "startedAt": "2026-10-03T10:20:47.852178+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_components.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:48.655994+00:00",
+      "id": "validate_components",
+      "startedAt": "2026-10-03T10:20:48.240024+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_phase_obligations.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:51.648808+00:00",
+      "id": "validate_phase_obligations",
+      "startedAt": "2026-10-03T10:20:48.678063+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_api_proof.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:52.137404+00:00",
+      "id": "validate_api_proof",
+      "startedAt": "2026-10-03T10:20:51.671030+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_persistence_selection.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:53.577451+00:00",
+      "id": "validate_persistence_selection",
+      "startedAt": "2026-10-03T10:20:52.159669+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_postgresql_service.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:53.765504+00:00",
+      "id": "validate_postgresql_service",
+      "startedAt": "2026-10-03T10:20:53.600041+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_knowledge_inventory.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:53.852738+00:00",
+      "id": "validate_knowledge_inventory",
+      "startedAt": "2026-10-03T10:20:53.787650+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_feature_knowledge.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:20:53.989593+00:00",
+      "id": "validate_feature_knowledge",
+      "startedAt": "2026-10-03T10:20:53.874380+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_architecture_recipe.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:16.445329+00:00",
+      "id": "validate_architecture_recipe",
+      "startedAt": "2026-10-03T10:20:54.011641+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_capability_proof.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:16.733267+00:00",
+      "id": "validate_capability_proof",
+      "startedAt": "2026-10-03T10:21:16.467833+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_learning_metrics.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:16.871201+00:00",
+      "id": "validate_learning_metrics",
+      "startedAt": "2026-10-03T10:21:16.755859+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_learning_report.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:17.008982+00:00",
+      "id": "validate_learning_report",
+      "startedAt": "2026-10-03T10:21:16.893945+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_lending_oracle.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:20.553464+00:00",
+      "id": "validate_lending_oracle",
+      "startedAt": "2026-10-03T10:21:17.031479+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_reference_baseline.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:20.741643+00:00",
+      "id": "validate_reference_baseline",
+      "startedAt": "2026-10-03T10:21:20.576377+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_specification_intake.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:21.630933+00:00",
+      "id": "validate_specification_intake",
+      "startedAt": "2026-10-03T10:21:20.763900+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_sync_live_fixtures.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:21.818750+00:00",
+      "id": "validate_sync_live_fixtures",
+      "startedAt": "2026-10-03T10:21:21.653546+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_package_execution.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:22.106931+00:00",
+      "id": "validate_package_execution",
+      "startedAt": "2026-10-03T10:21:21.841213+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_repository_sync.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:22.996124+00:00",
+      "id": "validate_repository_sync",
+      "startedAt": "2026-10-03T10:21:22.129419+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_sync_readiness.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:23.233865+00:00",
+      "id": "validate_sync_readiness",
+      "startedAt": "2026-10-03T10:21:23.018382+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_sync_stages.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:23.472404+00:00",
+      "id": "validate_sync_stages",
+      "startedAt": "2026-10-03T10:21:23.256903+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_live_trial_candidate.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:23.711047+00:00",
+      "id": "validate_live_trial_candidate",
+      "startedAt": "2026-10-03T10:21:23.495774+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_retired_sync.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:24.801519+00:00",
+      "id": "validate_retired_sync",
+      "startedAt": "2026-10-03T10:21:23.734032+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_scoped_materialization.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:24.989829+00:00",
+      "id": "validate_scoped_materialization",
+      "startedAt": "2026-10-03T10:21:24.824340+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_intake_session.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:25.227385+00:00",
+      "id": "validate_intake_session",
+      "startedAt": "2026-10-03T10:21:25.011901+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_discovery_fixture.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:25.314745+00:00",
+      "id": "validate_discovery_fixture",
+      "startedAt": "2026-10-03T10:21:25.249595+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_intake_handoff.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:25.802390+00:00",
+      "id": "validate_intake_handoff",
+      "startedAt": "2026-10-03T10:21:25.336587+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_intake_authoring.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:30.801139+00:00",
+      "id": "validate_intake_authoring",
+      "startedAt": "2026-10-03T10:21:25.825184+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_json_schema.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:31.790236+00:00",
+      "id": "validate_json_schema",
+      "startedAt": "2026-10-03T10:21:30.823297+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_orbyss_building_blocks.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:31.878313+00:00",
+      "id": "validate_orbyss_building_blocks",
+      "startedAt": "2026-10-03T10:21:31.813114+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_building_blocks.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:32.215876+00:00",
+      "id": "validate_building_blocks",
+      "startedAt": "2026-10-03T10:21:31.900378+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_architecture_placement.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:33.305323+00:00",
+      "id": "validate_architecture_placement",
+      "startedAt": "2026-10-03T10:21:32.238142+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_placement_contract.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:33.943753+00:00",
+      "id": "validate_placement_contract",
+      "startedAt": "2026-10-03T10:21:33.327377+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_lifecycle.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:41.696641+00:00",
+      "id": "validate_bootstrap_lifecycle",
+      "startedAt": "2026-10-03T10:21:33.966261+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_readiness_scope.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:47.746924+00:00",
+      "id": "validate_readiness_scope",
+      "startedAt": "2026-10-03T10:21:41.718951+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_readiness_projection.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:21:53.246760+00:00",
+      "id": "validate_readiness_projection",
+      "startedAt": "2026-10-03T10:21:47.769616+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_phase_readiness.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:22:06.963029+00:00",
+      "id": "validate_phase_readiness",
+      "startedAt": "2026-10-03T10:21:53.268859+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_handoff_quality.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:22:07.150883+00:00",
+      "id": "validate_bootstrap_handoff_quality",
+      "startedAt": "2026-10-03T10:22:06.985734+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_proof_plan.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:22:09.342825+00:00",
+      "id": "validate_bootstrap_proof_plan",
+      "startedAt": "2026-10-03T10:22:07.173102+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_post_bootstrap_continuation.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:22:44.053834+00:00",
+      "id": "validate_post_bootstrap_continuation",
+      "startedAt": "2026-10-03T10:22:09.365525+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_workflow_resumption.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:03.682271+00:00",
+      "id": "validate_workflow_resumption",
+      "startedAt": "2026-10-03T10:22:44.076012+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_workflow_runtimes.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:04.020585+00:00",
+      "id": "validate_workflow_runtimes",
+      "startedAt": "2026-10-03T10:23:03.704687+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_live_fixture_catalog.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:04.208554+00:00",
+      "id": "validate_live_fixture_catalog",
+      "startedAt": "2026-10-03T10:23:04.043165+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_live_workflow_acceptance.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:05.849688+00:00",
+      "id": "validate_live_workflow_acceptance",
+      "startedAt": "2026-10-03T10:23:04.231064+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_building_block_availability.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:05.987080+00:00",
+      "id": "validate_building_block_availability",
+      "startedAt": "2026-10-03T10:23:05.871843+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_legacy_programkit_nuget.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:06.124622+00:00",
+      "id": "validate_legacy_programkit_nuget",
+      "startedAt": "2026-10-03T10:23:06.009426+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_generated_contract_schemas.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:06.262408+00:00",
+      "id": "validate_generated_contract_schemas",
+      "startedAt": "2026-10-03T10:23:06.147069+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_governance_config.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:06.800831+00:00",
+      "id": "validate_governance_config",
+      "startedAt": "2026-10-03T10:23:06.284753+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_governance_state.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:08.090834+00:00",
+      "id": "validate_governance_state",
+      "startedAt": "2026-10-03T10:23:06.823078+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_runnable_host_pins.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:08.328952+00:00",
+      "id": "validate_runnable_host_pins",
+      "startedAt": "2026-10-03T10:23:08.113693+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_release_bundle.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:08.567775+00:00",
+      "id": "validate_release_bundle",
+      "startedAt": "2026-10-03T10:23:08.351505+00:00"
+    },
+    {
+      "command": [
+        "specify",
+        "bundle",
+        "validate",
+        "--path",
+        ".",
+        "--offline"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:08.855826+00:00",
+      "id": "bundle-validate",
+      "startedAt": "2026-10-03T10:23:08.590238+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_public_component_use.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:34.499819+00:00",
+      "id": "validate_public_component_use",
+      "startedAt": "2026-10-03T10:23:08.878103+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_dotnet_engineering.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:23:40.553873+00:00",
+      "id": "validate_dotnet_engineering",
+      "startedAt": "2026-10-03T10:23:34.522535+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_persistence_runtime.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:13.116511+00:00",
+      "id": "validate_persistence_runtime",
+      "startedAt": "2026-10-03T10:23:40.576791+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_ui_experience.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:14.757532+00:00",
+      "id": "validate_ui_experience",
+      "startedAt": "2026-10-03T10:24:13.138939+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_local_upgrade.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:44.706761+00:00",
+      "id": "validate_local_upgrade",
+      "startedAt": "2026-10-03T10:24:14.779838+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_context.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:45.896760+00:00",
+      "id": "validate_bootstrap_context",
+      "startedAt": "2026-10-03T10:24:44.729326+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_intake.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:46.034176+00:00",
+      "id": "validate_bootstrap_intake",
+      "startedAt": "2026-10-03T10:24:45.918925+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_semantics.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:46.573754+00:00",
+      "id": "validate_bootstrap_semantics",
+      "startedAt": "2026-10-03T10:24:46.057369+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_c4_view.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:48.114865+00:00",
+      "id": "validate_c4_view",
+      "startedAt": "2026-10-03T10:24:46.596806+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_live_bootstrap_acceptance.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:49.655592+00:00",
+      "id": "validate_live_bootstrap_acceptance",
+      "startedAt": "2026-10-03T10:24:48.137309+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_lifecycle_profiles.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:52.148485+00:00",
+      "id": "validate_lifecycle_profiles",
+      "startedAt": "2026-10-03T10:24:49.677952+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_js_toolchain.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:52.336635+00:00",
+      "id": "validate_js_toolchain",
+      "startedAt": "2026-10-03T10:24:52.171311+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_dotnet_scaffold.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:56.983850+00:00",
+      "id": "validate_dotnet_scaffold",
+      "startedAt": "2026-10-03T10:24:52.359320+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_dotnet_build_contract.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:24:59.829686+00:00",
+      "id": "validate_dotnet_build_contract",
+      "startedAt": "2026-10-03T10:24:57.007119+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_dotnet_test_discovery.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:25:06.582235+00:00",
+      "id": "validate_dotnet_test_discovery",
+      "startedAt": "2026-10-03T10:24:59.852084+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_repository_verification_hook.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:25:10.078394+00:00",
+      "id": "validate_repository_verification_hook",
+      "startedAt": "2026-10-03T10:25:06.604845+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "scripts/build_release.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:25:10.867553+00:00",
+      "id": "build-release",
+      "startedAt": "2026-10-03T10:25:10.100975+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_installed_bootstrap_flow.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:25:41.468389+00:00",
+      "id": "validate_installed_bootstrap_flow",
+      "startedAt": "2026-10-03T10:25:10.890449+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_consistency_e2e.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:25:44.662407+00:00",
+      "id": "validate_bootstrap_consistency_e2e",
+      "startedAt": "2026-10-03T10:25:41.490638+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_packaged_ui.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:25:45.050556+00:00",
+      "id": "validate_packaged_ui",
+      "startedAt": "2026-10-03T10:25:44.684787+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_release_install.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:25:48.144724+00:00",
+      "id": "validate_release_install",
+      "startedAt": "2026-10-03T10:25:45.073334+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_public_upgrade.py",
+        "--candidate-dir",
+        "artifacts"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:25:55.197511+00:00",
+      "id": "candidate-upgrade",
+      "startedAt": "2026-10-03T10:25:48.167337+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_runtime.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:26:30.266540+00:00",
+      "id": "validate_bootstrap_runtime",
+      "startedAt": "2026-10-03T10:25:55.220146+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_ui_browser.py",
+        "--install",
+        "--install-browser",
+        "--engines=chromium,firefox,webkit"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:27:53.125786+00:00",
+      "id": "ui-browser",
+      "startedAt": "2026-10-03T10:26:30.289079+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_bootstrap_compatibility.py"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:28:20.577896+00:00",
+      "id": "validate_bootstrap_compatibility",
+      "startedAt": "2026-10-03T10:27:53.148515+00:00"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python",
+        "tests/validate_published_forms_browser.py",
+        "--engines=chromium,firefox,webkit"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-10-03T10:29:12.553494+00:00",
+      "id": "validate_published_forms_browser",
+      "startedAt": "2026-10-03T10:28:20.600827+00:00"
+    }
+  ],
+  "toolchains": {
+    "codex": "unavailable",
+    "dotnet": "10.0.401",
+    "git": "git version 2.55.0",
+    "node": "v24.20.0",
+    "npm": "11.19.0",
+    "python": "3.13.15",
+    "specify": "specify 1.0.1"
+  },
+  "version": "0.12.5"
+}

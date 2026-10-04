@@ -42,7 +42,9 @@ def main() -> int:
     for key, package in packages.items():
         if key != f'{package["ecosystem"]}:{package["packageId"]}':
             raise AssertionError(f"Package key is not canonical: {key}")
-        if package["version"] != families[package["family"]]["releaseVersion"]:
+        family = families[package["family"]]
+        expected_version = family.get("toolVersions", {}).get(package["packageId"], family["releaseVersion"])
+        if package["version"] != expected_version:
             raise AssertionError(f"Package version is not pinned to its independent family release: {key}")
         by_family_ecosystem.setdefault((package["family"], package["ecosystem"]), set()).add(package["packageId"])
     expected_counts = {

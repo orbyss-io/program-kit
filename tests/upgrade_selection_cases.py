@@ -36,6 +36,7 @@ def validate_selection_upgrades(installed: Path, upgrade_test) -> None:
         blocks_test.write_json(selection_path, selection)
         blocks_test.write_json(architecture_path, architecture)
         blocks_test.refresh_registration(selection_path, architecture_path)
+        upgrade_test.seed_migration_review(target, updater.current_version(target))
         lock_path = target / ".program-kit/building-blocks.lock.json"
         assert updater.building_block_upgrade_state(target, release) == "planned"
         immutable = {path: path.read_bytes() for path in (selection_path, architecture_path, adr)}
@@ -85,15 +86,13 @@ def validate_selection_upgrades(installed: Path, upgrade_test) -> None:
                 path.write_bytes(data)
         changed_release = Path(temporary) / "changed-release"
         shutil.copytree(release / "extensions/program-kit-building-blocks", changed_release / "extensions/program-kit-building-blocks")
+        for name in ('VERSION', 'bundle.yml'):
+            shutil.copyfile(release / name, changed_release / name)
         changed_catalog = copy.deepcopy(catalog)
         changed_catalog["resolutionRevision"] += 1
         blocks_test.write_json(changed_release / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json", changed_catalog)
-        try:
-            updater.building_block_upgrade_state(target, changed_release)
-        except updater.UpgradeError as error:
-            assert "resolution-affecting" in str(error)
-        else:
-            raise AssertionError("Changed release catalog was accepted without renewed selection authority")
+        assert updater.building_block_upgrade_state(target, changed_release) == 'planned'
+        assert selection_path.read_bytes() == immutable[selection_path], 'Program Kit upgrade rewrote accepted dependency choices'
         unowned = target / "unowned/package.json"
         unowned.parent.mkdir()
         npm = next(p for p in catalog["packages"].values() if p["ecosystem"] == "npm")

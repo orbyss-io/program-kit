@@ -59,8 +59,17 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
         f"Initialize-ProgramKit-{version}.cmd",
         f"Initialize-ProgramKit-{version}.sh",
         "SHA256SUMS",
+        f"RELEASE-NOTES-{version}.md",
+        f"MIGRATIONS-{version}.md",
+        f"migration-index-{version}.json",
     }
     files = sorted((artifacts / name for name in names), key=lambda path: path.name.casefold())
+    index = json.loads((artifacts / f'migration-index-{version}.json').read_text(encoding='utf-8'))
+    for entry in index['entries']:
+        name = entry['guide']
+        if Path(name).name != name:
+            raise RuntimeError('Release guide must be a basename')
+        files.append(artifacts / name)
     missing = [path.name for path in files if not path.is_file()]
     if missing:
         raise RuntimeError(f"Release receipt is missing current candidate artifacts: {missing}")

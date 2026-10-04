@@ -13,6 +13,76 @@ from validate_governance_state import roadmap
 
 
 class ProofPlanTests(unittest.TestCase):
+    def test_scoped_proof_survives_unrelated_profile_change_but_rejects_changed_runtime_and_missing_scope(self):
+        import copy
+        from validate_building_blocks import accepted_fixture, load_module, RESOLVER, CATALOG
+        from bootstrap_lifecycle import digest
+        from governance_state import roadmap_records
+        blocks = load_module(RESOLVER)
+        catalog = blocks.load_json(CATALOG)
+        selection_path, architecture_path = accepted_fixture(blocks, self.root, catalog)
+        decision = self.root / 'docs/architecture/selected.md'
+        decision.write_text('Status: Accepted\nUse the fixture building blocks.\n')
+        model = load(architecture_path)
+        model['decisions'][0]['path'] = decision.relative_to(self.root).as_posix()
+        write(architecture_path, model)
+        ledger = load(self.root / LEDGER)
+        ledger['sources'].append({'path': decision.relative_to(self.root).as_posix(), 'sha256': source_digest(decision), 'prerequisites': []})
+        write(self.root / LEDGER, ledger)
+        contract_path = self.recipe.with_suffix('.contract.json')
+        contract = load(contract_path)
+        contract['dependencyScope'] = {'schemaVersion': 1, 'artifactKeys': ['nuget:Orbyss.Foundation.DomainEvents']}
+        write(contract_path, contract)
+        receipt = run_proof(self.root, 'runtime', 'docs/architecture/probe.py', 10)
+        proof_path = self.root / receipt['path']
+        original = proof_path.read_bytes()
+        self.assertEqual('1.2', load(proof_path)['schema_version'])
+        item = load(self.root / LEDGER)['prerequisites'][0]
+        records = roadmap_records(self.root / 'docs/architecture/specification-roadmap.md')
+        def admitted(): return current_compatibility_evidence(self.root, records, item, 'docs/architecture/probe.py')
+        self.assertIsNotNone(admitted())
+        changed = copy.deepcopy(catalog)
+        changed['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'] = '0.2.5'
+        changed['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter'] = '0.2.5'
+        selected = load(selection_path)
+        selected['catalog'] = blocks.catalog_binding(changed)
+        selected['revision'] += 1
+        selected['authority']['rationale'] += ' Independent dependency review'
+        write(selection_path, selected)
+        new_path = self.root / 'new-catalog.json'
+        write(new_path, changed)
+        blocks.preserve_dependency_profile(self.root, selected, new_path)
+        self.assertIsNotNone(admitted())
+        self.assertEqual(original, proof_path.read_bytes())
+        changed['families']['foundation']['toolVersions']['Orbyss.Foundation.DomainEvents'] = '0.2.3'
+        changed['packages']['nuget:Orbyss.Foundation.DomainEvents']['version'] = '0.2.3'
+        # Runtime pins cannot use tool overrides; retain a valid full runtime family.
+        changed['families']['foundation']['toolVersions'].pop('Orbyss.Foundation.DomainEvents')
+        changed['families']['foundation']['releaseVersion'] = '0.2.3'
+        for package in changed['packages'].values():
+            if package['family'] == 'foundation' and package['packageId'] not in changed['families']['foundation']['toolVersions']:
+                package['version'] = '0.2.3'
+        selected['catalog'] = blocks.catalog_binding(changed)
+        write(selection_path, selected)
+        write(new_path, changed)
+        blocks.preserve_dependency_profile(self.root, selected, new_path)
+        self.assertIsNone(admitted())
+        proof = load(proof_path)
+        proof.pop('dependency_scope')
+        write(proof_path, proof)
+        self.assertIsNone(admitted())
+        # Fixture scopes cannot omit registered dependencies, or validate an old
+        # fixture version against a newly accepted runtime profile.
+        from compatibility_scope import bindings
+        project = self.root / 'docs/architecture/runtime.csproj'
+        project.write_text('<Project><ItemGroup><PackageReference Include="Orbyss.Foundation.DomainEvents" Version="0.2.3" /></ItemGroup></Project>')
+        contract['fixtures'] = {'Probe.csproj': project.relative_to(self.root).as_posix()}
+        contract['dependencyScope']['artifactKeys'] = []
+        with self.assertRaisesRegex(ValueError, 'omits fixture'): bindings(self.root, contract)
+        contract['dependencyScope']['artifactKeys'] = ['nuget:Orbyss.Foundation.DomainEvents']
+        project.write_text(project.read_text().replace('0.2.3', '0.2.2'))
+        with self.assertRaisesRegex(ValueError, 'fixture pin differs'): bindings(self.root, contract)
+
     def test_standalone_receipt_attaches_without_rerun_or_active_demotion(self):
         path = self.root / 'docs/architecture/specification-roadmap.md'
         original = path.read_bytes().replace(b'**Status**: Blocked', b'**Status**: Active')
@@ -191,6 +261,87 @@ class ProofPlanTests(unittest.TestCase):
         archives = list((self.root / '.specify/governance/compatibility/invalidations').glob('*.json'))
         self.assertEqual(['runtime'], load(archives[0])['prerequisites'])
         self.assertEqual(['runtime'], require_proven_closure(self.root))
+
+    def changed_design_fixture(self):
+        execute(self.root)
+        proof_path = next(self.root.rglob('proof.json'))
+        original = proof_path.read_bytes()
+        decisions = self.root / 'docs/architecture/bootstrap-decisions.json'
+        write(decisions, {'fixtureChange': 'Reviewed dependency migration'})
+        ledger = load(self.root / LEDGER)
+        ledger['sources'][0]['sha256'] = source_digest(decisions)
+        write(self.root / LEDGER, ledger)
+        return proof_path, original
+
+    def test_design_change_outside_native_recovery_rejects_without_mutation(self):
+        proof, original = self.changed_design_fixture()
+        ledger = (self.root / LEDGER).read_bytes()
+        roadmap_path = self.root / 'docs/architecture/specification-roadmap.md'
+        roadmap_bytes = roadmap_path.read_bytes()
+        with self.assertRaisesRegex(ValueError, 'reopen the owning decision'):
+            execute(self.root)
+        self.assertEqual(original, proof.read_bytes())
+        self.assertEqual(ledger, (self.root / LEDGER).read_bytes())
+        self.assertEqual(roadmap_bytes, roadmap_path.read_bytes())
+        self.assertFalse((self.root / '.specify/governance/compatibility/invalidations').exists())
+
+    def test_verified_native_recovery_reopens_design_and_preserves_original_approval(self):
+        from unittest.mock import patch
+        proof, original = self.changed_design_fixture()
+        roadmap_path = self.root / 'docs/architecture/specification-roadmap.md'
+        roadmap_path.write_bytes(roadmap_path.read_bytes().replace(b'**Status**: Ready', b'**Status**: Active'))
+        roadmap_bytes = roadmap_path.read_bytes()
+        approval = self.root / '.specify/governance/bootstrap-approval.json'
+        write(approval, {'fixture': 'Historical approval; not current design acceptance'})
+        approval_bytes = approval.read_bytes()
+        source, continuation = 'fixture-source', 'fixture-continuation'
+        write(self.root / '.specify/workflows/resumptions' / f'{source}.json',
+              {'source_run': source, 'continuation_run': continuation})
+        state_path = self.root / '.specify/workflows/runs' / continuation / 'state.json'
+        state = {'status': 'running', 'workflow_id': 'program-kit-bootstrap', 'run_id': continuation,
+                 'current_step_id': 'recovery-execute-compatibility-proofs'}
+        write(state_path, state)
+        write(state_path.with_name('inputs.json'), {'inputs': {'source_run': source}})
+        # These deterministic fixtures exercise lineage and proof execution; no
+        # engine, coding agent, acceptance helper or human verdict is invoked.
+        with patch('bootstrap_recovery.manifest') as preserved, patch('bootstrap_recovery.validate_output') as output:
+            for field, wrong in [('status', 'failed'), ('current_step_id', 'recovery-closure'),
+                                 ('run_id', 'unrelated-run'), ('workflow_id', 'unrelated-workflow')]:
+                write(state_path, dict(state, **{field: wrong}))
+                with self.assertRaisesRegex(ValueError, 'matching running native continuation'):
+                    execute(self.root, recovery_source=source)
+                self.assertEqual(original, proof.read_bytes())
+                self.assertEqual(1, len(list(self.root.rglob('proof.json'))))
+                self.assertFalse((self.root / '.specify/governance/compatibility/invalidations').exists())
+            output.assert_not_called()
+            write(state_path, state)
+            self.assertEqual(1, len(execute(self.root, recovery_source=source)))
+            preserved.assert_called_with(self.root, source)
+            output.assert_called_once_with(self.root, source)
+        self.assertEqual(original, proof.read_bytes())
+        self.assertEqual(approval_bytes, approval.read_bytes())
+        self.assertEqual(roadmap_bytes, roadmap_path.read_bytes())
+        self.assertEqual(2, len(list(self.root.rglob('proof.json'))))
+        archive = load(next((self.root / '.specify/governance/compatibility/invalidations').glob('*.json')))
+        self.assertEqual('design-and-execution-inputs-changed', archive['reason'])
+        self.assertEqual(['runtime'], archive['prerequisites'])
+        self.assertEqual('closed', archive['previous_ledger']['prerequisites'][0]['status'])
+        change = archive['design_changes'][0]
+        self.assertEqual(proof.relative_to(self.root).as_posix(), change['proof'])
+        self.assertEqual('docs/architecture/bootstrap-decisions.json', change['sources'][0]['path'])
+        self.assertNotEqual(change['sources'][0]['before'], change['sources'][0]['after'])
+        self.assertEqual(['runtime'], require_proven_closure(self.root))
+
+    def test_native_recovery_cannot_renew_a_missing_design_source(self):
+        from bootstrap_proof_plan import invalidate_changed_recipes
+        proof, original = self.changed_design_fixture()
+        (self.root / 'docs/architecture/bootstrap-decisions.json').unlink()
+        ledger = load(self.root / LEDGER)
+        before = (self.root / LEDGER).read_bytes()
+        with self.assertRaisesRegex(ValueError, 'design source is missing'):
+            invalidate_changed_recipes(self.root, self.plan, ledger, recovery_review=True)
+        self.assertEqual(before, (self.root / LEDGER).read_bytes())
+        self.assertEqual(original, proof.read_bytes())
 
     def test_windows_long_nuget_paths_are_removed_without_losing_sibling_evidence(self):
         import os

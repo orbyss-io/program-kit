@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -19,6 +20,39 @@ from live.v2.common import LiveContractError
 
 
 class ReleaseBundleTests(unittest.TestCase):
+    def test_local_nuget_source_does_not_use_http_and_requires_exact_identity(self):
+        feed = self.root / 'local-feed'
+        feed.mkdir()
+        package = feed / 'Example.Feature.1.2.3.nupkg'
+        with zipfile.ZipFile(package, 'w') as archive:
+            archive.writestr('Example.Feature.nuspec', '<package><metadata><id>Example.Feature</id><version>1.2.3</version></metadata></package>')
+        destination = self.root / 'resolved.nupkg'
+        with patch.object(bundle.urllib.request, 'urlopen', side_effect=AssertionError('Local source must not use HTTP')):
+            bases = bundle.package_base_addresses([str(feed)])
+            bundle.download_package('Example.Feature', '1.2.3', bases, destination)
+            self.assertEqual(package.read_bytes(), destination.read_bytes())
+            with self.assertRaises(FileNotFoundError):
+                bundle.download_package('Example.Feature', '9.9.9', bases, destination)
+            with zipfile.ZipFile(package, 'w') as archive:
+                archive.writestr('Example.Feature.nuspec', '<package><metadata><id>Different</id><version>1.2.3</version></metadata></package>')
+            with self.assertRaisesRegex(ValueError, 'differs from requested'):
+                bundle.download_package('Example.Feature', '1.2.3', bases, destination)
+
+    def test_installed_bundle_tool_includes_its_legacy_descriptor_bridge(self):
+        with tempfile.TemporaryDirectory(prefix='installed-bundle-tool-') as directory:
+            target = Path(directory)
+            result = subprocess.run([sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                                     '--target', str(target), '--profile-selected', '--foundation-host-accepted',
+                                     '--building-block-sources-approved', '--web-profile', 'none'], capture_output=True, text=True)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            installed = target / '.program-kit/eng/legacy-feature-bridge.json'
+            self.assertEqual((TEMPLATE / '.program-kit/eng/legacy-feature-bridge.json').read_bytes(), installed.read_bytes())
+            result = subprocess.run([sys.executable, '-I', '-c',
+                                     'import sys;sys.path.insert(0,sys.argv[1]);import release_bundle;'
+                                     'assert release_bundle.LEGACY_FEATURE_BRIDGE["packageVersions"] == ["0.2.2","0.2.3"]',
+                                     str(target / '.program-kit/eng')], capture_output=True, text=True)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='release-bundle-contract-')
         self.addCleanup(self.temp.cleanup)
@@ -97,6 +131,33 @@ class ReleaseBundleTests(unittest.TestCase):
     def test_consumer_image_is_rejected(self):
         self.image = 'ghcr.io/example/consumer'
         with self.assertRaisesRegex(ValueError, 'consumer images are forbidden'): self.produce()
+
+    def test_publisher_multi_feature_metadata_and_private_dependencies(self):
+        package = self.packages / 'Publisher.1.0.0.nupkg'
+        value = {'schemaVersion': 2, 'packageId': 'Publisher', 'features': [
+            {'identity': name, 'featureDependencies': [], 'runtimeDependencies': [],
+             'routes': ['/shared'] if name == 'One' else [], 'dormant': True}
+            for name in ('One', 'Two')], 'hostProvidedDependencies': [
+                {'packageId': 'Private.Runtime', 'minimumVersion': '1.2.3'}]}
+        def pack(metadata, legacy=None):
+            with zipfile.ZipFile(package, 'w') as archive:
+                archive.writestr('Publisher.nuspec', '<package><metadata><id>Publisher</id><version>1.0.0</version></metadata></package>')
+                archive.writestr('orbyss-foundation/feature.json', json.dumps(metadata))
+                if legacy is not None: archive.writestr('program-kit/feature.json', json.dumps(legacy))
+        pack(value)
+        self.assertEqual([item['identity'] for item in bundle.package_features(package)], ['One', 'Two'])
+        self.assertEqual(bundle.package_dependencies(package), {('Private.Runtime', '1.2.3')})
+        self.write('shells.json', {'CShells': {'Shells': {'default': {'Features': {'One': {}, 'Two': {}}}}}})
+        bundle.validate_feature_closure(self.root / 'shells.json', {('Publisher', '1.0.0'): package})
+        value['features'][1]['routes'] = ['/shared']
+        pack(value)
+        with self.assertRaisesRegex(ValueError, 'PKR012'):
+            bundle.validate_feature_closure(self.root / 'shells.json', {('Publisher', '1.0.0'): package})
+        pack(value, dict(value, packageId='Spoof'))
+        with self.assertRaisesRegex(ValueError, 'conflicting'): bundle.package_features(package)
+        value['features'][1]['identity'] = 'One'
+        pack(value)
+        with self.assertRaisesRegex(ValueError, 'repeated'): bundle.package_features(package)
 
     def test_modified_configuration_and_injected_host_binary_fail_admission(self):
         archive = self.produce()

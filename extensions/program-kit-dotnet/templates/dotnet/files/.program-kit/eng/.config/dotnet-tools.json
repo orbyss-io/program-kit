@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "orbyss.foundation.openapi.exporter": {
-      "version": "0.2.2",
+      "version": "0.2.4",
       "commands": [
         "orbyss-foundation-openapi-export"
       ]

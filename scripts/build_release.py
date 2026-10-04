@@ -12,6 +12,7 @@ import zipfile
 from pathlib import Path
 
 import yaml
+from build_release_guidance import build as build_guidance
 
 
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
@@ -151,6 +152,8 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
             destination = staging / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
+        build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
+                       (root / 'VERSION').read_text().strip())
         specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
         specify_command = ["specify"]
         if specify_site_packages:
@@ -298,7 +301,22 @@ def main() -> int:
         if path.exists() and path.is_file():
             path.unlink()
 
-    deterministic_zip(root / "extensions/program-kit-governance", expected[0])
+    with tempfile.TemporaryDirectory(prefix='program-kit-guidance-') as directory:
+        staging = Path(directory) / 'governance'
+        shutil.copytree(root / 'extensions/program-kit-governance', staging,
+                        ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules'))
+        guidance = build_guidance(root, staging / 'references/release-guidance', version)
+        deterministic_zip(staging, expected[0])
+        for source, name in (('RELEASE-NOTES.md', f'RELEASE-NOTES-{version}.md'),
+                             ('MIGRATIONS.md', f'MIGRATIONS-{version}.md'),
+                             ('migration-index.json', f'migration-index-{version}.json')):
+            destination = output / name
+            shutil.copyfile(guidance / source, destination)
+            expected.append(destination)
+        for entry in json.loads((guidance / 'migration-index.json').read_text())['entries']:
+            destination = output / entry['guide']
+            shutil.copyfile(guidance / entry['guide'], destination)
+            expected.append(destination)
     deterministic_zip(root / "extensions/program-kit-building-blocks", expected[1])
     deterministic_zip(root / "extensions/program-kit-dotnet", expected[2])
     deterministic_zip(root / "presets/program-kit-governance-preset", expected[3])
@@ -317,7 +335,7 @@ def main() -> int:
     expected[6].write_bytes((root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8").replace("\r\n", "\n").replace("\n", "\r\n").encode("utf-8"))
     shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[7])
 
-    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:8]]
+    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected if path.name != 'SHA256SUMS']
     expected[8].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
     for path in expected:
         print(f"built {path.relative_to(root)}")

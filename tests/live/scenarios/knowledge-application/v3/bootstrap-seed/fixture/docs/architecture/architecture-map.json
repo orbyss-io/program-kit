@@ -1,0 +1,489 @@
+{
+  "schema_version": "1.1",
+  "model_id": "lending-system",
+  "title": "Equipment Lending Desk",
+  "sources": [
+    {
+      "id": "project-intent",
+      "path": "docs/architecture/project-intent.md",
+      "sha256": "b1fe0041e3f8960a459ca195e67b544878156ded938500626c7ae17611670716",
+      "format": "program-kit-intent-markdown",
+      "importer": {
+        "id": "program-kit-intake",
+        "version": "1.1"
+      }
+    }
+  ],
+  "decisions": [],
+  "documentation": [],
+  "constraints": [],
+  "elements": [
+    {
+      "id": "operator",
+      "type": "person",
+      "name": "Operator",
+      "description": "An operator reserves, confirms and cancels camera lending.",
+      "status": "explicit",
+      "ownership": "",
+      "technology": "",
+      "evidence": [
+        "e-actor"
+      ],
+      "decision_refs": [],
+      "tags": [],
+      "properties": {},
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "lending-operation",
+      "type": "domain-capability",
+      "name": "Lending operation",
+      "description": "Own camera reservation policy, explicit confirmation, cancellation, durable operation identity and retry ownership.",
+      "status": "proposed",
+      "ownership": "Operator",
+      "technology": ".NET 10, React and explicit V1 HTTP contracts",
+      "parent": "lending-context",
+      "evidence": [
+        "e-behavior",
+        "e-slice"
+      ],
+      "decision_refs": [],
+      "tags": [
+        "DomainModule"
+      ],
+      "properties": {},
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "lending-system",
+      "type": "software-system",
+      "name": "Equipment Lending Desk",
+      "description": "Own camera reservation policy, explicit confirmation, cancellation, durable operation identity and retry ownership.",
+      "status": "explicit",
+      "ownership": "Operator",
+      "technology": ".NET 10, React and explicit V1 HTTP contracts",
+      "evidence": [
+        "e-behavior"
+      ],
+      "decision_refs": [],
+      "tags": [],
+      "properties": {},
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "lending-context",
+      "type": "bounded-context",
+      "name": "Lending",
+      "description": "Own camera reservation policy, explicit confirmation, cancellation, durable operation identity and retry ownership.",
+      "status": "proposed",
+      "ownership": "Operator",
+      "technology": "",
+      "parent": "lending-system",
+      "evidence": [
+        "e-slice"
+      ],
+      "decision_refs": [],
+      "tags": [
+        "Domain"
+      ],
+      "properties": {},
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    }
+  ],
+  "relationships": [
+    {
+      "id": "operator-requests-reservation",
+      "source": "operator",
+      "target": "lending-system",
+      "description": "Requests the reservation operation through the public V1 boundary.",
+      "technology": "HTTP JSON",
+      "status": "explicit",
+      "evidence": [
+        "e-behavior"
+      ],
+      "decision_refs": [],
+      "tags": [],
+      "properties": {},
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "system-delegates-lending",
+      "source": "lending-system",
+      "target": "lending-operation",
+      "description": "Requests the reservation operation through the public V1 boundary.",
+      "technology": "HTTP JSON",
+      "status": "proposed",
+      "evidence": [
+        "e-behavior"
+      ],
+      "decision_refs": [],
+      "tags": [],
+      "properties": {},
+      "perspectives": [],
+      "url": ""
+    }
+  ],
+  "views": [
+    {
+      "key": "system-context",
+      "type": "system-context",
+      "title": "Equipment Lending Desk System Context",
+      "description": "Equipment lending context and complete reservation journey.",
+      "scope": "lending-system",
+      "elements": [
+        "operator",
+        "lending-system"
+      ],
+      "relationships": [
+        "operator-requests-reservation"
+      ],
+      "decision_refs": [],
+      "filters": [],
+      "order": [],
+      "layout": {
+        "rankDirection": "lr"
+      },
+      "animations": [],
+      "properties": {}
+    },
+    {
+      "key": "domain-landscape",
+      "type": "domain-landscape",
+      "title": "Lending domain landscape",
+      "description": "Equipment lending context and complete reservation journey.",
+      "scope": "lending-system",
+      "elements": [
+        "lending-context"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "filters": [],
+      "order": [],
+      "layout": {
+        "rankDirection": "lr"
+      },
+      "animations": [],
+      "properties": {}
+    },
+    {
+      "key": "context-map",
+      "type": "context-map",
+      "title": "Lending strategic Context Map",
+      "description": "Equipment lending context and complete reservation journey.",
+      "scope": "lending-system",
+      "elements": [
+        "lending-context"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "filters": [],
+      "order": [],
+      "layout": {
+        "rankDirection": "lr"
+      },
+      "animations": [],
+      "properties": {}
+    },
+    {
+      "key": "lending-decomposition",
+      "type": "context-decomposition",
+      "title": "Lending context modules",
+      "description": "Equipment lending context and complete reservation journey.",
+      "scope": "lending-context",
+      "elements": [
+        "lending-context",
+        "lending-operation"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "filters": [],
+      "order": [],
+      "layout": {
+        "rankDirection": "lr"
+      },
+      "animations": [],
+      "properties": {}
+    },
+    {
+      "key": "journey-lending",
+      "type": "dynamic",
+      "title": "Invoke lending command",
+      "description": "Equipment lending context and complete reservation journey.",
+      "scope": "",
+      "elements": [],
+      "relationships": [
+        "operator-requests-reservation",
+        "system-delegates-lending"
+      ],
+      "decision_refs": [],
+      "filters": [],
+      "order": [
+        "operator-requests-reservation",
+        "system-delegates-lending"
+      ],
+      "layout": {
+        "rankDirection": "lr"
+      },
+      "animations": [],
+      "properties": {}
+    }
+  ],
+  "configuration": {
+    "styles": [],
+    "themes": [],
+    "terminology": {},
+    "branding": {},
+    "properties": {}
+  },
+  "extensions": [],
+  "strategic_model": {
+    "version": "1.0",
+    "status": "proposed",
+    "decision_refs": [],
+    "founding_decisions": [
+      {
+        "id": "decision-lending-boundary",
+        "title": "Keep one lending consistency boundary with explicit adapter ports",
+        "question": "Which model owns reservation decisions, state transitions and durable handover?",
+        "recommended_option": "One Lending bounded context owns a reservation module with proportional Core logic and explicit persistence/effect ports.",
+        "alternatives": [
+          "Separate each HTTP action into an unrelated context.",
+          "Couple policy, HTTP and storage in one implementation."
+        ],
+        "rationale": "The state, language, ownership and consistency boundary coincide; adapters can vary without changing policy.",
+        "consequences": [
+          "The feature proves policy ordering, state transitions, runtime resolution and adapter replacement.",
+          "Immutable Forms are produced during build and admitted/rendered through public released APIs.",
+          "Architecture creates a Proposed founding ADR and closes actual early compatibility risks before review."
+        ],
+        "confidence": "high",
+        "affected_elements": [
+          "lending-context"
+        ],
+        "affected_relationships": [],
+        "status": "proposed",
+        "evidence": [
+          "e-behavior",
+          "e-boundaries",
+          "e-slice"
+        ]
+      }
+    ],
+    "subdomains": [
+      {
+        "id": "lending-domain",
+        "name": "Lending",
+        "classification": "core",
+        "vision": "Reliable equipment lending with explicit decisions and durable outcomes.",
+        "ownership": "Own camera reservation policy, explicit confirmation, cancellation, durable operation identity and retry ownership.",
+        "non_ownership": "Does not own payment, identity-provider or deployed Forms-management concerns.",
+        "language_terms": [
+          "reservation",
+          "confirmation",
+          "cancellation",
+          "available camera",
+          "operation identity",
+          "notification retry"
+        ],
+        "data_ownership": [
+          "Reservations, stable operation identities and pending notification ownership."
+        ],
+        "invariants": [
+          "Denied policies and illegal transitions produce no stock or notification effects.",
+          "Idempotent replay preserves operation/reservation identity; conflicting reuse is rejected.",
+          "Accepted reservations and pending notification ownership survive process restart.",
+          "Required confirmation is acknowledged before reporting success."
+        ],
+        "lifecycle": "Reserved becomes Confirmed or Cancelled; terminal states cannot transition again.",
+        "status": "proposed",
+        "evidence": [
+          "e-behavior",
+          "e-boundaries"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "bounded_contexts": [
+      {
+        "element": "lending-context",
+        "boundary_kind": "domain-model",
+        "vision": "Reliable equipment lending with explicit decisions and durable outcomes.",
+        "responsibilities": [
+          "Own camera reservation policy, explicit confirmation, cancellation, durable operation identity and retry ownership."
+        ],
+        "non_responsibilities": [
+          "Does not own payment, identity-provider or deployed Forms-management concerns."
+        ],
+        "language_terms": [
+          "reservation",
+          "confirmation",
+          "cancellation",
+          "available camera",
+          "operation identity",
+          "notification retry"
+        ],
+        "subdomains": [
+          "lending-domain"
+        ],
+        "data_ownership": [
+          "Reservations, stable operation identities and pending notification ownership."
+        ],
+        "invariants": [
+          "Denied policies and illegal transitions produce no stock or notification effects.",
+          "Idempotent replay preserves operation/reservation identity; conflicting reuse is rejected.",
+          "Accepted reservations and pending notification ownership survive process restart.",
+          "Required confirmation is acknowledged before reporting success."
+        ],
+        "lifecycle": "Reserved becomes Confirmed or Cancelled; terminal states cannot transition again.",
+        "separation_rationale": "One coherent language and consistency boundary covers the entire journey.",
+        "split_triggers": [
+          "Split only if a distinct owner, lifecycle, language, or durable consistency boundary appears."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-behavior",
+          "e-boundaries",
+          "e-slice"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "modules": [
+      {
+        "element": "lending-operation",
+        "context": "lending-context",
+        "kind": "domain-module",
+        "responsibilities": [
+          "Own camera reservation policy, explicit confirmation, cancellation, durable operation identity and retry ownership."
+        ],
+        "non_responsibilities": [
+          "HTTP, serialization, DI and persistence adapters remain outside Core."
+        ],
+        "contracts": [
+          "lending-command-contract"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-behavior",
+          "e-slice"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "contracts": [
+      {
+        "id": "lending-command-contract",
+        "name": "Reservation V1 contract",
+        "kind": "command",
+        "owner": "lending-operation",
+        "version": "V1",
+        "description": "Typed reserve, confirm, cancel and read contracts with stable JSON names, status codes and operation identity.",
+        "status": "proposed",
+        "evidence": [
+          "e-behavior"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "context_relationships": [],
+    "capability_bindings": [
+      {
+        "assessment": "capability-slicing",
+        "module": "lending-operation",
+        "mechanism_coverage": "guided",
+        "program_kit_capabilities": [
+          "vertical-slicing"
+        ],
+        "semantic_owner": "lending-context",
+        "semantic_profile": "Own camera reservation policy, explicit confirmation, cancellation, durable operation identity and retry ownership.",
+        "integration_owner": "not-applicable",
+        "provider_selection": "",
+        "decision_state": "program-kit-default",
+        "status": "proposed",
+        "evidence": [
+          "e-slice"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "capability-runtime",
+        "module": "lending-operation",
+        "mechanism_coverage": "guided",
+        "program_kit_capabilities": [
+          "dotnet-host-runtime"
+        ],
+        "semantic_owner": "lending-context",
+        "semantic_profile": "Own camera reservation policy, explicit confirmation, cancellation, durable operation identity and retry ownership.",
+        "integration_owner": "lending-context",
+        "provider_selection": "Orbyss.Foundation.Host with consumer-owned modules and .NET 10",
+        "decision_state": "program-kit-default",
+        "status": "proposed",
+        "evidence": [
+          "e-behavior"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "journeys": [
+      {
+        "id": "mapped-journey-lending",
+        "name": "Reserve, confirm or cancel a camera",
+        "source_journey": "journey-lending",
+        "actor_or_trigger": "Operator requests a camera.",
+        "outcome": "One valid reservation outcome with no duplicate or denied effects.",
+        "view": "journey-lending",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "operator-requests-reservation",
+            "description": "Admit the typed request and execute the policy-governed reservation operation.",
+            "contract": ""
+          },
+          {
+            "order": 2,
+            "relationship": "system-delegates-lending",
+            "description": "Admit the typed request and execute the policy-governed reservation operation.",
+            "contract": "lending-command-contract"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-behavior",
+          "e-actor"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "candidate_slices": [
+      {
+        "id": "slice-lending",
+        "name": "RM01 complete reservation journey",
+        "journey": "mapped-journey-lending",
+        "actor_or_trigger": "Operator reserves a camera.",
+        "outcome": "One valid reservation outcome with no duplicate or denied effects.",
+        "contexts": [
+          "lending-context"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e-slice",
+          "e-behavior"
+        ],
+        "decision_refs": []
+      }
+    ]
+  }
+}

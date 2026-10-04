@@ -1,0 +1,7 @@
+{
+  "contract": "equipment-lending/v1",
+  "consumerExtension": "camera-checkout",
+  "operationIdentity": "operationId",
+  "reservationIdentity": "reservationId",
+  "wireEvolution": "Preserve V1 admission, names, statuses and retry behavior."
+}

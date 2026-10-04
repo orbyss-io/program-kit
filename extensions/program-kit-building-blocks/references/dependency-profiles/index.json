@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "default": "foundation-0.2.2-exporter-0.2.2-forms-0.2.0-localization-0.1.1",
+  "profiles": {
+    "foundation-0.2.2-exporter-0.2.2-forms-0.2.0-localization-0.1.1": {
+      "path": "public-v0.12.5.json",
+      "sha256": "bbfe4a1c8783530ae1dbb28507f8d140f7725f403a93bcd97ea2894de9cba093",
+      "status": "qualified",
+      "evidence": {
+        "path": "evidence/release-receipt-0.12.5.json",
+        "sha256": "50dfaa36ae5d92d7c4aee247f4888e72768bfdb28f585d3b4b91cde08052f707",
+        "url": "https://github.com/orbyss-io/program-kit/releases/download/v0.12.5/release-receipt-0.12.5.json"
+      },
+      "sourceRelease": "https://github.com/orbyss-io/program-kit/releases/tag/v0.12.5",
+      "qualificationScope": "Published v0.12.5 deterministic Release coverage; additional native Assurance export combinations are not established.",
+      "excludedActivations": [
+        "Orbyss.Foundation.Authentication.Assurance"
+      ],
+      "limitations": [
+        "The historical exporter profile cannot be newly adopted for an Assurance export selection until that combination is separately qualified."
+      ]
+    }
+  }
+}

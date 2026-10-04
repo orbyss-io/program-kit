@@ -88,6 +88,6 @@ this is development evidence, not an exact-commit publication receipt.
 This correction is included in the unreleased 0.12.4 candidate. The combined
 candidate retains public Spec Kit and requires fresh full Release validation in
 the user-owned terminal described
-in [the release guide](releasing-0.12.4.md). Preserve existing release evidence and
+in [the release guide](https://github.com/orbyss-io/program-kit/blob/ae4738b16cda3333beca44b1e68df2478576a6df/docs/releasing-0.12.4.md). Preserve existing release evidence and
 keep Firefox in CI; do not publish or claim consumer recovery completion from these
 development checks.

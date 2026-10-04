@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "publicPrefix": "/api/v1",
+  "equipment": {"equipmentId": "camera", "initialCapacity": 2},
+  "reserve": {"method": "POST", "path": "/reservations", "body": {"operationId": "fixture-reserve-1", "equipmentId": "camera", "quantity": 1}},
+  "confirm": {"method": "POST", "path": "/reservations/{reservationId}/confirm", "body": {"operationId": "fixture-confirm-1", "acknowledged": true}},
+  "cancel": {"method": "POST", "path": "/reservations/{reservationId}/cancel", "body": {"operationId": "fixture-cancel-1"}},
+  "reservation": {"method": "GET", "path": "/reservations/{reservationId}", "fields": ["reservationId", "operationId", "equipmentId", "quantity", "state"]},
+  "statusCodes": {"created": 201, "replay": 200, "invalidAdmission": 400, "conflictOrDenied": 409, "durableEffectPending": 202},
+  "testOnlyControl": {
+    "prefix": "/__acceptance",
+    "requiredEnvironment": "ProgramKitAcceptanceFixture",
+    "productionExposure": false,
+    "operations": ["reset", "fail-next-notification", "drain-notifications", "snapshot"],
+    "snapshotFields": ["available", "reservations", "notificationAttempts", "notificationsSent", "pendingNotifications"]
+  },
+  "restart": "The independent harness owns stop/restart of the same disposable host using the same data directory. An HTTP endpoint claiming a restart is not evidence.",
+  "identity": "Operation IDs are stable idempotency keys. Replays retain reservation and operation IDs; different content under one key conflicts.",
+  "publicPrivateBoundary": "Test controls exist only in the disposable fixture host; V1 behavior is exercised through the public API."
+}

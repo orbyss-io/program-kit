@@ -23,7 +23,7 @@ def main() -> int:
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-    release_guide = (ROOT / f"docs/releasing-{version}.md").read_text(encoding="utf-8")
+    release_guide = (ROOT / 'docs/releasing.md').read_text(encoding="utf-8")
     ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
 
@@ -142,7 +142,7 @@ def main() -> int:
     for workflow, label in ((ci, "CI"), (release, "Release workflow")):
         definition = yaml.safe_load(workflow)
         steps = next(iter(definition['jobs'].values()))['steps']
-        invocations = [s for s in steps if 'scripts/run_validation.py --suite Release --approved' in s.get('run', '')]
+        invocations = [s for s in steps if 'scripts/run_validation.py --suite' in s.get('run', '')]
         if len(invocations) != 1:
             raise AssertionError(label + ' must run the shared inventory exactly once')
         if 'global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json' not in workflow:
@@ -155,6 +155,10 @@ def main() -> int:
             publish = next(i for i, s in enumerate(steps) if s.get('name') == 'Publish GitHub release')
             if steps.index(invocations[0]) >= publish:
                 raise AssertionError('Validation must precede publication')
+        else:
+            require('CI selection', invocations[0]['run'], ('--suite PullRequest', '--changed-from', '--suite Development', '--workers 4'))
+            if '--suite Release' in invocations[0]['run']:
+                raise AssertionError('Ordinary CI must not duplicate tagged Release execution')
 
     require(
         "release evidence reuse",

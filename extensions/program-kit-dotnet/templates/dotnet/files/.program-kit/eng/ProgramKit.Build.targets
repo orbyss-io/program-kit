@@ -7,6 +7,7 @@
 
   <ItemGroup Condition="'$(FoundationFeatureIdentity)' != ''">
     <None Include="$(_ProgramKitFeatureMetadataFile)" Pack="true" PackagePath="program-kit/feature.json" Visible="false" />
+    <None Include="$(_ProgramKitFeatureMetadataFile)" Pack="true" PackagePath="orbyss-foundation/feature.json" Visible="false" />
   </ItemGroup>
 
   <Target Name="ProgramKitValidatePackageVersion" BeforeTargets="Pack" Condition="'$(IsPackable)' == 'true'">

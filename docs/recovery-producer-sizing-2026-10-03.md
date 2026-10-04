@@ -75,6 +75,6 @@ verdict is provided here. Remaining readiness and engine completion must run
 before implementation eligibility can be claimed.
 
 This source fix is part of unreleased 0.12.4. See
-[the combined release guide](releasing-0.12.4.md): the supported public Spec Kit
+[the combined release guide](https://github.com/orbyss-io/program-kit/blob/ae4738b16cda3333beca44b1e68df2478576a6df/docs/releasing-0.12.4.md): the supported public Spec Kit
 dependency is retained and fresh user-terminal Release evidence remains
 required before publication. Preserve all earlier release receipts unchanged.

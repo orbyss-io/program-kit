@@ -623,12 +623,13 @@ def main() -> int:
         "Program Kit Specify bridge",
     )
     require_text(
-        reconciliation,
+        root / 'extensions/program-kit-building-blocks/scripts/producer_reconciliation.py',
         "PKU110",
         "Orbyss.Foundation.OpenApi.Exporter",
         "afterTasksAnalysis",
         "atomic_replace",
     )
+    require_text(reconciliation, 'producer_reconciliation.py', 'catalog_transition', 'apply_catalog_transition')
     require_text(
         extension_root / "scripts/implementation_preflight.py",
         "verify-before-implement",

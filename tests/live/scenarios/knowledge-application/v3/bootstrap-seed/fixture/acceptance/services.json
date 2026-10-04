@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "provider": "postgresql",
+  "image": "postgres@sha256:7341002d2b8c7c5bdd7542a671a95b36196c0b5b888daf454ae4fc33ba5346d7"
+}

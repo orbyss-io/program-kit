@@ -143,7 +143,7 @@ The initial analysis used Program Kit v0.10.1, commit
 - [Governed version authority](../extensions/program-kit-governance/scripts/governance_state.py).
 - [Packaging inputs](../scripts/build_release.py) and [Release workflow](../.github/workflows/release.yml).
 - [Local updater regression coverage](../tests/validate_local_upgrade.py) and [public upgrade coverage](../tests/validate_public_upgrade.py).
-- [0.10.1 maintainer release guide](releasing-0.10.1.md) and [architecture recovery guide](greenfield-architecture-recovery.md).
+- [0.10.1 maintainer release guide](https://github.com/orbyss-io/program-kit/blob/ae4738b16cda3333beca44b1e68df2478576a6df/docs/releasing-0.10.1.md) and [architecture recovery guide](greenfield-architecture-recovery.md).
 - [Published v0.10.1 release](https://github.com/orbyss-io/program-kit/releases/tag/v0.10.1).
 
 Relative source links resolve in the checkout being read; use the recorded tag/commit when

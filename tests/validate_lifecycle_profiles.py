@@ -351,8 +351,8 @@ def validate_release_feature_closure() -> None:
                     archive.writestr("program-kit/feature.json", json.dumps(descriptor))
             return path
 
-        tasks = package("Orbyss.Foundation.Tasks")
-        domain_events = package("Orbyss.Foundation.DomainEvents")
+        tasks = package("Orbyss.Foundation.Tasks", "FoundationTasks")
+        domain_events = package("Orbyss.Foundation.DomainEvents", "Orbyss.Foundation.DomainEvents", dormant=True)
         orders = package("Orders.Feature", "Orders", routes=["/orders"])
         identities = {("Orbyss.Foundation.Tasks", "1.0.0"): tasks, ("Orders.Feature", "1.0.0"): orders}
         shells = root / "shells.json"

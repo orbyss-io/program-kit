@@ -2,52 +2,6 @@
   "schemaVersion": 1,
   "checks": [
     {
-      "id": "test_workflow_shell_preflight",
-      "command": ["{python}", "tests/test_workflow_shell_preflight.py"],
-      "group": "development",
-      "needs": [],
-      "platforms": ["Windows", "Linux"],
-      "purpose": "Native workflow shell lookup, PATH limits, recorded interpreter and pre-dispatch immutable history; no coding workers."
-    },
-    {
-      "id": "validate_upgrade_boundaries",
-      "command": ["{python}", "tests/validate_upgrade_boundaries.py"],
-      "group": "development",
-      "needs": [],
-      "platforms": ["Windows", "Linux"],
-      "purpose": "Offline persistence admission, original retry provenance, CLI runtime discovery and safe staging; no coding agents."
-    },
-    {
-      "id": "validate_python_consistency",
-      "command": ["{python}", "tests/validate_public_core_compatibility.py"],
-      "group": "development",
-      "needs": [],
-      "platforms": ["Windows", "Linux"],
-      "purpose": "Public Spec Kit compatibility, Program Kit native interpreter and resolver probes; no modified core or coding agent."
-    },
-    {
-      "id": "validate_codex_worker_policy",
-      "command": ["{python}", "tests/validate_codex_worker_policy.py"],
-      "group": "development",
-      "needs": [],
-      "platforms": ["Windows", "Linux"],
-      "purpose": "Explicit scoped Codex workspace writes and early diagnostics; fixture subprocesses only, no coding agents."
-    },
-    {
-      "id": "validate_codex_bootstrap",
-      "command": [
-        "{python}",
-        "tests/validate_codex_bootstrap.py"
-      ],
-      "group": "release",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Codex bootstrap contract validation."
-    },
-    {
       "id": "validate_test_suites",
       "command": [
         "{python}",
@@ -59,7 +13,69 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Test suites contract validation."
+      "purpose": "Test suites contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_test_suites.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_test_suites"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "validate_dependency_profiles",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_profiles.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exact independent profiles, review authority, preservation and interrupted transition recovery.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_dependency_profiles.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_dependency_profiles"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_validation_runner",
@@ -73,65 +89,37 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Receipt coverage and dependency-selection regressions; no external execution."
+      "purpose": "Receipt coverage and dependency-selection regressions; no external execution.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_validation_runner.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_validation_runner"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
-      "id": "source-install",
-      "command": [
-        "{powershell}",
-        "-NoProfile",
-        "-File",
-        "scripts/Test-LocalInstall.ps1"
-      ],
-      "group": "release",
-      "needs": [],
-      "platforms": [
-        "Windows"
-      ],
-      "purpose": "Install source components and verify registered skills, hooks and view-only behavior on Windows."
-    },
-    {
-      "id": "public-availability",
-      "command": [
-        "{python}",
-        "extensions/program-kit-building-blocks/scripts/public_availability.py",
-        "--target",
-        ".",
-        "--catalog",
-        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
-        "--all",
-        "--evidence",
-        "artifacts/building-block-public-availability.json"
-      ],
-      "group": "registry",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "credentials": "PROGRAM_KIT_NPM_TOKEN",
-      "purpose": "Public-availability contract validation."
-    },
-    {
-      "id": "legacy-public",
+      "id": "validate_release_guidance",
       "command": [
         "{python}",
-        "scripts/verify_legacy_programkit_nuget.py",
-        "--verify-public"
-      ],
-      "group": "registry",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Legacy-public contract validation."
-    },
-    {
-      "id": "validate_proxy_intake",
-      "command": [
-        "{python}",
-        "tests/validate_proxy_intake.py"
+        "tests/validate_release_guidance.py"
       ],
       "group": "development",
       "needs": [],
@@ -139,13 +127,37 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Proxy provenance and authority boundary regressions; no coding agents."
+      "purpose": "validate release guidance",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "docs/**",
+        "releases/**",
+        "tests/validate_release_guidance.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_release_guidance"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
-      "id": "validate_bootstrap_handoffs",
+      "id": "validate_repository_toolchain",
       "command": [
         "{python}",
-        "tests/validate_bootstrap_handoffs.py"
+        "tests/validate_repository_toolchain.py"
       ],
       "group": "development",
       "needs": [],
@@ -153,49 +165,31 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Deterministic default/decision/maintained-recipe integration; no coding agents."
-    },
-    {
-      "id": "validate_bootstrap_provider_context",
-      "command": [
-        "{python}",
-        "tests/validate_bootstrap_provider_context.py"
+      "purpose": "validate repository toolchain",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "docs/**",
+        "releases/**",
+        "tests/validate_repository_toolchain.py"
       ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_repository_toolchain"
       ],
-      "purpose": "Provider handoff and source visibility regressions; no network or coding agents."
-    },
-    {
-      "id": "validate_bootstrap_profiles",
-      "command": [
-        "{python}",
-        "tests/validate_bootstrap_profiles.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Regression coverage for managed sign-in adopted after technology-neutral intake."
-    },
-    {
-      "id": "validate_dependency_audit",
-      "command": [
-        "{python}",
-        "tests/validate_dependency_audit.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Dependency evidence stays immutable and cannot become a hidden application target."
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_components",
@@ -209,357 +203,31 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Components contract validation."
-    },
-    {
-      "id": "validate_phase_obligations",
-      "command": [
-        "{python}",
-        "tests/validate_phase_obligations.py"
+      "purpose": "Components contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_components.py",
+        "docs/**",
+        "releases/**"
       ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_components"
       ],
-      "purpose": "Offline negative controls for missing, stale and incomplete knowledge evidence."
-    },
-    {
-      "id": "validate_api_proof",
-      "command": [
-        "{python}",
-        "tests/validate_api_proof.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "API ownership gates reject missing, stale and mismatched contract evidence."
-    },
-    {
-      "id": "validate_persistence_selection",
-      "command": [
-        "{python}",
-        "tests/validate_persistence_selection.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Exercise consumer persistence intent, multiple owners and non-destructive shared sync."
-    },
-    {
-      "id": "validate_postgresql_service",
-      "command": [
-        "{python}",
-        "tests/validate_postgresql_service.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Bounded lifecycle, secret isolation and failure cleanup for the trial database supervisor."
-    },
-    {
-      "id": "validate_knowledge_inventory",
-      "command": [
-        "{python}",
-        "tests/validate_knowledge_inventory.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Knowledge inventory coverage; this is bookkeeping, not semantic correctness proof."
-    },
-    {
-      "id": "validate_feature_knowledge",
-      "command": [
-        "{python}",
-        "tests/validate_feature_knowledge.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Scoped canonical knowledge, ownership inheritance and lifecycle-view freshness."
-    },
-    {
-      "id": "validate_architecture_recipe",
-      "command": [
-        "{python}",
-        "tests/validate_architecture_recipe.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Architecture recipe regression inputs, including evaluated/imported and compiled-only edges."
-    },
-    {
-      "id": "validate_capability_proof",
-      "command": [
-        "{python}",
-        "tests/validate_capability_proof.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Missing runtime/adoption proof must fail even with a plausible architecture plan."
-    },
-    {
-      "id": "validate_learning_metrics",
-      "command": [
-        "{python}",
-        "tests/validate_learning_metrics.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "No model calls: usage completeness, cache semantics and avoidability accounting."
-    },
-    {
-      "id": "validate_learning_report",
-      "command": [
-        "{python}",
-        "tests/validate_learning_report.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Whole-exercise report rejects missing/tampered usage and retains failed attempts."
-    },
-    {
-      "id": "validate_lending_oracle",
-      "command": [
-        "{python}",
-        "tests/validate_lending_oracle.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Real loopback/process-restart calibration; never a coding agent or reference admission."
-    },
-    {
-      "id": "validate_reference_baseline",
-      "command": [
-        "{python}",
-        "tests/validate_reference_baseline.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Reference provenance, human admission and parent-type guards; no agents or real approvals."
-    },
-    {
-      "id": "validate_specification_intake",
-      "command": [
-        "{python}",
-        "tests/validate_specification_intake.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Bounded offline feature-grilling gate regressions; no coding agent is started."
-    },
-    {
-      "id": "validate_sync_live_fixtures",
-      "command": [
-        "{python}",
-        "tests/validate_sync_live_fixtures.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Sync live fixtures contract validation."
-    },
-    {
-      "id": "validate_package_execution",
-      "command": [
-        "{python}",
-        "tests/validate_package_execution.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Package execution contract validation."
-    },
-    {
-      "id": "validate_repository_sync",
-      "command": [
-        "{python}",
-        "tests/validate_repository_sync.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Repository sync contract validation."
-    },
-    {
-      "id": "validate_sync_readiness",
-      "command": [
-        "{python}",
-        "tests/validate_sync_readiness.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Sync readiness contract validation."
-    },
-    {
-      "id": "validate_sync_stages",
-      "command": [
-        "{python}",
-        "tests/validate_sync_stages.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Deterministic stage authorization and checkpoint contracts; no paid processes."
-    },
-    {
-      "id": "validate_live_trial_candidate",
-      "command": [
-        "{python}",
-        "tests/validate_live_trial_candidate.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Development trial receipts never imply Release validation or authorize a paid worker."
-    },
-    {
-      "id": "validate_retired_sync",
-      "command": [
-        "{python}",
-        "tests/validate_retired_sync.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Exercise actual Spec Kit registration/removal with consumer-edit protection."
-    },
-    {
-      "id": "validate_scoped_materialization",
-      "command": [
-        "{python}",
-        "tests/validate_scoped_materialization.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Scoped materialization contract validation."
-    },
-    {
-      "id": "validate_intake_session",
-      "command": [
-        "{python}",
-        "tests/validate_intake_session.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Bounded offline launcher tests. No installation or coding agent is started."
-    },
-    {
-      "id": "validate_discovery_fixture",
-      "command": [
-        "{python}",
-        "tests/validate_discovery_fixture.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Protect discovery-input isolation; optionally inspect real PrepareOnly evidence."
-    },
-    {
-      "id": "validate_intake_handoff",
-      "command": [
-        "{python}",
-        "tests/validate_intake_handoff.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Synthetic handoff contract tests; no human session or paid acceptance is claimed."
-    },
-    {
-      "id": "validate_intake_authoring",
-      "command": [
-        "{python}",
-        "tests/validate_intake_authoring.py"
-      ],
-      "group": "development",
-      "needs": [],
-      "platforms": [
-        "Windows",
-        "Linux"
-      ],
-      "purpose": "Offline authoring regression tests; optional replay of a preserved human intake."
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_json_schema",
@@ -573,7 +241,1391 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Offline behavior tests for shipped JSON Schema tools and independent installations."
+      "purpose": "Offline behavior tests for shipped JSON Schema tools and independent installations.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_json_schema.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_json_schema"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_exporter_upgrade",
+      "command": [
+        "{python}",
+        "tests/validate_exporter_upgrade.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exporter-only catalog transition, immutable accepted history, exact tool/runtime pins and rejection boundaries; no coding workers.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_exporter_upgrade.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_exporter_upgrade"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "test_workflow_shell_preflight",
+      "command": [
+        "{python}",
+        "tests/test_workflow_shell_preflight.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Native workflow shell lookup, PATH limits, recorded interpreter and pre-dispatch immutable history; no coding workers.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/test_workflow_shell_preflight.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/test_workflow_shell_preflight"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_upgrade_boundaries",
+      "command": [
+        "{python}",
+        "tests/validate_upgrade_boundaries.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline persistence admission, original retry provenance, CLI runtime discovery and safe staging; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_upgrade_boundaries.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_upgrade_boundaries"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_python_consistency",
+      "command": [
+        "{python}",
+        "tests/validate_public_core_compatibility.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Public Spec Kit compatibility, Program Kit native interpreter and resolver probes; no modified core or coding agent.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_public_core_compatibility.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_python_consistency"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_codex_worker_policy",
+      "command": [
+        "{python}",
+        "tests/validate_codex_worker_policy.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Explicit scoped Codex workspace writes and early diagnostics; fixture subprocesses only, no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_codex_worker_policy.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_codex_worker_policy"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_proxy_intake",
+      "command": [
+        "{python}",
+        "tests/validate_proxy_intake.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Proxy provenance and authority boundary regressions; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_proxy_intake.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_proxy_intake"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_handoffs",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_handoffs.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Deterministic default/decision/maintained-recipe integration; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_handoffs.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_handoffs"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "validate_bootstrap_provider_context",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_provider_context.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Provider handoff and source visibility regressions; no network or coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_provider_context.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_provider_context"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_bootstrap_profiles",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_profiles.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Regression coverage for managed sign-in adopted after technology-neutral intake.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_profiles.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_profiles"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "validate_dependency_audit",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_audit.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Dependency evidence stays immutable and cannot become a hidden application target.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_dependency_audit.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_dependency_audit"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_phase_obligations",
+      "command": [
+        "{python}",
+        "tests/validate_phase_obligations.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline negative controls for missing, stale and incomplete knowledge evidence.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_phase_obligations.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_phase_obligations"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_api_proof",
+      "command": [
+        "{python}",
+        "tests/validate_api_proof.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "API ownership gates reject missing, stale and mismatched contract evidence.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_api_proof.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_api_proof"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "validate_persistence_selection",
+      "command": [
+        "{python}",
+        "tests/validate_persistence_selection.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exercise consumer persistence intent, multiple owners and non-destructive shared sync.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_persistence_selection.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_persistence_selection"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_postgresql_service",
+      "command": [
+        "{python}",
+        "tests/validate_postgresql_service.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bounded lifecycle, secret isolation and failure cleanup for the trial database supervisor.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_postgresql_service.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_postgresql_service"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_knowledge_inventory",
+      "command": [
+        "{python}",
+        "tests/validate_knowledge_inventory.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Knowledge inventory coverage; this is bookkeeping, not semantic correctness proof.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_knowledge_inventory.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_knowledge_inventory"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_feature_knowledge",
+      "command": [
+        "{python}",
+        "tests/validate_feature_knowledge.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Scoped canonical knowledge, ownership inheritance and lifecycle-view freshness.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_feature_knowledge.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_feature_knowledge"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_architecture_recipe",
+      "command": [
+        "{python}",
+        "tests/validate_architecture_recipe.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Architecture recipe regression inputs, including evaluated/imported and compiled-only edges.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_architecture_recipe.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_architecture_recipe"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "validate_capability_proof",
+      "command": [
+        "{python}",
+        "tests/validate_capability_proof.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Missing runtime/adoption proof must fail even with a plausible architecture plan.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_capability_proof.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_capability_proof"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "validate_learning_metrics",
+      "command": [
+        "{python}",
+        "tests/validate_learning_metrics.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "No model calls: usage completeness, cache semantics and avoidability accounting.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_learning_metrics.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_learning_metrics"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_learning_report",
+      "command": [
+        "{python}",
+        "tests/validate_learning_report.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Whole-exercise report rejects missing/tampered usage and retains failed attempts.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_learning_report.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_learning_report"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_lending_oracle",
+      "command": [
+        "{python}",
+        "tests/validate_lending_oracle.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Real loopback/process-restart calibration; never a coding agent or reference admission.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_lending_oracle.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_lending_oracle"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_reference_baseline",
+      "command": [
+        "{python}",
+        "tests/validate_reference_baseline.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Reference provenance, human admission and parent-type guards; no agents or real approvals.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_reference_baseline.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_reference_baseline"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_specification_intake",
+      "command": [
+        "{python}",
+        "tests/validate_specification_intake.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bounded offline feature-grilling gate regressions; no coding agent is started.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_specification_intake.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_specification_intake"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_sync_live_fixtures",
+      "command": [
+        "{python}",
+        "tests/validate_sync_live_fixtures.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Sync live fixtures contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_sync_live_fixtures.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_sync_live_fixtures"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_package_execution",
+      "command": [
+        "{python}",
+        "tests/validate_package_execution.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Package execution contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_package_execution.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_package_execution"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_repository_sync",
+      "command": [
+        "{python}",
+        "tests/validate_repository_sync.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Repository sync contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_repository_sync.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_repository_sync"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_sync_readiness",
+      "command": [
+        "{python}",
+        "tests/validate_sync_readiness.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Sync readiness contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_sync_readiness.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_sync_readiness"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_sync_stages",
+      "command": [
+        "{python}",
+        "tests/validate_sync_stages.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Deterministic stage authorization and checkpoint contracts; no paid processes.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_sync_stages.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_sync_stages"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_live_trial_candidate",
+      "command": [
+        "{python}",
+        "tests/validate_live_trial_candidate.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Development trial receipts never imply Release validation or authorize a paid worker.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_live_trial_candidate.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_live_trial_candidate"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_retired_sync",
+      "command": [
+        "{python}",
+        "tests/validate_retired_sync.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exercise actual Spec Kit registration/removal with consumer-edit protection.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_retired_sync.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_retired_sync"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_scoped_materialization",
+      "command": [
+        "{python}",
+        "tests/validate_scoped_materialization.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Scoped materialization contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_scoped_materialization.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_scoped_materialization"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_intake_session",
+      "command": [
+        "{python}",
+        "tests/validate_intake_session.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bounded offline launcher tests. No installation or coding agent is started.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_intake_session.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_intake_session"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_discovery_fixture",
+      "command": [
+        "{python}",
+        "tests/validate_discovery_fixture.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Protect discovery-input isolation; optionally inspect real PrepareOnly evidence.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_discovery_fixture.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_discovery_fixture"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_intake_handoff",
+      "command": [
+        "{python}",
+        "tests/validate_intake_handoff.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Synthetic handoff contract tests; no human session or paid acceptance is claimed.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_intake_handoff.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_intake_handoff"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_intake_authoring",
+      "command": [
+        "{python}",
+        "tests/validate_intake_authoring.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Offline authoring regression tests; optional replay of a preserved human intake.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_intake_authoring.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_intake_authoring"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_orbyss_building_blocks",
@@ -587,7 +1639,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Orbyss building blocks contract validation."
+      "purpose": "Orbyss building blocks contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_orbyss_building_blocks.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_orbyss_building_blocks"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_building_blocks",
@@ -601,7 +1678,31 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Building blocks contract validation."
+      "purpose": "Building blocks contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_building_blocks.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_building_blocks"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_architecture_placement",
@@ -615,7 +1716,31 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Offline greenfield placement and recovery regressions; starts no agents."
+      "purpose": "Offline greenfield placement and recovery regressions; starts no agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_architecture_placement.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_architecture_placement"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_placement_contract",
@@ -629,7 +1754,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Producer-visible placement contracts reject the real bootstrap's failed path forms."
+      "purpose": "Producer-visible placement contracts reject the real bootstrap's failed path forms.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_placement_contract.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_placement_contract"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_bootstrap_lifecycle",
@@ -643,7 +1793,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Deterministic fresh approval and accepted/aborted recovery regression tests (no agents)."
+      "purpose": "Deterministic fresh approval and accepted/aborted recovery regression tests (no agents).",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_lifecycle.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_lifecycle"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_readiness_scope",
@@ -657,7 +1832,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Enforce accepted slice scope without treating proposal prose as lifecycle state."
+      "purpose": "Enforce accepted slice scope without treating proposal prose as lifecycle state.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_readiness_scope.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_readiness_scope"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_readiness_projection",
@@ -671,7 +1871,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Native terminal readiness is a state projection, without an agent verdict."
+      "purpose": "Native terminal readiness is a state projection, without an agent verdict.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_readiness_projection.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_readiness_projection"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_phase_readiness",
@@ -685,7 +1910,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Phase-local eligibility with incomplete knowledge; real validators, no coding agents."
+      "purpose": "Phase-local eligibility with incomplete knowledge; real validators, no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_phase_readiness.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_phase_readiness"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_bootstrap_handoff_quality",
@@ -699,7 +1949,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Consumer quality authority and batched authoring diagnostics; no agents."
+      "purpose": "Consumer quality authority and batched authoring diagnostics; no agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_handoff_quality.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_handoff_quality"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_bootstrap_proof_plan",
@@ -713,15 +1988,71 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Native shell proof-stage regressions; real Python probes, no coding agent."
+      "purpose": "Native shell proof-stage regressions; real Python probes, no coding agent.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_proof_plan.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_proof_plan"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_post_bootstrap_continuation",
-      "command": ["{python}", "tests/validate_post_bootstrap_continuation.py"],
+      "command": [
+        "{python}",
+        "tests/validate_post_bootstrap_continuation.py"
+      ],
       "group": "development",
       "needs": [],
-      "platforms": ["Windows", "Linux"],
-      "purpose": "Completed-bootstrap review, evidence preservation and Active lifecycle regressions; mocked dispatch, no coding agents."
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Completed-bootstrap review, evidence preservation and Active lifecycle regressions; mocked dispatch, no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_post_bootstrap_continuation.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_post_bootstrap_continuation"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_workflow_resumption",
@@ -735,7 +2066,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Native engine regression: stage retry, NOT READY, preserved history and completion."
+      "purpose": "Native engine regression: stage retry, NOT READY, preserved history and completion.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_workflow_resumption.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_workflow_resumption"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_workflow_runtimes",
@@ -749,7 +2105,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Workflow entry runtime preflight; no coding-agent sessions."
+      "purpose": "Workflow entry runtime preflight; no coding-agent sessions.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_workflow_runtimes.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_workflow_runtimes"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_live_fixture_catalog",
@@ -763,7 +2144,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Verify selectable committed live inputs, approval binding and tamper rejection."
+      "purpose": "Verify selectable committed live inputs, approval binding and tamper rejection.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_live_fixture_catalog.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_live_fixture_catalog"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_live_workflow_acceptance",
@@ -777,7 +2183,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Deterministic paid-workflow guards; never starts a coding agent."
+      "purpose": "Deterministic paid-workflow guards; never starts a coding agent.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_live_workflow_acceptance.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_live_workflow_acceptance"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_building_block_availability",
@@ -791,7 +2222,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Building block availability contract validation."
+      "purpose": "Building block availability contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_building_block_availability.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_building_block_availability"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_legacy_programkit_nuget",
@@ -805,7 +2261,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Legacy programkit nuget contract validation."
+      "purpose": "Legacy programkit nuget contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_legacy_programkit_nuget.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_legacy_programkit_nuget"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_generated_contract_schemas",
@@ -819,7 +2300,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Generated contract schemas contract validation."
+      "purpose": "Generated contract schemas contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_generated_contract_schemas.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_generated_contract_schemas"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_governance_config",
@@ -833,7 +2339,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Shipped governance configuration and malformed input without PyYAML."
+      "purpose": "Shipped governance configuration and malformed input without PyYAML.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_governance_config.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_governance_config"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_governance_state",
@@ -847,7 +2378,31 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Governance state contract validation."
+      "purpose": "Governance state contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_governance_state.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_governance_state"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_runnable_host_pins",
@@ -861,7 +2416,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Offline central-package resolution and fail-closed runnable-host staging regressions."
+      "purpose": "Offline central-package resolution and fail-closed runnable-host staging regressions.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_runnable_host_pins.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_runnable_host_pins"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "validate_release_bundle",
@@ -875,7 +2455,32 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Offline bundle production/admission and published-runtime boundary checks; no agent."
+      "purpose": "Offline bundle production/admission and published-runtime boundary checks; no agent.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_release_bundle.py",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_release_bundle"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
     },
     {
       "id": "bundle-validate",
@@ -893,7 +2498,188 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Validate Spec Kit bundle metadata."
+      "purpose": "Validate Spec Kit bundle metadata.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "docs/**",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/bundle-validate"
+      ],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_codex_bootstrap",
+      "command": [
+        "{python}",
+        "tests/validate_codex_bootstrap.py"
+      ],
+      "group": "release",
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Codex bootstrap contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_codex_bootstrap.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_codex_bootstrap"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "source-install",
+      "command": [
+        "{powershell}",
+        "-NoProfile",
+        "-File",
+        "scripts/Test-LocalInstall.ps1"
+      ],
+      "group": "release",
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "purpose": "Install source components and verify registered skills, hooks and view-only behavior on Windows.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/source-install"
+      ],
+      "resources": [
+        "integration-fixtures"
+      ]
+    },
+    {
+      "id": "public-availability",
+      "command": [
+        "{python}",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py",
+        "--target",
+        ".",
+        "--catalog",
+        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        "--all",
+        "--evidence",
+        "artifacts/building-block-public-availability.json"
+      ],
+      "group": "registry",
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "credentials": "PROGRAM_KIT_NPM_TOKEN",
+      "purpose": "Public-availability contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/public-availability"
+      ],
+      "resources": [
+        "public-availability"
+      ]
+    },
+    {
+      "id": "legacy-public",
+      "command": [
+        "{python}",
+        "scripts/verify_legacy_programkit_nuget.py",
+        "--verify-public"
+      ],
+      "group": "maintenance",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Legacy-public contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "operations/nuget/**",
+        "scripts/verify_legacy_programkit_nuget.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/legacy-public"
+      ],
+      "resources": []
     },
     {
       "id": "validate_public_component_use",
@@ -902,12 +2688,40 @@
         "tests/validate_public_component_use.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Actual released .NET component integration through the shared restore executor; no agent."
+      "purpose": "Actual released .NET component integration through the shared restore executor; no agent.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_public_component_use.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_public_component_use"
+      ],
+      "resources": [
+        "validate_public_component_use"
+      ]
     },
     {
       "id": "validate_dotnet_engineering",
@@ -916,12 +2730,40 @@
         "tests/validate_dotnet_engineering.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Compile with the published analyzer and selected SDK; execute runtime counterexamples."
+      "purpose": "Compile with the published analyzer and selected SDK; execute runtime counterexamples.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_dotnet_engineering.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_dotnet_engineering"
+      ],
+      "resources": [
+        "validate_dotnet_engineering"
+      ]
     },
     {
       "id": "validate_persistence_runtime",
@@ -930,12 +2772,40 @@
         "tests/validate_persistence_runtime.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Execute pinned EF/Npgsql against a real disposable PostgreSQL, including database restart."
+      "purpose": "Execute pinned EF/Npgsql against a real disposable PostgreSQL, including database restart.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_persistence_runtime.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_persistence_runtime"
+      ],
+      "resources": [
+        "docker"
+      ]
     },
     {
       "id": "validate_ui_experience",
@@ -944,12 +2814,39 @@
         "tests/validate_ui_experience.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Ui experience contract validation."
+      "purpose": "Ui experience contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_ui_experience.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_ui_experience"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_local_upgrade",
@@ -958,12 +2855,39 @@
         "tests/validate_local_upgrade.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Local upgrade contract validation."
+      "purpose": "Local upgrade contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_local_upgrade.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_local_upgrade"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_bootstrap_context",
@@ -972,12 +2896,39 @@
         "tests/validate_bootstrap_context.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Bootstrap context contract validation."
+      "purpose": "Bootstrap context contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_context.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_context"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_bootstrap_intake",
@@ -986,12 +2937,39 @@
         "tests/validate_bootstrap_intake.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Bootstrap intake contract validation."
+      "purpose": "Bootstrap intake contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_intake.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_intake"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_bootstrap_semantics",
@@ -1000,12 +2978,39 @@
         "tests/validate_bootstrap_semantics.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Bootstrap semantics contract validation."
+      "purpose": "Bootstrap semantics contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_semantics.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_semantics"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_c4_view",
@@ -1014,12 +3019,39 @@
         "tests/validate_c4_view.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "C4 view contract validation."
+      "purpose": "C4 view contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_c4_view.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_c4_view"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_live_bootstrap_acceptance",
@@ -1028,12 +3060,40 @@
         "tests/validate_live_bootstrap_acceptance.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Live bootstrap acceptance contract validation."
+      "purpose": "Live bootstrap acceptance contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_live_bootstrap_acceptance.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_live_bootstrap_acceptance"
+      ],
+      "resources": [
+        "integration-fixtures"
+      ]
     },
     {
       "id": "validate_lifecycle_profiles",
@@ -1042,12 +3102,39 @@
         "tests/validate_lifecycle_profiles.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Lifecycle profiles contract validation."
+      "purpose": "Lifecycle profiles contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_lifecycle_profiles.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_lifecycle_profiles"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_js_toolchain",
@@ -1056,12 +3143,39 @@
         "tests/validate_js_toolchain.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Js toolchain contract validation."
+      "purpose": "Js toolchain contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_js_toolchain.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_js_toolchain"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_dotnet_scaffold",
@@ -1070,12 +3184,39 @@
         "tests/validate_dotnet_scaffold.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Dotnet scaffold contract validation."
+      "purpose": "Dotnet scaffold contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_dotnet_scaffold.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_dotnet_scaffold"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_dotnet_build_contract",
@@ -1084,12 +3225,39 @@
         "tests/validate_dotnet_build_contract.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Dotnet build contract contract validation."
+      "purpose": "Dotnet build contract contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_dotnet_build_contract.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_dotnet_build_contract"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_dotnet_test_discovery",
@@ -1098,12 +3266,39 @@
         "tests/validate_dotnet_test_discovery.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Dotnet test discovery contract validation."
+      "purpose": "Dotnet test discovery contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_dotnet_test_discovery.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_dotnet_test_discovery"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "validate_repository_verification_hook",
@@ -1112,12 +3307,39 @@
         "tests/validate_repository_verification_hook.py"
       ],
       "group": "release",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Repository verification hook contract validation."
+      "purpose": "Repository verification hook contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_repository_verification_hook.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_repository_verification_hook"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
       "id": "build-release",
@@ -1126,12 +3348,40 @@
         "scripts/build_release.py"
       ],
       "group": "package",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Build-release contract validation."
+      "purpose": "Build-release contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "scripts/build_release.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/build-release"
+      ],
+      "resources": [
+        "release-assets"
+      ]
     },
     {
       "id": "validate_installed_bootstrap_flow",
@@ -1141,13 +3391,40 @@
       ],
       "group": "package",
       "needs": [
-        "build-release"
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
       ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "All shipped bootstrap steps, real shell validators, fictional authoring/reviews."
+      "purpose": "All shipped bootstrap steps, real shell validators, fictional authoring/reviews.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_installed_bootstrap_flow.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_installed_bootstrap_flow"
+      ],
+      "resources": [
+        "release-assets"
+      ]
     },
     {
       "id": "validate_bootstrap_consistency_e2e",
@@ -1157,13 +3434,40 @@
       ],
       "group": "package",
       "needs": [
-        "build-release"
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
       ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Bootstrap consistency e2e contract validation."
+      "purpose": "Bootstrap consistency e2e contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_consistency_e2e.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_consistency_e2e"
+      ],
+      "resources": [
+        "release-assets"
+      ]
     },
     {
       "id": "validate_packaged_ui",
@@ -1173,13 +3477,41 @@
       ],
       "group": "package",
       "needs": [
-        "build-release"
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
       ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Packaged ui contract validation."
+      "purpose": "Packaged ui contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_packaged_ui.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_packaged_ui"
+      ],
+      "resources": [
+        "release-assets",
+        "browser-runtime"
+      ]
     },
     {
       "id": "validate_release_install",
@@ -1189,13 +3521,40 @@
       ],
       "group": "package",
       "needs": [
-        "build-release"
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
       ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Release install contract validation."
+      "purpose": "Release install contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_release_install.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_release_install"
+      ],
+      "resources": [
+        "release-assets"
+      ]
     },
     {
       "id": "candidate-upgrade",
@@ -1207,13 +3566,40 @@
       ],
       "group": "package",
       "needs": [
-        "build-release"
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
       ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Candidate-upgrade contract validation."
+      "purpose": "Candidate-upgrade contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_public_upgrade.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/candidate-upgrade"
+      ],
+      "resources": [
+        "release-assets"
+      ]
     },
     {
       "id": "validate_bootstrap_runtime",
@@ -1222,13 +3608,41 @@
         "tests/validate_bootstrap_runtime.py"
       ],
       "group": "integration",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
       "credentials": "",
-      "purpose": "Real published host compatibility. No coding agent or consumer mutation."
+      "purpose": "Real published host compatibility. No coding agent or consumer mutation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_runtime.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_runtime"
+      ],
+      "resources": [
+        "docker"
+      ]
     },
     {
       "id": "ui-browser",
@@ -1240,12 +3654,41 @@
         "--engines={engines}"
       ],
       "group": "integration",
-      "needs": [],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Ui-browser contract validation."
+      "purpose": "Ui-browser contract validation.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_ui_browser.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/ui-browser"
+      ],
+      "resources": [
+        "integration-fixtures",
+        "browser-runtime"
+      ]
     },
     {
       "id": "validate_bootstrap_compatibility",
@@ -1255,13 +3698,40 @@
       ],
       "group": "integration",
       "needs": [
-        "ui-browser"
+        "ui-browser",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
       ],
       "platforms": [
         "Windows",
         "Linux"
       ],
-      "purpose": "Deterministic scratch provisioning protocol; Python stand-in, never a coding agent."
+      "purpose": "Deterministic scratch provisioning protocol; Python stand-in, never a coding agent.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_bootstrap_compatibility.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_bootstrap_compatibility"
+      ],
+      "resources": [
+        "integration-fixtures"
+      ]
     },
     {
       "id": "validate_published_forms_browser",
@@ -1272,14 +3742,42 @@
       ],
       "group": "integration",
       "needs": [
-        "ui-browser"
+        "ui-browser",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
       ],
       "platforms": [
         "Windows",
         "Linux"
       ],
       "credentials": "PROGRAM_KIT_NPM_TOKEN",
-      "purpose": "Published Forms package/renderer integration. Never invokes a coding agent."
+      "purpose": "Published Forms package/renderer integration. Never invokes a coding agent.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/**",
+        "extensions/**",
+        "presets/**",
+        "workflows/**",
+        "catalogs/**",
+        "VERSION",
+        "bundle.yml",
+        "README.md",
+        "AGENTS.md",
+        "Initialize-ProgramKit.*",
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md",
+        ".github/**",
+        "tests/validate_published_forms_browser.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_published_forms_browser"
+      ],
+      "resources": [
+        "integration-fixtures",
+        "browser-runtime"
+      ]
     }
   ],
   "groups": {
@@ -1287,7 +3785,8 @@
     "release": "Additional release-only source and installation regressions.",
     "package": "Build and test the distributable payload and upgrade paths.",
     "integration": "Execute real managed runtimes, containers and browsers.",
-    "registry": "Read-only public package/image and legacy availability."
+    "registry": "Read-only public package/image and legacy availability.",
+    "maintenance": "Historical retirement monitoring; separate from current product acceptance."
   },
   "evidencePolicy": {
     "directory": "artifacts/validation-runs/<unique-run>",
