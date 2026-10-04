@@ -7,6 +7,7 @@ import json
 import sys
 import tempfile
 import unittest
+import threading
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -16,6 +17,42 @@ import run_validation as runner
 
 
 class JournalTests(unittest.TestCase):
+    def test_selection_is_conservative_and_includes_prerequisites(self):
+        checks = [dict(id='dev', group='development', needs=[], inputs=['docs/**']),
+                  dict(id='build', group='package', needs=[], inputs=['bundle.yml']),
+                  dict(id='install', group='package', needs=['build'], inputs=['tests/install.py'])]
+        self.assertEqual(['dev'], [c['id'] for c in runner.affected_checks(checks, ['docs/releasing.md'])])
+        self.assertEqual(checks, runner.affected_checks(checks, ['unknown.file']))
+        self.assertEqual(checks, runner.affected_checks(checks, ['tests/install.py']))
+
+    def test_scheduler_parallelism_resource_exclusion_and_dependency_failure(self):
+        checks = [dict(id='one', needs=[], resources=['shared']),
+                  dict(id='two', needs=[], resources=['shared']),
+                  dict(id='independent', needs=[], resources=[]),
+                  dict(id='blocked', needs=['one'], resources=[])]
+        entered = threading.Event()
+        independent = threading.Event()
+        observations = []
+        def execute(check, blocked):
+            if check['id'] == 'one':
+                entered.set()
+                self.assertTrue(independent.wait(2), 'Independent work must run concurrently')
+            if check['id'] == 'independent':
+                self.assertTrue(entered.wait(2))
+                independent.set()
+            observations.append((check['id'], blocked))
+            return {'exitCode': 125 if blocked else 1 if check['id'] == 'one' else 0}
+        results, stopped = runner.schedule_checks(checks, 2, execute)
+        self.assertFalse(stopped)
+        self.assertEqual(125, results['blocked'])
+        self.assertIn(('blocked', ['one']), observations)
+        self.assertLess([x[0] for x in observations].index('one'), [x[0] for x in observations].index('two'))
+
+    def test_scheduler_rejects_cycles_and_missing_dependencies(self):
+        for checks in ([dict(id='a', needs=['b'])],
+                       [dict(id='a', needs=['b']), dict(id='b', needs=['a'])]):
+            with self.assertRaises(ValueError): runner.schedule_checks(checks, 1, lambda *_: {'exitCode': 0})
+
     def test_receipt_rejects_missing_failed_changed_and_duplicate_checks(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

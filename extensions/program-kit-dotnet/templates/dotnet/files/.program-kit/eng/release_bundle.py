@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -22,43 +23,14 @@ import runtime_closure
 from program_kit_version import PROGRAM_KIT_VERSION
 
 
-BUILT_IN_FEATURE_PACKAGES = {
-    "Orbyss.Foundation.Authentication": "Orbyss.Foundation.Authentication",
-    "Orbyss.Foundation.Authentication.Assurance": "Orbyss.Foundation.Authentication.Assurance",
-    "Orbyss.Foundation.Authentication.BffCookie": "Orbyss.Foundation.Authentication.BffCookie",
-    "Orbyss.Foundation.Authentication.ClientCredentials": "Orbyss.Foundation.Authentication.ClientCredentials",
-    "Orbyss.Foundation.Authentication.DownstreamApi": "Orbyss.Foundation.Authentication.DownstreamApi",
-    "Orbyss.Foundation.Authentication.DPoP": "Orbyss.Foundation.Authentication.DPoP",
-    "Orbyss.Foundation.Authentication.SpaPkce": "Orbyss.Foundation.Authentication.SpaPkce",
-    "Orbyss.Foundation.Authentication.TokenExchange": "Orbyss.Foundation.Authentication.TokenExchange",
-    "Orbyss.Foundation.DomainEvents": "Orbyss.Foundation.DomainEvents",
-    "FoundationTasks": "Orbyss.Foundation.Tasks",
-    "Orbyss.Foundation.WebDefaults": "Orbyss.Foundation.WebDefaults",
-    "Orbyss.Foundation.Web.OpenApi": "Orbyss.Foundation.Web.OpenApi",
-    "Orbyss.Foundation.Web.ProblemDetails": "Orbyss.Foundation.Web.ProblemDetails",
-}
-IDENTITY_RUNTIME_PACKAGES = {
-    ("Microsoft.Bcl.Cryptography", "10.0.2"),
-    ("Microsoft.IdentityModel.Abstractions", "8.19.2"),
-    ("Microsoft.IdentityModel.JsonWebTokens", "8.19.2"),
-    ("Microsoft.IdentityModel.Logging", "8.19.2"),
-    ("Microsoft.IdentityModel.Protocols", "8.19.2"),
-    ("Microsoft.IdentityModel.Protocols.OpenIdConnect", "8.19.2"),
-    ("Microsoft.IdentityModel.Tokens", "8.19.2"),
-    ("System.IdentityModel.Tokens.Jwt", "8.19.2"),
-}
+# Publisher-owned immutable bridge; never extend it for new packages.
+LEGACY_FEATURE_BRIDGE = json.loads((Path(__file__).with_name('legacy-feature-bridge.json')).read_text(encoding='utf-8'))
+BUILT_IN_FEATURE_PACKAGES = LEGACY_FEATURE_BRIDGE['features']
 BUILT_IN_FEATURE_RUNTIME_PACKAGES = {
-    "Orbyss.Foundation.Authentication.BffCookie": IDENTITY_RUNTIME_PACKAGES
-    | {("Microsoft.AspNetCore.Authentication.OpenIdConnect", "10.0.11")},
-    "Orbyss.Foundation.Authentication.SpaPkce": IDENTITY_RUNTIME_PACKAGES
-    | {("Microsoft.AspNetCore.Authentication.JwtBearer", "10.0.11")},
-    "Orbyss.Foundation.Authentication.DPoP": IDENTITY_RUNTIME_PACKAGES
-    | {("Microsoft.AspNetCore.Authentication.JwtBearer", "10.0.11")},
-    "Orbyss.Foundation.Web.OpenApi": {
-        ("Microsoft.AspNetCore.OpenApi", "10.0.11"),
-        ("Microsoft.OpenApi", "2.7.5"),
-    },
+    identity: {(item['packageId'], item['minimumVersion']) for item in items}
+    for identity, items in LEGACY_FEATURE_BRIDGE['privateRuntimeDependencies'].items()
 }
+
 
 
 def sha256(path: Path) -> str:
@@ -163,6 +135,13 @@ def package_dependencies(path: Path) -> set[tuple[str, str]]:
         version = raw_version.strip("[]() ").split(",", 1)[0].strip()
         if package_id and version:
             result.add((package_id, version))
+    descriptor = package_feature(path)
+    for dependency in (descriptor or {}).get('hostProvidedDependencies', []):
+        if (not isinstance(dependency, dict) or not isinstance(dependency.get('packageId'), str)
+                or not isinstance(dependency.get('minimumVersion'), str)):
+            raise ValueError('PKR001 invalid publisher host dependency: ' + str(path))
+        nuget_version_key(dependency['minimumVersion'])
+        result.add((dependency['packageId'], dependency['minimumVersion']))
     return result
 
 
@@ -192,32 +171,51 @@ def is_runtime_package(path: Path) -> bool:
 
 def package_feature(path: Path) -> dict | None:
     with zipfile.ZipFile(path) as archive:
-        if "program-kit/feature.json" not in archive.namelist():
+        names = [name for name in ('orbyss-foundation/feature.json', 'program-kit/feature.json')
+                 if name in archive.namelist()]
+        if not names:
             return None
-        value = json.loads(archive.read("program-kit/feature.json").decode("utf-8"))
+        value = json.loads(archive.read(names[0]).decode('utf-8'))
+        if len(names) == 2 and archive.read(names[0]) != archive.read(names[1]):
+            raise ValueError('PKR001 conflicting canonical and legacy feature descriptors: ' + str(path))
     package_id, _ = package_identity(path)
-    if not isinstance(value, dict) or value.get("schemaVersion") != 1:
+    if not isinstance(value, dict) or value.get("schemaVersion") not in (1, 2):
         raise ValueError(f"PKR001 invalid feature metadata in package '{package_id}'.")
     if str(value.get("packageId", "")).casefold() != package_id.casefold():
         raise ValueError(f"PKR002 feature metadata packageId does not match package '{package_id}'.")
     return value
 
 
+def package_features(path: Path) -> list[dict]:
+    value = package_feature(path)
+    if value is None:
+        return []
+    entries = [value] if value['schemaVersion'] == 1 else value.get('features')
+    if not isinstance(entries, list) or not entries:
+        raise ValueError('PKR001 publisher metadata has no feature inventory: ' + str(path))
+    identities = set()
+    for entry in entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get('identity'), str) or not entry['identity'] or entry['identity'] in identities:
+            raise ValueError('PKR001 invalid or repeated publisher feature identity: ' + str(path))
+        identities.add(entry['identity'])
+        entry.setdefault('runtimeDependencies', [])
+        for key in ('featureDependencies', 'runtimeDependencies', 'routes'):
+            if not isinstance(entry.get(key), list) or any(not isinstance(item, str) or not item for item in entry[key]):
+                raise ValueError('PKR001 invalid publisher feature ' + key + ': ' + str(path))
+        if any(not route.startswith('/') for route in entry['routes']):
+            raise ValueError('PKR001 publisher routes must be absolute: ' + str(path))
+    return entries
+
+
 def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str], Path]) -> None:
     package_ids = {package_id.casefold() for package_id, _ in identities}
     descriptors: dict[str, tuple[dict, str]] = {}
     for (package_id, _), package_path in identities.items():
-        descriptor = package_feature(package_path)
-        if descriptor is None:
-            continue
-        identity = descriptor.get("identity")
-        if not isinstance(identity, str) or not identity:
-            raise ValueError(f"PKR006 feature identity is missing in package '{package_id}'.")
-        if identity in descriptors:
-            raise ValueError(
-                f"PKR007 feature '{identity}' resolves to both '{descriptors[identity][1]}' and '{package_id}'."
-            )
-        descriptors[identity] = (descriptor, package_id)
+        for descriptor in package_features(package_path):
+            identity = descriptor['identity']
+            if identity in descriptors:
+                raise ValueError(f"PKR007 feature '{identity}' resolves to both '{descriptors[identity][1]}' and '{package_id}'.")
+            descriptors[identity] = (descriptor, package_id)
 
     if shells_path.name == shell_composition.CONSUMER_SHELLS.name:
         shells = shell_composition.activated_features(shells_path.parent)
@@ -236,7 +234,10 @@ def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str]
         routes: dict[str, str] = {}
         for identity in sorted(active, key=str.casefold):
             built_in = BUILT_IN_FEATURE_PACKAGES.get(identity)
-            if built_in:
+            if built_in and identity not in descriptors:
+                legacy_versions = {version for (package, version) in identities if package.casefold() == built_in.casefold()}
+                if legacy_versions and not legacy_versions <= set(LEGACY_FEATURE_BRIDGE['packageVersions']):
+                    raise ValueError(f"PKR009 new publisher package '{built_in}' must supply canonical metadata.")
                 if built_in.casefold() not in package_ids:
                     raise ValueError(
                         f"PKR008 shell '{shell_name}' activates '{identity}', but package '{built_in}' is absent."
@@ -259,7 +260,7 @@ def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str]
                     raise ValueError(
                         f"PKR011 shell '{shell_name}', feature '{identity}' requires inactive feature '{dependency}'."
                     )
-            for route in descriptor.get("routes", []):
+            for route in descriptor_routes(descriptor, shells_path.parent / 'hostsettings.json'):
                 previous = routes.setdefault(str(route).casefold(), identity)
                 if previous != identity:
                     raise ValueError(
@@ -270,6 +271,20 @@ def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str]
             raise ValueError(
                 f"PKR013 feature '{identity}' from '{package_id}' is neither activated nor explicitly dormant."
             )
+
+
+def descriptor_routes(descriptor: dict, settings_path: Path) -> list[str]:
+    configuration = descriptor.get('routePrefixConfigurationPath')
+    if not configuration:
+        return descriptor['routes']
+    settings = json.loads(settings_path.read_text(encoding='utf-8')) if settings_path.is_file() else {}
+    for segment in configuration.split(':'):
+        settings = settings.get(segment, {}) if isinstance(settings, dict) else {}
+    if isinstance(settings, str):
+        if not settings.startswith('/'):
+            raise ValueError('PKR001 configured publisher route prefix must be absolute')
+        return [settings.rstrip('/') + suffix for suffix in descriptor['routeSuffixes']]
+    return descriptor['routes']
 
 
 def register_package(identities: dict[tuple[str, str], Path], path: Path) -> None:
@@ -351,6 +366,13 @@ def package_sources(repository: Path) -> list[str]:
 def package_base_addresses(sources: list[str]) -> list[str]:
     result: list[str] = []
     for source in sources:
+        parsed = urllib.parse.urlsplit(source)
+        if parsed.scheme not in {'https', 'http'}:
+            local = Path(urllib.request.url2pathname(parsed.path)) if parsed.scheme == 'file' else Path(source)
+            if not local.is_dir():
+                raise ValueError('PKR001 configured local NuGet source is unavailable: ' + source)
+            result.append(local.resolve().as_uri())
+            continue
         with urllib.request.urlopen(source, timeout=30) as response:
             index = json.load(response)
         address = next(
@@ -363,11 +385,30 @@ def package_base_addresses(sources: list[str]) -> list[str]:
 
 
 def download_package(package_id: str, version: str, bases: list[str], destination: Path) -> None:
+    if not re.fullmatch(r'[A-Za-z0-9_.-]+', package_id) or not re.fullmatch(r'[A-Za-z0-9_.+-]+', version):
+        raise ValueError('PKR001 invalid exact package identity')
+    def verify():
+        identity = package_identity(destination)
+        if (identity[0].casefold(), identity[1].casefold()) != (package_id.casefold(), version.casefold()):
+            raise ValueError(f'PKR001 fetched package differs from requested {package_id} {version}')
     for base in bases:
+        parsed = urllib.parse.urlsplit(base)
+        if parsed.scheme == 'file':
+            feed = Path(urllib.request.url2pathname(parsed.path))
+            candidates = [feed / package_id.lower() / version.lower() / f'{package_id.lower()}.{version.lower()}.nupkg']
+            candidates += [path for path in feed.glob('*.nupkg')
+                           if path.name.casefold() == f'{package_id}.{version}.nupkg'.casefold()]
+            for candidate in candidates:
+                if candidate.is_file():
+                    shutil.copyfile(candidate, destination)
+                    verify()
+                    return
+            continue
         url = f"{base}/{package_id.lower()}/{version.lower()}/{package_id.lower()}.{version.lower()}.nupkg"
         try:
             with urllib.request.urlopen(url, timeout=60) as response, destination.open("wb") as output:
                 shutil.copyfileobj(response, output)
+            verify()
             return
         except urllib.error.HTTPError as error:
             if error.code != 404:
@@ -401,10 +442,18 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
         required = runtime_dependencies(repository, {item[0].casefold() for item in identities})
         bases: list[str] = []
         built_ins = [identity for identity in sorted(active) if identity in BUILT_IN_FEATURE_PACKAGES]
-        central_versions = central_package_versions(repository) if built_ins else {}
+        selected_features = {}
+        lock_path = repository / '.program-kit/building-blocks.lock.json'
+        if lock_path.is_file():
+            lock = json.loads(lock_path.read_text(encoding='utf-8'))
+            for item in lock.get('activations', []):
+                key = item['packageKey']
+                if key.startswith('nuget:') and item['featureIdentity'] in active:
+                    selected_features[item['featureIdentity']] = key.split(':', 1)[1]
+        selected_features = {**{identity: BUILT_IN_FEATURE_PACKAGES[identity] for identity in built_ins}, **selected_features}
+        central_versions = central_package_versions(repository) if selected_features else {}
         pinned_built_ins: dict[str, str] = {}
-        for identity in built_ins:
-            package_id = BUILT_IN_FEATURE_PACKAGES.get(identity)
+        for identity, package_id in selected_features.items():
             if package_id:
                 version = central_versions.get(package_id.casefold())
                 if not version:
@@ -413,7 +462,8 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
                     )
                 pinned_built_ins[package_id.casefold()] = version
                 required.add((package_id, version))
-            required.update(BUILT_IN_FEATURE_RUNTIME_PACKAGES.get(identity, set()))
+            if version in LEGACY_FEATURE_BRIDGE['packageVersions']:
+                required.update(BUILT_IN_FEATURE_RUNTIME_PACKAGES.get(identity, set()))
         for package_id, version in required | set(identities):
             pinned = pinned_built_ins.get(package_id.casefold())
             if pinned is not None and version != pinned:

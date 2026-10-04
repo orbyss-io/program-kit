@@ -2,7 +2,7 @@
   "$schema": "orbyss-building-blocks.schema.json",
   "schemaVersion": "1.0",
   "catalogId": "orbyss-building-blocks",
-  "resolutionRevision": 2,
+  "resolutionRevision": 3,
   "policy": {
     "source_ownership": "Program Kit owns AI guidance, scaffolding, selection rules, and compatibility tests; runtime source and release tests belong to the component repositories.",
     "versioning": "Pin Foundation, Forms, and Localization independently. Never infer a component version from the Program Kit version.",
@@ -51,7 +51,10 @@
   "families": {
     "foundation": {
       "repository": "https://github.com/orbyss-io/dotnet-foundation",
-      "releaseVersion": "0.2.2"
+      "releaseVersion": "0.2.2",
+      "toolVersions": {
+        "Orbyss.Foundation.OpenApi.Exporter": "0.2.4"
+      }
     },
     "forms": {
       "repository": "https://github.com/orbyss-io/forms",
@@ -510,7 +513,7 @@
       "packageId": "Orbyss.Foundation.OpenApi.Exporter",
       "family": "foundation",
       "ecosystem": "nuget",
-      "version": "0.2.2",
+      "version": "0.2.4",
       "source": "nuget-org",
       "role": "Pinned CLI tool that exports the composed application OpenAPI contract.",
       "materialization": {

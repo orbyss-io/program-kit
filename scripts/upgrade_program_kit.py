@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import uuid
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 import retired_sync_integration
@@ -20,6 +21,9 @@ from openapi_upgrade_reconciliation import (
     apply as apply_openapi_reconciliation,
     describe as describe_openapi_reconciliation,
     discover as discover_openapi_reconciliation,
+    catalog_transition,
+    archive_catalog_transition,
+    apply_catalog_transition,
 )
 
 
@@ -191,9 +195,14 @@ def ensure_cli_runtime(command: list[str], release: Path) -> int | None:
 
 def release_fingerprint(release: Path) -> str:
     digest = hashlib.sha256()
+    # Match packaging's build/cache exclusions. Running validation must not
+    # change the identity of the same shipped candidate via compiled outputs.
+    excluded = {'__pycache__', 'bin', 'obj', 'node_modules', 'playwright-report', 'test-results', '.auth'}
     for directory in ('scripts', 'extensions', 'presets', 'workflows'):
         for path in sorted((release / directory).rglob('*')):
-            if path.is_file() and '__pycache__' not in path.parts and path.suffix not in {'.pyc', '.pyo'}:
+            if (path.is_file() and not path.is_symlink()
+                    and not excluded.intersection(path.relative_to(release).parts)
+                    and path.suffix not in {'.pyc', '.pyo'}):
                 digest.update(path.relative_to(release).as_posix().encode() + b'\0'
                               + hashlib.sha256(path.read_bytes()).digest())
     for name in ('VERSION', 'bundle.yml'):
@@ -237,19 +246,51 @@ def write_attempt(path: Path, value: dict) -> None:
             # replacement diagnostic rather than masking it in cleanup.
 
 
-def begin_attempt(target: Path, release: Path, version: str, observed: str) -> tuple[Path, dict]:
+def prior_attempt(target: Path, release: Path, version: str):
     decision = target / 'docs/architecture/bootstrap-decisions.json'
     authority_hash = hashlib.sha256(decision.read_bytes()).hexdigest() if decision.is_file() else None
     fingerprint = release_fingerprint(release)
     directory = target / '.specify/governance/program-kit-upgrade-attempts'
     previous = []
+    attempts = []
     for path in directory.glob('*.json'):
         value = json.loads(path.read_text(encoding='utf-8'))
+        if value.get('schemaVersion') == 1 and value.get('targetVersion') == version:
+            attempts.append((path, value))
         if (value.get('schemaVersion') == 1 and value.get('targetVersion') == version
                 and value.get('releaseInputsSha256') == fingerprint and value.get('bootstrapDecisionsSha256') == authority_hash
                 and value.get('status') in {'running', 'incomplete'}):
             previous.append((path, value))
+    latest = max(attempts, key=lambda item: item[1]['startedAt']) if attempts else None
+    if latest and latest[1].get('status') in {'running', 'incomplete'} and (
+            latest[1].get('releaseInputsSha256') != fingerprint or latest[1].get('bootstrapDecisionsSha256') != authority_hash):
+        raise UpgradeError('PKU121 interrupted upgrade candidate or approved inputs changed; '
+                           'preserve the failed attempt and restore its exact reviewed inputs before retrying. '
+                           'A partially installed version cannot establish a new migration origin.')
     prior = max(previous, key=lambda item: item[1]['startedAt']) if previous else None
+    if len({item[1]['previousInstalledVersion'] for item in previous}) > 1:
+        raise UpgradeError('PKU121 interrupted upgrade contains contradictory original version authority')
+    if prior:
+        if not prior[1].get('originals'):
+            raise UpgradeError('PKU121 interrupted upgrade lacks verified original inputs; preserve evidence and repair recovery before retrying')
+        for record in prior[1]['originals'].values():
+            path = (target / record['path']).resolve()
+            if not path.is_relative_to(target) or hashlib.sha256(path.read_bytes()).hexdigest() != record['sha256']:
+                raise UpgradeError('PKU121 original upgrade evidence is missing or changed')
+        original_version = target / prior[1]['originals']['version']['path']
+        if manifest_version(original_version, 'original governance extension') != prior[1]['previousInstalledVersion']:
+            raise UpgradeError('PKU121 retry version contradicts archived governance provenance')
+    return prior, fingerprint, authority_hash
+
+
+def previous_installed_version(target: Path, release: Path, version: str) -> str:
+    prior, _, _ = prior_attempt(target, release, version)
+    return prior[1]['previousInstalledVersion'] if prior else current_version(target)
+
+
+def begin_attempt(target: Path, release: Path, version: str, observed: str) -> tuple[Path, dict]:
+    prior, fingerprint, authority_hash = prior_attempt(target, release, version)
+    directory = target / '.specify/governance/program-kit-upgrade-attempts'
     value = {'schemaVersion': 1, 'id': uuid.uuid4().hex, 'targetVersion': version,
              'observedInstalledVersion': observed,
              'previousInstalledVersion': prior[1]['previousInstalledVersion'] if prior else observed,
@@ -257,6 +298,28 @@ def begin_attempt(target: Path, release: Path, version: str, observed: str) -> t
              'releaseInputsSha256': fingerprint, 'bootstrapDecisionsSha256': authority_hash,
              'startedAt': datetime.now(timezone.utc).isoformat(), 'status': 'running',
              'authorization': 'explicit-local-upgrade-command'}
+    if prior:
+        value['originals'] = prior[1]['originals']
+    else:
+        originals = {}
+        for name, relative in {
+            'version': '.specify/extensions/program-kit-governance/extension.yml',
+            'catalog': '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json',
+            'selection': 'docs/architecture/building-block-selection.json',
+            'architecture': 'docs/architecture/architecture-map.json',
+            'lock': '.program-kit/building-blocks.lock.json',
+        }.items():
+            source = target / relative
+            if source.is_file():
+                destination = directory / value['id'] / (name + '.original')
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                payload = source.read_bytes()
+                destination.write_bytes(payload)
+                originals[name] = {'path': destination.relative_to(target).as_posix(),
+                                   'sha256': hashlib.sha256(payload).hexdigest()}
+        if 'version' not in originals:
+            raise UpgradeError('PKU121 installed version provenance is missing')
+        value['originals'] = originals
     path = directory / (value['id'] + '.json')
     write_attempt(path, value)
     return path, value
@@ -458,6 +521,7 @@ def managed_mutation_destinations(
     has_bootstrap_decisions: bool,
     reconciliation: dict | None,
     stale_locks: list[Path],
+    exporter_transition: dict | None = None,
 ) -> tuple[dict[Path, set[str]], set[Path]]:
     """Return all known component roots and existing files touched by an upgrade.
 
@@ -478,6 +542,7 @@ def managed_mutation_destinations(
         (".specify/workflows", "workflow installation"),
         (".specify/presets", "preset installation"),
         (".program-kit/sync", "shared repository setup context and receipts"),
+        (".specify/governance", "upgrade history and verified migration completion"),
     ):
         add_root(target / relative, reason)
 
@@ -606,6 +671,7 @@ def managed_mutation_destinations(
         add_root(target / ".program-kit/evidence", "NuGet lock renewal evidence")
 
     if reconciliation:
+        add_root(target / ".program-kit/selection-history", "preserved OpenAPI producer evidence")
         paths = [entry["path"] for entry in reconciliation["contracts"]]
         paths.extend(reconciliation["planningPaths"])
         for feature_dir in reconciliation["featureDirs"]:
@@ -617,6 +683,18 @@ def managed_mutation_destinations(
             if path.is_file() or path.is_symlink():
                 existing_files.add(path)
 
+    if exporter_transition:
+        add_root(exporter_transition["archive"], "preserved exporter catalog authority")
+        for name in ("selection.json", "architecture.json"):
+            path = exporter_transition["paths"][name]
+            add_root(path.parent, "exporter catalog transition")
+            existing_files.add(path)
+
+    if (target / 'docs/architecture/building-block-selection.json').is_file():
+        add_root(target / '.program-kit/dependency-profiles', 'retained dependency profiles')
+        profile = target / '.program-kit/dependency-profile.json'
+        add_root(profile.parent, 'retained dependency profile binding')
+        if profile.exists(): existing_files.add(profile)
     return roots, existing_files
 
 
@@ -666,6 +744,7 @@ def preflight_mutation_destinations(
     has_bootstrap_decisions: bool,
     reconciliation: dict | None,
     stale_locks: list[Path],
+    exporter_transition: dict | None = None,
 ) -> None:
     roots, existing_files = managed_mutation_destinations(
         target,
@@ -675,6 +754,7 @@ def preflight_mutation_destinations(
         has_bootstrap_decisions,
         reconciliation,
         stale_locks,
+        exporter_transition,
     )
     try:
         for path in sorted(roots, key=lambda item: str(item).casefold()):
@@ -712,7 +792,7 @@ def building_block_versions(release: Path) -> dict[str, str]:
     return versions
 
 
-def building_block_upgrade_state(target: Path, release: Path) -> str | None:
+def building_block_upgrade_state(target: Path, release: Path, exporter_transition: dict | None = None) -> str | None:
     """Validate authority and distinguish an accepted plan from applied dependencies.
 
     A missing lock alone is never evidence of an unmaterialized selection. That
@@ -737,14 +817,23 @@ def building_block_upgrade_state(target: Path, release: Path) -> str | None:
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     if selection.get("status") != "Accepted":
         raise UpgradeError("PKU116 building-block selection must be Accepted before Program Kit upgrade")
+    module.validate_selection(selection)
     accepted_hash = selection.get("catalog", {}).get("resolutionSha256")
     release_hash = module.catalog_resolution_sha256(catalog)
     if accepted_hash != release_hash:
-        raise UpgradeError(
-            "PKU116 the release changes resolution-affecting building-block catalog state. "
-            "No Program Kit component mutation started. Use the release building-block resolver to prepare a Draft transition, "
-            "review changed packages/placements/activations/configuration, and renew architecture acceptance before retrying."
-        )
+        if exporter_transition is None:
+            installed = target / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
+            try:
+                catalog_path = module.consumer_catalog(target, selection, installed)
+                retained = module.load_json(catalog_path)
+                module.verify_catalog_binding(selection, retained)
+            except module.ResolverError as error:
+                raise UpgradeError('PKU116 retained accepted dependency profile is invalid: ' + str(error)) from error
+        else:
+            exporter_transition.update(catalog_transition(target, release, module, selection))
+            exporter_transition["resolver"] = module
+            catalog_path = exporter_transition["oldCatalog"]
+        catalog = module.load_json(catalog_path)
     try:
         desired = module.resolve(target, selection_path, catalog_path, (release / "VERSION").read_text().strip())
         transactions = module.transaction_root(target)
@@ -753,8 +842,10 @@ def building_block_upgrade_state(target: Path, release: Path) -> str | None:
         if lock_path.exists():
             # Verify the old applied state before installation can replace any of
             # its inputs. Only generator/catalog provenance may change afterward.
-            installed_catalog = target / ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
-            previous = module.resolve(target, selection_path, installed_catalog, current_version(target))
+            installed_catalog = (exporter_transition["oldCatalog"] if exporter_transition else catalog_path)
+            previous_version = (exporter_transition['previousInstalledVersion'] if exporter_transition
+                                else previous_installed_version(target, release, (release / 'VERSION').read_text().strip()))
+            previous = module.resolve(target, selection_path, installed_catalog, previous_version)
             actual = module.load_json(lock_path)
             if actual.get("materializationScope") == "existing-compositions":
                 previous = module.materialized_plan(target, previous)
@@ -929,6 +1020,82 @@ def acquire_lock(target: Path) -> tuple[int, Path]:
     return descriptor, path
 
 
+def completed_attempt_origin(target: Path, installed: str) -> str | None:
+    origins = set()
+    for path in (target / '.specify/governance/program-kit-upgrade-attempts').glob('*.json'):
+        attempt = json.loads(path.read_text(encoding='utf-8'))
+        if (attempt.get('status') != 'completed' or attempt.get('targetVersion') != installed
+                or attempt.get('previousInstalledVersion') == installed):
+            continue
+        original = attempt.get('originals', {}).get('version')
+        if (not isinstance(original, dict) or not isinstance(original.get('path'), str)
+                or not isinstance(original.get('sha256'), str)):
+            raise UpgradeError('PKU132 completed migration lacks archived version provenance')
+        version_path = (target / original['path']).resolve()
+        if (not version_path.is_relative_to(target.resolve()) or not version_path.is_file()
+                or hashlib.sha256(version_path.read_bytes()).hexdigest() != original['sha256']
+                or manifest_version(version_path, 'migration original governance extension') != attempt['previousInstalledVersion']):
+            raise UpgradeError('PKU132 completed migration version provenance changed')
+        origins.add(attempt['previousInstalledVersion'])
+    if len(origins) > 1:
+        raise UpgradeError('PKU132 completed migration has contradictory original versions')
+    return next(iter(origins)) if origins else None
+
+
+def preserve_migration_completion(target: Path) -> None:
+    path = target / '.specify/governance/migration-completion.json'
+    if not path.is_file():
+        return
+    payload = path.read_bytes()
+    history = path.parent / 'migration-history' / (hashlib.sha256(payload).hexdigest() + '.json')
+    history.parent.mkdir(parents=True, exist_ok=True)
+    if history.exists():
+        if history.read_bytes() != payload:
+            raise UpgradeError('PKU132 historical migration evidence changed')
+    else:
+        with history.open('xb') as stream:
+            stream.write(payload)
+
+
+def migration_origin(target: Path, installed: str, fallback: str | None = None, target_version: str | None = None) -> str:
+    path = target / '.specify/governance/migration-completion.json'
+    if not path.is_file(): return fallback or installed
+    record = json.loads(path.read_text(encoding='utf-8'))
+    if record.get('status') not in {'pending', 'completed'}:
+        raise UpgradeError('PKU132 migration provenance has unsupported status')
+    plan = record.get('plan', {})
+    digest = hashlib.sha256(json.dumps(plan, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    if (record.get('schemaVersion') != 1 or record.get('planSha256') != digest
+            or plan.get('fromVersion') != record.get('fromVersion') or plan.get('toVersion') != record.get('toVersion')):
+        raise UpgradeError('PKU132 migration provenance is missing or changed')
+    if record['toVersion'] != installed:
+        raise UpgradeError('PKU132 pending migration differs from installed version; review recovery provenance')
+    if record['status'] == 'completed':
+        required = sorted({check for entry in plan.get('migrations', []) for check in entry.get('verificationChecks', [])})
+        if (record.get('migrationCompletionEstablished') is not True or record.get('pendingChecks')
+                or record.get('requiredChecks') != required
+                or any(record.get('checks', {}).get(check) is not True for check in required)):
+            raise UpgradeError('PKU132 completed migration lacks required verification provenance')
+        if target_version is not None and target_version != installed:
+            return fallback or installed
+    if record['status'] == 'completed' and record['fromVersion'] == installed:
+        # Older updater retries replaced the full migration with a same-version
+        # no-op. Recover only from sealed original version evidence; the rebuilt
+        # cumulative plan still must satisfy its existing review and every gate.
+        return completed_attempt_origin(target, installed) or record['fromVersion']
+    return record['fromVersion']
+
+
+def migration_plan(release: Path, installed: str, version: str):
+    module = load_release_module(release / 'extensions/program-kit-governance/scripts/release_guidance.py', 'upgrade_release_guidance')
+    directory = release / 'extensions/program-kit-governance/references/release-guidance'
+    if directory.is_dir():
+        return module, module.plan(directory, installed, version)
+    builder = load_release_module(release / 'scripts/build_release_guidance.py', 'upgrade_guidance_builder')
+    with tempfile.TemporaryDirectory(prefix='program-kit-migration-plan-') as name:
+        return module, module.plan(builder.build(release, Path(name), version), installed, version)
+
+
 def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(
@@ -942,6 +1109,7 @@ def main() -> int:
         action="store_true",
         help="Explicitly update registered Program Kit exporter pins and invalidate affected analysis readiness.",
     )
+    parser.add_argument('--plan', action='store_true', help='Read verified migration guidance without mutation')
     parser.add_argument("--specify-command", default="specify", help=argparse.SUPPRESS)
     parser.add_argument("--specify-command-json", default="", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -957,22 +1125,38 @@ def main() -> int:
                                'Release examples and templates must not enter consumer dependency audits. '
                                'No component mutation started.')
         version = validate_release(release)
+        if args.plan:
+            observed = previous_installed_version(target, release, version)
+            _, plan = migration_plan(release, migration_origin(target, current_version(target), observed, version), version)
+            print(json.dumps(plan, indent=2))
+            return 0
         component_versions = building_block_versions(release)
         if not (target / ".specify").is_dir():
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
-        previous_version = current_version(target)
+        previous_version = previous_installed_version(target, release, version)
+        guidance, guidance_plan = migration_plan(release, migration_origin(target, current_version(target), previous_version, version), version)
+        guidance.require_review(target, guidance_plan)
         integration = selected_integration(target, args.integration)
         specify = resolve_specify_command(args.specify_command, args.specify_command_json)
         specify = preflight_specify(specify, target, release)
         delegated = ensure_cli_runtime(specify, release)
         if delegated is not None:
             return delegated
-        building_block_state = building_block_upgrade_state(target, release)
+        exporter_transition = {} if args.accept_openapi_producer_pin_reconciliation else None
+        building_block_state = building_block_upgrade_state(target, release, exporter_transition)
+        retained_exporter = None
+        if building_block_state and not args.accept_openapi_producer_pin_reconciliation:
+            blocks = load_release_module(release / 'extensions/program-kit-building-blocks/scripts/building_blocks.py', 'upgrade_profile_preflight')
+            selection = blocks.load_json(target / 'docs/architecture/building-block-selection.json')
+            installed = target / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
+            catalog = blocks.load_json(blocks.consumer_catalog(target, selection, installed))
+            component_versions = {p['packageId']: p['version'] for p in catalog['packages'].values() if p['ecosystem'] == 'nuget'}
+            retained_exporter = component_versions.get('Orbyss.Foundation.OpenApi.Exporter')
         persistence_upgrade_preflight(target, release)
         profile = load_managed_profile(target)
         has_bootstrap_decisions = (target / "docs/architecture/bootstrap-decisions.json").is_file()
-        reconciliation = discover_openapi_reconciliation(target, release)
+        reconciliation = discover_openapi_reconciliation(target, release, retained_exporter)
         if reconciliation and not args.accept_openapi_producer_pin_reconciliation:
             raise UpgradeError(
                 "PKU110 upgrade requires explicit OpenAPI producer-pin reconciliation before it can mutate "
@@ -992,6 +1176,7 @@ def main() -> int:
             has_bootstrap_decisions,
             reconciliation,
             stale_locks,
+            exporter_transition,
         )
         descriptor, lock_path = acquire_lock(target)
         # Load the release-owned guard, never code from a possibly edited consumer copy.
@@ -1008,6 +1193,13 @@ def main() -> int:
                                f'python "{runtime_source}" setup --project-root "{target}"')
         attempt_path, attempt = begin_attempt(target, release, version, previous_version)
         previous_version = attempt['previousInstalledVersion']
+        if exporter_transition:
+            archive_catalog_transition(exporter_transition)
+        elif building_block_state:
+            blocks = load_release_module(release / 'extensions/program-kit-building-blocks/scripts/building_blocks.py', 'upgrade_retained_profile')
+            selection = blocks.load_json(target / 'docs/architecture/building-block-selection.json')
+            installed = target / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
+            blocks.preserve_dependency_profile(target, selection, blocks.consumer_catalog(target, selection, installed))
         steps = [
             (specify + ["bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),
             (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
@@ -1028,6 +1220,8 @@ def main() -> int:
             run_step(command, target, label, number, total)
         runtime.record_copy(target)
         retired_sync_integration.verify_removed(target)
+        if exporter_transition:
+            apply_catalog_transition(target, release, exporter_transition, exporter_transition["resolver"], version)
         next_step = len(steps) + 1
         print(f"[{next_step}/{total}] Synchronize existing repository setup")
         sync_source = target / ".specify/extensions/program-kit-governance/scripts/repository_sync.py"
@@ -1108,6 +1302,16 @@ def main() -> int:
         if not remediation['applicationReady']:
             print('PKU117 managed setup assessment is separate from pending consumer phase proof; '
                   'continue from .specify/governance/upgrade-remediation.json. Existing product sources remain owned by the consumer.')
+        migration = guidance.completion(guidance_plan, {
+            'installation-coherence': True, 'dependency-verification': not renewal_required,
+            'required-phase-evidence': remediation_module.migration_phase_ready(remediation)})
+        migration['releaseInputsSha256'] = release_fingerprint(release)
+        preserve_migration_completion(target)
+        write_attempt(target / '.specify/governance/migration-completion.json', migration)
+        if not migration['migrationCompletionEstablished']:
+            print('PKU132 installation is coherent; migration verification remains pending: '
+                  + ', '.join(migration['pendingChecks']) + '. Preserve migration-completion.json and renew the named evidence before retry.', file=sys.stderr)
+            renewal_required = True
         if renewal_required:
             attempt.update(status='completed', outcome='offline-coherent-package-verification-pending')
             write_attempt(attempt_path, attempt)

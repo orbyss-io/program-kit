@@ -59,9 +59,12 @@ def source_digest(path: Path) -> str:
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
-def design_digest(path: Path) -> str:
+def design_digest(path: Path, scoped: bool = False) -> str:
     if path.name == 'building-block-selection.json':
         value = load(path)
+        if scoped:
+            from compatibility_scope import selection_digest
+            return selection_digest(value)
         value.pop('status', None)
         value.pop('draftSuggestions', None)
         return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()
@@ -152,9 +155,10 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
                 proof = load(path)
                 if proof.get('prerequisite') != identity or proof.get('exit_code') != 0 or not proof.get('command'):
                     raise LifecycleError(f'{identity} compatibility proof did not pass')
-                if proof.get('schema_version') != '1.1' or not proof.get('test_result') or not proof.get('checks'):
+                if proof.get('schema_version') not in {'1.1', '1.2'} or not proof.get('test_result') or not proof.get('checks'):
                     raise LifecycleError(f'{identity} compatibility evidence needs current executed named tests; availability-only or legacy receipts need renewed proof')
-                if proof.get('tooling_sources') != proof_tooling():
+                scoped = proof['schema_version'] == '1.2'
+                if proof.get('tooling_sources') != proof_tooling(scoped):
                     raise LifecycleError(f'{identity} compatibility tooling changed; renew the proof')
                 for bound in proof.get('inputs', []) + proof.get('streams', []) + [proof['test_result']]:
                     bound_path = local(root, bound['path'])
@@ -170,8 +174,12 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
                 if (root / 'docs/architecture/building-block-selection.json').is_file():
                     expected_design.add('docs/architecture/building-block-selection.json')
                 design = proof.get('design_sources', {})
-                if set(design) != expected_design or any(design_digest(local(root, p)) != h for p, h in design.items()):
+                if set(design) != expected_design or any(design_digest(local(root, p), scoped) != h for p, h in design.items()):
                     raise LifecycleError(f'{identity} compatibility proof does not bind the current selected design/pins')
+                if scoped:
+                    from compatibility_scope import proof_bindings
+                    if proof.get('dependency_scope') != proof_bindings(root, proof):
+                        raise LifecycleError(f'{identity} compatibility dependencies changed; renew the affected proof')
         if item.get('verification') == 'decision' and item['status'] == 'closed':
             catalog = load(root / 'docs/architecture/architecture-map.json').get('decisions', [])
             allowed = {'Accepted', 'Proposed'} if allow_proposed_authority else {'Accepted'}
@@ -386,7 +394,7 @@ def project_lifecycle(root: Path, model: dict, *, check: bool = False) -> None:
                     doc['sha256'] = digest(path)
 
 
-def proof_tooling():
+def proof_tooling(scoped: bool = False):
     extensions = Path(__file__).resolve().parents[2]
     paths = [
         'program-kit-governance/scripts/bootstrap_lifecycle.py',
@@ -396,16 +404,24 @@ def proof_tooling():
         'program-kit-governance/scripts/compatibility_process.py',
         'program-kit-governance/scripts/compatibility_diagnostics.py',
         'program-kit-governance/scripts/managed_compatibility.py',
+        'program-kit-governance/scripts/managed_provider_probes.py',
+        'program-kit-governance/scripts/bootstrap_provider_context.py',
+        'program-kit-governance/scripts/compatibility_scope.py',
         'program-kit-governance/scripts/repository_sync.py',
         'program-kit-governance/scripts/package_execution.py',
         'program-kit-governance/scripts/phase_obligations.py',
         'program-kit-building-blocks/scripts/restore_dependencies.py',
+        'program-kit-building-blocks/scripts/building_blocks.py',
+        'program-kit-dotnet/scripts/dependency_profile.py',
+        'program-kit-dotnet/templates/dotnet/files/.program-kit/eng/toolchain.py',
+        'program-kit-dotnet/templates/dotnet/files/.program-kit/eng/js_toolchain.py',
         'program-kit-building-blocks/references/orbyss-building-blocks.json',
         'program-kit-dotnet/templates/dotnet/files/global.json',
         'program-kit-dotnet/templates/dotnet/files/NuGet.config',
         'program-kit-dotnet/templates/dotnet/files/.nvmrc',
         'program-kit-dotnet/templates/dotnet/files/.npm-version',
     ]
+    if scoped: paths.remove('program-kit-building-blocks/references/orbyss-building-blocks.json')
     return {name: digest(extensions / name) for name in paths}
 
 
@@ -418,6 +434,13 @@ def validate_recipe(root: Path, identity: str, recipe: str):
         raise LifecycleError('Unsafe prerequisite ID')
     contract_path = recipe_path.with_suffix('.contract.json')
     contract = load(contract_path)
+    # The .NET adapter loads this validator by filename without adding governance
+    # to sys.path. Resolve its companion from the same maintained package.
+    import importlib.util
+    scope_spec = importlib.util.spec_from_file_location('proof_contract_scope', Path(__file__).with_name('compatibility_scope.py'))
+    scope_validator = importlib.util.module_from_spec(scope_spec)
+    scope_spec.loader.exec_module(scope_validator)
+    scope_validator.validate(contract)
     checks = contract.get('checks')
     if contract.get('schemaVersion') != 1 or not isinstance(checks, list) or not checks:
         raise LifecycleError('Compatibility recipe needs a versioned contract and named runtime checks')
@@ -494,7 +517,10 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     inputs = [{'path': recipe, 'sha256': digest(recipe_path)},
               {'path': contract_path.relative_to(root).as_posix(), 'sha256': digest(contract_path)}]
     test_record = None
-    design_sources = {p: design_digest(root / p) for p in (
+    from compatibility_scope import bindings
+    dependency_bindings = bindings(root, contract)
+    scoped = dependency_bindings is not None
+    design_sources = {p: design_digest(root / p, scoped) for p in (
         'docs/architecture/bootstrap-decisions.json', 'docs/architecture/building-block-selection.json'
     ) if (root / p).is_file()}
     from compatibility_process import run
@@ -544,12 +570,14 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
         path = attempt / name
         diagnostic_artifacts[name] = preserve(path, path)
         streams.append({'path': path.relative_to(root).as_posix(), 'sha256': digest(path)})
-    value = {'schema_version': '1.1', 'prerequisite': identity, 'exit_code': exit_code,
+    value = {'schema_version': '1.2' if scoped else '1.1', 'prerequisite': identity, 'exit_code': exit_code,
              'process_exit_code': process_exit_code, 'test_result': test_record, 'checks': names,
-             'provisioning': provisioning, 'tooling_sources': proof_tooling(),
+             'provisioning': provisioning, 'tooling_sources': proof_tooling(scoped),
              'failure_category': failure_category, 'diagnostic_artifacts': diagnostic_artifacts,
              'command': command, 'python': sys.version, 'inputs': inputs, 'streams': streams,
              'design_sources': design_sources}
+    if scoped:
+        value['dependency_scope'] = {'contractPath': contract_path.relative_to(root).as_posix(), 'bindings': dependency_bindings}
     receipt = attempt / 'proof.json'
     write(receipt, value)
     return {'path': receipt.relative_to(root).as_posix(), 'sha256': digest(receipt), 'kind': 'compatibility', 'exit_code': exit_code}

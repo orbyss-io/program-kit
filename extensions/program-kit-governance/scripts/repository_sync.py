@@ -182,7 +182,12 @@ def describe(repository: Path, phase: str, feature: str | None = None) -> dict:
     operations = []
     if setup["dotnet"] and phase != "bootstrap":
         result = run(repository, dotnet_command(repository, setup) + ["--check", "--json"], (0, 1))
-        planned = json.loads(result.stdout)
+        try:
+            planned = json.loads(result.stdout)
+        except ValueError as error:
+            from compatibility_diagnostics import sanitize
+            raise ValueError('PKS201 managed .NET adapter did not return its JSON plan; exit='
+                             + str(result.returncode) + '\n' + sanitize(result.stderr)[-4000:]) from error
         operations.append({"id": "engineering-baseline", "adapter": "dotnet", "plan": planned,
                            "required": result.returncode == 1, "network": False})
     if setup["javascript"] and phase not in {"bootstrap", "upgrade"}:

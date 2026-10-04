@@ -29,6 +29,7 @@ def invalidate_changed_recipes(root, plan, ledger, *, recovery_review=False):
     updated = copy.deepcopy(ledger)
     planned = {p['id']: p for p in plan['probes']}
     invalidated = []
+    design_changes = []
     for item in updated['prerequisites']:
         if item['id'] not in planned or item['status'] != 'closed':
             continue
@@ -40,15 +41,34 @@ def invalidate_changed_recipes(root, plan, ledger, *, recovery_review=False):
             if digest(path) != evidence['sha256']:
                 raise LifecycleError('Preserved proof receipt changed; restore its integrity before retry')
             proof = load(path)
-            if any(not local(root, p).is_file() or design_digest(local(root, p)) != h for p, h in proof.get('design_sources', {}).items()):
+            scoped = proof.get('schema_version') == '1.2'
+            changed_design = []
+            for name, previous in proof.get('design_sources', {}).items():
+                selected = local(root, name)
+                if not selected.is_file():
+                    raise LifecycleError('Selected design source is missing; restore it before replanning compatibility')
+                current = design_digest(selected, scoped)
+                if current != previous:
+                    changed_design.append({'path': name, 'before': previous, 'after': current})
+            if changed_design and not recovery_review:
                 raise LifecycleError('Selected design/pins changed; reopen the owning decision before replanning compatibility')
+            # execute grants this path only after verifying the matching running
+            # native continuation and its immutable authority. That continuation
+            # reviews the complete current design and fresh proofs before a new
+            # approval. Old receipts remain history, never current eligibility.
+            if changed_design:
+                design_changes.append({'prerequisite': item['id'], 'proof': evidence['path'],
+                                       'sources': changed_design})
             for bound in proof.get('streams', []) + ([proof['test_result']] if proof.get('test_result') else []):
                 if digest(local(root, bound['path'])) != bound['sha256']:
                     raise LifecycleError('Preserved proof diagnostics changed; restore their integrity before retry')
             recipe, contract, _, _ = validate_recipe(root, item['id'], planned[item['id']]['recipe'])
             required = {(p.relative_to(root).as_posix(), digest(p)) for p in (recipe, contract)}
-            changed = not required <= {(b['path'], b['sha256']) for b in proof.get('inputs', [])} or proof.get('tooling_sources') != proof_tooling() or any(
+            changed = bool(changed_design) or not required <= {(b['path'], b['sha256']) for b in proof.get('inputs', [])} or proof.get('tooling_sources') != proof_tooling(scoped) or any(
                 not local(root, b['path']).is_file() or digest(local(root, b['path'])) != b['sha256'] for b in proof.get('inputs', []))
+            if scoped:
+                from compatibility_scope import proof_bindings
+                changed = changed or proof.get('dependency_scope') != proof_bindings(root, proof)
             if changed:
                 stale.append(evidence)
         if stale:
@@ -74,7 +94,9 @@ def invalidate_changed_recipes(root, plan, ledger, *, recovery_review=False):
         pattern = r'(^###\s+' + re.escape(identity) + r':[^\n]*\n)(.*?)(?=^###\s+|\Z)'
         text = re.sub(pattern, lambda m: m[1] + re.sub(r'(?m)^(-\s+\*\*Status\*\*:\s*)Ready$', r'\g<1>Blocked', m[2]), text, flags=re.MULTILINE | re.DOTALL)
     archive = root / '.specify/governance/compatibility/invalidations' / (uuid.uuid4().hex + '.json')
-    write(archive, {'reason': 'execution-inputs-changed', 'prerequisites': invalidated, 'previous_ledger': ledger, 'previous_roadmap': original})
+    write(archive, {'reason': 'design-and-execution-inputs-changed' if design_changes else 'execution-inputs-changed',
+                    'prerequisites': invalidated, 'design_changes': design_changes,
+                    'previous_ledger': ledger, 'previous_roadmap': original})
     # Conservative ordering: a stopped process may leave Blocked with old evidence,
     # never Ready with revoked evidence. The next resume can repeat reconciliation.
     if text != original:

@@ -71,7 +71,7 @@ review its concrete packet at the native human gate. Rerun source preflight afte
 successful continuation before continuing T002/T006 or business implementation.
 
 The source correction was committed before version selection. Publication preparation
-now targets 0.12.3; see [the release procedure](releasing-0.12.3.md). These are shipped
+now targets 0.12.3; see [the release procedure](https://github.com/orbyss-io/program-kit/blob/ae4738b16cda3333beca44b1e68df2478576a6df/docs/releasing-0.12.3.md). These are shipped
 helper/reference/command changes, requiring fresh Release evidence for the final
 candidate. Follow AGENTS.md: full Windows Release validation belongs in the user's
 terminal, and Firefox remains authoritative in CI.

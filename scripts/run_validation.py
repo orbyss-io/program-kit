@@ -12,6 +12,8 @@ import shutil
 import subprocess
 import sys
 import uuid
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from fnmatch import fnmatchcase
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -32,7 +34,76 @@ def selected(suite, system=None):
     if len(ids) != len(set(ids)):
         raise ValueError('Duplicate validation IDs')
     return [c for c in checks if system in c['platforms'] and
-            (suite != 'Development' or c['group'] == 'development')]
+            ((suite == 'Maintenance' and c['group'] == 'maintenance') or
+             (suite != 'Maintenance' and c['group'] != 'maintenance' and
+              (suite != 'Development' or c['group'] == 'development')))]
+
+
+def affected_checks(checks, paths):
+    """Unknown inputs fail closed to complete coverage; Development always runs."""
+    known = [pattern for check in checks for pattern in check.get('inputs', [])]
+    if any(not any(fnmatchcase(path, pattern) for pattern in known) for path in paths):
+        return checks
+    required = {check['id'] for check in checks if check['group'] == 'development'
+                or any(fnmatchcase(path, pattern) for path in paths for pattern in check.get('inputs', []))}
+    by_id = {check['id']: check for check in checks}
+    while True:
+        expanded = required | {dep for identity in required for dep in by_id[identity]['needs']}
+        if expanded == required: break
+        required = expanded
+    return [check for check in checks if check['id'] in required]
+
+
+def schedule_checks(checks, workers, execute, before=None, after=None):
+    """Schedule a DAG while keeping journal mutation and resource ownership serial."""
+    pending = list(checks)
+    by_id = {check['id']: check for check in checks}
+    if len(by_id) != len(checks) or any(set(c['needs']) - by_id.keys() for c in checks):
+        raise ValueError('Duplicate check or missing prerequisite')
+    visiting, visited = set(), set()
+    def visit(identity):
+        if identity in visiting:
+            raise ValueError('Validation prerequisites contain a cycle')
+        if identity in visited:
+            return
+        visiting.add(identity)
+        for dependency in by_id[identity]['needs']:
+            visit(dependency)
+        visiting.remove(identity)
+        visited.add(identity)
+    for identity in by_id:
+        visit(identity)
+    done = {}
+    active = {}
+    held = set()
+    stopped = False
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        while pending or active:
+            for check in list(pending):
+                locks = set(check.get('resources', []))
+                if len(active) >= workers or set(check['needs']) - done.keys() or locks & held:
+                    continue
+                if before and not before(check):
+                    stopped = True
+                    pending.clear()
+                    break
+                blocked = [dep for dep in check['needs'] if done[dep] != 0]
+                pending.remove(check)
+                held.update(locks)
+                active[pool.submit(execute, check, blocked)] = (check, locks)
+            if not active:
+                if pending: raise ValueError('Validation prerequisites contain a cycle')
+                break
+            completed, _ = wait(active, return_when=FIRST_COMPLETED)
+            for future in completed:
+                check, locks = active.pop(future)
+                held.difference_update(locks)
+                result = future.result()
+                done[check['id']] = result['exitCode']
+                if after and not after(check, result):
+                    stopped = True
+                    pending.clear()
+    return done, stopped
 
 
 def command(check, engines):
@@ -113,7 +184,9 @@ def main():
         if hasattr(stream, 'reconfigure'):
             stream.reconfigure(encoding='utf-8', errors='backslashreplace')
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--suite', choices=['Development', 'Release'], default='Development')
+    parser.add_argument('--suite', choices=['Development', 'PullRequest', 'Release', 'Maintenance'], default='Development')
+    parser.add_argument('--workers', type=int, default=1, help='Linux concurrency; Windows remains sequential')
+    parser.add_argument('--changed-from', help='Git base ref for conservative PullRequest selection')
     parser.add_argument('--engines', default='chromium,firefox,webkit')
     parser.add_argument('--list', action='store_true')
     parser.add_argument('--approved', action='store_true')
@@ -122,7 +195,16 @@ def main():
     parser.add_argument('--receipt', action='store_true')
     parser.add_argument('--check', help='Run one declared check without claiming suite coverage')
     args = parser.parse_args()
+    if args.workers < 1 or args.workers > 4:
+        parser.error('--workers must be between 1 and 4')
+    if args.workers != 1 and os.name == 'nt':
+        parser.error('Windows validation remains sequential')
     checks = selected(args.suite)
+    if args.changed_from:
+        if args.suite != 'PullRequest': parser.error('--changed-from requires PullRequest')
+        from write_release_receipt import git
+        paths = git(ROOT, 'diff', '--name-only', args.changed_from + '...HEAD').splitlines()
+        checks = affected_checks(checks, paths)
     if args.check:
         available = selected('Release')
         by_id = {c['id']: c for c in available}
@@ -164,14 +246,11 @@ def main():
     from live.v2.supervisor import run_supervised
     results = {}
     print('Validation evidence: ' + str(output), flush=True)
-    for check in checks:
+    def execute(check, blocked):
         identity = check['id']
-        if args.suite == 'Release' and not guard_release_source(journal, path, 'before ' + identity):
-            return 1
         cmd = command(check, args.engines)
         log = output / (identity + '.log')
         started = now()
-        blocked = [dep for dep in check['needs'] if results.get(dep) != 0]
         print(('Blocked: ' if blocked else 'Running: ') + identity, flush=True)
         child_environment = environment.copy()
         if identity == 'source-install' and os.name == 'nt':
@@ -205,21 +284,28 @@ def main():
                 except (OSError, subprocess.TimeoutExpired) as error:
                     stream.write(str(error))
                     code = 124
-        results[identity] = code
         # Registry tools should not print credentials; nevertheless never preserve
         # the invoking token in failure logs if a child emits it accidentally.
         if environment.get('PROGRAM_KIT_NPM_TOKEN'):
             text = log.read_text(encoding='utf-8', errors='replace')
             log.write_text(text.replace(environment['PROGRAM_KIT_NPM_TOKEN'], '[REDACTED]'), encoding='utf-8')
-        journal['steps'].append({'id': identity, 'command': cmd, 'exitCode': code,
+        return {'id': identity, 'command': cmd, 'exitCode': code,
                                  'startedAt': started, 'finishedAt': now(),
-                                 'log': log.relative_to(ROOT).as_posix(), 'logSha256': sha256(log)})
+                                 'log': log.relative_to(ROOT).as_posix(), 'logSha256': sha256(log)}
+
+    def before(check):
+        return args.suite != 'Release' or guard_release_source(journal, path, 'before ' + check['id'])
+
+    def after(check, result):
+        journal['steps'].append(result)
         path.write_text(json.dumps(journal, indent=2) + '\n', encoding='utf-8')
-        print(('Passed: ' if code == 0 else 'FAILED: ') + identity, flush=True)
-        if code:
-            print(log.read_text(encoding='utf-8', errors='replace')[-6000:], flush=True)
-        if args.suite == 'Release' and not guard_release_source(journal, path, 'after ' + identity):
-            return 1
+        print(('Passed: ' if result['exitCode'] == 0 else 'FAILED: ') + check['id'], flush=True)
+        if result['exitCode']:
+            print((ROOT / result['log']).read_text(encoding='utf-8', errors='replace')[-6000:], flush=True)
+        return args.suite != 'Release' or guard_release_source(journal, path, 'after ' + check['id'])
+
+    results, stopped = schedule_checks(checks, args.workers, execute, before, after)
+    if stopped: return 1
     failed = [name for name, code in results.items() if code]
     if failed:
         print('Validation failed: ' + ', '.join(failed) + '\nEvidence: ' + str(path))

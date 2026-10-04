@@ -250,6 +250,49 @@ def main():
                 history = root / '.specify/workflows/resumption-history/architecture-retry'
                 assert any((entry / 'inputs.json').is_file() and (entry / 'workflow.yml').is_file()
                            for entry in history.iterdir())
+                # A failed nested native proof resumes its shell owner without
+                # repeating the completed coding-agent closure or preapproving
+                # the freshly generated architecture review.
+                (root / g.BOOTSTRAP_COMPLETION).unlink(missing_ok=True)
+                recovery_fixture_originals = {p: (root / p).read_bytes() for p in g.bootstrap_artifacts()}
+                with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
+                    proof_source = WorkflowEngine(root).execute(definition(ready_tail()), run_id='nested-proof-source')
+                workflow.recovery.prepare(root, proof_source.run_id)
+                architecture.write_bytes(architecture.read_bytes() + b'\nBounded proof recovery fixture.\n')
+                native = copy.deepcopy(workflow.continuation_definition(root).data)
+                proof_step = next(s for s in workflow.walk_steps(native['steps'])
+                                  if s['id'] == 'recovery-execute-compatibility-proofs')
+                proof_step['run'] = 'python -c "from pathlib import Path; raise SystemExit(0 if Path(\'native-proof-repaired\').exists() else 2)"'
+                native_calls = []
+                def native_proof_dispatch(self, command, integration, model, args, context):
+                    native_calls.append(command)
+                    return readiness_dispatch(self, command, integration, model, args, context)
+                approval_before_proof = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
+                source_before_proof = (workflow.run_directory(root, proof_source.run_id) / 'state.json').read_bytes()
+                with patch.object(CommandStep, '_try_dispatch', native_proof_dispatch):
+                    with patch.object(workflow, 'continuation_definition', return_value=WorkflowDefinition(native)):
+                        broken_proof = workflow.resume(root, proof_source.run_id)
+                    assert broken_proof.status == RunStatus.FAILED and broken_proof.current_step_id == 'recovery-execute-compatibility-proofs', broken_proof.error
+                    preserved_closure = copy.deepcopy(broken_proof.step_results['recovery-closure'])
+                    preserved_source = copy.deepcopy(broken_proof.step_results['verify-recovery-source'])
+                    (root / 'native-proof-repaired').write_text('fixture', encoding='utf-8')
+                    def synchronize_failure(self, config, context):
+                        if config.get('id') == 'recovery-synchronize':
+                            return execute(self, shell('recovery-synchronize', 'python -c "raise SystemExit(2)"'), context)
+                        return execute(self, config, context)
+                    with patch.object(ShellStep, 'execute', synchronize_failure):
+                        broken_sync = workflow.resume(root, proof_source.run_id)
+                    assert broken_sync.status == RunStatus.FAILED and broken_sync.current_step_id == 'recovery-synchronize', broken_sync.error
+                    resumed_proof = workflow.resume(root, proof_source.run_id)
+                    assert resumed_proof.status == RunStatus.PAUSED and resumed_proof.current_step_id == 'review-recovery', resumed_proof.error
+                assert native_calls == ['speckit.program-kit-governance.bootstrap-recovery']
+                assert resumed_proof.step_results['recovery-closure'] == preserved_closure
+                assert resumed_proof.step_results['verify-recovery-source'] == preserved_source
+                assert (root / g.BOOTSTRAP_APPROVAL).read_bytes() == approval_before_proof
+                assert (workflow.run_directory(root, proof_source.run_id) / 'state.json').read_bytes() == source_before_proof
+                assert not (root / g.BOOTSTRAP_COMPLETION).exists()
+                for relative, contents in recovery_fixture_originals.items():
+                    (root / relative).write_bytes(contents)
                 # Reproduce the old published continuation's unavailable handoff.
                 # Resume must migrate only readiness and retain accepted authority.
                 (root / g.BOOTSTRAP_COMPLETION).unlink(missing_ok=True)

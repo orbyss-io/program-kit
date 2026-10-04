@@ -71,6 +71,12 @@ def resolve(
 ) -> tuple[dict[str, str | None], dict[str, list[str]]]:
     dotnet = js_toolchain.executable(dotnet_command)
     dotnet_version = run_version([str(dotnet)], repository) if dotnet else None
+    if dotnet_command == 'dotnet':
+        for name in ('dotnet.exe', 'dotnet'):
+            local = repository / '.program-kit/tools/dotnet' / required['dotnet'] / name
+            if local.is_file() and run_version([str(local.resolve())], repository) == required['dotnet']:
+                dotnet, dotnet_version = local.resolve(), required['dotnet']
+                break
     node, node_version = js_toolchain.resolve_node(repository, required["node"], node_command, manager)
     npm: list[str] | None = None
     npm_version: str | None = None
@@ -176,7 +182,7 @@ def mismatch(required: dict[str, str], installed: dict[str, str | None]) -> list
     return [name for name, expected in required.items() if installed.get(name) != expected]
 
 
-def install_dotnet(version: str, installer: str) -> None:
+def install_dotnet(version: str, installer: str, repository: Path | None = None) -> None:
     if not installer:
         raise ValueError(
             "PKT004 no approved .NET installer is available. Obtain Microsoft's dotnet-install script, "
@@ -186,6 +192,9 @@ def install_dotnet(version: str, installer: str) -> None:
     if not path.is_file():
         raise ValueError(f"PKT005 .NET installer is unavailable: {path}")
     command = ["powershell", "-NoProfile", "-File", str(path), "-Version", version] if path.suffix.lower() == ".ps1" else [str(path), "--version", version]
+    if repository is not None:
+        directory = str(repository / '.program-kit/tools/dotnet' / version)
+        command += ['-InstallDir', directory, '-NoPath'] if path.suffix.lower() == '.ps1' else ['--install-dir', directory, '--no-path']
     if subprocess.run(command, check=False).returncode != 0:
         raise ValueError("PKT006 approved .NET side-by-side installation failed (offline or installer error).")
 
@@ -226,7 +235,7 @@ def install_npm(repository: Path, node: Path, required: str, requested: str) -> 
     if current is None:
         raise ValueError("PKT018 pinned Node is installed but has no usable npm CLI for approved remediation.")
     result = subprocess.run(
-        current + ["--strict-ssl=true", "install", "--global", f"npm@{required}"],
+        current + ["--strict-ssl=true", "install", "--prefix", str(repository / '.program-kit/tools/npm' / required), f"npm@{required}"],
         cwd=repository,
         env=environment,
         check=False,
@@ -315,7 +324,7 @@ def main() -> int:
             print("PKT003 remediation declined; no installer was run.", file=sys.stderr)
             return 3
         if "dotnet" in missing:
-            install_dotnet(required["dotnet"], args.dotnet_installer)
+            install_dotnet(required["dotnet"], args.dotnet_installer, repository)
         if "node" in missing:
             install_node(required["node"], args.node_manager)
         if "oasdiff" in missing:

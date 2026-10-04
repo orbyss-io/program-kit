@@ -75,6 +75,44 @@ class IntakeTests(unittest.TestCase):
         for path in ("specs", ".git", ".specify/feature.json"):
             self.assertFalse((self.repository / path).exists())
 
+    def test_upgrade_assessment_uses_consumer_confirmation_from_another_directory(self):
+        import upgrade_remediation as remediation
+        from validate_governance_state import roadmap
+        self.confirm()
+        feature = self.repository / 'specs/001-invoices'
+        feature.mkdir(parents=True)
+        (feature / 'spec.md').write_text('- **Specification roadmap entry**: SPC-001\n', encoding='utf-8')
+        (feature / 'tasks.md').write_text('# Existing consumer tasks\n', encoding='utf-8')
+        for name in ('phase-obligations.json', 'obligation-design.json', 'obligation-review.json'):
+            intake.atomic_write(feature / name, {})
+        (self.repository / intake.governance.ROADMAP).write_text(roadmap().replace('SPEC-001', 'SPC-001'), encoding='utf-8')
+        caller = self.repository / 'unrelated-caller'
+        caller.mkdir()
+        constitution = (self.repository / intake.governance.CONSTITUTION).read_bytes()
+        # Intake validates governance through its configured, cwd-relative paths.
+        # The fixture omits installation/ratification machinery, but retains that
+        # real path boundary and the real review/confirmation checks below.
+        def ratification_authority():
+            path = intake.governance.project_path(intake.governance.CONSTITUTION)
+            if not path.is_file() or path.read_bytes() != constitution:
+                raise ValueError('Caller directory cannot supply consumer ratification authority')
+        with patch.object(remediation, 'check', side_effect=lambda root, feature, phase: intake.check(root, 'SPC-001')), \
+                patch.object(intake.governance, 'validate_ratification', side_effect=ratification_authority):
+            os.chdir(caller)
+            result = remediation.assess(self.repository)
+            self.assertTrue(remediation.migration_phase_ready(result), result)
+            self.assertEqual(caller, Path.cwd())
+            # A real changed brief still fails: scoped cwd cannot renew authority.
+            self.brief['scope'] = 'Changed consumer scope without confirmation'
+            self.save()
+            result = remediation.assess(self.repository)
+            self.assertFalse(remediation.migration_phase_ready(result), result)
+            self.assertEqual(caller, Path.cwd())
+        with patch.object(remediation, 'check', side_effect=AssertionError('unexpected failure')):
+            with self.assertRaisesRegex(AssertionError, 'unexpected failure'):
+                remediation.assess(self.repository)
+            self.assertEqual(caller, Path.cwd())
+
     def test_bootstrap_feature_obligations_are_scoped_carried_and_bound_to_review(self):
         ledger = self.repository / 'docs/architecture/bootstrap-prerequisites.json'
         item = {'id': 'persistence-policy', 'source_ids': ['durable-write'], 'owner': 'Feature owner',

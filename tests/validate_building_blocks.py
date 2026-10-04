@@ -137,8 +137,8 @@ def main() -> int:
     restore_module = load_module(RESTORE)
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     module.validate_catalog(catalog)
-    if catalog["schemaVersion"] != "1.0" or catalog["resolutionRevision"] != 2:
-        raise AssertionError("Executable catalog must begin at schema 1.0 and resolution revision 2")
+    if catalog["schemaVersion"] != "1.0" or catalog["resolutionRevision"] != 3:
+        raise AssertionError("Executable catalog must retain schema 1.0 and qualified exporter resolution revision 3")
     ecosystems = [package["ecosystem"] for package in catalog["packages"].values()]
     if ecosystems.count("nuget") != 53 or ecosystems.count("npm") != 12 or ecosystems.count("oci") != 1:
         raise AssertionError("Catalog must contain 53 NuGet, 12 npm, and one Foundation host artifact")

@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -59,11 +60,45 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
         f"Initialize-ProgramKit-{version}.cmd",
         f"Initialize-ProgramKit-{version}.sh",
         "SHA256SUMS",
+        f"RELEASE-NOTES-{version}.md",
+        f"MIGRATIONS-{version}.md",
+        f"migration-index-{version}.json",
+        f"dependency-profile-index-{version}.json",
     }
     files = sorted((artifacts / name for name in names), key=lambda path: path.name.casefold())
+    index = json.loads((artifacts / f'migration-index-{version}.json').read_text(encoding='utf-8'))
+    for entry in index['entries']:
+        name = entry['guide']
+        if Path(name).name != name:
+            raise RuntimeError('Release guide must be a basename')
+        files.append(artifacts / name)
+    profiles = json.loads((artifacts / f'dependency-profile-index-{version}.json').read_text(encoding='utf-8'))
+    if profiles.get('schemaVersion') != 1 or not isinstance(profiles.get('profiles'), list):
+        raise RuntimeError('Invalid dependency qualification asset index')
+    for profile in profiles['profiles']:
+        for kind in ('profile', 'evidence'):
+            record = profile[kind]
+            name = record['file']
+            if Path(name).name != name or '/' in name or '\\' in name:
+                raise RuntimeError('Dependency qualification asset must be a basename')
+            path = artifacts / name
+            if not path.is_file() or sha256(path) != record['sha256']:
+                raise RuntimeError('Dependency qualification asset missing or changed: ' + name)
+            files.append(path)
     missing = [path.name for path in files if not path.is_file()]
     if missing:
         raise RuntimeError(f"Release receipt is missing current candidate artifacts: {missing}")
+    checksums = {}
+    for line in (artifacts / 'SHA256SUMS').read_text(encoding='utf-8').splitlines():
+        match = re.fullmatch(r'([0-9a-f]{64})  ([^/\\]+)', line)
+        if not match or match[2] in checksums or match[2] in ('.', '..', 'SHA256SUMS'):
+            raise RuntimeError('Invalid or duplicate release checksum entry')
+        checksums[match[2]] = match[1]
+    required = {path.name for path in files if path.name != 'SHA256SUMS'}
+    if required != set(checksums):
+        raise RuntimeError('Release checksum inventory differs from current candidate artifacts')
+    if any(sha256(artifacts / name) != value for name, value in checksums.items()):
+        raise RuntimeError('Release artifact differs from its checksum')
     return [{"path": f"artifacts/{path.name}", "sha256": sha256(path), "size": path.stat().st_size} for path in files]
 
 

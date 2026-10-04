@@ -44,7 +44,8 @@ class ProviderContextTests(unittest.TestCase):
                     checked += 1
         self.assertGreater(checked, 0)
         tools = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/.config/dotnet-tools.json'
-        self.assertEqual(version, json.loads(tools.read_text())['tools']['orbyss.foundation.openapi.exporter']['version'])
+        exporter = json.loads(CATALOG.read_text())['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']
+        self.assertEqual(exporter, json.loads(tools.read_text())['tools']['orbyss.foundation.openapi.exporter']['version'])
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -141,6 +142,30 @@ class ProviderContextTests(unittest.TestCase):
         write_json(self.selection, selection)
         with self.assertRaises(ValueError):
             providers.project(self.root, self.decisions)
+
+    def test_provider_and_host_probe_preserve_accepted_profile_after_kit_upgrade(self):
+        resolver = load_module(RESOLVER)
+        installed = self.root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
+        selection = json.loads(self.selection.read_text())
+        retained = resolver.preserve_dependency_profile(self.root, selection, installed)
+        newer = json.loads(installed.read_text())
+        newer['packages']['oci:ghcr.io/orbyss-io/foundation-host']['version'] = '0.2.3'
+        newer['families']['foundation']['toolVersions']['ghcr.io/orbyss-io/foundation-host'] = '0.2.3'
+        write_json(installed, newer)
+        projected = providers.project(self.root, self.decisions)
+        host = next(p for p in projected['selected_packages'] if p['ecosystem'] == 'oci')
+        self.assertEqual('0.2.2', host['version'])
+        self.assertTrue(any(s['path'] == retained.relative_to(self.root).as_posix() for s in projected['sources']))
+        from managed_compatibility import render
+        from repository_sync import provider
+        from unittest.mock import patch
+        write_json(self.root / 'docs/architecture/bootstrap-decisions.json', {'toolchain': {'pins': {}}})
+        with patch('repository_sync.provider', side_effect=lambda name: resolver if name.endswith('/building_blocks.py') else provider(name)):
+            rendered = render(self.root, 'foundation-host', 'retained-host')
+        parameters = json.loads((self.root / rendered['recipe']).with_suffix('.inputs.json').read_text())
+        self.assertEqual('ghcr.io/orbyss-io/foundation-host:v0.2.2', parameters['image'])
+        retained.write_text('{}')
+        with self.assertRaises(ValueError): providers.project(self.root, self.decisions)
 
     def test_explicit_alternate_host_and_consumer_identity_do_not_inherit_local_runtime(self):
         self.selection.unlink()

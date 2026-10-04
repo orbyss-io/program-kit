@@ -305,6 +305,9 @@ class UpgradeBoundaryTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
 
     def test_retry_preserves_original_version_diagnostic_and_authority_binding(self):
+        manifest = self.root / '.specify/extensions/program-kit-governance/extension.yml'
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text('extension:\n  version: "old"\n')
         first_path, first = upgrade.begin_attempt(self.root, ROOT, 'candidate', 'old')
         first.update(status='incomplete', diagnostic='PKU116 missing artifact')
         upgrade.write_attempt(first_path, first)
@@ -317,9 +320,11 @@ class UpgradeBoundaryTests(unittest.TestCase):
         self.assertFalse((self.root / '.specify/governance/program-kit-upgrades.json').exists())
         # An altered approved input cannot borrow the old attempt's provenance.
         self.write(self.decisions, {'selected_profiles': [], 'persistence': []})
-        _, changed = upgrade.begin_attempt(self.root, ROOT, 'candidate', 'candidate')
-        self.assertIsNone(changed['retryOf'])
-        self.assertEqual('candidate', changed['previousInstalledVersion'])
+        manifest.write_text('extension:\n  version: "candidate"\n')
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121.*approved inputs changed'):
+            upgrade.begin_attempt(self.root, ROOT, 'candidate', 'candidate')
+        self.assertEqual(before, self.snapshot())
 
     def test_plain_python_discovers_cli_runtime_before_ownership_guard_imports(self):
         interpreter = self.root / 'cli/Scripts/python.exe'
@@ -334,6 +339,9 @@ class UpgradeBoundaryTests(unittest.TestCase):
             self.assertEqual(str(Path(upgrade.__file__).resolve()), run.call_args.args[0][1])
 
     def test_changed_installation_inputs_cannot_borrow_old_retry_provenance(self):
+        manifest = self.root / '.specify/extensions/program-kit-governance/extension.yml'
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text('extension:\n  version: "old"\n')
         release = self.root / 'candidate-release'
         release.mkdir()
         (release / 'VERSION').write_text('candidate')
@@ -345,9 +353,35 @@ class UpgradeBoundaryTests(unittest.TestCase):
         value['status'] = 'incomplete'
         upgrade.write_attempt(path, value)
         script.write_text('corrected source')
-        _, retry = upgrade.begin_attempt(self.root, release, 'candidate', 'candidate')
-        self.assertIsNone(retry['retryOf'])
-        self.assertEqual('candidate', retry['previousInstalledVersion'])
+        manifest.write_text('extension:\n  version: "candidate"\n')
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121.*candidate.*changed'):
+            upgrade.begin_attempt(self.root, release, 'candidate', 'candidate')
+        self.assertEqual(before, self.snapshot())
+
+    def test_release_identity_excludes_unshipped_build_caches_but_binds_helper_source(self):
+        from build_release import deterministic_zip
+        import zipfile
+        release = self.root / 'release'
+        release.mkdir()
+        (release / 'VERSION').write_text('candidate', encoding='utf-8')
+        (release / 'bundle.yml').write_text('bundle fixture', encoding='utf-8')
+        component = release / 'extensions/governance'
+        helper = component / 'scripts/assembly_graph/Program.cs'
+        helper.parent.mkdir(parents=True)
+        helper.write_text('source-bound metadata reader', encoding='utf-8')
+        original = upgrade.release_fingerprint(release)
+        for directory in ('bin', 'obj', 'node_modules', '__pycache__', 'playwright-report', 'test-results', '.auth'):
+            output = helper.parent / directory / 'generated.txt'
+            output.parent.mkdir()
+            output.write_text('generated build output', encoding='utf-8')
+        self.assertEqual(original, upgrade.release_fingerprint(release))
+        archive = self.root / 'component.zip'
+        deterministic_zip(component, archive)
+        with zipfile.ZipFile(archive) as packed:
+            self.assertEqual(['scripts/assembly_graph/Program.cs'], packed.namelist())
+        helper.write_text('changed shipped verifier source', encoding='utf-8')
+        self.assertNotEqual(original, upgrade.release_fingerprint(release))
 
     def test_missing_cli_runtime_is_an_actionable_pre_mutation_failure(self):
         before = self.snapshot()

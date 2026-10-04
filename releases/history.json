@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "supportedFrom": "0.12.5",
+  "entries": [
+    {
+      "version": "0.12.5",
+      "previous": null,
+      "guide": "migration-0.12.5.md",
+      "automatic": [],
+      "review": [],
+      "verification": [
+        "Validate installation coherence and retain the existing consumer readiness gates."
+      ],
+      "verificationChecks": ["installation-coherence"],
+      "recovery": [
+        "Use the maintained updater retry command and preserve failed attempt evidence."
+      ]
+    },
+    {
+      "version": "0.12.6",
+      "previous": "0.12.5",
+      "guide": "migration-0.12.6.md",
+      "automatic": [
+        "Capture and preserve accepted exact dependency inputs before installation.",
+        "Discover exact repository-local SDK, Node and npm tools.",
+        "Use the public private Foundation Build 0.1.0 package for canonical consumer descriptors while retaining runtime pins."
+      ],
+      "review": [
+        "Accept this exact migration plan and review affected stale compatibility evidence.",
+        "Review any explicit exporter reconciliation separately from the retained runtime profile."
+      ],
+      "verification": [
+        "Validate installation coherence, native locks and affected consumer pipeline stages.",
+        "Verify refreshed feature locks and canonical-only packed descriptors; keep engineering packages out of runtime dependencies.",
+        "Complete required analysis and compatibility renewal; pending evidence prevents application readiness."
+      ],
+      "verificationChecks": ["installation-coherence", "dependency-verification", "required-phase-evidence"],
+      "recovery": [
+        "Retry the same verified release using its sealed original-input archive; reject missing or contradictory provenance."
+      ]
+    }
+  ]
+}

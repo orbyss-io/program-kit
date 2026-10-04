@@ -24,8 +24,26 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
 
     result = {'sources': sources, 'selected_packages': [], 'identity_runtime': None, 'persistence_runtimes': [],
               'evidence_boundary': 'Selected identities and installed templates are planning inputs, not license admission or executed interoperability evidence. Inspect exact selected publisher/package license evidence; preserve unknowns and run the retained bounded proofs.'}
+    catalog_relative = '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
+    selection_relative = 'docs/architecture/building-block-selection.json'
+    catalog_path = None
+    module = None
+    if (root / selection_relative).is_file():
+        selection_path = bind(selection_relative)
+        candidate_path = bind(catalog_relative)
+        resolver_path = bind('.specify/extensions/program-kit-building-blocks/scripts/building_blocks.py')
+        spec = importlib.util.spec_from_file_location('bootstrap_provider_resolver', resolver_path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        selection = json.loads(selection_path.read_text(encoding='utf-8'))
+        catalog_path = module.consumer_catalog(root, selection, candidate_path)
+        if catalog_path != candidate_path:
+            bind(catalog_path.relative_to(root).as_posix())
+            record = json.loads(bind('.program-kit/dependency-profile.json').read_text(encoding='utf-8'))
+            bind(record['profilePath'])
     if 'dotnet' in decisions.get('selected_profiles', []) and not decisions.get('dotnet', {}).get('program_kit_host_opt_out'):
-        catalog = json.loads(bind('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json').read_text(encoding='utf-8'))
+        catalog = json.loads((catalog_path or bind(catalog_relative)).read_text(encoding='utf-8'))
         relative = '.specify/extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json'
         evidence = json.loads(bind(relative).read_text(encoding='utf-8'))
         version = catalog['families']['foundation']['releaseVersion']
@@ -38,16 +56,7 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
             'distributionNoticeCount': len(evidence['hostDistribution']['noticeFiles']),
             'maintenance': evidence['maintenance'], 'assessment': evidence['assessment'],
             'metadataExceptions': evidence['hostDistribution']['metadataExceptions']}
-    selection_relative = 'docs/architecture/building-block-selection.json'
-    if (root / selection_relative).is_file():
-        selection_path = bind(selection_relative)
-        catalog_path = bind('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json')
-        resolver_path = bind('.specify/extensions/program-kit-building-blocks/scripts/building_blocks.py')
-        spec = importlib.util.spec_from_file_location('bootstrap_provider_resolver', resolver_path)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[spec.name] = module
-        spec.loader.exec_module(module)
-        selection = json.loads(selection_path.read_text(encoding='utf-8'))
+    if module is not None:
         catalog = json.loads(catalog_path.read_text(encoding='utf-8'))
         # Reuse the existing resolver including its Draft placement and catalog checks.
         # The returned in-memory plan is never written as an Accepted lock.

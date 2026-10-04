@@ -99,7 +99,8 @@ def run(*command: str, cwd: Path) -> subprocess.CompletedProcess[str]:
 
 
 def require_offline_setup(result, label):
-    if result.returncode == 3 and 'PKU113 managed setup is coherent; dependency verification remains pending' in result.stderr:
+    if result.returncode == 3 and ('PKU113 managed setup is coherent; dependency verification remains pending' in result.stderr
+                                or 'PKU132 installation is coherent; migration verification remains pending' in result.stderr):
         if '"readinessScope": "offline-setup"' not in result.stdout or '"blockers": []' not in result.stdout:
             raise AssertionError('Upgrade did not establish offline setup: ' + result.stdout)
         return
@@ -134,6 +135,24 @@ def lifecycle_sha256(path: Path) -> str:
     text = path.read_text(encoding="utf-8")
     canonical = re.sub(r"(?m)^(\s*-\s+\[)[ xX](\]\s+)", r"\1 \2", text)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def seed_migration_review(project: Path, old: str) -> None:
+    """Deterministic stand-in for an already Accepted historical bridge."""
+    updater = load_updater()
+    _, plan = updater.migration_plan(ROOT, old, (ROOT / 'VERSION').read_text().strip())
+    digest = hashlib.sha256(json.dumps(plan, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    directory = project / 'docs/architecture'
+    directory.mkdir(parents=True, exist_ok=True)
+    decision = directory / 'decisions/migration-bridge.md'
+    decision.parent.mkdir(parents=True, exist_ok=True)
+    decision.write_text('# Deterministic bridge fixture\n\nStatus: Accepted\n\nReviewed exact migration plan: ' + digest)
+    map_path = directory / 'architecture-map.json'
+    model = json.loads(map_path.read_text()) if map_path.is_file() else {'decisions': []}
+    model['decisions'] = [item for item in model.get('decisions', []) if item['id'] != 'migration-bridge']
+    model['decisions'].append({'id': 'migration-bridge', 'status': 'Accepted', 'path': decision.relative_to(project).as_posix(), 'sha256': sha256(decision)})
+    map_path.write_text(json.dumps(model))
+    (directory / 'release-migration-review.json').write_text(json.dumps({'schemaVersion': 1, 'decisionId': 'migration-bridge', 'planSha256': digest}))
 
 
 def seed_confirmed_feature_intake(project: Path, spec: Path) -> None:
@@ -476,6 +495,7 @@ def main() -> int:
                         *(project / 'docs/architecture/compatibility').glob('*')]
         immutable_probes = {path: path.read_bytes() for path in probe_inputs if path.is_file()}
         immutable_decisions = bootstrap_decisions.read_bytes()
+        seed_migration_review(project, old)
         command = (
             sys.executable, str(UPDATER), "--release-root", str(ROOT),
             "--target", str(project), "--integration", "codex",
@@ -659,6 +679,7 @@ def main() -> int:
             (ROOT / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json").read_text(encoding="utf-8")
         )
         target_runtime = building_blocks["families"]["foundation"]["releaseVersion"]
+        target_exporter = building_blocks["packages"]["nuget:Orbyss.Foundation.OpenApi.Exporter"]["version"]
         feature = seed_openapi_lifecycle(project, old_runtime)
         (project / "Program.slnx").write_text("<Solution />\n", encoding="utf-8")
         (project / "packages.lock.json").write_text(
@@ -709,11 +730,11 @@ def main() -> int:
                 f"{reconciled.stdout}{reconciled.stderr}"
             )
         contract_value = json.loads(contract_path.read_text(encoding="utf-8"))
-        if contract_value["producer"]["version"] != target_runtime:
+        if contract_value["producer"]["version"] != target_exporter:
             raise AssertionError("registered OpenAPI producer pin did not advance atomically")
         for name in ("plan.md", "tasks.md", "research.md"):
             text = (feature / name).read_text(encoding="utf-8")
-            if old_runtime in text or target_runtime not in text:
+            if old_runtime in text or target_exporter not in text:
                 raise AssertionError(f"exact OpenAPI planning pin did not advance in {name}")
         lifecycle_path = project / ".program-kit/lifecycle/001-openapi-upgrade.json"
         lifecycle_value = json.loads(lifecycle_path.read_text(encoding="utf-8"))
@@ -723,7 +744,7 @@ def main() -> int:
         if (
             invalidation.get("reason") != "program-kit-openapi-producer-pin-reconciliation"
             or invalidation.get("fromVersions") != [old_runtime]
-            or invalidation.get("toVersion") != target_runtime
+            or invalidation.get("toVersion") != target_exporter
         ):
             raise AssertionError(f"lifecycle invalidation audit is incomplete: {invalidation}")
         lock_renewal = json.loads(
@@ -736,7 +757,7 @@ def main() -> int:
             "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py locked --approved --lock .program-kit/sync/dependencies.json --request .program-kit/evidence/building-block-restore-request.json",
         ]
         if (
-            lock_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != target_runtime
+            lock_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != building_blocks["families"]["foundation"]["releaseVersion"]
             or lock_renewal.get("affectedLocks") != ["packages.lock.json"]
             or lock_renewal.get("renewalCommands") != expected_commands
             or lock_renewal.get("satisfied") is not False
@@ -862,11 +883,23 @@ def main() -> int:
             (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
         )
         if (
-            satisfied_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != target_runtime
+            satisfied_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != building_blocks["families"]["foundation"]["releaseVersion"]
             or satisfied_renewal.get("reason") != "shared-dependency-verification-pending"
             or satisfied_renewal.get("satisfied") is not False
         ):
             raise AssertionError(f"NuGet lock renewal did not converge: {satisfied_renewal}")
+
+        migration = json.loads((project / '.specify/governance/migration-completion.json').read_text())
+        if migration['status'] != 'pending' or migration['migrationCompletionEstablished']:
+            raise AssertionError('Pending consumer verification was reported as a completed migration')
+        before_plan = {path.relative_to(project).as_posix(): sha256(path) for path in project.rglob('*') if path.is_file()}
+        preview = run(*command, '--plan', cwd=project)
+        require_success(preview, 'unfinished migration read-only plan')
+        preview_plan = json.loads(preview.stdout)
+        if preview_plan['fromVersion'] != old or preview_plan['toVersion'] != expected or not preview_plan['migrations']:
+            raise AssertionError('Installed files caused the unfinished migration origin to disappear')
+        if before_plan != {path.relative_to(project).as_posix(): sha256(path) for path in project.rglob('*') if path.is_file()}:
+            raise AssertionError('Migration preview mutated consumer authority or evidence')
 
         lock = project / ".specify/program-kit-upgrade.lock"
         lock.write_text("test lock\n", encoding="utf-8")

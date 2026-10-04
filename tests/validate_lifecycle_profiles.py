@@ -351,8 +351,8 @@ def validate_release_feature_closure() -> None:
                     archive.writestr("program-kit/feature.json", json.dumps(descriptor))
             return path
 
-        tasks = package("Orbyss.Foundation.Tasks")
-        domain_events = package("Orbyss.Foundation.DomainEvents")
+        tasks = package("Orbyss.Foundation.Tasks", "FoundationTasks")
+        domain_events = package("Orbyss.Foundation.DomainEvents", "Orbyss.Foundation.DomainEvents", dormant=True)
         orders = package("Orders.Feature", "Orders", routes=["/orders"])
         identities = {("Orbyss.Foundation.Tasks", "1.0.0"): tasks, ("Orders.Feature", "1.0.0"): orders}
         shells = root / "shells.json"
@@ -871,9 +871,11 @@ def validate_managed_sources() -> None:
             ElementTree.parse(source)
 
     targets = (template / "files/.program-kit/eng/ProgramKit.Build.targets").read_text(encoding="utf-8")
-    for phrase in ("ProgramKitFeatureMetadata", "PKF101", "feature_metadata.py"):
+    for phrase in ("ProgramKitFeatureMetadata", "PKF101", "Orbyss.Foundation.Build", "FoundationEmitFeatureDescriptor"):
         if phrase not in targets:
             raise AssertionError(f"managed build target is missing {phrase}")
+    if 'feature_metadata.py' in targets or 'PackagePath="program-kit/feature.json"' in targets:
+        raise AssertionError('consumer pack must use the Foundation-owned canonical descriptor builder')
     if "ProgramKitApiContracts" in targets or "ProgramKitOpenApiGeneratedDocument" in targets:
         raise AssertionError("legacy consumer-supplied OpenAPI document target remains active")
     pipeline = (template / "files/.program-kit/eng/openapi_pipeline.py").read_text(encoding="utf-8")

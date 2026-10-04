@@ -47,6 +47,11 @@ class CentralPinsTests(unittest.TestCase):
     def package(self, destination, identity, version, dependencies=""):
         with zipfile.ZipFile(destination, "w") as archive:
             archive.writestr(identity + ".nuspec", f"<package><metadata><id>{identity}</id><version>{version}</version>{dependencies}</metadata></package>")
+            features = [name for name, package in host.BUILT_IN_FEATURE_PACKAGES.items() if package == identity]
+            if features:
+                archive.writestr('orbyss-foundation/feature.json', json.dumps({'schemaVersion': 2, 'packageId': identity,
+                    'features': [{'identity': feature, 'featureDependencies': [], 'runtimeDependencies': [],
+                                  'routes': [], 'dormant': True} for feature in features]}))
 
     def download(self, identity, version, bases, destination):
         self.downloads.append((identity, version))
@@ -61,7 +66,7 @@ class CentralPinsTests(unittest.TestCase):
     def test_real_imported_consumer_layout_stages_and_verifies_closure(self):
         self.assertNotIn("Orbyss.Foundation.Web.OpenApi", self.managed.read_text(encoding="utf-8"))
         self.stage()
-        expected = {(identity, "0.1.0") for identity in self.features} | host.BUILT_IN_FEATURE_RUNTIME_PACKAGES["Orbyss.Foundation.Web.OpenApi"]
+        expected = {(identity, "0.1.0") for identity in self.features}
         self.assertEqual(set(self.downloads), expected)
         evidence = host.runtime_closure.validate(self.repository, self.output, self.repository / host.runtime_closure.EVIDENCE, host.PROGRAM_KIT_VERSION)
         self.assertTrue(evidence["satisfied"])

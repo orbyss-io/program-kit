@@ -40,7 +40,25 @@ def validate_graph(root, manifest, evaluated, compiled):
             require(path.is_relative_to(root), 'Evaluated project reference escapes repository')
             refs.add(path.relative_to(root).as_posix())
         require(refs == set(project['projectReferences']), f'Evaluated references differ from accepted graph: {relative}')
-        packages = {item['Identity'] for item in data['Items'].get('PackageReference', [])}
+        packages = set()
+        for item in data['Items'].get('PackageReference', []):
+            # Verified private engineering imports are outside the consumer runtime graph.
+            origin = item.get('DefiningProjectFullPath')
+            if (item['Identity'] == 'Orbyss.Foundation.Analyzers' and origin
+                    and Path(origin).resolve() == (root / '.program-kit/eng/ProgramKit.Build.props').resolve()):
+                assets = {asset.strip().lower() for asset in item.get('IncludeAssets', '').split(';')}
+                require(item.get('PrivateAssets', '').lower() == 'all'
+                        and assets and not assets & {'compile', 'all', ''},
+                        'Managed analyzer must remain private and outside compile assets')
+                continue
+            if (item['Identity'] == 'Orbyss.Foundation.Build' and origin
+                    and Path(origin).resolve() == (root / '.program-kit/eng/ProgramKit.Build.targets').resolve()):
+                assets = {asset.strip().lower() for asset in item.get('IncludeAssets', '').split(';')}
+                require(item.get('PrivateAssets', '').lower() == 'all'
+                        and assets == {'build', 'buildtransitive'},
+                        'Managed descriptor builder must remain private with only build assets')
+                continue
+            packages.add(item['Identity'])
         require(packages == set(project['packageReferences']), f'Evaluated package references differ: {relative}')
         actual = assemblies[data['Properties']['AssemblyName']]
         compiled_refs = {owners[name] for name in actual['references'] if name in owners}
@@ -69,15 +87,19 @@ def validate_graph(root, manifest, evaluated, compiled):
         visit(node, set(), visited)
     by_project = {p: {t['name']: t for t in assemblies[evaluated[p]['Properties']['AssemblyName']]['types']} for p in projects}
     type_records = [t for a in compiled for t in a['types'] if t['name'] != '<Module>']
-    all_types = {t['name']: t for t in type_records}
-    require(len(all_types) == len(type_records), 'Ambiguous duplicate compiled type names need an assembly-aware equivalent verifier')
+    all_types = {}
+    for item in type_records:
+        all_types.setdefault(item['name'], []).append(item)
     def implements(name, capability, seen):
         if name == capability:
             return True
         if name in seen or name not in all_types:
             return False
         seen.add(name)
-        item = all_types[name]
+        candidates = all_types[name]
+        require(len(candidates) == 1,
+                'Ambiguous capability type names need an assembly-aware equivalent verifier')
+        item = candidates[0]
         return any(implements(parent, capability, seen) for parent in [*item['interfaces'], item['baseType']])
     for binding in manifest['runtimeComposition'].get('bindings', []):
         capability = by_project[binding['capabilityProject']].get(binding['capability'])

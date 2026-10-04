@@ -45,7 +45,7 @@ from live.run_bootstrap_acceptance import prepare_local_catalog_server, specify_
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS = ROOT / "tests/live/schemas/v2"
-SCENARIO = ROOT / "tests/live/scenarios/internal-forms-workspace/v3"
+SCENARIO = ROOT / "tests/live/scenarios/internal-forms-workspace/v4"
 CATALOG = ROOT / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
 RESOLVER = ROOT / "extensions/program-kit-building-blocks/scripts/building_blocks.py"
 RESTORE = ROOT / "extensions/program-kit-building-blocks/scripts/restore_dependencies.py"
@@ -119,7 +119,7 @@ def main() -> int:
         raise AssertionError("Interactive authorization no longer displays and binds the actual Codex launcher version")
     scenario, expectation, expectation_path = load_scenario(SCENARIO, SCHEMAS)
     authority = scenario_authority(SCENARIO, SCHEMAS)
-    if expectation["catalogSha256"] != "0ca415b7627d5d335c53582a3694dc98c6ece6a205c7dbf8425b3897b912ec81":
+    if expectation["catalogSha256"] != "a639142c4fa4ce82c1fe843a82a9e94094160a70644fe34b79629c0e3c03dc22":
         raise AssertionError("Internal Forms expectation lost its reviewed catalog binding")
 
     resolver = load_module("live_v2_building_blocks", RESOLVER)
@@ -246,9 +246,19 @@ def main() -> int:
             "program-kit-dotnet-9.9.9.zip", "program-kit-governance-preset-9.9.9.zip",
             "program-kit-bootstrap-9.9.9.zip", "program-kit-9.9.9.zip",
             "Initialize-ProgramKit-9.9.9.cmd", "Initialize-ProgramKit-9.9.9.sh", "SHA256SUMS",
+            "RELEASE-NOTES-9.9.9.md", "MIGRATIONS-9.9.9.md",
+            "migration-index-9.9.9.json", "migration-9.9.9.md",
+            "dependency-profile-index-9.9.9.json",
         }
         for name in candidate_names | {"program-kit-stale-1.0.0.zip"}:
             (artifacts / name).write_text(name, encoding="utf-8")
+        atomic_write_json(artifacts / "migration-index-9.9.9.json",
+                          {"entries": [{"guide": "migration-9.9.9.md"}]})
+        atomic_write_json(artifacts / "dependency-profile-index-9.9.9.json",
+                          {"schemaVersion": 1, "profiles": []})
+        (artifacts / 'SHA256SUMS').write_text(''.join(
+            f'{receipt_writer.sha256(artifacts / name)}  {name}\n'
+            for name in sorted(candidate_names - {'SHA256SUMS'})), encoding='utf-8')
         recorded_names = {Path(record["path"]).name for record in receipt_writer.artifact_records(artifacts, "9.9.9")}
         if recorded_names != candidate_names:
             raise AssertionError(f"Release receipt did not isolate the exact current candidate: {recorded_names}")

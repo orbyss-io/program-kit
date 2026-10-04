@@ -23,6 +23,104 @@ from validate_governance_state import roadmap
 
 
 class AuditTests(unittest.TestCase):
+    def test_migration_scope_preserves_future_feature_gates_without_blocking_tool_upgrade(self):
+        import upgrade_remediation as remediation
+        self.proof()
+        self.write('specs/current/spec.md', '# Existing feature')
+        self.write('specs/current/tasks.md', '# Existing tasks')
+        for name in ('phase-obligations.json', 'obligation-design.json', 'obligation-review.json'):
+            self.write('specs/current/' + name, {})
+        self.write('specs/future/spec.md', '# Specified, not yet planned')
+        with patch.object(remediation, 'check'):
+            result = remediation.assess(self.root)
+        self.assertFalse(result['applicationReady'])
+        self.assertTrue(remediation.migration_phase_ready(result))
+        self.assertEqual([True, False], [feature['migrationVerificationRequired'] for feature in result['features']])
+        self.write('.program-kit/lifecycle/current.json', {'invalidations': [{'phase': 'afterTasksAnalysis'}]})
+        (self.root / 'specs/current/tasks.md').unlink()
+        with patch.object(remediation, 'check', side_effect=ValueError('Affected evidence is stale')):
+            result = remediation.assess(self.root)
+        self.assertFalse(remediation.migration_phase_ready(result))
+        del result['features'][0]['migrationVerificationRequired']
+        with self.assertRaisesRegex(ValueError, 'explicit feature scope'):
+            remediation.migration_phase_ready(result)
+
+    def test_precapture_engineering_pins_use_verified_installed_selection(self):
+        from repository_sync import provider
+        renderer = provider('program-kit-dotnet/scripts/dependency_profile.py')
+        installed = copy.deepcopy(self.catalog)
+        installed['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'] = '0.2.3'
+        installed['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter'] = '0.2.3'
+        accepted_fixture(self.blocks, self.root, installed)
+        self.write('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json', installed)
+        manifest = json.dumps({'tools': {'orbyss.foundation.openapi.exporter': {'version': '0.2.4'}}}).encode()
+        before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+        rendered = renderer.render(self.root, '.program-kit/eng/.config/dotnet-tools.json', manifest)
+        self.assertEqual('0.2.3', json.loads(rendered)['tools']['orbyss.foundation.openapi.exporter']['version'])
+        self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
+        # Exercise the actual standalone boundary without governance on sys.path,
+        # both before capture and with a retained exact-profile sidecar.
+        code = ('import importlib.util,json,pathlib,sys; '
+                'spec=importlib.util.spec_from_file_location("renderer",sys.argv[1]); '
+                'module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module); '
+                'print(module.render(pathlib.Path(sys.argv[2]),sys.argv[3],sys.argv[4].encode()).decode())')
+        for captured in (False, True):
+            if captured:
+                self.blocks.preserve_dependency_profile(self.root, self.blocks.load_json(self.selection),
+                    self.root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json')
+            result = subprocess.run([sys.executable, '-I', '-c', code, renderer.__file__, str(self.root),
+                                     '.program-kit/eng/.config/dotnet-tools.json', manifest.decode()],
+                                    capture_output=True, text=True)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            self.assertEqual('0.2.3', json.loads(result.stdout)['tools']['orbyss.foundation.openapi.exporter']['version'])
+        (self.root / '.program-kit/dependency-profile.json').unlink()
+        installed['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'] = '0.2.2'
+        installed['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter'] = '0.2.2'
+        self.write('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json', installed)
+        with self.assertRaisesRegex(ValueError, 'resolution'):
+            renderer.render(self.root, '.program-kit/eng/.config/dotnet-tools.json', manifest)
+
+    def test_historical_scratch_classification_does_not_grant_current_compatibility(self):
+        source = self.proof()
+        receipt = self.root / '.specify/governance/proof/proof.json'
+        preserved = receipt.read_bytes()
+        changed = lifecycle.proof_tooling()
+        changed['program-kit-governance/scripts/bootstrap_lifecycle.py'] = '0' * 64
+        with patch.object(lifecycle, 'proof_tooling', return_value=changed):
+            self.assertIn(source.resolve(), audit.evidence_inputs(self.root))
+            from governance_state import roadmap_records
+            with self.assertRaisesRegex(ValueError, 'tooling changed'):
+                lifecycle.validate_prerequisites(self.root, roadmap_records(self.root / 'docs/architecture/specification-roadmap.md'))
+            from upgrade_remediation import assess
+            readiness = assess(self.root)
+            self.assertFalse(readiness['applicationReady'])
+            self.assertTrue(readiness['compatibility'])
+            renewal = readiness['compatibility'][0]['renewal']
+            self.assertEqual([{'path': 'program-kit-governance/scripts/bootstrap_lifecycle.py',
+                'beforeSha256': lifecycle.load(receipt)['tooling_sources']['program-kit-governance/scripts/bootstrap_lifecycle.py'],
+                'afterSha256': '0' * 64}], renewal['proofs'][0]['changedTooling'])
+            self.assertFalse(renewal['approvalPerformed'])
+            self.assertFalse(renewal['workflowStarted'])
+            self.assertIsNone(renewal['command'])
+            self.write('.specify/governance/bootstrap-completion.json', {'status': 'Completed',
+                'workflow': {'run_id': 'original-r-12345678'}})
+            readiness = assess(self.root)
+            renewal = readiness['compatibility'][0]['renewal']
+            self.assertEqual(['python', '.specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py',
+                'resume', '--run-id', 'original-r-12345678', '--post-bootstrap'], renewal['command'])
+            self.assertEqual('human', renewal['executionOwner'])
+            self.assertEqual(str(self.root.resolve()), renewal['cwd'])
+            # A corrupt completion can never supply an executable recovery command.
+            self.write('.specify/governance/bootstrap-completion.json', {'status': 'Completed',
+                'workflow': {'run_id': '../outside'}})
+            unavailable = assess(self.root)['compatibility'][0]['renewal']
+            self.assertIsNone(unavailable['command'])
+            self.assertIn('valid completed source', unavailable['continuationUnavailable'])
+        self.assertEqual(preserved, receipt.read_bytes())
+        source.write_bytes(source.read_bytes() + b'changed')
+        with self.assertRaisesRegex(ValueError, 'inputs/streams changed'):
+            audit.evidence_inputs(self.root)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='program-kit-dependency-audit-')
         self.addCleanup(self.temp.cleanup)
@@ -155,6 +253,37 @@ class AuditTests(unittest.TestCase):
         candidate.write_text('{}')
         with self.assertRaisesRegex(self.blocks.ResolverError, 'candidate manifest changed'):
             self.run_audit()
+
+    def test_upgrade_admission_uses_installed_engineering_template_and_exact_receipt(self):
+        command = [sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                   '--target', str(self.root), '--profile-selected', '--foundation-host-accepted',
+                   '--building-block-sources-approved', '--web-profile', 'none']
+        result = subprocess.run(command, capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
+        installed = self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files'
+        for relative in ('.program-kit/eng/ProgramKit.Packages.props', '.program-kit/eng/.config/dotnet-tools.json'):
+            destination = installed / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes((source / relative).read_bytes())
+        relative = '.program-kit/eng/ProgramKit.Packages.props'
+        previous = (installed / relative).read_bytes().replace(b'    <PackageVersion Include="Orbyss.Foundation.Build" Version="0.1.0" />\n', b'')
+        self.assertNotEqual(previous, (source / relative).read_bytes())
+        (installed / relative).write_bytes(previous)
+        (self.root / relative).write_bytes(previous)
+        state_path = self.root / '.program-kit/managed.json'
+        state = json.loads(state_path.read_text())
+        for key in ('templateHash', 'lastWrittenHash', 'installedHash', 'baselineHash'):
+            state['files'][relative][key] = audit.sha(self.root / relative)
+        state_path.write_text(json.dumps(state))
+        self.assertEqual(2, len(audit.engineering_outputs(self.root)))
+        (self.root / relative).write_bytes(previous + b' ')
+        with self.assertRaisesRegex(ValueError, 'ownership hash changed'):
+            audit.engineering_outputs(self.root)
+        (self.root / relative).write_bytes(previous)
+        (installed / relative).unlink()
+        with self.assertRaisesRegex(ValueError, 'no installed ownership'):
+            audit.engineering_outputs(self.root)
 
     def test_planned_catalog_references_need_exact_target_binding(self):
         self.assertEqual([], audit.planned_selection_errors(self.root, [{'path': 'src/Test.Feature/Test.Feature.csproj', 'packageReferences': ['Orbyss.Foundation.DomainEvents']}]))

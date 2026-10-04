@@ -1,0 +1,208 @@
+{
+  "schema_version": "1.1",
+  "model_id": "internal-forms-workspace",
+  "title": "Internal Forms Workspace",
+  "sources": [
+    {
+      "id": "project-intent",
+      "path": "docs/architecture/project-intent.md",
+      "sha256": "5699fe29e07c6eade95098ef8697cd64dba2496d5f3684358d69fee20f643aa9",
+      "format": "program-kit-intent-markdown",
+      "importer": {"id": "program-kit-intake", "version": "1.1"}
+    }
+  ],
+  "decisions": [],
+  "documentation": [],
+  "constraints": [],
+  "elements": [
+    {
+      "id": "internal-employee", "type": "person", "name": "Internal employee",
+      "description": "Completes governed internal forms.", "status": "explicit", "ownership": "Business operations",
+      "technology": "Browser", "evidence": ["e-outcome"], "decision_refs": [], "tags": [], "properties": {},
+      "perspectives": [], "url": "", "group": "", "archetype": ""
+    },
+    {
+      "id": "internal-forms-workspace", "type": "software-system", "name": "Internal Forms Workspace",
+      "description": "Hosts the secure schema-driven forms journey.", "status": "explicit", "ownership": "Internal Forms team",
+      "technology": ".NET 10 and React 19", "evidence": ["e-topology"], "decision_refs": [], "tags": [], "properties": {},
+      "perspectives": [], "url": "", "group": "", "archetype": ""
+    },
+    {
+      "id": "forms-context", "type": "bounded-context", "name": "Internal Forms",
+      "description": "Owns form definition and rendering contracts.", "status": "proposed", "ownership": "Internal Forms team",
+      "technology": ".NET 10 and React 19", "parent": "internal-forms-workspace", "evidence": ["e-forms"], "decision_refs": [],
+      "tags": ["Domain"], "properties": {}, "perspectives": [], "url": "", "group": "", "archetype": ""
+    },
+    {
+      "id": "forms-api", "type": "container", "name": "Internal Forms API",
+      "description": "Owns HTTP form contracts.", "status": "explicit", "ownership": "Internal Forms team",
+      "technology": ".NET 10", "parent": "internal-forms-workspace", "evidence": ["e-topology"], "decision_refs": [],
+      "tags": ["Api"], "properties": {}, "perspectives": [], "url": "", "group": "", "archetype": ""
+    },
+    {
+      "id": "forms-bff", "type": "container", "name": "Internal Forms BFF",
+      "description": "Owns the server-managed browser session.", "status": "explicit", "ownership": "Internal Forms team",
+      "technology": ".NET 10", "parent": "internal-forms-workspace", "evidence": ["e-browser"], "decision_refs": [],
+      "tags": ["Bff"], "properties": {}, "perspectives": [], "url": "", "group": "", "archetype": ""
+    },
+    {
+      "id": "forms-web", "type": "container", "name": "Internal Forms Web",
+      "description": "Renders immutable schema-driven forms.", "status": "explicit", "ownership": "Internal Forms team",
+      "technology": "React 19", "parent": "internal-forms-workspace", "evidence": ["e-forms"], "decision_refs": [],
+      "tags": ["Web"], "properties": {}, "perspectives": [], "url": "", "group": "", "archetype": ""
+    },
+    {
+      "id": "forms-integration", "type": "domain-capability", "name": "Forms integration",
+      "description": "Composes Forms and Localization contracts.", "status": "explicit", "ownership": "Internal Forms team",
+      "technology": ".NET 10", "parent": "forms-context", "evidence": ["e-forms"], "decision_refs": [],
+      "tags": ["DomainModule"], "properties": {}, "perspectives": [], "url": "", "group": "", "archetype": ""
+    }
+  ],
+  "relationships": [
+    {
+      "id": "employee-uses-web", "source": "internal-employee", "target": "forms-web",
+      "description": "Completes internal forms", "technology": "HTTPS", "status": "explicit", "evidence": ["e-outcome"],
+      "decision_refs": [], "tags": [], "properties": {}, "perspectives": [], "url": ""
+    }
+  ],
+  "views": [
+    {
+      "key": "system-context", "type": "system-context", "title": "Internal Forms system context",
+      "description": "The employee and Internal Forms Workspace.", "scope": "internal-forms-workspace",
+      "elements": ["internal-employee", "internal-forms-workspace"], "relationships": ["employee-uses-web"],
+      "decision_refs": [], "filters": [], "order": [], "layout": {"rankDirection": "lr"}, "animations": [], "properties": {}
+    },
+    {
+      "key": "container-view", "type": "container", "title": "Internal Forms containers",
+      "description": "The accepted API, BFF, Forms, and React topology.", "scope": "internal-forms-workspace",
+      "elements": ["forms-api", "forms-bff", "forms-web", "forms-integration"], "relationships": [],
+      "decision_refs": [], "filters": [], "order": [], "layout": {"rankDirection": "lr"}, "animations": [], "properties": {}
+    },
+    {
+      "key": "domain-landscape", "type": "domain-landscape", "title": "Internal Forms domain landscape",
+      "description": "The core Internal Forms subdomain.", "scope": "internal-forms-workspace",
+      "elements": ["forms-context"], "relationships": [], "decision_refs": [], "filters": [], "order": [],
+      "layout": {"rankDirection": "lr"}, "animations": [], "properties": {}
+    },
+    {
+      "key": "context-map", "type": "context-map", "title": "Internal Forms context map",
+      "description": "The single candidate domain boundary.", "scope": "internal-forms-workspace",
+      "elements": ["forms-context"], "relationships": [], "decision_refs": [], "filters": [], "order": [],
+      "layout": {"rankDirection": "lr"}, "animations": [], "properties": {}
+    },
+    {
+      "key": "context-decomposition", "type": "context-decomposition", "title": "Internal Forms decomposition",
+      "description": "The Forms integration module inside its context.", "scope": "forms-context",
+      "elements": ["forms-context", "forms-integration"], "relationships": [], "decision_refs": [], "filters": [], "order": [],
+      "layout": {"rankDirection": "lr"}, "animations": [], "properties": {}
+    },
+    {
+      "key": "journey-complete-form", "type": "dynamic", "title": "Complete internal form",
+      "description": "The employee opens and completes an internal form.", "scope": "",
+      "elements": [], "relationships": ["employee-uses-web"], "decision_refs": [], "filters": [],
+      "order": ["employee-uses-web"], "layout": {"rankDirection": "lr"}, "animations": [], "properties": {}
+    }
+  ],
+  "configuration": {"styles": [], "themes": [], "terminology": {}, "branding": {}, "properties": {}},
+  "extensions": [],
+  "strategic_model": {
+    "version": "1.0", "status": "proposed", "decision_refs": [],
+    "founding_decisions": [
+      {
+        "id": "decision-internal-forms-topology", "title": "Preserve the existing workspace topology",
+        "question": "Which deployable and source boundaries form the workspace?",
+        "recommended_option": "Keep the supplied API, BFF, Forms integration, React frontend, shared shell, and host targets.",
+        "alternatives": ["Collapse the supplied boundaries.", "Create additional applications."],
+        "rationale": "The consumer supplied and owns these boundaries.", "consequences": ["Bootstrap must preserve every target."],
+        "confidence": "high", "affected_elements": ["forms-context"],
+        "affected_relationships": [], "status": "proposed", "evidence": ["e-topology"]
+      },
+      {
+        "id": "decision-server-managed-browser-session", "title": "Use a server-managed browser session",
+        "question": "Where is browser authentication state owned?", "recommended_option": "The BFF owns cookies and tokens.",
+        "alternatives": ["Let the SPA own access tokens."], "rationale": "The confirmed boundary requires server ownership.",
+        "consequences": ["The browser boundary selects BFF building blocks."], "confidence": "high",
+        "affected_elements": ["forms-context"], "affected_relationships": [], "status": "proposed", "evidence": ["e-browser"]
+      },
+      {
+        "id": "decision-schema-driven-forms", "title": "Use schema-driven React forms",
+        "question": "How are internal forms represented and rendered?", "recommended_option": "Use immutable JSON Forms contracts and React.",
+        "alternatives": ["Use handwritten form-specific pages."], "rationale": "The product intent explicitly selects schema-driven forms.",
+        "consequences": ["Forms and React runtime packages must compose together."], "confidence": "high",
+        "affected_elements": ["forms-context"], "affected_relationships": [], "status": "proposed", "evidence": ["e-forms"]
+      }
+    ],
+    "subdomains": [
+      {
+        "id": "internal-forms-domain", "name": "Internal Forms", "classification": "core",
+        "vision": "Deliver governed internal forms.", "ownership": "Owns form contracts and outcomes.",
+        "non_ownership": "Does not own identity-provider operation.", "language_terms": ["form", "definition", "submission"],
+        "data_ownership": ["Form definitions and submissions."], "invariants": ["Published form definitions are immutable."],
+        "lifecycle": "Versions with the form contract.", "status": "proposed", "evidence": ["e-forms"], "decision_refs": []
+      }
+    ],
+    "bounded_contexts": [
+      {
+        "element": "forms-context", "boundary_kind": "domain-model", "vision": "Own internal form semantics.",
+        "responsibilities": ["Define and render forms."], "non_responsibilities": ["Operate identity infrastructure."],
+        "language_terms": ["form", "submission"], "subdomains": ["internal-forms-domain"],
+        "data_ownership": ["Form contracts."], "invariants": ["Definitions are immutable after publication."],
+        "lifecycle": "Changes with form semantics.", "separation_rationale": "One language and owner.",
+        "split_triggers": ["A separate owner or lifecycle appears."], "status": "proposed", "evidence": ["e-forms"], "decision_refs": []
+      }
+    ],
+    "modules": [
+      {
+        "element": "forms-integration", "context": "forms-context", "kind": "domain-module",
+        "responsibilities": ["Compose Forms and Localization contracts."], "non_responsibilities": ["Own the browser session."],
+        "contracts": ["internal-form-contract"], "status": "proposed", "evidence": ["e-forms"], "decision_refs": []
+      }
+    ],
+    "contracts": [
+      {
+        "id": "internal-form-contract", "name": "Internal form contract", "kind": "data-contract",
+        "owner": "forms-context", "version": "1.0", "description": "Immutable schema-driven form contract.",
+        "status": "proposed", "evidence": ["e-forms"], "decision_refs": []
+      }
+    ],
+    "context_relationships": [],
+    "capability_bindings": [
+      {
+        "assessment": "capability-api-baseline", "module": "forms-integration", "mechanism_coverage": "managed",
+        "program_kit_capabilities": ["dotnet-host-runtime"], "semantic_owner": "forms-context",
+        "semantic_profile": "The consumer owns API behavior while Program Kit materializes selected infrastructure packages.",
+        "integration_owner": "forms-context", "provider_selection": "Foundation host", "decision_state": "explicit-user-decision",
+        "status": "proposed", "evidence": ["e-topology"], "decision_refs": []
+      },
+      {
+        "assessment": "capability-browser-bff", "module": "forms-integration", "mechanism_coverage": "managed",
+        "program_kit_capabilities": ["authenticated-browser-bff"], "semantic_owner": "forms-context",
+        "semantic_profile": "The BFF owns cookies and tokens.", "integration_owner": "forms-context",
+        "provider_selection": "BFF cookie profile", "decision_state": "explicit-user-decision",
+        "status": "proposed", "evidence": ["e-browser"], "decision_refs": []
+      },
+      {
+        "assessment": "capability-forms", "module": "forms-integration", "mechanism_coverage": "managed",
+        "program_kit_capabilities": ["forms", "localization"], "semantic_owner": "forms-context",
+        "semantic_profile": "The consumer owns form semantics and Program Kit supplies the selected integration packages.",
+        "integration_owner": "forms-context", "provider_selection": "React renderer", "decision_state": "explicit-user-decision",
+        "status": "proposed", "evidence": ["e-forms"], "decision_refs": []
+      }
+    ],
+    "journeys": [
+      {
+        "id": "journey-complete-form", "name": "Complete internal form", "source_journey": "journey-complete-form",
+        "actor_or_trigger": "internal-employee", "outcome": "A validated form submission is accepted.", "view": "journey-complete-form",
+        "steps": [{"order": 1, "relationship": "employee-uses-web", "description": "Open and complete the form.", "contract": "internal-form-contract"}],
+        "status": "proposed", "evidence": ["e-outcome"], "decision_refs": []
+      }
+    ],
+    "candidate_slices": [
+      {
+        "id": "slice-complete-form", "name": "Complete internal form", "journey": "journey-complete-form",
+        "actor_or_trigger": "internal-employee", "outcome": "Exercise the complete form journey.",
+        "contexts": ["forms-context"], "status": "proposed", "evidence": ["e-outcome"], "decision_refs": []
+      }
+    ]
+  }
+}

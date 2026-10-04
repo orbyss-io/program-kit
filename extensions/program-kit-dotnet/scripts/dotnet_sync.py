@@ -12,6 +12,7 @@ import reconciliation
 import identity_fixture
 import spa_profile
 import persistence_selection
+import dependency_profile
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -420,6 +421,7 @@ def main() -> int:
 
     state_path = target / ".program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
+    engineering_default = dependency_profile.engineering_default(target)
     persistence = persistence_selection.resolve(target, feature=args.feature_dir, requested=args.persistence_profile)
     if args.upgrade_existing:
         if not (target / '.program-kit/managed.json').is_file():
@@ -483,6 +485,10 @@ def main() -> int:
         if relative == persistence_selection.AGGREGATE:
             content = persistence_selection.render(persistence, template_root / 'files')
             rendered = True
+        retained = dependency_profile.render(target, relative, content)
+        if retained != content:
+            rendered = True
+        content = retained
         if relative == '.program-kit/eng/.config/dotnet-tools.json':
             tools = json.loads(content)
             persistence_pins = persistence_selection.pins(effective_persistence, template_root / 'files')
@@ -729,6 +735,7 @@ def main() -> int:
         )
     )
     plan_core["cleanupDirectories"] = ["eng/program-kit"] if cleanup_directories else []
+    if engineering_default is not None: plan_core['newProjectDependencyProfile'] = engineering_default
     plan_digest = stable_plan_digest(plan_core)
     plan = {**plan_core, "planDigest": plan_digest}
     if args.plan_digest and args.plan_digest != plan_digest:
@@ -755,6 +762,7 @@ def main() -> int:
         "appliedMigrations": applied_migrations,
         "files": next_files,
     }
+    if engineering_default is not None: next_state_value['newProjectDependencyProfile'] = engineering_default
     next_state = (json.dumps(next_state_value, indent=2, sort_keys=True) + "\n").encode("utf-8")
     state_changed = not state_path.is_file() or state_path.read_bytes() != next_state
     plan["stateChanged"] = state_changed

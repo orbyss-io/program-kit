@@ -171,7 +171,8 @@ def resolution_projection(catalog: dict) -> dict:
         "resolutionRevision": catalog.get("resolutionRevision"),
         "sources": copy.deepcopy(catalog.get("sources")),
         "families": {
-            key: {"releaseVersion": family.get("releaseVersion")}
+            key: {"releaseVersion": family.get("releaseVersion"),
+                  **({"toolVersions": copy.deepcopy(family["toolVersions"])} if "toolVersions" in family else {})}
             for key, family in sorted(require_object(catalog.get("families"), "catalog.families").items())
         },
         "packages": packages,
@@ -182,6 +183,26 @@ def resolution_projection(catalog: dict) -> dict:
 
 def catalog_resolution_sha256(catalog: dict) -> str:
     return canonical_sha256(resolution_projection(catalog))
+
+
+def composition_projection(catalog: dict) -> dict:
+    value = resolution_projection(catalog)
+    value.pop('resolutionRevision')
+    for family in value['families'].values():
+        family.pop('releaseVersion', None)
+        family.pop('toolVersions', None)
+    for package in value['packages'].values(): package.pop('version')
+    return value
+
+
+def dependency_profile_value(catalog: dict, identity: str) -> dict:
+    validate_catalog(catalog)
+    return {'schemaVersion': 1, 'id': identity,
+            'compositionSha256': canonical_sha256(composition_projection(catalog)),
+            'catalogResolutionSha256': catalog_resolution_sha256(catalog),
+            'resolutionRevision': catalog['resolutionRevision'],
+            'families': copy.deepcopy(resolution_projection(catalog)['families']),
+            'artifacts': {key: item['version'] for key, item in sorted(catalog['packages'].items())}}
 
 
 def validate_catalog(catalog: dict) -> None:
@@ -199,6 +220,12 @@ def validate_catalog(catalog: dict) -> None:
         fail("PKB102", "catalog sources, families, packages, and compositions must be non-empty")
     package_ids: dict[tuple[str, str], str] = {}
     feature_owners: dict[str, str] = {}
+    for family_id, family in families.items():
+        for tool_id, pin in require_object(family.get("toolVersions", {}), f"family {family_id} toolVersions").items():
+            tool = next((p for p in packages.values() if p.get('packageId') == tool_id), {})
+            if (tool.get("family") != family_id or tool.get("materialization", {}).get("kind") not in {"dotnet-tool", "nuget-global-analyzer", "host-image"}
+                    or not isinstance(pin, str) or not re.fullmatch(r"\d+\.\d+\.\d+", pin)):
+                fail("PKB105", f"family {family_id} toolVersions must name exact stable registered tools, analyzers or host images: {tool_id!r}")
     for key, package_value in sorted(packages.items()):
         package = require_object(package_value, f"catalog.packages[{key!r}]")
         ecosystem = require_id(package.get("ecosystem"), f"catalog.packages[{key!r}].ecosystem")
@@ -219,6 +246,8 @@ def validate_catalog(catalog: dict) -> None:
             fail("PKB105", f"catalog package {key!r} ecosystem differs from source {package['source']!r}")
         version = package.get("version")
         family_version = families[package["family"]].get("releaseVersion")
+        if package.get("materialization", {}).get("kind") in {"dotnet-tool", "nuget-global-analyzer", "host-image"}:
+            family_version = families[package["family"]].get("toolVersions", {}).get(package_id, family_version)
         if not isinstance(version, str) or version != family_version:
             fail("PKB105", f"catalog package {key!r} must exactly match family release {family_version!r}")
         materialization = require_object(package.get("materialization"), f"catalog package {key!r} materialization")
@@ -554,8 +583,9 @@ def resolve(
     program_kit_version: str,
     require_accepted: bool = True,
 ) -> dict:
-    catalog = load_json(catalog_path)
     selection = load_json(selection_path)
+    catalog_path = consumer_catalog(repository, selection, catalog_path)
+    catalog = load_json(catalog_path)
     validate_catalog(catalog)
     validate_selection(selection, "Accepted" if require_accepted else "Draft")
     resolution_hash = verify_catalog_binding(selection, catalog)
@@ -785,6 +815,7 @@ def resolve(
         ),
         "managedOutputs": [],
     }
+    verify_new_project_profile(repository, catalog, lock['activations'])
     lock["managedOutputs"] = managed_output_records(lock)
     lock["planDigest"] = canonical_sha256(lock)
     return lock
@@ -1412,6 +1443,192 @@ def default_catalog(script: Path) -> Path:
     return script.resolve().parents[1] / "references" / "orbyss-building-blocks.json"
 
 
+def profile_registry() -> Path:
+    return Path(__file__).resolve().parents[1] / 'references/dependency-profiles'
+
+
+def materialize_dependency_profile(catalog: dict, selected: dict) -> dict:
+    if selected.get('schemaVersion') != 1 or selected.get('compositionSha256') != canonical_sha256(composition_projection(catalog)):
+        fail('PKB610', 'dependency profile requires different composition rules; review an architecture transition')
+    if set(selected['artifacts']) != set(catalog['packages']) or set(selected['families']) != set(catalog['families']):
+        fail('PKB610', 'dependency profile must pin the complete registered artifact set')
+    result = copy.deepcopy(catalog)
+    result['resolutionRevision'] = selected['resolutionRevision']
+    for key, pin in selected['artifacts'].items(): result['packages'][key]['version'] = pin
+    for key, pins in selected['families'].items():
+        result['families'][key].pop('toolVersions', None)
+        result['families'][key].update(pins)
+    validate_catalog(result)
+    if catalog_resolution_sha256(result) != selected['catalogResolutionSha256']:
+        fail('PKB610', 'dependency profile resolution hash differs')
+    return result
+
+
+def qualified_dependency_profile(directory: Path, identity: str | None, catalog: dict) -> tuple[dict, dict]:
+    directory = Path(directory).resolve()
+    index = load_json(directory / 'index.json')
+    identity = identity or index.get('default')
+    entry = index['profiles'].get(identity)
+    if index.get('schemaVersion') != 1 or entry is None or entry.get('status') != 'qualified':
+        fail('PKB611', 'unlisted or unqualified combination requires explicit qualification before support')
+    path = repository_path(directory, entry['path'])
+    if raw_sha256(path) != entry['sha256']: fail('PKB611', 'qualified profile changed')
+    selected = load_json(path)
+    if selected['id'] != identity: fail('PKB611', 'profile identity differs')
+    result = materialize_dependency_profile(catalog, selected)
+    proof = repository_path(directory, entry['evidence']['path'])
+    if raw_sha256(proof) != entry['evidence']['sha256']: fail('PKB611', 'qualification evidence changed')
+    receipt = load_json(proof)
+    steps = receipt.get('steps')
+    if (receipt.get('catalog', {}).get('sha256') != selected['catalogResolutionSha256']
+            or not isinstance(steps, list) or not steps
+            or any(not isinstance(step, dict) or type(step.get('exitCode')) is not int
+                   or step['exitCode'] != 0 for step in steps)):
+        fail('PKB611', 'qualification receipt does not establish this exact combination')
+    if receipt.get('status') == 'release-validation-passed':
+        if not receipt.get('source', {}).get('clean'):
+            fail('PKB611', 'qualification receipt requires clean Release source')
+    elif receipt.get('status') == 'dependency-profile-qualified':
+        required = {'locked-restore', 'consumer-build-pack-stage', 'canonical-consumer-descriptors',
+                    'native-openapi-export', 'normalize-oasdiff-existing-baseline',
+                    'typescript-generation-and-application-compilation', 'native-compatibility-renewal',
+                    'native-engine-completion', 'affected-feature-readiness'}
+        source = require_object(receipt.get('source'), 'qualification.source')
+        scope = require_object(receipt.get('scope'), 'qualification.scope')
+        allowed = scope.get('allowedActivations')
+        steps = receipt['steps']
+        if (receipt.get('schemaVersion') != 1 or source.get('kind') != 'verified-program-kit-bundle'
+                or not re.fullmatch(r'[0-9a-f]{40}', str(source.get('commit', '')))
+                or any(not re.fullmatch(r'[0-9a-f]{64}', str(source.get(key, '')))
+                       for key in ('bundleSha256', 'releaseInputsSha256'))
+                or scope.get('claim') != 'native-export-and-runtime-compatibility'
+                or not isinstance(allowed, list) or not allowed
+                or any(not isinstance(value, str) for value in allowed)
+                or allowed != sorted(set(allowed))
+                or entry.get('allowedActivations') != allowed
+                or any(not isinstance(step.get('id'), str) for step in steps)
+                or {step.get('id') for step in steps} != required or len(steps) != len(required)
+                or any(not re.fullmatch(r'[0-9a-f]{64}', str(step.get('evidenceSha256', ''))) for step in steps)):
+            fail('PKB611', 'native qualification requires complete bound evidence and exact activation scope')
+        identities = {activation['featureIdentity'] for package in result['packages'].values()
+                      for activation in package.get('activations', [])}
+        if not set(allowed) <= identities:
+            fail('PKB611', 'native qualification contains an unregistered activation')
+    else:
+        fail('PKB611', 'qualification receipt does not establish this exact combination')
+    return result, selected
+
+
+def verify_qualification_scope(entry: dict, activations: list[dict]) -> None:
+    identities = {activation['featureIdentity'] for activation in activations}
+    allowed = entry.get('allowedActivations')
+    if (identities.intersection(entry.get('excludedActivations', []))
+            or (allowed is not None and not identities <= set(allowed))):
+        fail('PKB611', 'selected activation is outside the profile qualification scope; qualify a supported dependency transition')
+
+
+def new_project_catalog(identity: str | None = None) -> dict:
+    return qualified_dependency_profile(profile_registry(), identity, load_json(default_catalog(Path(__file__))))[0]
+
+
+def verify_new_project_profile(repository: Path, catalog: dict, activations: list[dict]) -> None:
+    binding = repository / '.program-kit/dependency-profile.json'
+    if not binding.is_file(): return
+    record = load_json(binding)
+    qualification = record.get('newProjectQualification')
+    if qualification is None: return  # Retained historical selections make no new qualification claim.
+    directory = profile_registry()
+    entry = load_json(directory / 'index.json')['profiles'].get(qualification.get('profile'))
+    if entry is None or canonical_sha256(entry) != qualification.get('entrySha256'):
+        fail('PKB611', 'new-project qualification scope changed; review its profile explicitly')
+    qualified, _ = qualified_dependency_profile(directory, qualification['profile'], catalog)
+    if catalog_resolution_sha256(qualified) != catalog_resolution_sha256(catalog):
+        fail('PKB611', 'new-project profile differs from its qualified exact dependencies')
+    verify_qualification_scope(entry, activations)
+
+
+def draft_qualified_selection(repository: Path, selection_path: Path, catalog: dict, capabilities: list[str], identity: str | None = None) -> None:
+    binding = repository / '.program-kit/dependency-profile.json'
+    if binding.exists(): fail('PKB120', 'dependency profile already exists; recover its existing selection instead of creating another Draft')
+    directory = profile_registry()
+    managed = repository / '.program-kit/managed.json'
+    engineering = load_json(managed).get('newProjectDependencyProfile') if managed.is_file() else None
+    if identity is None and engineering:
+        entry = load_json(directory / 'index.json')['profiles'].get(engineering.get('profile'))
+        if entry is None or canonical_sha256(entry) != engineering.get('entrySha256'):
+            fail('PKB611', 'scaffolded dependency qualification changed; review a profile explicitly')
+        identity = engineering['profile']
+    qualified, selected = qualified_dependency_profile(directory, identity, catalog)
+    if engineering and identity == engineering.get('profile') and catalog_resolution_sha256(qualified) != engineering.get('catalogResolutionSha256'):
+        fail('PKB611', 'scaffolded dependency profile changed')
+    entry = load_json(directory / 'index.json')['profiles'][selected['id']]
+    draft_selection(repository, selection_path, qualified, capabilities)
+    snapshot = repository / '.program-kit/dependency-profiles' / (catalog_resolution_sha256(qualified) + '.json')
+    content = pretty_json(qualified)
+    try:
+        if snapshot.exists() and load_json(snapshot) != qualified:
+            fail('PKB111', 'immutable dependency profile snapshot changed')
+        if not snapshot.exists(): atomic_write(snapshot, content)
+        preserve_dependency_profile(repository, load_json(selection_path), snapshot)
+        record = load_json(binding)
+        record['newProjectQualification'] = {'profile': selected['id'], 'entrySha256': canonical_sha256(entry)}
+        atomic_write(binding, pretty_json(record))
+    except Exception:
+        binding.unlink(missing_ok=True)
+        selection_path.unlink(missing_ok=True)
+        raise
+
+
+def consumer_catalog(repository: Path, selection: dict, candidate: Path) -> Path:
+    """Resolve retained exact dependencies independently from installed Program Kit."""
+    record_path = repository / '.program-kit/dependency-profile.json'
+    if not record_path.exists(): return candidate
+    record = load_json(record_path)
+    if record.get('schemaVersion') != 2 or record.get('resolutionSha256') != selection['catalog'].get('resolutionSha256'):
+        fail('PKB111', 'dependency profile differs from accepted selection; review a dependency transition')
+    path = repository_path(repository, record['catalogPath'])
+    if raw_sha256(path) != record.get('catalogSha256'):
+        fail('PKB111', 'dependency profile snapshot is missing or changed')
+    if catalog_resolution_sha256(load_json(path)) != record['resolutionSha256']:
+        fail('PKB111', 'dependency profile resolution binding is corrupt')
+    profile = repository_path(repository, record['profilePath'])
+    if raw_sha256(profile) != record['profileSha256'] or load_json(profile) != dependency_profile_value(load_json(path), record['id']):
+        fail('PKB111', 'immutable exact dependency profile changed')
+    return path
+
+
+def preserve_dependency_profile(repository: Path, selection: dict, catalog_path: Path) -> Path:
+    """Capture selected exact inputs; Draft capture grants no acceptance authority."""
+    catalog = load_json(catalog_path)
+    validate_catalog(catalog)
+    digest = verify_catalog_binding(selection, catalog)
+    relative = '.program-kit/dependency-profiles/' + digest + '.json'
+    snapshot = repository_path(repository, relative)
+    if snapshot.exists() and load_json(snapshot) != catalog:
+        fail('PKB111', 'immutable dependency profile snapshot changed')
+    if not snapshot.exists(): atomic_write_bytes(snapshot, catalog_path.read_bytes(), 'profile-capture')
+    identity = 'accepted-' + digest[:16]
+    profile_relative = '.program-kit/dependency-profiles/' + digest + '.profile.json'
+    profile_path = repository_path(repository, profile_relative)
+    profile = dependency_profile_value(catalog, identity)
+    if profile_path.exists() and load_json(profile_path) != profile:
+        fail('PKB111', 'immutable exact dependency profile changed')
+    if not profile_path.exists(): atomic_write(profile_path, pretty_json(profile))
+    binding = repository / '.program-kit/dependency-profile.json'
+    previous = load_json(binding) if binding.is_file() else {}
+    record = {'schemaVersion': 2, 'id': identity,
+              'resolutionSha256': digest, 'catalogPath': relative,
+              'catalogSha256': raw_sha256(snapshot),
+              'profilePath': profile_relative, 'profileSha256': raw_sha256(profile_path),
+              'familyReleases': selection['catalog']['familyReleases'],
+              'authority': ('retained accepted selection; no new compatibility claim' if selection['status'] == 'Accepted'
+                            else 'retained Draft dependency suggestions; no acceptance or compatibility approval')}
+    if previous.get('resolutionSha256') == digest and 'newProjectQualification' in previous:
+        record['newProjectQualification'] = previous['newProjectQualification']
+    atomic_write(binding, pretty_json(record))
+    return snapshot
+
+
 def catalog_binding(catalog: dict) -> dict:
     return {
         "id": catalog["catalogId"],
@@ -1458,6 +1675,29 @@ def draft_selection(repository: Path, selection_path: Path, catalog: dict, capab
     atomic_write(selection_path, pretty_json(selection))
 
 
+def registered_selection(repository: Path, selection_path: Path, selection: dict, architecture: dict) -> dict:
+    """Compute the architecture registration before a recoverable promotion writes it."""
+    try:
+        relative = selection_path.resolve().relative_to(repository.resolve()).as_posix()
+    except ValueError:
+        fail('PKB300', f'selection path escapes the repository: {selection_path}')
+    result = copy.deepcopy(architecture)
+    documentation = require_list(result.get('documentation'), 'architecture-map.documentation')
+    matching = [item for item in documentation if isinstance(item, dict) and item.get('path') == relative]
+    if len(matching) > 1:
+        fail('PKB123', f'architecture map contains duplicate documentation entries for {relative}')
+    registration = {
+        'id': selection['selectionId'], 'path': relative,
+        'sha256': hashlib.sha256(pretty_json(selection).encode('utf-8')).hexdigest(),
+        'canonicalSha256': canonical_sha256(selection),
+        'scope': 'Accepted building-block selection and exact consumer project assignment.',
+    }
+    if matching: documentation[documentation.index(matching[0])] = registration
+    else: documentation.append(registration)
+    result['documentation'] = sorted(documentation, key=lambda item: (str(item.get('path', '')).casefold(), str(item.get('id', ''))))
+    return result
+
+
 def accept_selection(
     repository: Path,
     selection_path: Path,
@@ -1470,8 +1710,11 @@ def accept_selection(
     selection = load_json(selection_path)
     if selection.get("status") != "Draft":
         fail("PKB122", f"only a Draft selection can be accepted; found {selection.get('status')!r}")
+    if catalog_resolution_sha256(load_json(catalog_path)) != selection['catalog'].get('resolutionSha256'):
+        catalog_path = consumer_catalog(repository, selection, catalog_path)
     catalog = load_json(catalog_path)
     validate_catalog(catalog)
+    verify_catalog_binding(selection, catalog)
     selection["status"] = "Accepted"
     selection.pop("draftSuggestions", None)
     selection["catalog"] = catalog_binding(catalog)
@@ -1496,37 +1739,23 @@ def accept_selection(
         decision = decisions.get(decision_id)
         if decision is None or decision.get("status") != "Accepted":
             fail("PKB123", f"architecture decision {decision_id!r} must already exist with Accepted status")
-    try:
-        selection_relative = selection_path.resolve().relative_to(repository.resolve()).as_posix()
-    except ValueError:
-        fail("PKB300", f"selection path escapes the repository: {selection_path}")
-    documentation = require_list(architecture.get("documentation"), "architecture-map.documentation")
-    matching = [item for item in documentation if isinstance(item, dict) and item.get("path") == selection_relative]
-    if len(matching) > 1:
-        fail("PKB123", f"architecture map contains duplicate documentation entries for {selection_relative}")
+    architecture = registered_selection(repository, selection_path, selection, architecture)
     selection_text = pretty_json(selection)
-    registration = {
-        "id": selection["selectionId"],
-        "path": selection_relative,
-        "sha256": hashlib.sha256(selection_text.encode("utf-8")).hexdigest(),
-        "canonicalSha256": canonical_sha256(selection),
-        "scope": "Accepted building-block selection and exact consumer project assignment.",
-    }
-    if matching:
-        documentation[documentation.index(matching[0])] = registration
-    else:
-        documentation.append(registration)
-    architecture["documentation"] = sorted(documentation, key=lambda item: (str(item.get("path", "")).casefold(), str(item.get("id", ""))))
     originals = {selection_path: selection_path.read_bytes(), architecture_path: architecture_path.read_bytes()}
+    binding_path = repository / '.program-kit/dependency-profile.json'
+    original_binding = binding_path.read_bytes() if binding_path.is_file() else None
     try:
         atomic_write(selection_path, selection_text)
         atomic_write(architecture_path, pretty_json(architecture))
+        preserve_dependency_profile(repository, selection, catalog_path)
         return resolve(repository, selection_path, catalog_path, program_kit_version)
     except Exception:
         for path, content in originals.items():
             temporary = path.with_name(path.name + ".program-kit.rollback")
             temporary.write_bytes(content)
             temporary.replace(path)
+        if original_binding is None: binding_path.unlink(missing_ok=True)
+        else: atomic_write_bytes(binding_path, original_binding, 'profile-rollback')
         raise
 
 
@@ -1542,6 +1771,7 @@ def main() -> int:
     draft_parser.add_argument("--target", default=".")
     draft_parser.add_argument("--selection", default="docs/architecture/building-block-selection.json")
     draft_parser.add_argument("--catalog")
+    draft_parser.add_argument('--profile', help='Qualified exact dependency profile; defaults to the registry default unless --catalog is explicit.')
     draft_parser.add_argument("--capability", action="append", default=[])
     accept_parser = subparsers.add_parser("accept", help="Bind a completed Draft to already Accepted architecture decisions.")
     accept_parser.add_argument("--target", default=".")
@@ -1584,7 +1814,10 @@ def main() -> int:
             return 0
         selection_path = repository / args.selection
         if args.command == "draft":
-            draft_selection(repository, selection_path, catalog, args.capability)
+            if args.profile or not args.catalog:
+                draft_qualified_selection(repository, selection_path, catalog, args.capability, args.profile)
+            else:
+                draft_selection(repository, selection_path, catalog, args.capability)
             print(f"Created Draft building-block selection for consumer review: {selection_path}")
             return 0
         if args.command == "accept":
@@ -1613,6 +1846,8 @@ def main() -> int:
             print(f"Accepted selection; review materialization plan digest {lock['planDigest']} before apply.")
             return 0
         lock_path = repository / args.lock
+        catalog_path = consumer_catalog(repository, load_json(selection_path), catalog_path)
+        catalog = load_json(catalog_path)
         lock = resolve(
             repository,
             selection_path,

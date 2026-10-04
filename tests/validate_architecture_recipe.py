@@ -95,6 +95,45 @@ class RecipeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'does not implement'):
             self.check()
 
+    def test_managed_private_analyzer_and_spoofed_origins(self):
+        item = {'Identity': 'Orbyss.Foundation.Analyzers', 'PrivateAssets': 'all',
+                'IncludeAssets': 'runtime;build;analyzers',
+                'DefiningProjectFullPath': str(self.root / '.program-kit/eng/ProgramKit.Build.props')}
+        self.evaluated['Core/Slots.Core.csproj']['Items']['PackageReference'] = [item]
+        self.check()
+        for field, value in (('PrivateAssets', ''), ('IncludeAssets', 'all'),
+                             ('IncludeAssets', ''), ('IncludeAssets', 'compile;analyzers'),
+                             ('DefiningProjectFullPath', str(self.root / 'Fake.props'))):
+            with self.subTest(field=field, value=value):
+                changed = dict(item, **{field: value})
+                self.evaluated['Core/Slots.Core.csproj']['Items']['PackageReference'] = [changed]
+                with self.assertRaises(ValueError): self.check()
+
+    def test_unused_duplicate_types_pass_but_capability_parent_ambiguity_fails(self):
+        fixture = {'name': 'Tests.SharedFixture', 'isInterface': False,
+                   'baseType': '', 'interfaces': [], 'methods': []}
+        for assembly in self.compiled: assembly['types'].append(dict(fixture))
+        self.check()
+        parent = {'name': 'Slots.Parent', 'isInterface': True,
+                  'baseType': '', 'interfaces': ['Slots.ISlots'], 'methods': []}
+        for assembly in self.compiled: assembly['types'].append(dict(parent))
+        self.compiled[1]['types'][0]['interfaces'] = ['Slots.Parent']
+        with self.assertRaisesRegex(ValueError, 'Ambiguous capability'): self.check()
+
+    def test_managed_private_descriptor_builder_rejects_runtime_assets_and_spoofing(self):
+        item = {'Identity': 'Orbyss.Foundation.Build', 'PrivateAssets': 'all',
+                'IncludeAssets': 'build;buildtransitive',
+                'DefiningProjectFullPath': str(self.root / '.program-kit/eng/ProgramKit.Build.targets')}
+        self.evaluated['Provider/Slots.Provider.csproj']['Items']['PackageReference'] = [item]
+        self.check()
+        for field, value in (('PrivateAssets', ''), ('IncludeAssets', 'all'),
+                             ('IncludeAssets', 'build;buildtransitive;compile'),
+                             ('IncludeAssets', 'build;runtime'),
+                             ('DefiningProjectFullPath', str(self.root / 'Fake.targets'))):
+            with self.subTest(field=field, value=value):
+                self.evaluated['Provider/Slots.Provider.csproj']['Items']['PackageReference'] = [dict(item, **{field: value})]
+                with self.assertRaises(ValueError): self.check()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -160,7 +160,10 @@ class SchemaTests(unittest.TestCase):
                 patch.object(runtime.subprocess, 'run', side_effect=execute):
             runtime.setup(self.root)
         install = commands[0]
-        self.assertEqual(str(self.root / '.program-kit/cache/uv'), install[install.index('--cache-dir') + 1])
+        # Windows temp roots may use an 8.3 alias; setup resolves the same
+        # project before constructing its cache path.
+        self.assertEqual(str(self.root.resolve() / '.program-kit/cache/uv'),
+                         install[install.index('--cache-dir') + 1])
         self.assertTrue((runtime.runtime_path(self.root) / '.ready').is_file())
 
     def test_nested_unsupported_dialect_is_not_silently_accepted(self):

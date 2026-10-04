@@ -53,7 +53,7 @@ jobs:
       - name: Run shared deterministic inventory and write its receipt
         env:
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
-        run: python scripts/run_validation.py --suite Release --approved --receipt --engines=chromium,firefox,webkit
+        run: python scripts/run_validation.py --suite Release --approved --receipt --workers 4 --engines=chromium,firefox,webkit
 
       - name: Preserve validation evidence
         if: always()
@@ -72,16 +72,24 @@ jobs:
             artifacts/*.sh
             artifacts/SHA256SUMS
             artifacts/release-receipt-*.json
+            artifacts/RELEASE-NOTES-*.md
+            artifacts/MIGRATIONS-*.md
+            artifacts/migration-index-*.json
+            artifacts/migration-*.md
+            artifacts/dependency-profile-*.json
+            artifacts/dependency-qualification-*.json
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          assets=(artifacts/*.zip artifacts/*.cmd artifacts/*.sh artifacts/SHA256SUMS artifacts/release-receipt-*.json)
+          assets=(artifacts/*.zip artifacts/*.cmd artifacts/*.sh artifacts/SHA256SUMS artifacts/release-receipt-*.json artifacts/RELEASE-NOTES-*.md artifacts/MIGRATIONS-*.md artifacts/migration-index-*.json artifacts/migration-*.md artifacts/dependency-profile-*.json artifacts/dependency-qualification-*.json)
+          notes="artifacts/RELEASE-NOTES-$(tr -d '\r\n' < VERSION).md"
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
-          elif ! gh release create "$GITHUB_REF_NAME" "${assets[@]}" --verify-tag --title "Program Kit $GITHUB_REF_NAME" --generate-notes; then
+            gh release edit "$GITHUB_REF_NAME" --notes-file "$notes"
+          elif ! gh release create "$GITHUB_REF_NAME" "${assets[@]}" --verify-tag --title "Program Kit $GITHUB_REF_NAME" --notes-file "$notes"; then
             for attempt in {1..12}; do
               if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
                 gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber

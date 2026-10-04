@@ -67,12 +67,17 @@ def render(root: Path, kind: str, identity: str, engines=('chromium',), host_ima
         targets = ['package.json']
     else:
         source = extensions / 'program-kit-building-blocks/references/orbyss-building-blocks.json'
-        entry = json.loads(source.read_text())['packages']['oci:ghcr.io/orbyss-io/foundation-host']
+        from repository_sync import provider
+        retained = provider('program-kit-dotnet/scripts/dependency_profile.py').retained_catalog(root)
+        entry = (retained if retained is not None else json.loads(source.read_text()))['packages']['oci:ghcr.io/orbyss-io/foundation-host']
         parameters['image'] = entry['packageId'] + ':' + entry['materialization']['tagTemplate'].format(version=entry['version'])
+    from compatibility_scope import fixture_keys
+    scope = {'schemaVersion': 1, 'artifactKeys': fixture_keys(root, fixtures,
+        ('oci:ghcr.io/orbyss-io/foundation-host',) if kind == 'foundation-host' else ())}
     config.write_text(json.dumps(parameters, indent=2) + '\n')
     recipe.write_text("from pathlib import Path\nimport sys\nsys.path.insert(0, str(Path(__file__).resolve().parents[3] / '.specify/extensions/program-kit-governance/scripts'))\nfrom managed_compatibility import probe\nraise SystemExit(probe(Path.cwd()))\n")
     contract = {'schemaVersion': 1, 'checks': [{'id': kind, 'kind': 'runtime-compatibility', 'testCases': [catalog()[kind]['case']]}],
-                'fixtures': fixtures, 'dependencyTargets': targets}
+                'fixtures': fixtures, 'dependencyTargets': targets, 'dependencyScope': scope}
     contract_path.write_text(json.dumps(contract, indent=2) + '\n')
     return {'id': identity, 'recipe': recipe.relative_to(root).as_posix(), 'timeout': 180}
 

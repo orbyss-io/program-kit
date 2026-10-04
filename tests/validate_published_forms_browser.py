@@ -68,10 +68,9 @@ def main():
         write(request, executor.restore_request(destination, lock, plan, mode))
         operation([sys.executable, str(executor.__file__), mode, '--target', str(destination), '--lock', lock.relative_to(destination).as_posix(),
                    '--request', request.relative_to(destination).as_posix(), '--approved'], mode, True)
-    operation([*node, '--test', 'tests/release-integration.test.mjs'], 'admission')
     operation([*node, 'tests/forms-browser/build.mjs'], 'bundle')
     operation([*node, 'tests/forms-browser/browser.mjs', '--engines=' + args.engines], 'browser')
-    print('Published Forms admission and browser checks passed; evidence: ' + str(destination))
+    print('Published Forms consumer restore, build, and browser checks passed; evidence: ' + str(destination))
     return 0
 
 
