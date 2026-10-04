@@ -17,6 +17,30 @@ import validate_building_blocks as fixtures
 
 
 class ProfileTests(unittest.TestCase):
+    def test_installed_qualified_profile_binds_portable_checkout_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registry = Path(directory) / 'profiles'
+            shutil.copytree(blocks.profile_registry(), registry)
+            index = blocks.load_json(registry / 'index.json')
+            entry = index['profiles'][index['default']]
+            profile = registry / entry['path']
+            # Git ships LF text on Linux and Windows. Qualification must bind
+            # these exact installed bytes, not a Windows writer's CRLF copy.
+            profile.write_bytes(profile.read_bytes().replace(b'\r\n', b'\n'))
+            catalog, selected = blocks.qualified_dependency_profile(
+                registry, None, blocks.load_json(fixtures.CATALOG))
+            self.assertEqual(index['default'], selected['id'])
+            self.assertEqual('0.2.2', catalog['packages'][profiles.producers.EXPORTER_KEY]['version'])
+            original = profile.read_bytes()
+            profile.write_bytes(original + b'\n')
+            with self.assertRaisesRegex(ValueError, 'qualified profile changed'):
+                blocks.qualified_dependency_profile(registry, None, blocks.load_json(fixtures.CATALOG))
+            profile.write_bytes(original)
+            proof = registry / entry['evidence']['path']
+            proof.write_bytes(proof.read_bytes() + b'\n')
+            with self.assertRaisesRegex(ValueError, 'qualification evidence changed'):
+                blocks.qualified_dependency_profile(registry, None, blocks.load_json(fixtures.CATALOG))
+
     def test_scaffold_default_survives_check_and_later_registry_default_change(self):
         import subprocess
         with tempfile.TemporaryDirectory() as directory:

@@ -4,7 +4,7 @@
   "profiles": {
     "foundation-0.2.2-exporter-0.2.2-forms-0.2.0-localization-0.1.1": {
       "path": "public-v0.12.5.json",
-      "sha256": "bbfe4a1c8783530ae1dbb28507f8d140f7725f403a93bcd97ea2894de9cba093",
+      "sha256": "45edd6c519318d78837a32adf2783b60ceaaf095b3c720c9f3a4934164fb70a4",
       "status": "qualified",
       "evidence": {
         "path": "evidence/release-receipt-0.12.5.json",
