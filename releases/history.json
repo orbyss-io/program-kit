@@ -22,7 +22,8 @@
       "guide": "migration-0.12.6.md",
       "automatic": [
         "Capture and preserve accepted exact dependency inputs before installation.",
-        "Discover exact repository-local SDK, Node and npm tools."
+        "Discover exact repository-local SDK, Node and npm tools.",
+        "Use the public private Foundation Build 0.1.0 package for canonical consumer descriptors while retaining runtime pins."
       ],
       "review": [
         "Accept this exact migration plan and review affected stale compatibility evidence.",
@@ -30,6 +31,7 @@
       ],
       "verification": [
         "Validate installation coherence, native locks and affected consumer pipeline stages.",
+        "Verify refreshed feature locks and canonical-only packed descriptors; keep engineering packages out of runtime dependencies.",
         "Complete required analysis and compatibility renewal; pending evidence prevents application readiness."
       ],
       "verificationChecks": ["installation-coherence", "dependency-verification", "required-phase-evidence"],

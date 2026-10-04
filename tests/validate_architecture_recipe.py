@@ -120,6 +120,20 @@ class RecipeTests(unittest.TestCase):
         self.compiled[1]['types'][0]['interfaces'] = ['Slots.Parent']
         with self.assertRaisesRegex(ValueError, 'Ambiguous capability'): self.check()
 
+    def test_managed_private_descriptor_builder_rejects_runtime_assets_and_spoofing(self):
+        item = {'Identity': 'Orbyss.Foundation.Build', 'PrivateAssets': 'all',
+                'IncludeAssets': 'build;buildtransitive',
+                'DefiningProjectFullPath': str(self.root / '.program-kit/eng/ProgramKit.Build.targets')}
+        self.evaluated['Provider/Slots.Provider.csproj']['Items']['PackageReference'] = [item]
+        self.check()
+        for field, value in (('PrivateAssets', ''), ('IncludeAssets', 'all'),
+                             ('IncludeAssets', 'build;buildtransitive;compile'),
+                             ('IncludeAssets', 'build;runtime'),
+                             ('DefiningProjectFullPath', str(self.root / 'Fake.targets'))):
+            with self.subTest(field=field, value=value):
+                self.evaluated['Provider/Slots.Provider.csproj']['Items']['PackageReference'] = [dict(item, **{field: value})]
+                with self.assertRaises(ValueError): self.check()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -138,9 +138,18 @@ def main() -> int:
         ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/ProgramKit.Packages.props"
     )
     orbyss_pins = {key: value for key, value in pins.items() if key.startswith("Orbyss.")}
-    expected_analyzer = {"Orbyss.Foundation.Analyzers": families["foundation"]["releaseVersion"]}
-    if orbyss_pins != expected_analyzer:
-        raise AssertionError("The managed .NET baseline must pin only the repository-wide analyzer exception.")
+    expected_engineering = {"Orbyss.Foundation.Analyzers": packages['nuget:Orbyss.Foundation.Analyzers']['version'],
+                            "Orbyss.Foundation.Build": "0.1.0"}
+    if orbyss_pins != expected_engineering:
+        raise AssertionError("The managed .NET baseline must pin only independently versioned private engineering packages.")
+    build_targets = ElementTree.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/ProgramKit.Build.targets').getroot()
+    builder_groups = [group for group in build_targets.findall('ItemGroup')
+                      if any(item.attrib.get('Include') == 'Orbyss.Foundation.Build' for item in group)]
+    if len(builder_groups) != 1 or builder_groups[0].attrib.get('Condition') != "'$(FoundationFeatureIdentity)' != ''":
+        raise AssertionError('The descriptor builder must be scoped to consumer feature projects.')
+    builder = next(item for item in builder_groups[0] if item.attrib.get('Include') == 'Orbyss.Foundation.Build')
+    if builder.attrib.get('PrivateAssets') != 'all' or builder.attrib.get('IncludeAssets') != 'build;buildtransitive':
+        raise AssertionError('The descriptor builder must not supply compile or runtime assets.')
     directory_packages = (
         ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/Directory.Packages.props"
     ).read_text(encoding="utf-8")

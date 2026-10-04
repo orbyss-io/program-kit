@@ -871,9 +871,11 @@ def validate_managed_sources() -> None:
             ElementTree.parse(source)
 
     targets = (template / "files/.program-kit/eng/ProgramKit.Build.targets").read_text(encoding="utf-8")
-    for phrase in ("ProgramKitFeatureMetadata", "PKF101", "feature_metadata.py"):
+    for phrase in ("ProgramKitFeatureMetadata", "PKF101", "Orbyss.Foundation.Build", "FoundationEmitFeatureDescriptor"):
         if phrase not in targets:
             raise AssertionError(f"managed build target is missing {phrase}")
+    if 'feature_metadata.py' in targets or 'PackagePath="program-kit/feature.json"' in targets:
+        raise AssertionError('consumer pack must use the Foundation-owned canonical descriptor builder')
     if "ProgramKitApiContracts" in targets or "ProgramKitOpenApiGeneratedDocument" in targets:
         raise AssertionError("legacy consumer-supplied OpenAPI document target remains active")
     pipeline = (template / "files/.program-kit/eng/openapi_pipeline.py").read_text(encoding="utf-8")

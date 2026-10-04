@@ -42,7 +42,7 @@ def validate_graph(root, manifest, evaluated, compiled):
         require(refs == set(project['projectReferences']), f'Evaluated references differ from accepted graph: {relative}')
         packages = set()
         for item in data['Items'].get('PackageReference', []):
-            # Only the managed build-only analyzer is outside the consumer graph.
+            # Verified private engineering imports are outside the consumer runtime graph.
             origin = item.get('DefiningProjectFullPath')
             if (item['Identity'] == 'Orbyss.Foundation.Analyzers' and origin
                     and Path(origin).resolve() == (root / '.program-kit/eng/ProgramKit.Build.props').resolve()):
@@ -50,6 +50,13 @@ def validate_graph(root, manifest, evaluated, compiled):
                 require(item.get('PrivateAssets', '').lower() == 'all'
                         and assets and not assets & {'compile', 'all', ''},
                         'Managed analyzer must remain private and outside compile assets')
+                continue
+            if (item['Identity'] == 'Orbyss.Foundation.Build' and origin
+                    and Path(origin).resolve() == (root / '.program-kit/eng/ProgramKit.Build.targets').resolve()):
+                assets = {asset.strip().lower() for asset in item.get('IncludeAssets', '').split(';')}
+                require(item.get('PrivateAssets', '').lower() == 'all'
+                        and assets == {'build', 'buildtransitive'},
+                        'Managed descriptor builder must remain private with only build assets')
                 continue
             packages.add(item['Identity'])
         require(packages == set(project['packageReferences']), f'Evaluated package references differ: {relative}')

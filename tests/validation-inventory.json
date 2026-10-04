@@ -3219,6 +3219,37 @@
       "isolation": "Unique temporary consumer per invocation; shared source read-only."
     },
     {
+      "id": "validate_consumer_descriptor_builder",
+      "command": [
+        "{python}",
+        "tests/validate_consumer_descriptor_builder.py"
+      ],
+      "group": "integration",
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Pack consumer features against the public canonical descriptor builder; verify private tooling and negative packing contracts.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-governance/scripts/architecture_verify.py",
+        "tests/validate_consumer_descriptor_builder.py",
+        "tests/validation-inventory.json"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_consumer_descriptor_builder"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
       "id": "validate_dotnet_build_contract",
       "command": [
         "{python}",

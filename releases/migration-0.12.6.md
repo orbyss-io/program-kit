@@ -1,7 +1,8 @@
 # Program Kit 0.12.6 candidate
 
-This candidate is unpublished. Foundation exporter 0.2.4 must pass its protected
-publication and availability gates before Program Kit can advertise that default.
+This Program Kit candidate is unpublished. Foundation exporter 0.2.4 and descriptor
+builder 0.1.0 have passed their independent protected publication and availability
+gates. A supported exporter profile still requires current consumer qualification.
 
 Program Kit upgrades capture and preserve the accepted dependency profile, exact
 catalog bytes, native lock and architecture choices. An exporter change requires
@@ -26,9 +27,13 @@ invalidates affected analysis and reports its renewal commands. Repository-local
 tool discovery accepts exact staged SDK, Node archive and npm archive layouts;
 it checks versions and does not change machine-wide installations.
 
-New publisher packages use canonical `orbyss-foundation/feature.json`. Consumers
-retain the identical descriptor alias bridge until the Foundation-owned build
-package is publicly available. New publisher metadata declares feature identities,
+New publisher and consumer packages use canonical `orbyss-foundation/feature.json`.
+Managed feature projects use the private Foundation-owned Build 0.1.0 package.
+Its engineering pin is independent of accepted runtime versions. Regenerate and
+verify feature locks through the native restore lifecycle; keep every existing
+runtime pin. Legacy `ProgramKit*` descriptor properties are mapped during pack;
+conflicting Foundation declarations fail. The Python helper retains activation
+only. Previously packed identical aliases remain readable. New metadata declares feature identities,
 dependencies and routes, including private runtime dependency facts. Historical
 descriptor-less Foundation 0.2.2/0.2.3 inputs use a bounded immutable bridge.
 

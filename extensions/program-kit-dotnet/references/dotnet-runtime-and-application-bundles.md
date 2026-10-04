@@ -26,7 +26,13 @@ python .program-kit/eng/feature_metadata.py activate --shells shells.json --shel
 An activatable implementation/provider/bridge/composition project is packable, belongs to the solution, sets `FoundationFeatureIdentity`, declares an exact matching `[ShellFeature("<FoundationFeatureIdentity>")]`, and sets
 `AssemblyName` equal to `PackageId`. It references host-supplied CShells/framework abstractions with
 `PrivateAssets=all`; it does not reference the host, Nuplane runtime, or peer runtime implementations.
-Optional dependency, route, and dormant metadata is embedded during pack.
+The private, independently pinned `Orbyss.Foundation.Build` package owns descriptor creation and emits
+only `orbyss-foundation/feature.json` during pack. Use `FoundationFeatureDependencies`,
+`FoundationRuntimeDependencies`, `FoundationFeatureRoutes` and `FoundationFeatureDormant` for optional
+metadata. The managed target maps existing `ProgramKit*` declarations during upgrade and rejects
+conflicting declarations. It retains assembly, packability and host-abstraction integration checks.
+Previously packed identical descriptor aliases remain readable; newly packed packages use only the
+canonical path. Consumer activation remains Program Kit's responsibility.
 
 Tasks cover the project, solution inclusion, explicit identity, `shells.json` activation, release-bundle
 inclusion, and missing/duplicate/dependency/route/dormancy tests. `.program-kit/eng/release_bundle.py stage`

@@ -1,13 +1,10 @@
 <Project>
   <PropertyGroup>
-    <ProgramKitPythonCommand Condition="'$(ProgramKitPythonCommand)' == ''">python</ProgramKitPythonCommand>
     <ProgramKitFeatureDormant Condition="'$(ProgramKitFeatureDormant)' == ''">false</ProgramKitFeatureDormant>
-    <_ProgramKitFeatureMetadataFile>$(IntermediateOutputPath)program-kit/feature.json</_ProgramKitFeatureMetadataFile>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(FoundationFeatureIdentity)' != ''">
-    <None Include="$(_ProgramKitFeatureMetadataFile)" Pack="true" PackagePath="program-kit/feature.json" Visible="false" />
-    <None Include="$(_ProgramKitFeatureMetadataFile)" Pack="true" PackagePath="orbyss-foundation/feature.json" Visible="false" />
+    <PackageReference Include="Orbyss.Foundation.Build" PrivateAssets="all" IncludeAssets="build;buildtransitive" />
   </ItemGroup>
 
   <Target Name="ProgramKitValidatePackageVersion" BeforeTargets="Pack" Condition="'$(IsPackable)' == 'true'">
@@ -15,15 +12,27 @@
   </Target>
 
   <Target Name="ProgramKitFeatureMetadata"
-          BeforeTargets="GenerateNuspec"
+          BeforeTargets="FoundationEmitFeatureDescriptor;GenerateNuspec"
           Condition="'$(FoundationFeatureIdentity)' != ''">
     <Error Condition="'$(IsPackable)' != 'true'" Text="PKF100 a Program Kit feature project must be packable." />
     <Error Condition="'$(AssemblyName)' != '$(PackageId)'"
            Text="PKF101 Program Kit feature AssemblyName must equal PackageId so Nuplane can resolve the package main assembly deterministically." />
     <Error Condition="('%(PackageReference.Identity)' == 'CShells.Abstractions' or '%(PackageReference.Identity)' == 'CShells.AspNetCore.Abstractions' or '%(PackageReference.Identity)' == 'Microsoft.Extensions.DependencyInjection.Abstractions' or '%(PackageReference.Identity)' == 'Microsoft.Extensions.Logging.Abstractions') and '%(PackageReference.PrivateAssets)' != 'all'"
            Text="PKF102 feature host-abstraction PackageReference '%(PackageReference.Identity)' must set PrivateAssets=all; the host supplies the shared contract." />
-    <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(_ProgramKitFeatureMetadataFile)'))" />
-    <Exec Command="&quot;$(ProgramKitPythonCommand)&quot; &quot;$(MSBuildThisFileDirectory)feature_metadata.py&quot; emit --output &quot;$(_ProgramKitFeatureMetadataFile)&quot; --identity &quot;$(FoundationFeatureIdentity)&quot; --package-id &quot;$(PackageId)&quot; --feature-dependencies &quot;$(ProgramKitFeatureDependencies)&quot; --runtime-dependencies &quot;$(ProgramKitRuntimeDependencies)&quot; --routes &quot;$(ProgramKitFeatureRoutes)&quot; --dormant &quot;$(ProgramKitFeatureDormant)&quot;" />
+    <Error Condition="'$(FoundationBuildTaskAssembly)' == '' or !Exists('$(FoundationBuildTaskAssembly)')"
+           Text="PKF103 restore the pinned private Orbyss.Foundation.Build package before packing feature metadata." />
+    <Error Condition="'$(FoundationFeatureDependencies)' != '' and '$(ProgramKitFeatureDependencies)' != '' and '$(FoundationFeatureDependencies)' != '$(ProgramKitFeatureDependencies)'"
+           Text="PKF104 conflicting Foundation and legacy Program Kit feature dependency declarations." />
+    <Error Condition="'$(FoundationRuntimeDependencies)' != '' and '$(ProgramKitRuntimeDependencies)' != '' and '$(FoundationRuntimeDependencies)' != '$(ProgramKitRuntimeDependencies)'"
+           Text="PKF104 conflicting Foundation and legacy Program Kit runtime dependency declarations." />
+    <Error Condition="'$(FoundationFeatureRoutes)' != '' and '$(ProgramKitFeatureRoutes)' != '' and '$(FoundationFeatureRoutes)' != '$(ProgramKitFeatureRoutes)'"
+           Text="PKF104 conflicting Foundation and legacy Program Kit route declarations." />
+    <PropertyGroup>
+      <FoundationFeatureDependencies Condition="'$(FoundationFeatureDependencies)' == ''">$(ProgramKitFeatureDependencies)</FoundationFeatureDependencies>
+      <FoundationRuntimeDependencies Condition="'$(FoundationRuntimeDependencies)' == ''">$(ProgramKitRuntimeDependencies)</FoundationRuntimeDependencies>
+      <FoundationFeatureRoutes Condition="'$(FoundationFeatureRoutes)' == ''">$(ProgramKitFeatureRoutes)</FoundationFeatureRoutes>
+      <FoundationFeatureDormant Condition="'$(ProgramKitFeatureDormant)' == 'true'">true</FoundationFeatureDormant>
+    </PropertyGroup>
   </Target>
 
 </Project>
