@@ -84,3 +84,27 @@ runbooks are retained by their original Git commits; current procedure lives her
 
 Legacy NuGet retirement availability is monitored in the separate weekly/manual
 maintenance workflow; current selected dependency availability remains a release gate.
+
+Qualify a new-project default independently from the Program Kit bundle version.
+Preserve existing registered profiles and their qualification-entry hashes. Create
+a new exact profile, regenerate and review the generic native fixture lock, then
+run `tests/validate_default_dependency_profile.py --profile <profile-path>` and
+`tests/validate_published_forms_browser.py --profile <profile-path> --engines <engines>`.
+Run the existing `tests/validate_bootstrap_runtime.py --profile <profile-path>`
+against the candidate's exact immutable published host image.
+The native check covers publisher metadata and exporter admission; features marked
+`composeForOpenApi=false` are not executed. Keep runtime and component acceptance
+with the publishers and retain consumer integration checks here.
+
+Materialize the candidate catalog and run the maintained public availability
+checker against every candidate pin, including npm and the host image. Preserve
+the generic native, Forms browser, and availability evidence directories. Build a
+portable receipt with `scripts/build_dependency_qualification.py --profile <profile-path>
+--native <native-evidence-directory> --browser <browser-evidence-directory>
+--availability <availability-json> --host <host-evidence-directory> --output <qualification-json>`.
+The builder verifies preserved stages and streams, binds the exact recipe and lock,
+and excludes unexpected consumer-specific fields. Register the new profile with
+the resulting hashes and scope only after these checks pass. Run the profile
+regressions and Development suite before review. Changing the default affects new
+projects only; existing projects use the separate reviewed dependency transition.
+This qualification does not replace the full local and tagged Release gates.

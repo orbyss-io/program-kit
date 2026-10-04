@@ -17,6 +17,7 @@ from live.v2.supervisor import run_supervised
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--prepare-only', action='store_true')
+    parser.add_argument('--profile', type=Path, help='Qualify an exact candidate profile instead of the installed new-project default.')
     parser.add_argument('--engines', default='chromium,webkit' if os.name == 'nt' else 'chromium,firefox,webkit')
     args = parser.parse_args()
     engines = args.engines.split(',')
@@ -29,6 +30,17 @@ def main():
     for record in provenance['files']:
         if hashlib.sha256((source / record['path']).read_bytes().replace(b'\r\n', b'\n')).hexdigest() != record['sha256']:
             raise ValueError('Published Forms fixture source differs from reviewed provenance')
+    # The reviewed fixture defines behavior; its package pins follow the profile
+    # being qualified so a new default cannot reuse browser acceptance of old pins.
+    sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
+    import building_blocks as blocks
+    catalog = (blocks.materialize_dependency_profile(blocks.load_json(blocks.default_catalog(Path(blocks.__file__))),
+               blocks.load_json(args.profile)) if args.profile else blocks.new_project_catalog())
+    for group in ('dependencies', 'devDependencies'):
+        for identity in package.get(group, {}):
+            key = 'npm:' + identity
+            if key in catalog['packages']:
+                package[group][identity] = catalog['packages'][key]['version']
     if args.prepare_only:
         print(json.dumps({'prepared': True, 'paidSessionsStarted': 0, 'packageOperationsStarted': 0,
                           'engines': engines, 'packages': package, 'credentialReference': 'PROGRAM_KIT_NPM_TOKEN'}))
@@ -39,6 +51,10 @@ def main():
         return 2
     destination = ROOT / 'artifacts/published-forms-browser' / uuid.uuid4().hex[:8]
     shutil.copytree(source, destination)
+    write(destination / 'package.json', package)
+    write(destination / 'qualification-profile.json', {'catalogResolutionSha256': blocks.catalog_resolution_sha256(catalog),
+        'packages': {key: value for group in ('dependencies', 'devDependencies')
+                     for key, value in package.get(group, {}).items() if key.startswith('@orbyss-io/')}})
     template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
     for name in ('.nvmrc', '.npm-version'):
         shutil.copyfile(template / name, destination / name)
@@ -70,6 +86,8 @@ def main():
                    '--request', request.relative_to(destination).as_posix(), '--approved'], mode, True)
     operation([*node, 'tests/forms-browser/build.mjs'], 'bundle')
     operation([*node, 'tests/forms-browser/browser.mjs', '--engines=' + args.engines], 'browser')
+    write(destination / 'qualification-result.json', {'satisfied': True, 'engines': engines,
+        'catalogResolutionSha256': blocks.catalog_resolution_sha256(catalog)})
     print('Published Forms consumer restore, build, and browser checks passed; evidence: ' + str(destination))
     return 0
 

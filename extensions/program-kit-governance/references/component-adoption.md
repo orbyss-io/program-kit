@@ -1,7 +1,9 @@
 # Apply selected component mechanisms
 
-Foundation 0.2.2 and Forms 0.2.0 are independent component releases. Select only applicable
-mechanisms and verify the exact Program Kit combination before acceptance. Existing
+Foundation, Forms and Localization are independent component releases. Read the
+installed dependency profile registry for the qualified new-project default, or
+retain the consumer's accepted exact profile. Select only applicable mechanisms
+and verify that exact combination before acceptance. Existing
 wire and canonical identities must survive upgrades unless explicitly redesigned.
 
 For bounded architecture compatibility, inspect the installed

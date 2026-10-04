@@ -52,7 +52,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.6/Initialize-ProgramKit-0.12.6.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.7/Initialize-ProgramKit-0.12.7.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -71,7 +71,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.6/Initialize-ProgramKit-0.12.6.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.7/Initialize-ProgramKit-0.12.7.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -153,8 +153,8 @@ consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.12.6\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.12.6 `
+python C:\path\to\program-kit-0.12.7\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.12.7 `
   --target . `
   --integration codex
 ```
@@ -185,7 +185,17 @@ export adoption. The opt-in profile
 Exporter 0.2.4 with the retained runtime pins for its listed Authentication, BFF,
 Assurance and Web activation closure. Its hashed receipt and profile ship offline
 and as immutable release assets. Forms and Localization activation and consumer
-Delivery acceptance remain outside that native qualification. The default is unchanged.
+Delivery acceptance remain outside that native qualification.
+
+New projects use
+`foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2`: Foundation
+runtime/analyzer and host 0.2.4, Exporter 0.2.4, Forms 0.2.1, and Localization
+0.1.2. Generic qualification covers canonical publisher metadata, all 47 registered
+activation closures at the exporter boundary, and public Forms browser integration.
+Publisher features excluded from OpenAPI composition are checked as metadata;
+consumer compatibility and Delivery acceptance remain separate. Installing a
+Program Kit upgrade preserves existing accepted and scaffold-captured profiles.
+Adopting different dependencies still requires the reviewed dependency transition.
 
 Dependency changes use `dependency_profiles.py list`, then `draft --profile <id> --target .`.
 Review the exact profile, preserved originals and proposed producer-contract/planning changes;
@@ -520,8 +530,8 @@ Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
 the maintained [release procedure](docs/releasing.md).
 
 ```powershell
-git tag v0.12.6
-git push origin v0.12.6
+git tag v0.12.7
+git push origin v0.12.7
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -549,8 +559,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.12.6.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.12.6.zip -Algorithm SHA256
+gh attestation verify program-kit-0.12.7.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.12.7.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery

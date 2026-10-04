@@ -2618,7 +2618,9 @@
         "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
         "--all",
         "--evidence",
-        "artifacts/building-block-public-availability.json"
+        "artifacts/building-block-public-availability.json",
+        "--profile",
+        "default"
       ],
       "group": "registry",
       "needs": [
@@ -3245,6 +3247,39 @@
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_consumer_descriptor_builder"
+      ],
+      "resources": [],
+      "isolation": "Unique temporary consumer per invocation; shared source read-only."
+    },
+    {
+      "id": "validate_default_dependency_profile",
+      "command": [
+        "{python}",
+        "tests/validate_default_dependency_profile.py"
+      ],
+      "group": "integration",
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Qualify canonical publisher metadata, 47 activation closures and public exporter admission for the exact new-project profile.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-building-blocks/**",
+        "extensions/program-kit-dotnet/**",
+        "tests/validate_default_dependency_profile.py",
+        "tests/validation-inventory.json",
+        "tests/fixtures/default-dependency-profile/**"
+      ],
+      "outputs": [
+        "artifacts/default-profile-qualification/<run>",
+        "artifacts/validation-runs/<run>/validate_default_dependency_profile"
       ],
       "resources": [],
       "isolation": "Unique temporary consumer per invocation; shared source read-only."

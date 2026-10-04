@@ -22,9 +22,9 @@ class GuidanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)
             assets = build_dependency_qualification_assets(ROOT, root, '0.12.6')
-            self.assertEqual(3, len(assets))
+            self.assertEqual(5, len(assets))
             manifest = json.loads(assets[0].read_text())
-            self.assertEqual(1, len(manifest['profiles']))
+            self.assertEqual(2, len(manifest['profiles']))
             required = [f'program-kit{suffix}-0.12.6.zip' for suffix in
                 ('', '-governance', '-building-blocks', '-dotnet', '-governance-preset', '-bootstrap')]
             required += ['Initialize-ProgramKit-0.12.6.cmd', 'Initialize-ProgramKit-0.12.6.sh',
@@ -165,23 +165,23 @@ class GuidanceTests(unittest.TestCase):
             path = directory / 'migration-index.json'
             index = json.loads(path.read_text())
             entry = copy.deepcopy(index['entries'][0])
-            entry['version'] = '0.12.7'
-            entry['previous'] = '0.12.6'
+            entry['version'] = '0.12.8'
+            entry['previous'] = '0.12.7'
             index['entries'].append(entry)
             path.write_text(json.dumps(index))
-            self.assertEqual(['0.12.6', '0.12.7'], [e['version'] for e in plan(directory, '0.12.5', '0.12.7')['migrations']])
+            self.assertEqual(['0.12.6', '0.12.7', '0.12.8'], [e['version'] for e in plan(directory, '0.12.5', '0.12.8')['migrations']])
             missing = copy.deepcopy(index)
             missing['entries'].pop(1)
             path.write_text(json.dumps(missing))
-            with self.assertRaisesRegex(ValueError, 'missing predecessor'): plan(directory, '0.12.5', '0.12.7')
+            with self.assertRaisesRegex(ValueError, 'missing predecessor'): plan(directory, '0.12.5', '0.12.8')
             path.write_text(json.dumps(index))
-            for source, target in (('0.12.6', '0.12.5'), ('0.12.7', '0.12.8')):
+            for source, target in (('0.12.6', '0.12.5'), ('0.12.8', '0.12.9')):
                 with self.assertRaises(ValueError): plan(directory, source, target)
             guide = directory / entry['guide']
             guide.write_text('changed')
-            with self.assertRaisesRegex(ValueError, 'hash differs'): load_index(directory, '0.12.7')
+            with self.assertRaisesRegex(ValueError, 'hash differs'): load_index(directory, '0.12.8')
             guide.unlink()
-            with self.assertRaises(OSError): load_index(directory, '0.12.7')
+            with self.assertRaises(OSError): load_index(directory, '0.12.8')
 
 
 if __name__ == '__main__': unittest.main()

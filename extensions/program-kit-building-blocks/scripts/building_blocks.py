@@ -1488,6 +1488,92 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
     if receipt.get('status') == 'release-validation-passed':
         if not receipt.get('source', {}).get('clean'):
             fail('PKB611', 'qualification receipt requires clean Release source')
+    elif receipt.get('status') == 'dependency-profile-qualified' and receipt.get('schemaVersion') == 2:
+        required = {'locked-restore', 'consumer-build-pack', 'publisher-descriptors',
+                    'public-exporter-restore', 'activation-export-matrix', 'producer-version-rejection',
+                    'published-forms-browser', 'public-artifact-availability', 'published-host-runtime'}
+        source = require_object(receipt.get('source'), 'qualification.source')
+        scope = require_object(receipt.get('scope'), 'qualification.scope')
+        allowed = sorted({activation['featureIdentity'] for package in result['packages'].values()
+                          for activation in package.get('activations', [])})
+        matrix = receipt.get('activationMatrix')
+        if (source.get('kind') != 'generic-publisher-integration'
+                or not re.fullmatch(r'[0-9a-f]{64}', str(source.get('recipeSha256', '')))
+                or source['recipeSha256'] != entry.get('recipeSha256')
+                or not re.fullmatch(r'[0-9a-f]{64}', str(source.get('lockSha256', '')))
+                or source['lockSha256'] != entry.get('nativeLockSha256')
+                or scope.get('claim') != 'publisher-metadata-and-exporter-admission'
+                or scope.get('allowedActivations') != allowed or entry.get('allowedActivations') != allowed
+                or any(not isinstance(step.get('id'), str) for step in steps)
+                or {step['id'] for step in steps} != required or len(steps) != len(required)
+                or any(not re.fullmatch(r'[0-9a-f]{64}', str(step.get('evidenceSha256', ''))) for step in steps)
+                or not isinstance(matrix, list) or len(matrix) != len(allowed)
+                or any(not isinstance(row, dict) or not isinstance(row.get('activation'), str)
+                       or not isinstance(row.get('closure'), list)
+                       or any(not isinstance(value, str) for value in row['closure'])
+                       or row['closure'] != sorted(set(row['closure']))
+                       or row['activation'] not in row['closure']
+                       or not re.fullmatch(r'[0-9a-f]{64}', str(row.get('evidenceSha256', ''))) for row in matrix)
+                or sorted(row['activation'] for row in matrix) != allowed):
+            fail('PKB611', 'generic qualification requires complete publisher, browser and activation matrix evidence')
+        compositions = receipt.get('compositionMatrix')
+        scenario_features = {
+            'minimal-web': {'Orbyss.Foundation.Web.OpenApi', 'Orbyss.Foundation.WebDefaults'},
+            'spa-assurance': {'Orbyss.Foundation.Authentication.SpaPkce', 'Orbyss.Foundation.Authentication.Assurance'},
+            'bff-assurance': {'Orbyss.Foundation.Authentication.BffCookie', 'Orbyss.Foundation.Authentication.Assurance'},
+            'forms-localization': {'Orbyss.Forms.Web.Runtime', 'Orbyss.Forms.Web.Submissions', 'Orbyss.Localization.Web.Runtime'}}
+        if (not isinstance(compositions, list) or len(compositions) != len(scenario_features)
+                or any(not isinstance(row, dict) or not isinstance(row.get('composition'), str)
+                       or row['composition'] not in scenario_features or not isinstance(row.get('closure'), list)
+                       or any(not isinstance(value, str) for value in row['closure'])
+                       or not scenario_features[row['composition']] <= set(row['closure'])
+                       or not re.fullmatch(r'[0-9a-f]{64}', str(row.get('evidenceSha256', ''))) for row in compositions)
+                or {row['composition'] for row in compositions} != set(scenario_features)
+                or any(row['closure'] != sorted(set(row['closure']))
+                       or 'ProgramKitQualificationProbe' not in row['closure']
+                       or not set(row['closure']) <= set(allowed) | {'ProgramKitQualificationProbe'} for row in matrix + compositions)):
+            fail('PKB611', 'generic qualification requires representative compositions with registered activation closures')
+        artifacts = require_object(receipt.get('artifacts'), 'qualification.artifacts')
+        for package in result['packages'].values():
+            if package['ecosystem'] == 'nuget' and package.get('activations'):
+                bound = require_object(artifacts.get(package['packageId']), 'qualification.artifact')
+                if (bound.get('version') != package['version']
+                        or not re.fullmatch(r'[0-9a-f]{64}', str(bound.get('sha256', '')))):
+                    fail('PKB611', 'generic qualification artifact differs from the exact dependency profile')
+        browser = require_object(receipt.get('browserIntegration'), 'qualification.browserIntegration')
+        browser_profile = require_object(browser.get('profile'), 'qualification.browserProfile')
+        browser_stages = require_object(browser.get('stages'), 'qualification.browserStages')
+        browser_packages = require_object(browser_profile.get('packages'), 'qualification.browserPackages')
+        if (browser_profile.get('catalogResolutionSha256') != selected['catalogResolutionSha256']
+                or not browser_packages or any(selected['artifacts'].get('npm:' + key) != pin for key, pin in browser_packages.items())
+                or set(browser_stages) != {'strict-graph', 'renew', 'locked', 'bundle', 'browser'}
+                or any(not re.fullmatch(r'[0-9a-f]{64}', str(value)) for value in browser_stages.values())
+                or not isinstance(browser.get('engines'), list)
+                or any(not isinstance(engine, str) for engine in browser['engines'])
+                or not {'chromium', 'webkit'} <= set(browser['engines'])
+                or next(step for step in steps if step['id'] == 'published-forms-browser')['evidenceSha256'] != canonical_sha256(browser)):
+            fail('PKB611', 'generic qualification browser evidence differs from the exact dependency profile')
+        available = receipt.get('availableArtifacts')
+        if (not isinstance(available, list) or len(available) != len(selected['artifacts'])
+                or any(not isinstance(item, dict) or not isinstance(item.get('packageKey'), str) for item in available)
+                or {item['packageKey']: item.get('version') for item in available} != selected['artifacts']):
+            fail('PKB611', 'generic qualification requires availability of every exact artifact')
+        if next(step for step in steps if step['id'] == 'producer-version-rejection').get('observedExitCode') != 2:
+            fail('PKB611', 'generic qualification must observe a rejected producer version')
+        host = require_object(receipt.get('hostRuntime'), 'qualification.hostRuntime')
+        host_inputs = require_object(host.get('inputs'), 'qualification.hostInputs')
+        host_artifact = next(item for item in available if item['packageKey'] == 'oci:ghcr.io/orbyss-io/foundation-host')
+        expected_cases = ['PublishedHost.bundle_restart', 'PublishedHost.exact_image_activation',
+                          'PublishedHost.http_profiles_headers_openapi', 'Shell.actual_registration_and_replacement',
+                          'Shell.compiled_boundary_positive_and_negative']
+        if (host.get('satisfied') is not True or host.get('cases') != expected_cases
+                or host_inputs.get('catalogResolutionSha256') != selected['catalogResolutionSha256']
+                or host_inputs.get('foundationRelease') != selected['families']['foundation']['releaseVersion']
+                or host_inputs.get('hostImage') != host_artifact.get('reference')
+                or not re.fullmatch(r'ghcr\.io/orbyss-io/foundation-host@sha256:[0-9a-f]{64}', str(host_inputs.get('hostImage', '')))
+                or not re.fullmatch(r'[0-9a-f]{64}', str(host.get('resultsSha256', '')))
+                or next(step for step in steps if step['id'] == 'published-host-runtime')['evidenceSha256'] != canonical_sha256(host)):
+            fail('PKB611', 'generic qualification requires exact published host compatibility evidence')
     elif receipt.get('status') == 'dependency-profile-qualified':
         required = {'locked-restore', 'consumer-build-pack-stage', 'canonical-consumer-descriptors',
                     'native-openapi-export', 'normalize-oasdiff-existing-baseline',
