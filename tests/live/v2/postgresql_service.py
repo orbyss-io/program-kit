@@ -27,7 +27,7 @@ def deploy_postgresql(project, evidence, database, dotnet, owners, environment, 
     if not owners or any(owner['profile'] != 'ef-postgresql' or not owner['admissionComplete'] for owner in owners):
         raise LiveContractError('LENDING_ACCEPTANCE_ADMITTED_POSTGRES_OWNER_REQUIRED')
     environment = {**environment, **database.worker_environment(), 'ASPNETCORE_ENVIRONMENT': 'ProgramKitAcceptanceFixture'}
-    engineering = project / '.program-kit/eng'
+    engineering = project / 'eng'
     operation([*dotnet, 'tool', 'restore'], label + '-migration-tool', cwd=engineering)
     records = []
     for index, owner in enumerate(owners):

@@ -2,6 +2,15 @@
 description: Turn researched capabilities into a staged repository quality system.
 ---
 
+## Ordinary tooling changes
+
+Outside initial bootstrap, use native engineering configuration and dependency locks as authority.
+Inspect the requested tool's applicability, propose material technology changes in the normal plan
+or ADR, and run the relevant actual checks. Refresh mechanical metadata automatically; do not
+require ratification, architecture reauthoring or a new tooling-review dossier for maintenance.
+Return after scoped work. The remaining instructions apply only to initial bootstrap stage briefs.
+
+
 Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage tooling --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 
 For required sources, execute `reading_policy.read_command` and follow its pages; it batches only the required files under one aggregate byte limit and compacts JSON without dropping values. Reuse content already received. For an omitted decisive fact use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <exact-indexed-path> --keys` to discover JSON keys, then `--pointer /known/key`; omit the pointer for the root. Repeat `--path` to bundle small documents under the same total limit. Do not read future outputs or dump optional evidence/catalogs. Use the exact installed helper path; do not reconstruct it. Return each bounded page once, with an output budget of at least 6000 tokens; do not aggregate several pages into another tool response.
@@ -48,7 +57,7 @@ Create or update `docs/architecture/quality-system.md` containing:
    single-maintainer, undistributed application with no CI surface, make one deterministic local
    aggregate command authoritative and defer CI until one of those triggers occurs. Spec Kit hooks
    provide early feedback but are not the sole control.
-5. Upgrade policy: pin versions, inspect release notes and scripts, exercise representative fixtures, and promote only after compatibility checks pass. Discover verified cumulative guidance in this extension's `references/release-guidance/migration-index.json`. Read all applicable guides before upgrading. The target release publishes `migration-index-<version>.json`, `MIGRATIONS-<version>.md` and `RELEASE-NOTES-<version>.md` at `https://github.com/orbyss-io/program-kit/releases/download/v<version>/`. Use the verified bundle's updater `--plan` option to inspect the transition offline; planning grants no mutation or architecture authority. Sources older than v0.12.5 require an Accepted bridge decision. For a bridge or a migration containing review requirements, bind the exact canonical plan SHA-256 in that decision and register its ID in `docs/architecture/release-migration-review.json` (`schemaVersion: 1`, `decisionId`, `planSha256`). The updater verifies the decision against the architecture map and refuses absent or changed review evidence before installation.
+5. Upgrade policy: pin versions, inspect release notes and scripts, exercise representative fixtures, and promote only after compatibility checks pass. Discover verified cumulative guidance in this extension's `references/release-guidance/migration-index.json`. Read all applicable guides before upgrading. The target release publishes `migration-index-<version>.json`, `MIGRATIONS-<version>.md` and `RELEASE-NOTES-<version>.md` at `https://github.com/orbyss-io/program-kit/releases/download/v<version>/`. Use the verified bundle's updater `--plan` option to inspect the transition offline; planning grants no mutation or architecture authority. An older source version alone requires no approval: inspect actual managed-layout compatibility. For a migration containing substantive design review requirements, bind the exact canonical plan SHA-256 in that decision and register its ID in `docs/architecture/release-migration-review.json` (`schemaVersion: 1`, `decisionId`, `planSha256`). The updater verifies the decision against the architecture map and refuses absent or changed review evidence before installation.
 6. Dependency enforcement for the accepted bounded-context, module, feature, and contract graph. Include forbidden project/package/assembly edges, cycles, shared-store access, exception allowlists, and ownership evidence.
 7. Slice-completeness evidence covering public schema compatibility, composition, authorization, observable outcomes, and architecture tests at the earliest reliable lifecycle stage.
 

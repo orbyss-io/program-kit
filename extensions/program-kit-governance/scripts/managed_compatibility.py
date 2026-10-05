@@ -57,7 +57,7 @@ def render(root: Path, kind: str, identity: str, engines=('chromium',), host_ima
     elif kind == 'browser-runtime':
         parameters['node'] = pins['node']
         package = directory / (identity + '.package.json')
-        source = extensions / 'program-kit-dotnet/templates/dotnet/web-profiles/common/.program-kit/eng/web/package.json'
+        source = extensions / 'program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json'
         content = json.loads(source.read_text(encoding='utf-8'))
         for name in content['devDependencies']:
             if name in pins:
@@ -84,7 +84,7 @@ def render(root: Path, kind: str, identity: str, engines=('chromium',), host_ima
 
 def command(root, arguments, *, expected=None):
     if arguments[0] in {'node', 'npm', 'dotnet'}:
-        evidence = root / '.program-kit/evidence/toolchain.json'
+        evidence = root / 'artifacts/program-kit/toolchain.json'
         toolchain = json.loads(evidence.read_text(encoding='utf-8')) if evidence.is_file() else {}
         prefix = toolchain.get('commands', {}).get(arguments[0])
         if not toolchain.get('satisfied') or not prefix:

@@ -1,11 +1,13 @@
 # Program Kit
 
-Program Kit supplies reusable Spec Kit workflows and governance components for constitution-first,
-architecture-governed software delivery. Its conversational front door turns an initial user prompt
-into confirmed intent, a reviewable C4-aligned domain map, a ratified project constitution, a modular
-architecture baseline, an ADR system, a quality system, and a governed roadmap of vertical feature
-specifications. Program Kit is maintained independently from the application repositories that
-consume it.
+Program Kit extends Spec Kit's ordinary **specify -> plan -> tasks -> implement -> test** flow
+with applicable architectural knowledge, composition defaults and engineering checks. Plans and
+tasks carry substantive choices; compiler/analyzer checks, architecture tests, contract generation
+and behavioral tests enforce the software. Initial bootstrap remains available for initial setup.
+
+Application engineering lives in visible `eng/`, native project configuration and deployment
+inputs. Builds, tests, contract generation and packaging do not need AI, installed extensions or
+governance history. See [the consumer structure and removal classification](docs/consumer-engineering.md).
 
 The executable behavior lives in Spec Kit extensions and a workflow. `program-kit` is only the
 versioned distribution layer: it installs the governance extension, the .NET extension, the
@@ -169,11 +171,12 @@ the bundle record, workflow manifest/registry, both extension manifests, preset 
 and managed-baseline version. It reports success only when every value converges. Do not run
 `workflow`, `extension`, `preset`, or `bundle` mutations concurrently with it.
 
-Use `--plan` to read verified cumulative migration guidance before installation. Required reviews
-bind that exact plan. The updater records required verification in
-`.specify/governance/migration-completion.json`; `PKU132` and exit code 3 retain pending migration
-checks even when component installation is coherent. A repeat plan includes that unfinished
-migration. Consumer readiness continues to require its independent lifecycle evidence.
+Use `--plan` for an inspectable migration preview. The same upgrade command installs, applies
+mechanical migrations and verifies dependencies; `--offline` explicitly leaves network verification
+pending. Tooling installation, migration verification, application correctness and release readiness
+are reported separately. No bootstrap continuation, architecture worker or renewed fingerprint
+approval is required. Current installation state is `.program-kit/installation/migration.json`;
+owned attempt logs are ignored `artifacts/program-kit/runs/`. Interrupted retries preserve originals.
 
 Program Kit upgrades preserve the consumer's accepted dependency profile, including its exporter
 pin. New .NET projects use the qualified default in the installed building-block extension's
@@ -204,47 +207,18 @@ decision. Synchronize engineering pins, renew affected proofs and native locks, 
 consumer through the existing lifecycle. Completed acceptance retains later analysis and proof
 history. These steps are separate from a Program Kit bundle upgrade.
 
-Existing installations can adopt the new release's exporter explicitly while retaining runtime
-dependencies through the bounded producer reconciliation below. If it finds registered contracts or
-planning references on older pins, the updater stops before mutation with `PKU110`.
-It lists every affected contract and specification/planning/research file. Review that list, then
-explicitly rerun the same command with:
+Existing installations can explicitly adopt the repaired exporter while retaining their runtime
+profile with `--accept-openapi-producer-pin-reconciliation`. Engineering producer pins change
+atomically. Plans, tasks, ADRs, bootstrap history and historical analysis remain unchanged. The next
+ordinary contract/build checks execute the changed producer; old results are not relabeled current.
+Native lock/restore failures remain real diagnostics and do not reopen bootstrap.
 
-```powershell
---accept-openapi-producer-pin-reconciliation
-```
-
-That opt-in applies the exact producer-pin changes atomically only after component installation
-succeeds. It removes stale after-tasks readiness while retaining an invalidation audit and returns
-`PKU111`, rather than claiming implementation readiness. Run `$speckit-analyze`, the Program Kit
-architecture check, and the Program Kit implementation check for each feature named by the
-diagnostic. Never bypass `PKA014` or reuse the prior analysis after planning evidence changes.
-
-For a repository whose approved `bootstrap-decisions.json` names an older Program Kit version, the
-updater preserves that immutable file and appends Accepted, SHA-256-bound version authority to
-`.specify/governance/program-kit-upgrades.json`. Later governance validates the installed release
-against that record; unrecorded version drift remains blocked.
-
-This local-release path replaces the previous pair of remote `workflow update` and `bundle update`
-commands. Besides depending on live catalog transport, Spec Kit can advance a bundle record while an
-existing component remains old. Program Kit therefore does not treat a successful bundle message as
-upgrade evidence.
-
-Offline convergence preserves initialized consumers whose application targets are still planned.
-Proposed, uninstalled persistence owners with no materialized projects remain explicit future
-admission obligations in the convergence report and `upgrade-remediation.json`. Implementation
-admission, real-provider evidence and provider-transition acceptance still apply at their owning
-phase. Existing admitted persistence and materialized project assignments are validated before
-component mutation; `PKU118` requires repairing genuine admission failures first.
-
-After installation starts, each attempt records its original observed version, exact installation-input
-digest, immutable decision hash and outcome under `.specify/governance/program-kit-upgrade-attempts/`.
-`PKU121` preserves a failed attempt and its diagnostic. Fix the reported cause and retry the same
-verified release command; an already-installed target version is not successful upgrade authority.
-A matching retry retains the original previous version and references the earlier attempt without
-rewriting it. Older failures with no attempt record are not reconstructed as invented history:
-a corrective upgrade records the actually observed installed version and preserves the approved
-bootstrap baseline. See [the initialized-consumer recovery instructions](docs/initialized-upgrade-recovery-2026-10-03.md).
+Completed bootstrap stays completed. Uninstalled future providers and unfinished features are
+reported separately from tooling migration. Actual provider transitions and registry/sandbox
+permissions retain their scoped guards. Fix a reported failure and retry the same verified release
+command. The operating-system upgrade lock releases after interruption without a manual terminal
+handoff. Local history keeps the latest five completed owned runs, preserving failed/interrupted
+runs until explicit cleanup; see the [cleanup preview](docs/consumer-engineering.md).
 
 Open the installed integration in the repository, invoke
 `$speckit-program-kit-governance-bootstrap`, and describe what you want to build. Intake uses the
@@ -400,7 +374,7 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 - The reusable software language is `Identity + Intent + Context -> Policies -> Decision -> Transition -> Effects -> Admission -> Outcome`.
 - Required admission and optional observation are separate contracts. Invisible fire-and-forget behavior and ambiguous empty policy results are forbidden.
 - `docs/architecture/specification-roadmap.md` is the governed portfolio of candidate feature
-  specifications, not application work. At least one entry must be Ready before `speckit.specify`.
+  specifications, not application work. After bootstrap, the user maintains it; its status does not gate `speckit.specify`.
 - Design tasks resolve architecture gaps and unlock roadmap entries; they do not enter
   `speckit.implement` as feature work.
 
@@ -431,11 +405,9 @@ cancellation behavior, OpenAPI compatibility evidence, and traceability to its v
 Project-specific technology choices outside the approved bootstrap baseline remain Proposed until
 their ADR is accepted.
 
-`speckit.program-kit-governance.sync` coordinates repository setup across ecosystems. It runs before
-planning, checks package graph evidence after planning, and materializes existing approved targets at
-implementation setup. Metadata, graph and restore share exact runtime, registry and CA context.
-Offline upgrade invokes the same coordinator and reports outstanding package verification separately.
-The previous public .NET sync command is retired without an alias.
+`speckit.program-kit-governance.sync` is an explicit setup tool for project/package/composition
+changes. Ordinary planning and coding do not depend on a sync receipt. The maintained upgrader
+coordinates routine maintenance directly; actual dependency checks remain required.
 
 Selecting the .NET profile adopts `Orbyss.Foundation.Host` by default. The coordinator's internal
 engineering adapter scaffolds central build/package management, safe managed-file synchronization,

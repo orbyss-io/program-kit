@@ -20,7 +20,7 @@ The authoritative activation shape is `CShells:Shells:<shell-name>:Features:<fea
 consumer-owned `shells.json`. Add a reviewed selection deterministically with:
 
 ```text
-python .program-kit/eng/feature_metadata.py activate --shells shells.json --shell <name> --feature <identity>
+python eng/feature_metadata.py activate --shells shells.json --shell <name> --feature <identity>
 ```
 
 An activatable implementation/provider/bridge/composition project is packable, belongs to the solution, sets `FoundationFeatureIdentity`, declares an exact matching `[ShellFeature("<FoundationFeatureIdentity>")]`, and sets
@@ -35,7 +35,7 @@ Previously packed identical descriptor aliases remain readable; newly packed pac
 canonical path. Consumer activation remains Program Kit's responsibility.
 
 Tasks cover the project, solution inclusion, explicit identity, `shells.json` activation, release-bundle
-inclusion, and missing/duplicate/dependency/route/dormancy tests. `.program-kit/eng/release_bundle.py stage`
+inclusion, and missing/duplicate/dependency/route/dormancy tests. `eng/release_bundle.py stage`
 enforces those constraints while assembling image inputs. The host does not know or repeat this policy.
 
 Activated built-in features obtain their exact package versions from the repository-root
@@ -104,8 +104,8 @@ repository-sync mechanism; retire untouched managed image files and report confl
 - Central package management, locked restore, deterministic pack, and package-source mapping are mandatory.
 - `shells.json`, `hostsettings.json` and `nuplane.settings.json` remain scaffold-once consumer-owned inputs.
 - Managed OpenAPI production runs after package-closure staging through
-  `.program-kit/eng/openapi_pipeline.py`. Consumers register complete producer, compatibility,
+  `eng/openapi_pipeline.py`. Consumers register complete producer, compatibility,
   isolated client-generation, and application-compile contracts in
-  `.program-kit/openapi-contracts.json`; the external host remains application-neutral.
+  `eng/openapi-contracts.json`; the external host remains application-neutral.
 - Core and persistence guidance remains context-owned. No provider-private model, shared `DbContext`,
   generic repository/store/unit-of-work contract, provider, or readiness probe belongs in the host.

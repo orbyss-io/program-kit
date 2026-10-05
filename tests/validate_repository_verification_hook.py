@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (
     ROOT
-    / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/Invoke-RepositoryVerification.ps1"
+    / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1"
 )
 RESTORE_SOURCE = SOURCE.with_name("Restore.ps1")
 
@@ -47,7 +47,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="program-kit-verification-hook-") as value:
         repository = Path(value) / "consumer"
-        managed = repository / ".program-kit/eng"
+        managed = repository / "eng"
         managed.mkdir(parents=True)
         wrapper = managed / SOURCE.name
         shutil.copyfile(SOURCE, wrapper)
@@ -65,6 +65,14 @@ def main() -> int:
             encoding="utf-8",
         )
 
+        # This unit fixture isolates wrapper/environment routing. Actual compiled
+        # architecture failures are exercised by validate_architecture_recipe and
+        # validate_standalone_engineering, not by its fake dotnet command.
+        (managed / 'repository_architecture.py').write_text(
+            "import os,sys\nfrom pathlib import Path\n"
+            "root=Path(sys.argv[sys.argv.index('--repository')+1]).resolve()\n"
+            "assert Path(os.environ['NUGET_PACKAGES']).resolve()==root/'artifacts/cache/nuget/packages'\n"
+            "(root/'architecture.marker').write_text('checked')\n",encoding='utf-8')
         absent = run(shell, wrapper, environment)
         if absent.returncode != 0 or marker.read_text(encoding="utf-8").strip() != "fallback":
             raise AssertionError(f"absent consumer hook did not use managed fallback: {absent.stdout}{absent.stderr}")

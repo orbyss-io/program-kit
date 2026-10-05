@@ -32,8 +32,8 @@ def main() -> int:
             raise ValueError("PKO101 identity must use letters, digits, dots, underscores, or hyphens")
         application = relative_path(args.application_directory, "application-directory")
         tsconfig = relative_path(args.application_tsconfig, "application-tsconfig")
-        defaults = json.loads((repository / ".program-kit/openapi-defaults.json").read_text(encoding="utf-8"))
-        tool_manifest = json.loads((repository / ".program-kit/eng/.config/dotnet-tools.json").read_text(encoding="utf-8"))
+        defaults = json.loads((repository / "eng/openapi-defaults.json").read_text(encoding="utf-8"))
+        tool_manifest = json.loads((repository / "eng/.config/dotnet-tools.json").read_text(encoding="utf-8"))
         exporter = tool_manifest["tools"]["orbyss.foundation.openapi.exporter"]["version"]
         oasdiff = defaults["compatibility"]["version"]
         generator_default = defaults["typescriptGenerator"]
@@ -51,7 +51,7 @@ def main() -> int:
         contract_path = repository / contract_relative
         if contract_path.exists():
             raise ValueError(f"PKO102 contract already exists: {contract_relative}")
-        registry_path = repository / ".program-kit/openapi-contracts.json"
+        registry_path = repository / "eng/openapi-contracts.json"
         registry = json.loads(registry_path.read_text(encoding="utf-8"))
         contracts = registry.get("contracts")
         if registry.get("schemaVersion") != 1 or not isinstance(contracts, list):
@@ -119,7 +119,7 @@ def main() -> int:
         print(f"Created isolated {generator_package}@{generator_version} package at {generator_package_relative}.")
         print(
             "After resolving the managed toolchain, create its lockfile with: "
-            f"python .program-kit/eng/js_toolchain.py --repository . npm -- --prefix {generator} "
+            f"python eng/js_toolchain.py --repository . npm -- --prefix {generator} "
             "install --package-lock-only --ignore-scripts --strict-peer-deps --engine-strict"
         )
         return 0

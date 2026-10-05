@@ -71,7 +71,7 @@ class PersistenceTests(unittest.TestCase):
                    '--building-block-sources-approved', '--web-profile', 'none']
         result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-        tools = json.loads((self.root / '.program-kit/eng/.config/dotnet-tools.json').read_text())['tools']
+        tools = json.loads((self.root / 'eng/.config/dotnet-tools.json').read_text())['tools']
         self.assertEqual(persistence.pins(selection, TEMPLATE)['Microsoft.EntityFrameworkCore.Design'], tools['dotnet-ef']['version'])
 
     def setUp(self):
@@ -173,12 +173,13 @@ class PersistenceTests(unittest.TestCase):
         self.assertTrue(any('migration authority' in error for error in selection['blockers']))
         self.assertEqual([], selection['deferredAdmissions'])
 
-    def test_upgrade_unassigned_owner_blocks_when_real_application_projects_exist(self):
+    def test_upgrade_unassigned_future_owner_does_not_block_unrelated_application_projects(self):
         project = self.root / 'src/app.csproj'
         project.parent.mkdir(parents=True)
         project.write_text('<Project/>')
         selection = self.select({'owner': 'Unassigned', 'storage': 'server-relational', 'status': 'proposed'})
-        self.assertTrue(persistence.upgrade_scope(self.root, selection)['blockers'])
+        self.assertEqual([], persistence.upgrade_scope(self.root, selection)['blockers'])
+        self.assertEqual(['Unassigned'], [o['owner'] for o in persistence.upgrade_scope(self.root, selection)['deferredAdmissions']])
 
     def test_feature_admission_does_not_rewrite_approved_bootstrap_intent(self):
         owner = self.owner()
@@ -205,9 +206,9 @@ class PersistenceTests(unittest.TestCase):
         self.assertTrue(persistence.resolve(self.root)['blockers'])
         self.select(first, self.owner('FutureReporting'))
         selection = persistence.resolve(self.root, 'specs/001-reserve')
-        shutil.copytree(TEMPLATE / '.program-kit/eng', self.root / '.program-kit/eng')
+        shutil.copytree(TEMPLATE / 'eng', self.root / 'eng')
         (self.root / persistence.AGGREGATE).write_bytes(persistence.render(selection, TEMPLATE))
-        (self.root / 'Directory.Packages.props').write_text('<Project><Import Project=".program-kit/eng/ProgramKit.Persistence.props" /></Project>')
+        (self.root / 'Directory.Packages.props').write_text('<Project><Import Project="eng/ProgramKit.Persistence.props" /></Project>')
         errors = persistence.coherence(self.root, selection, TEMPLATE, materialized=True)
         self.assertTrue(any('Reservations' in error for error in errors))
         self.assertFalse(any('FutureReporting' in error for error in errors))
@@ -282,12 +283,12 @@ class PersistenceTests(unittest.TestCase):
 
     def test_coherence_rejects_missing_import_duplicate_pin_and_unowned_override(self):
         selection = self.select(self.owner())
-        shutil.copytree(TEMPLATE / '.program-kit/eng', self.root / '.program-kit/eng')
+        shutil.copytree(TEMPLATE / 'eng', self.root / 'eng')
         (self.root / persistence.AGGREGATE).write_bytes(persistence.render(selection, TEMPLATE))
         central = self.root / 'Directory.Packages.props'
         central.write_text('<Project />')
         self.assertTrue(any('central pin' in e for e in persistence.coherence(self.root, selection, TEMPLATE)))
-        central.write_text('<Project><Import Project=".program-kit/eng/ProgramKit.Persistence.props" /></Project>')
+        central.write_text('<Project><Import Project="eng/ProgramKit.Persistence.props" /></Project>')
         self.assertEqual([], persistence.coherence(self.root, selection, TEMPLATE))
         self.assertTrue(any('create owned' in e for e in persistence.coherence(self.root, selection, TEMPLATE, materialized=True)))
         owner = selection['owners'][0]

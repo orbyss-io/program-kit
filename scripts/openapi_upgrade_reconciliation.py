@@ -107,7 +107,7 @@ def catalog_transition(target: Path, release: Path, resolver, selection: dict) -
                               version_path.read_text(encoding="utf-8"), re.MULTILINE)
     if version_match is None:
         raise ReconciliationError("PKU116 prior exporter transition installation version is missing")
-    lock = target / ".program-kit/building-blocks.lock.json"
+    lock = target / "eng/building-blocks.lock.json"
     if lock.is_file():
         paths["lock.json"] = lock
     return {"archive": archive, "oldCatalog": old_path, "paths": paths,

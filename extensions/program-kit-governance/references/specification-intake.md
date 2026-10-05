@@ -4,7 +4,7 @@ Run `scripts/specification_intake.py` from the installed governance extension, w
 the working directory (or pass `--repository`). Evidence lives outside the not-yet-created feature
 directory, at `.program-kit/specification-intake/<roadmap-ID>/`.
 
-`begin --entry SPC-001 --request "<current request>"` checks governance and creates `brief.json`
+`begin --entry SPC-001 --request "<current request>"` reads available authoring context and creates `brief.json`
 only if absent. On resume, read it, compare the new request, and update affected scope/decisions.
 It never overwrites answers. Use the configured roadmap's stable ID, not a generated branch name.
 
@@ -46,15 +46,9 @@ Defaults need disclosed applicability and provenance. Deferred decisions require
 deferred or excluded premise. Unknown dependencies and cycles block review. `begin` deliberately
 creates an incomplete draft; fill it through the interview, not guesses to satisfy the validator.
 
-The context projects `bootstrapObligations` from the selected entry's existing prerequisite ledger.
-For each one, link exactly one decision using `bootstrapPrerequisite: "<existing prerequisite ID>"`.
-Resolve a policy decision with evidence, or retain it as `deferred`, `blocking: false`, with owner,
-trigger and the original due phase: feature-plan -> planning, before-implementation -> implementation,
-delivery -> delivery. The context includes `verification`: compatibility obligations require executed
-evidence and stay deferred, never answered/default merely because tests are planned. Do not silently
-exclude an inherited obligation or move its due phase. Current native receipts satisfy proof gates
-later without changing the approved bootstrap ledger. The review shows the original task and source
-IDs alongside the proposed resolution; changes to those obligations invalidate its confirmation.
+Use the existing specification, roadmap and accepted decisions as helpful context. The roadmap
+is user-owned after bootstrap; its status is not an intake gate. Clarify unresolved substantive
+scope choices without importing bootstrap prerequisite ledgers or asking for renewed approvals.
 
 ```text
 specification_intake.py review --entry SPC-001
@@ -68,37 +62,8 @@ context. `confirm` records confirmation of that exact review in `confirmation.js
 checks evidence integrity; the calling agent is responsible for truthfully recording the user's
 confirmation and judging semantic scope/acceptance quality. There is no automatic approval mode.
 
-Confirmation binds the complete brief, selected roadmap record, constitution, architecture baseline
-and required ADR contents. Unrelated roadmap changes and Ready-to-Active lifecycle progress do not
-invalidate it. Changes to bound sources or the brief block reuse. Inspect the differences, preserve
-unaffected answers, regenerate the review and obtain confirmation of the revised synthesis.
-
-The spec records these exact fields (plain repository-relative path and lowercase hash):
-
-```text
-- **Specification roadmap entry**: SPC-001 Invoice export
-- **Confirmed intake brief**: .program-kit/specification-intake/SPC-001/brief.json
-- **Confirmed intake SHA256**: <briefHash returned by check>
-```
-
-`check-spec` checks the reference against current confirmation, including at implementation preflight.
-Semantic comparison of the spec with the brief remains mandatory in architecture checks: a hash
-reference cannot prove the generated prose respects the confirmed scope. Do not silently update
-these fields to accept drift. Existing consumers upgraded to 0.11.0 must complete feature intake
-for active specs before their next gated step; do not fabricate receipts from existing specs.
-Reuse existing requirements as draft evidence and ask only unresolved questions before the review.
-
-Spec Kit 1.0.1 executes these mandatory hooks through agent instructions before its specification
-Outline. Keep `.specify/extensions.yml` valid, auto-execution enabled, and the intake hook mandatory
-and unconditional. These are workflow gates, not a security boundary against manually editing
-files or disabling hooks. Keep any branch-creation pre-hook after feature intake.
-
-
-The interview may record `architectureScope` as exact canonical element IDs, chosen by the
-agent from the agreed outcome and reviewed with the brief. The context carries each selected
-module's owning context, invariants/lifecycle, children, affected contracts, boundary failure
-ownership and linked decisions directly from the canonical map. Unrelated model changes do
-not invalidate an explicit scope. Without an explicit scope the complete model is the safe
-fallback; narrow it during the interview to avoid unnecessary reading. Never invent IDs or
-omit a dependency to suppress an obligation. Generated roadmap/lifecycle status views do not
-invalidate authored architecture authority; changes to the actual rules still do.
+Confirmation binds the substantive brief and the actual presented synthesis. Preserve unchanged
+confirmation when tooling, roadmap metadata or document fingerprints change. If scope changes,
+review the changed answers with the user. Reference the confirmed brief from the normal spec;
+no per-rule applicability or phase review document is required. Historical hash references remain
+readable, but are not prerequisites for ordinary implementation.

@@ -56,7 +56,7 @@ def dependencies(repository: Path, setup: dict, materialized: dict) -> dict:
 
 
 def graph_errors(repository: Path, setup: dict) -> list[str]:
-    evidence = read(repository / ".program-kit/evidence/npm-graph.json", {})
+    evidence = read(repository / "artifacts/program-kit/npm-graph.json", {})
     try:
         if evidence.get("satisfied") is not True:
             raise ValueError("successful strict graph evidence is missing")
@@ -70,7 +70,7 @@ def graph_errors(repository: Path, setup: dict) -> list[str]:
             raise ValueError("candidate manifest changed")
         manifest = read(path)
         packages = sorted({name for section in ("dependencies", "devDependencies", "optionalDependencies") for name in manifest.get(section, {})})
-        proof = package_execution.context_proof(repository, repository / ".program-kit/evidence/toolchain.json", packages)
+        proof = package_execution.context_proof(repository, repository / "artifacts/program-kit/toolchain.json", packages)
         if evidence.get("executionContext", {}).get("contextDigest") != proof["contextDigest"]:
             raise ValueError("registry, CA or toolchain context changed or is unbound")
     except (OSError, ValueError, TypeError) as error:
@@ -94,12 +94,12 @@ def blockers(repository: Path, setup: dict, operations: list[dict], restore_prov
         errors.extend(f"PKS013 create the plan-owned project/package skeleton first: {path}" for path in missing)
     if phase == "implementation":
         lock = read(repository / ".program-kit/sync/dependencies.json", {})
-        expected = dependencies(repository, setup, read(repository / ".program-kit/building-blocks.lock.json", {}))
+        expected = dependencies(repository, setup, read(repository / "eng/building-blocks.lock.json", {}))
         if lock != expected:
             errors.append("PKS014 dependency subjects changed; rerun implementation-setup")
         if lock.get("targets"):
             try:
-                restore_provider.verify_evidence(repository, lock, read(repository / ".program-kit/evidence/building-block-restore.json", {}))
+                restore_provider.verify_evidence(repository, lock, read(repository / "artifacts/program-kit/building-block-restore.json", {}))
             except (OSError, ValueError, RuntimeError) as error:
                 errors.append(f"PKS014 {error}; emit request-renew, then request-locked and execute the reviewed restore requests")
         elif setup["dotnet"] or setup["javascript"]:

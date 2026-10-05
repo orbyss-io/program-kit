@@ -31,10 +31,10 @@ truth only after the user explicitly approves the `managed-toolchain-version` ov
 the bootstrap decision contract; current-version research alone is not an override.
 
 When global tools are missing or have different versions, verified publisher copies
-can be staged under `.program-kit/tools/dotnet/<approved-sdk>/` and
-`.program-kit/tools/node/<approved-node>/` (Node uses `bin/node` on POSIX).
+can be staged under `artifacts/tools/dotnet/<approved-sdk>/` and
+`artifacts/tools/node/<approved-node>/` (Node uses `bin/node` on POSIX).
 Stage the pinned npm package under
-`.program-kit/tools/npm/<approved-npm>/node_modules/npm/`. These directories hold
+`artifacts/tools/npm/<approved-npm>/node_modules/npm/`. These directories hold
 complete tool distributions, not replacement executables copied without their
 support files. Verify publisher checksums/provenance before staging. The managed
 resolver discovers these exact versions on each sync and records their command
@@ -176,11 +176,10 @@ route mappings; it does not accumulate DTOs, validators or business orchestratio
 operation may keep one simple mapping with a reviewed rationale; no mediator, handler class, empty
 request model or new layer is required. Keep domain behavior in its owned semantic capability.
 
-Declare scoped stable `apiOperations` in `artifact-ownership.json` before source generation. Plan
-paths and responsibility boundaries in `api-proof.json` using `api-proof.schema.json`; this supplies
-the existing api-contracts obligation's operation and compatibility checks. Delivery verifies the
-generated operation IDs/routes and source placement, while attributed review checks actual thin
-composition and domain ownership. A folder name alone is not semantic proof.
+Record stable operation identity, ownership, paths and behavior in the normal plan/tasks.
+Generate and compare OpenAPI through eng/ and test the actual operation contracts. Use ordinary
+code review for thin composition and domain ownership. Separate api-proof and artifact-ownership
+attestations are not required; a folder name alone is not semantic proof.
 
 Require every public operation to define:
 
@@ -213,11 +212,11 @@ Test route collisions, shell prefixes, authorization metadata, schema generation
 and dynamic endpoint refresh when those CShells capabilities are used.
 
 For an externally consumed OpenAPI surface, register a consumer-owned contract in
-`.program-kit/openapi-contracts.json` before implementation readiness. The contract names the shell and
+`eng/openapi-contracts.json` before implementation readiness. The contract names the shell and
 every route-contributing feature, uses `artifacts/release-bundle/packages` as its package closure, and pins
 the managed `Orbyss.Foundation.OpenApi.Exporter` and oasdiff versions. Start an empty registry with
-`.program-kit/eng/openapi_init.py`; these managed tools are adopted baseline choices, not a new consumer
-ADR. `.program-kit/eng/Build.ps1` then composes those feature packages
+`eng/openapi_init.py`; these managed tools are adopted baseline choices, not a new consumer
+ADR. `eng/Build.ps1` then composes those feature packages
 without opening a listener or running shell initializers, normalizes and compatibility-checks the result,
 runs the separately locked client generator, and finally compiles the application's own TypeScript graph.
 The exporter tool is restored only when the registry is non-empty; its dependencies are not added to feature

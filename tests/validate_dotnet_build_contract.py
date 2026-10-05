@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/Build.ps1"
-RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/Restore.ps1"
+BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1"
+RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1"
 
 
 def assert_outside_subject_rejected(result: subprocess.CompletedProcess[str]) -> None:
@@ -60,7 +60,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-build-contract-") as value:
         workspace = Path(value)
         repository = workspace / "consumer"
-        managed = repository / ".program-kit/eng"
+        managed = repository / "eng"
         managed.mkdir(parents=True)
         shutil.copyfile(BUILD, managed / "Build.ps1")
         shutil.copyfile(RESTORE, managed / "Restore.ps1")
@@ -161,18 +161,18 @@ def main() -> int:
         if "--configfile" not in restore or str(nuget_config) not in restore:
             raise AssertionError(f"restore did not bind the reviewed repository NuGet.config: {restore}")
         for expected in (
-            repository / ".program-kit/cache/nuget/packages",
-            repository / ".program-kit/cache/nuget/http",
-            repository / ".program-kit/cache/nuget/scratch",
-            repository / ".program-kit/cache/nuget/plugins",
-            repository / ".program-kit/cache/dotnet-home",
+            repository / "artifacts/cache/nuget/packages",
+            repository / "artifacts/cache/nuget/http",
+            repository / "artifacts/cache/nuget/scratch",
+            repository / "artifacts/cache/nuget/plugins",
+            repository / "artifacts/cache/dotnet-home",
         ):
             if str(expected) not in restore:
                 raise AssertionError(f"restore did not use repository-owned NuGet cache {expected}: {restore}")
         if os.name == "nt":
             for expected in (
-                repository / ".program-kit/cache/profile/roaming",
-                repository / ".program-kit/cache/profile/local",
+                repository / "artifacts/cache/profile/roaming",
+                repository / "artifacts/cache/profile/local",
             ):
                 if str(expected) not in restore:
                     raise AssertionError(f"restore did not isolate its Windows profile path {expected}: {restore}")
@@ -188,9 +188,17 @@ def main() -> int:
         )
         shutil.copyfile(
             ROOT
-            / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/Invoke-RepositoryVerification.ps1",
+            / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
             managed / "Invoke-RepositoryVerification.ps1",
         )
+        # This unit fixture isolates wrapper/environment routing. Actual compiled
+        # architecture failures are exercised by validate_architecture_recipe and
+        # validate_standalone_engineering, not by its fake dotnet command.
+        (managed / 'repository_architecture.py').write_text(
+            "import os,sys\nfrom pathlib import Path\n"
+            "root=Path(sys.argv[sys.argv.index('--repository')+1]).resolve()\n"
+            "assert Path(os.environ['NUGET_PACKAGES']).resolve()==root/'artifacts/cache/nuget/packages'\n"
+            "(root/'architecture.marker').write_text('checked')\n",encoding='utf-8')
         verification = subprocess.run(
             [
                 shell,
@@ -212,9 +220,9 @@ def main() -> int:
             )
         consumer_environment = (repository / "consumer-environment.txt").read_text(encoding="utf-8")
         for expected in (
-            repository / ".program-kit/cache/nuget/packages",
-            repository / ".program-kit/cache/profile/roaming" if os.name == "nt" else None,
-            repository / ".program-kit/cache/profile/local" if os.name == "nt" else None,
+            repository / "artifacts/cache/nuget/packages",
+            repository / "artifacts/cache/profile/roaming" if os.name == "nt" else None,
+            repository / "artifacts/cache/profile/local" if os.name == "nt" else None,
         ):
             if expected is not None and str(expected) not in consumer_environment:
                 raise AssertionError(

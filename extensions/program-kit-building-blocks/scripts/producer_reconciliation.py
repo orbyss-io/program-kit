@@ -36,7 +36,7 @@ def relative_path(target: Path, path: Path) -> str:
 
 
 def target_exporter_version(release: Path) -> str:
-    path = release / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/.config/dotnet-tools.json"
+    path = release / "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json"
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
         version = value["tools"]["orbyss.foundation.openapi.exporter"]["version"]
@@ -48,7 +48,9 @@ def target_exporter_version(release: Path) -> str:
 
 
 def registered_contracts(target: Path) -> list[tuple[Path, dict]]:
-    registry_path = target / ".program-kit/openapi-contracts.json"
+    registry_path = target / "eng/openapi-contracts.json"
+    if not registry_path.is_file():
+        registry_path = target / '.program-kit/openapi-contracts.json'
     if not registry_path.is_file():
         return []
     try:
@@ -157,60 +159,10 @@ def discover(target: Path, release: Path, retained_version: str | None = None, r
     if not mismatches:
         return None
 
-    mismatch_paths = {relative_path(target, entry["path"]) for entry in mismatches}
-    feature_dirs: list[Path] = []
-    planning_paths: list[Path] = []
-    review_paths: list[Path] = []
-    specs = target / "specs"
-    for feature_dir in sorted((path for path in specs.iterdir() if path.is_dir()), key=lambda path: path.name) if specs.is_dir() else []:
-        documents = [feature_dir / name for name in PLANNING_NAMES if (feature_dir / name).is_file()]
-        documents.extend(sorted((feature_dir / "contracts").glob("*.md")))
-        document_text = {document: document.read_text(encoding="utf-8") for document in documents}
-        owns_contract = bool(manifest_contract_paths(feature_dir) & mismatch_paths)
-        references_old_pin = any(
-            "exporter" in text.casefold() and any(version in text for version in old_versions)
-            for text in document_text.values()
-        )
-        if not owns_contract and not references_old_pin:
-            continue
-        feature_dirs.append(feature_dir)
-        review_paths.extend(documents)
-        planning_paths.extend(
-            document
-            for document in documents
-            if reconcile_planning_text(document_text[document], sorted(old_versions), target_version) != document_text[document]
-        )
-    if not feature_dirs:
-        rendered = ", ".join(sorted(mismatch_paths))
-        raise ReconciliationError(
-            "PKU110 cannot map stale OpenAPI producer contracts to a feature lifecycle: " + rendered
-        )
-
-    active_states: list[str] = []
-    for feature_dir in feature_dirs:
-        state_path = target / ".program-kit/lifecycle" / f"{feature_identity(feature_dir)}.json"
-        if not state_path.is_file():
-            continue
-        try:
-            state = json.loads(state_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as error:
-            raise ReconciliationError(f"PKU110 cannot read lifecycle state {state_path}: {error}") from error
-        if isinstance(state, dict) and state.get("active"):
-            active_states.append(relative_path(target, state_path))
-    if active_states:
-        raise ReconciliationError(
-            "PKU110 OpenAPI producer reconciliation cannot alter planning while a lifecycle is active: "
-            + ", ".join(active_states)
-        )
-
-    return {
-        "targetVersion": target_version,
-        "oldVersions": sorted(old_versions),
-        "contracts": mismatches,
-        "featureDirs": feature_dirs,
-        "planningPaths": sorted(set(planning_paths), key=lambda path: relative_path(target, path)),
-        "reviewPaths": sorted(set(review_paths), key=lambda path: relative_path(target, path)),
-    }
+    # The registry is the engineering authority. Feature dossiers, document pin
+    # mentions and lifecycle receipts are historical authoring context.
+    return {'targetVersion':target_version, 'oldVersions':sorted(old_versions),
+            'contracts':mismatches, 'featureDirs':[], 'planningPaths':[], 'reviewPaths':[]}
 
 
 def describe(target: Path, plan: dict) -> str:
@@ -219,7 +171,7 @@ def describe(target: Path, plan: dict) -> str:
     review_paths = [relative_path(target, path) for path in plan["reviewPaths"]]
     return (
         f"managed exporter will change {', '.join(plan['oldVersions'])} -> {plan['targetVersion']}; "
-        f"atomic updates: {', '.join(update_paths)}; lifecycle review: {', '.join(review_paths)}"
+        f"atomic updates: {', '.join(update_paths)}; verification: regenerate and compare affected contracts"
     )
 
 
@@ -299,26 +251,13 @@ def prepare(target: Path, plan: dict) -> dict[Path, bytes]:
         contract["producer"]["version"] = plan["targetVersion"]
         changes[entry["path"]] = json_bytes(contract)
         changed_paths.append(relative_path(target, entry["path"]))
-    for path in plan["planningPaths"]:
-        text = path.read_text(encoding="utf-8")
-        updated = reconcile_planning_text(text, plan["oldVersions"], plan["targetVersion"])
-        if updated == text:
-            raise ReconciliationError(f"PKU110 planned producer-pin update disappeared before apply: {path}")
-        changes[path] = updated.encode("utf-8")
-        changed_paths.append(relative_path(target, path))
-    changed_paths = sorted(set(changed_paths))
-    for feature_dir in plan["featureDirs"]:
-        invalidation = invalidated_state(target, feature_dir, plan, changed_paths)
-        if invalidation is not None:
-            path, content = invalidation
-            changes[path] = content
     return changes
 
 
 def apply(target: Path, plan: dict) -> list[str]:
     target = target.resolve()
     changes = prepare(target, plan)
-    # Original reports and authority remain auditable after readiness invalidation.
+    # Preserve the original engineering configuration; no test result is made current.
     originals = {relative_path(target, path): path.read_bytes() for path in changes}
     digest = hashlib.sha256(json.dumps({name: hashlib.sha256(data).hexdigest()
                            for name, data in sorted(originals.items())}).encode()).hexdigest()

@@ -443,7 +443,7 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
         bases: list[str] = []
         built_ins = [identity for identity in sorted(active) if identity in BUILT_IN_FEATURE_PACKAGES]
         selected_features = {}
-        lock_path = repository / '.program-kit/building-blocks.lock.json'
+        lock_path = repository / 'eng/building-blocks.lock.json'
         if lock_path.is_file():
             lock = json.loads(lock_path.read_text(encoding='utf-8'))
             for item in lock.get('activations', []):
@@ -521,9 +521,9 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
         (staging / "hostsettings.json").write_text(json.dumps(hostsettings, indent=2) + "\n", encoding="utf-8")
         shutil.copyfile(repository / "nuplane.settings.json", staging / "nuplane.settings.json")
         shell_composition.write(repository, staging / "shells.json")
-        profile_shells = repository / ".program-kit/web-profile.shells.json"
+        profile_shells = repository / "eng/web-profile.shells.json"
         if profile_shells.is_file():
-            destination = staging / ".program-kit/web-profile.shells.json"
+            destination = staging / "eng/web-profile.shells.json"
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(profile_shells, destination)
         for package_id, pinned in pinned_built_ins.items():
@@ -574,7 +574,7 @@ def describe(
         PROGRAM_KIT_VERSION,
     )
     hostsettings_path, shells_path = staged / "hostsettings.json", staged / "shells.json"
-    profile_shells_path = staged / ".program-kit/web-profile.shells.json"
+    profile_shells_path = staged / "eng/web-profile.shells.json"
     hostsettings = json.loads(hostsettings_path.read_text(encoding="utf-8"))
     shells = json.loads(shells_path.read_text(encoding="utf-8"))
     reject_embedded_secrets(hostsettings)

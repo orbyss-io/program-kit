@@ -4,6 +4,15 @@ scripts:
   py: scripts/governance_state.py render-readiness
 ---
 
+## Scope
+
+This command reports initial bootstrap readiness only. It is not an implementation or upgrade gate.
+For application correctness run eng/Invoke-RepositoryVerification.ps1 and relevant consumer tests.
+For tooling installation/migration use upgrade_program_kit.py and its separate status report.
+Release readiness additionally needs the application's release checks. Do not equate these states,
+reopen a completed bootstrap or require unfinished future features to be completed.
+
+
 ## Input and execution
 
 Use the current consumer repository and the native run ID supplied in `$ARGUMENTS`.

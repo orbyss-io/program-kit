@@ -565,8 +565,8 @@ def main() -> int:
     require_text(
         extension_root / "commands/speckit.program-kit-governance.architecture-check.md",
         "constitution",
-        "specification roadmap",
-        "vertical outcomes",
+        "normal code review",
+        "Compiler diagnostics",
     )
     governance_script = extension_root / "scripts/governance_state.py"
     if not governance_script.is_file():
@@ -630,13 +630,7 @@ def main() -> int:
         "atomic_replace",
     )
     require_text(reconciliation, 'producer_reconciliation.py', 'catalog_transition', 'apply_catalog_transition')
-    require_text(
-        extension_root / "scripts/implementation_preflight.py",
-        "verify-before-implement",
-        "artifact_ownership.py",
-        "choices=('setup', 'source')",
-        "planned_selection_errors",
-    )
+    require_text(extension_root / "scripts/implementation_preflight.py", "project", "render", "Compatibility option")
     context_script = extension_root / "scripts/bootstrap_context.py"
     intake_script = extension_root / "scripts/bootstrap_intake.py"
     architecture_map_script = extension_root / "scripts/architecture_map.py"
@@ -802,13 +796,13 @@ def main() -> int:
     )
     require_text(
         preset_path.parent / "templates/plan-governance.md",
-        "Accepted ADR",
-        "Vertical-slice",
+        "accepted architecture",
+        "vertical outcome",
     )
     require_text(
         preset_path.parent / "templates/tasks-governance.md",
-        "vertical",
-        "Completion Evidence",
+        "end-to-end",
+        "Engineering verification",
     )
 
     print("Extension and workflow manifests are valid.")

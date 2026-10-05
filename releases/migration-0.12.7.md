@@ -36,8 +36,23 @@ Run the maintained updater with `--plan` to inspect applicable migration guidanc
 Install and synchronize the reviewed Program Kit version, then verify installation
 coherence and retained dependency inputs. To change an existing project's
 dependencies, use the separate Draft → review → Accepted dependency transition,
-renew affected compatibility and analysis evidence, and run its native pipeline.
+run the affected native restore, contract and application checks. Historical analysis stays historical.
 This default change grants no authority to perform that transition automatically.
 
-Sources older than v0.12.5 still require a reviewed bridge. Preserve failed attempt
-evidence and use the maintained updater's verified-originals recovery path.
+Sources older than v0.12.5 undergo actual managed-layout inspection; the source
+version alone requires no approval. Unsupported layouts and conflicting application edits
+remain protected. Preserve failed attempt evidence and retry the maintained updater.
+
+
+This candidate also removes routine governance receipt dependencies. Applicable knowledge is
+selected before plan/tasks/implementation from one upstream registry. Plans and tasks carry the
+choices; normal engineering checks and code review enforce completion. Feature phase projections,
+obligation reviews, semantic declarations and proof attestations are no longer required.
+
+Engineering scripts/configuration move into visible eng/. Safe synchronization transfers known
+engineering references and customized configuration transactionally; customized implementation
+conflicts are preserved and reported for a real merge. Historical governance artifacts remain
+unchanged. Routine upgrades do not restart bootstrap or run an architecture-writing worker.
+The latest five completed owned execution runs are retained under ignored artifacts/, with failed
+and interrupted diagnostics protected. Installation and migration status do not assert application
+correctness or release readiness. Consumer rollout is a separate follow-up after assessment.

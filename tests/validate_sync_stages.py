@@ -85,7 +85,7 @@ class StageTests(unittest.TestCase):
             project = Path(directory)
             candidate = project / 'specs/RM01/candidate.json'
             atomic_write_json(candidate, {'dependencies':{'react':'19.2.8'}})
-            graph = project / '.program-kit/evidence/npm-graph.json'
+            graph = project / 'artifacts/program-kit/npm-graph.json'
             old = str(project.parent / 'old-consumer/specs/RM01/candidate.json')
             proof = {'packageJson':old,'packageJsonSha256':sha256_file(candidate),'satisfied':True}
             atomic_write_json(graph, proof)
@@ -101,7 +101,7 @@ class StageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             atomic_write_json(project / '.specify/feature.json', {'feature_directory':'specs/RM01'})
-            atomic_write_json(project / '.program-kit/evidence/building-block-restore-request.json',
+            atomic_write_json(project / 'artifacts/program-kit/building-block-restore-request.json',
                               {'mode':'locked','lock':'.program-kit/sync/dependencies.json'})
             restore = project / '.specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py'
             restore.parent.mkdir(parents=True)

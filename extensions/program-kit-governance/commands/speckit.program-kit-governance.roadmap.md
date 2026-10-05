@@ -4,6 +4,21 @@ scripts:
   py: scripts/governance_state.py
 ---
 
+## Ordinary roadmap editing
+
+After initial bootstrap, the roadmap belongs to the user. For a requested addition or edit,
+read the existing roadmap and affected spec/design/ADRs. Keep one entry with stable ID, title,
+outcome, scope, non-goals, dependencies and a link to its specification. Keep useful existing
+fields, but do not create prerequisite ledgers, regenerate unrelated architecture/traceability
+views, renew fingerprints or require a Ready status to start specifying. Ask only about
+substantive scope or priority changes. This path needs no bootstrap context or ratification receipt.
+Return after the requested edit and normal review.
+
+## Initial bootstrap only
+
+The remaining instructions apply only when the native initial bootstrap supplies a stage brief.
+
+
 Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage roadmap --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 
 For required sources, execute `reading_policy.read_command` and follow its pages; it batches only the required files under one aggregate byte limit and compacts JSON without dropping values. Reuse content already received. For an omitted decisive fact use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <exact-indexed-path> --keys` to discover JSON keys, then `--pointer /known/key`; omit the pointer for the root. Repeat `--path` to bundle small documents under the same total limit. Do not read future outputs or dump optional evidence/catalogs. Use the exact installed helper path; do not reconstruct it. Return each bounded page once, with an output budget of at least 6000 tokens; do not aggregate several pages into another tool response.

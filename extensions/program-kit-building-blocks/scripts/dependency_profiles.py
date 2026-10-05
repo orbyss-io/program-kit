@@ -82,7 +82,7 @@ def draft(root, catalog_path, identity, directory):
     originals = {'selection.json': selection_path, 'catalog.json': old_path,
                  'architecture.json': blocks.repository_path(root, accepted['authority']['architectureMap']),
                  'governance-extension.yml': root / '.specify/extensions/program-kit-governance/extension.yml'}
-    lock = root / '.program-kit/building-blocks.lock.json'
+    lock = root / 'eng/building-blocks.lock.json'
     if lock.is_file(): originals['lock.json'] = lock
     ledger = root / 'docs/architecture/bootstrap-prerequisites.json'
     if ledger.is_file(): originals['bootstrap-prerequisites.json'] = ledger

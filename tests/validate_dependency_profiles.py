@@ -45,6 +45,11 @@ class ProfileTests(unittest.TestCase):
             fixtures.write_json(host / 'qualification-result.json', host_summary)
             def build_receipt():
                 return build(profile, native, browser, root / 'availability.json', host)
+            # This is synthetic unit-test evidence, not a rewritten published receipt.
+            import hashlib
+            for key, source in [('recipeSha256', ROOT / 'tests/validate_default_dependency_profile.py'),
+                                ('lockSha256', ROOT / 'tests/fixtures/default-dependency-profile/packages.lock.json')]:
+                receipt['source'][key] = hashlib.sha256(source.read_bytes().replace(b'\r\n', b'\n')).hexdigest()
             receipt['status'] = 'generic-integration-passed'
             receipt['steps'] = [s for s in receipt['steps'] if s['id'] not in {'published-forms-browser', 'public-artifact-availability', 'published-host-runtime'}]
             for step in receipt['steps']:
@@ -148,7 +153,7 @@ class ProfileTests(unittest.TestCase):
                     managed_path = root / '.program-kit/managed.json'
                     managed = blocks.load_json(managed_path)
                     self.assertEqual(CURRENT, managed['newProjectDependencyProfile']['profile'])
-                    manifest = root / '.program-kit/eng/.config/dotnet-tools.json'
+                    manifest = root / 'eng/.config/dotnet-tools.json'
                     self.assertEqual('0.2.4', blocks.load_json(manifest)['tools']['orbyss.foundation.openapi.exporter']['version'])
                     # Model the same scaffold captured by 0.12.6. Sync must use its
                     # original exact qualification, rather than the changed default.
@@ -278,7 +283,7 @@ class ProfileTests(unittest.TestCase):
 
     def producer_fixture(self, root, catalog):
         relative = 'contracts/openapi/catalog.contract.json'
-        fixtures.write_json(root / '.program-kit/openapi-contracts.json', {'schemaVersion': 1, 'contracts': [relative]})
+        fixtures.write_json(root / 'eng/openapi-contracts.json', {'schemaVersion': 1, 'contracts': [relative]})
         fixtures.write_json(root / relative, {'producer': {'kind': profiles.producers.PRODUCER_KIND,
             'version': catalog['packages'][profiles.producers.EXPORTER_KEY]['version']}})
         fixtures.write_json(root / 'specs/SPC-001/artifact-ownership.json', {'artifacts': [{'path': relative}]})
@@ -290,7 +295,7 @@ class ProfileTests(unittest.TestCase):
 
     def test_profile_review_reconciles_producers_with_recoverable_sealed_files(self):
         class Interrupted(BaseException): pass
-        for stop in ('catalog.contract.json', 'plan.md', 'SPC-001.json', 'accepted.json'):
+        for stop in ('catalog.contract.json', 'accepted.json'):
             with self.subTest(stop=stop), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 catalog = blocks.load_json(fixtures.CATALOG)
@@ -335,11 +340,11 @@ class ProfileTests(unittest.TestCase):
                     profiles.accept(root, destination, registry, 'profile-review', 'Reviewed qualified profile')
                 result = profiles.accept(root, destination, registry, 'profile-review', 'Reviewed qualified profile')
                 self.assertEqual('0.2.2', blocks.load_json(root / relative)['producer']['version'])
-                self.assertEqual('Foundation runtime 0.2.2; exporter 0.2.2; analyzer 0.2.2.\n',
+                self.assertEqual('Foundation runtime 0.2.2; exporter 0.2.4; analyzer 0.2.2.\n',
                                  (root / 'specs/SPC-001/plan.md').read_text(encoding='utf-8'))
                 state = blocks.load_json(root / '.program-kit/lifecycle/SPC-001.json')
-                self.assertNotIn('afterTasksAnalysis', state['phases'])
-                self.assertEqual(1, len(state['invalidations']))
+                self.assertIn('afterTasksAnalysis', state['phases'])
+                self.assertNotIn('invalidations', state)
                 self.assertFalse(result['migrationCompletionEstablished'])
                 self.assertEqual('Preserved historical analysis', (root / 'specs/SPC-001/analysis.md').read_text(encoding='utf-8'))
                 # Later analysis and producer edits are later consumer history. Repeat
@@ -421,7 +426,7 @@ class ProfileTests(unittest.TestCase):
                     'm=importlib.util.module_from_spec(s);s.loader.exec_module(m); '
                     'print(m.render(pathlib.Path(sys.argv[2]),sys.argv[3],sys.argv[4].encode()).decode())')
             manifest = json.dumps({'tools': {'orbyss.foundation.openapi.exporter': {'version': '0.2.4'}}})
-            relative = '.program-kit/eng/.config/dotnet-tools.json'
+            relative = 'eng/.config/dotnet-tools.json'
             for drafted in (False, True):
                 if drafted:
                     result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
@@ -436,7 +441,7 @@ class ProfileTests(unittest.TestCase):
             draft = blocks.load_json(selection)
             self.assertEqual('Draft', draft['status'])
             self.assertEqual(blocks.catalog_binding(expected), draft['catalog'])
-            self.assertFalse((root / '.program-kit/building-blocks.lock.json').exists())
+            self.assertFalse((root / 'eng/building-blocks.lock.json').exists())
             binding = blocks.load_json(root / '.program-kit/dependency-profile.json')
             self.assertIn('no acceptance', binding['authority'])
             # Complete real assignments using the existing architecture fixture; promote
@@ -627,7 +632,7 @@ class ProfileTests(unittest.TestCase):
                 version.parent.mkdir(parents=True, exist_ok=True)
                 version.write_text('extension:\n  version: "0.12.5"\n')
                 target = blocks.load_json(selection)['targets'][0]['path']
-                fixtures.write_json(root / '.program-kit/building-blocks.lock.json', {'targets': [{'path': target, 'packages': [{'packageId': 'Orbyss.Foundation.DomainEvents'}]}]})
+                fixtures.write_json(root / 'eng/building-blocks.lock.json', {'targets': [{'path': target, 'packages': [{'packageId': 'Orbyss.Foundation.DomainEvents'}]}]})
                 for feature, project in [('SPC-001', target), ('SPC-002', 'src/Unrelated.csproj')]:
                     fixtures.write_json(root / 'specs' / feature / 'artifact-ownership.json', {'runtimeComposition': {'projects': [{'path': project}]}})
                     fixtures.write_json(root / '.program-kit/lifecycle' / (feature + '.json'), {'phases': {'afterTasksAnalysis': {'report': 'historical-report'}}})

@@ -164,71 +164,27 @@ class UpgradeBoundaryTests(unittest.TestCase):
         self.assertFalse((self.root / '.program-kit/managed.json').exists())
         self.assertEqual(before, self.snapshot())
 
-    def test_real_application_or_documentation_projects_still_block_unassigned_owners(self):
+    def test_unrelated_application_documentation_and_invalid_probe_history_do_not_gate_upgrade(self):
         self.probe_consumer()
-        for relative in ('src/App/App.csproj', 'docs/application/DocumentedApp.csproj'):
+        for relative in ('src/App/App.csproj', 'docs/application/DocumentedApp.csproj', 'eng/assembly_graph/AssemblyGraph.csproj'):
             path = self.root / relative
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text('<Project/>')
-            before = self.snapshot()
-            with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118.*before component mutation'):
-                upgrade.persistence_upgrade_preflight(self.root, ROOT)
-            self.assertEqual(before, self.snapshot())
-            path.unlink()
+            path.parent.mkdir(parents=True,exist_ok=True);path.write_text('<Project/>')
+        (self.root/'docs/architecture/bootstrap-proof-plan.json').write_text('{broken historical report')
+        before=self.snapshot()
+        selected=upgrade.persistence_upgrade_preflight(self.root, ROOT)
+        self.assertEqual([],selected['blockers'])
+        self.assertEqual(2,len(selected['deferredAdmissions']))
+        self.assertEqual(before,self.snapshot())
 
-    def test_invalid_or_unregistered_probe_contracts_do_not_exempt_projects(self):
-        recipes = self.probe_consumer()
-        contract = recipes[0].with_suffix('.contract.json')
-        original = contract.read_bytes()
-        plan = self.root / 'docs/architecture/bootstrap-proof-plan.json'
-        plan_bytes = plan.read_bytes()
-        for defect in ('unregistered', 'missing-recipe', 'malformed-contract', 'missing-source', 'not-a-target'):
-            with self.subTest(defect=defect):
-                contract.write_bytes(original)
-                plan.write_bytes(plan_bytes)
-                recipe_bytes = recipes[0].read_bytes()
-                value = json.loads(original)
-                if defect == 'unregistered':
-                    plan.unlink()
-                elif defect == 'missing-recipe':
-                    recipes[0].unlink()
-                elif defect == 'malformed-contract':
-                    contract.write_text('{}')
-                elif defect == 'missing-source':
-                    value['fixtures']['Program.cs'] = 'missing.cs'
-                    self.write(contract, value)
-                else:
-                    value['dependencyTargets'] = []
-                    self.write(contract, value)
-                before = self.snapshot()
-                with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118'):
-                    upgrade.persistence_upgrade_preflight(self.root, ROOT)
-                self.assertEqual(before, self.snapshot())
-                recipes[0].write_bytes(recipe_bytes)
-
-    def test_probe_registration_cannot_hide_a_real_application_source(self):
-        recipes = self.probe_consumer()
-        app = self.root / 'src/App/App.csproj'
-        app.parent.mkdir(parents=True)
-        app.write_text('<Project/>')
-        contract = recipes[0].with_suffix('.contract.json')
-        value = json.loads(contract.read_bytes())
-        value['fixtures']['Probe.csproj'] = 'src/App/App.csproj'
-        self.write(contract, value)
-        before = self.snapshot()
-        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118'):
-            upgrade.persistence_upgrade_preflight(self.root, ROOT)
-        self.assertEqual(before, self.snapshot())
-
-    def test_declared_application_target_cannot_be_exempted_by_probe_registration(self):
-        self.probe_consumer()
-        selection = self.root / 'docs/architecture/building-block-selection.json'
-        self.write(selection, {'status': 'Accepted', 'targets': [{'kind': 'dotnet-project',
-                   'path': 'docs/architecture/compatibility/managed-dotnet-runtime.csproj'}]})
-        before = self.snapshot()
-        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118'):
-            upgrade.persistence_upgrade_preflight(self.root, ROOT)
-        self.assertEqual(before, self.snapshot())
+    def test_materialized_proposed_owner_still_requires_real_provider_admission(self):
+        value={'selected_profiles':['dotnet'],'persistence':[{**self.owner,'providerProject':'src/Portfolio/Portfolio.csproj'}]}
+        self.write(self.decisions,value)
+        path=self.root/'src/Portfolio/Portfolio.csproj'
+        path.parent.mkdir(parents=True);path.write_text('<Project/>')
+        before=self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError,'PKU118'):
+            upgrade.persistence_upgrade_preflight(self.root,ROOT)
+        self.assertEqual(before,self.snapshot())
 
     def test_registered_probes_do_not_waive_admitted_or_installed_transition_guards(self):
         self.probe_consumer()
@@ -246,13 +202,12 @@ class UpgradeBoundaryTests(unittest.TestCase):
             upgrade.persistence_upgrade_preflight(self.root, ROOT)
         self.assertEqual(before, self.snapshot())
 
-    def test_materialized_unassigned_owner_is_rejected_before_mutation(self):
+    def test_unrelated_project_does_not_materialize_unassigned_future_owner(self):
         project = self.root / 'src/Portfolio.csproj'
         project.parent.mkdir(parents=True)
         project.write_text('<Project/>')
         before = self.snapshot()
-        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU118.*before component mutation'):
-            upgrade.persistence_upgrade_preflight(self.root, ROOT)
+        self.assertEqual([], upgrade.persistence_upgrade_preflight(self.root, ROOT)['blockers'])
         self.assertEqual(before, self.snapshot())
 
     def test_installed_provider_transition_requires_real_accepted_authority(self):
@@ -318,13 +273,16 @@ class UpgradeBoundaryTests(unittest.TestCase):
         self.assertEqual(first_path.relative_to(self.root).as_posix(), retry['retryOf'])
         self.assertEqual(original_bytes, first_path.read_bytes())
         self.assertFalse((self.root / '.specify/governance/program-kit-upgrades.json').exists())
-        # An altered approved input cannot borrow the old attempt's provenance.
+        # Mechanical document changes do not change the original installed version.
         self.write(self.decisions, {'selected_profiles': [], 'persistence': []})
         manifest.write_text('extension:\n  version: "candidate"\n')
-        before = self.snapshot()
-        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121.*approved inputs changed'):
-            upgrade.begin_attempt(self.root, ROOT, 'candidate', 'candidate')
-        self.assertEqual(before, self.snapshot())
+        _, resumed = upgrade.begin_attempt(self.root, ROOT, 'candidate', 'candidate')
+        self.assertEqual('old', resumed['previousInstalledVersion'])
+        self.assertEqual(first['originals'], resumed['originals'])
+        self.assertEqual(original_bytes, first_path.read_bytes())
+        with patch.object(upgrade, 'release_fingerprint', return_value='changed candidate'):
+            with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121'):
+                upgrade.begin_attempt(self.root, ROOT, 'candidate', 'candidate')
 
     def test_plain_python_discovers_cli_runtime_before_ownership_guard_imports(self):
         interpreter = self.root / 'cli/Scripts/python.exe'

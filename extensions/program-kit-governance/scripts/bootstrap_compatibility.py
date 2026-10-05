@@ -122,17 +122,17 @@ def restore(root: Path, scratch: Path, *, timeout=600, stdout=None, stderr=None)
         # request validation, exact toolchain and lock executor as feature/upgrade.
         for mode in ('renew', 'locked'):
             request = tool.restore_request(scratch, lock_path, plan, mode)
-            write(scratch / '.program-kit/evidence/building-block-restore-request.json', request)
+            write(scratch / 'artifacts/program-kit/building-block-restore-request.json', request)
             from compatibility_process import run
             exit_code = run([sys.executable, str(Path(tool.__file__)), mode, '--target', str(scratch),
                              '--lock', '.program-kit/sync/dependencies.json', '--request',
-                             '.program-kit/evidence/building-block-restore-request.json', '--approved'],
+                             'artifacts/program-kit/building-block-restore-request.json', '--approved'],
                             scratch, stdout, stderr, timeout)
             if exit_code:
                 raise ValueError('Shared compatibility restore failed: ' + mode)
-    receipt = load(scratch / '.program-kit/evidence/building-block-restore.json')
+    receipt = load(scratch / 'artifacts/program-kit/building-block-restore.json')
     tool.verify_evidence(scratch, plan, receipt)
-    return {'lockedRestore': receipt, 'toolchain': load(scratch / '.program-kit/evidence/toolchain.json')}
+    return {'lockedRestore': receipt, 'toolchain': load(scratch / 'artifacts/program-kit/toolchain.json')}
 
 
 def serve(root, request_path):
@@ -160,15 +160,15 @@ def serve(root, request_path):
             raise ValueError('Compatibility managed toolchain/source configuration changed')
     audit_toolchain(scratch, pins)
     for mode in ('renew', 'locked'):
-        write(scratch / '.program-kit/evidence/building-block-restore-request.json',
+        write(scratch / 'artifacts/program-kit/building-block-restore-request.json',
               tool.restore_request(scratch, lock_path, plan, mode))
         result = subprocess.run([sys.executable, str(Path(tool.__file__)), mode, '--target', str(scratch),
                                  '--lock', '.program-kit/sync/dependencies.json', '--request',
-                                 '.program-kit/evidence/building-block-restore-request.json', '--approved'],
+                                 'artifacts/program-kit/building-block-restore-request.json', '--approved'],
                                 cwd=scratch, check=False)
         if result.returncode:
             raise ValueError('Shared compatibility restore failed: ' + mode)
-    tool.verify_evidence(scratch, plan, load(scratch / '.program-kit/evidence/building-block-restore.json'))
+    tool.verify_evidence(scratch, plan, load(scratch / 'artifacts/program-kit/building-block-restore.json'))
 
 
 if __name__ == '__main__':

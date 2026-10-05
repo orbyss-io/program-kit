@@ -26,3 +26,9 @@ csharp_style_prefer_primary_constructors = true:suggestion
 # Runtime correctness; exceptions require scoped rationale and behavioral evidence.
 dotnet_diagnostic.CA2012.severity = error
 dotnet_diagnostic.CA2016.severity = error
+
+# Deterministic runtime correctness; these are not conditional performance preferences.
+dotnet_diagnostic.CA2200.severity = error
+dotnet_diagnostic.CA2018.severity = error
+dotnet_diagnostic.CA2019.severity = error
+dotnet_diagnostic.CA2021.severity = error

@@ -37,7 +37,7 @@ class ScopedMaterializationTests(unittest.TestCase):
         self.assertEqual(plan["deferredInstances"], ["future-domain-events"])
         self.assertNotIn("future-feature", {target["id"] for target in plan["targets"]})
         self.assertTrue(all(not activation["origin"].startswith("future-") for activation in plan["activations"]))
-        lock = self.root / ".program-kit/building-blocks.lock.json"
+        lock = self.root / "eng/building-blocks.lock.json"
         self.module.apply_materialization(self.root, lock, plan, self.catalog)
         self.module.check_materialization(self.root, plan)
         self.assertFalse((self.root / "src/Future").exists())

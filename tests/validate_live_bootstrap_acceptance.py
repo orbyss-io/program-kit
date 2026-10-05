@@ -291,7 +291,7 @@ def main() -> int:
             raise AssertionError('Unapproved fixture selection was accepted')
         candidate_selection.write_bytes(before_admission[1])
         plan = resolver.resolve(project, selection_path, CATALOG, "0.10.0")
-        lock_path = project / ".program-kit/building-blocks.lock.json"
+        lock_path = project / "eng/building-blocks.lock.json"
         resolver.apply_materialization(project, lock_path, plan, catalog)
         result = validate_consumer(project, expectation)
         if result["packageCount"] != 18 or result["activationCount"] < 10:

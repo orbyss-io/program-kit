@@ -53,18 +53,18 @@ jobs:
 
       - name: Run repository verification gate
         shell: pwsh
-        run: ./.program-kit/eng/Invoke-RepositoryVerification.ps1 -Mode Release
+        run: ./eng/Invoke-RepositoryVerification.ps1 -Mode Release
 
       - name: Stage release bundle
         shell: pwsh
-        run: ./.program-kit/eng/Build.ps1 -LockedMode
+        run: ./eng/Build.ps1 -LockedMode
 
       - name: Package application release bundle
         shell: bash
         env:
           ORBYSS_FOUNDATION_HOST_IMAGE: ${{ vars.ORBYSS_FOUNDATION_HOST_IMAGE }}
         run: |
-          python .program-kit/eng/release_bundle.py describe \
+          python eng/release_bundle.py describe \
             --repository . \
             --staged artifacts/release-bundle \
             --image "${ORBYSS_FOUNDATION_HOST_IMAGE%@*}" \

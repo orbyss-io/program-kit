@@ -19,7 +19,7 @@ class ApiTests(unittest.TestCase):
         self.root = Path(temporary.name).resolve()
         self.feature = self.root / 'specs/001-reserve'; self.feature.mkdir(parents=True)
         (self.feature / 'plan.md').write_text('Compose stable operations; retain V1 request/response identity.')
-        self.write('.program-kit/openapi-contracts.json', {'schemaVersion': 1, 'contracts': ['contracts/reservations.json']})
+        self.write('eng/openapi-contracts.json', {'schemaVersion': 1, 'contracts': ['contracts/reservations.json']})
         self.write('contracts/reservations.json', {'identity': 'Reservations', 'baseline': 'contracts/baseline.json', 'artifact': 'artifacts/openapi.json'})
         self.write('contracts/baseline.json', {'openapi': '3.0.3', 'paths': {}})
         self.write('artifacts/openapi.json', {'openapi': '3.0.3', 'paths': {'/reservations': {'post': {'operationId': 'Reserve'}}}})

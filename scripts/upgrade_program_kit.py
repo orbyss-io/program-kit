@@ -250,20 +250,20 @@ def prior_attempt(target: Path, release: Path, version: str):
     decision = target / 'docs/architecture/bootstrap-decisions.json'
     authority_hash = hashlib.sha256(decision.read_bytes()).hexdigest() if decision.is_file() else None
     fingerprint = release_fingerprint(release)
-    directory = target / '.specify/governance/program-kit-upgrade-attempts'
+    directory = target / 'artifacts/program-kit/runs'
     previous = []
     attempts = []
-    for path in directory.glob('*.json'):
+    for path in attempt_paths(target):
         value = json.loads(path.read_text(encoding='utf-8'))
         if value.get('schemaVersion') == 1 and value.get('targetVersion') == version:
             attempts.append((path, value))
         if (value.get('schemaVersion') == 1 and value.get('targetVersion') == version
-                and value.get('releaseInputsSha256') == fingerprint and value.get('bootstrapDecisionsSha256') == authority_hash
+                and value.get('releaseInputsSha256') == fingerprint
                 and value.get('status') in {'running', 'incomplete'}):
             previous.append((path, value))
     latest = max(attempts, key=lambda item: item[1]['startedAt']) if attempts else None
     if latest and latest[1].get('status') in {'running', 'incomplete'} and (
-            latest[1].get('releaseInputsSha256') != fingerprint or latest[1].get('bootstrapDecisionsSha256') != authority_hash):
+            latest[1].get('releaseInputsSha256') != fingerprint):
         raise UpgradeError('PKU121 interrupted upgrade candidate or approved inputs changed; '
                            'preserve the failed attempt and restore its exact reviewed inputs before retrying. '
                            'A partially installed version cannot establish a new migration origin.')
@@ -290,7 +290,7 @@ def previous_installed_version(target: Path, release: Path, version: str) -> str
 
 def begin_attempt(target: Path, release: Path, version: str, observed: str) -> tuple[Path, dict]:
     prior, fingerprint, authority_hash = prior_attempt(target, release, version)
-    directory = target / '.specify/governance/program-kit-upgrade-attempts'
+    directory = target / 'artifacts/program-kit/runs' / uuid.uuid4().hex
     value = {'schemaVersion': 1, 'id': uuid.uuid4().hex, 'targetVersion': version,
              'observedInstalledVersion': observed,
              'previousInstalledVersion': prior[1]['previousInstalledVersion'] if prior else observed,
@@ -307,32 +307,43 @@ def begin_attempt(target: Path, release: Path, version: str, observed: str) -> t
             'catalog': '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json',
             'selection': 'docs/architecture/building-block-selection.json',
             'architecture': 'docs/architecture/architecture-map.json',
-            'lock': '.program-kit/building-blocks.lock.json',
+            'lock': 'eng/building-blocks.lock.json',
         }.items():
             source = target / relative
             if source.is_file():
-                destination = directory / value['id'] / (name + '.original')
+                destination = target / '.program-kit/installation/originals' / (hashlib.sha256(source.read_bytes()).hexdigest() + '.original')
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 payload = source.read_bytes()
-                destination.write_bytes(payload)
+                if destination.exists() and destination.read_bytes() != payload:
+                    raise UpgradeError('PKU121 archived original changed; preserve it and inspect recovery provenance')
+                if not destination.exists():
+                    destination.write_bytes(payload)
                 originals[name] = {'path': destination.relative_to(target).as_posix(),
                                    'sha256': hashlib.sha256(payload).hexdigest()}
         if 'version' not in originals:
             raise UpgradeError('PKU121 installed version provenance is missing')
         value['originals'] = originals
-    path = directory / (value['id'] + '.json')
-    write_attempt(path, value)
+    path = directory / 'upgrade-attempt.json'
+    seal_attempt(path, value)
     return path, value
 
 
-def run_step(command: list[str], target: Path, label: str, number: int, total: int) -> None:
-    print(f"[{number}/{total}] {label}")
-    result = subprocess.run(command, cwd=target, check=False)
+def run_step(command: list[str], target: Path, label: str, number: int, total: int, directory: Path | None = None) -> None:
+    print(f"[{number}/{total}] {label}", flush=True)
+    started = time.perf_counter()
+    result = subprocess.run(command, cwd=target, check=False, capture_output=True,
+                            text=True, encoding='utf-8', errors='replace', timeout=900)
+    if directory:
+        directory.mkdir(parents=True,exist_ok=True)
+        (directory / f'{number:02d}-stdout.log').write_text(result.stdout, encoding='utf-8')
+        (directory / f'{number:02d}-stderr.log').write_text(result.stderr, encoding='utf-8')
+        write_attempt(directory / f'{number:02d}-step.json', {'step':label, 'exitCode':result.returncode,
+            'elapsedSeconds':round(time.perf_counter()-started,3)})
+    print(result.stdout, end='')
+    print(result.stderr, end='', file=sys.stderr)
     if result.returncode != 0:
-        raise UpgradeError(
-            f"PKU105 {label} failed with exit code {result.returncode}; "
-            "the Program Kit installation must not be used until validate-installation passes"
-        )
+        raise UpgradeError(f"PKU105 {label} failed with exit code {result.returncode}; "
+                           "partial tooling installation needs the same command retried after this diagnostic is fixed")
 
 
 def resolve_specify_command(single: str, vector_json: str) -> list[str]:
@@ -667,8 +678,8 @@ def managed_mutation_destinations(
     if has_bootstrap_decisions:
         add_root(target / ".specify/governance", "governed upgrade record")
 
-    if stale_locks or (target / ".program-kit/evidence/dotnet-lock-renewal.json").exists():
-        add_root(target / ".program-kit/evidence", "NuGet lock renewal evidence")
+    if stale_locks or (target / "artifacts/program-kit/dotnet-lock-renewal.json").exists():
+        add_root(target / "artifacts/program-kit", "NuGet lock renewal evidence")
 
     if reconciliation:
         add_root(target / ".program-kit/selection-history", "preserved OpenAPI producer evidence")
@@ -800,7 +811,7 @@ def building_block_upgrade_state(target: Path, release: Path, exporter_transitio
     and no pending transaction or unmanaged building-block dependency.
     """
     selection_path = target / "docs/architecture/building-block-selection.json"
-    lock_path = target / ".program-kit/building-blocks.lock.json"
+    lock_path = target / "eng/building-blocks.lock.json"
     if not selection_path.is_file():
         if lock_path.exists():
             raise UpgradeError("PKU116 building-block lock exists without its selection; repair selection state before upgrading")
@@ -938,7 +949,7 @@ def lock_renewal_commands(target: Path, locks: list[Path]) -> list[str]:
     coordinator = "python .specify/extensions/program-kit-governance/scripts/repository_sync.py"
     executor = "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py"
     context = ".program-kit/sync/dependencies.json"
-    request = ".program-kit/evidence/building-block-restore-request.json"
+    request = "artifacts/program-kit/building-block-restore-request.json"
     return [
         f"{coordinator} request-renew --phase upgrade",
         f"{executor} renew --approved --lock {context} --request {request}",
@@ -949,7 +960,7 @@ def lock_renewal_commands(target: Path, locks: list[Path]) -> list[str]:
 
 def write_lock_renewal(target: Path, component_versions: dict[str, str], locks: list[Path]) -> list[str]:
     commands = lock_renewal_commands(target, locks)
-    path = target / ".program-kit/evidence/dotnet-lock-renewal.json"
+    path = target / "artifacts/program-kit/dotnet-lock-renewal.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(
@@ -972,7 +983,7 @@ def write_lock_renewal(target: Path, component_versions: dict[str, str], locks: 
 
 
 def satisfy_lock_renewal(target: Path, component_versions: dict[str, str], pending: list[str], verifier) -> bool:
-    path = target / ".program-kit/evidence/dotnet-lock-renewal.json"
+    path = target / "artifacts/program-kit/dotnet-lock-renewal.json"
     if not path.is_file():
         return not pending
     try:
@@ -987,7 +998,7 @@ def satisfy_lock_renewal(target: Path, component_versions: dict[str, str], pendi
     if not pending and value.get('affectedLocks'):
         try:
             plan = json.loads((target / '.program-kit/sync/dependencies.json').read_text(encoding='utf-8'))
-            evidence = json.loads((target / '.program-kit/evidence/building-block-restore.json').read_text(encoding='utf-8'))
+            evidence = json.loads((target / 'artifacts/program-kit/building-block-restore.json').read_text(encoding='utf-8'))
             verifier.verify_evidence(target, plan, evidence)
             project_locks = {(Path(item['path']).parent / 'packages.lock.json').as_posix()
                              for item in plan.get('targets', []) if item['path'].endswith('.csproj')}
@@ -1009,20 +1020,50 @@ def satisfy_lock_renewal(target: Path, component_versions: dict[str, str], pendi
 
 
 def acquire_lock(target: Path) -> tuple[int, Path]:
-    path = target / ".specify/program-kit-upgrade.lock"
+    legacy = target / '.specify/program-kit-upgrade.lock'
+    if legacy.exists():
+        raise UpgradeError('PKU106 legacy upgrade lock is present; establish that its old operation ended before removing it: ' + str(legacy))
+    path = target / '.specify/program-kit-upgrade-v2.lock'
+    descriptor = os.open(path, os.O_CREAT | os.O_RDWR, 0o600)
     try:
-        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    except FileExistsError as error:
-        raise UpgradeError(
-            f"PKU106 another Program Kit component mutation may be active: {path}"
-        ) from error
-    os.write(descriptor, f"pid={os.getpid()}\n".encode("utf-8"))
+        if os.fstat(descriptor).st_size == 0:
+            os.write(descriptor, b'1')
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        if os.name == 'nt':
+            import msvcrt
+            msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as error:
+        os.close(descriptor)
+        raise UpgradeError('PKU106 another upgrade is active; retry after it completes') from error
     return descriptor, path
+
+
+def pending_upgrade_transactions(target: Path) -> bool:
+    return any(any((target / relative).glob('*/journal.json'))
+               for relative in ('.program-kit/transactions', '.program-kit/building-block-transactions'))
+
+
+def recover_upgrade_transactions(target: Path, release: Path) -> list[str]:
+    # Called only under the OS upgrade lock. Maintained recovery recipes preserve
+    # externally edited application paths rather than overwriting them.
+    for relative in ('.program-kit/transactions', '.program-kit/building-block-transactions'):
+        path = target / relative
+        if path.is_symlink() or not path.resolve().is_relative_to(target.resolve()):
+            raise UpgradeError('PKU121 transaction path escapes the consumer; inspect ' + relative)
+    engineering = load_release_module(release / 'extensions/program-kit-dotnet/scripts/reconciliation.py', 'upgrade_reconciliation')
+    blocks = load_release_module(release / 'extensions/program-kit-building-blocks/scripts/building_blocks.py', 'upgrade_recovery_blocks')
+    restored = engineering.recover_transactions(target) + blocks.recover_materialization(target)
+    if restored:
+        print('Recovered deterministic maintenance transactions: ' + ', '.join(restored))
+    return restored
 
 
 def completed_attempt_origin(target: Path, installed: str) -> str | None:
     origins = set()
-    for path in (target / '.specify/governance/program-kit-upgrade-attempts').glob('*.json'):
+    for path in attempt_paths(target):
         attempt = json.loads(path.read_text(encoding='utf-8'))
         if (attempt.get('status') != 'completed' or attempt.get('targetVersion') != installed
                 or attempt.get('previousInstalledVersion') == installed):
@@ -1042,23 +1083,38 @@ def completed_attempt_origin(target: Path, installed: str) -> str | None:
     return next(iter(origins)) if origins else None
 
 
-def preserve_migration_completion(target: Path) -> None:
-    path = target / '.specify/governance/migration-completion.json'
-    if not path.is_file():
-        return
-    payload = path.read_bytes()
-    history = path.parent / 'migration-history' / (hashlib.sha256(payload).hexdigest() + '.json')
-    history.parent.mkdir(parents=True, exist_ok=True)
-    if history.exists():
-        if history.read_bytes() != payload:
-            raise UpgradeError('PKU132 historical migration evidence changed')
-    else:
-        with history.open('xb') as stream:
-            stream.write(payload)
+def migration_record_path(target: Path) -> Path:
+    current = target / '.program-kit/installation/migration.json'
+    return current if current.is_file() else target / '.specify/governance/migration-completion.json'
+
+
+def preserve_migration_completion(target: Path, attempt_path: Path) -> None:
+    # Prior results are immutable history in the owned execution run, never a new
+    # approval input. Legacy history stays at its original location unchanged.
+    source = migration_record_path(target)
+    if source.is_file():
+        (attempt_path.parent / 'previous-migration.json').write_bytes(source.read_bytes())
+
+
+def attempt_paths(target: Path):
+    return list((target / '.specify/governance/program-kit-upgrade-attempts').glob('*.json')) + list(
+        (target / 'artifacts/program-kit/runs').glob('*/upgrade-attempt.json'))
+
+
+def seal_attempt(path: Path, value: dict) -> None:
+    write_attempt(path, value)
+    marker = {'owner': 'program-kit', 'schemaVersion': 1, 'operation': 'upgrade',
+              'status': 'failed' if value['status'] == 'incomplete' else value['status'],
+              'startedAtUtc': value['startedAt'],
+              'finishedAtUtc': datetime.now(timezone.utc).isoformat()}
+    write_attempt(path.parent / 'run.json', marker)
+    history = load_release_module(Path(__file__).resolve().parents[1] /
+        'extensions/program-kit-governance/scripts/execution_history.py', 'upgrade_execution_history')
+    history.cleanup(path.parents[4])
 
 
 def migration_origin(target: Path, installed: str, fallback: str | None = None, target_version: str | None = None) -> str:
-    path = target / '.specify/governance/migration-completion.json'
+    path = migration_record_path(target)
     if not path.is_file(): return fallback or installed
     record = json.loads(path.read_text(encoding='utf-8'))
     if record.get('status') not in {'pending', 'completed'}:
@@ -1071,7 +1127,7 @@ def migration_origin(target: Path, installed: str, fallback: str | None = None, 
     if record['toVersion'] != installed:
         raise UpgradeError('PKU132 pending migration differs from installed version; review recovery provenance')
     if record['status'] == 'completed':
-        required = sorted({check for entry in plan.get('migrations', []) for check in entry.get('verificationChecks', [])})
+        required = sorted({check for entry in plan.get('migrations', []) for check in entry.get('verificationChecks', []) if check not in record.get('retiredChecks', [])})
         if (record.get('migrationCompletionEstablished') is not True or record.get('pendingChecks')
                 or record.get('requiredChecks') != required
                 or any(record.get('checks', {}).get(check) is not True for check in required)):
@@ -1109,6 +1165,7 @@ def main() -> int:
         action="store_true",
         help="Explicitly update registered Program Kit exporter pins and invalidate affected analysis readiness.",
     )
+    parser.add_argument('--offline', action='store_true', help='Install offline and report required dependency verification without network restores')
     parser.add_argument('--plan', action='store_true', help='Read verified migration guidance without mutation')
     parser.add_argument("--specify-command", default="specify", help=argparse.SUPPRESS)
     parser.add_argument("--specify-command-json", default="", help=argparse.SUPPRESS)
@@ -1128,6 +1185,19 @@ def main() -> int:
         if args.plan:
             observed = previous_installed_version(target, release, version)
             _, plan = migration_plan(release, migration_origin(target, current_version(target), observed, version), version)
+            plan['installationActions'] = ['install bundle/workflow/extensions/preset sequentially',
+                'synchronize engineering configuration transactionally', 'validate installation coherence',
+                'restore and verify affected native dependencies' if not args.offline else 'report native dependency verification pending']
+            profile = load_managed_profile(target)
+            if profile:
+                result = subprocess.run([sys.executable, str(release / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                    '--target', str(target), '--profile-selected', '--web-profile', profile[0],
+                    '--upgrade-existing', '--check', '--json'], cwd=target, capture_output=True, text=True, encoding='utf-8', timeout=90)
+                if result.returncode not in (0,1,2) or not result.stdout.strip().startswith('{'):
+                    raise UpgradeError('PKU116 cannot preview engineering migration: ' + result.stderr)
+                plan['engineeringPlan'] = json.loads(result.stdout)
+            plan['applicationChecksPerformed'] = False
+            plan['releaseReadinessEstablished'] = False
             print(json.dumps(plan, indent=2))
             return 0
         component_versions = building_block_versions(release)
@@ -1143,6 +1213,9 @@ def main() -> int:
         delegated = ensure_cli_runtime(specify, release)
         if delegated is not None:
             return delegated
+        if pending_upgrade_transactions(target):
+            descriptor, lock_path = acquire_lock(target)
+            recover_upgrade_transactions(target, release)
         exporter_transition = {} if args.accept_openapi_producer_pin_reconciliation else None
         building_block_state = building_block_upgrade_state(target, release, exporter_transition)
         retained_exporter = None
@@ -1155,17 +1228,8 @@ def main() -> int:
             retained_exporter = component_versions.get('Orbyss.Foundation.OpenApi.Exporter')
         persistence_upgrade_preflight(target, release)
         profile = load_managed_profile(target)
-        has_bootstrap_decisions = (target / "docs/architecture/bootstrap-decisions.json").is_file()
+        has_bootstrap_decisions = False  # Completed bootstrap history is immutable; installation owns its version record.
         reconciliation = discover_openapi_reconciliation(target, release, retained_exporter)
-        if reconciliation and not args.accept_openapi_producer_pin_reconciliation:
-            raise UpgradeError(
-                "PKU110 upgrade requires explicit OpenAPI producer-pin reconciliation before it can mutate "
-                "Program Kit components. "
-                + describe_openapi_reconciliation(target, reconciliation)
-                + ". Re-run this exact updater command with "
-                "--accept-openapi-producer-pin-reconciliation; it will update those consumer-owned pins "
-                "atomically, invalidate affected after_tasks readiness, and stop with the required renewal path."
-            )
         retired_sync_integration.preflight(target)
         stale_locks = stale_program_kit_locks(target, component_versions)
         preflight_mutation_destinations(
@@ -1178,7 +1242,8 @@ def main() -> int:
             stale_locks,
             exporter_transition,
         )
-        descriptor, lock_path = acquire_lock(target)
+        if descriptor is None:
+            descriptor, lock_path = acquire_lock(target)
         # Load the release-owned guard, never code from a possibly edited consumer copy.
         runtime_source = release / 'extensions/program-kit-governance/scripts/schema_runtime.py'
         runtime_spec = importlib.util.spec_from_file_location('upgrade_schema_runtime', runtime_source)
@@ -1189,8 +1254,10 @@ def main() -> int:
         except RuntimeError as error:
             raise UpgradeError(str(error)) from error
         if not (runtime.runtime_path(target) / '.ready').is_file():
-            raise UpgradeError('SCHEMA_RUNTIME_MISSING: prepare the target runtime before this offline upgrade: '
-                               f'python "{runtime_source}" setup --project-root "{target}"')
+            if args.offline:
+                raise UpgradeError('SCHEMA_RUNTIME_MISSING: offline upgrade needs its dependency runtime prepared: '
+                                   f'python "{runtime_source}" setup --project-root "{target}"; then retry the same command')
+            runtime.setup(target)
         attempt_path, attempt = begin_attempt(target, release, version, previous_version)
         previous_version = attempt['previousInstalledVersion']
         if exporter_transition:
@@ -1217,7 +1284,7 @@ def main() -> int:
             + (1 if reconciliation else 0)
         )
         for number, (command, label) in enumerate(steps, 1):
-            run_step(command, target, label, number, total)
+            run_step(command, target, label, number, total, attempt_path.parent)
         runtime.record_copy(target)
         retired_sync_integration.verify_removed(target)
         if exporter_transition:
@@ -1250,6 +1317,7 @@ def main() -> int:
             "Validate cross-component version coherence",
             next_step,
             total,
+            attempt_path.parent,
         )
         if has_bootstrap_decisions:
             run_step(
@@ -1269,14 +1337,18 @@ def main() -> int:
             print(f"[{next_step + 1}/{total}] Reconcile registered OpenAPI producer pins")
             changed = apply_openapi_reconciliation(target, reconciliation)
             print("atomically reconciled: " + ", ".join(changed))
-            print(
-                "PKU111 Program Kit components are coherent, but affected after_tasks analysis readiness "
-                "was invalidated honestly. Run $speckit-analyze, then the Program Kit architecture check, "
-                "then the Program Kit implementation check for each affected feature: "
-                + ", ".join(path.name for path in reconciliation["featureDirs"]),
-                file=sys.stderr,
-            )
-            renewal_required = True
+            print('Exporter configuration updated. Current contract/build checks use the new producer; historical analysis stays historical.')
+        if not args.offline and (stale_locks or report.get('pendingPackageVerification')):
+            coordinator = target / '.specify/extensions/program-kit-governance/scripts/repository_sync.py'
+            executor = target / '.specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py'
+            sync_module.audit_toolchain(target, sync_module.context(target, 'upgrade', None)['toolchainPins'])
+            for mode in ('renew', 'locked'):
+                for command in ([sys.executable, str(coordinator), 'request-' + mode, '--phase', 'upgrade'],
+                                [sys.executable, str(executor), mode, '--approved', '--lock', '.program-kit/sync/dependencies.json',
+                                 '--request', 'artifacts/program-kit/building-block-restore-request.json']):
+                    run_step(command, target, 'Verify native dependencies: ' + mode, 20 if mode == 'renew' else 21, 21, attempt_path.parent)
+            stale_locks = stale_program_kit_locks(target, component_versions)
+            report = sync_module.readiness(target, 'upgrade', None)
         if stale_locks:
             commands = write_lock_renewal(target, component_versions, stale_locks)
             print(
@@ -1299,36 +1371,42 @@ def main() -> int:
             remediation = remediation_module.assess(target, report.get('deferredPersistenceAdmissions', []))
         finally:
             sys.path.remove(str(sync_source.parent))
-        if not remediation['applicationReady']:
-            print('PKU117 managed setup assessment is separate from pending consumer phase proof; '
-                  'continue from .specify/governance/upgrade-remediation.json. Existing product sources remain owned by the consumer.')
+        print('Application correctness and release readiness were not asserted by this tooling upgrade. Continue unfinished features normally.')
         migration = guidance.completion(guidance_plan, {
-            'installation-coherence': True, 'dependency-verification': not renewal_required,
-            'required-phase-evidence': remediation_module.migration_phase_ready(remediation)})
+            'installation-coherence': True, 'dependency-verification': not renewal_required})
+        migration['applicationReady'] = None
+        migration['applicationChecksPerformed'] = False
+        migration['releaseReadinessEstablished'] = False
         migration['releaseInputsSha256'] = release_fingerprint(release)
-        preserve_migration_completion(target)
-        write_attempt(target / '.specify/governance/migration-completion.json', migration)
+        preserve_migration_completion(target, attempt_path)
+        write_attempt(target / '.program-kit/installation/migration.json', migration)
         if not migration['migrationCompletionEstablished']:
             print('PKU132 installation is coherent; migration verification remains pending: '
                   + ', '.join(migration['pendingChecks']) + '. Preserve migration-completion.json and renew the named evidence before retry.', file=sys.stderr)
             renewal_required = True
         if renewal_required:
             attempt.update(status='completed', outcome='offline-coherent-package-verification-pending')
-            write_attempt(attempt_path, attempt)
+            seal_attempt(attempt_path, attempt)
             return 3
         attempt.update(status='completed', outcome='offline-coherent')
-        write_attempt(attempt_path, attempt)
+        seal_attempt(attempt_path, attempt)
         print(
             f"Program Kit v{version} upgrade completed: workflow, extensions, preset, bundle record, "
-            "managed baseline, and governed version authority are coherent."
+            "managed baseline, and installation metadata are coherent."
         )
         return 0
-    except (OSError, ValueError, ReconciliationError) as error:
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
         print(str(error), file=sys.stderr)
+        print('No component installation started; resolve the reported input/permission issue.' if attempt is None else
+              'Tooling installation may be partial. Whether the migration introduced an application failure is unverified; application source and unfinished work remain available.', file=sys.stderr)
+        recovery = [sys.executable, str(release / 'scripts/upgrade_program_kit.py'), '--release-root', str(release), '--target', str(target)]
+        if args.offline: recovery.append('--offline')
+        if args.accept_openapi_producer_pin_reconciliation: recovery.append('--accept-openapi-producer-pin-reconciliation')
+        print('Next action: fix the reported cause, then run ' + subprocess.list2cmdline(recovery), file=sys.stderr)
         if attempt is not None and attempt_path is not None:
             attempt.update(status='incomplete', diagnostic=str(error))
             try:
-                write_attempt(attempt_path, attempt)
+                seal_attempt(attempt_path, attempt)
             except OSError as evidence_error:
                 print(f'PKU121 cannot seal attempt {attempt_path}: {evidence_error}; preserve the original diagnostic above.', file=sys.stderr)
             else:
@@ -1338,11 +1416,8 @@ def main() -> int:
     finally:
         if descriptor is not None:
             os.close(descriptor)
-        if lock_path is not None:
-            try:
-                lock_path.unlink()
-            except FileNotFoundError:
-                pass
+        # OS locks release on close/process exit; the inert marker survives retries.
+
 
 
 if __name__ == "__main__":

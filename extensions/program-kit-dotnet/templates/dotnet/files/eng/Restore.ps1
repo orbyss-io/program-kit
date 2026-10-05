@@ -8,7 +8,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 
 function Test-ProgramKitPathWithinRoot {
     param(
@@ -39,7 +39,7 @@ if ($EnvironmentOnly -and ($Subject -or $LockedMode -or $ForceEvaluate -or $NoCa
     throw 'PKN101 -EnvironmentOnly cannot be combined with restore arguments.'
 }
 
-$cache = Join-Path $root '.program-kit/cache'
+$cache = Join-Path $root 'artifacts/cache'
 $env:NUGET_PACKAGES = Join-Path $cache 'nuget/packages'
 $env:NUGET_HTTP_CACHE_PATH = Join-Path $cache 'nuget/http'
 $env:NUGET_SCRATCH = Join-Path $cache 'nuget/scratch'

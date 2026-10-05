@@ -34,7 +34,7 @@ def runtime_path(root=None):
     root = Path(root or project_root()).resolve()
     key = digest(SCRIPTS / 'json-schema-requirements.txt')[:16]
     tag = f'{sys.implementation.cache_tag}-{sys.platform}-{platform.machine()}'
-    return root / '.program-kit/cache/json-schema' / f'{key}-{tag}'
+    return root / 'artifacts/cache/json-schema' / f'{key}-{tag}'
 
 
 def activate():
@@ -67,7 +67,7 @@ def setup(root=None, offline=False, wheelhouse=None):
             # An isolated machine-installed Specify Python may inherit an
             # administrator-owned UV_CACHE_DIR. Setup owns project-local tools,
             # so it must not require write access to that machine cache.
-            cache = Path(root or project_root()).resolve() / '.program-kit/cache/uv'
+            cache = Path(root or project_root()).resolve() / 'artifacts/cache/uv'
             command = [shutil.which('uv'), 'pip', 'install', '--python', sys.executable,
                        '--cache-dir', str(cache)]
             if sys.platform == 'win32':

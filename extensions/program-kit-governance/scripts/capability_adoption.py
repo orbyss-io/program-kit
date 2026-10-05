@@ -54,7 +54,7 @@ def validate_adoption(root, feature, phase, available_checks):
                 if phase == 'delivery':
                     require(path.is_file(), f'Selected mechanism was not implemented: {relative}')
         if phase == 'delivery':
-            lock = read(root / '.program-kit/building-blocks.lock.json')
+            lock = read(root / 'eng/building-blocks.lock.json')
             require(identity in {i['id'] for i in lock.get('instances', [])}, f'Current capability was not materialized: {identity}')
     if phase == 'delivery' and any(r.get('disposition') == 'current-feature' for r in records):
         from repository_sync import provider
@@ -64,12 +64,12 @@ def validate_adoption(root, feature, phase, available_checks):
         source = Path(blocks.__file__)
         expected = blocks.resolve(root, root / 'docs/architecture/building-block-selection.json',
                                   blocks.default_catalog(source), blocks.find_program_kit_version(source))
-        lock = read(root / '.program-kit/building-blocks.lock.json')
+        lock = read(root / 'eng/building-blocks.lock.json')
         if lock.get('materializationScope') == 'existing-compositions':
             expected = blocks.materialized_plan(root, expected)
         require(lock == expected, 'Capability materialization is stale for selected authority or pins')
         blocks.check_materialization(root, lock)
         restore.verify_evidence(root, read(root / '.program-kit/sync/dependencies.json'),
-                                read(root / '.program-kit/evidence/building-block-restore.json'))
+                                read(root / 'artifacts/program-kit/building-block-restore.json'))
         # Actual use still needs named behavior cases and an attributable code review.
     return actual

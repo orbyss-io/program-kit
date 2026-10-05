@@ -36,8 +36,7 @@ def validate_selection_upgrades(installed: Path, upgrade_test) -> None:
         blocks_test.write_json(selection_path, selection)
         blocks_test.write_json(architecture_path, architecture)
         blocks_test.refresh_registration(selection_path, architecture_path)
-        upgrade_test.seed_migration_review(target, updater.current_version(target))
-        lock_path = target / ".program-kit/building-blocks.lock.json"
+        lock_path = target / "eng/building-blocks.lock.json"
         assert updater.building_block_upgrade_state(target, release) == "planned"
         immutable = {path: path.read_bytes() for path in (selection_path, architecture_path, adr)}
 
@@ -138,7 +137,7 @@ def validate_selection_upgrades(installed: Path, upgrade_test) -> None:
         applied_project.write_bytes(applied_bytes)
         for root in (target, applied):
             result = upgrade_test.run(sys.executable, str(upgrade_test.UPDATER), "--release-root", str(release),
-                                      "--target", str(root), "--integration", "codex", cwd=root)
+                                      "--target", str(root), "--integration", "codex", "--offline", cwd=root)
             upgrade_test.require_offline_setup(result, "accepted selection sequential upgrade")
             for path, data in immutable.items():
                 assert (root / path.relative_to(target)).read_bytes() == data

@@ -8,10 +8,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repository = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$repository = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $suite = Join-Path $PSScriptRoot 'web'
-$evidence = Join-Path $repository '.program-kit/evidence/toolchain.json'
-$profileRecord = Join-Path $repository '.program-kit\web-profile.json'
+$evidence = Join-Path $repository 'artifacts/program-kit/toolchain.json'
+$profileRecord = Join-Path $repository 'eng\web-profile.json'
 if (-not (Test-Path -LiteralPath $profileRecord -PathType Leaf)) {
     throw 'The synchronized web-profile record is missing.'
 }

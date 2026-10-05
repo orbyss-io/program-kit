@@ -47,7 +47,7 @@ def oasdiff_version(command: Path, repository: Path) -> str | None:
 
 def resolve_oasdiff(repository: Path, required: str, requested: str) -> tuple[Path | None, str | None]:
     names = ("oasdiff.exe", "oasdiff.cmd", "oasdiff.bat") if os.name == "nt" else ("oasdiff",)
-    candidates = [repository / ".program-kit/tools/oasdiff" / required / name for name in names]
+    candidates = [repository / "artifacts/tools/oasdiff" / required / name for name in names]
     requested_path = js_toolchain.executable(requested)
     if requested_path:
         candidates.append(requested_path)
@@ -73,7 +73,7 @@ def resolve(
     dotnet_version = run_version([str(dotnet)], repository) if dotnet else None
     if dotnet_command == 'dotnet':
         for name in ('dotnet.exe', 'dotnet'):
-            local = repository / '.program-kit/tools/dotnet' / required['dotnet'] / name
+            local = repository / 'artifacts/tools/dotnet' / required['dotnet'] / name
             if local.is_file() and run_version([str(local.resolve())], repository) == required['dotnet']:
                 dotnet, dotnet_version = local.resolve(), required['dotnet']
                 break
@@ -193,7 +193,7 @@ def install_dotnet(version: str, installer: str, repository: Path | None = None)
         raise ValueError(f"PKT005 .NET installer is unavailable: {path}")
     command = ["powershell", "-NoProfile", "-File", str(path), "-Version", version] if path.suffix.lower() == ".ps1" else [str(path), "--version", version]
     if repository is not None:
-        directory = str(repository / '.program-kit/tools/dotnet' / version)
+        directory = str(repository / 'artifacts/tools/dotnet' / version)
         command += ['-InstallDir', directory, '-NoPath'] if path.suffix.lower() == '.ps1' else ['--install-dir', directory, '--no-path']
     if subprocess.run(command, check=False).returncode != 0:
         raise ValueError("PKT006 approved .NET side-by-side installation failed (offline or installer error).")
@@ -235,7 +235,7 @@ def install_npm(repository: Path, node: Path, required: str, requested: str) -> 
     if current is None:
         raise ValueError("PKT018 pinned Node is installed but has no usable npm CLI for approved remediation.")
     result = subprocess.run(
-        current + ["--strict-ssl=true", "install", "--prefix", str(repository / '.program-kit/tools/npm' / required), f"npm@{required}"],
+        current + ["--strict-ssl=true", "install", "--prefix", str(repository / 'artifacts/tools/npm' / required), f"npm@{required}"],
         cwd=repository,
         env=environment,
         check=False,
@@ -258,7 +258,7 @@ def install_oasdiff(repository: Path, version: str, binary: str) -> None:
     if os.name == "nt" and suffix not in {".exe", ".cmd", ".bat"}:
         raise ValueError("PKT021 supplied Windows oasdiff binary must be an .exe, .cmd, or .bat file")
     name = "oasdiff" + suffix if os.name == "nt" else "oasdiff"
-    destination = repository / ".program-kit/tools/oasdiff" / version / name
+    destination = repository / "artifacts/tools/oasdiff" / version / name
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(source, destination)
     if os.name != "nt":
@@ -269,7 +269,7 @@ def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(description="Resolve and approval-gate the exact Program Kit toolchain.")
     parser.add_argument("--repository", default=".")
-    parser.add_argument("--evidence", default=".program-kit/evidence/toolchain.json")
+    parser.add_argument("--evidence", default="artifacts/program-kit/toolchain.json")
     parser.add_argument("--remediate", action="store_true")
     parser.add_argument("--approve", action="store_true", help="Explicit non-interactive approval for system/network changes")
     parser.add_argument("--decline", action="store_true")

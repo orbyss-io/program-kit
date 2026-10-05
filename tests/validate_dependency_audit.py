@@ -23,27 +23,17 @@ from validate_governance_state import roadmap
 
 
 class AuditTests(unittest.TestCase):
-    def test_migration_scope_preserves_future_feature_gates_without_blocking_tool_upgrade(self):
-        import upgrade_remediation as remediation
-        self.proof()
-        self.write('specs/current/spec.md', '# Existing feature')
-        self.write('specs/current/tasks.md', '# Existing tasks')
-        for name in ('phase-obligations.json', 'obligation-design.json', 'obligation-review.json'):
-            self.write('specs/current/' + name, {})
-        self.write('specs/future/spec.md', '# Specified, not yet planned')
-        with patch.object(remediation, 'check'):
-            result = remediation.assess(self.root)
-        self.assertFalse(result['applicationReady'])
-        self.assertTrue(remediation.migration_phase_ready(result))
-        self.assertEqual([True, False], [feature['migrationVerificationRequired'] for feature in result['features']])
-        self.write('.program-kit/lifecycle/current.json', {'invalidations': [{'phase': 'afterTasksAnalysis'}]})
-        (self.root / 'specs/current/tasks.md').unlink()
-        with patch.object(remediation, 'check', side_effect=ValueError('Affected evidence is stale')):
-            result = remediation.assess(self.root)
-        self.assertFalse(remediation.migration_phase_ready(result))
-        del result['features'][0]['migrationVerificationRequired']
-        with self.assertRaisesRegex(ValueError, 'explicit feature scope'):
-            remediation.migration_phase_ready(result)
+    def test_migration_scope_is_independent_of_unfinished_features(self):
+        self.write('specs/001-future/spec.md','Unfinished feature')
+        self.write('specs/001-future/tasks.md','- [ ] unfinished work')
+        from upgrade_remediation import assess, migration_phase_ready
+        before={p:p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+        result=assess(self.root)
+        self.assertTrue(migration_phase_ready(result))
+        self.assertFalse(result['features'][0]['migrationVerificationRequired'])
+        self.assertIsNone(result['applicationReady'])
+        self.assertFalse(migration_phase_ready({}))
+        self.assertEqual(before,{p:p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
 
     def test_precapture_engineering_pins_use_verified_installed_selection(self):
         from repository_sync import provider
@@ -55,7 +45,7 @@ class AuditTests(unittest.TestCase):
         self.write('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json', installed)
         manifest = json.dumps({'tools': {'orbyss.foundation.openapi.exporter': {'version': '0.2.4'}}}).encode()
         before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
-        rendered = renderer.render(self.root, '.program-kit/eng/.config/dotnet-tools.json', manifest)
+        rendered = renderer.render(self.root, 'eng/.config/dotnet-tools.json', manifest)
         self.assertEqual('0.2.3', json.loads(rendered)['tools']['orbyss.foundation.openapi.exporter']['version'])
         self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
         # Exercise the actual standalone boundary without governance on sys.path,
@@ -69,7 +59,7 @@ class AuditTests(unittest.TestCase):
                 self.blocks.preserve_dependency_profile(self.root, self.blocks.load_json(self.selection),
                     self.root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json')
             result = subprocess.run([sys.executable, '-I', '-c', code, renderer.__file__, str(self.root),
-                                     '.program-kit/eng/.config/dotnet-tools.json', manifest.decode()],
+                                     'eng/.config/dotnet-tools.json', manifest.decode()],
                                     capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
             self.assertEqual('0.2.3', json.loads(result.stdout)['tools']['orbyss.foundation.openapi.exporter']['version'])
@@ -78,48 +68,25 @@ class AuditTests(unittest.TestCase):
         installed['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter'] = '0.2.2'
         self.write('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json', installed)
         with self.assertRaisesRegex(ValueError, 'resolution'):
-            renderer.render(self.root, '.program-kit/eng/.config/dotnet-tools.json', manifest)
+            renderer.render(self.root, 'eng/.config/dotnet-tools.json', manifest)
 
     def test_historical_scratch_classification_does_not_grant_current_compatibility(self):
-        source = self.proof()
-        receipt = self.root / '.specify/governance/proof/proof.json'
-        preserved = receipt.read_bytes()
-        changed = lifecycle.proof_tooling()
-        changed['program-kit-governance/scripts/bootstrap_lifecycle.py'] = '0' * 64
-        with patch.object(lifecycle, 'proof_tooling', return_value=changed):
-            self.assertIn(source.resolve(), audit.evidence_inputs(self.root))
+        source=self.proof()
+        receipt=self.root/'.specify/governance/proof/proof.json'
+        preserved=receipt.read_bytes()
+        changed=lifecycle.proof_tooling()
+        changed['program-kit-governance/scripts/bootstrap_lifecycle.py']='0'*64
+        with patch.object(lifecycle,'proof_tooling',return_value=changed):
+            self.assertIn(source.resolve(),audit.evidence_inputs(self.root))
             from governance_state import roadmap_records
-            with self.assertRaisesRegex(ValueError, 'tooling changed'):
-                lifecycle.validate_prerequisites(self.root, roadmap_records(self.root / 'docs/architecture/specification-roadmap.md'))
+            with self.assertRaisesRegex(ValueError,'tooling changed'):
+                lifecycle.validate_prerequisites(self.root,roadmap_records(self.root/'docs/architecture/specification-roadmap.md'))
             from upgrade_remediation import assess
-            readiness = assess(self.root)
-            self.assertFalse(readiness['applicationReady'])
-            self.assertTrue(readiness['compatibility'])
-            renewal = readiness['compatibility'][0]['renewal']
-            self.assertEqual([{'path': 'program-kit-governance/scripts/bootstrap_lifecycle.py',
-                'beforeSha256': lifecycle.load(receipt)['tooling_sources']['program-kit-governance/scripts/bootstrap_lifecycle.py'],
-                'afterSha256': '0' * 64}], renewal['proofs'][0]['changedTooling'])
-            self.assertFalse(renewal['approvalPerformed'])
-            self.assertFalse(renewal['workflowStarted'])
-            self.assertIsNone(renewal['command'])
-            self.write('.specify/governance/bootstrap-completion.json', {'status': 'Completed',
-                'workflow': {'run_id': 'original-r-12345678'}})
-            readiness = assess(self.root)
-            renewal = readiness['compatibility'][0]['renewal']
-            self.assertEqual(['python', '.specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py',
-                'resume', '--run-id', 'original-r-12345678', '--post-bootstrap'], renewal['command'])
-            self.assertEqual('human', renewal['executionOwner'])
-            self.assertEqual(str(self.root.resolve()), renewal['cwd'])
-            # A corrupt completion can never supply an executable recovery command.
-            self.write('.specify/governance/bootstrap-completion.json', {'status': 'Completed',
-                'workflow': {'run_id': '../outside'}})
-            unavailable = assess(self.root)['compatibility'][0]['renewal']
-            self.assertIsNone(unavailable['command'])
-            self.assertIn('valid completed source', unavailable['continuationUnavailable'])
-        self.assertEqual(preserved, receipt.read_bytes())
-        source.write_bytes(source.read_bytes() + b'changed')
-        with self.assertRaisesRegex(ValueError, 'inputs/streams changed'):
-            audit.evidence_inputs(self.root)
+            result=assess(self.root)
+            self.assertIsNone(result['applicationReady'])
+            self.assertEqual([],result['compatibility'])
+            self.assertTrue(result['migrationVerificationEstablished'])
+        self.assertEqual(preserved,receipt.read_bytes())
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='program-kit-dependency-audit-')
@@ -174,7 +141,7 @@ class AuditTests(unittest.TestCase):
         source = self.proof()
         protected = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file() and ('docs' in p.parts or '.specify' in p.parts)}
         plan = self.blocks.resolve(self.root, self.selection, CATALOG, '0.12.0')
-        lockpath = self.root / '.program-kit/building-blocks.lock.json'
+        lockpath = self.root / 'eng/building-blocks.lock.json'
         with patch.dict('os.environ', {'PROGRAMKIT_TEST_BUILDING_BLOCK_FAIL_AFTER_ACTION': '1'}):
             with self.assertRaises(OSError):
                 self.blocks.apply_materialization(self.root, lockpath, plan, self.catalog)
@@ -223,7 +190,7 @@ class AuditTests(unittest.TestCase):
         result = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertEqual(2, len(audit.engineering_outputs(self.root)))
-        for relative in ['.program-kit/eng/.config/dotnet-tools.json', '.program-kit/eng/ProgramKit.Packages.props']:
+        for relative in ['eng/.config/dotnet-tools.json', 'eng/ProgramKit.Packages.props']:
             path = self.root / relative
             original = path.read_bytes()
             path.write_bytes(original + b' ')
@@ -237,10 +204,10 @@ class AuditTests(unittest.TestCase):
 
     def test_strict_candidate_excluded_from_restore_but_not_linkable(self):
         candidate = self.write('specs/001-feature/dependencies/package.json', {'dependencies': {'@orbyss/forms-react': '0.2.0'}})
-        self.write('.program-kit/evidence/toolchain.json', {'required': {}, 'resolved': {}, 'commands': {}, 'satisfied': True})
-        context = package_execution.context_proof(self.root, self.root / '.program-kit/evidence/toolchain.json', ['@orbyss/forms-react'])
+        self.write('artifacts/program-kit/toolchain.json', {'required': {}, 'resolved': {}, 'commands': {}, 'satisfied': True})
+        context = package_execution.context_proof(self.root, self.root / 'artifacts/program-kit/toolchain.json', ['@orbyss/forms-react'])
         lock = {'lockfileVersion': 3, 'packages': {'': {'dependencies': {'@orbyss/forms-react': '0.2.0'}}}}
-        self.write('.program-kit/evidence/npm-graph.json', {'satisfied': True, 'packageJson': candidate.relative_to(self.root).as_posix(),
+        self.write('artifacts/program-kit/npm-graph.json', {'satisfied': True, 'packageJson': candidate.relative_to(self.root).as_posix(),
             'packageJsonSha256': audit.sha(candidate), 'lockfile': lock, 'lockfileSha256': package_execution.canonical_hash(lock), 'executionContext': context})
         self.write('specs/001-feature/artifact-ownership.json', {'artifacts': [{'pattern': 'specs/001-feature/**'}, {'path': 'web/package.json'}]})
         self.run_audit()
@@ -262,11 +229,11 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
         installed = self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/files'
-        for relative in ('.program-kit/eng/ProgramKit.Packages.props', '.program-kit/eng/.config/dotnet-tools.json'):
+        for relative in ('eng/ProgramKit.Packages.props', 'eng/.config/dotnet-tools.json'):
             destination = installed / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes((source / relative).read_bytes())
-        relative = '.program-kit/eng/ProgramKit.Packages.props'
+        relative = 'eng/ProgramKit.Packages.props'
         previous = (installed / relative).read_bytes().replace(b'    <PackageVersion Include="Orbyss.Foundation.Build" Version="0.1.0" />\n', b'')
         self.assertNotEqual(previous, (source / relative).read_bytes())
         (installed / relative).write_bytes(previous)
@@ -290,17 +257,14 @@ class AuditTests(unittest.TestCase):
         errors = audit.planned_selection_errors(self.root, [{'path': 'tests/Tests.csproj', 'packageReferences': ['Orbyss.Foundation.Tasks', 'Orbyss.Foundation.Analyzers']}])
         self.assertTrue(errors and 'PKA016' in errors[0])
 
-    def test_setup_and_source_preflight_have_distinct_required_gates(self):
+    def test_setup_and_source_preflight_no_longer_consume_receipts(self):
         feature = self.root / 'specs/001-feature'
-        self.write('specs/001-feature/artifact-ownership.json', {})
-        for stage in ['setup', 'source']:
-            calls = []
-            with patch.object(sys, 'argv', ['preflight', '--repository', str(self.root), '--feature-dir', str(feature), '--stage', stage]), patch.object(preflight, 'run', side_effect=lambda cmd, root: calls.append(cmd) or 0), patch.object(audit, 'planned_selection_errors', return_value=[]):
-                self.assertEqual(0, preflight.main())
-            ownership = next(c for c in calls if any('artifact_ownership.py' in arg for arg in c))
-            self.assertEqual(stage == 'setup', '--design-only' in ownership)
-            gates = [c for c in calls if '--phase' in c]
-            self.assertEqual(['after-plan', 'after-plan'] if stage == 'setup' else ['implementation', 'implementation'], [c[c.index('--phase') + 1] for c in gates])
+        feature.mkdir(parents=True, exist_ok=True)
+        before = {p:p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+        for stage in ['setup','source']:
+            with patch.object(sys,'argv',['preflight','--repository',str(self.root),'--feature-dir',str(feature),'--stage',stage]):
+                self.assertEqual(0,preflight.main())
+        self.assertEqual(before,{p:p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
 
 
 if __name__ == '__main__':

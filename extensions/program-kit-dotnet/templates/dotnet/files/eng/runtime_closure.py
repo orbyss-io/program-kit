@@ -9,14 +9,14 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 
-EVIDENCE = Path(".program-kit/evidence/runtime-closure.json")
+EVIDENCE = Path("artifacts/program-kit/runtime-closure.json")
 SCHEMA = "../runtime-closure.schema.json"
-CONFIGURATION = ("hostsettings.json", "nuplane.settings.json", "shells.json", ".program-kit/web-profile.shells.json")
+CONFIGURATION = ("hostsettings.json", "nuplane.settings.json", "shells.json", "eng/web-profile.shells.json")
 
 
 def source_configuration(repository: Path) -> list[dict]:
     return [{"file": name, "sha256": sha256(repository / name)}
-            for name in (*CONFIGURATION, ".program-kit/building-blocks.shells.json")
+            for name in (*CONFIGURATION, "eng/building-blocks.shells.json")
             if (repository / name).is_file()]
 
 

@@ -3,10 +3,10 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-  <Import Project=".program-kit/eng/ProgramKit.Packages.props" />
-  <Import Project=".program-kit/eng/ProgramKit.Persistence.props"
-          Condition="Exists('.program-kit/eng/ProgramKit.Persistence.props')" />
-  <Import Project=".program-kit/eng/ProgramKit.BuildingBlocks.props"
-          Condition="Exists('.program-kit/eng/ProgramKit.BuildingBlocks.props')" />
+  <Import Project="eng/ProgramKit.Packages.props" />
+  <Import Project="eng/ProgramKit.Persistence.props"
+          Condition="Exists('eng/ProgramKit.Persistence.props')" />
+  <Import Project="eng/ProgramKit.BuildingBlocks.props"
+          Condition="Exists('eng/ProgramKit.BuildingBlocks.props')" />
   <!-- Consumer-owned central package versions belong here. -->
 </Project>

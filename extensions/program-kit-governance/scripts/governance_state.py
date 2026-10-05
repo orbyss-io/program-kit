@@ -2006,7 +2006,7 @@ def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> li
     validate_roadmap_decision_sources()
     if verify_delivery and any(record['Status'] == 'Delivered' for record in records):
         from specification_intake import spec_entries
-        from phase_obligations import check as check_phase
+        from historical_phase_evidence import check as check_phase
         root = Path.cwd().resolve()
         features = {}
         for path in (root / 'specs').glob('*/spec.md'):

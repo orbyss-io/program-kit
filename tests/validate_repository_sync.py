@@ -54,7 +54,7 @@ class CoordinatorTests(unittest.TestCase):
             sync.describe(self.root, "planning")
 
     def test_wrong_toolchain_evidence_is_scheduled_for_audit(self):
-        sync.write(self.root / ".program-kit/evidence/toolchain.json", {"satisfied": True, "required": {"node": "0.0.0", "npm": "0.0.0"}})
+        sync.write(self.root / "artifacts/program-kit/toolchain.json", {"satisfied": True, "required": {"node": "0.0.0", "npm": "0.0.0"}})
         self.assertTrue(sync.describe(self.root, "planning")["operations"][0]["required"])
 
     def test_failed_operation_preserves_an_incomplete_receipt(self):

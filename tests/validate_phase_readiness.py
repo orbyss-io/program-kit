@@ -11,7 +11,7 @@ import validate_bootstrap_lifecycle as fixture
 import bootstrap_handoff as handoff
 import bootstrap_proof_plan as proofs
 import specification_intake as intake
-import phase_obligations as phases
+import historical_phase_evidence as phases
 import workflow_lifecycle as workflow
 
 G, L = fixture.governance, fixture.lifecycle

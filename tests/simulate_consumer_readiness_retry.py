@@ -29,7 +29,7 @@ def main():
         if (original / name).is_dir():
             shutil.copytree(original / name, project / name,
                 ignore=shutil.ignore_patterns('__pycache__', 'resumption-history', 'bin', 'obj', 'node_modules', 'cache', 'scratch-*'))
-    schema = Path('.program-kit/cache/json-schema')
+    schema = Path('artifacts/cache/json-schema')
     shutil.copytree(original / schema, project / schema)
     os.chdir(project)
     sys.path.insert(0, str(project / '.specify/extensions/program-kit-governance/scripts'))

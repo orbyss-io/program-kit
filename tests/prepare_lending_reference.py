@@ -100,13 +100,13 @@ def prepare(inputs, destination, browser_modules=None, engines='chromium,webkit'
         if result.exitCode != 0 or result.timedOut or not result.cleanupComplete or not result.logsDrained:
             raise LiveContractError('LENDING_REFERENCE_PREPARATION_FAILED: ' + name)
     run([sys.executable, str(ROOT / 'extensions/program-kit-governance/scripts/npm_graph.py'), '--repository', str(project),
-         '--package-json', str(project / 'web/package.json'), '--evidence', str(project / '.program-kit/evidence/npm-graph.json')], 'npm-graph')
-    request = project / '.program-kit/evidence/building-block-restore-request.json'
+         '--package-json', str(project / 'web/package.json'), '--evidence', str(project / 'artifacts/program-kit/npm-graph.json')], 'npm-graph')
+    request = project / 'artifacts/program-kit/building-block-restore-request.json'
     for mode in ('renew', 'locked'):
         write(request, executor.restore_request(project, lock, plan, mode))
         run([sys.executable, str(executor.__file__), mode, '--target', str(project), '--lock', str(lock), '--request', str(request), '--approved'], mode)
-    executor.verify_evidence(project, plan, load_object(project / '.program-kit/evidence/building-block-restore.json'))
-    toolchain = load_object(project / '.program-kit/evidence/toolchain.json')
+    executor.verify_evidence(project, plan, load_object(project / 'artifacts/program-kit/building-block-restore.json'))
+    toolchain = load_object(project / 'artifacts/program-kit/toolchain.json')
     run([*toolchain['commands']['dotnet'], 'build', 'Lending.slnx', '--no-restore'], 'build-dotnet')
     node = toolchain['commands']['node']
     run([*node, 'node_modules/typescript/bin/tsc'], 'build-typescript', project / 'web')

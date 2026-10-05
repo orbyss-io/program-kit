@@ -9,7 +9,7 @@ ownership, wire contracts, stable permission/policy metadata or an explicit anon
 and its business outcomes; it does not create an application-root web-boundary feature.
 
 The profile contract version is recorded in `docs/architecture/bootstrap-decisions.json` and
-`.program-kit/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking
+`eng/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking
 behavior change requires a new profile version.
 
 ## Security assurance contract
@@ -72,7 +72,7 @@ Configuration binds to the selected shell's `Foundation:Web` section and is vali
 shell activates. Secret values come from the environment or a secret provider and never from
 committed settings. For the scaffolded `default` shell, the BFF client-secret environment key is
 `CShells__Shells__default__Configuration__Foundation__Web__ClientSecret`. For `spa-pkce-v1`, the
-scaffold-owned `.program-kit/spa-pkce.json` is the typed security input; synchronization validates it
+scaffold-owned `eng/spa-pkce.json` is the typed security input; synchronization validates it
 and derives the managed shell overlay, Keycloak registration, and browser contract. Consumers
 change that input and resynchronize rather than editing a derived managed file.
 
@@ -239,7 +239,7 @@ Synchronization composes it with the one client contribution owned by the select
 validates the exact client set before and after the transaction. Profile-neutral documentation and
 validation describe BFF and SPA-PKCE as alternatives; they never prescribe their union. Fixture
 credentials are local-test data and are never reused in deployed environments. SPA redirect and
-post-logout registrations are exact routes derived from `.program-kit/spa-pkce.json`; wildcard
+post-logout registrations are exact routes derived from `eng/spa-pkce.json`; wildcard
 registrations are rejected before Compose starts.
 
 ## `bff-cookie-v1`
@@ -291,7 +291,7 @@ registrations are rejected before Compose starts.
   are part of the selected profile configuration.
 - Keycloak authoritatively enforces the configured idle and maximum SSO/client-session lifetimes;
   the API authoritatively enforces token `exp`; and the consumer SPA imports the managed
-  `.program-kit/eng/web/spa-session.ts` adapter to enforce local idle expiry and the non-extendable
+  `eng/web/spa-session.ts` adapter to enforce local idle expiry and the non-extendable
   `auth_time + absoluteMinutes` deadline. A missing trusted `auth_time` is an authentication failure,
   not a reason to start a new absolute window. Silent renewal retains the original `auth_time` and
   cannot move that deadline.
@@ -299,7 +299,7 @@ registrations are rejected before Compose starts.
   session identifier between tabs. Receipt clears local authentication in the other tab. Logout
   clears local state and broadcasts first, then attempts provider logout; provider failure leaves
   every local tab signed out and produces the documented unavailable outcome.
-- `.program-kit/eng/web/vite.security.mjs` owns browser-response headers for local Vite development
+- `eng/web/vite.security.mjs` owns browser-response headers for local Vite development
   and preview. Consumer-owned `vite.config` imports `programKitSpaSecurity` with exact API and
   identity origins. A production static server or edge must translate the checked
   `spa-security.json` contract; the production TLS terminator separately owns HTTPS and HSTS, so
@@ -316,7 +316,7 @@ registrations are rejected before Compose starts.
 
 ## Local preflight ownership
 
-`.program-kit/eng/preflight.py` runs before any host or Compose command. It checks the Docker CLI,
+`eng/preflight.py` runs before any host or Compose command. It checks the Docker CLI,
 then calls the daemon directly with a bounded five-second Program Kit development default. The
 timeout is configurable through `PROGRAMKIT_PREFLIGHT_TIMEOUT_SECONDS`; it is a tooling hang budget,
 not a product SLO. `PKP001` through `PKP004` stop on the first invalid setting, missing CLI, timeout,
@@ -359,15 +359,15 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 
 | Artifact | Ownership and supported change path |
 | --- | --- |
-| `.program-kit/spa-pkce.json` | Scaffold-owned typed SPA security input. Edit it, then rerun sync. |
+| `eng/spa-pkce.json` | Scaffold-owned typed SPA security input. Edit it, then rerun sync. |
 | `hostsettings.json` | Consumer-owned host infrastructure only, including eager activation. Bundle staging projects the separately owned `nuplane.settings.json` runtime feed/loading settings into this file for the published host. It contains no auth profile configuration. |
 | `deploy/keycloak/program-kit-realm.json` | Managed derived local fixture composed from shared provider state and exactly one selected-profile client. Never edit it; change the selected profile (or SPA input) and sync. |
 | `deploy/compose.application.yml` | Managed API-host composition. SPA-PKCE never receives a client secret. |
 | SPA process composition | Consumer-owned Compose overlay passed to `Dev.ps1 -ComposeOverlay <path>` or an independently managed static-server process. |
-| `.program-kit/eng/Dev.ps1` and `Test-Web.ps1` | Managed launch/test entry points. Use their parameters; do not fork them. |
-| `.program-kit/eng/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
+| `eng/Dev.ps1` and `Test-Web.ps1` | Managed launch/test entry points. Use their parameters; do not fork them. |
+| `eng/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
 | Consumer `vite.config` | Consumer-owned adapter point importing `programKitSpaSecurity` and the SPA session adapter. |
-| `.program-kit/web-profile.shells.json` | Managed selected-profile contribution: activates exactly one authentication feature and supplies its shell-scoped configuration. |
+| `eng/web-profile.shells.json` | Managed selected-profile contribution: activates exactly one authentication feature and supplies its shell-scoped configuration. |
 | `shells.json` | Consumer-owned CShells composition. It is loaded after the managed profile contribution, so a consumer can set `Orbyss.Foundation.Web.ProblemDetails` to `false` and activate its own exception feature. |
 
 ## CShells feature composition

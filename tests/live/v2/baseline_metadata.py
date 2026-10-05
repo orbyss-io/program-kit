@@ -24,11 +24,11 @@ def main():
     evidence = (repository / args.evidence).resolve()
     if not evidence.is_relative_to(repository):
         raise ValueError('Metadata evidence must stay inside the disposable consumer')
-    source = repository / '.program-kit/eng/js_toolchain.py'
+    source = repository / 'eng/js_toolchain.py'
     spec = importlib.util.spec_from_file_location('baseline_installed_runtime', source)
     runtime = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runtime)
-    result = runtime.run_npm(repository, repository / '.program-kit/evidence/toolchain.json',
+    result = runtime.run_npm(repository, repository / 'artifacts/program-kit/toolchain.json',
                              ['view', f'{args.package}@{args.version}', '--json'], repository, 180, capture_stdout=True)
     if result.returncode:
         return result.returncode

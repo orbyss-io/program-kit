@@ -33,7 +33,7 @@ def unpack_release_bundle(archive_path: Path, destination: Path) -> dict:
         if not required <= set(expected):
             raise LiveContractError('LENDING_BUNDLE_CONFIGURATION_MISSING')
         for name, digest in expected.items():
-            allowed = name in required | {'.program-kit/web-profile.shells.json'} or re.fullmatch(r'packages/[A-Za-z0-9_.+-]+\.nupkg', name)
+            allowed = name in required | {'eng/web-profile.shells.json'} or re.fullmatch(r'packages/[A-Za-z0-9_.+-]+\.nupkg', name)
             if not allowed or hashlib.sha256(archive.read(name)).hexdigest() != digest:
                 raise LiveContractError('LENDING_BUNDLE_CONTENT_INVALID: ' + name)
         host = json.loads(archive.read('hostsettings.json'))

@@ -40,8 +40,8 @@ def main():
         kit = source / '.program-kit'
         if kit.is_dir():
             shutil.copytree(kit, target / '.program-kit', ignore=shutil.ignore_patterns('upgrade', 'cache'))
-        runtime = root / '.program-kit/cache/json-schema'
-        shutil.copytree(runtime, target / '.program-kit/cache/json-schema', dirs_exist_ok=True)
+        runtime = root / 'artifacts/cache/json-schema'
+        shutil.copytree(runtime, target / 'artifacts/cache/json-schema', dirs_exist_ok=True)
         # Commands remain mechanical; never dispatch the workflow/agent producer.
         streams = []
         def run(command):
@@ -64,7 +64,7 @@ def main():
         run([target / '.specify' / recovery, 'prepare', '--run-id', args.run_id])
         run([target / '.specify/extensions/program-kit-governance/scripts/governance_state.py', 'validate-installation'])
         assert all((target / p).read_bytes() == data for p, data in preserved.items())
-        assert not (target / '.program-kit/building-blocks.lock.json').exists()
+        assert not (target / 'eng/building-blocks.lock.json').exists()
         selection = json.loads((target / authority[0]).read_text(encoding='utf-8'))
         assert all(not (target / item['path']).exists() for item in selection['targets'])
         assert not (target / '.specify/governance/bootstrap-completion.json').exists()

@@ -15,7 +15,7 @@ from bounded_process import run
 def main():
     root = Path.cwd()
     inputs = json.loads((root / 'runtime-inputs.json').read_text())
-    tools = json.loads((root / '.program-kit/evidence/toolchain.json').read_text())['commands']
+    tools = json.loads((root / 'artifacts/program-kit/toolchain.json').read_text())['commands']
     suite = ET.Element('testsuite', name='ProgramKitPostgreSqlCompatibility')
     name = 'pk-postgres-' + uuid.uuid4().hex
     password = secrets.token_hex(24)

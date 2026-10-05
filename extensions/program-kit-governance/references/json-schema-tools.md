@@ -14,7 +14,7 @@ python .specify/extensions/program-kit-governance/scripts/schema_runtime.py setu
 python .specify/extensions/program-kit-governance/scripts/schema_runtime.py record-copy
 ```
 
-Setup uses pip (or uv when that interpreter has no pip) and network access to install pinned wheels into `.program-kit/cache/json-schema/`,
+Setup uses pip (or uv when that interpreter has no pip) and network access to install pinned wheels into `artifacts/cache/json-schema/`,
 keyed by dependency content, Python ABI, and platform. It does not alter global Python or PATH.
 Use the Python interpreter that will run the tool; separate Python versions need separate caches.
 Do not commit that cache. `setup --offline` reuses an already prepared runtime; on a fresh machine

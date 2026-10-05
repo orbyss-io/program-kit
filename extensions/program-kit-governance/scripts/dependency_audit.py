@@ -39,8 +39,8 @@ def evidence_inputs(root):
             'program-kit-governance/scripts/compatibility_scope.py',
             'program-kit-building-blocks/scripts/building_blocks.py',
             'program-kit-dotnet/scripts/dependency_profile.py',
-            'program-kit-dotnet/templates/dotnet/files/.program-kit/eng/toolchain.py',
-            'program-kit-dotnet/templates/dotnet/files/.program-kit/eng/js_toolchain.py',
+            'program-kit-dotnet/templates/dotnet/files/eng/toolchain.py',
+            'program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py',
         }
         for item in ledger['prerequisites']:
             if item.get('status') != 'closed': continue
@@ -76,7 +76,7 @@ def evidence_inputs(root):
         # bootstrap_lifecycle.validate_prerequisites. It cannot turn an unchanged
         # historical scratch project into an application dependency. The caller
         # rejects any active project, import or solution reference to these inputs.
-    graph = read(root / '.program-kit/evidence/npm-graph.json', {})
+    graph = read(root / 'artifacts/program-kit/npm-graph.json', {})
     if graph:
         from sync_readiness import graph_errors
         errors = graph_errors(root, {})
@@ -145,7 +145,7 @@ def engineering_outputs(root):
     template = (installed / 'templates/dotnet/files' if installed.is_dir()
                 else Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files')
     result = set()
-    for relative in ('.program-kit/eng/ProgramKit.Packages.props', '.program-kit/eng/.config/dotnet-tools.json'):
+    for relative in ('eng/ProgramKit.Packages.props', 'eng/.config/dotnet-tools.json'):
         path = root / relative
         if not path.is_file():
             continue

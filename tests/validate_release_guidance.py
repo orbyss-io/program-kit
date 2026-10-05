@@ -53,9 +53,10 @@ class GuidanceTests(unittest.TestCase):
             root = Path(name)
             directory = build(ROOT, root / 'guidance', '0.12.6')
             migration = plan(directory, '0.12.5', '0.12.6')
-            pending = completion(migration, {'installation-coherence': True, 'dependency-verification': True})
+            pending = completion(migration, {'installation-coherence': True})
             self.assertFalse(pending['migrationCompletionEstablished'])
-            self.assertEqual(['required-phase-evidence'], pending['pendingChecks'])
+            self.assertEqual(['dependency-verification'], pending['pendingChecks'])
+            self.assertEqual(['required-phase-evidence'], pending['retiredChecks'])
             self.assertFalse(pending['approvalPerformed'])
             path = root / '.specify/governance/migration-completion.json'
             path.parent.mkdir(parents=True)
@@ -71,7 +72,7 @@ class GuidanceTests(unittest.TestCase):
             path.write_text(json.dumps(successful))
             self.assertEqual('0.12.5', migration_origin(root, '0.12.6', target_version='0.12.6'))
             self.assertEqual('0.12.6', migration_origin(root, '0.12.6', target_version='0.12.7'))
-            successful['checks']['required-phase-evidence'] = False
+            successful['checks']['dependency-verification'] = False
             path.write_text(json.dumps(successful))
             with self.assertRaisesRegex(UpgradeError, 'required verification'): migration_origin(root, '0.12.6')
             index = directory / 'migration-index.json'
@@ -100,17 +101,23 @@ class GuidanceTests(unittest.TestCase):
             (attempts / 'original.json').write_text(json.dumps(attempt), encoding='utf-8')
             self.assertEqual('0.12.5', migration_origin(root, '0.12.6', target_version='0.12.6'))
             payload = path.read_bytes()
-            preserve_migration_completion(root)
-            preserve_migration_completion(root)
-            self.assertEqual([payload], [p.read_bytes() for p in (path.parent / 'migration-history').glob('*.json')])
+            run = root / 'artifacts/program-kit/runs/test/upgrade-attempt.json'
+            run.parent.mkdir(parents=True)
+            preserve_migration_completion(root, run)
+            preserve_migration_completion(root, run)
+            self.assertEqual(payload, (run.parent/'previous-migration.json').read_bytes())
+            self.assertFalse((path.parent/'migration-history').exists())
             original.write_text('extension:\n  version: "0.12.4"\n', encoding='utf-8')
             with self.assertRaisesRegex(UpgradeError, 'version provenance'): migration_origin(root, '0.12.6')
             self.assertEqual(payload, path.read_bytes())
-    def test_unsupported_source_requires_exact_accepted_bridge(self):
+    def test_substantive_change_requires_exact_accepted_decision(self):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)
             directory = build(ROOT, root / 'guidance', '0.12.5')
             migration = plan(directory, '0.12.3', '0.12.5')
+            # An actual design change needs authority; an older version alone does not.
+            require_review(root, migration)
+            migration['migrations'][0]['substantiveReviewRequired'] = True
             with self.assertRaisesRegex(ValueError, 'Accepted review'): require_review(root, migration)
             digest = hashlib.sha256(json.dumps(migration, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
             architecture = root / 'docs/architecture'
@@ -148,7 +155,7 @@ class GuidanceTests(unittest.TestCase):
             decision.write_text('changed')
             with self.assertRaisesRegex(ValueError, 'evidence changed'): require_review(root, migration)
 
-    def test_verified_baseline_is_read_only_and_old_sources_need_bridge(self):
+    def test_verified_baseline_is_read_only_and_old_sources_need_layout_inspection(self):
         with tempfile.TemporaryDirectory() as name:
             directory = build(ROOT, Path(name), '0.12.5')
             before = {p.name: p.read_bytes() for p in directory.iterdir()}
@@ -156,7 +163,10 @@ class GuidanceTests(unittest.TestCase):
             self.assertFalse(result['mutationPerformed'])
             self.assertFalse(result['migrationCompletionEstablished'])
             self.assertEqual([], result['migrations'])
-            self.assertEqual('reviewed-bridge-required', plan(directory, '0.9.8', '0.12.5')['status'])
+            legacy = plan(directory, '0.9.8', '0.12.5')
+            self.assertEqual('planned', legacy['status'])
+            self.assertTrue(legacy['layoutInspectionRequired'])
+            require_review(Path(name), legacy)
             self.assertEqual(before, {p.name: p.read_bytes() for p in directory.iterdir()})
 
     def test_cumulative_entries_and_tamper_missing_source_and_downgrade(self):

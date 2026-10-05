@@ -196,7 +196,7 @@ class ProxyTests(unittest.TestCase):
                     os.environ['UV_CACHE_DIR'] = original
                 with self.assertRaisesRegex(RuntimeError, 'fixture failure'):
                     with bootstrap.installer_cache(self.root):
-                        self.assertEqual(str(self.root / '.program-kit/cache/proxy-uv'), os.environ['UV_CACHE_DIR'])
+                        self.assertEqual(str(self.root / 'artifacts/cache/proxy-uv'), os.environ['UV_CACHE_DIR'])
                         raise RuntimeError('fixture failure')
                 self.assertEqual(original, os.environ.get('UV_CACHE_DIR'))
 

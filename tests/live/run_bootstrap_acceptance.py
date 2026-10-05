@@ -1160,7 +1160,7 @@ MANAGED_BASELINE_PATTERNS = (
     ".agents/skills/speckit-program-kit-*/**/*",
     ".claude/skills/speckit-program-kit-*/**/*",
     ".claude/commands/speckit.program-kit-*",
-    ".program-kit/eng/**/*",
+    "eng/**/*",
 )
 
 
@@ -1406,7 +1406,7 @@ def validate_first_slice(
                         )
                 except (OSError, json.JSONDecodeError, AcceptanceError) as exc:
                     failures.append(f"First-slice lifecycle evidence is unreadable: {exc}")
-            analysis = project / ".program-kit/evidence/after-tasks-analysis.md"
+            analysis = project / "artifacts/program-kit/after-tasks-analysis.md"
             if not analysis.is_file():
                 failures.append("Canonical after-tasks analysis evidence is missing")
 

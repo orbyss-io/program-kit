@@ -24,7 +24,7 @@ def canonical_hash(value: object) -> str:
 
 def javascript_runtime():
     # This provider is shipped even in JavaScript-only bundles. No .NET baseline must be applied.
-    source = extension_root() / "program-kit-dotnet/templates/dotnet/files/.program-kit/eng/js_toolchain.py"
+    source = extension_root() / "program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py"
     spec = importlib.util.spec_from_file_location("program_kit_package_runtime", source)
     if spec is None or spec.loader is None:
         raise ValueError("PKP001 shared JavaScript runtime provider is unavailable")

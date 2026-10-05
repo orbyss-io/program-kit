@@ -9,7 +9,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $version = (Get-Content -Raw -LiteralPath (Join-Path $root 'VERSION')).Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
     throw "VERSION is not a valid SemVer value: '$version'"
@@ -123,7 +123,7 @@ function Get-TestProjectCount {
 
 $artifacts = Join-Path $root 'artifacts'
 $packages = Join-Path (Join-Path $artifacts 'packages') $version
-$openApiRegistry = Join-Path $root '.program-kit/openapi-contracts.json'
+$openApiRegistry = Join-Path $root 'eng/openapi-contracts.json'
 $openApiEnabled = $false
 if (Test-Path -LiteralPath $openApiRegistry) {
     $openApiConfiguration = Get-Content -Raw -LiteralPath $openApiRegistry | ConvertFrom-Json
@@ -165,7 +165,7 @@ if (-not $SkipReleaseBundle -or $openApiEnabled) {
 }
 
 if ($openApiEnabled) {
-    $openApiArguments = @('--repository', $root, '--registry', '.program-kit/openapi-contracts.json')
+    $openApiArguments = @('--repository', $root, '--registry', 'eng/openapi-contracts.json')
     if ($InitializeOpenApiBaseline) { $openApiArguments += '--initialize-baselines' }
     if ($UpdateOpenApiArtifact) { $openApiArguments += '--update-artifacts' }
     python (Join-Path $PSScriptRoot 'openapi_pipeline.py') @openApiArguments

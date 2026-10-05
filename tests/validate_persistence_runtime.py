@@ -28,7 +28,7 @@ def main():
         project = Path(directory)
         shutil.copyfile(ROOT / 'tests/fixtures/persistence-runtime/Program.cs', project / 'Program.cs')
         (project / 'global.json').write_text(json.dumps({'sdk': json.loads((template / 'global.json').read_text())['sdk']}))
-        pins = {n.attrib['Include']: n.attrib['Version'] for n in ET.parse(template / '.program-kit/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props').iter('PackageVersion')}
+        pins = {n.attrib['Include']: n.attrib['Version'] for n in ET.parse(template / 'eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props').iter('PackageVersion')}
         central = '<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup>' + ''.join(
             f'<PackageVersion Include="{name}" Version="{version}" />' for name, version in pins.items()) + '</ItemGroup></Project>'
         (project / 'Directory.Packages.props').write_text(central)
@@ -80,7 +80,7 @@ def main():
         (provider / 'Store.cs').write_text('using Microsoft.EntityFrameworkCore;\npublic sealed class Store : DbContext' + types)
         shutil.copytree(project / 'Migrations', provider / 'Migrations')
         operation(['dotnet', 'build', 'provider/Provider.csproj', '--verbosity', 'quiet'], 'provider-library-build', env)
-        manifest = project / '.program-kit/eng/.config/dotnet-tools.json'
+        manifest = project / 'eng/.config/dotnet-tools.json'
         manifest.parent.mkdir(parents=True)
         manifest.write_text(json.dumps({'version': 1, 'isRoot': True, 'tools': {'dotnet-ef': {
             'version': pins['Microsoft.EntityFrameworkCore.Design'], 'commands': ['dotnet-ef']}}}))

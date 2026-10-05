@@ -6,7 +6,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repository = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$repository = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $compose = Join-Path $repository 'deploy\compose.identity.yml'
 $applicationCompose = Join-Path $repository 'deploy\compose.application.yml'
 $topologyValidator = Join-Path $PSScriptRoot 'compose_topology.py'
@@ -34,7 +34,7 @@ function Test-ProgramKitPathWithinRoot {
 
 python (Join-Path $PSScriptRoot 'preflight.py')
 if ($LASTEXITCODE -ne 0) { throw 'Program Kit pre-host prerequisites failed.' }
-$profileRecord = Join-Path $repository '.program-kit\web-profile.json'
+$profileRecord = Join-Path $repository 'eng\web-profile.json'
 if (-not (Test-Path -LiteralPath $profileRecord -PathType Leaf)) {
     throw 'The synchronized web-profile record is missing.'
 }

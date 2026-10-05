@@ -48,7 +48,7 @@ def validate(root, feature, phase, available_checks):
     operations = proof.get('operations', [])
     require(expected and len(operations) == len(expected) and {o.get('id') for o in operations} == expected,
             'API proof must cover every scoped operation exactly once')
-    registered = read(root / '.program-kit/openapi-contracts.json', {}).get('contracts', [])
+    registered = read(root / 'eng/openapi-contracts.json', {}).get('contracts', [])
     contracts = {}
     for path in registered:
         value = read(inside(root, path))

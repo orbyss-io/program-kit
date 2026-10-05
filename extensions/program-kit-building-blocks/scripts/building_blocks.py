@@ -960,12 +960,12 @@ def managed_output_records(lock: dict) -> list[dict]:
                 )
     if central:
         entries = sorted(central.values(), key=lambda item: item["packageId"].casefold())
-        outputs.append(output_record("nuget-central-pins", ".program-kit/eng/ProgramKit.BuildingBlocks.props", entries))
+        outputs.append(output_record("nuget-central-pins", "eng/ProgramKit.BuildingBlocks.props", entries))
     for path, routes in npm_routing.items():
         outputs.append(output_record("npm-registry-routing", path, [routes[key] for key in sorted(routes)]))
     for activation in lock["activations"]:
         shell_parent = PurePosixPath(activation["path"]).parent
-        overlay_path = (shell_parent / ".program-kit/building-blocks.shells.json").as_posix()
+        overlay_path = (shell_parent / "eng/building-blocks.shells.json").as_posix()
         if overlay_path.startswith("./"):
             overlay_path = overlay_path[2:]
         shell_activations.setdefault(overlay_path, []).append(copy.deepcopy(activation))
@@ -1876,7 +1876,7 @@ def main() -> int:
         command.add_argument("--target", default=".")
         command.add_argument("--selection", default="docs/architecture/building-block-selection.json")
         command.add_argument("--catalog")
-        command.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
+        command.add_argument("--lock", default="eng/building-blocks.lock.json")
         if name in {"plan", "check", "apply"}:
             command.add_argument("--materialized-only", action="store_true",
                                  help="Reconcile only complete existing composition targets; keep future targets deferred.")

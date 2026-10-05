@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 
-CONFIGURATION_PATH = ".program-kit/spa-pkce.json"
+CONFIGURATION_PATH = "eng/spa-pkce.json"
 
 
 def load_object(path: Path) -> dict:
@@ -209,7 +209,7 @@ def render_shell_profile(source: bytes, configuration: dict) -> bytes:
 def render_profile(source: bytes, configuration: dict) -> bytes:
     profile = json.loads(source.decode("utf-8"))
     profile["configuration"] = CONFIGURATION_PATH
-    profile["browserSessionAdapter"] = ".program-kit/eng/web/spa-session.ts"
+    profile["browserSessionAdapter"] = "eng/web/spa-session.ts"
     return json_bytes(profile)
 
 
@@ -248,7 +248,7 @@ def verify_outputs(repository: Path, configuration: dict) -> None:
         "SessionIdleMinutes": configuration["session"]["idleMinutes"],
         "SessionAbsoluteMinutes": configuration["session"]["absoluteMinutes"],
     }
-    shell_profile = load_object(repository / ".program-kit/web-profile.shells.json")
+    shell_profile = load_object(repository / "eng/web-profile.shells.json")
     shell_web = (
         shell_profile.get("CShells", {})
         .get("Shells", {})
@@ -294,17 +294,17 @@ def verify_outputs(repository: Path, configuration: dict) -> None:
     compose = (repository / "deploy/compose.application.yml").read_text(encoding="utf-8")
     if "ClientSecret" in compose or "local-program-kit-secret" in compose:
         raise ValueError("PKW108 SPA application composition must not receive a confidential-client secret")
-    playwright = (repository / ".program-kit/eng/web/playwright.config.ts").read_text(encoding="utf-8")
+    playwright = (repository / "eng/web/playwright.config.ts").read_text(encoding="utf-8")
     for secure_default in ("trace: 'off'", "screenshot: 'off'", "video: 'off'"):
         if secure_default not in playwright:
             raise ValueError(f"PKW111 authentication evidence must configure {secure_default}")
-    contract = load_object(repository / ".program-kit/eng/web/web-contract.json")
+    contract = load_object(repository / "eng/web/web-contract.json")
     client = contract.get("client", {})
     if (
         client.get("redirectUris") != configuration["redirectUris"]
         or client.get("postLogoutRedirectUris") != configuration["postLogoutRedirectUris"]
         or contract.get("session", {}).get("absoluteDeadlineClaim") != "auth_time"
-        or not (repository / ".program-kit/eng/web/spa-session.ts").is_file()
+        or not (repository / "eng/web/spa-session.ts").is_file()
     ):
         raise ValueError("PKW112 browser runtime contract does not match the SPA-PKCE configuration")
 

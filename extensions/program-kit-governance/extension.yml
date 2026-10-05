@@ -113,13 +113,13 @@ hooks:
       enabled: true
       optional: false
       condition: null
-      description: "Require a ratified constitution and valid specification roadmap before feature intake."
+      description: "Read applicable architecture and product context before feature intake."
     - command: "speckit.program-kit-governance.specification-intake"
       priority: 10
       enabled: true
       optional: false
       condition: null
-      description: "Pause before specification setup until the selected feature has current, explicitly confirmed grilling evidence."
+      description: "Clarify substantive feature choices; preserve unchanged confirmed intake."
   after_specify:
     - command: "speckit.clarify"
       priority: 5
@@ -132,53 +132,41 @@ hooks:
       enabled: true
       optional: false
       condition: null
-      description: "Refuse clarified specifications that conflict with accepted architecture or conceal new decisions."
+      description: "Present clarified specification conflicts for substantive resolution."
   before_plan:
-    - command: "speckit.program-kit-governance.phase-context"
-      priority: 1
-      optional: false
-      description: "Project applicable semantic, architecture and capability obligations before drafting the plan."
-    - command: "speckit.program-kit-governance.sync"
-      priority: 5
-      optional: false
-      description: "Establish the approved repository and exact package execution context before planning."
+    command: "speckit.program-kit-governance.phase-context"
+    priority: 1
+    optional: false
+    description: "Apply relevant architecture and coding guidance before design choices."
   after_plan:
-    - command: "speckit.program-kit-governance.architecture-check"
-      priority: 5
-      optional: false
-      description: "Refuse plans that conflict with accepted architecture or unapproved technology choices."
-    - command: "speckit.program-kit-governance.sync"
-      priority: 10
-      optional: false
-      description: "Require current strict dependency graph evidence for the planned feature."
+    command: "speckit.program-kit-governance.architecture-check"
+    priority: 5
+    optional: false
+    description: "Review substantive design conflicts without evidence dossiers."
   before_tasks:
     command: "speckit.program-kit-governance.phase-context"
     priority: 1
     optional: false
-    description: "Carry the reviewed obligations and their check identities into task generation."
+    description: "Carry applicable design choices and real tests into tasks."
   after_tasks:
-    - command: "speckit.analyze"
-      priority: 5
-      enabled: true
-      optional: false
-      condition: null
-      description: "Analyze the current specification, plan, and tasks after successful task generation."
-    - command: "speckit.program-kit-governance.architecture-check"
-      priority: 10
-      enabled: true
-      optional: false
-      condition: null
-      description: "Hash-bind analysis evidence and detect task decomposition, path, ownership, or architecture drift."
-  before_implement:
-    command: "speckit.program-kit-governance.implementation-check"
+    command: "speckit.analyze"
     priority: 5
     optional: false
-    description: "Verify programming, lifecycle, testing, and architecture guardrails before implementation."
+    description: "Use normal Spec Kit consistency analysis."
+  before_implement:
+    - command: "speckit.program-kit-governance.phase-context"
+      priority: 1
+      optional: false
+      description: "Apply the relevant knowledge before writing affected code."
+    - command: "speckit.program-kit-governance.implementation-check"
+      priority: 5
+      optional: false
+      description: "Check concrete implementation choices and run targeted engineering checks."
   after_implement:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
     optional: false
-    description: "Detect implementation drift and require architecture/ADR updates when choices changed."
+    description: "Require actual engineering checks and substantive review before completion."
 
 tags:
   - "architecture"

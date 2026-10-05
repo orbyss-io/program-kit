@@ -30,7 +30,7 @@ def verify(prepared):
     plan = {'schemaVersion': 1, 'targets': [{'path': 'Probe.csproj', 'packages': [{'materializationKind': 'nuget-project'}]}], 'registryRequirements': []}
     lock = destination / '.program-kit/sync/dependencies.json'
     write(lock, plan)
-    request = destination / '.program-kit/evidence/building-block-restore-request.json'
+    request = destination / 'artifacts/program-kit/building-block-restore-request.json'
     commands = []
     def run(command, name, cwd=destination):
         result = run_supervised(command, cwd=cwd, environment=supervisor_environment(), evidence_directory=destination / name, timeout_seconds=180)

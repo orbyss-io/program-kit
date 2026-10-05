@@ -130,49 +130,18 @@ def validate_brief(brief: dict, entry: str) -> None:
 
 
 def context(repository: Path, entry: str, *, later: bool = False) -> dict:
-    # CLI establishes cwd so configurable governance paths retain their normal semantics.
+    # Product intent is durable; mechanical governance state is not a prerequisite.
     governance.configure_paths()
-    governance.validate_installation()
-    governance.validate_ratification()
-    # Intake authority validation is also called from the delivery gate. Avoid
-    # recursively evaluating delivery while validating its own confirmed intent.
-    records = governance.validate_roadmap(False, verify_delivery=False)
-    selected = [record for record in records if record["id"] == entry]
-    require(len(selected) == 1, "Select exactly one existing roadmap entry")
-    record = selected[0]
-    from bootstrap_lifecycle import phase_eligibility
-    eligibility = phase_eligibility(repository, records, entry, 'specification')
-    require(eligibility['eligible'], 'Selected journey needs resolution before specification: ' + '; '.join(b['id'] + ': ' + b['task'] for b in eligibility['blockers']))
-    require(record["Status"] in ({"Ready", "Active", "Delivered"} if later else {"Ready", "Active"}),
-            f"Selected roadmap entry {entry} is not Ready or Active")
-    if record["Status"] == "Active" and not later:
-        pointer = read(repository / ".specify/feature.json")
-        feature_directory = pointer.get("feature_directory")
-        require(nonempty(feature_directory), "Active intake needs the existing Spec Kit feature context")
-        spec = inside(repository, feature_directory) / "spec.md"
-        require(spec_entries(spec.read_text(encoding="utf-8")) == [entry],
-                "An Active entry may only resume its existing specification; select a Ready entry for a new feature")
-    from feature_knowledge import project as project_knowledge, source_hash
+    roadmap = repository / governance.ROADMAP
+    records = governance.roadmap_records(roadmap) if roadmap.is_file() else []
+    matches = [r for r in records if r['id'] == entry]
+    record = matches[0] if len(matches) == 1 else {'id': entry}
+    from feature_knowledge import project as project_knowledge
     brief_path = directory(repository, entry) / 'brief.json'
     brief = read(brief_path) if brief_path.is_file() else {}
-    from bootstrap_handoff import first_feature
-    handoff = first_feature(repository)
-    inherited_scope = handoff['architectureScope'] if handoff and handoff['roadmapEntry'] == entry else None
-    knowledge = project_knowledge(repository, brief.get('architectureScope', inherited_scope))
-    paths = [governance.CONSTITUTION, governance.ARCHITECTURE]
-    for adr in governance.roadmap_required_adr_ids(record["Required Accepted ADRs"], entry):
-        matches = [p for p in governance.project_path(governance.DECISIONS).rglob("*.md")
-                   if adr.lower() in (p.stem + "\n" + p.read_text(encoding="utf-8")[:500]).lower()]
-        require(bool(matches), f"Required ADR {adr} is missing")
-        paths.extend(p.relative_to(repository) for p in matches)
-    return {
-        # Lifecycle progress and unrelated roadmap entries do not invalidate feature intent.
-        "roadmap": {key: value for key, value in record.items() if key != "Status"},
-        "canonicalKnowledge": knowledge,
-        "bootstrapObligations": bootstrap_obligations(repository, entry),
-        "sources": {str(p).replace("\\", "/"): source_hash(inside(repository, str(p)))
-                    for p in sorted(set(paths))},
-    }
+    return {'roadmap': {k:v for k,v in record.items() if k != 'Status'},
+            'canonicalKnowledge': project_knowledge(repository, brief.get('architectureScope')),
+            'bootstrapObligations': [], 'sources': {}}
 
 
 def review_text(brief: dict, basis: dict) -> str:
@@ -251,15 +220,21 @@ def confirm(repository: Path, entry: str, review_hash: str, source: str, answer:
 
 
 def check(repository: Path, entry: str, *, later: bool = False) -> dict:
-    folder, expected = current_review(repository, entry, later=later)
-    receipt = read(folder / "confirmation.json")
-    require(receipt.get("schemaVersion") == 1 and receipt.get("roadmapEntry") == entry,
-            "Confirmation belongs to another feature or unsupported schema")
-    require(all(receipt.get(key) == value for key, value in expected.items()), "Confirmation is stale")
-    require(all(nonempty(receipt.get(key)) for key in ("confirmationSource", "confirmationText", "confirmedAtUtc")),
-            "Explicit user confirmation evidence is missing")
-    return {"roadmapEntry": entry, "briefHash": expected["briefHash"],
-            "brief": (folder / "brief.json").relative_to(repository).as_posix()}
+    folder = directory(repository, entry)
+    brief = read(folder / 'brief.json')
+    validate_brief(brief, entry)
+    receipt = read(folder / 'confirmation.json')
+    require(receipt.get('schemaVersion') == 1 and receipt.get('roadmapEntry') == entry,
+            'Confirmation belongs to another feature or unsupported schema')
+    require(receipt.get('briefHash') == digest(brief), 'Feature intent changed; clarify the affected product choices')
+    synthesis = folder / 'review.md'
+    if synthesis.is_file():
+        require(hashlib.sha256(synthesis.read_bytes()).hexdigest() == receipt.get('reviewHash'),
+                'Presented product synthesis changed; restore it or clarify the changed decisions')
+    require(all(nonempty(receipt.get(key)) for key in ('confirmationSource','confirmationText','confirmedAtUtc')),
+            'Explicit product confirmation is missing')
+    return {'roadmapEntry':entry,'briefHash':receipt['briefHash'],
+            'brief':(folder / 'brief.json').relative_to(repository).as_posix()}
 
 
 def spec_entries(text: str) -> list[str]:
