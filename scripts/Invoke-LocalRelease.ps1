@@ -34,6 +34,13 @@ try {
     if ((& $releaseNpm --version) -ne '11.19.0') { throw 'Cached npm 11.19.0 is unavailable.' }
     Write-Host 'Verified cached toolchains: Node 24.20.0, npm 11.19.0, .NET SDK 10.0.202.'
     if ($PrepareOnly) { return }
+    # Fail before the full suite if its real database/host fixtures cannot run.
+    $releaseContainerOs = ''
+    try { $releaseContainerOs = (& docker info --format '{{.OSType}}' 2>$null).Trim() } catch { }
+    if ($LASTEXITCODE -ne 0 -or $releaseContainerOs -ne 'linux') {
+        throw 'PROGRAM_KIT_RELEASE_DOCKER_UNAVAILABLE: Start Docker Desktop with the Linux engine, wait until it is ready, then retry this command. The Release suite has not started.'
+    }
+    Write-Host 'Verified Docker Linux engine for real database and published-host checks.'
     if (-not $env:PROGRAM_KIT_NPM_TOKEN) {
         $env:PROGRAM_KIT_NPM_TOKEN = (& gh auth token --hostname github.com).Trim()
         if ($LASTEXITCODE -ne 0 -or -not $env:PROGRAM_KIT_NPM_TOKEN) { throw 'GitHub login did not provide a package token.' }

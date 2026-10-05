@@ -47,6 +47,44 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
         print(f'Four phases + implementation guidance: {time.perf_counter()-started:.3f}s; 0 maintained artifacts, 0 approvals')
 
+    def test_constitution_amendment_is_independent_and_preserves_previous_approval(self):
+        import os
+        import governance_state as governance
+        from validate_governance_state import constitution
+        path = self.root / '.specify/memory/constitution.md'
+        path.parent.mkdir(parents=True)
+        path.write_text(constitution(pending=False).replace('1.0.0', '1.1.0'))
+        # Historical approval/model bytes may be absent or stale after a toolkit upgrade.
+        stale = self.root / 'docs/architecture/bootstrap-assessment-approval.json'
+        stale.parent.mkdir(parents=True)
+        stale.write_text('{"status":"obsolete","version":"0.12.3"}')
+        marker = self.root / '.specify/memory/constitution-ratification.json'
+        previous = {'schema_version':'1.0', 'status':'Ratified',
+                    'constitution':{'version':'1.0.0','sha256':'historical'}}
+        marker.write_text(json.dumps(previous))
+        original = os.getcwd()
+        try:
+            os.chdir(self.root)
+            governance.configure_paths()
+            governance.begin()
+            governance.begin()  # Interrupted/repeated drafting preserves the last approval.
+            governance.validate_constitution_draft()
+            governance.write_review('constitution')
+            review = self.root / governance.CONSTITUTION_REVIEW
+            reviewed = path.read_bytes()
+            path.write_bytes(reviewed + b'\nChanged principle.\n')
+            with self.assertRaisesRegex(governance.GovernanceStateError, 'stale|changed'):
+                governance.ratify('ratify')
+            path.write_bytes(reviewed)
+            governance.ratify('ratify')
+            governance.validate_ratification()
+            self.assertEqual(previous, json.loads(marker.read_text())['previous_ratification'])
+            self.assertEqual('{"status":"obsolete","version":"0.12.3"}', stale.read_text())
+            self.assertNotIn('assessment approval still matches', review.read_text())
+        finally:
+            os.chdir(original)
+            governance.configure_paths()
+
     def test_changed_tooling_and_stale_receipts_do_not_block_drafting(self):
         folder = self.root / '.specify/governance'
         folder.mkdir(parents=True)

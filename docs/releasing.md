@@ -24,6 +24,8 @@ helper without `-PrepareOnly` runs the required Release command with a bounded
 process PATH and restores the caller's environment. Windows native command lookup
 requires PATH below 8191 characters; use invocation-scoped tools rather than
 changing machine installations.
+The helper checks Docker's Linux engine before starting the suite; unavailable container
+infrastructure fails immediately instead of after the remaining validation has run.
 
 When the user decides the candidate should proceed toward publication, freeze clean
 committed source and ask them to run in a user-owned terminal:

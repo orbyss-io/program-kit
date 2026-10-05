@@ -1182,16 +1182,20 @@ def _list_items(items: object, field: str, empty: str, *, limit: int = 15) -> li
 
 
 def write_review(stage: str) -> None:
-    decisions = validate_bootstrap_decisions()
-    first = decisions.get('first_slice', {})
-    decision_summary = [
-        '## First useful outcome', '', first.get('outcome', 'See the canonical roadmap.'),
-        '', first.get('rationale', ''),
-        '', '## Choices and consequences', '',
-        *[f"- {item['decision']} ({item['source']}): {item['rationale']}" for item in decisions['choices']],
-        '', '## Owned deferrals', '',
-        *[f"- {item['question']} — trigger: {item['trigger']}" for item in decisions.get('deferred', [])], '',
-    ]
+    # Constitutional principles can be authored/amended without bootstrap history.
+    # Assessment and bootstrap reviews retain their separate, substantive authority.
+    decisions = None if stage == 'constitution' else validate_bootstrap_decisions()
+    decision_summary = []
+    if decisions is not None:
+        first = decisions.get('first_slice', {})
+        decision_summary = [
+            '## First useful outcome', '', first.get('outcome', 'See the canonical roadmap.'),
+            '', first.get('rationale', ''),
+            '', '## Choices and consequences', '',
+            *[f"- {item['decision']} ({item['source']}): {item['rationale']}" for item in decisions['choices']],
+            '', '## Owned deferrals', '',
+            *[f"- {item['question']} — trigger: {item['trigger']}" for item in decisions.get('deferred', [])], '',
+        ]
     if stage == "assessment":
         required = ASSESSMENT_BASIS
         _require_files(required, "Assessment review")
@@ -1297,11 +1301,11 @@ def write_review(stage: str) -> None:
             "",
             "## Automated validation",
             "",
-            f"- Review basis SHA-256: `{_review_basis((CONSTITUTION, ASSESSMENT_APPROVAL))}`",
+            f"- Review basis SHA-256: `{_review_basis((CONSTITUTION,))}`",
             "- Draft status is explicit.",
             "- No TODOs or template placeholders remain.",
             "- Semantic version, amendment policy, versioning policy, and compliance governance are present.",
-            "- The assessment approval still matches the reviewed bootstrap decisions.",
+            "- Ratification concerns these principles, not bootstrap or installed tooling state.",
         ]
         write_text(project_path(CONSTITUTION_REVIEW), "\n".join(lines) + "\n")
         print(f"Constitution review packet written: {project_path(CONSTITUTION_REVIEW)}")
@@ -1443,7 +1447,6 @@ def validate_assessment_approval() -> dict:
 
 
 def validate_constitution_draft() -> None:
-    validate_assessment_approval()
     marker = project_path(RATIFICATION)
     if not marker.is_file() or read_json(marker).get("status") != "Draft":
         raise GovernanceStateError("Constitution must be in Draft state for review")
@@ -1506,6 +1509,8 @@ def begin() -> None:
         current = read_json(marker)
         if current.get("status") == "Ratified":
             previous = current
+        elif current.get("status") == "Draft":
+            previous = current.get("previous_ratification")
     value = {
         "schema_version": "1.0",
         "status": "Draft",
@@ -1526,10 +1531,11 @@ def ratify(verdict: str, approval_mode: str = "interactive") -> None:
     marker = project_path(RATIFICATION)
     if not marker.is_file() or read_json(marker).get("status") != "Draft":
         raise GovernanceStateError("Constitution must be in Draft state before ratification")
+    previous = read_json(marker).get("previous_ratification")
     _require_files((CONSTITUTION_REVIEW,), "Constitution review")
     _require_review_basis(
         CONSTITUTION_REVIEW,
-        (CONSTITUTION, ASSESSMENT_APPROVAL),
+        (CONSTITUTION,),
         "Constitution",
     )
     version, ratified, amended, reviewed_sha256, expected_sha256 = (
@@ -1550,6 +1556,7 @@ def ratify(verdict: str, approval_mode: str = "interactive") -> None:
             "gate_verdict": verdict,
             "approval_mode": approval_mode,
             "approval_source": CONSTITUTION_REVIEW.as_posix(),
+            **({"previous_ratification": previous} if previous is not None else {}),
             "finalization": {
                 "reviewed_sha256": reviewed_sha256,
                 "expected_final_sha256": expected_sha256,

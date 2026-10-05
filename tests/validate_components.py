@@ -183,11 +183,12 @@ def main() -> int:
     preset = yaml.safe_load(preset_path.read_text(encoding="utf-8"))
     preset_templates = preset["provides"]["templates"]
     if {template["name"] for template in preset_templates} != {
+        "constitution-template",
         "spec-template",
         "plan-template",
         "tasks-template",
     }:
-        raise AssertionError("The governance preset must augment the three core lifecycle templates")
+        raise AssertionError("The governance preset must augment constitution and core lifecycle templates")
     if any(template.get("strategy") != "append" for template in preset_templates):
         raise AssertionError("Governance template augmentation must compose through append")
     bundle = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))

@@ -6,6 +6,13 @@ review enforce the software. Initial bootstrap is setup history, never a routine
 This upstream change leaves dezaaglijst untouched. Its migration and specification restart remain
 separate follow-up work.
 
+The native constitution template carries explicit test-first, architecture and independent-engineering
+principles. Existing project constitutions remain unchanged by installation. Substantive amendments
+are reviewed against the constitution itself without bootstrap/installation history. Specifications
+retain native prioritized stories and acceptance scenarios and explicitly request automated tests;
+tasks map those tests to the stories before implementation. Scoped exceptions stay in plans/ADRs.
+Clarify runs after specify, and analyze after tasks; neither introduces an extra approval dossier.
+
 | Classification | Concrete consumer examples | Reason |
 | --- | --- | --- |
 | Keep | constitution, spec.md, intake brief, plan.md, tasks.md, designs, accepted ADRs, architecture-map.json, user-owned specification-roadmap.md | Actionable intent and decisions. Builds can run if these authoring inputs are removed. |

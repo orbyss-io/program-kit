@@ -56,3 +56,11 @@ unchanged. Routine upgrades do not restart bootstrap or run an architecture-writ
 The latest five completed owned execution runs are retained under ignored artifacts/, with failed
 and interrupted diagnostics protected. Installation and migration status do not assert application
 correctness or release readiness. Consumer rollout is a separate follow-up after assessment.
+
+Constitution authoring now composes explicit test-first and independent-engineering principles
+through the native Spec Kit template resolver. Existing constitutions are unchanged by installation;
+substantive amendments still require their own review. Amendment validation no longer depends on
+old bootstrap assessment state and preserves prior ratification during interrupted drafting.
+Specification/task overlays retain native user stories and acceptance scenarios while explicitly
+requesting automated behavioral tests before implementation. Clarify runs automatically after
+specify; analyze runs automatically after tasks. Earlier drafting reviews do not require builds.

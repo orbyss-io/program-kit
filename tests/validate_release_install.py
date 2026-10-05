@@ -233,6 +233,7 @@ def main() -> int:
         if not (extracted_preset / "preset.yml").is_file():
             raise AssertionError("Governance preset release ZIP must contain preset.yml at its root")
         for path in (
+            "templates/constitution-governance.md",
             "templates/spec-governance.md",
             "templates/plan-governance.md",
             "templates/tasks-governance.md",
@@ -504,6 +505,25 @@ def main() -> int:
         ]
         if len(consumer_hooks) != 1:
             raise AssertionError("repeated Program Kit installation lost or duplicated unrelated hooks")
+        # Exercise the installed core resolver, not just the upstream overlay files.
+        expected_templates = {
+            'constitution-template': ('## Core Principles', '### Test-first behavior',
+                                      'without AI, toolkit extensions or governance history'),
+            'spec-template': ('## User Scenarios & Testing', '**Independent Test**',
+                              '**Given**', '**When**', '**Then**',
+                              'Explicitly request automated behavioral tests'),
+            'tasks-template': ('### Implementation for User Story 1',
+                               'Map test tasks to each user story',
+                               'Observe the intended failing behavior'),
+        }
+        for template, markers in expected_templates.items():
+            resolved = subprocess.run([sys.executable, '-X', 'utf8', str(python_resolver), template, '--json'],
+                                      cwd=project, capture_output=True, text=True, encoding='utf-8')
+            if resolved.returncode:
+                raise AssertionError(f'Installed {template} resolution failed: {resolved.stderr}')
+            content = json.loads(resolved.stdout)['TEMPLATE_CONTENT']
+            if any(marker not in content for marker in markers):
+                raise AssertionError(f'Installed {template} lost core structure or engineering guidance')
         if "program-kit-dotnet" not in extension_config.get("installed", []):
             raise AssertionError("Program Kit .NET extension was not registered")
         if "program-kit-building-blocks" not in extension_config.get("installed", []):
