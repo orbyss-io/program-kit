@@ -1,4 +1,4 @@
-artifacts/
+/artifacts/
 .specify/
 .agents/skills/speckit-program-kit-*/
 tests/.lifecycle/

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -91,8 +92,24 @@ def require_text(path: Path, *phrases: str) -> None:
         raise AssertionError(f"{path} is missing required governance text: {missing}")
 
 
+def validate_template_inputs(root: Path) -> None:
+    """Local ignored inputs must never mask an incomplete committed scaffold."""
+    result = subprocess.run(['git', '-C', str(root), 'ls-files', '-z'],
+                            capture_output=True, text=True, encoding='utf-8', check=True)
+    tracked = set(result.stdout.split('\0'))
+    template = root / 'extensions/program-kit-dotnet/templates/dotnet'
+    for manifest in template.rglob('managed-files.json'):
+        for entry in json.loads(manifest.read_text(encoding='utf-8'))['files']:
+            source = (template / entry.get('sourceRoot', 'files') /
+                      entry.get('source', entry['path'])).resolve()
+            relative = source.relative_to(root.resolve()).as_posix()
+            if not source.is_file() or relative not in tracked:
+                raise AssertionError('Scaffold input is missing from versioned source: ' + relative)
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
+    validate_template_inputs(root)
     extension_path = root / "extensions" / "program-kit-governance" / "extension.yml"
     building_blocks_extension_path = root / "extensions" / "program-kit-building-blocks" / "extension.yml"
     dotnet_extension_path = root / "extensions" / "program-kit-dotnet" / "extension.yml"

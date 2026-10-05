@@ -53,16 +53,28 @@ def validate_hooks() -> None:
     expected = {
         "before_specify": ["speckit.program-kit-governance.architecture-check", "speckit.program-kit-governance.specification-intake"],
         "after_specify": ["speckit.clarify", "speckit.program-kit-governance.architecture-check"],
-        "after_tasks": ["speckit.analyze", "speckit.program-kit-governance.architecture-check"],
+        "before_plan": ["speckit.program-kit-governance.phase-context"],
+        "after_plan": ["speckit.program-kit-governance.architecture-check"],
+        "before_tasks": ["speckit.program-kit-governance.phase-context"],
+        "after_tasks": ["speckit.analyze"],
+        "before_implement": ["speckit.program-kit-governance.phase-context", "speckit.program-kit-governance.implementation-check"],
+        "after_implement": ["speckit.program-kit-governance.architecture-check"],
     }
     for event, commands in expected.items():
         entries = manifest["hooks"][event]
+        if isinstance(entries, dict):
+            entries = [entries]
         if [entry["command"] for entry in entries] != commands:
             raise AssertionError(f"{event} hook ordering is invalid")
-        if [entry["priority"] for entry in entries] != [5, 10]:
+        priorities = {
+            "before_specify": [5, 10], "after_specify": [5, 10],
+            "before_plan": [1], "after_plan": [5], "before_tasks": [1],
+            "after_tasks": [5], "before_implement": [1, 5], "after_implement": [5],
+        }
+        if [entry["priority"] for entry in entries] != priorities[event]:
             raise AssertionError(f"{event} priorities are invalid")
         for entry in entries:
-            if entry.get("enabled") is not True or entry.get("optional") is not False or entry.get("condition", "missing") is not None:
+            if entry.get("enabled", True) is not True or entry.get("optional") is not False or entry.get("condition") is not None:
                 raise AssertionError(f"{event} hook is not unconditionally mandatory: {entry}")
 
 

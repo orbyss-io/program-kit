@@ -477,7 +477,12 @@ def main() -> int:
         expected_order = {
             "before_specify": ["speckit.program-kit-governance.architecture-check", "speckit.program-kit-governance.specification-intake"],
             "after_specify": ["speckit.clarify", "speckit.program-kit-governance.architecture-check"],
-            "after_tasks": ["speckit.analyze", "speckit.program-kit-governance.architecture-check"],
+            "before_plan": ["speckit.program-kit-governance.phase-context"],
+            "after_plan": ["speckit.program-kit-governance.architecture-check"],
+            "before_tasks": ["speckit.program-kit-governance.phase-context"],
+            "after_tasks": ["speckit.analyze"],
+            "before_implement": ["speckit.program-kit-governance.phase-context", "speckit.program-kit-governance.implementation-check"],
+            "after_implement": ["speckit.program-kit-governance.architecture-check"],
         }
         for event, commands in expected_order.items():
             program_kit_hooks = [
