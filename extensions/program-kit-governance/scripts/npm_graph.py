@@ -137,7 +137,7 @@ def main() -> int:
     parser.add_argument("--package-json", required=True)
     parser.add_argument("--evidence", required=True)
     parser.add_argument("--repository", default=".")
-    parser.add_argument("--toolchain-evidence", default=".program-kit/evidence/toolchain.json")
+    parser.add_argument("--toolchain-evidence", default="artifacts/program-kit/toolchain.json")
     parser.add_argument("--npm-command", default="", help=argparse.SUPPRESS)
     parser.add_argument("--timeout-seconds", type=int, default=180)
     args = parser.parse_args()

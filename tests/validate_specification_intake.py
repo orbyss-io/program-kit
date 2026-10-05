@@ -75,88 +75,30 @@ class IntakeTests(unittest.TestCase):
         for path in ("specs", ".git", ".specify/feature.json"):
             self.assertFalse((self.repository / path).exists())
 
-    def test_upgrade_assessment_uses_consumer_confirmation_from_another_directory(self):
+    def test_upgrade_assessment_is_read_only_and_independent_of_product_confirmation(self):
         import upgrade_remediation as remediation
-        from validate_governance_state import roadmap
         self.confirm()
-        feature = self.repository / 'specs/001-invoices'
-        feature.mkdir(parents=True)
-        (feature / 'spec.md').write_text('- **Specification roadmap entry**: SPC-001\n', encoding='utf-8')
-        (feature / 'tasks.md').write_text('# Existing consumer tasks\n', encoding='utf-8')
-        for name in ('phase-obligations.json', 'obligation-design.json', 'obligation-review.json'):
-            intake.atomic_write(feature / name, {})
-        (self.repository / intake.governance.ROADMAP).write_text(roadmap().replace('SPEC-001', 'SPC-001'), encoding='utf-8')
-        caller = self.repository / 'unrelated-caller'
-        caller.mkdir()
-        constitution = (self.repository / intake.governance.CONSTITUTION).read_bytes()
-        # Intake validates governance through its configured, cwd-relative paths.
-        # The fixture omits installation/ratification machinery, but retains that
-        # real path boundary and the real review/confirmation checks below.
-        def ratification_authority():
-            path = intake.governance.project_path(intake.governance.CONSTITUTION)
-            if not path.is_file() or path.read_bytes() != constitution:
-                raise ValueError('Caller directory cannot supply consumer ratification authority')
-        with patch.object(remediation, 'check', side_effect=lambda root, feature, phase: intake.check(root, 'SPC-001')), \
-                patch.object(intake.governance, 'validate_ratification', side_effect=ratification_authority):
-            os.chdir(caller)
-            result = remediation.assess(self.repository)
-            self.assertTrue(remediation.migration_phase_ready(result), result)
-            self.assertEqual(caller, Path.cwd())
-            # A real changed brief still fails: scoped cwd cannot renew authority.
-            self.brief['scope'] = 'Changed consumer scope without confirmation'
-            self.save()
-            result = remediation.assess(self.repository)
-            self.assertFalse(remediation.migration_phase_ready(result), result)
-            self.assertEqual(caller, Path.cwd())
-        with patch.object(remediation, 'check', side_effect=AssertionError('unexpected failure')):
-            with self.assertRaisesRegex(AssertionError, 'unexpected failure'):
-                remediation.assess(self.repository)
-            self.assertEqual(caller, Path.cwd())
+        caller=self.repository/'unrelated-caller';caller.mkdir()
+        os.chdir(caller)
+        before=self.path.with_name('confirmation.json').read_bytes()
+        result=remediation.assess(self.repository)
+        self.assertTrue(remediation.migration_phase_ready(result))
+        self.assertIsNone(result['applicationReady'])
+        self.assertEqual(caller,Path.cwd())
+        self.brief['scope']='Changed product scope'
+        self.save()
+        self.assertTrue(remediation.migration_phase_ready(remediation.assess(self.repository)))
+        with self.assertRaises(ValueError):intake.check(self.repository,'SPC-001')
+        self.assertEqual(before,self.path.with_name('confirmation.json').read_bytes())
 
-    def test_bootstrap_feature_obligations_are_scoped_carried_and_bound_to_review(self):
-        ledger = self.repository / 'docs/architecture/bootstrap-prerequisites.json'
-        item = {'id': 'persistence-policy', 'source_ids': ['durable-write'], 'owner': 'Feature owner',
-                'task': 'Plan provider admission and replay policy', 'rationale': 'Durable results',
-                'trigger': 'feature-plan', 'disposition': 'feature', 'affected_slices': ['SPC-001'], 'status': 'open', 'evidence': []}
-        from bootstrap_lifecycle import source_digest
-        source = self.repository / 'docs/architecture/bootstrap-decisions.json'
-        intake.atomic_write(source, {})
-        intake.atomic_write(self.repository / "docs/architecture/architecture-map.json", {"decisions": []})
-        self.records.append({**self.records[0], 'id': 'SPC-002', 'Status': 'Candidate'})
-        intake.atomic_write(ledger, {'schema_version': '1.0',
-            'sources': [{'path': source.relative_to(self.repository).as_posix(), 'sha256': source_digest(source), 'prerequisites': []}],
-            'prerequisites': [item, {**item, 'id': 'future', 'affected_slices': ['SPC-002']}]})
-        self.assertEqual(['persistence-policy'], [i['id'] for i in intake.context(self.repository, 'SPC-001')['bootstrapObligations']])
-        with self.assertRaisesRegex(ValueError, 'needs exactly one linked'):
-            intake.review(self.repository, 'SPC-001')
-        self.brief['decisions'].append({
-            'id': 'Q2', 'bootstrapPrerequisite': 'persistence-policy', 'question': 'How is replay handled?',
-            'answer': 'Plan provider-backed admission within accepted storage ownership',
-            'provenance': 'Bootstrap persistence-policy', 'rationale': 'Feature plan owns details',
-            'dependsOn': [], 'disposition': 'deferred', 'blocking': False,
-            'owner': 'Feature owner', 'trigger': 'Before tasks', 'duePhase': 'delivery'})
-        self.save()
-        with self.assertRaisesRegex(ValueError, 'owning phase gate'):
-            intake.review(self.repository, 'SPC-001')
-        self.brief['decisions'][-1]['duePhase'] = 'planning'
-        self.save()
+    def test_bootstrap_bookkeeping_does_not_reopen_product_confirmation(self):
         self.confirm()
-        import phase_obligations
-        from validate_governance_state import roadmap
-        (self.repository / intake.governance.ROADMAP).write_text(roadmap().replace('SPEC-001', 'SPC-001') + '\n' + roadmap(status='Candidate').replace('SPEC-001', 'SPC-002'))
-        intake.atomic_write(self.repository / '.specify/feature.json', {'roadmap_entry_id': 'SPC-001'})
-        with self.assertRaisesRegex(ValueError, 'persistence-policy'):
-            phase_obligations.deferred(self.repository, 'planning')
-        self.brief['decisions'][-1].update(disposition='answered', answer='Reviewed replay policy and its verification plan')
-        self.save()
-        self.confirm()
-        phase_obligations.deferred(self.repository, 'planning')
-        item['task'] = 'Changed admission requirement'
-        changed = intake.read(ledger)
-        changed['prerequisites'][0] = item
-        intake.atomic_write(ledger, changed)
-        with self.assertRaisesRegex(ValueError, 'stale'):
-            intake.check(self.repository, 'SPC-001')
+        ledger=self.repository/'docs/architecture/bootstrap-prerequisites.json'
+        intake.atomic_write(ledger,{'prerequisites':[{'id':'stale','status':'open','evidence':[{'sha256':'obsolete'}]}]})
+        self.assertEqual([],intake.context(self.repository,'SPC-001')['bootstrapObligations'])
+        before=self.path.with_name('confirmation.json').read_bytes()
+        intake.check(self.repository,'SPC-001')
+        self.assertEqual(before,self.path.with_name('confirmation.json').read_bytes())
 
     def test_bootstrap_carryover_rejects_duplicate_unknown_and_excluded_links(self):
         obligation = {'id': 'retained'}
@@ -191,28 +133,17 @@ class IntakeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             intake.check(self.repository, "SPC-001")
 
-    def test_selected_entry_and_governance_changes(self):
+    def test_unrelated_governance_changes_preserve_product_confirmation(self):
         self.confirm()
-        self.records.append({"id": "SPC-002", "Status": "Ready"})
-        intake.check(self.repository, "SPC-001")
-        self.records[0]["Status"] = "Blocked"
-        with self.assertRaises(ValueError):
-            intake.check(self.repository, "SPC-001")
-        self.records[0]["Status"] = "Active"
-        with self.assertRaises(OSError):
-            intake.check(self.repository, "SPC-001")
-        spec = self.repository / "specs/001-export/spec.md"
-        spec.parent.mkdir(parents=True)
-        spec.write_text("- **Specification roadmap entry**: SPC-001 Invoice export\n", encoding="utf-8")
-        intake.atomic_write(self.repository / ".specify/feature.json", {"feature_directory": "specs/001-export"})
-        intake.check(self.repository, "SPC-001")
-        self.records[0]["Scope"] = "All accounts"
-        with self.assertRaises(ValueError):
-            intake.check(self.repository, "SPC-001")
-        self.confirm()
-        (self.repository / intake.governance.CONSTITUTION).write_text("Amended source", encoding="utf-8")
-        with self.assertRaises(ValueError):
-            intake.check(self.repository, "SPC-001")
+        before=self.path.with_name('confirmation.json').read_bytes()
+        self.records.append({'id':'SPC-002','Status':'Ready'})
+        self.records[0].update(Status='Blocked',Scope='Changed planning context')
+        (self.repository/intake.governance.CONSTITUTION).write_text('Amended formatting')
+        intake.check(self.repository,'SPC-001')
+        self.assertEqual(before,self.path.with_name('confirmation.json').read_bytes())
+        self.brief['scope']='Actual changed product scope'
+        self.save()
+        with self.assertRaises(ValueError):intake.check(self.repository,'SPC-001')
 
     def test_incomplete_and_blocking_decisions_cannot_be_reviewed(self):
         for modification in ({"disposition": "open"}, {"disposition": "deferred", "owner": "team", "trigger": "plan"},
@@ -250,11 +181,11 @@ class IntakeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 intake.directory(self.repository, entry)
 
-    def test_context_requires_valid_installation_and_ratification(self):
-        for operation in ("validate_installation", "validate_ratification", "validate_roadmap"):
-            with self.subTest(operation=operation), patch.object(intake.governance, operation, side_effect=ValueError("Blocked governance")):
-                with self.assertRaisesRegex(ValueError, "Blocked governance"):
-                    intake.begin(self.repository, "SPC-001", "Resume")
+    def test_context_does_not_require_installation_ratification_or_roadmap_receipts(self):
+        for operation in ('validate_installation','validate_ratification','validate_roadmap'):
+            with patch.object(intake.governance,operation,side_effect=ValueError('obsolete bookkeeping')) as gate:
+                intake.begin(self.repository,'SPC-001','Resume')
+                gate.assert_not_called()
 
     def test_dependency_cycles_and_missing_review_fields(self):
         self.brief["decisions"][0]["dependsOn"] = ["Q2"]
@@ -272,8 +203,8 @@ class IntakeTests(unittest.TestCase):
         result = subprocess.run([sys.executable, str(SCRIPTS / "implementation_preflight.py"),
                                  "--repository", str(self.repository), "--feature-dir", str(feature)],
                                 capture_output=True, text=True)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("Specification intake blocked", result.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Applicable guidance", result.stdout)
 
 
 class HookContractTests(unittest.TestCase):

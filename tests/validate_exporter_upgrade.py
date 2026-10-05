@@ -33,7 +33,7 @@ class ExporterUpgradeTests(unittest.TestCase):
         version.parent.mkdir(parents=True)
         version.write_text('extension:\n  version: "0.12.5"\n')
         plan = self.blocks.resolve(self.root, self.selection, self.old_path, '0.12.5')
-        self.lock = self.root / '.program-kit/building-blocks.lock.json'
+        self.lock = self.root / 'eng/building-blocks.lock.json'
         self.blocks.apply_materialization(self.root, self.lock, plan, old)
         self.originals = {p: p.read_bytes() for p in (self.selection, self.architecture, self.lock)}
 
@@ -100,7 +100,7 @@ class ExporterUpgradeTests(unittest.TestCase):
             elif change == 'activation': catalog['packages']['nuget:Orbyss.Foundation.Web.OpenApi']['activations'][0]['featureIdentity'] = 'Changed'
             elif change == 'revision': catalog['resolutionRevision'] += 1
             fixtures.write_json(release / reconciliation.CATALOG_RELATIVE, catalog)
-            tools = release / 'extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/.config/dotnet-tools.json'
+            tools = release / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json'
             fixtures.write_json(tools, {'tools': {'orbyss.foundation.openapi.exporter': {'version': '0.2.5' if change == 'template' else self.catalog['packages'][reconciliation.EXPORTER_KEY]['version']}}})
             with self.subTest(change=change), self.assertRaises(reconciliation.ReconciliationError):
                 reconciliation.catalog_transition(self.root, release, self.blocks, self.blocks.load_json(self.selection))

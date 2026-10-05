@@ -7,7 +7,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 PROFILES = {'ef-postgresql': 'EfPostgreSql', 'ef-sqlserver': 'EfSqlServer', 'ef-sqlite': 'EfSqlite'}
-AGGREGATE = '.program-kit/eng/ProgramKit.Persistence.props'
+AGGREGATE = 'eng/ProgramKit.Persistence.props'
 ADMISSIONS = ('ownership', 'atomicity', 'concurrency', 'providerSemantics', 'migrations',
               'queries', 'authorization', 'dataProtection', 'operations', 'realProviderTests')
 
@@ -158,22 +158,12 @@ def upgrade_scope(root, selection):
     """Defer only proposed, uninstalled owners with no materialized projects.
 
     Admission and provider transitions for installed or admitted owners remain guards.
-    An unassigned owner cannot be deferred once application projects exist: its placement
-    must first be clarified. Global declaration/transition blockers are never removed.
+    Unrelated application projects do not materialize a proposed owner. Only its
+    actual provider/test paths and installed provider configuration constrain upgrades.
     """
     installed = {item['owner'] for item in selection.get('installedOwners', [])
                  if item.get('status') == 'admitted'}
     legacy_profile = read(root / '.program-kit/managed.json', {}).get('persistenceProfile', 'none')
-    ignored = {'.git', '.specify', '.program-kit', 'artifacts', 'node_modules', 'bin', 'obj'}
-    # Reuse the maintained runtime contract validator without importing consumer
-    # recipes or running probes. Only registered scratch sources are exempt.
-    lifecycle_path = Path(__file__).resolve().parents[2] / 'program-kit-governance/scripts/bootstrap_probe_projects.py'
-    spec = importlib.util.spec_from_file_location('persistence_probe_classification', lifecycle_path)
-    lifecycle = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(lifecycle)
-    probe_projects = lifecycle.registered_probe_projects(root)
-    projects = [path for path in root.rglob('*.csproj')
-                if not set(path.relative_to(root).parts) & ignored and path.resolve() not in probe_projects]
     deferred, active, deferred_errors = [], [], set()
     for owner in selection['owners']:
         paths = [owner['providerProject']] if owner.get('providerProject') else []
@@ -181,8 +171,7 @@ def upgrade_scope(root, selection):
         pending = (owner['profile'] != 'none' and owner['status'] == 'proposed' and owner['owner'] not in installed
                    and not (legacy_profile not in {'none', None} and not installed)
                    and not owner.get('providerOverride') and not owner.get('transitionAuthority')
-                   and not any(inside(root, path).exists() for path in paths)
-                   and (bool(paths) or not projects))
+                   and not any(inside(root, path).exists() for path in paths))
         if pending:
             errors = selection.get('ownerBlockers', {}).get(owner['owner'])
             if errors is None:  # Compatibility with consumers installed before structured owner blockers.
@@ -209,7 +198,7 @@ def packages(owner, template):
         return {}
     if profile == 'custom':
         return owner.get('packages', {})
-    path = template / '.program-kit/eng/profiles/persistence' / f'ProgramKit.Persistence.{PROFILES[profile]}.props'
+    path = template / 'eng/profiles/persistence' / f'ProgramKit.Persistence.{PROFILES[profile]}.props'
     return {node.attrib['Include']: node.attrib['Version'] for node in ET.parse(path).iter('PackageVersion')
             if owner.get('testProvisioning') != 'supervisor' or not node.attrib['Include'].startswith('Testcontainers.')}
 
@@ -265,7 +254,7 @@ def coherence(root, selection, template, *, materialized=False):
     if not central.is_file():
         return errors + (['PKP004 materialize central package imports'] if materialized else [])
     # Reuse the strict bundle import/central-pin authority, including duplicate/conflicting pins.
-    path = template / '.program-kit/eng/central_packages.py'
+    path = template / 'eng/central_packages.py'
     spec = importlib.util.spec_from_file_location('persistence_bundle_pins', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

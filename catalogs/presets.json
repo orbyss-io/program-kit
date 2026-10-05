@@ -19,7 +19,7 @@
         "speckit_version": ">=1.0.1,<2.0.0"
       },
       "provides": {
-        "templates": 3
+        "templates": 4
       },
       "tags": ["governance", "architecture", "vertical-slicing", "templates"],
       "verified": false

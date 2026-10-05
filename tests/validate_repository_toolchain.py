@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-ENGINEERING = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng'
+ENGINEERING = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
 sys.path.insert(0, str(ENGINEERING))
 import toolchain
 import js_toolchain
@@ -34,9 +34,9 @@ class RepositoryToolchainTests(unittest.TestCase):
                 resolved, _ = toolchain.resolve(root, required, 'dotnet', 'node', '', 'auto', '')
                 self.assertEqual({'dotnet': None, 'node': '22.19.0', 'npm': None}, resolved)
                 self.assertEqual(['dotnet', 'node', 'npm'], toolchain.mismatch(required, resolved))
-                paths = {'dotnet': root / '.program-kit/tools/dotnet/10.0.202/dotnet.exe',
-                         'node': root / '.program-kit/tools/node/24.20.0/node.exe',
-                         'npm': root / '.program-kit/tools/npm/11.19.0/node_modules/npm/bin/npm-cli.js'}
+                paths = {'dotnet': root / 'artifacts/tools/dotnet/10.0.202/dotnet.exe',
+                         'node': root / 'artifacts/tools/node/24.20.0/node.exe',
+                         'npm': root / 'artifacts/tools/npm/11.19.0/node_modules/npm/bin/npm-cli.js'}
                 for name, path in paths.items():
                     path.parent.mkdir(parents=True, exist_ok=True)
                     path.write_text(required[name])
@@ -45,8 +45,8 @@ class RepositoryToolchainTests(unittest.TestCase):
                 self.assertEqual([], toolchain.mismatch(required, resolved))
                 self.assertEqual(str(paths['dotnet'].resolve()), commands['dotnet'][0])
                 self.assertEqual([str(paths['node'].resolve()), str(paths['npm'].resolve())], commands['npm'])
-                archive_node = root / '.program-kit/tools/node/node-v24.20.0-win-x64/node.exe'
-                archive_npm = root / '.program-kit/tools/npm/11.19.0/package/bin/npm-cli.js'
+                archive_node = root / 'artifacts/tools/node/node-v24.20.0-win-x64/node.exe'
+                archive_npm = root / 'artifacts/tools/npm/11.19.0/package/bin/npm-cli.js'
                 archive_node.parent.mkdir(parents=True)
                 archive_npm.parent.mkdir(parents=True)
                 paths['node'].replace(archive_node)

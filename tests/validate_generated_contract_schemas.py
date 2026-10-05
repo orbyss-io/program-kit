@@ -64,9 +64,9 @@ def validate(instance: object, schema: dict, path: str = "$") -> None:
 
 
 def main() -> int:
-    producer = load_module(TEMPLATE / ".program-kit/eng/release_bundle.py")
+    producer = load_module(TEMPLATE / "eng/release_bundle.py")
     schema = json.loads(
-        (TEMPLATE / ".program-kit/application-bundle.schema.json").read_text(encoding="utf-8")
+        (TEMPLATE / "eng/application-bundle.schema.json").read_text(encoding="utf-8")
     )
     with tempfile.TemporaryDirectory(prefix="program-kit-runnable-schema-") as value:
         root = Path(value)
@@ -89,12 +89,12 @@ def main() -> int:
                 "Example.Feature.nuspec",
                 "<package><metadata><id>Example.Feature</id><version>1.0.0</version></metadata></package>",
             )
-        closure_path = repository / ".program-kit/evidence/runtime-closure.json"
+        closure_path = repository / "artifacts/program-kit/runtime-closure.json"
         previous_sha = os.environ.get("GITHUB_SHA")
         os.environ["GITHUB_SHA"] = "a" * 40
         try:
             for profile_shells in (None, {"CShells": {"Shells": {"default": {"Features": {}}}}}):
-                profile_path = staged / ".program-kit/web-profile.shells.json"
+                profile_path = staged / "eng/web-profile.shells.json"
                 if profile_shells is None:
                     profile_path.unlink(missing_ok=True)
                 else:
@@ -117,7 +117,7 @@ def main() -> int:
                 )
                 validate(json.loads(output.read_text(encoding="utf-8")), schema)
                 closure_schema = json.loads(
-                    (TEMPLATE / ".program-kit/runtime-closure.schema.json").read_text(encoding="utf-8")
+                    (TEMPLATE / "eng/runtime-closure.schema.json").read_text(encoding="utf-8")
                 )
                 validate(json.loads(closure_path.read_text(encoding="utf-8")), closure_schema)
         finally:

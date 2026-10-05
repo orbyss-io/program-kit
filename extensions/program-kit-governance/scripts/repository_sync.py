@@ -156,7 +156,7 @@ def dotnet_command(repository: Path, setup: dict) -> list[str]:
 
 
 def toolchain_current(repository: Path, pins: dict) -> bool:
-    evidence = load(repository / ".program-kit/evidence/toolchain.json", {})
+    evidence = load(repository / "artifacts/program-kit/toolchain.json", {})
     if evidence.get("satisfied") is not True or any(evidence.get("required", {}).get(key) != value for key, value in pins.items()):
         return False
     cache = evidence.get("environment", {}).get("npmCache")
@@ -191,7 +191,7 @@ def describe(repository: Path, phase: str, feature: str | None = None) -> dict:
         operations.append({"id": "engineering-baseline", "adapter": "dotnet", "plan": planned,
                            "required": result.returncode == 1, "network": False})
     if setup["javascript"] and phase not in {"bootstrap", "upgrade"}:
-        evidence = repository / ".program-kit/evidence/toolchain.json"
+        evidence = repository / "artifacts/program-kit/toolchain.json"
         current = load(evidence, {})
         required = not toolchain_current(repository, setup["toolchainPins"])
         if setup["dotnet"]:
@@ -199,7 +199,7 @@ def describe(repository: Path, phase: str, feature: str | None = None) -> dict:
             required = required or not expected_dotnet or current.get("required", {}).get("dotnet") != expected_dotnet
         operations.append({"id": "toolchain", "adapter": "javascript", "pins": setup["toolchainPins"], "required": required, "network": False})
     selection = repository / "docs/architecture/building-block-selection.json"
-    lock_path = repository / ".program-kit/building-blocks.lock.json"
+    lock_path = repository / "eng/building-blocks.lock.json"
     if selection.is_file() and phase in {"implementation-setup", "implementation", "upgrade"}:
         blocks = provider("program-kit-building-blocks/scripts/building_blocks.py")
         catalog = package_execution.extension_root() / "program-kit-building-blocks/references/orbyss-building-blocks.json"
@@ -241,7 +241,7 @@ def audit_toolchain(repository: Path, pins: dict) -> None:
         proof['resolved']['dotnet'] = actual
         proof['commands']['dotnet'] = command
         proof['satisfied'] = proof['satisfied'] and sdk == actual
-    write(repository / '.program-kit/evidence/toolchain.json', proof)
+    write(repository / 'artifacts/program-kit/toolchain.json', proof)
     if not proof['satisfied']:
         raise ValueError(f"PKS004 exact toolchain unavailable: required={pins}, resolved={proof['resolved']}; install the approved versions, then resume sync")
 
@@ -288,7 +288,7 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
     now = context(repository, setup["phase"], setup["feature"])
     if any(now[key] != setup[key] for key in ("authorityInputs", "providerInputs", "toolchainPins")):
         raise ValueError("PKS005 authority or provider inputs changed; review a new plan")
-    if validate_authority and setup["phase"] != "upgrade":
+    if validate_authority and setup["phase"] == "bootstrap":
         governance = Path(__file__).with_name("governance_state.py")
         run(repository, [sys.executable, str(governance), "validate-setup-authority"])
         decisions = load(repository / "docs/architecture/bootstrap-decisions.json", {})
@@ -302,9 +302,9 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
     if not any(item["required"] for item in current["operations"]) and previous.get("context") == now and previous.get("status") == "offline-synchronized":
         for operation in current["operations"]:
             if operation["adapter"] == "javascript":
-                package_execution.javascript_runtime().context(repository, repository / ".program-kit/evidence/toolchain.json")
+                package_execution.javascript_runtime().context(repository, repository / "artifacts/program-kit/toolchain.json")
             elif operation["adapter"] == "building-blocks":
-                provider("program-kit-building-blocks/scripts/building_blocks.py").check_materialization(repository, load(repository / ".program-kit/building-blocks.lock.json"))
+                provider("program-kit-building-blocks/scripts/building_blocks.py").check_materialization(repository, load(repository / "eng/building-blocks.lock.json"))
         return {**previous, "readiness": readiness(repository, setup["phase"], setup["feature"], validate_authority=False), "reused": True}
     write(repository / f".program-kit/sync/plans/{plan['planDigest']}.json", plan)
     receipt = {"schemaVersion": 1, "reviewedPlanDigest": plan["planDigest"], "context": setup, "operations": [], "status": "running"}
@@ -322,7 +322,7 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
                     run(repository, dotnet_command(repository, setup) + ["--foundation-host-accepted", "--building-block-sources-approved", "--plan-digest", operation["plan"]["planDigest"]])
                     record["status"] = "applied"
             elif operation["adapter"] == "javascript":
-                path = repository / ".program-kit/evidence/toolchain.json"
+                path = repository / "artifacts/program-kit/toolchain.json"
                 if next(item for item in describe(repository, setup["phase"], setup["feature"])["operations"] if item["id"] == "toolchain")["required"]:
                     audit_toolchain(repository, operation["pins"])
                     record["status"] = "applied"
@@ -331,7 +331,7 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
                 record["evidenceSha256"] = digest(path)
             elif operation["adapter"] == "building-blocks":
                 blocks = provider("program-kit-building-blocks/scripts/building_blocks.py")
-                lock_path = repository / ".program-kit/building-blocks.lock.json"
+                lock_path = repository / "eng/building-blocks.lock.json"
                 if operation["required"]:
                     catalog_path = package_execution.extension_root() / "program-kit-building-blocks/references/orbyss-building-blocks.json"
                     computed = blocks.materialized_plan(repository, blocks.resolve(repository, repository / "docs/architecture/building-block-selection.json", catalog_path, version()))
@@ -350,7 +350,7 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
             write(receipt_path, receipt)
             raise
     if setup["phase"] in {"implementation-setup", "implementation", "upgrade"}:
-        materialized = load(repository / ".program-kit/building-blocks.lock.json", {})
+        materialized = load(repository / "eng/building-blocks.lock.json", {})
         dependency_plan = sync_readiness.dependencies(repository, setup, materialized)
         if setup["phase"] == "upgrade":
             previous_dependencies = load(repository / ".program-kit/sync/dependencies.json", {})
@@ -381,7 +381,7 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
             deferred_admissions = selection['deferredAdmissions']
         problems.extend(persistence.coherence(repository, selection, template,
                         materialized=phase in {'implementation-setup', 'implementation', 'upgrade'}))
-    if validate_authority and phase not in {'bootstrap', 'upgrade'}:
+    if validate_authority and phase == 'bootstrap':
         try:
             run(repository, [sys.executable, str(Path(__file__).with_name('governance_state.py')), 'validate-setup-authority'])
         except ValueError as error:
@@ -391,7 +391,7 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
         dependencies = load(repository / ".program-kit/sync/dependencies.json", {})
         if dependencies.get("targets"):
             try:
-                restore.verify_evidence(repository, dependencies, load(repository / ".program-kit/evidence/building-block-restore.json", {}))
+                restore.verify_evidence(repository, dependencies, load(repository / "artifacts/program-kit/building-block-restore.json", {}))
             except (OSError, ValueError, RuntimeError) as error:
                 pending.append(str(error))
     return {"phase": phase, "ready": not problems, "readinessScope": "offline-setup" if phase == "upgrade" else phase,
@@ -418,7 +418,7 @@ def main() -> int:
             restore = provider("program-kit-building-blocks/scripts/restore_dependencies.py")
             lock_path = repository / ".program-kit/sync/dependencies.json"
             request = restore.restore_request(repository, lock_path, load(lock_path), args.operation.removeprefix("request-"))
-            write(repository / ".program-kit/evidence/building-block-restore-request.json", request)
+            write(repository / "artifacts/program-kit/building-block-restore-request.json", request)
             print(json.dumps(request, indent=2))
             return 0
         if args.operation == "recover":
@@ -439,7 +439,7 @@ def main() -> int:
             return 0
         plan = describe(repository, args.phase, args.feature_dir)
         if args.operation == "apply":
-            if args.plan_digest != plan["planDigest"]:
+            if (args.phase == 'bootstrap' or args.plan_digest is not None) and args.plan_digest != plan["planDigest"]:
                 raise ValueError("PKS005 reviewed sync plan is missing or changed; run plan and review its digest")
             print(json.dumps(apply(repository, plan), indent=2))
         elif args.operation == "plan":

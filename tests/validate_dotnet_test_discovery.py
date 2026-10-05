@@ -12,8 +12,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/Build.ps1"
-RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/Restore.ps1"
+BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1"
+RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1"
 
 
 def write_fake_dotnet(tools: Path) -> None:
@@ -130,7 +130,7 @@ def write_solution(path: Path, projects: list[Path]) -> None:
 
 def create_repository(value: str, solution_name: str, test_flags: tuple[bool, ...]) -> tuple[Path, Path]:
     repository = Path(value)
-    managed = repository / ".program-kit/eng"
+    managed = repository / "eng"
     managed.mkdir(parents=True)
     shutil.copyfile(BUILD, managed / "Build.ps1")
     shutil.copyfile(RESTORE, managed / "Restore.ps1")
@@ -161,7 +161,7 @@ def run_build(shell: str, repository: Path, tools: Path) -> tuple[subprocess.Com
             "-ExecutionPolicy",
             "Bypass",
             "-File",
-            str(repository / ".program-kit/eng/Build.ps1"),
+            str(repository / "eng/Build.ps1"),
             "-SkipReleaseBundle",
         ],
         cwd=repository,

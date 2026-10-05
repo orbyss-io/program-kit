@@ -18,7 +18,7 @@ def _resolved_packages(lock: dict[str, Any]) -> set[str]:
 
 def validate_consumer(project: Path, expectation: dict[str, Any]) -> dict[str, object]:
     selection = load_object(project / "docs/architecture/building-block-selection.json")
-    lock = load_object(project / ".program-kit/building-blocks.lock.json")
+    lock = load_object(project / "eng/building-blocks.lock.json")
     actual_compositions = {item["composition"] for item in selection.get("instances", [])}
     expected_compositions = set(expectation["compositions"])
     if actual_compositions != expected_compositions:
@@ -46,7 +46,7 @@ def validate_consumer(project: Path, expectation: dict[str, Any]) -> dict[str, o
         package_and_version = entry.removeprefix("npm:").rsplit("@", 1)
         if len(package_and_version) != 2 or combined.get(package_and_version[0]) != package_and_version[1]:
             raise LiveContractError(f"LIVE_VALIDATION_CONSUMER_NPM_DEPENDENCY_LOST: {entry}")
-    overlay = load_object(project / ".program-kit/building-blocks.shells.json")
+    overlay = load_object(project / "eng/building-blocks.shells.json")
     shells = overlay.get("CShells", {}).get("Shells", {})
     activation_count = sum(len(value.get("Features", {})) for value in shells.values() if isinstance(value, dict))
     if activation_count < expectation["minimumActivations"]:

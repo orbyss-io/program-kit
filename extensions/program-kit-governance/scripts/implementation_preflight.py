@@ -1,104 +1,17 @@
-from __future__ import annotations
-
+"""Supply implementation guidance without a parallel lifecycle gate."""
 import argparse
-import subprocess
-import sys
 from pathlib import Path
+from phase_obligations import inside, project, render
 
-
-def configure_utf8() -> None:
-    for stream in (sys.stdout, sys.stderr):
-        reconfigure = getattr(stream, "reconfigure", None)
-        if callable(reconfigure):
-            reconfigure(encoding="utf-8", errors="backslashreplace")
-
-
-def run(command: list[str], repository: Path) -> int:
-    result = subprocess.run(command, cwd=repository, check=False)
-    return result.returncode
-
-
-def main() -> int:
-    configure_utf8()
-    parser = argparse.ArgumentParser(
-        description="Run the deterministic lifecycle and artifact-ownership implementation preflight."
-    )
-    parser.add_argument("--repository", default=".")
-    parser.add_argument("--feature-dir", required=True)
-    parser.add_argument('--stage', choices=('setup', 'source'), default='source',
-                        help='setup permits only planned skeleton creation; source requires completed dependency setup')
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--repository', default='.')
+    parser.add_argument('--feature-dir', required=True)
+    parser.add_argument('--stage', choices=('setup','source'), default='source', help='Compatibility option; neither stage consumes governance receipts')
     args = parser.parse_args()
-    repository = Path(args.repository).resolve()
-    feature_dir = Path(args.feature_dir)
-    if not feature_dir.is_absolute():
-        feature_dir = (repository / feature_dir).resolve()
-    try:
-        feature_dir.relative_to(repository)
-    except ValueError:
-        print("PKI001 feature directory must stay inside the repository.", file=sys.stderr)
-        return 2
-    scripts = Path(__file__).resolve().parent
-    intake = run(
-        [sys.executable, str(scripts / "specification_intake.py"),
-         "--repository", str(repository), "check-spec", "--spec", str(feature_dir / "spec.md")],
-        repository,
-    )
-    if intake != 0:
-        return intake
-    lifecycle = run(
-        [
-            sys.executable,
-            str(scripts / "lifecycle_state.py"),
-            "--repository",
-            str(repository),
-            "--feature-dir",
-            str(feature_dir),
-            "verify-before-implement",
-        ],
-        repository,
-    )
-    if lifecycle != 0:
-        return lifecycle
-    manifest = feature_dir / "artifact-ownership.json"
-    plan = feature_dir / "plan.md"
-    tasks = feature_dir / "tasks.md"
-    ownership = run(
-        [
-            sys.executable,
-            str(scripts / "artifact_ownership.py"),
-            "--manifest",
-            str(manifest),
-            "--plan",
-            str(plan),
-            "--tasks",
-            str(tasks),
-            *(['--design-only'] if args.stage == 'setup' else []),
-        ],
-        repository,
-    )
-    if ownership != 0:
-        return ownership
-    from dependency_audit import planned_selection_errors, read
-    try:
-        errors = planned_selection_errors(repository, read(manifest).get('runtimeComposition', {}).get('projects', []))
-        if errors:
-            print('\n'.join(errors), file=sys.stderr)
-            return 2
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        print(str(error), file=sys.stderr)
-        return 2
-    setup = run([sys.executable, str(scripts / "repository_sync.py"), "check", "--phase", 'after-plan' if args.stage == 'setup' else 'implementation',
-                 "--repository", str(repository), "--feature-dir", str(feature_dir)], repository)
-    if setup != 0:
-        return setup
-    knowledge = run([sys.executable, str(scripts / 'phase_obligations.py'), 'check',
-                     '--repository', str(repository), '--feature-dir', feature_dir.relative_to(repository).as_posix(),
-                     '--phase', 'after-plan' if args.stage == 'setup' else 'implementation'], repository)
-    if knowledge != 0:
-        return knowledge
-    print(f"implementation preflight {args.stage} lifecycle and artifact ownership are coherent")
+    root = Path(args.repository).resolve()
+    print(render(project(root, inside(root, args.feature_dir), 'implementation'), 'implementation'))
     return 0
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())

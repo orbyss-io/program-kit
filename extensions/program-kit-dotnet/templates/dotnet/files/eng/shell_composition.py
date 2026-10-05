@@ -5,8 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 
 
-PROFILE_SHELLS = Path(".program-kit/web-profile.shells.json")
-BUILDING_BLOCK_SHELLS = Path(".program-kit/building-blocks.shells.json")
+PROFILE_SHELLS = Path("eng/web-profile.shells.json")
+BUILDING_BLOCK_SHELLS = Path("eng/building-blocks.shells.json")
 CONSUMER_SHELLS = Path("shells.json")
 
 

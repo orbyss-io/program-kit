@@ -79,7 +79,7 @@ def apply_structured_migrations(
         (migration, transform)
         for migration in migrations
         for transform in migration.get("jsonTransforms", [])
-        if isinstance(transform, dict) and transform.get("path") == relative
+        if isinstance(transform, dict) and transform.get("path") in {relative, '.program-kit/' + relative[4:] if relative.startswith('eng/') else relative}
     ]
     if not matching:
         return content
@@ -239,9 +239,9 @@ def desired_content(
     if web_profile != "spa-pkce" or spa_configuration is None:
         return content
     renderers = {
-        ".program-kit/web-profile.shells.json": spa_profile.render_shell_profile,
-        ".program-kit/web-profile.json": spa_profile.render_profile,
-        ".program-kit/eng/web/web-contract.json": spa_profile.render_web_contract,
+        "eng/web-profile.shells.json": spa_profile.render_shell_profile,
+        "eng/web-profile.json": spa_profile.render_profile,
+        "eng/web/web-contract.json": spa_profile.render_web_contract,
     }
     renderer = renderers.get(relative)
     return renderer(content, spa_configuration) if renderer else content
@@ -308,6 +308,44 @@ def prune_retired_program_kit_directories(target: Path) -> list[str]:
         removed.append(path.relative_to(target).as_posix())
     return removed
 
+
+
+def relocate_references(content: bytes) -> bytes:
+    # Literal path relocation only. Preserve all consumer settings and source.
+    content = content.replace(b'.program-kit/eng/', b'eng/').replace(b'.program-kit\\eng\\', b'eng\\')
+    for name in ('openapi-contracts.json','openapi-defaults.json','openapi-contract.schema.json',
+                 'application-bundle.schema.json','runtime-closure.schema.json','web-profile.shells.json',
+                 'web-profile.json','building-blocks.shells.json','building-blocks.lock.json',
+                 'spa-pkce.json','spa-pkce.schema.json'):
+        content = content.replace(('.program-kit/' + name).encode(), ('eng/' + name).encode())
+    return content
+
+
+def engineering_architecture(target: Path, default: bytes) -> bytes:
+    # Transfer actual roles and bindings once from old implementation inputs.
+    # Subsequent edits belong to the visible engineering manifest.
+    if (target / 'eng/architecture.json').exists():
+        return default
+    documents = [target / 'docs/architecture/architecture-map.json']
+    documents += sorted((target / 'specs').glob('*/artifact-ownership.json'))
+    projects, edges, bindings = {}, {}, {}
+    for path in documents:
+        composition = load_json(path, {}).get('runtimeComposition', {})
+        for item in composition.get('projects', []):
+            previous = projects.get(item['path'])
+            if previous is not None and previous != item:
+                raise ValueError('Conflicting historical project roles; select the application boundary in eng/architecture.json: ' + item['path'])
+            if (target / item['path']).is_file():
+                projects[item['path']] = item
+        for item in composition.get('coreReferences', []):
+            edges[canonical_json_hash(item)] = item
+        for item in composition.get('bindings', []):
+            bindings[canonical_json_hash(item)] = item
+    if not projects:
+        return default
+    return (json.dumps({'schemaVersion':1, 'runtimeComposition': {
+        'projects':list(projects.values()),'coreReferences':list(edges.values()),
+        'bindings':list(bindings.values())}}, indent=2) + '\n').encode()
 
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
@@ -474,9 +512,9 @@ def main() -> int:
         ) or (
             web_profile == "spa-pkce"
             and relative in {
-                ".program-kit/web-profile.shells.json",
-                ".program-kit/web-profile.json",
-                ".program-kit/eng/web/web-contract.json",
+                "eng/web-profile.shells.json",
+                "eng/web-profile.json",
+                "eng/web/web-contract.json",
             }
         )
         content = desired_content(
@@ -489,7 +527,7 @@ def main() -> int:
         if retained != content:
             rendered = True
         content = retained
-        if relative == '.program-kit/eng/.config/dotnet-tools.json':
+        if relative == 'eng/.config/dotnet-tools.json':
             tools = json.loads(content)
             persistence_pins = persistence_selection.pins(effective_persistence, template_root / 'files')
             if 'Microsoft.EntityFrameworkCore.Design' in persistence_pins:
@@ -504,6 +542,7 @@ def main() -> int:
             "hash": sha256_bytes(content),
         }
 
+    relocated_sources: dict[str, str] = {}
     created: list[str] = []
     updated: list[str] = []
     unchanged: list[str] = []
@@ -529,6 +568,28 @@ def main() -> int:
                 if isinstance(legacy.get("Nuplane"), dict):
                     desired = (json.dumps({"Nuplane": legacy["Nuplane"]}, indent=2) + "\n").encode("utf-8")
                     desired_hash = sha256_bytes(desired)
+        legacy = None
+        if relative.startswith('eng/'):
+            for candidate in ('.program-kit/' + relative[4:], '.program-kit/' + relative,
+                              'eng/program-kit/' + relative[4:]):
+                if candidate in old_files and (target / candidate).is_file():
+                    legacy = candidate
+                    break
+        if not destination.exists() and legacy and (target / legacy).is_file():
+            old = old_files.get(legacy, {})
+            payload = (target / legacy).read_bytes()
+            if ownership in {'configuration', 'scaffold'}:
+                desired = relocate_references(payload)
+                desired_hash = sha256_bytes(desired)
+                relocated_sources[legacy] = sha256_bytes(payload)
+            elif sha256_bytes(payload) == old.get('lastWrittenHash', old.get('installedHash')):
+                relocated_sources[legacy] = sha256_bytes(payload)
+            else:
+                conflicts.append(legacy)
+                conflict_details[legacy] = 'Customized engineering implementation preserved; merge its code into ' + relative
+        if relative == 'eng/architecture.json' and not destination.exists():
+            desired = engineering_architecture(target, desired)
+            desired_hash = sha256_bytes(desired)
         previous = old_files.get(relative)
         previous_contribution = None
         if isinstance(previous, dict):
@@ -556,7 +617,7 @@ def main() -> int:
             created.append(relative)
             actions.append({"kind": "create", "path": relative, "content": desired})
             final_hash = desired_hash
-            final_baseline = desired_hash
+            final_baseline = desired_entry['hash']
             final_written = desired_hash
         else:
             current_content = destination.read_bytes()
@@ -568,6 +629,9 @@ def main() -> int:
                 migrated_content = apply_structured_migrations(
                     relative, current_content, applicable_migrations
                 )
+                if relative in {'Directory.Build.props','Directory.Build.targets','Directory.Packages.props',
+                                '.github/workflows/application-ci.yml','.github/workflows/application-release.yml'}:
+                    migrated_content = relocate_references(migrated_content)
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
                 conflicts.append(relative)
                 conflict_details[relative] = str(error)
@@ -631,7 +695,7 @@ def main() -> int:
             "lifecycle": lifecycle_for(relative, ownership, desired_entry["rendered"]),
             "contribution": desired_entry["contribution"],
             "sourceIdentity": desired_entry["sourceIdentity"],
-            "templateHash": desired_hash,
+            "templateHash": desired_entry['hash'],
             "baselineHash": final_baseline,
             "lastWrittenHash": final_written,
             "installedHash": final_hash,
@@ -669,6 +733,8 @@ def main() -> int:
         previous = candidate["previous"]
         migration = candidate["migration"]
         safe_hashes: set[str] = set()
+        if relative in relocated_sources:
+            safe_hashes.add(relocated_sources[relative])
         if isinstance(previous, dict):
             previous_ownership = previous.get("ownership")
             if previous_ownership == "managed":

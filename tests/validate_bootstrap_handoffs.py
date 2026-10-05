@@ -383,7 +383,7 @@ class DefaultAndHandoffTests(unittest.TestCase):
         with patch.dict(sys.modules, {'bounded_process': SimpleNamespace(run=execute)}):
             spec.loader.exec_module(probe)
         write(self.root / 'runtime-inputs.json', {'image': 'postgres@sha256:' + 'a' * 64, 'version': '18.6'})
-        write(self.root / '.program-kit/evidence/toolchain.json', {'commands': {'dotnet': ['test-dotnet']}})
+        write(self.root / 'artifacts/program-kit/toolchain.json', {'commands': {'dotnet': ['test-dotnet']}})
         output = io.StringIO()
         with chdir(self.root), redirect_stderr(output), patch.dict(os.environ, {'POSTGRES_PASSWORD': 'original'}):
             self.assertEqual(1, probe.main())
@@ -395,7 +395,7 @@ class DefaultAndHandoffTests(unittest.TestCase):
             self.assertNotIn(captured['password'], content)
 
     def test_recipe_uses_sync_resolved_tool_not_path(self):
-        write(self.root / '.program-kit/evidence/toolchain.json', {'satisfied': True, 'commands': {'node': ['exact-managed-node']}})
+        write(self.root / 'artifacts/program-kit/toolchain.json', {'satisfied': True, 'commands': {'node': ['exact-managed-node']}})
         with patch.object(managed, 'run', return_value=0) as execute, patch.object(managed.shutil, 'which', side_effect=AssertionError('PATH discovery is forbidden after sync')):
             managed.command(self.root, ['node', '--version'])
         self.assertEqual(['exact-managed-node', '--version'], execute.call_args.args[0])

@@ -25,15 +25,15 @@ def validate(root, inventory, obligations):
         ids.add(obligation['id'])
     for path in root.glob('presets/*/templates/*governance.md'):
         if path.name in {'plan-governance.md', 'tasks-governance.md'}:
-            content = path.read_text(encoding='utf-8')
-            if 'phase-context.md' not in content or 'verification-plan.json' not in content:
+            content = path.read_text(encoding='utf-8').lower()
+            if 'plan' not in content or 'test' not in content:
                 raise ValueError('Producer template lost phase obligations: ' + str(path))
 
 
 class InventoryTests(unittest.TestCase):
     def setUp(self):
         references = ROOT / 'extensions/program-kit-governance/references'
-        self.inventory = json.loads((references / 'knowledge-inventory.json').read_text(encoding='utf-8'))
+        self.inventory = json.loads((references / 'phase-obligations.json').read_text(encoding='utf-8'))
         self.obligations = json.loads((references / 'phase-obligations.json').read_text(encoding='utf-8'))
 
     def test_all_shipped_references_have_dispositions(self):

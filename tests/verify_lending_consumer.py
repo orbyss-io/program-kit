@@ -39,8 +39,8 @@ def verify_run(run_path, bundle_path, browser_modules, engines):
         raise LiveContractError('LENDING_ACCEPTANCE_CHECKPOINT_CHANGED')
     evidence = ROOT / 'artifacts/lending-acceptance' / uuid.uuid4().hex[:8]
     evidence.mkdir(parents=True)
-    toolchain = load_object(project / '.program-kit/evidence/toolchain.json')
-    runtime = cli._load_restore_module(project / '.program-kit/eng/js_toolchain.py')
+    toolchain = load_object(project / 'artifacts/program-kit/toolchain.json')
+    runtime = cli._load_restore_module(project / 'eng/js_toolchain.py')
     for name in ('dotnet', 'node', 'npm'):
         if runtime.version(toolchain['commands'][name], project) != toolchain['required'][name]:
             raise LiveContractError('LENDING_ACCEPTANCE_EXACT_RUNTIME_UNAVAILABLE: ' + name)
@@ -69,7 +69,7 @@ def verify_run(run_path, bundle_path, browser_modules, engines):
     try:
         dotnet = toolchain['commands']['dotnet']
         operation([*dotnet, 'build', 'Lending.slnx', '--no-restore'], 'dotnet-build')
-        operation([sys.executable, str(project / '.program-kit/eng/js_toolchain.py'), '--repository', str(project), 'npm', '--', 'run', 'verify'], 'web-build', project / 'web')
+        operation([sys.executable, str(project / 'eng/js_toolchain.py'), '--repository', str(project), 'npm', '--', 'run', 'verify'], 'web-build', project / 'web')
         archive = project / safe_relative(bundle_path)
         manifest = unpack_release_bundle(archive, evidence / 'bundle')
         image = manifest['hostImage']['reference']

@@ -15,6 +15,11 @@ requires:
 provides:
   templates:
     - type: "template"
+      name: "constitution-template"
+      file: "templates/constitution-governance.md"
+      strategy: "append"
+      description: "Establish test-first, architecture and independent engineering principles."
+    - type: "template"
       name: "spec-template"
       file: "templates/spec-governance.md"
       strategy: "append"

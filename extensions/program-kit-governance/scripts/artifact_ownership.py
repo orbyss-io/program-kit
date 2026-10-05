@@ -13,39 +13,20 @@ from pathlib import Path, PurePosixPath
 OWNERSHIP = {"managed", "scaffold-once", "consumer-owned", "generated", "evidence"}
 CLASSIFICATION = {"public", "internal", "confidential", "restricted", "secret"}
 LIFECYCLE = {"source", "generated", "ephemeral", "retained", "replaced", "deployment"}
-RUNTIME_PROJECT_ROLES = {"core", "helper", "implementation", "provider", "bridge", "composition", "test"}
-ACTIVATABLE_PROJECT_ROLES = {"implementation", "provider", "bridge", "composition"}
-CAPABILITY_IMPLEMENTATION_ROLES = {"implementation", "provider", "bridge"}
-ALLOWED_ROLE_REFERENCES = {
-    "core": {"core"},
-    "helper": {"core", "helper"},
-    "implementation": {"core", "helper"},
-    "provider": {"core", "helper"},
-    "bridge": {"core", "helper"},
-    "composition": {"core", "helper", "implementation", "provider", "bridge", "composition"},
-    "test": RUNTIME_PROJECT_ROLES,
-}
-LEGACY_PROJECT_MARKERS = {"feature", "domain", "contracts", "application", "infrastructure"}
-FORBIDDEN_CORE_PACKAGE_PREFIXES = (
-    "cshells",
-    "nuplane",
-    "microsoft.aspnetcore",
-    "microsoft.entityframeworkcore",
-    "microsoft.extensions.dependencyinjection",
-    "newtonsoft.json",
-    "npgsql",
-    "microsoft.data.sqlclient",
-    "system.text.json",
-)
+# Ordinary engineering owns the boundary policy.
+_engine = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/eng'
+sys.path.insert(0, str(_engine))
+from architecture_rules import *
+
 CONVENTIONS = {
     "program-kit": {"spec.md", "plan.md", "tasks.md", "research.md", "data-model.md", "quickstart.md"},
     "dotnet": {"*.sln", "*.slnx", "src/**/*.csproj", "tests/**/*.csproj", "Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props"},
     "typescript-vite": {"vite.config.ts", "src/**/*.ts", "src/**/*.tsx", "tests/**/*.spec.ts"},
 }
 CANONICAL = {
-    ".program-kit/evidence/runtime-closure.json",
-    ".program-kit/evidence/host-image.json",
-    ".program-kit/evidence/after-tasks-analysis.md",
+    "artifacts/program-kit/runtime-closure.json",
+    "artifacts/program-kit/host-image.json",
+    "artifacts/program-kit/after-tasks-analysis.md",
     "docs/security/security-ledger.md",
     "tests/fixtures/program-kit/local-contract.json",
 }
@@ -167,9 +148,9 @@ def task_paths(tasks: Path) -> list[tuple[int, str, str]]:
 
 
 def extension_point(path: str) -> str:
-    if path == ".program-kit/eng/Build.ps1":
+    if path == "eng/Build.ps1":
         return "use consumer-owned Directory.Build.targets or a separate consumer build script"
-    if path.startswith(".program-kit/eng/web/"):
+    if path.startswith("eng/web/"):
         return "import the managed SPA adapter from consumer-owned vite.config and configure exact origins there"
     return "use root Directory.Build.props/targets or a feature-owned adapter after the managed import"
 
@@ -298,7 +279,7 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
         missing.append("validated package-closure staging")
     if not any(
         marker in combined
-        for marker in (".program-kit/evidence/host-image.json", "application-bundle.json", "digest-pinned")
+        for marker in ("artifacts/program-kit/host-image.json", "application-bundle.json", "digest-pinned")
     ):
         missing.append("digest-bound external-host release evidence")
     if missing:
@@ -694,7 +675,7 @@ def validate_npm_graph_evidence(feature_dir: Path, manifest: dict) -> None:
         re.IGNORECASE,
     ):
         return
-    evidence_path = repository_root(feature_dir) / ".program-kit/evidence/npm-graph.json"
+    evidence_path = repository_root(feature_dir) / "artifacts/program-kit/npm-graph.json"
     try:
         evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
@@ -730,7 +711,7 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
     if not declared_api and not re.search(r"\bopenapi\b", combined, re.IGNORECASE):
         return
     root = repository_root(feature_dir)
-    tool_manifest_path = root / ".program-kit/eng/.config/dotnet-tools.json"
+    tool_manifest_path = root / "eng/.config/dotnet-tools.json"
     try:
         tool_manifest = json.loads(tool_manifest_path.read_text(encoding="utf-8"))
         exporter_version = tool_manifest["tools"]["orbyss.foundation.openapi.exporter"]["version"]
@@ -747,7 +728,7 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
         raise ValueError(f"PKA014 managed oasdiff pin is missing at {oasdiff_pin_path}: {error}") from error
     if not oasdiff_version:
         raise ValueError("PKA014 managed oasdiff version pin is invalid")
-    registry_path = root / ".program-kit/openapi-contracts.json"
+    registry_path = root / "eng/openapi-contracts.json"
     try:
         registry = json.loads(registry_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:

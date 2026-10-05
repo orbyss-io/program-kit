@@ -13,7 +13,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
-sys.path.insert(0, str(TEMPLATE / '.program-kit/eng'))
+sys.path.insert(0, str(TEMPLATE / 'eng'))
 import release_bundle as bundle
 from live.v2.lending_host import unpack_release_bundle, PublishedLendingHost, LendingHost
 from live.v2.common import LiveContractError
@@ -45,12 +45,12 @@ class ReleaseBundleTests(unittest.TestCase):
                                      '--target', str(target), '--profile-selected', '--foundation-host-accepted',
                                      '--building-block-sources-approved', '--web-profile', 'none'], capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-            installed = target / '.program-kit/eng/legacy-feature-bridge.json'
-            self.assertEqual((TEMPLATE / '.program-kit/eng/legacy-feature-bridge.json').read_bytes(), installed.read_bytes())
+            installed = target / 'eng/legacy-feature-bridge.json'
+            self.assertEqual((TEMPLATE / 'eng/legacy-feature-bridge.json').read_bytes(), installed.read_bytes())
             result = subprocess.run([sys.executable, '-I', '-c',
                                      'import sys;sys.path.insert(0,sys.argv[1]);import release_bundle;'
                                      'assert release_bundle.LEGACY_FEATURE_BRIDGE["packageVersions"] == ["0.2.2","0.2.3"]',
-                                     str(target / '.program-kit/eng')], capture_output=True, text=True)
+                                     str(target / 'eng')], capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
     def setUp(self):
@@ -183,7 +183,7 @@ class ReleaseBundleTests(unittest.TestCase):
 
     def test_shipped_consumer_paths_cannot_publish_images(self):
         release = (TEMPLATE/'.github/workflows/application-release.yml').read_text()
-        dev = (ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/.program-kit/eng/Dev.ps1').read_text()
+        dev = (ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Dev.ps1').read_text()
         for forbidden in ('docker build', 'docker push', 'buildx', 'packages: write'):
             self.assertNotIn(forbidden, release)
         self.assertNotIn('docker build', dev)
@@ -201,11 +201,11 @@ class ReleaseBundleTests(unittest.TestCase):
             {'id':'api', 'packageClosure':'artifacts/runnable-host/packages', 'baseline':'contracts/v1.json'},
             {'id':'custom', 'packageClosure':'consumer/special', 'baseline':'contracts/other.json'}]}
         payload = json.dumps(original).encode()
-        migrated = dotnet_sync.apply_structured_migrations('.program-kit/openapi-contracts.json', payload, migrations)
+        migrated = dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', payload, migrations)
         expected = json.loads(payload)
         expected['contracts'][0]['packageClosure'] = 'artifacts/release-bundle/packages'
         self.assertEqual(json.loads(migrated), expected)
-        self.assertEqual(dotnet_sync.apply_structured_migrations('.program-kit/openapi-contracts.json', migrated, migrations), migrated)
+        self.assertEqual(dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', migrated, migrations), migrated)
 
 
 if __name__ == '__main__': unittest.main()

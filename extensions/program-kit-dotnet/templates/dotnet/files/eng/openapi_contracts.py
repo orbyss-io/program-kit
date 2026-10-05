@@ -101,7 +101,7 @@ def main() -> int:
             if not args.write_generated:
                 raise ValueError(
                     f"PKO008 generated OpenAPI output is stale: {artifact}. "
-                    "Invoke .program-kit/eng/Build.ps1 with -UpdateOpenApiArtifact after reviewing the revision."
+                    "Invoke eng/Build.ps1 with -UpdateOpenApiArtifact after reviewing the revision."
                 )
             artifact.write_bytes(normalized)
 

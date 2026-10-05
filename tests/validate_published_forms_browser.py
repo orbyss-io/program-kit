@@ -60,7 +60,7 @@ def main():
         shutil.copyfile(template / name, destination / name)
     audit_toolchain(destination, {'node': (destination / '.nvmrc').read_text().strip(),
                                   'npm': (destination / '.npm-version').read_text().strip()})
-    toolchain = json.loads((destination / '.program-kit/evidence/toolchain.json').read_text(encoding='utf-8'))
+    toolchain = json.loads((destination / 'artifacts/program-kit/toolchain.json').read_text(encoding='utf-8'))
     node = toolchain['commands']['node']
     executor = provider('program-kit-building-blocks/scripts/restore_dependencies.py')
     lock = destination / '.program-kit/sync/dependencies.json'
@@ -78,8 +78,8 @@ def main():
             raise ValueError('Published Forms test failed; inspect redacted evidence: ' + str(destination / 'evidence' / name))
     operation([sys.executable, str(ROOT / 'extensions/program-kit-governance/scripts/npm_graph.py'),
                '--repository', str(destination), '--package-json', str(destination / 'package.json'),
-               '--evidence', str(destination / '.program-kit/evidence/npm-graph.json')], 'strict-graph', True)
-    request = destination / '.program-kit/evidence/building-block-restore-request.json'
+               '--evidence', str(destination / 'artifacts/program-kit/npm-graph.json')], 'strict-graph', True)
+    request = destination / 'artifacts/program-kit/building-block-restore-request.json'
     for mode in ('renew', 'locked'):
         write(request, executor.restore_request(destination, lock, plan, mode))
         operation([sys.executable, str(executor.__file__), mode, '--target', str(destination), '--lock', lock.relative_to(destination).as_posix(),

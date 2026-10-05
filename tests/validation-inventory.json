@@ -2,6 +2,81 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_standalone_engineering",
+      "command": [
+        "{python}",
+        "tests/validate_standalone_engineering.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Ordinary flow and engineering independence with real negative controls; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/**",
+        "presets/**",
+        "tests/validate_standalone_engineering.py"
+      ],
+      "outputs": [
+        "artifacts/validate_standalone_engineering"
+      ],
+      "resources": [],
+      "isolation": "Unique disposable application; real consumer untouched."
+    },
+    {
+      "id": "validate_normal_development",
+      "command": [
+        "{python}",
+        "tests/validate_normal_development.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Ordinary flow and engineering independence with real negative controls; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/**",
+        "presets/**",
+        "tests/validate_normal_development.py"
+      ],
+      "outputs": [
+        "artifacts/validate_normal_development"
+      ],
+      "resources": [],
+      "isolation": "Unique disposable application; real consumer untouched."
+    },
+    {
+      "id": "validate_maintenance_flow",
+      "command": [
+        "{python}",
+        "tests/validate_maintenance_flow.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Ordinary flow and engineering independence with real negative controls; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/**",
+        "presets/**",
+        "tests/validate_normal_development.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_maintenance_flow"
+      ],
+      "resources": [],
+      "isolation": "Unique disposable application; real consumer untouched."
+    },
+    {
       "id": "validate_test_suites",
       "command": [
         "{python}",

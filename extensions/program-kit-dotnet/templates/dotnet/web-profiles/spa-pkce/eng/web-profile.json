@@ -8,6 +8,6 @@
   "tokenLocation": "memory-only",
   "cors": "exact-origin-allowlist",
   "localIdentityProvider": "keycloak-26.7.3",
-  "configuration": ".program-kit/spa-pkce.json",
-  "browserSessionAdapter": ".program-kit/eng/web/spa-session.ts"
+  "configuration": "eng/spa-pkce.json",
+  "browserSessionAdapter": "eng/web/spa-session.ts"
 }

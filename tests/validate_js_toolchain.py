@@ -9,14 +9,14 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-JS_TOOLCHAIN = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/js_toolchain.py"
+JS_TOOLCHAIN = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py"
 NPM_GRAPH = ROOT / "extensions/program-kit-governance/scripts/npm_graph.py"
 
 
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-js-toolchain-") as value:
         repository = Path(value)
-        managed = repository / ".program-kit/eng"
+        managed = repository / "eng"
         managed.mkdir(parents=True)
         (managed / "js_toolchain.py").write_bytes(JS_TOOLCHAIN.read_bytes())
         exact = repository / "exact"
@@ -37,7 +37,7 @@ def main() -> int:
                 "if \"%1\"==\"--version\" (echo 11.19.0& exit /b 0)\r\n"
                 "if not \"%NPM_CONFIG_STRICT_SSL%\"==\"true\" exit /b 71\r\n"
                 "if \"%NODE_OPTIONS:--use-system-ca=%\"==\"%NODE_OPTIONS%\" exit /b 72\r\n"
-                f"if not \"%NPM_CONFIG_CACHE%\"==\"{repository / '.program-kit/cache/npm'}\" exit /b 73\r\n"
+                f"if not \"%NPM_CONFIG_CACHE%\"==\"{repository / 'artifacts/cache/npm'}\" exit /b 73\r\n"
                 f"echo %*>\"{invocation_log}\"\r\n"
                 "echo {}>package-lock.json\r\n"
                 "exit /b 0\r\n",
@@ -56,7 +56,7 @@ def main() -> int:
                 "[ \"$1\" = --version ] && printf '11.19.0\\n' && exit 0\n"
                 "[ \"$NPM_CONFIG_STRICT_SSL\" = true ] || exit 71\n"
                 "case \" $NODE_OPTIONS \" in *' --use-system-ca '*) ;; *) exit 72;; esac\n"
-                f"[ \"$NPM_CONFIG_CACHE\" = '{repository / '.program-kit/cache/npm'}' ] || exit 73\n"
+                f"[ \"$NPM_CONFIG_CACHE\" = '{repository / 'artifacts/cache/npm'}' ] || exit 73\n"
                 f"printf '%s\\n' \"$*\" > '{invocation_log}'\n"
                 "printf '{}\\n' > package-lock.json\n"
                 "exit 0\n",
@@ -65,8 +65,8 @@ def main() -> int:
             for path in (node, npm, wrong_node, wrong_npm):
                 path.chmod(0o755)
 
-        cache = repository / ".program-kit/cache/npm"
-        evidence = repository / ".program-kit/evidence/toolchain.json"
+        cache = repository / "artifacts/cache/npm"
+        evidence = repository / "artifacts/program-kit/toolchain.json"
         evidence.parent.mkdir(parents=True)
         evidence.write_text(
             json.dumps(
@@ -116,7 +116,7 @@ def main() -> int:
             json.dumps({"name": "candidate", "version": "1.0.0", "dependencies": {"react": "19.2.4"}}),
             encoding="utf-8",
         )
-        graph_evidence = repository / ".program-kit/evidence/npm-graph.json"
+        graph_evidence = repository / "artifacts/program-kit/npm-graph.json"
         graph = subprocess.run(
             [
                 sys.executable,

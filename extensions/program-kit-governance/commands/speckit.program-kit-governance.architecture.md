@@ -4,6 +4,17 @@ scripts:
   py: scripts/governance_state.py validate
 ---
 
+## Ordinary architectural changes
+
+Outside an explicitly running initial bootstrap, read the current constitution, architecture
+model, relevant designs and accepted ADRs. Review the requested substantive change with the user,
+update its model/design or ADR and applicable eng/architecture.json policy, and regenerate C4 views
+when the model changes. Preserve existing decisions. Run relevant ordinary engineering checks.
+Missing bootstrap, ratification or hash receipts do not prevent drafting or implementation.
+Do not generate a new bootstrap context, approval dossier or recovery continuation. Return after
+this scoped work. The remaining instructions apply only to native initial bootstrap stage briefs.
+
+
 Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage architecture --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 
 For required sources, execute `reading_policy.read_command` and follow its pages; it batches only the required files under one aggregate byte limit and compacts JSON without dropping values. Reuse content already received. For an omitted decisive fact use `python .specify/extensions/program-kit-governance/scripts/bounded_read.py --path <exact-indexed-path> --keys` to discover JSON keys, then `--pointer /known/key`; omit the pointer for the root. Repeat `--path` to bundle small documents under the same total limit. Do not read future outputs or dump optional evidence/catalogs. Use the exact installed helper path; do not reconstruct it. Return each bounded page once, with an output budget of at least 6000 tokens; do not aggregate several pages into another tool response.

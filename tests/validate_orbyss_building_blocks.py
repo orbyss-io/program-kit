@@ -135,14 +135,14 @@ def main() -> int:
                 raise AssertionError(f"{composition_id} can select shell features but has no exact shell target slot.")
 
     pins = package_versions(
-        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/ProgramKit.Packages.props"
+        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props"
     )
     orbyss_pins = {key: value for key, value in pins.items() if key.startswith("Orbyss.")}
     expected_engineering = {"Orbyss.Foundation.Analyzers": packages['nuget:Orbyss.Foundation.Analyzers']['version'],
                             "Orbyss.Foundation.Build": "0.1.0"}
     if orbyss_pins != expected_engineering:
         raise AssertionError("The managed .NET baseline must pin only independently versioned private engineering packages.")
-    build_targets = ElementTree.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/ProgramKit.Build.targets').getroot()
+    build_targets = ElementTree.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets').getroot()
     builder_groups = [group for group in build_targets.findall('ItemGroup')
                       if any(item.attrib.get('Include') == 'Orbyss.Foundation.Build' for item in group)]
     if len(builder_groups) != 1 or builder_groups[0].attrib.get('Condition') != "'$(FoundationFeatureIdentity)' != ''":

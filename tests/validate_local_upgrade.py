@@ -10,6 +10,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -92,10 +93,19 @@ def validate_uv_launcher_bridge() -> None:
 
 
 def run(*command: str, cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        command, cwd=cwd, text=True, encoding="utf-8", errors="replace",
-        capture_output=True, check=False,
-    )
+    started = time.perf_counter()
+    result = subprocess.run(command, cwd=cwd, text=True, encoding='utf-8', errors='replace',
+                            capture_output=True, check=False)
+    if str(UPDATER) in command:
+        evidence = ROOT / 'artifacts/maintenance-flow/local-upgrade-timings.json'
+        evidence.parent.mkdir(parents=True, exist_ok=True)
+        rows = json.loads(evidence.read_text(encoding='utf-8')) if evidence.is_file() else []
+        rows.append({'elapsedSeconds':round(time.perf_counter()-started,3), 'exitCode':result.returncode,
+                     'offline': '--offline' in command, 'preview':'--plan' in command,
+                     'installationCoherent': '"readinessScope": "offline-setup"' in result.stdout,
+                     'deliberateFailureFixture': '--specify-command-json' in command})
+        evidence.write_text(json.dumps(rows,indent=2)+'\n',encoding='utf-8')
+    return result
 
 
 def require_offline_setup(result, label):
@@ -137,24 +147,6 @@ def lifecycle_sha256(path: Path) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def seed_migration_review(project: Path, old: str) -> None:
-    """Deterministic stand-in for an already Accepted historical bridge."""
-    updater = load_updater()
-    _, plan = updater.migration_plan(ROOT, old, (ROOT / 'VERSION').read_text().strip())
-    digest = hashlib.sha256(json.dumps(plan, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
-    directory = project / 'docs/architecture'
-    directory.mkdir(parents=True, exist_ok=True)
-    decision = directory / 'decisions/migration-bridge.md'
-    decision.parent.mkdir(parents=True, exist_ok=True)
-    decision.write_text('# Deterministic bridge fixture\n\nStatus: Accepted\n\nReviewed exact migration plan: ' + digest)
-    map_path = directory / 'architecture-map.json'
-    model = json.loads(map_path.read_text()) if map_path.is_file() else {'decisions': []}
-    model['decisions'] = [item for item in model.get('decisions', []) if item['id'] != 'migration-bridge']
-    model['decisions'].append({'id': 'migration-bridge', 'status': 'Accepted', 'path': decision.relative_to(project).as_posix(), 'sha256': sha256(decision)})
-    map_path.write_text(json.dumps(model))
-    (directory / 'release-migration-review.json').write_text(json.dumps({'schemaVersion': 1, 'decisionId': 'migration-bridge', 'planSha256': digest}))
-
-
 def seed_confirmed_feature_intake(project: Path, spec: Path) -> None:
     """Provide the real intake prerequisite for this disposable upgrade fixture."""
     import validate_governance_state as governance_fixture
@@ -164,8 +156,7 @@ def seed_confirmed_feature_intake(project: Path, spec: Path) -> None:
         sys.executable, str(scripts / "implementation_preflight.py"),
         "--repository", str(project), "--feature-dir", str(spec.parent), cwd=project,
     )
-    if missing.returncode == 0 or "PKS001" not in missing.stderr:
-        raise AssertionError(f"Missing feature intake was not rejected:\n{missing.stdout}{missing.stderr}")
+    require_success(missing, 'Drafting guidance before feature intake')
 
     original_directory = Path.cwd()
     sys.path.insert(0, str(scripts))
@@ -254,9 +245,9 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
         encoding="utf-8",
     )
     canonical = {
-        ".program-kit/evidence/runtime-closure.json",
-        ".program-kit/evidence/host-image.json",
-        ".program-kit/evidence/after-tasks-analysis.md",
+        "artifacts/program-kit/runtime-closure.json",
+        "artifacts/program-kit/host-image.json",
+        "artifacts/program-kit/after-tasks-analysis.md",
         "docs/security/security-ledger.md",
         "tests/fixtures/program-kit/local-contract.json",
         "contracts/openapi/catalog.contract.json",
@@ -321,13 +312,13 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
         + "\n",
         encoding="utf-8",
     )
-    (project / ".program-kit/openapi-contracts.json").write_text(
+    (project / "eng/openapi-contracts.json").write_text(
         json.dumps({"schemaVersion": 1, "contracts": ["contracts/openapi/catalog.contract.json"]}) + "\n",
         encoding="utf-8",
     )
     candidate = feature / "npm-candidate.package.json"
     candidate.write_text('{"devDependencies":{"openapi-typescript":"7.13.0"}}\n', encoding="utf-8")
-    npm_evidence = project / ".program-kit/evidence/npm-graph.json"
+    npm_evidence = project / "artifacts/program-kit/npm-graph.json"
     npm_evidence.parent.mkdir(parents=True, exist_ok=True)
     npm_evidence.write_text(
         json.dumps(
@@ -341,12 +332,12 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
         + "\n",
         encoding="utf-8",
     )
-    report = project / ".program-kit/evidence/after-tasks-analysis.md"
+    report = project / "artifacts/program-kit/after-tasks-analysis.md"
     report.write_text(
         "# Specification Analysis Report\n\n"
         "| ID | Category | Severity | Location(s) | Summary | Recommendation |\n"
         "|----|----------|----------|-------------|---------|----------------|\n"
-        "| — | — | — | — | No findings | Proceed |\n",
+        "| â€” | â€” | â€” | â€” | No findings | Proceed |\n",
         encoding="utf-8",
     )
     lifecycle = project / ".program-kit/lifecycle" / f"{feature.name}.json"
@@ -380,6 +371,8 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
 
 
 def main() -> int:
+    timings = ROOT / 'artifacts/maintenance-flow/local-upgrade-timings.json'
+    timings.unlink(missing_ok=True)
     validate_uv_launcher_bridge()
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     with tempfile.TemporaryDirectory(prefix="program-kit-local-upgrade-") as directory:
@@ -495,10 +488,9 @@ def main() -> int:
                         *(project / 'docs/architecture/compatibility').glob('*')]
         immutable_probes = {path: path.read_bytes() for path in probe_inputs if path.is_file()}
         immutable_decisions = bootstrap_decisions.read_bytes()
-        seed_migration_review(project, old)
         command = (
             sys.executable, str(UPDATER), "--release-root", str(ROOT),
-            "--target", str(project), "--integration", "codex",
+            "--target", str(project), "--integration", "codex", "--offline",
         )
         installed_tool = project / '.specify/extensions/program-kit-governance/scripts/json_schema.py'
         original_tool = installed_tool.read_bytes()
@@ -613,7 +605,7 @@ def main() -> int:
             raise AssertionError('Post-install fixture did not first install all target components')
         if (project / '.specify/governance/program-kit-upgrades.json').exists():
             raise AssertionError('Failed convergence fabricated accepted upgrade authority')
-        attempts = list((project / '.specify/governance/program-kit-upgrade-attempts').glob('*.json'))
+        attempts = list((project / 'artifacts/program-kit/runs').glob('*/upgrade-attempt.json'))
         failures = [json.loads(path.read_text()) for path in attempts]
         if not any(value.get('diagnostic', '').startswith('PKU116') and value['previousInstalledVersion'] == old for value in failures):
             raise AssertionError('Post-install failure lost its root diagnostic or original version')
@@ -635,7 +627,6 @@ def main() -> int:
             "Synchronize existing repository setup",
             "Verify offline repository convergence",
             "Validate cross-component version coherence",
-            "Record accepted governed upgrade",
         )
         offsets = [installed.stdout.find(label) for label in order]
         if any(offset < 0 for offset in offsets) or offsets != sorted(offsets):
@@ -660,19 +651,11 @@ def main() -> int:
             raise AssertionError("Updater rewrote immutable bootstrap decisions")
         if any(path.read_bytes() != data for path, data in immutable_probes.items()):
             raise AssertionError('Updater changed registered bootstrap probe recipes/contracts/sources')
-        upgrade_state = json.loads(
-            (project / ".specify/governance/program-kit-upgrades.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        accepted = upgrade_state["upgrades"][-1]
-        if (
-            accepted.get("status") != "Accepted"
-            or accepted.get("baseline_profile_version") != old
-            or accepted.get("previous_installed_version") != old
-            or accepted.get("installed_version") != expected
-        ):
-            raise AssertionError(f"Updater did not record governed version authority: {accepted}")
+        if (project / '.specify/governance/program-kit-upgrades.json').exists():
+            raise AssertionError('Routine upgrade wrote a duplicate bootstrap acceptance record')
+        installation = json.loads((project / '.program-kit/installation/migration.json').read_text())
+        if installation['fromVersion'] != old or installation['toVersion'] != expected:
+            raise AssertionError('Installation metadata lost original migration scope')
 
         old_runtime = "0.0.0-preview.1"
         building_blocks = json.loads(
@@ -703,58 +686,28 @@ def main() -> int:
         )
         contract_path = project / "contracts/openapi/catalog.contract.json"
         contract_before = contract_path.read_bytes()
-        pending = run(*command, cwd=project)
-        if pending.returncode != 2 or "PKU110" not in pending.stderr:
-            raise AssertionError(f"stale consumer OpenAPI pin did not stop before upgrade:\n{pending.stdout}{pending.stderr}")
-        if "Resolve bundle composition record" in pending.stdout or contract_path.read_bytes() != contract_before:
-            raise AssertionError("OpenAPI reconciliation preflight mutated components or consumer contracts")
-        for expected_path in (
-            "contracts/openapi/catalog.contract.json",
-            "specs/001-openapi-upgrade/spec.md",
-            "specs/001-openapi-upgrade/plan.md",
-            "specs/001-openapi-upgrade/tasks.md",
-            "specs/001-openapi-upgrade/research.md",
-        ):
-            if expected_path not in pending.stderr:
-                raise AssertionError(f"Reconciliation diagnostic omitted affected/review path: {expected_path}")
-
-        accepted_command = (*command, "--accept-openapi-producer-pin-reconciliation")
+        history_before = {path:path.read_bytes() for path in feature.glob('*.md')}
+        lifecycle_path = project / '.program-kit/lifecycle/001-openapi-upgrade.json'
+        lifecycle_before = lifecycle_path.read_bytes()
+        accepted_command = (*command, '--accept-openapi-producer-pin-reconciliation')
         reconciled = run(*accepted_command, cwd=project)
-        if (
-            reconciled.returncode != 3
-            or "PKU111" not in reconciled.stderr
-            or "PKU113" not in reconciled.stderr
-        ):
-            raise AssertionError(
-                f"explicit OpenAPI reconciliation did not require lifecycle renewal:\n"
-                f"{reconciled.stdout}{reconciled.stderr}"
-            )
+        if reconciled.returncode != 3 or 'PKU113' not in reconciled.stderr:
+            raise AssertionError('Offline upgrade did not report actual lock verification pending: ' + reconciled.stdout + reconciled.stderr)
         contract_value = json.loads(contract_path.read_text(encoding="utf-8"))
         if contract_value["producer"]["version"] != target_exporter:
             raise AssertionError("registered OpenAPI producer pin did not advance atomically")
-        for name in ("plan.md", "tasks.md", "research.md"):
-            text = (feature / name).read_text(encoding="utf-8")
-            if old_runtime in text or target_exporter not in text:
-                raise AssertionError(f"exact OpenAPI planning pin did not advance in {name}")
-        lifecycle_path = project / ".program-kit/lifecycle/001-openapi-upgrade.json"
-        lifecycle_value = json.loads(lifecycle_path.read_text(encoding="utf-8"))
-        if "afterTasksAnalysis" in lifecycle_value["phases"]:
-            raise AssertionError("producer-pin reconciliation retained stale implementation readiness")
-        invalidation = lifecycle_value.get("invalidations", [])[-1]
-        if (
-            invalidation.get("reason") != "program-kit-openapi-producer-pin-reconciliation"
-            or invalidation.get("fromVersions") != [old_runtime]
-            or invalidation.get("toVersion") != target_exporter
-        ):
-            raise AssertionError(f"lifecycle invalidation audit is incomplete: {invalidation}")
+        if any(path.read_bytes() != payload for path,payload in history_before.items()):
+            raise AssertionError('Mechanical producer upgrade rewrote feature authoring documents')
+        if lifecycle_path.read_bytes() != lifecycle_before:
+            raise AssertionError('Mechanical producer upgrade rewrote historical results')
         lock_renewal = json.loads(
-            (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
+            (project / "artifacts/program-kit/dotnet-lock-renewal.json").read_text(encoding="utf-8")
         )
         expected_commands = [
             "python .specify/extensions/program-kit-governance/scripts/repository_sync.py request-renew --phase upgrade",
-            "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py renew --approved --lock .program-kit/sync/dependencies.json --request .program-kit/evidence/building-block-restore-request.json",
+            "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py renew --approved --lock .program-kit/sync/dependencies.json --request artifacts/program-kit/building-block-restore-request.json",
             "python .specify/extensions/program-kit-governance/scripts/repository_sync.py request-locked --phase upgrade",
-            "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py locked --approved --lock .program-kit/sync/dependencies.json --request .program-kit/evidence/building-block-restore-request.json",
+            "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py locked --approved --lock .program-kit/sync/dependencies.json --request artifacts/program-kit/building-block-restore-request.json",
         ]
         if (
             lock_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != building_blocks["families"]["foundation"]["releaseVersion"]
@@ -798,75 +751,13 @@ def main() -> int:
             "post-reconciliation artifact ownership",
         )
         preflight = project / ".specify/extensions/program-kit-governance/scripts/implementation_preflight.py"
-        lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
-        stale = run(
-            sys.executable,
-            str(lifecycle_script),
-            "--repository",
-            str(project),
-            "--feature-dir",
-            str(feature),
-            "verify-before-implement",
-            cwd=project,
-        )
-        if stale.returncode != 11 or "PKL011" not in stale.stderr:
-            raise AssertionError(f"lifecycle gate did not block invalidated readiness: {stale.stdout}{stale.stderr}")
-        lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
-        require_success(
-            run(
-                sys.executable,
-                str(lifecycle_script),
-                "--repository",
-                str(project),
-                "--feature-dir",
-                str(feature),
-                "begin",
-                "analyze",
-                cwd=project,
-            ),
-            "renewed analysis begin",
-        )
-        require_success(
-            run(
-                sys.executable,
-                str(lifecycle_script),
-                "--repository",
-                str(project),
-                "--feature-dir",
-                str(feature),
-                "complete-analysis",
-                "--report",
-                ".program-kit/evidence/after-tasks-analysis.md",
-                cwd=project,
-            ),
-            "renewed analysis completion",
-        )
-        require_success(
-            run(
-                sys.executable,
-                str(lifecycle_script),
-                "--repository",
-                str(project),
-                "--feature-dir",
-                str(feature),
-                "verify-before-implement",
-                cwd=project,
-            ),
-            "lifecycle readiness after renewal",
-        )
-        # This fixture has confirmed intake but has not authored the new phase evidence.
-        # Renewed analysis cannot bypass the independent knowledge-application gate.
-        unconfirmed = run(sys.executable, str(preflight), "--repository", str(project),
-                          "--feature-dir", str(feature), cwd=project)
-        if unconfirmed.returncode == 0 or "PKS003" not in unconfirmed.stderr:
-            raise AssertionError("renewed fixture bypassed accepted alternative-adapter authority: "
-                                 + unconfirmed.stdout + unconfirmed.stderr)
-
-        phase_gate = run(sys.executable, str(preflight.with_name('phase_obligations.py')), 'check',
-                         '--repository', str(project), '--feature-dir', str(feature), '--phase', 'implementation', cwd=project)
-        if phase_gate.returncode == 0 or 'phase-obligations.json' not in phase_gate.stderr:
-            raise AssertionError('Renewed analysis bypassed independent phase evidence: ' + phase_gate.stdout + phase_gate.stderr)
-
+        require_success(run(sys.executable, str(preflight), '--repository', str(project),
+                            '--feature-dir', str(feature), cwd=project), 'normal implementation guidance')
+        require_success(run(sys.executable, str(preflight.with_name('phase_obligations.py')), 'check',
+                            '--repository',str(project),'--feature-dir',str(feature),'--phase','implementation',cwd=project),
+                        'implementation without bootstrap or phase evidence')
+        if lifecycle_path.read_bytes() != lifecycle_before:
+            raise AssertionError('Normal implementation guidance rewrote historical lifecycle results')
         lock_value = json.loads((project / "packages.lock.json").read_text(encoding="utf-8"))
         dependency = lock_value["dependencies"]["net10.0"]["Orbyss.Foundation.Authentication"]
         dependency["requested"] = f"[{target_runtime}, )"
@@ -880,7 +771,7 @@ def main() -> int:
             raise AssertionError('Changing package lock metadata falsely satisfied shared dependency verification: '
                                  + renewed_metadata.stdout + renewed_metadata.stderr)
         satisfied_renewal = json.loads(
-            (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
+            (project / "artifacts/program-kit/dotnet-lock-renewal.json").read_text(encoding="utf-8")
         )
         if (
             satisfied_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != building_blocks["families"]["foundation"]["releaseVersion"]
@@ -889,7 +780,7 @@ def main() -> int:
         ):
             raise AssertionError(f"NuGet lock renewal did not converge: {satisfied_renewal}")
 
-        migration = json.loads((project / '.specify/governance/migration-completion.json').read_text())
+        migration = json.loads((project / '.program-kit/installation/migration.json').read_text())
         if migration['status'] != 'pending' or migration['migrationCompletionEstablished']:
             raise AssertionError('Pending consumer verification was reported as a completed migration')
         before_plan = {path.relative_to(project).as_posix(): sha256(path) for path in project.rglob('*') if path.is_file()}

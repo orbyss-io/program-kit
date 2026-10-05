@@ -50,7 +50,7 @@ def main():
             ['Core/Core.csproj', 'Feature/Feature.csproj', 'Boundary/Boundary.csproj']], 'registryRequirements': []}
     lock = target / '.program-kit/sync/dependencies.json'
     write(lock, plan)
-    request = target / '.program-kit/evidence/building-block-restore-request.json'
+    request = target / 'artifacts/program-kit/building-block-restore-request.json'
     for mode in ('renew', 'locked'):
         write(request, executor.restore_request(target, lock, plan, mode))
         with (target / (mode + '.log')).open('w', encoding='utf-8') as log:

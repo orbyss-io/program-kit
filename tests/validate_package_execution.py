@@ -42,7 +42,7 @@ class PackageExecutionTests(unittest.TestCase):
 
     def test_first_isolated_lookup_has_catalog_route_and_no_dotnet_prerequisite(self):
         graph = self.root / "graph.json"
-        self.assertFalse((self.root / ".program-kit/eng").exists())
+        self.assertFalse((self.root / "eng").exists())
         with patch.dict(os.environ, {"PROGRAM_KIT_NPM_TOKEN": "synthetic-token", "TEST_PACKAGE_CALLS": str(self.log)}), patch.object(packages, "javascript_runtime", return_value=self.runtime):
             npm_graph.resolve(self.manifest, self.root, self.evidence, "", graph, 10)
         record = json.loads(self.log.read_text())

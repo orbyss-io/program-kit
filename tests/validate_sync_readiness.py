@@ -28,7 +28,7 @@ class ReadinessTests(unittest.TestCase):
                       'targets':[], 'javascript':True, 'dotnet':False}
         sync.write(self.root / 'web/package.json', {'dependencies':{'react':'19.2.8'}})
         sync.write(self.root / 'web/package-lock.json', {'lockfileVersion':3})
-        sync.write(self.root / '.program-kit/evidence/toolchain.json', {'satisfied':True})
+        sync.write(self.root / 'artifacts/program-kit/toolchain.json', {'satisfied':True})
         self.lock = readiness.dependencies(self.root, self.setup, {})
 
     def evidence(self):
@@ -40,7 +40,7 @@ class ReadinessTests(unittest.TestCase):
     def test_current_locked_proof_invalidates_for_each_dependency_input(self):
         proof = self.evidence()
         self.restore.verify_evidence(self.root, self.lock, proof)
-        for relative in ('web/package.json', 'web/package-lock.json', '.program-kit/evidence/toolchain.json'):
+        for relative in ('web/package.json', 'web/package-lock.json', 'artifacts/program-kit/toolchain.json'):
             path = self.root / relative
             before = path.read_bytes()
             if relative.endswith('toolchain.json'):

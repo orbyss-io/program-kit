@@ -102,7 +102,7 @@ def resolve_node(repository: Path, required: str, requested: str, manager: str) 
     if direct:
         candidates.append(direct)
     if requested == "node":
-        local_root = repository / '.program-kit/tools/node'
+        local_root = repository / 'artifacts/tools/node'
         directories = [local_root / required]
         directories.extend(sorted(local_root.glob('node-v' + required + '-*')))
         candidates[0:0] = [directory / name for directory in directories for name in ('node.exe', 'bin/node')]
@@ -130,7 +130,7 @@ def npm_candidates(node: Path, requested: str, repository: Path | None = None, r
     result: list[list[str]] = []
     if repository is not None and required:
         for relative in ('node_modules/npm/bin/npm-cli.js', 'lib/node_modules/npm/bin/npm-cli.js', 'package/bin/npm-cli.js'):
-            local = repository / '.program-kit/tools/npm' / required / relative
+            local = repository / 'artifacts/tools/npm' / required / relative
             if local.is_file():
                 result.append([str(node), str(local.resolve())])
     explicit = os.environ.get("PROGRAMKIT_NPM_EXECUTABLE") or requested
@@ -194,7 +194,7 @@ def require_writable_cache(cache: Path) -> Path:
 
 def cache_directory(repository: Path) -> Path:
     configured = os.environ.get("PROGRAMKIT_NPM_CACHE")
-    cache = Path(configured).expanduser() if configured else repository / ".program-kit/cache/npm"
+    cache = Path(configured).expanduser() if configured else repository / "artifacts/cache/npm"
     if not cache.is_absolute():
         cache = repository / cache
     return require_writable_cache(cache.resolve())
@@ -253,7 +253,7 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
         or resolved.get("npm") != required.get("npm")
     ):
         raise ValueError(
-            "PKT016 exact Node/npm command evidence is missing or stale; run .program-kit/eng/toolchain.py first."
+            "PKT016 exact Node/npm command evidence is missing or stale; run eng/toolchain.py first."
         )
     if any(not isinstance(item, str) or not item for item in npm):
         raise ValueError("PKT016 recorded npm command is invalid.")
@@ -320,7 +320,7 @@ def run_npm(
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run npm through Program Kit's exact resolved Node runtime.")
     parser.add_argument("--repository", default=".")
-    parser.add_argument("--evidence", default=".program-kit/evidence/toolchain.json")
+    parser.add_argument("--evidence", default="artifacts/program-kit/toolchain.json")
     parser.add_argument("--timeout-seconds", type=int, default=180)
     parser.add_argument("command", choices=("npm",))
     parser.add_argument("arguments", nargs=argparse.REMAINDER)

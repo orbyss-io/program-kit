@@ -43,7 +43,7 @@ class ProviderContextTests(unittest.TestCase):
                     self.assertEqual(version, reference.get('Version'), str(path))
                     checked += 1
         self.assertGreater(checked, 0)
-        tools = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/.config/dotnet-tools.json'
+        tools = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json'
         exporter = json.loads(CATALOG.read_text())['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']
         self.assertEqual(exporter, json.loads(tools.read_text())['tools']['orbyss.foundation.openapi.exporter']['version'])
 
@@ -57,7 +57,7 @@ class ProviderContextTests(unittest.TestCase):
         destination.parent.mkdir(parents=True)
         shutil.copyfile(ROOT / self.identity.replace('.specify/', ''), destination)
         for relative in ('references/persistence-runtimes.json',
-                         'templates/dotnet/files/.program-kit/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props'):
+                         'templates/dotnet/files/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props'):
             source = ROOT / 'extensions/program-kit-dotnet' / relative
             target = self.root / '.specify/extensions/program-kit-dotnet' / relative
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -92,7 +92,7 @@ class ProviderContextTests(unittest.TestCase):
         self.assertTrue(value['activations'])
         self.assertIn('@sha256:', value['identity_runtime']['image'])
         self.assertEqual(before, inventory())
-        self.assertFalse((self.root / '.program-kit/building-blocks.lock.json').exists())
+        self.assertFalse((self.root / 'eng/building-blocks.lock.json').exists())
 
     def test_missing_selection_and_unpinned_identity_fail_before_dispatch(self):
         self.selection.unlink()

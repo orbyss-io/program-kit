@@ -83,14 +83,14 @@ def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
 
 def isolated_environment(repository: Path) -> dict[str, str]:
     environment = os.environ.copy()
-    cache = repository / ".program-kit/cache"
+    cache = repository / "artifacts/cache"
     # Native compatibility projects are nested under a source-bound attempt.
     # Keeping NuGet's long package filenames under that path breaks MSBuild on
     # Windows. Reuse only this consumer's cache, never the user's global cache.
     parts = repository.parts
     if (len(parts) >= 7 and parts[-6:-3] == ('.specify', 'governance', 'compatibility')
             and parts[-2].startswith('attempt-') and parts[-1].startswith('scratch-')):
-        cache = repository.parents[5] / '.program-kit/cache'
+        cache = repository.parents[5] / 'artifacts/cache'
     values = {
         "NUGET_PACKAGES": cache / "nuget/packages",
         "NUGET_HTTP_CACHE_PATH": cache / "nuget/http",
@@ -144,12 +144,12 @@ def input_basis(repository: Path, lock: dict) -> dict:
         paths.add(target["path"])
     # Exact runtime evidence and managed dependency assignments are inputs; native locks are
     # outputs and verified separately so renew followed by locked can converge.
-    paths.add(".program-kit/evidence/toolchain.json")
+    paths.add("artifacts/program-kit/toolchain.json")
     records = {relative: hashlib.sha256(safe_path(repository, relative).read_bytes()).hexdigest()
                if safe_path(repository, relative).is_file() else None for relative in sorted(paths)}
-    toolchain_path = repository / '.program-kit/evidence/toolchain.json'
+    toolchain_path = repository / 'artifacts/program-kit/toolchain.json'
     if toolchain_path.is_file():
-        records['.program-kit/evidence/toolchain.json'] = package_execution.toolchain_digest(toolchain_path)
+        records['artifacts/program-kit/toolchain.json'] = package_execution.toolchain_digest(toolchain_path)
     npm_packages = set()
     for target in lock.get('targets', []):
         path = safe_path(repository, target['path'])
@@ -228,7 +228,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Explicitly renew or verify native locks for selected building blocks.")
     parser.add_argument("mode", choices=("renew", "locked", "request-renew", "request-locked"))
     parser.add_argument("--target", default=".")
-    parser.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
+    parser.add_argument("--lock", default="eng/building-blocks.lock.json")
     parser.add_argument("--evidence")
     parser.add_argument("--approved", action="store_true")
     parser.add_argument("--request", help="Reviewed request file; its complete current inputs must match before network access.")
@@ -240,9 +240,9 @@ def main() -> int:
         return 2
     repository = Path(args.target).resolve()
     default_evidence = (
-        ".program-kit/evidence/building-block-restore-request.json"
+        "artifacts/program-kit/building-block-restore-request.json"
         if request_mode
-        else ".program-kit/evidence/building-block-restore.json"
+        else "artifacts/program-kit/building-block-restore.json"
     )
     evidence_path = safe_path(repository, args.evidence or default_evidence)
     try:
@@ -280,10 +280,10 @@ def main() -> int:
             if command["ecosystem"] == "npm":
                 manifest = load_json(Path(command["cwd"]) / "package.json")
                 packages = sorted({name for section in ("dependencies", "devDependencies", "optionalDependencies") for name in manifest.get(section, {})})
-                result, context = package_execution.execute(repository, repository / ".program-kit/evidence/toolchain.json", packages,
+                result, context = package_execution.execute(repository, repository / "artifacts/program-kit/toolchain.json", packages,
                                                             command["args"][1:], Path(command["cwd"]), 600)
             else:
-                toolchain = load_json(repository / ".program-kit/evidence/toolchain.json")
+                toolchain = load_json(repository / "artifacts/program-kit/toolchain.json")
                 dotnet = toolchain.get("commands", {}).get("dotnet")
                 required = toolchain.get("required", {}).get("dotnet")
                 if not dotnet or not required or toolchain.get("resolved", {}).get("dotnet") != required:

@@ -162,7 +162,7 @@ def main():
         accepted_lock = blocks.accept_selection(root, selection_path, bt.CATALOG,
             selection["authority"]["architectureMap"], ["placement"], "Reviewed synthetic placement", "0.10.0")
         assert blocks.load_json(selection_path)["status"] == "Accepted"
-        bt.expect_error(blocks, "PKB404", lambda: blocks.apply_materialization(root, root / ".program-kit/building-blocks.lock.json", accepted_lock, catalog))
+        bt.expect_error(blocks, "PKB404", lambda: blocks.apply_materialization(root, root / "eng/building-blocks.lock.json", accepted_lock, catalog))
         assert not any((root / target["path"]).exists() for target in selection["targets"])
         for output in accepted_lock["managedOutputs"]:
             if output["kind"] in {"nuget-project", "npm-package"}:

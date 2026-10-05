@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
-import phase_obligations as obligations
+import historical_phase_evidence as obligations
 from semantic_contract import validate_contract
 
 

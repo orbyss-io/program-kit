@@ -417,7 +417,7 @@ def main() -> int:
             report.relative_to(repository)
             return complete_analysis(repository, feature_dir, report)
         if args.command == 'verify-delivery':
-            from phase_obligations import check, review_basis, digest
+            from historical_phase_evidence import check, review_basis, digest
             check(repository, feature_dir, 'delivery')
             path = state_path(repository, feature_dir)
             state = load_state(path)

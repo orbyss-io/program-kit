@@ -186,7 +186,7 @@ def materialize_parent(parent_path: Path, project: Path, schema: dict) -> dict:
 
 
 def relocate_graph(project: Path, parent: dict) -> dict | None:
-    path = project / '.program-kit/evidence/npm-graph.json'
+    path = project / 'artifacts/program-kit/npm-graph.json'
     if not path.is_file():
         return None
     graph = load_object(path)
@@ -271,14 +271,14 @@ def run(args: argparse.Namespace) -> int:
         raise LiveContractError('LIVE_SYNC_SCHEMA_CACHE_MISSING')
     shutil.copytree(source_cache, destination_cache, dirs_exist_ok=True)
     runtime.record_copy(project)
-    toolchain_path = project / '.program-kit/evidence/toolchain.json'
+    toolchain_path = project / 'artifacts/program-kit/toolchain.json'
     if toolchain_path.is_file():
         toolchain = load_object(toolchain_path)
-        toolchain.setdefault('environment', {})['npmCache'] = str(project / '.program-kit/cache/npm')
+        toolchain.setdefault('environment', {})['npmCache'] = str(project / 'artifacts/cache/npm')
         atomic_write_json(toolchain_path, toolchain)
     if phase in {'feature-delivery', 'upgrade-continuation'}:
         restore = project / '.specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py'
-        lock = '.program-kit/sync/dependencies.json' if (project / '.program-kit/sync/dependencies.json').is_file() else '.program-kit/building-blocks.lock.json'
+        lock = '.program-kit/sync/dependencies.json' if (project / '.program-kit/sync/dependencies.json').is_file() else 'eng/building-blocks.lock.json'
         operation([sys.executable, str(restore), 'request-locked', '--target', str(project), '--lock', lock], 'checkpoint-request-locked')
         operation([sys.executable, str(restore), 'locked', '--target', str(project), '--lock', lock, '--approved'], 'checkpoint-restore-locked', registry=True)
     preserved = {}
@@ -381,7 +381,7 @@ def reference_stage_checks(root, project, run_root, operation, environment):
     governance = project / '.specify/extensions/program-kit-governance/scripts'
     restore = project / '.specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py'
     lock = '.program-kit/sync/dependencies.json'
-    request_path = project / '.program-kit/evidence/building-block-restore-request.json'
+    request_path = project / 'artifacts/program-kit/building-block-restore-request.json'
     request = load_object(request_path) if request_path.is_file() else {}
     module = cli._load_restore_module(restore)
     if request.get('mode') == 'renew':
@@ -393,7 +393,7 @@ def reference_stage_checks(root, project, run_root, operation, environment):
     operation([sys.executable, str(restore), 'locked', '--target', str(project), '--lock', lock,
                '--request', str(request_path), '--approved'], 'restore-locked', registry=True)
     operation([sys.executable, str(governance / 'repository_sync.py'), 'check', '--repository', str(project), '--phase', 'upgrade'], 'upgrade-setup-readiness')
-    toolchain = load_object(project / '.program-kit/evidence/toolchain.json')
+    toolchain = load_object(project / 'artifacts/program-kit/toolchain.json')
     dotnet, node = toolchain['commands']['dotnet'], toolchain['commands']['node']
     operation([*dotnet, 'build', 'Lending.slnx', '--no-restore'], 'independent-dotnet-build')
     operation([*node, 'node_modules/typescript/bin/tsc'], 'independent-typescript-build', cwd=project / 'web')
@@ -433,9 +433,9 @@ def independent_stage_checks(project: Path, phase: str, case: str, operation) ->
             if not tool.is_file():
                 tool = Path(__file__).with_name('baseline_metadata.py')
             operation([sys.executable, str(tool), '--repository', str(project), '--package', item['package'], '--version', item['version'],
-                       '--evidence', f'.program-kit/evidence/metadata-{index}.json'], f'metadata-{index}', registry=True)
+                       '--evidence', f'artifacts/program-kit/metadata-{index}.json'], f'metadata-{index}', registry=True)
         operation([sys.executable, str(governance / 'npm_graph.py'), '--repository', str(project), '--package-json', str(candidate),
-                   '--evidence', str(project / '.program-kit/evidence/npm-graph.json')], 'strict-graph', registry=True)
+                   '--evidence', str(project / 'artifacts/program-kit/npm-graph.json')], 'strict-graph', registry=True)
         if phase == 'feature-planning':
             return
     if phase == 'feature-plan-tasks':
@@ -446,7 +446,7 @@ def independent_stage_checks(project: Path, phase: str, case: str, operation) ->
         return
     if phase in {'feature-setup','upgrade-consumer'}:
         restore = project / '.specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py'
-        request_path = project / '.program-kit/evidence/building-block-restore-request.json'
+        request_path = project / 'artifacts/program-kit/building-block-restore-request.json'
         request = load_object(request_path) if request_path.is_file() else {}
         lock = str(safe_relative(request['lock'])) if request else '.program-kit/sync/dependencies.json'
         request_arguments = ['--request', str(request_path.relative_to(project))] if '--request' in restore.read_text(encoding='utf-8') else []
@@ -466,9 +466,9 @@ def independent_stage_checks(project: Path, phase: str, case: str, operation) ->
                    '--phase', 'implementation', '--feature-dir', str(feature)], 'implementation-readiness')
     if phase in {'feature-delivery','upgrade-consumer'}:
         from . import cli
-        runtime_path = project / '.program-kit/eng/js_toolchain.py'
+        runtime_path = project / 'eng/js_toolchain.py'
         runtime = cli._load_restore_module(runtime_path)
-        toolchain = load_object(project / '.program-kit/evidence/toolchain.json')
+        toolchain = load_object(project / 'artifacts/program-kit/toolchain.json')
         dotnet = toolchain.get('commands', {}).get('dotnet')
         required = toolchain.get('required', {}).get('dotnet')
         if not dotnet or not required or runtime.version(dotnet, project) != required:

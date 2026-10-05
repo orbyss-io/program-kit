@@ -26,7 +26,7 @@ def main():
             os.environ.pop(key)
     root = Path.cwd()
     pins = json.loads(Path('runtime-inputs.json').read_text())
-    dotnet = json.loads(Path('.program-kit/evidence/toolchain.json').read_text())['commands']['dotnet']
+    dotnet = json.loads(Path('artifacts/program-kit/toolchain.json').read_text())['commands']['dotnet']
     suite = ET.Element('testsuite', name='Compatibility')
     counter = 0
     def command(args, expected=0):

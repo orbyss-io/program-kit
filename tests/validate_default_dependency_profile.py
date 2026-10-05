@@ -21,7 +21,7 @@ from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
-sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
 import building_blocks as blocks
 import release_bundle
 
@@ -55,8 +55,8 @@ def qualify(profile_path: Path, work: Path) -> dict:
 
     # Use the maintained engineering imports and public private-build package.
     for relative in ('Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props',
-                     'global.json', 'NuGet.config', '.program-kit/eng/ProgramKit.Build.props',
-                     '.program-kit/eng/ProgramKit.Build.targets', '.program-kit/eng/ProgramKit.Packages.props'):
+                     'global.json', 'NuGet.config', 'eng/ProgramKit.Build.props',
+                     'eng/ProgramKit.Build.targets', 'eng/ProgramKit.Packages.props'):
         destination = work / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(TEMPLATE / relative, destination)
@@ -67,7 +67,7 @@ def qualify(profile_path: Path, work: Path) -> dict:
                          for p in runtime.values())
     central.write_text(central.read_text().replace('</Project>', '<ItemGroup>\n' + versions +
         '\n<PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />\n</ItemGroup></Project>'), encoding='utf-8')
-    packages = work / '.program-kit/eng/ProgramKit.Packages.props'
+    packages = work / 'eng/ProgramKit.Packages.props'
     packages.write_text(packages.read_text().replace('Include="Orbyss.Foundation.Analyzers" Version="0.2.2"',
         f'Include="Orbyss.Foundation.Analyzers" Version="{selected["artifacts"]["nuget:Orbyss.Foundation.Analyzers"]}"'), encoding='utf-8')
     feature = work / 'Feature/ProgramKit.Qualification.csproj'

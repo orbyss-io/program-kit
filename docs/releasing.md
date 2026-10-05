@@ -24,6 +24,8 @@ helper without `-PrepareOnly` runs the required Release command with a bounded
 process PATH and restores the caller's environment. Windows native command lookup
 requires PATH below 8191 characters; use invocation-scoped tools rather than
 changing machine installations.
+The helper checks Docker's Linux engine before starting the suite; unavailable container
+infrastructure fails immediately instead of after the remaining validation has run.
 
 When the user decides the candidate should proceed toward publication, freeze clean
 committed source and ask them to run in a user-owned terminal:
@@ -67,20 +69,18 @@ does not substitute for full Program Kit Release validation or consumer Delivery
 Preserve the source bundle commit and original evidence; do not relabel them to a
 later shipping commit. Keep untested activations outside the qualified profile scope.
 
-For post-bootstrap recovery, create a linked continuation only from an intact
-completed source run. Preserve original intake, ratification, approvals, receipts
-and the entire recovery lineage. Changed executable inputs require the supported
-proof renewal step and a fresh changed-artifact review. If an existing child fails
-after architecture authoring, verify document bytes and repair only stale hash
-bindings before resuming that same child without `--post-bootstrap`; another child
-would repeat worker execution. Carry new Accepted prerequisites through installed
-feature intake and renew affected analysis. Future feature and Delivery obligations
-remain open until their own evidence passes.
+Routine upgrades use the release-owned updater's inspectable plan and deterministic
+retry. They never restart completed bootstrap or dispatch architecture authoring.
+Preserve existing application edits, architectural decisions and historical results;
+run affected engineering checks against current software. Missing receipts and
+unrelated unfinished features do not block installation or ordinary implementation.
+See [consumer engineering](consumer-engineering.md) for the file classification,
+independent engineering commands and bounded execution-history cleanup.
 
-Support starts at v0.12.5. Earlier consumers require a reviewed bridge that names
-their preserved source state, required decisions, verification and recovery.
-Do not manufacture missing historical migrations. Version-specific operational
-runbooks are retained by their original Git commits; current procedure lives here.
+Packaged migration history starts at v0.12.5. Earlier source versions require actual
+managed-layout inspection, not a version-only approval. Protect unsupported inputs
+and substantive conflicts; do not manufacture missing historical migrations.
+Version-specific operational runbooks remain in their original Git commits.
 
 Legacy NuGet retirement availability is monitored in the separate weekly/manual
 maintenance workflow; current selected dependency availability remains a release gate.

@@ -82,6 +82,19 @@ class RecipeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Core leaks'):
             self.check()
 
+    def test_persistence_packages_stay_in_provider_tests_and_design_is_private(self):
+        project = self.manifest['runtimeComposition']['projects'][1]
+        project.pop('packageReferences')
+        self.evaluated[project['path']]['Items']['PackageReference'] = [{'Identity':'Microsoft.EntityFrameworkCore'}]
+        self.check()
+        project['role']='implementation'
+        with self.assertRaisesRegex(ValueError,'owning provider/tests'):self.check()
+        project['role']='provider'
+        self.evaluated[project['path']]['Items']['PackageReference'] = [{'Identity':'Microsoft.EntityFrameworkCore.Design'}]
+        with self.assertRaisesRegex(ValueError,'private engineering'):self.check()
+        self.evaluated[project['path']]['Items']['PackageReference'][0]['PrivateAssets']='all'
+        self.check()
+
     def test_invented_interface_or_registration_fails(self):
         original = copy.deepcopy(self.manifest)
         for key in ('capability', 'registration'):
@@ -98,7 +111,7 @@ class RecipeTests(unittest.TestCase):
     def test_managed_private_analyzer_and_spoofed_origins(self):
         item = {'Identity': 'Orbyss.Foundation.Analyzers', 'PrivateAssets': 'all',
                 'IncludeAssets': 'runtime;build;analyzers',
-                'DefiningProjectFullPath': str(self.root / '.program-kit/eng/ProgramKit.Build.props')}
+                'DefiningProjectFullPath': str(self.root / 'eng/ProgramKit.Build.props')}
         self.evaluated['Core/Slots.Core.csproj']['Items']['PackageReference'] = [item]
         self.check()
         for field, value in (('PrivateAssets', ''), ('IncludeAssets', 'all'),
@@ -123,7 +136,7 @@ class RecipeTests(unittest.TestCase):
     def test_managed_private_descriptor_builder_rejects_runtime_assets_and_spoofing(self):
         item = {'Identity': 'Orbyss.Foundation.Build', 'PrivateAssets': 'all',
                 'IncludeAssets': 'build;buildtransitive',
-                'DefiningProjectFullPath': str(self.root / '.program-kit/eng/ProgramKit.Build.targets')}
+                'DefiningProjectFullPath': str(self.root / 'eng/ProgramKit.Build.targets')}
         self.evaluated['Provider/Slots.Provider.csproj']['Items']['PackageReference'] = [item]
         self.check()
         for field, value in (('PrivateAssets', ''), ('IncludeAssets', 'all'),

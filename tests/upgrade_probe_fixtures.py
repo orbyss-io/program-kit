@@ -33,7 +33,7 @@ def _render_registered_probes(root):
         providers = load(governance / 'scripts/managed_provider_probes.py', 'upgrade_fixture_provider')
         template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
         pins = {node.attrib['Include']: node.attrib['Version'] for node in
-                ET.parse(template / '.program-kit/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props').iter('PackageVersion')}
+                ET.parse(template / 'eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props').iter('PackageVersion')}
         dotnet = managed.render(root, 'dotnet-runtime', 'managed-dotnet-runtime')
         provider = providers.render_postgresql(root, 'relational-mechanism', {
             'persistence_runtimes': [{'profile': 'ef-postgresql', 'packages': pins}]})

@@ -18,7 +18,7 @@ def main():
         if any(part in key.upper() for part in ['TOKEN', 'PASSWORD', 'SECRET', 'CREDENTIAL', 'CONNECTION_STRING']):
             os.environ.pop(key)
     root = Path.cwd()
-    toolchain = json.loads(Path('.program-kit/evidence/toolchain.json').read_text())
+    toolchain = json.loads(Path('artifacts/program-kit/toolchain.json').read_text())
     dotnet, node = toolchain['commands']['dotnet'], toolchain['commands']['node']
     suite = ET.Element('testsuite', name='Forms')
     def check(name, commands):

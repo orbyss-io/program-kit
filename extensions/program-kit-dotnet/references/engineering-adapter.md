@@ -42,8 +42,8 @@ Forms, and Localization pins as independent compatibility inputs, never as the P
    `references/persistence-profiles.md`.
 3. Report created, updated, unchanged, and conflicted files exactly as emitted by the script.
 4. Stop on conflicts. Never overwrite a consumer-modified managed file or a scaffold-once consumer file.
-5. After a successful write, report that the generated `.program-kit/eng/Restore.ps1 -LockedMode` and
-   `.program-kit/eng/Build.ps1 -SkipReleaseBundle` access configured package sources. Do not run either command unless
+5. After a successful write, report that the generated `eng/Restore.ps1 -LockedMode` and
+   `eng/Build.ps1 -SkipReleaseBundle` access configured package sources. Do not run either command unless
    the user separately authorizes networked package restore and build verification.
 6. Make clear that runtime selection is automatic for a .NET bootstrap, while applying the managed
    repository files remains a separate, reviewable synchronization action and is not a prerequisite
@@ -52,14 +52,14 @@ Forms, and Localization pins as independent compatibility inputs, never as the P
 
 The sync itself performs local, path-contained file operations and does not contact package feeds. The
 generated restore wrapper confines NuGet caches, .NET CLI state, and Windows profile-based NuGet discovery
-below `.program-kit/cache`; `--configfile` alone selects package settings but is not the supported hermetic
+below `artifacts/cache`; `--configfile` alone selects package settings but is not the supported hermetic
 process boundary. Build, CI, release, OpenAPI, and release-bundle staging paths inherit that managed boundary
 and can access the configured NuGet sources.
 
 The ownership record is `.program-kit/managed.json`. Root MSBuild discovery extension points, application
 `VERSION`, shell configuration, and `NuGet.config` are scaffolded once and remain consumer-owned. Program Kit
-owns the SDK, analyzer policy, `.program-kit/eng`, container, schema, and generated workflow baselines.
-For `spa-pkce`, `.program-kit/spa-pkce.json` is the scaffold-owned typed security input and
+owns the SDK, analyzer policy, `eng`, container, schema, and generated workflow baselines.
+For `spa-pkce`, `eng/spa-pkce.json` is the scaffold-owned typed security input and
 the shell-profile overlay, Keycloak realm, and browser contract are managed derived outputs. Configure
 exact callback, silent-renew callback, post-logout routes, origins, scopes, renewal timeout, and
 session bounds in that input, then rerun the same sync command. Wildcards, cross-origin callbacks,

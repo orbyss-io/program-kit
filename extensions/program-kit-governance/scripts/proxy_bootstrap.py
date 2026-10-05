@@ -68,7 +68,7 @@ def require_active(root, run_id=None):
 @contextlib.contextmanager
 def installer_cache(root):
     previous = os.environ.get('UV_CACHE_DIR')
-    os.environ['UV_CACHE_DIR'] = str(root.resolve() / '.program-kit/cache/proxy-uv')
+    os.environ['UV_CACHE_DIR'] = str(root.resolve() / 'artifacts/cache/proxy-uv')
     try:
         yield
     finally:

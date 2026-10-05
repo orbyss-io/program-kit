@@ -52,10 +52,11 @@ def plan(directory, installed, target):
     destination = version_key(target)
     if source < version_key(BASELINE):
         return {'schemaVersion': 1, 'fromVersion': installed, 'toVersion': target,
-                'status': 'reviewed-bridge-required', 'migrations': [entry for entry in index['entries']
+                'status': 'planned', 'layoutInspectionRequired': True, 'migrations': [entry for entry in index['entries']
                     if version_key(entry['version']) <= destination],
                 'mutationPerformed': False, 'migrationCompletionEstablished': False,
-                'diagnostic': 'Sources older than v0.12.5 require a reviewed bridge; no mutation started.'}
+                'diagnostic': 'Source predates packaged migration history; inspect its actual managed layout '
+                              'and preserve unsupported inputs. Version alone requires no approval.'}
     if source > destination:
         raise ValueError('PKU130 downgrade migration is unsupported')
     if installed not in {entry['version'] for entry in index['entries']}:
@@ -68,7 +69,7 @@ def plan(directory, installed, target):
 
 def require_review(repository, migration_plan):
     """Consume an existing Accepted decision; never create migration approval."""
-    if migration_plan['status'] != 'reviewed-bridge-required' and not any(entry['review'] for entry in migration_plan['migrations']):
+    if not any(entry.get('substantiveReviewRequired', False) for entry in migration_plan['migrations']):
         return
     repository = Path(repository).resolve()
     digest = hashlib.sha256(json.dumps(migration_plan, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
@@ -104,11 +105,14 @@ def require_review(repository, migration_plan):
 
 def completion(migration_plan, outcomes):
     """Installation and migration completion remain separate, explicit verdicts."""
-    checks = sorted({check for entry in migration_plan['migrations'] for check in entry['verificationChecks']})
+    declared = {check for entry in migration_plan['migrations'] for check in entry['verificationChecks']}
+    retired = declared & {'required-phase-evidence'}
+    checks = sorted(declared - retired)
     missing = [check for check in checks if outcomes.get(check) is not True]
     digest = hashlib.sha256(json.dumps(migration_plan, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     return {'schemaVersion': 1, 'status': 'pending' if missing else 'completed',
             'fromVersion': migration_plan['fromVersion'], 'toVersion': migration_plan['toVersion'],
-            'planSha256': digest, 'plan': migration_plan, 'requiredChecks': checks,
+            'planSha256': digest, 'plan': migration_plan, 'requiredChecks': checks, 'retiredChecks': sorted(retired),
+            'retirementReason': 'Feature evidence belongs to application acceptance, not tooling migration',
             'checks': {check: outcomes.get(check) is True for check in checks}, 'pendingChecks': missing,
             'migrationCompletionEstablished': not missing, 'approvalPerformed': False}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -91,8 +92,24 @@ def require_text(path: Path, *phrases: str) -> None:
         raise AssertionError(f"{path} is missing required governance text: {missing}")
 
 
+def validate_template_inputs(root: Path) -> None:
+    """Local ignored inputs must never mask an incomplete committed scaffold."""
+    result = subprocess.run(['git', '-C', str(root), 'ls-files', '-z'],
+                            capture_output=True, text=True, encoding='utf-8', check=True)
+    tracked = set(result.stdout.split('\0'))
+    template = root / 'extensions/program-kit-dotnet/templates/dotnet'
+    for manifest in template.rglob('managed-files.json'):
+        for entry in json.loads(manifest.read_text(encoding='utf-8'))['files']:
+            source = (template / entry.get('sourceRoot', 'files') /
+                      entry.get('source', entry['path'])).resolve()
+            relative = source.relative_to(root.resolve()).as_posix()
+            if not source.is_file() or relative not in tracked:
+                raise AssertionError('Scaffold input is missing from versioned source: ' + relative)
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
+    validate_template_inputs(root)
     extension_path = root / "extensions" / "program-kit-governance" / "extension.yml"
     building_blocks_extension_path = root / "extensions" / "program-kit-building-blocks" / "extension.yml"
     dotnet_extension_path = root / "extensions" / "program-kit-dotnet" / "extension.yml"
@@ -166,11 +183,12 @@ def main() -> int:
     preset = yaml.safe_load(preset_path.read_text(encoding="utf-8"))
     preset_templates = preset["provides"]["templates"]
     if {template["name"] for template in preset_templates} != {
+        "constitution-template",
         "spec-template",
         "plan-template",
         "tasks-template",
     }:
-        raise AssertionError("The governance preset must augment the three core lifecycle templates")
+        raise AssertionError("The governance preset must augment constitution and core lifecycle templates")
     if any(template.get("strategy") != "append" for template in preset_templates):
         raise AssertionError("Governance template augmentation must compose through append")
     bundle = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))
@@ -565,8 +583,8 @@ def main() -> int:
     require_text(
         extension_root / "commands/speckit.program-kit-governance.architecture-check.md",
         "constitution",
-        "specification roadmap",
-        "vertical outcomes",
+        "normal code review",
+        "Compiler diagnostics",
     )
     governance_script = extension_root / "scripts/governance_state.py"
     if not governance_script.is_file():
@@ -630,13 +648,7 @@ def main() -> int:
         "atomic_replace",
     )
     require_text(reconciliation, 'producer_reconciliation.py', 'catalog_transition', 'apply_catalog_transition')
-    require_text(
-        extension_root / "scripts/implementation_preflight.py",
-        "verify-before-implement",
-        "artifact_ownership.py",
-        "choices=('setup', 'source')",
-        "planned_selection_errors",
-    )
+    require_text(extension_root / "scripts/implementation_preflight.py", "project", "render", "Compatibility option")
     context_script = extension_root / "scripts/bootstrap_context.py"
     intake_script = extension_root / "scripts/bootstrap_intake.py"
     architecture_map_script = extension_root / "scripts/architecture_map.py"
@@ -802,13 +814,13 @@ def main() -> int:
     )
     require_text(
         preset_path.parent / "templates/plan-governance.md",
-        "Accepted ADR",
-        "Vertical-slice",
+        "accepted architecture",
+        "vertical outcome",
     )
     require_text(
         preset_path.parent / "templates/tasks-governance.md",
-        "vertical",
-        "Completion Evidence",
+        "end-to-end",
+        "Engineering verification",
     )
 
     print("Extension and workflow manifests are valid.")

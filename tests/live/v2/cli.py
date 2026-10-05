@@ -573,18 +573,18 @@ def building_blocks(args: argparse.Namespace) -> int:
             raise LiveContractError(f"LIVE_BUILDING_BLOCK_PLAN_FAILED: {plan.stderr.strip()}")
         plan_value = json.loads(plan.stdout)
         plan_digest = plan_value["planDigest"]
-        lock = load_object(project / ".program-kit/building-blocks.lock.json")
+        lock = load_object(project / "eng/building-blocks.lock.json")
         if lock != plan_value:
             raise LiveContractError("LIVE_BUILDING_BLOCK_APPLY_NOT_OBSERVED")
         receipts.extend([
             {"schemaVersion": "2.0", "operation": "plan", "planDigest": plan_digest, "command": ["building_blocks.py", "plan"], "exitCode": 0, "startedAt": result.finishedAt, "finishedAt": utc_now(), "artifacts": []},
             {"schemaVersion": "2.0", "operation": "apply", "planDigest": plan_digest, "command": ["building_blocks.py", "apply", "--plan-digest", plan_digest], "exitCode": 0, "startedAt": result.startedAt, "finishedAt": result.finishedAt, "artifacts": []},
         ])
-        request_path = project / ".program-kit/evidence/building-block-restore-request.json"
+        request_path = project / "artifacts/program-kit/building-block-restore-request.json"
         if not request_path.is_file():
             raise LiveContractError("LIVE_RESTORE_RENEW_REQUEST_MISSING")
         restore_module = _load_restore_module(restore_tool)
-        expected_request = restore_module.restore_request(project, project / ".program-kit/building-blocks.lock.json", lock, "renew")
+        expected_request = restore_module.restore_request(project, project / "eng/building-blocks.lock.json", lock, "renew")
         if load_object(request_path) != expected_request:
             raise LiveContractError("LIVE_RESTORE_RENEW_REQUEST_MISMATCH")
         receipts.append({"schemaVersion": "2.0", "operation": "restore-request-renew", "planDigest": plan_digest, "command": ["restore_dependencies.py", "request-renew"], "exitCode": 0, "startedAt": result.startedAt, "finishedAt": result.finishedAt, "artifacts": []})
@@ -592,9 +592,9 @@ def building_blocks(args: argparse.Namespace) -> int:
         registry_environment = supervisor_environment(token)
         availability_tool = project / ".specify/extensions/program-kit-building-blocks/scripts/public_availability.py"
         catalog_path = project / ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
-        availability_path = project / ".program-kit/evidence/building-block-availability.json"
+        availability_path = project / "artifacts/program-kit/building-block-availability.json"
         available, availability_receipt = operation(
-            [sys.executable, str(availability_tool), "--target", str(project), "--catalog", str(catalog_path), "--lock", ".program-kit/building-blocks.lock.json"],
+            [sys.executable, str(availability_tool), "--target", str(project), "--catalog", str(catalog_path), "--lock", "eng/building-blocks.lock.json"],
             project, run_root, "availability", registry_environment, [token],
         )
         availability_receipt.update({

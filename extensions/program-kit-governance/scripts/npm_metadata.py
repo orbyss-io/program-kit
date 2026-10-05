@@ -46,7 +46,7 @@ def main() -> int:
     parser.add_argument("--repository", type=Path, default=Path.cwd())
     parser.add_argument("--package", required=True)
     parser.add_argument("--version", required=True)
-    parser.add_argument("--toolchain-evidence", type=Path, default=Path(".program-kit/evidence/toolchain.json"))
+    parser.add_argument("--toolchain-evidence", type=Path, default=Path("artifacts/program-kit/toolchain.json"))
     parser.add_argument("--evidence", type=Path, required=True)
     parser.add_argument("--timeout-seconds", type=int, default=180)
     args = parser.parse_args()

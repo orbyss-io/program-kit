@@ -158,7 +158,7 @@ def run(
 
 
 def repository_nuget_environment(repository: Path) -> dict[str, str]:
-    cache = repository / ".program-kit/cache"
+    cache = repository / "artifacts/cache"
     paths = {
         "NUGET_PACKAGES": cache / "nuget/packages",
         "NUGET_HTTP_CACHE_PATH": cache / "nuget/http",
@@ -188,7 +188,7 @@ def ensure_openapi_toolchain(
 ) -> None:
     command = [
         sys.executable,
-        str(repository / ".program-kit/eng/toolchain.py"),
+        str(repository / "eng/toolchain.py"),
         "--repository",
         str(repository),
         "--evidence",
@@ -242,7 +242,7 @@ def restore_exporter(
 
 
 def tool_version(repository: Path) -> tuple[Path, str]:
-    manifest = repository / ".program-kit/eng/.config/dotnet-tools.json"
+    manifest = repository / "eng/.config/dotnet-tools.json"
     value = load_json(manifest, "managed .NET tool manifest")
     tools = value.get("tools")
     entry = tools.get("orbyss.foundation.openapi.exporter") if isinstance(tools, dict) else None
@@ -317,7 +317,7 @@ def execute_contract(
         repository / runtime_closure.EVIDENCE,
         PROGRAM_KIT_VERSION,
     )
-    export_evidence = repository / f".program-kit/evidence/openapi/{identity}-export.json"
+    export_evidence = repository / f"artifacts/program-kit/openapi/{identity}-export.json"
     exporter_command = [dotnet, str(exporter)] if exporter else [
         dotnet, "tool", "run", "orbyss-foundation-openapi-export", "--"
     ]
@@ -332,11 +332,11 @@ def execute_contract(
             "--output", str(paths["raw"]),
             "--evidence", str(export_evidence),
         ],
-        repository / ".program-kit/eng" if exporter is None else repository,
+        repository / "eng" if exporter is None else repository,
         f"OpenAPI export for {identity}",
         nuget_environment,
     )
-    normalizer = repository / ".program-kit/eng/openapi_contracts.py"
+    normalizer = repository / "eng/openapi_contracts.py"
     normalize_command = [
         sys.executable,
         str(normalizer),
@@ -370,7 +370,7 @@ def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(description="Run the producer-first Program Kit OpenAPI contract pipeline.")
     parser.add_argument("--repository", default=".")
-    parser.add_argument("--registry", default=".program-kit/openapi-contracts.json")
+    parser.add_argument("--registry", default="eng/openapi-contracts.json")
     parser.add_argument("--exporter", default="", help=argparse.SUPPRESS)
     parser.add_argument("--initialize-baselines", action="store_true")
     parser.add_argument("--update-artifacts", action="store_true")
@@ -389,7 +389,7 @@ def main() -> int:
         oasdiff_version = (repository / ".oasdiff-version").read_text(encoding="utf-8").strip().removeprefix("v")
         if not oasdiff_version:
             raise ValueError("PKO206 managed .oasdiff-version does not pin oasdiff.")
-        toolchain_evidence = repository / ".program-kit/evidence/toolchain.json"
+        toolchain_evidence = repository / "artifacts/program-kit/toolchain.json"
         prepare_openapi_toolchain(repository, toolchain_evidence)
         nuget_environment = repository_nuget_environment(repository)
         toolchain = load_json(toolchain_evidence, "toolchain evidence")
@@ -407,7 +407,7 @@ def main() -> int:
             raise ValueError(f"PKO209 exporter test override is missing: {exporter}")
         if exporter is None:
             restore_exporter(dotnet, manifest, repository, nuget_environment)
-        effective_shells = repository / ".program-kit/cache/openapi/effective-shells.json"
+        effective_shells = repository / "artifacts/cache/openapi/effective-shells.json"
         shell_composition.write(repository / "artifacts/release-bundle", effective_shells)
         evidence = []
         seen: set[str] = set()
@@ -434,7 +434,7 @@ def main() -> int:
                     effective_shells,
                 )
             )
-        evidence_path = repository / ".program-kit/evidence/openapi/pipeline.json"
+        evidence_path = repository / "artifacts/program-kit/openapi/pipeline.json"
         evidence_path.parent.mkdir(parents=True, exist_ok=True)
         evidence_path.write_text(
             json.dumps(

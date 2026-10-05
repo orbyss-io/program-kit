@@ -14,7 +14,7 @@ provider, MCP, placement, or environment decision.
 Catalog cardinality makes every choose-one decision explicit and fail closed.
 
 The offline resolver binds an Accepted, architecture-map-registered selection to
-`.program-kit/building-blocks.lock.json`. Functional NuGet and npm dependencies remain direct and
+`eng/building-blocks.lock.json`. Functional NuGet and npm dependencies remain direct and
 visible in their exact consumer targets; there is no hiding meta-package. Every CShell feature
 identity contributed by a selected package is a generated overlay entry, including packages that
 contribute multiple identities. Forms and Localization MCP contributors require Foundation MCP transport through

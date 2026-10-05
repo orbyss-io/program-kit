@@ -116,11 +116,11 @@ class CompatibilityTests(unittest.TestCase):
         scratch = self.root / '.specify/governance/compatibility/provider/attempt-test/scratch-test'
         scratch.mkdir(parents=True)
         environment = executor.isolated_environment(scratch)
-        self.assertEqual(str(self.root / '.program-kit/cache/nuget/packages'), environment['NUGET_PACKAGES'])
-        self.assertFalse((scratch / '.program-kit/cache').exists())
+        self.assertEqual(str(self.root / 'artifacts/cache/nuget/packages'), environment['NUGET_PACKAGES'])
+        self.assertFalse((scratch / 'artifacts/cache').exists())
         ordinary = self.root / 'ordinary'
         ordinary.mkdir()
-        self.assertEqual(str(ordinary / '.program-kit/cache/nuget/packages'), executor.isolated_environment(ordinary)['NUGET_PACKAGES'])
+        self.assertEqual(str(ordinary / 'artifacts/cache/nuget/packages'), executor.isolated_environment(ordinary)['NUGET_PACKAGES'])
 
     def test_override_requires_current_approval_and_preserves_exact_managed_policy(self):
         docs = self.root / 'docs/architecture'

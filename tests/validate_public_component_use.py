@@ -30,7 +30,7 @@ def main():
     plan = {'schemaVersion': 1, 'targets': [{'path': p, 'packages': [{'materializationKind': 'nuget-project'}]} for p in projects], 'registryRequirements': []}
     write(lock, plan)
     executor = provider('program-kit-building-blocks/scripts/restore_dependencies.py')
-    request = destination / '.program-kit/evidence/building-block-restore-request.json'
+    request = destination / 'artifacts/program-kit/building-block-restore-request.json'
     try:
         for mode in ('renew', 'locked'):
             write(request, executor.restore_request(destination, lock, plan, mode))
@@ -38,7 +38,7 @@ def main():
                 subprocess.run([sys.executable, str(executor.__file__), mode, '--target', str(destination), '--lock', lock.relative_to(destination).as_posix(),
                                 '--request', request.relative_to(destination).as_posix(), '--approved'], cwd=destination, stdout=stream, stderr=subprocess.STDOUT,
                                check=True, timeout=600)
-        executor.verify_evidence(destination, plan, json.loads((destination / '.program-kit/evidence/building-block-restore.json').read_text(encoding='utf-8')))
+        executor.verify_evidence(destination, plan, json.loads((destination / 'artifacts/program-kit/building-block-restore.json').read_text(encoding='utf-8')))
         for project in projects:
             name = Path(project).parent.name if '/' in project else 'forms-json'
             command = ['dotnet', 'run', '--project', project, '--no-restore']

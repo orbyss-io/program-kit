@@ -124,7 +124,7 @@ guidance recommends reviewed SQL/bundles and documents provider-specific idempot
 
 The repository coordinator resolves these records in bootstrap and planning before projects exist.
 Incomplete admission is visible as proposed work and blocks later readiness. Engineering sync merges
-admitted central pins into managed `.program-kit/eng/ProgramKit.Persistence.props`, deduplicating shared
+admitted central pins into managed `eng/ProgramKit.Persistence.props`, deduplicating shared
 EF versions and rejecting conflicts. The root consumer-owned `Directory.Packages.props` imports this
 file. Existing custom files and direct provider imports are preserved; review the reported import or
 duplicate-pin correction instead of overwriting consumer configuration. Provider and test project
