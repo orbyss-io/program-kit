@@ -26,7 +26,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "For slot reservation, test duplicate admission, denial and cancellation using the actual domain API; no semantic-contract JSON is needed."
+      "example": "For slot reservation, test duplicate admission, denial and cancellation using the actual domain API; no semantic-contract JSON is needed.",
+      "sections": {
+        "program-kit-governance/references/software-language.md": [
+          "Policies and decisions",
+          "Effects and admission"
+        ],
+        "program-kit-governance/references/vertical-slicing.md": [
+          "Slice contract"
+        ]
+      }
     },
     {
       "id": "implementation-quality",
@@ -53,7 +62,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Prefer a cohesive typed operation boundary. Use dynamic JSON only at an explicitly bounded external boundary; introduce an interface when substitution or dependency inversion actually needs one."
+      "example": "Prefer a cohesive typed operation boundary. Use dynamic JSON only at an explicitly bounded external boundary; introduce an interface when substitution or dependency inversion actually needs one.",
+      "sections": {
+        "program-kit-governance/references/programming-guardrails.md": [
+          "Typed boundaries and design evidence"
+        ],
+        "program-kit-governance/references/vertical-slicing.md": [
+          "Cohesion and coupling",
+          "Proportional exceptions"
+        ]
+      }
     },
     {
       "id": "architecture-authority",
@@ -79,7 +97,12 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Reuse an accepted ownership decision. A new cross-owner dependency needs design/code review; reformatting an ADR does not need another approval."
+      "example": "Reuse an accepted ownership decision. A new cross-owner dependency needs design/code review; reformatting an ADR does not need another approval.",
+      "sections": {
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Dependency and ownership rules"
+        ]
+      }
     },
     {
       "id": "dotnet-boundaries",
@@ -112,7 +135,23 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Keep domain policy independent of persistence and serializers. Put an EF DbContext in the data-owner provider. Declare project roles once in eng/architecture.json; MSBuild and compiled assemblies supply the actual graph."
+      "example": "Keep domain policy independent of persistence and serializers. Put an EF DbContext in the data-owner provider. Declare project roles once in eng/architecture.json; MSBuild and compiled assemblies supply the actual graph.",
+      "sections": {
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Core, helper, and implementation packages"
+        ],
+        "program-kit-governance/references/tool-selection.md": [
+          "Retained ordinary-development selections"
+        ],
+        "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md": [
+          "Host boundary",
+          "Feature creation and activation closure",
+          "Application release bundle"
+        ],
+        "program-kit-dotnet/references/technology-profiles/dotnet.md": [
+          "ASP.NET Core Minimal API slices"
+        ]
+      }
     },
     {
       "id": "api-contracts",
@@ -143,7 +182,19 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Generate the contract from the real implementation; compare its baseline and test actual operation behavior. An attestation cannot replace either check."
+      "example": "Generate the contract from the real implementation; compare its baseline and test actual operation behavior. An attestation cannot replace either check.",
+      "sections": {
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Runtime and HTTP ownership"
+        ],
+        "program-kit-governance/references/software-language.md": [
+          "Effects and admission"
+        ],
+        "program-kit-dotnet/references/secure-web-profiles.md": [
+          "Security assurance contract",
+          "Mandatory verification"
+        ]
+      }
     },
     {
       "id": "browser-experience",
@@ -152,8 +203,7 @@
       "proof": "behavior",
       "sources": [
         "program-kit-governance/references/tool-selection.md",
-        "program-kit-governance/references/ui-experience-v1.md",
-        "program-kit-governance/references/ui-evaluation-v1.md"
+        "program-kit-governance/references/ui-experience-v1.md"
       ],
       "requirement": "Materialize the selected UI profile and exercise the actual browser journey, accessibility and declared security boundary. Generated examples are not product acceptance.",
       "phases": [
@@ -173,7 +223,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Exercise the selected authentication boundary and a real user journey; do not create browser records for a command-line-only feature."
+      "example": "Exercise the selected authentication boundary and a real user journey; do not create browser records for a command-line-only feature.",
+      "sections": {
+        "program-kit-governance/references/tool-selection.md": [
+          "Retained ordinary-development selections"
+        ],
+        "program-kit-governance/references/ui-experience-v1.md": [
+          "Independent choices",
+          "Quality and evidence"
+        ]
+      }
     },
     {
       "id": "capability-adoption",
@@ -204,7 +263,23 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Test that the chosen feature activates and resolves through its real registration. Reuse qualified composition tests; add application-specific tests for custom behavior."
+      "example": "Test that the chosen feature activates and resolves through its real registration. Reuse qualified composition tests; add application-specific tests for custom behavior.",
+      "sections": {
+        "program-kit-governance/references/tool-selection.md": [
+          "Retained ordinary-development selections"
+        ],
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Semantic capability contracts"
+        ],
+        "program-kit-governance/references/component-adoption.md": [
+          "Immutable Forms",
+          "Foundation web and JSON",
+          "Ordinary development evidence"
+        ],
+        "program-kit-building-blocks/references/orbyss-building-blocks.md": [
+          "Ordinary feature use"
+        ]
+      }
     },
     {
       "id": "dotnet-async",
@@ -504,7 +579,13 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Keep migrations and provider configuration under their data owner. Verify real round trips and transaction/concurrency behavior for the selected provider."
+      "example": "Keep migrations and provider configuration under their data owner. Verify real round trips and transaction/concurrency behavior for the selected provider.",
+      "sections": {
+        "program-kit-dotnet/references/persistence-profiles.md": [
+          "Ordinary development decisions",
+          "Architecture and implementation contract"
+        ]
+      }
     },
     {
       "id": "http-operation-contracts",
@@ -533,7 +614,15 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "For retryable creation, test the same idempotency key twice and verify one effect. Apply this requirement only when the operation promises that contract."
+      "example": "For retryable creation, test the same idempotency key twice and verify one effect. Apply this requirement only when the operation promises that contract.",
+      "sections": {
+        "program-kit-governance/references/modularity-and-contracts.md": [
+          "Runtime and HTTP ownership"
+        ],
+        "program-kit-dotnet/references/technology-profiles/dotnet.md": [
+          "ASP.NET Core Minimal API slices"
+        ]
+      }
     }
   ],
   "sources": [

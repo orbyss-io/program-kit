@@ -31,18 +31,22 @@ def catalog():
     return read(Path(__file__).resolve().parents[1] / 'references/phase-obligations.json')
 
 
-def intent(root, feature):
+def intent(root, feature, phase='implementation'):
     # Plan intent makes guidance available before source exists. Engineering
     # configuration/source establishes applicability again during implementation.
-    texts = [p.read_text(encoding='utf-8') for p in feature.glob('*.md')]
+    # Generated tasks and historical dossiers must not activate their own guidance.
+    texts = [p.read_text(encoding='utf-8') for name in
+             ('spec.md', 'plan.md', 'research.md', 'data-model.md', 'quickstart.md')
+             if (p := feature / name).is_file()]
     declared = '\n'.join(texts)
     candidates = list((root / 'src').rglob('*.csproj')) + list(feature.rglob('*.csproj'))
     projects = [p for p in candidates if p.relative_to(root).as_posix() in declared
                 or p.parent.relative_to(root).as_posix() in declared]
     for p in projects:
         texts.append(p.read_text(encoding='utf-8'))
-        texts.extend(s.read_text(encoding='utf-8') for s in p.parent.rglob('*.cs')
-                     if not {'bin', 'obj'} & set(s.parts))
+        if phase in ('implementation', 'delivery'):
+            texts.extend(s.read_text(encoding='utf-8') for s in p.parent.rglob('*.cs')
+                         if not {'bin', 'obj'} & set(s.parts))
     for package in (root / 'src').rglob('package.json'):
         if package.relative_to(root).as_posix() in declared or package.parent.relative_to(root).as_posix() in declared:
             texts.append(package.read_text(encoding='utf-8'))
@@ -62,29 +66,32 @@ def intent(root, feature):
     return tags
 
 
-def model(root, feature):
-    tags = intent(root, feature)
+def model(root, feature, phase='planning'):
+    tags = intent(root, feature, phase)
     return {'schemaVersion': 1, 'feature': feature.relative_to(root).as_posix(),
-            'requirements': [r for r in catalog()['requirements'] if r['when'] in tags]}
+            'requirements': [r for r in catalog()['requirements']
+                             if r['when'] in tags and phase in r['phases']]}
 
 
 def project(root, feature, phase):
     """Return regenerable context without writing into the feature's design files."""
-    return model(root, feature)
+    return model(root, feature, phase)
 
 
 def render(value, phase):
     lines = [f'# Applicable guidance: {phase}', '',
              'Record concrete decisions and tests in plan.md/tasks.md. No separate review receipts are required.',
-             'Conditional guidance applies only when its stated conditions hold.', '']
+             'Conditional guidance applies only when its stated conditions hold.',
+             'Use these summaries first. Section pointers are optional focused lookup, not a reading checklist.',
+             'Open only a named section needed to resolve a concrete choice; do not reread entire references.',
+             'Task generation schedules compatibility/admission prerequisites; it does not execute them or establish evidence.', '']
     for rule in value['requirements']:
         lines += [f"## {rule['id']}", rule['requirement'], 'Example: ' + rule['example'],
-                  'Guidance: ' + ', '.join(rule['sources']),
                   'Enforcement: ' + rule['enforcement']['kind']]
         if rule['enforcement'].get('diagnostics'):
             lines.append('Compiler diagnostics: ' + ', '.join(rule['enforcement']['diagnostics']))
         for source, sections in rule.get('sections', {}).items():
-            lines.append(source + ': ' + '; '.join(sections))
+            lines.append('Focused lookup: ' + source + ': ' + '; '.join(sections))
         lines.append('')
     return '\n'.join(lines)
 
@@ -93,7 +100,7 @@ def check(root, feature, phase):
     # Drafting is not blocked by absent metadata. Completion must run engineering.
     if phase == 'delivery':
         execute(root, feature)
-    return model(root, feature)
+    return model(root, feature, phase)
 
 
 def execute(root, feature):
@@ -137,11 +144,18 @@ def main():
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phase', default='planning', choices=('planning','after-plan','after-tasks','implementation','delivery'))
+    parser.add_argument('--only', help='Return one applicable obligation for a focused follow-up')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     feature = inside(root, args.feature_dir)
     try:
-        result = execute(root, feature) if args.command == 'verify' else check(root, feature, args.phase)
+        result = (execute(root, feature) if args.command == 'verify' else
+                  project(root, feature, args.phase) if args.command == 'project' else
+                  check(root, feature, args.phase))
+        if args.only and args.command != 'verify':
+            result['requirements'] = [r for r in result['requirements'] if r['id'] == args.only]
+            if not result['requirements']:
+                raise ValueError('Requested obligation is not applicable in this phase')
         print(json.dumps(result) if args.command == 'verify' else render(result, args.phase))
         return 0
     except (OSError, ValueError, subprocess.SubprocessError) as error:
