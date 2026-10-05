@@ -55,7 +55,7 @@ class DevelopmentTests(unittest.TestCase):
         path.parent.mkdir(parents=True)
         path.write_text(constitution(pending=False).replace('1.0.0', '1.1.0'))
         # Historical approval/model bytes may be absent or stale after a toolkit upgrade.
-        stale = self.root / 'docs/architecture/bootstrap-assessment-approval.json'
+        stale = self.root / governance.ASSESSMENT_APPROVAL
         stale.parent.mkdir(parents=True)
         stale.write_text('{"status":"obsolete","version":"0.12.3"}')
         marker = self.root / '.specify/memory/constitution-ratification.json'
