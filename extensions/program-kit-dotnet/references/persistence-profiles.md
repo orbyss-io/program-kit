@@ -33,37 +33,23 @@ Dapper is not a built-in profile in this release. Program Kit does not yet provi
 complete governed mapping, migrations, transaction, authorization-query, and real-provider test
 contract for it; selecting it requires an Accepted ADR and an explicit profile extension.
 
-## Admission record
+## Ordinary development decisions
 
-Keep the canonical data-owner records in `bootstrap-decisions.json.persistence`, validated by
-`persistence.schema.json`. Each record names `owner`, `storage`, `profile` and `status`.
-`storage: server-relational` plus `profile: auto` resolves to `ef-postgresql`; explicit PostgreSQL
-must record that profile immediately. Never reinterpret an unresolved compatibility probe as `none`.
-Use `proposed` until the assessment/architecture authority admits the design; `admitted` also needs
-`capability`, `providerProject`, `testProjects`, `checkIds` and the evidence references below.
-`artifact-ownership.json.persistenceOwners` names the owners affected by the feature; it does not
-repeat their provider decisions. Different owners may select different providers. When those details
-are first established during feature planning, put them in
-`artifact-ownership.json.persistenceAdmissions[<owner>]`, using the shared admission schema. That
-record supplies status/capability/project/test/evidence details and cannot override owner, storage or
-profile. Do not rewrite hash-approved bootstrap intent to add later implementation details. The
-existing attributed feature design review admits that evidence; upgrade preserves installed owners
-and renews affected proof through the same mechanism.
+For ordinary feature planning and task generation, record affected data owners, the retained
+exact provider/profile, capability and project ownership, and the ten topics below in plan.md
+or an existing ADR. Map the required behavior to concrete test and implementation tasks.
+No new artifact-ownership, persistence admission, verification-plan or attributed review dossier
+is required for tasks, architecture-check or ordinary implementation guidance. Preserve accepted
+bootstrap decisions and installed pins; do not rewrite hash-approved intent to add feature detail.
 
-A later provider change uses `providerOverride: {"profile": "ef-sqlite", "authority": "<accepted ADR path>"}`
-inside the feature admission. It preserves initial bootstrap intent and requires an Accepted transition
-decision plus renewed migration/compatibility evidence. The installed effective choice remains visible
-to subsequent sync and upgrade. Pending overrides preserve installed pins and tooling. Directly changing
-`profile` in a feature admission is invalid; sync still never migrates data.
+Generate and save tasks before executing compatibility/admission prerequisites. If an input or
+decision is unresolved, schedule its resolution with an owner and explicit dependency before
+the affected implementation/proof task. Report material design conflicts through normal review;
+do not fabricate approvals or evidence. Actual provider compatibility, authorization, data
+protection and real-provider verification remain required before dependent work or completion.
 
-The `admission` object maps `ownership`, `atomicity`, `concurrency`, `providerSemantics`, `migrations`,
-`queries`, `authorization`, `dataProtection`, `operations` and `realProviderTests` to nonempty lists of
-repository-relative evidence files addressing the corresponding ten topics below. Existing plan/ADR
-sections may share a file. Attributed phase review checks their substance. `checkIds` bind actual
-behavior cases in the existing verification plan. A schema-valid declaration is not runtime proof.
-
-Before plan completion, record all of the following in the feature plan and artifact-ownership
-manifest. Unresolved answers block tasks and architecture-check:
+Address all of the following in the feature plan and tasks. Unresolved answers become explicit
+prerequisite tasks; they do not block saving tasks or reporting architecture-check findings:
 
 1. The domain capability that owns the data and why persistence is required.
 2. Aggregate, invariant, semantic atomic-operation, and transaction boundaries.
@@ -120,10 +106,41 @@ Microsoft's `DbContext` guidance defines it as a short-lived, non-thread-safe un
 query guidance warns that lazy loading readily creates N+1 round trips; and Microsoft's migrations
 guidance recommends reviewed SQL/bundles and documents provider-specific idempotent limitations.
 
+## Existing structured setup and upgrade records
+
+Keep the canonical data-owner records in `bootstrap-decisions.json.persistence`, validated by
+`persistence.schema.json`. Each record names `owner`, `storage`, `profile` and `status`.
+`storage: server-relational` plus `profile: auto` resolves to `ef-postgresql`; explicit PostgreSQL
+must record that profile immediately. Never reinterpret an unresolved compatibility probe as `none`.
+Use `proposed` until the assessment/architecture authority admits the design; `admitted` also needs
+`capability`, `providerProject`, `testProjects`, `checkIds` and the evidence references below.
+For consumers already using structured setup/upgrade records,
+`artifact-ownership.json.persistenceOwners` names the owners affected by the feature; it does not
+repeat their provider decisions. Different owners may select different providers. Existing
+`artifact-ownership.json.persistenceAdmissions[<owner>]` records use the shared admission schema. That
+record supplies status/capability/project/test/evidence details and cannot override owner, storage or
+profile. Do not rewrite hash-approved bootstrap intent to add later implementation details. The
+structured setup/upgrade adapter consumes those records when that workflow is explicitly selected;
+ordinary task generation does not require or manufacture them. Upgrade preserves installed owners.
+
+A later provider change uses `providerOverride: {"profile": "ef-sqlite", "authority": "<accepted ADR path>"}`
+inside the feature admission. It preserves initial bootstrap intent and requires an Accepted transition
+decision plus renewed migration/compatibility evidence. The installed effective choice remains visible
+to subsequent sync and upgrade. Pending overrides preserve installed pins and tooling. Directly changing
+`profile` in a feature admission is invalid; sync still never migrates data.
+
+The `admission` object maps `ownership`, `atomicity`, `concurrency`, `providerSemantics`, `migrations`,
+`queries`, `authorization`, `dataProtection`, `operations` and `realProviderTests` to nonempty lists of
+repository-relative evidence files addressing the corresponding ten topics below. Existing plan/ADR
+sections may share a file. Normal design/code review checks their substance. Existing `checkIds`
+identify actual behavior cases; they do not require a new verification-plan dossier for ordinary
+work. A schema-valid declaration is not runtime proof.
+
 ## Shared setup and upgrade
 
 The repository coordinator resolves these records in bootstrap and planning before projects exist.
-Incomplete admission is visible as proposed work and blocks later readiness. Engineering sync merges
+Incomplete structured admission is visible as proposed work and blocks that setup/upgrade
+readiness claim, not ordinary task drafting. Engineering sync merges
 admitted central pins into managed `eng/ProgramKit.Persistence.props`, deduplicating shared
 EF versions and rejecting conflicts. The root consumer-owned `Directory.Packages.props` imports this
 file. Existing custom files and direct provider imports are preserved; review the reported import or

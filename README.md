@@ -54,7 +54,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.7/Initialize-ProgramKit-0.12.7.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.8/Initialize-ProgramKit-0.12.8.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -73,7 +73,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.7/Initialize-ProgramKit-0.12.7.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.8/Initialize-ProgramKit-0.12.8.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -155,8 +155,8 @@ consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.12.7\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.12.7 `
+python C:\path\to\program-kit-0.12.8\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.12.8 `
   --target . `
   --integration codex
 ```
@@ -502,8 +502,8 @@ Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
 the maintained [release procedure](docs/releasing.md).
 
 ```powershell
-git tag v0.12.7
-git push origin v0.12.7
+git tag v0.12.8
+git push origin v0.12.8
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -531,8 +531,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.12.7.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.12.7.zip -Algorithm SHA256
+gh attestation verify program-kit-0.12.8.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.12.8.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery

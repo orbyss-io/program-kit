@@ -206,7 +206,8 @@ root `Administration.Api` or `Platform.WebBoundary` package merely to repeat hos
 Register each semantic capability implementation in the activatable package that implements it.
 Before implementation, record the capability, its owning Core project, concrete implementation,
 implementing project, registration entry point, and the implementation project's activated feature
-identity in `artifact-ownership.json.runtimeComposition`. Endpoint implementations never reference
+identity in the existing plan/tasks and the engineering composition configuration where applicable.
+No artifact-ownership runtimeComposition dossier is required. Endpoint implementations never reference
 persistence providers merely to make the external host aware of both packages.
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
 and dynamic endpoint refresh when those CShells capabilities are used.

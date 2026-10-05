@@ -52,6 +52,31 @@
       "isolation": "Unique disposable application; real consumer untouched."
     },
     {
+      "id": "validate_task_generation",
+      "command": [
+        "{python}",
+        "tests/validate_task_generation.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Bounded phase guidance, active reference consistency and interrupted task drafting; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/**",
+        "presets/**",
+        "tests/validate_task_generation.py"
+      ],
+      "outputs": [
+        "artifacts/validate_task_generation"
+      ],
+      "resources": [],
+      "isolation": "Unique disposable application; real consumer untouched."
+    },
+    {
       "id": "validate_maintenance_flow",
       "command": [
         "{python}",

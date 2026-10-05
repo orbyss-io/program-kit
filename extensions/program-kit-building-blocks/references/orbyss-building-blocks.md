@@ -1,5 +1,16 @@
 # Orbyss building-block selection
 
+## Ordinary feature use
+
+Reuse accepted component instances, exact locks, placement and activation identities. Carry
+supported public mechanism use and actual behavior verification into plan/tasks. An unresolved
+compatibility input or material new selection becomes an owned prerequisite before dependent
+implementation; it does not block task drafting or authorize a changed pin/approval. Execute the
+resolver and required availability/compatibility checks in that prerequisite, then retain normal
+engineering evidence. Never infer acceptance from catalog presence or fabricate runtime proof.
+
+## Selection and materialization contract
+
 Orbyss is a software factory and AI consultancy. Foundation, Forms, and Localization are reusable,
 independently versioned sibling products; Program Kit owns their selection contract but not their
 runtime source. The consumer owns domain semantics, architecture acceptance, package placement,

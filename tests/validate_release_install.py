@@ -524,6 +524,8 @@ def main() -> int:
             content = json.loads(resolved.stdout)['TEMPLATE_CONTENT']
             if any(marker not in content for marker in markers):
                 raise AssertionError(f'Installed {template} lost core structure or engineering guidance')
+        from validate_task_generation import validate_installed_workflow
+        validate_installed_workflow(project)
         if "program-kit-dotnet" not in extension_config.get("installed", []):
             raise AssertionError("Program Kit .NET extension was not registered")
         if "program-kit-building-blocks" not in extension_config.get("installed", []):

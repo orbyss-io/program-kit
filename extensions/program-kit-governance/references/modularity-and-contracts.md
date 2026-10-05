@@ -163,10 +163,11 @@ dead-letter behavior, versioning, retention, replay, security, and observability
 ### API evolution evidence
 
 The existing OpenAPI registry, exporter, normalized baseline, oasdiff and locked client generator
-remain the contract pipeline. `api-proof.json` binds affected operations to those registered
-contracts, baseline hashes, typed DTO/parser/schema checks, compatibility cases and a version
-decision. Establish or renew this proof before running the existing verification plan; a new API
-may declare an absent baseline during design, but delivery needs the generated initial baseline.
+remain the contract pipeline. Record affected operations, registered contracts, baseline references,
+typed DTO/parser/schema checks, compatibility cases and version decisions in the existing plan/tasks.
+No api-proof dossier or separate verification-plan is required. Task generation schedules contract
+and compatibility checks before dependent work; it does not execute them before saving tasks.
+A new API may declare an absent baseline during design, but delivery needs the generated initial baseline.
 Never create a second baseline simply because evidence is stale or a compatibility check fails.
 
 Review strict request admission and tolerant response consumption according to the supported wire
@@ -203,9 +204,10 @@ repeat generic host plumbing.
 
 ## Enforcement evidence
 
-Record a Context Map, Core/module catalog, runtime feature catalog, slice catalog, semantic capability
-table, event catalog, data ownership, and allowed dependency graph. `runtimeComposition` inventories
-exact direct project/package references, project roles, selected feature identities, and every
-capability-to-implementation binding. Enforce names, edges, cycles, public compatibility, capability
+Keep ownership, semantic capability/event boundaries and dependency decisions in the existing
+architecture model, plan and ADRs. Use ordinary engineering configuration such as
+`eng/architecture.json` and the actual project/compiled graph for project roles, exact dependency
+edges and capability bindings; no additional runtimeComposition dossier or catalog set is required.
+Enforce names, edges, cycles, public compatibility, capability
 implementations, activation, provider-model leakage, endpoint authorization metadata, and data
 ownership in CI.

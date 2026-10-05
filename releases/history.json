@@ -65,6 +65,29 @@
       "recovery": [
         "Retry the verified release with sealed original inputs; preserve failed attempt evidence."
       ]
+    },
+    {
+      "version": "0.12.8",
+      "previous": "0.12.7",
+      "guide": "migration-0.12.8.md",
+      "automatic": [
+        "Update active reference instructions and composed task guidance without creating feature dossiers.",
+        "Supply bounded phase summaries and focused section pointers.",
+        "Install incremental task-draft persistence and resume support."
+      ],
+      "review": [],
+      "verification": [
+        "Verify installation coherence and exact retained dependency inputs.",
+        "Resume saved task phases, review changed inputs, and run normal consistency analysis after the draft is complete.",
+        "Execute scheduled compatibility/admission prerequisites before dependent implementation; preserve constitutional tests, security, ownership and real-provider verification."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve existing tasks, task IDs, checked boxes, consumer edits and interrupted checkpoints; retry the verified updater or resume the same task draft."
+      ]
     }
   ]
 }

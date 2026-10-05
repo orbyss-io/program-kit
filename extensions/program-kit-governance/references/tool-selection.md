@@ -1,5 +1,15 @@
 # Tool and integration selection
 
+## Retained ordinary-development selections
+
+Reuse the accepted exact dependency profile and existing engineering tools during feature work.
+Task generation carries their applicable compatibility, security and behavior checks into owned
+tasks with explicit dependencies. It does not reopen bootstrap research, install alternatives,
+change pins or execute compatibility/admission work before saving tasks. Research only a concrete
+new capability gap or substantive override; retain accepted authority and actual verification.
+
+## Bootstrap candidate research
+
 Select capabilities before products. Research current options at bootstrap time because ecosystems, compatibility, maintenance, and security change.
 
 Apply `default-adoption.md`: respect explicit intake selections and use the versioned Program Kit
