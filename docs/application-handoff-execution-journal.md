@@ -230,3 +230,15 @@ in settings-streaming-integration.log. Receiver product code is unchanged since 
 70/70 Development run at20261006T120358Z-02d878c1; this is supplementary publisher evidence,
 not a Release receipt. Older5ef/0cd candidates remain preserved and require the follow-on before
 integration; newer runtimecf495f7 overlay/Host/F6/publication remains the authoritative owner's job.
+
+## Combined Program Kit branch coordination (2026-10-06)
+
+The user requested that both chats finish on one merged, clean, pushed Program Kit branch before
+starting another patch. The common target is codex/human-infrastructure-handoff. At coordination
+start, handoff source 5fc8753 is clean/pushed; the concurrent codex/foundation-consumer-contracts
+checkout is still uncommitted at common baseline 087290b. No dirty files were imported or original
+checkout edited. The authorized concurrent owner was asked to commit a reviewable Program Kit
+tranche and provide the exact integration commit. This chat owns the combined merge, overlap
+resolution, relevant targeted validation plus bounded Development chromium,webkit and common
+branch push. Foundation qualification/publication remains with the concurrent owner. Branch
+integration is pending; neither plan is declared complete and this is no publication authority.
