@@ -3944,6 +3944,33 @@
         "integration-fixtures",
         "browser-runtime"
       ]
+    },
+    {
+      "id": "validate_application_handoff",
+      "command": [
+        "{python}",
+        "tests/validate_application_handoff.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Stable/historical identity, multi-API offline receiver assembly, real HTTP/settings behavior, negative references/secrets/freshness and independent consumption; no agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/templates/dotnet/**",
+        "extensions/program-kit-dotnet/scripts/dependency_profile.py",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py",
+        "tests/validate_application_handoff.py",
+        "tests/fixtures/application-handoff/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_application_handoff"
+      ],
+      "resources": [],
+      "isolation": "Unique disposable source and receiver; source read-only; no credentials/registries or agents."
     }
   ],
   "groups": {

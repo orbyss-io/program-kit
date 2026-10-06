@@ -78,11 +78,13 @@ def retained_catalog(root: Path) -> dict | None:
 
 
 def render(root: Path, relative: str, content: bytes) -> bytes:
-    if relative not in {'eng/.config/dotnet-tools.json', 'eng/ProgramKit.Packages.props'}:
+    if relative not in {'eng/.config/dotnet-tools.json', 'eng/ProgramKit.Packages.props', 'eng/building-blocks.catalog.json'}:
         return content
     catalog = retained_catalog(root)
     if catalog is None:
         return content
+    if relative == 'eng/building-blocks.catalog.json':
+        return (json.dumps(catalog, indent=2) + '\n').encode('utf-8')
     if relative.endswith('dotnet-tools.json'):
         value = json.loads(content)
         value['tools']['orbyss.foundation.openapi.exporter']['version'] = catalog['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']

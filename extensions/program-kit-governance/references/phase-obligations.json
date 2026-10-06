@@ -46,7 +46,7 @@
         "program-kit-governance/references/programming-guardrails.md",
         "program-kit-governance/references/vertical-slicing.md"
       ],
-      "requirement": "Use typed admitted envelopes with parser/schema/runtime parity, cohesive operation paths and mirrored tests. Substantiate relevant SRP/OCP/LSP/ISP/DIP conclusions against source and behavior, including internal helpers and owner-scoped constants. Review bounded dynamic JSON, pure static and small-operation exceptions; do not invent unused abstractions.",
+      "requirement": "Use typed admitted envelopes with parser/schema/runtime parity, cohesive operation paths and mirrored tests. Substantiate relevant SRP/OCP/LSP/ISP/DIP conclusions against source and behavior, including internal helpers and owner-scoped constants. Review bounded dynamic JSON, pure static and small-operation exceptions; do not invent unused abstractions. Maintain affected application-owned guides, public/configuration contracts and runtime/data requirements with delivered behavior; downstream infrastructure and documentation workflows remain receiver-owned.",
       "phases": [
         "planning",
         "after-plan",
@@ -65,7 +65,8 @@
       "example": "Prefer a cohesive typed operation boundary. Use dynamic JSON only at an explicitly bounded external boundary; introduce an interface when substitution or dependency inversion actually needs one.",
       "sections": {
         "program-kit-governance/references/programming-guardrails.md": [
-          "Typed boundaries and design evidence"
+          "Typed boundaries and design evidence",
+          "Maintained application handoff"
         ],
         "program-kit-governance/references/vertical-slicing.md": [
           "Cohesion and coupling",

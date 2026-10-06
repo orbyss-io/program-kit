@@ -224,6 +224,64 @@
     {
       "path": "eng/README.md",
       "ownership": "scaffold"
+    },
+    {
+      "path": "eng/handoff_contract.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/application_handoff.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/verify_handoff.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/application-handoff.schema.json",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/settings-metadata.schema.json",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/handoff-index.schema.json",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/building-blocks.catalog.json",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/application-handoff.json",
+      "ownership": "scaffold"
+    },
+    {
+      "path": "eng/public_availability.py",
+      "ownership": "managed",
+      "sourceRoot": "../../../program-kit-building-blocks",
+      "source": "scripts/public_availability.py"
+    },
+    {
+      "path": "docs/application/application.md",
+      "ownership": "scaffold"
+    },
+    {
+      "path": "docs/application/build-and-run.md",
+      "ownership": "scaffold"
+    },
+    {
+      "path": "docs/application/review-scenarios.md",
+      "ownership": "scaffold"
+    },
+    {
+      "path": "docs/application/runtime-requirements.md",
+      "ownership": "scaffold"
+    },
+    {
+      "path": "eng/verify_host_image.py",
+      "ownership": "managed"
     }
   ],
   "obsoleteFiles": [

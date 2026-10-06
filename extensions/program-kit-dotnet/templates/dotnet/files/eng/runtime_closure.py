@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from handoff_contract import source_inputs
 import json
 import os
 import tempfile
@@ -117,6 +118,7 @@ def write_success(repository: Path, staged: Path, evidence: Path, version: str) 
         "packages": packages,
         "configuration": configuration,
         "sourceConfiguration": source_configuration(repository),
+        "sourceInputs": source_inputs(repository),
         "closureDigest": canonical_digest(version, packages, configuration),
         "packageHashesAreRunScoped": True,
         "satisfied": True,
@@ -143,6 +145,8 @@ def validate(repository: Path, staged: Path, evidence: Path, version: str) -> di
     for key in ("packages", "configuration", "sourceConfiguration", "closureDigest"):
         if value.get(key) != expected[key]:
             raise ValueError(f"PKR022 runtime-closure evidence does not match staged {key}")
+    if "sourceInputs" in value and value["sourceInputs"] != expected["sourceInputs"]:
+        raise ValueError("PKR022 runtime-closure sourceInputs changed; rebuild/restage")
     return value
 
 
@@ -167,5 +171,6 @@ def write_value(repository: Path, staged: Path, version: str) -> dict:
         "packages": packages,
         "configuration": configuration,
         "sourceConfiguration": source_configuration(repository),
+        "sourceInputs": source_inputs(repository),
         "closureDigest": canonical_digest(version, packages, configuration),
     }

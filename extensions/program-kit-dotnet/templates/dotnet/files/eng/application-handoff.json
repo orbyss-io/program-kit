@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "applicationId": null,
+  "components": [],
+  "bundleDescriptor": "artifacts/application-bundle.json",
+  "openapiRegistry": "eng/openapi-contracts.json",
+  "categories": {
+    "documentation": {
+      "status": "missing",
+      "reason": "Author delivered purpose, build/run and review scenarios in docs/application/.",
+      "files": []
+    },
+    "runtime": {
+      "status": "missing",
+      "reason": "Author actual requirements; do not infer production requirements from local Compose.",
+      "files": []
+    },
+    "settings": {
+      "status": "missing",
+      "reason": "Export application-owned source-backed metadata and obtain publisher-owned framework metadata.",
+      "files": []
+    },
+    "assets": {
+      "status": "missing",
+      "reason": "Explicitly include applicable static assets/Dockerfiles or explain non-applicability.",
+      "files": []
+    },
+    "migrations": {
+      "status": "missing",
+      "reason": "Explicitly include actual data migration descriptors or explain absence of persistence.",
+      "files": []
+    }
+  },
+  "requiredSettingsScopes": {
+    "application": [
+      "application"
+    ],
+    "foundation": [
+      "host",
+      "shell:default",
+      "nuplane"
+    ]
+  }
+}

@@ -33,6 +33,19 @@ jobs:
         shell: pwsh
         run: ./eng/Invoke-RepositoryVerification.ps1 -Mode CI
 
+      - name: Upload application handoff inputs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: application-handoff-inputs-${{ github.sha }}
+          path: |
+            eng/application-handoff.json
+            eng/openapi-contracts.json
+            docs/application/
+            contracts/
+            artifacts/program-kit/openapi/
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

@@ -97,9 +97,13 @@ def apply_structured_migrations(
             if not isinstance(operation, dict) or not all(key in operation for key in ("array", "field", "old", "new")):
                 raise ValueError(f"migration {migration['id']} has an invalid array-field replacement")
             rows = document.get(operation["array"], [])
-            if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
-                raise ValueError(f"migration {migration['id']} requires an array of objects")
+            if not isinstance(rows, list) or any(not isinstance(row, (dict, str)) for row in rows):
+                raise ValueError(f"migration {migration['id']} requires inline objects or native contract-path references")
             for row in rows:
+                # Modern openapi_init/pipeline registries contain contract file paths, not inline definitions.
+                # The inline legacy transform must preserve these authoritative references unchanged.
+                if isinstance(row, str):
+                    continue
                 if row.get(operation["field"]) == operation["old"]:
                     row[operation["field"]] = operation["new"]
                     changed = True

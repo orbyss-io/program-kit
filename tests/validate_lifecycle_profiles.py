@@ -519,6 +519,8 @@ def validate_release_feature_closure() -> None:
         repository = root / "repository"
         repository.mkdir()
         (repository / "VERSION").write_text("1.2.3\n", encoding="utf-8")
+        (repository / "eng").mkdir()
+        (repository / "eng/application-handoff.json").write_text(json.dumps({"schemaVersion": 1, "applicationId": "example.lifecycle"}), encoding="utf-8")
         staged = repository / "artifacts/release-bundle"
         staged.mkdir(parents=True)
         hostsettings = {"Nuplane": {"Loading": {"Enabled": True}}}
