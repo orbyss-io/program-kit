@@ -38,6 +38,7 @@ foreach (string path in args)
         {
             name = Definition(handle),
             isInterface = (type.Attributes & TypeAttributes.Interface) != 0,
+            isAbstract = (type.Attributes & TypeAttributes.Abstract) != 0,
             baseType = TypeName(type.BaseType),
             interfaces = type.GetInterfaceImplementations().Select(i =>
                 TypeName(reader.GetInterfaceImplementation(i).Interface)).ToArray(),

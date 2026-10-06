@@ -1,0 +1,380 @@
+{
+  "description": "Independent G01 rectangle transcription with retained retired rule identities; Python SHA256 of fixed ordered UTF-8 objects, no production evaluator/codec.",
+  "snapshot": {
+    "snapshotSchemaVersion": 1,
+    "frameId": "11111111-1111-1111-1111-111111111111",
+    "draft": {
+      "type": "facade-lining",
+      "floorReference": "subfloor",
+      "width": {
+        "rawDraft": " 3,000 ",
+        "unit": "m"
+      },
+      "height": {
+        "rawDraft": "2400",
+        "unit": "mm"
+      },
+      "timberWidth": {
+        "rawDraft": "44",
+        "unit": "mm"
+      },
+      "timberDepth": {
+        "rawDraft": "69",
+        "unit": "mm"
+      },
+      "stockLength": {
+        "rawDraft": "3000",
+        "unit": "mm"
+      },
+      "spacing": {
+        "rawDraft": "600",
+        "unit": "mm"
+      },
+      "openings": [],
+      "context": {
+        "insulationName": null,
+        "insulationThickness": {
+          "rawDraft": null,
+          "unit": "mm"
+        },
+        "plates": [],
+        "fixingMethod": null,
+        "behindFrame": {
+          "rawDraft": null,
+          "unit": "mm"
+        }
+      }
+    },
+    "parsedDraft": {
+      "frameId": "11111111-1111-1111-1111-111111111111",
+      "type": "facade-lining",
+      "floorReference": "subfloor",
+      "width": "3000000",
+      "height": "2400000",
+      "timberWidth": "44000",
+      "timberDepth": "69000",
+      "stockLength": "3000000",
+      "spacing": "600000",
+      "openings": [],
+      "context": {
+        "insulationName": null,
+        "insulationThickness": null,
+        "plates": [],
+        "fixingMethod": null,
+        "behindFrame": null
+      },
+      "fieldStates": [
+        {
+          "fieldPath": "floorReference",
+          "state": "valid"
+        },
+        {
+          "fieldPath": "height",
+          "state": "valid"
+        },
+        {
+          "fieldPath": "spacing",
+          "state": "valid"
+        },
+        {
+          "fieldPath": "stockLength",
+          "state": "valid"
+        },
+        {
+          "fieldPath": "timberDepth",
+          "state": "valid"
+        },
+        {
+          "fieldPath": "timberWidth",
+          "state": "valid"
+        },
+        {
+          "fieldPath": "width",
+          "state": "valid"
+        }
+      ]
+    },
+    "inputVersion": "812538e14664d9408b88602a687335ee7c7b6c4d62a8bb31c2189a3b93bd605f",
+    "evaluation": {
+      "input": {
+        "frameId": "11111111-1111-1111-1111-111111111111",
+        "type": "facade-lining",
+        "floorReference": "subfloor",
+        "width": "3000000",
+        "height": "2400000",
+        "timberWidth": "44000",
+        "timberDepth": "69000",
+        "stockLength": "3000000",
+        "spacing": "600000",
+        "openings": [],
+        "context": {
+          "insulationName": null,
+          "insulationThickness": null,
+          "plates": [],
+          "fixingMethod": null,
+          "behindFrame": null
+        },
+        "fieldStates": [
+          {
+            "fieldPath": "floorReference",
+            "state": "valid"
+          },
+          {
+            "fieldPath": "height",
+            "state": "valid"
+          },
+          {
+            "fieldPath": "spacing",
+            "state": "valid"
+          },
+          {
+            "fieldPath": "stockLength",
+            "state": "valid"
+          },
+          {
+            "fieldPath": "timberDepth",
+            "state": "valid"
+          },
+          {
+            "fieldPath": "timberWidth",
+            "state": "valid"
+          },
+          {
+            "fieldPath": "width",
+            "state": "valid"
+          }
+        ]
+      },
+      "result": {
+        "resultSchemaVersion": 1,
+        "canonicalVersion": "canonical-v1",
+        "frameId": "11111111-1111-1111-1111-111111111111",
+        "inputVersion": "812538e14664d9408b88602a687335ee7c7b6c4d62a8bb31c2189a3b93bd605f",
+        "ruleVersion": "wall-cut-list-v0-retained",
+        "state": "complete",
+        "parts": [
+          {
+            "id": "c8b4b72b3dced82905a8dc247da5a7a834ae3475f150bf9832205dfc3d02f420",
+            "label": "P00001",
+            "xLeft": "0",
+            "yBottom": "0",
+            "xRight": "3000000",
+            "yTop": "44000",
+            "orientation": "horizontal",
+            "materialKey": "timber",
+            "timberWidth": "44000",
+            "timberDepth": "69000",
+            "requiredLength": "3000000",
+            "functions": [
+              "bottom-plate"
+            ],
+            "openingIds": [],
+            "overlong": false
+          },
+          {
+            "id": "eff4ac481df09b2f312723bdc1679408de7ce5b2d5036ac60915af61cb759ad2",
+            "label": "P00002",
+            "xLeft": "0",
+            "yBottom": "44000",
+            "xRight": "44000",
+            "yTop": "2356000",
+            "orientation": "vertical",
+            "materialKey": "timber",
+            "timberWidth": "44000",
+            "timberDepth": "69000",
+            "requiredLength": "2312000",
+            "functions": [
+              "left-end-stud",
+              "nominal-stud"
+            ],
+            "openingIds": [],
+            "overlong": false
+          },
+          {
+            "id": "f150251eb696552e5ed8e7e58b432fa3d51870cefee5168f08f425ab13afb969",
+            "label": "P00003",
+            "xLeft": "0",
+            "yBottom": "2356000",
+            "xRight": "3000000",
+            "yTop": "2400000",
+            "orientation": "horizontal",
+            "materialKey": "timber",
+            "timberWidth": "44000",
+            "timberDepth": "69000",
+            "requiredLength": "3000000",
+            "functions": [
+              "top-plate"
+            ],
+            "openingIds": [],
+            "overlong": false
+          },
+          {
+            "id": "35a0cac088421a3344c3817fc14704017771be3b7860d6b5038f3bb43b0202a6",
+            "label": "P00004",
+            "xLeft": "600000",
+            "yBottom": "44000",
+            "xRight": "644000",
+            "yTop": "2356000",
+            "orientation": "vertical",
+            "materialKey": "timber",
+            "timberWidth": "44000",
+            "timberDepth": "69000",
+            "requiredLength": "2312000",
+            "functions": [
+              "nominal-stud"
+            ],
+            "openingIds": [],
+            "overlong": false
+          },
+          {
+            "id": "90e84a74947705aa4eed623733788e77aa5ac60889eeb88b65734d8c770258f6",
+            "label": "P00005",
+            "xLeft": "1200000",
+            "yBottom": "44000",
+            "xRight": "1244000",
+            "yTop": "2356000",
+            "orientation": "vertical",
+            "materialKey": "timber",
+            "timberWidth": "44000",
+            "timberDepth": "69000",
+            "requiredLength": "2312000",
+            "functions": [
+              "nominal-stud"
+            ],
+            "openingIds": [],
+            "overlong": false
+          },
+          {
+            "id": "bf95514915d671e54b79545262fc3162616377cd7af6c371e8f7d34a075f447f",
+            "label": "P00006",
+            "xLeft": "1800000",
+            "yBottom": "44000",
+            "xRight": "1844000",
+            "yTop": "2356000",
+            "orientation": "vertical",
+            "materialKey": "timber",
+            "timberWidth": "44000",
+            "timberDepth": "69000",
+            "requiredLength": "2312000",
+            "functions": [
+              "nominal-stud"
+            ],
+            "openingIds": [],
+            "overlong": false
+          },
+          {
+            "id": "b2fdec970c17cebaefb3ae75f72937b972f90b9a995de6e3a6e867b538ef067c",
+            "label": "P00007",
+            "xLeft": "2400000",
+            "yBottom": "44000",
+            "xRight": "2444000",
+            "yTop": "2356000",
+            "orientation": "vertical",
+            "materialKey": "timber",
+            "timberWidth": "44000",
+            "timberDepth": "69000",
+            "requiredLength": "2312000",
+            "functions": [
+              "nominal-stud"
+            ],
+            "openingIds": [],
+            "overlong": false
+          },
+          {
+            "id": "199154b2651c93b310ad31475f2d867a5685bf06aa16251e5aee1646a12f0e8b",
+            "label": "P00008",
+            "xLeft": "2956000",
+            "yBottom": "44000",
+            "xRight": "3000000",
+            "yTop": "2356000",
+            "orientation": "vertical",
+            "materialKey": "timber",
+            "timberWidth": "44000",
+            "timberDepth": "69000",
+            "requiredLength": "2312000",
+            "functions": [
+              "right-end-stud"
+            ],
+            "openingIds": [],
+            "overlong": false
+          }
+        ],
+        "blockages": [],
+        "spacing": [
+          {
+            "yBottom": "44000",
+            "yTop": "2356000",
+            "centres": [
+              {
+                "partId": "eff4ac481df09b2f312723bdc1679408de7ce5b2d5036ac60915af61cb759ad2",
+                "xCenter2": "44000"
+              },
+              {
+                "partId": "35a0cac088421a3344c3817fc14704017771be3b7860d6b5038f3bb43b0202a6",
+                "xCenter2": "1244000"
+              },
+              {
+                "partId": "90e84a74947705aa4eed623733788e77aa5ac60889eeb88b65734d8c770258f6",
+                "xCenter2": "2444000"
+              },
+              {
+                "partId": "bf95514915d671e54b79545262fc3162616377cd7af6c371e8f7d34a075f447f",
+                "xCenter2": "3644000"
+              },
+              {
+                "partId": "b2fdec970c17cebaefb3ae75f72937b972f90b9a995de6e3a6e867b538ef067c",
+                "xCenter2": "4844000"
+              },
+              {
+                "partId": "199154b2651c93b310ad31475f2d867a5685bf06aa16251e5aee1646a12f0e8b",
+                "xCenter2": "5956000"
+              }
+            ],
+            "gaps": [
+              {
+                "leftPartId": "eff4ac481df09b2f312723bdc1679408de7ce5b2d5036ac60915af61cb759ad2",
+                "rightPartId": "35a0cac088421a3344c3817fc14704017771be3b7860d6b5038f3bb43b0202a6",
+                "distance2": "1200000",
+                "equalsDesired": true
+              },
+              {
+                "leftPartId": "35a0cac088421a3344c3817fc14704017771be3b7860d6b5038f3bb43b0202a6",
+                "rightPartId": "90e84a74947705aa4eed623733788e77aa5ac60889eeb88b65734d8c770258f6",
+                "distance2": "1200000",
+                "equalsDesired": true
+              },
+              {
+                "leftPartId": "90e84a74947705aa4eed623733788e77aa5ac60889eeb88b65734d8c770258f6",
+                "rightPartId": "bf95514915d671e54b79545262fc3162616377cd7af6c371e8f7d34a075f447f",
+                "distance2": "1200000",
+                "equalsDesired": true
+              },
+              {
+                "leftPartId": "bf95514915d671e54b79545262fc3162616377cd7af6c371e8f7d34a075f447f",
+                "rightPartId": "b2fdec970c17cebaefb3ae75f72937b972f90b9a995de6e3a6e867b538ef067c",
+                "distance2": "1200000",
+                "equalsDesired": true
+              },
+              {
+                "leftPartId": "b2fdec970c17cebaefb3ae75f72937b972f90b9a995de6e3a6e867b538ef067c",
+                "rightPartId": "199154b2651c93b310ad31475f2d867a5685bf06aa16251e5aee1646a12f0e8b",
+                "distance2": "1112000",
+                "equalsDesired": false
+              }
+            ],
+            "suppressedPositions": []
+          }
+        ],
+        "stockStatus": "sufficient"
+      },
+      "resultId": "f7ba31dee4135673c8f8105d3e8866b685707f2ebf0828cd787f6c0a1dae93df"
+    },
+    "priorResultRef": null,
+    "displayPreferences": {
+      "lengthUnit": "m",
+      "thicknessUnit": "mm"
+    }
+  },
+  "canonical": "{\"snapshotSchemaVersion\":1,\"frameId\":\"11111111-1111-1111-1111-111111111111\",\"draft\":{\"type\":\"facade-lining\",\"floorReference\":\"subfloor\",\"width\":{\"rawDraft\":\" 3,000 \",\"unit\":\"m\"},\"height\":{\"rawDraft\":\"2400\",\"unit\":\"mm\"},\"timberWidth\":{\"rawDraft\":\"44\",\"unit\":\"mm\"},\"timberDepth\":{\"rawDraft\":\"69\",\"unit\":\"mm\"},\"stockLength\":{\"rawDraft\":\"3000\",\"unit\":\"mm\"},\"spacing\":{\"rawDraft\":\"600\",\"unit\":\"mm\"},\"openings\":[],\"context\":{\"insulationName\":null,\"insulationThickness\":{\"rawDraft\":null,\"unit\":\"mm\"},\"plates\":[],\"fixingMethod\":null,\"behindFrame\":{\"rawDraft\":null,\"unit\":\"mm\"}}},\"parsedDraft\":{\"frameId\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"facade-lining\",\"floorReference\":\"subfloor\",\"width\":\"3000000\",\"height\":\"2400000\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"stockLength\":\"3000000\",\"spacing\":\"600000\",\"openings\":[],\"context\":{\"insulationName\":null,\"insulationThickness\":null,\"plates\":[],\"fixingMethod\":null,\"behindFrame\":null},\"fieldStates\":[{\"fieldPath\":\"floorReference\",\"state\":\"valid\"},{\"fieldPath\":\"height\",\"state\":\"valid\"},{\"fieldPath\":\"spacing\",\"state\":\"valid\"},{\"fieldPath\":\"stockLength\",\"state\":\"valid\"},{\"fieldPath\":\"timberDepth\",\"state\":\"valid\"},{\"fieldPath\":\"timberWidth\",\"state\":\"valid\"},{\"fieldPath\":\"width\",\"state\":\"valid\"}]},\"inputVersion\":\"812538e14664d9408b88602a687335ee7c7b6c4d62a8bb31c2189a3b93bd605f\",\"evaluation\":{\"input\":{\"frameId\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"facade-lining\",\"floorReference\":\"subfloor\",\"width\":\"3000000\",\"height\":\"2400000\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"stockLength\":\"3000000\",\"spacing\":\"600000\",\"openings\":[],\"context\":{\"insulationName\":null,\"insulationThickness\":null,\"plates\":[],\"fixingMethod\":null,\"behindFrame\":null},\"fieldStates\":[{\"fieldPath\":\"floorReference\",\"state\":\"valid\"},{\"fieldPath\":\"height\",\"state\":\"valid\"},{\"fieldPath\":\"spacing\",\"state\":\"valid\"},{\"fieldPath\":\"stockLength\",\"state\":\"valid\"},{\"fieldPath\":\"timberDepth\",\"state\":\"valid\"},{\"fieldPath\":\"timberWidth\",\"state\":\"valid\"},{\"fieldPath\":\"width\",\"state\":\"valid\"}]},\"result\":{\"resultSchemaVersion\":1,\"canonicalVersion\":\"canonical-v1\",\"frameId\":\"11111111-1111-1111-1111-111111111111\",\"inputVersion\":\"812538e14664d9408b88602a687335ee7c7b6c4d62a8bb31c2189a3b93bd605f\",\"ruleVersion\":\"wall-cut-list-v0-retained\",\"state\":\"complete\",\"parts\":[{\"id\":\"c8b4b72b3dced82905a8dc247da5a7a834ae3475f150bf9832205dfc3d02f420\",\"label\":\"P00001\",\"xLeft\":\"0\",\"yBottom\":\"0\",\"xRight\":\"3000000\",\"yTop\":\"44000\",\"orientation\":\"horizontal\",\"materialKey\":\"timber\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"requiredLength\":\"3000000\",\"functions\":[\"bottom-plate\"],\"openingIds\":[],\"overlong\":false},{\"id\":\"eff4ac481df09b2f312723bdc1679408de7ce5b2d5036ac60915af61cb759ad2\",\"label\":\"P00002\",\"xLeft\":\"0\",\"yBottom\":\"44000\",\"xRight\":\"44000\",\"yTop\":\"2356000\",\"orientation\":\"vertical\",\"materialKey\":\"timber\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"requiredLength\":\"2312000\",\"functions\":[\"left-end-stud\",\"nominal-stud\"],\"openingIds\":[],\"overlong\":false},{\"id\":\"f150251eb696552e5ed8e7e58b432fa3d51870cefee5168f08f425ab13afb969\",\"label\":\"P00003\",\"xLeft\":\"0\",\"yBottom\":\"2356000\",\"xRight\":\"3000000\",\"yTop\":\"2400000\",\"orientation\":\"horizontal\",\"materialKey\":\"timber\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"requiredLength\":\"3000000\",\"functions\":[\"top-plate\"],\"openingIds\":[],\"overlong\":false},{\"id\":\"35a0cac088421a3344c3817fc14704017771be3b7860d6b5038f3bb43b0202a6\",\"label\":\"P00004\",\"xLeft\":\"600000\",\"yBottom\":\"44000\",\"xRight\":\"644000\",\"yTop\":\"2356000\",\"orientation\":\"vertical\",\"materialKey\":\"timber\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"requiredLength\":\"2312000\",\"functions\":[\"nominal-stud\"],\"openingIds\":[],\"overlong\":false},{\"id\":\"90e84a74947705aa4eed623733788e77aa5ac60889eeb88b65734d8c770258f6\",\"label\":\"P00005\",\"xLeft\":\"1200000\",\"yBottom\":\"44000\",\"xRight\":\"1244000\",\"yTop\":\"2356000\",\"orientation\":\"vertical\",\"materialKey\":\"timber\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"requiredLength\":\"2312000\",\"functions\":[\"nominal-stud\"],\"openingIds\":[],\"overlong\":false},{\"id\":\"bf95514915d671e54b79545262fc3162616377cd7af6c371e8f7d34a075f447f\",\"label\":\"P00006\",\"xLeft\":\"1800000\",\"yBottom\":\"44000\",\"xRight\":\"1844000\",\"yTop\":\"2356000\",\"orientation\":\"vertical\",\"materialKey\":\"timber\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"requiredLength\":\"2312000\",\"functions\":[\"nominal-stud\"],\"openingIds\":[],\"overlong\":false},{\"id\":\"b2fdec970c17cebaefb3ae75f72937b972f90b9a995de6e3a6e867b538ef067c\",\"label\":\"P00007\",\"xLeft\":\"2400000\",\"yBottom\":\"44000\",\"xRight\":\"2444000\",\"yTop\":\"2356000\",\"orientation\":\"vertical\",\"materialKey\":\"timber\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"requiredLength\":\"2312000\",\"functions\":[\"nominal-stud\"],\"openingIds\":[],\"overlong\":false},{\"id\":\"199154b2651c93b310ad31475f2d867a5685bf06aa16251e5aee1646a12f0e8b\",\"label\":\"P00008\",\"xLeft\":\"2956000\",\"yBottom\":\"44000\",\"xRight\":\"3000000\",\"yTop\":\"2356000\",\"orientation\":\"vertical\",\"materialKey\":\"timber\",\"timberWidth\":\"44000\",\"timberDepth\":\"69000\",\"requiredLength\":\"2312000\",\"functions\":[\"right-end-stud\"],\"openingIds\":[],\"overlong\":false}],\"blockages\":[],\"spacing\":[{\"yBottom\":\"44000\",\"yTop\":\"2356000\",\"centres\":[{\"partId\":\"eff4ac481df09b2f312723bdc1679408de7ce5b2d5036ac60915af61cb759ad2\",\"xCenter2\":\"44000\"},{\"partId\":\"35a0cac088421a3344c3817fc14704017771be3b7860d6b5038f3bb43b0202a6\",\"xCenter2\":\"1244000\"},{\"partId\":\"90e84a74947705aa4eed623733788e77aa5ac60889eeb88b65734d8c770258f6\",\"xCenter2\":\"2444000\"},{\"partId\":\"bf95514915d671e54b79545262fc3162616377cd7af6c371e8f7d34a075f447f\",\"xCenter2\":\"3644000\"},{\"partId\":\"b2fdec970c17cebaefb3ae75f72937b972f90b9a995de6e3a6e867b538ef067c\",\"xCenter2\":\"4844000\"},{\"partId\":\"199154b2651c93b310ad31475f2d867a5685bf06aa16251e5aee1646a12f0e8b\",\"xCenter2\":\"5956000\"}],\"gaps\":[{\"leftPartId\":\"eff4ac481df09b2f312723bdc1679408de7ce5b2d5036ac60915af61cb759ad2\",\"rightPartId\":\"35a0cac088421a3344c3817fc14704017771be3b7860d6b5038f3bb43b0202a6\",\"distance2\":\"1200000\",\"equalsDesired\":true},{\"leftPartId\":\"35a0cac088421a3344c3817fc14704017771be3b7860d6b5038f3bb43b0202a6\",\"rightPartId\":\"90e84a74947705aa4eed623733788e77aa5ac60889eeb88b65734d8c770258f6\",\"distance2\":\"1200000\",\"equalsDesired\":true},{\"leftPartId\":\"90e84a74947705aa4eed623733788e77aa5ac60889eeb88b65734d8c770258f6\",\"rightPartId\":\"bf95514915d671e54b79545262fc3162616377cd7af6c371e8f7d34a075f447f\",\"distance2\":\"1200000\",\"equalsDesired\":true},{\"leftPartId\":\"bf95514915d671e54b79545262fc3162616377cd7af6c371e8f7d34a075f447f\",\"rightPartId\":\"b2fdec970c17cebaefb3ae75f72937b972f90b9a995de6e3a6e867b538ef067c\",\"distance2\":\"1200000\",\"equalsDesired\":true},{\"leftPartId\":\"b2fdec970c17cebaefb3ae75f72937b972f90b9a995de6e3a6e867b538ef067c\",\"rightPartId\":\"199154b2651c93b310ad31475f2d867a5685bf06aa16251e5aee1646a12f0e8b\",\"distance2\":\"1112000\",\"equalsDesired\":false}],\"suppressedPositions\":[]}],\"stockStatus\":\"sufficient\"},\"resultId\":\"f7ba31dee4135673c8f8105d3e8866b685707f2ebf0828cd787f6c0a1dae93df\"},\"priorResultRef\":null,\"displayPreferences\":{\"lengthUnit\":\"m\",\"thicknessUnit\":\"mm\"}}",
+  "sha256": "0824068a9e33d57bc6757f0803ed6870e5077ca67f01d3c91330a58da0306ae6"
+}

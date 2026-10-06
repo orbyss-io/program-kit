@@ -93,7 +93,7 @@
       "inputs": [
         "extensions/**",
         "presets/**",
-        "tests/validate_normal_development.py"
+        "tests/validate_maintenance_flow.py"
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_maintenance_flow"
@@ -1017,6 +1017,7 @@
         "THIRD-PARTY-NOTICES.md",
         ".github/**",
         "tests/validate_architecture_recipe.py",
+        "tests/fixtures/foundation-consumer-contracts/baseline/mixed-workbench-architecture.json",
         "docs/**",
         "releases/**"
       ],
@@ -3944,6 +3945,109 @@
         "integration-fixtures",
         "browser-runtime"
       ]
+    },
+    {
+      "id": "validate_foundation_contracts_development_profile",
+      "command": [
+        "{python}",
+        "tests/validate_foundation_contracts_development_profile.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Explicit private candidate overlays reject stale F6 artifacts and public-default promotion claims; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/prepare_foundation_contracts_development_profile.py",
+        "tests/validate_foundation_contracts_development_profile.py",
+        "extensions/program-kit-building-blocks/references/foundation-contracts-development*",
+        "extensions/program-kit-building-blocks/references/dependency-profiles/**",
+        "extensions/program-kit-building-blocks/scripts/building_blocks.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique synthetic guard fixtures; actual package acceptance is a separate explicit F6 run."
+    },
+    {
+      "id": "validate_foundation_notes",
+      "command": [
+        "{python}",
+        "tests/validate_foundation_notes.py",
+        "--self-test"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Versioned Notes source/negative preparation and scenario oracle routing; no database or coding-agent execution.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_foundation_notes.py",
+        "tests/fixtures/foundation-consumer-contracts/notes/**",
+        "tests/live/scenarios/foundation-notes/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py",
+        "tests/run_foundation_notes_qualification.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique disposable negative sources; De Zaaglijst remains read-only."
+    },
+    {
+      "id": "validate_dependency_profile_catalogs",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_profile_catalogs.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Immutable additive profile catalogs and exact named qualification inputs preserve historical public qualification guards.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_dependency_profile_catalogs.py",
+        "extensions/program-kit-building-blocks/scripts/**",
+        "extensions/program-kit-building-blocks/references/dependency-profile-index.schema.json",
+        "extensions/program-kit-building-blocks/references/dependency-qualification-recipe.schema.json",
+        "tests/validate_default_dependency_profile.py",
+        "tests/validate_published_forms_browser.py",
+        "tests/validate_bootstrap_runtime.py",
+        "scripts/build_dependency_qualification.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique disposable registry/catalog fixtures; no promotion or external execution."
+    },
+    {
+      "id": "validate_foundation_published_tools",
+      "command": [
+        "{python}",
+        "tests/validate_foundation_published_tools.py",
+        "--self-test"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Independent public Build/exporter compatibility fixture rejects source authority and boundary violations before actual packaged qualification.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_foundation_published_tools.py",
+        "tests/fixtures/foundation-consumer-contracts/published-tools/**"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Static/disposable fixture checks; actual installed-tool acceptance is explicit and separately retained."
     }
   ],
   "groups": {

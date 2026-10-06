@@ -18,8 +18,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--prepare-only', action='store_true')
     parser.add_argument('--profile', type=Path, help='Qualify an exact candidate profile instead of the installed new-project default.')
+    parser.add_argument('--catalog', type=Path, help='Explicit target catalog for the exact candidate profile.')
     parser.add_argument('--engines', default='chromium,webkit' if os.name == 'nt' else 'chromium,firefox,webkit')
     args = parser.parse_args()
+    if args.catalog is not None and args.profile is None:
+        parser.error('--catalog requires an explicit --profile')
     engines = args.engines.split(',')
     if not engines or len(engines) != len(set(engines)) or set(engines) - {'chromium', 'webkit', 'firefox'}:
         parser.error('Specify distinct supported browser engines')
@@ -34,7 +37,7 @@ def main():
     # being qualified so a new default cannot reuse browser acceptance of old pins.
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
     import building_blocks as blocks
-    catalog = (blocks.materialize_dependency_profile(blocks.load_json(blocks.default_catalog(Path(blocks.__file__))),
+    catalog = (blocks.materialize_dependency_profile(blocks.load_json(args.catalog or blocks.default_catalog(Path(blocks.__file__))),
                blocks.load_json(args.profile)) if args.profile else blocks.new_project_catalog())
     for group in ('dependencies', 'devDependencies'):
         for identity in package.get(group, {}):

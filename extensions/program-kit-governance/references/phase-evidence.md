@@ -3,6 +3,12 @@
 `phase_obligations.py project` prints applicable guidance before planning, tasks and implementation.
 The single upstream registry is `phase-obligations.json`. Generated context is disposable.
 
+`phase_obligations.py check` validates the declared `eng/architecture.json` graph after-plan,
+after-tasks and before implementation. The implementation preflight invokes that same check.
+Roles, edges and capability owners must satisfy the adopted compilation boundaries before a build.
+An empty initial graph or pure Core utility remains legitimate; it does not certify later runtime
+bindings. Compiled inventory and actual activation/resolution/lifetime tests establish those checks.
+
 Keep design choices and required tests in normal plan.md/tasks.md. Implement behavior and
 architecture tests in the repository. Run `eng/Invoke-RepositoryVerification.ps1` for ordinary
 acceptance; it has no dependency on installed extensions or governance history. Analyzer errors,

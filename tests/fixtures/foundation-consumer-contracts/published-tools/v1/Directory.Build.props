@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <Version>1.0.0-fixture.1</Version>
+  </PropertyGroup>
+  <Target Name="RequireExplicitRuntime" BeforeTargets="CollectPackageReferences">
+    <Error Condition="'$(FoundationRuntimeVersion)' == ''" Text="Select FoundationRuntimeVersion explicitly; this fixture has no runtime default." />
+  </Target>
+</Project>

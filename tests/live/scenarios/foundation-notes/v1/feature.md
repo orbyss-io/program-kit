@@ -1,0 +1,7 @@
+# Private Notes v1 deterministic specimen
+
+An authenticated account can create a named note, read its current revision, rename it against an expected revision and traverse a bounded list of its own notes. Create and rename carry an operation identity. Repeating exactly the same admitted packet returns its original acknowledgement; reusing that identity for a different packet is a conflict. A stale revision cannot overwrite the head. A lost response preserves the packet and retry identity.
+
+The context has separate Core, Notes runtime, Notes.Api and Notes.PostgreSql projects and one application bundle. Core owns note names, ownership values and semantic capabilities. API adapts the public validated identity reader, typed configured JSON readers/results and one application problem mapper. PostgreSql owns entities, mappings, atomic revision/receipt transactions and tracked independent factory units. Lists apply owner filtering on every query and both count and byte bounds.
+
+The dedicated Notes oracle must pass actual package, Host/Nuplane and disposable PostgreSQL qualification before this specimen can supply deterministic acceptance. This fixture grants no paid-worker authorization. Existing lending/knowledge oracles and historical v1/v2 evidence cannot qualify it. Future paid workflow integration must select a separate versioned scenario adapter and retain the existing one-use authorization chain.

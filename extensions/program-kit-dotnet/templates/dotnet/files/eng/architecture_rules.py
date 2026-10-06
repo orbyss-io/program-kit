@@ -23,3 +23,6 @@ FORBIDDEN_CORE_PACKAGE_PREFIXES = (
     "microsoft.data.sqlite",
     "system.text.json",
 )
+PERSISTENCE_PACKAGE_PREFIXES = (
+    "microsoft.entityframeworkcore", "npgsql", "microsoft.data.sqlclient", "microsoft.data.sqlite",
+)

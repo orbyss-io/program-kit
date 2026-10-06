@@ -4,7 +4,8 @@ scripts:
   py: scripts/phase_obligations.py
 ---
 Locate the current Spec Kit feature. Run `{SCRIPT} project --feature-dir <feature> --phase planning`
-before planning, `--phase after-plan` before tasks, and `--phase implementation` before coding.
+before planning. Run `{SCRIPT} check --feature-dir <feature> --phase after-plan` before tasks,
+and `check --phase implementation` before coding so the planned compilation graph is enforced.
 Use the returned summaries as the default context. The focused section pointers are optional
 lookup for a concrete unresolved choice, not a checklist to reread every source. Use `--only <id>`
 for a focused follow-up. Apply their conditions to concrete design/code choices;

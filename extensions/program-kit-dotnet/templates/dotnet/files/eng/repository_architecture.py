@@ -12,7 +12,8 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from architecture_rules import ALLOWED_ROLE_REFERENCES, FORBIDDEN_CORE_PACKAGE_PREFIXES
+from architecture_rules import (ALLOWED_ROLE_REFERENCES, FORBIDDEN_CORE_PACKAGE_PREFIXES,
+                                CAPABILITY_IMPLEMENTATION_ROLES, PERSISTENCE_PACKAGE_PREFIXES)
 
 def require(condition, message):
     if not condition:
@@ -27,8 +28,106 @@ def read(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
+def validate_manifest(root, manifest):
+    """Validate the planned compilation graph without restore, builds or source mutation.
+
+    A manifest declares selection, not semantic ownership proof. Compiled checks and
+    actual registration/resolution/lifetime tests remain required after implementation.
+    """
+    root = root.resolve()
+    composition = manifest.get('runtimeComposition')
+    require(isinstance(composition, dict), 'Declare runtimeComposition in eng/architecture.json')
+    rows = composition.get('projects')
+    require(isinstance(rows, list), 'Architecture projects must be a list')
+    projects = {}
+    for project in rows:
+        require(isinstance(project, dict) and isinstance(project.get('path'), str), 'Architecture project requires a path')
+        path = project['path']
+        require(path.endswith('.csproj') and path == Path(path).as_posix() and not Path(path).is_absolute(),
+                'Architecture project must use a repository-relative .csproj path: ' + path)
+        inside(root, path)
+        require(path.casefold() not in {p.casefold() for p in projects}, 'Duplicate architecture project identity: ' + path)
+        require(project.get('role') in ALLOWED_ROLE_REFERENCES, 'Unknown architecture role: ' + path)
+        require('persistenceOwnerNamespaces' not in project,
+                'A namespace waiver cannot replace a provider compilation boundary: ' + path)
+        projects[path] = project
+    bindings = composition.get('bindings', [])
+    require(isinstance(bindings, list), 'Architecture bindings must be a list')
+    identities = set()
+    for binding in bindings:
+        require(isinstance(binding, dict), 'Architecture binding must be an object')
+        capability = binding.get('capabilityProject')
+        implementation = binding.get('implementationProject')
+        require(capability in projects and implementation in projects, 'Binding projects must exist in the planned graph')
+        require(capability != implementation, 'Capability and implementation require distinct compilation projects')
+        require(projects[capability]['role'] == 'core', 'Binding capability must have a Core role: ' + capability)
+        require(projects[implementation]['role'] in CAPABILITY_IMPLEMENTATION_ROLES,
+                'Binding implementation requires an implementation/provider/bridge role: ' + implementation)
+        for key in ('capability', 'implementation', 'registration'):
+            require(isinstance(binding.get(key), str) and bool(binding[key].strip()), 'Binding requires ' + key)
+        identity = (capability, binding['capability'], implementation, binding['implementation'])
+        require(identity not in identities, 'Duplicate capability binding')
+        identities.add(identity)
+        if 'projectReferences' in projects[implementation]:
+            require(capability in projects[implementation]['projectReferences'], 'Binding implementation must reference its Core capability project')
+    authorized = set()
+    for edge in composition.get('coreReferences', []):
+        require(edge.get('fromProject') in projects and edge.get('toProject') in projects,
+                'Core exception projects must exist in the planned graph')
+        require(projects[edge['fromProject']]['role'] == projects[edge['toProject']]['role'] == 'core',
+                'Core exception cannot relabel implementation dependencies')
+        require(bool(edge.get('rationale', '').strip()), 'Core exception requires a scoped engineering rationale')
+        require(inside(root, edge['verification']).is_file(), 'Core exception test does not exist')
+        authorized.add((edge['fromProject'], edge['toProject']))
+    edges = set()
+    for path, project in projects.items():
+        require(not Path(path).stem.endswith('.Core') or project['role'] == 'core', 'Core project role cannot be relabeled: ' + path)
+        require(not Path(path).stem.endswith('.Api') or project['role'] == 'implementation', 'API project must have an implementation role: ' + path)
+        packages = project.get('packageReferences', [])
+        require(isinstance(packages, list) and all(isinstance(p, str) for p in packages), 'Package references must be a list of identities')
+        require(not any(p.lower().startswith(PERSISTENCE_PACKAGE_PREFIXES) for p in packages)
+                or project['role'] in {'provider', 'test'}, 'Persistence packages must stay in their owning provider/tests: ' + path)
+        if project['role'] == 'core':
+            require(not any(p.lower().startswith(FORBIDDEN_CORE_PACKAGE_PREFIXES) for p in packages), 'Planned Core leaks a runtime/provider dependency: ' + path)
+        references = project.get('projectReferences', [])
+        require(isinstance(references, list), 'Project references must be a list')
+        for target in references:
+            require(target in projects and projects[target]['role'] in ALLOWED_ROLE_REFERENCES[project['role']],
+                    f'Forbidden dependency: {path} -> {target}')
+            require(project['role'] != projects[target]['role'] or project['role'] != 'core'
+                    or (path, target) in authorized, 'Undecided Core-to-Core dependency')
+            edges.add((path, target))
+    validate_cycles(projects, edges)
+    return projects
+
+
+def validate_cycles(projects, edges):
+    def visit(node, active, visited):
+        require(node not in active, f'Architecture dependency cycle at {node}')
+        if node in visited:
+            return
+        active.add(node)
+        for source, target in edges:
+            if source == node:
+                visit(target, active, visited)
+        active.remove(node)
+        visited.add(node)
+    visited = set()
+    for node in projects:
+        visit(node, set(), visited)
+
+
+def validate_planned(root, manifest):
+    projects = validate_manifest(root, manifest)
+    physical = {p.relative_to(root).as_posix() for directory in ('src', 'tests')
+                for p in (root / directory).rglob('*.csproj') if not {'obj', 'bin'} & set(p.parts)}
+    require(physical <= set(projects), 'Assign an architectural role to new projects in eng/architecture.json: '
+            + ', '.join(sorted(physical - set(projects))))
+    return projects
+
+
 def validate_graph(root, manifest, evaluated, compiled):
-    projects = {p['path']: p for p in manifest['runtimeComposition']['projects']}
+    projects = validate_manifest(root, manifest)
     require(set(evaluated) == set(projects), 'Evaluated graph must cover every declared project')
     assemblies = {a['name']: a for a in compiled}
     require(len(assemblies) == len(compiled), 'Assembly identities must be unique')
@@ -68,16 +167,23 @@ def validate_graph(root, manifest, evaluated, compiled):
                 continue
             packages.add(item['Identity'])
         require('packageReferences' not in project or packages == set(project['packageReferences']), f'Evaluated package references differ: {relative}')
-        persistence_packages = {name for name in packages if name.lower().startswith(('microsoft.entityframeworkcore', 'npgsql', 'microsoft.data.sqlclient', 'microsoft.data.sqlite'))}
+        persistence_packages = {name for name in packages if name.lower().startswith(PERSISTENCE_PACKAGE_PREFIXES)}
         require(not persistence_packages or project['role'] in {'provider', 'test'},
                 'Persistence packages must stay in their owning provider/tests: ' + relative)
         design = next((item for item in data['Items'].get('PackageReference', []) if item['Identity'] == 'Microsoft.EntityFrameworkCore.Design'), None)
         require(design is None or design.get('PrivateAssets', '').lower() == 'all', 'EF Design must remain private engineering tooling: ' + relative)
         actual = assemblies[data['Properties']['AssemblyName']]
+        require(project['role'] in {'provider', 'test'} or not any(
+            name.lower().startswith(PERSISTENCE_PACKAGE_PREFIXES) for name in actual['references']),
+            'Persistence compiled dependencies must stay in their owning provider/tests: ' + relative)
+        require(project['role'] in {'core', 'test'} or not any('.Core.' in t['name'] or t['name'].startswith('Core.')
+                for t in actual['types']), 'Core types require a separate Core compilation project: ' + relative)
+        require(project['role'] in {'implementation', 'test'} or not any('.Api.' in t['name'] or t['name'].startswith('Api.')
+                for t in actual['types']), 'API types require a separate API implementation project: ' + relative)
         compiled_refs = {owners[name] for name in actual['references'] if name in owners}
         require(compiled_refs <= refs, f'Compiled project edge is absent from declared/evaluated graph: {relative}')
         if project['role'] == 'core':
-            require(not any(name.lower().startswith(FORBIDDEN_CORE_PACKAGE_PREFIXES) for name in actual['references']),
+            require(not any(name.lower().startswith(FORBIDDEN_CORE_PACKAGE_PREFIXES) for name in set(actual['references']) | packages),
                     f'Compiled Core leaks a runtime/provider dependency: {relative}')
         for target in refs | compiled_refs:
             require(target in projects and projects[target]['role'] in ALLOWED_ROLE_REFERENCES[project['role']],
@@ -85,19 +191,7 @@ def validate_graph(root, manifest, evaluated, compiled):
             if project['role'] == projects[target]['role'] == 'core':
                 require((relative, target) in authorized, 'Undecided Core-to-Core dependency')
             edges.add((relative, target))
-    def visit(node, active, visited):
-        require(node not in active, f'Architecture dependency cycle at {node}')
-        if node in visited:
-            return
-        active.add(node)
-        for source, target in edges:
-            if source == node:
-                visit(target, active, visited)
-        active.remove(node)
-        visited.add(node)
-    visited = set()
-    for node in projects:
-        visit(node, set(), visited)
+    validate_cycles(projects, edges)
     by_project = {p: {t['name']: t for t in assemblies[evaluated[p]['Properties']['AssemblyName']]['types']} for p in projects}
     type_records = [t for a in compiled for t in a['types'] if t['name'] != '<Module>']
     all_types = {}
@@ -122,10 +216,25 @@ def validate_graph(root, manifest, evaluated, compiled):
         owner, separator, method = binding['registration'].rpartition('.')
         require(separator and method in by_project[binding['implementationProject']].get(owner, {}).get('methods', []),
                 'Binding registration entry point does not exist in the implementation assembly')
+    listed = {(b['capabilityProject'], b['capability'], b['implementationProject'], b['implementation'])
+              for b in manifest['runtimeComposition'].get('bindings', [])}
+    capabilities = [(p, t['name']) for p in projects if projects[p]['role'] == 'core'
+                    for t in by_project[p].values() if t['isInterface']]
+    for path in projects:
+        if projects[path]['role'] not in CAPABILITY_IMPLEMENTATION_ROLES | {'composition'}:
+            continue
+        for item in by_project[path].values():
+            if item['isInterface'] or item.get('isAbstract', False):
+                continue
+            for owner, capability in capabilities:
+                if any(implements(parent, capability, set()) for parent in [*item['interfaces'], item['baseType']]):
+                    require((owner, capability, path, item['name']) in listed,
+                            f'Unlisted active capability binding: {capability} -> {item["name"]} in {path}')
     return {'evaluated-and-compiled-graph', 'compiled-capability-bindings'}
 
 
 def execute(root, manifest, configuration, feature=None):
+    validate_planned(root, manifest)
     declared = [p['path'] for p in manifest['runtimeComposition']['projects']]
     require(len(set(declared)) == len(declared), 'Duplicate architecture project identity')
     physical = {p.relative_to(root).as_posix() for directory in ('src', 'tests')
@@ -134,6 +243,8 @@ def execute(root, manifest, configuration, feature=None):
             + ', '.join(sorted(physical - set(declared))))
     require(all(p['role'] in ALLOWED_ROLE_REFERENCES for p in manifest['runtimeComposition']['projects']),
             'Unknown architecture role')
+    if not declared:
+        return validate_graph(root, manifest, {}, [])
     evaluated = {}
     paths = []
     for project in manifest['runtimeComposition']['projects']:
@@ -169,13 +280,19 @@ def main():
     parser.add_argument('--repository', default='.')
     parser.add_argument('--manifest', required=True)
     parser.add_argument('--configuration', default='Debug')
-    parser.add_argument('--output', required=True)
+    parser.add_argument('--output')
+    parser.add_argument('--planned', action='store_true', help='Validate declared roles/edges/bindings without restore or builds')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     suite = ET.Element('testsuite', name='ProgramKit.Architecture')
     try:
         manifest_path = inside(root, args.manifest)
-        checks = execute(root, read(manifest_path), args.configuration, manifest_path.parent.relative_to(root).as_posix())
+        if args.planned:
+            validate_planned(root, read(manifest_path))
+            checks = {'planned-compilation-graph'}
+        else:
+            require(bool(args.output), 'Compiled verification requires --output')
+            checks = execute(root, read(manifest_path), args.configuration, manifest_path.parent.relative_to(root).as_posix())
         for check in sorted(checks):
             ET.SubElement(suite, 'testcase', classname='ProgramKit.Architecture', name=check)
         status = 0
@@ -185,9 +302,10 @@ def main():
         detail = (error.stdout or '') + (error.stderr or '') if isinstance(error, subprocess.CalledProcessError) else ''
         print(str(error) + ('\n' + detail if detail else ''), file=sys.stderr)
         status = 2
-    output = inside(root, args.output)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    ET.ElementTree(suite).write(output, encoding='utf-8', xml_declaration=True)
+    if args.output:
+        output = inside(root, args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        ET.ElementTree(suite).write(output, encoding='utf-8', xml_declaration=True)
     return status
 
 

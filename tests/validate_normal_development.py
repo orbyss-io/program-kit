@@ -47,6 +47,37 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
         print(f'Four phases + implementation guidance: {time.perf_counter()-started:.3f}s; 0 maintained artifacts, 0 approvals')
 
+    def test_planned_roles_gate_after_plan_tasks_and_source_without_builds(self):
+        eng = self.root / 'eng'; eng.mkdir()
+        graph = {'runtimeComposition': {'projects': [
+            {'path': 'src/Notes.Core/Notes.Core.csproj', 'role': 'core'},
+            {'path': 'src/Notes/Notes.csproj', 'role': 'composition'}],
+            'bindings': [{'capabilityProject': 'src/Notes.Core/Notes.Core.csproj',
+                'implementationProject': 'src/Notes/Notes.csproj', 'capability': 'Notes.INotes',
+                'implementation': 'Notes.Notes', 'registration': 'Notes.Feature.ConfigureServices'}]}}
+        path = eng / 'architecture.json'; path.write_text(json.dumps(graph))
+        before = self.snapshot()
+        with patch.object(subprocess, 'run', side_effect=AssertionError('Planned validation must not build')):
+            for phase in ('after-plan', 'after-tasks', 'implementation'):
+                with self.assertRaisesRegex(ValueError, 'implementation.*role'):
+                    knowledge.check(self.root, self.feature, phase)
+            with contextlib.redirect_stdout(io.StringIO()), patch.object(sys, 'argv',
+                    ['preflight', '--repository', str(self.root), '--feature-dir', 'specs/001-slots']):
+                self.assertEqual(2, implementation_preflight.main())
+        self.assertEqual(before, self.snapshot())
+        graph['runtimeComposition']['projects'][1]['role'] = 'implementation'
+        path.write_text(json.dumps(graph))
+        for phase in ('after-plan', 'after-tasks', 'implementation'):
+            knowledge.check(self.root, self.feature, phase)
+
+    def test_planned_source_requires_manifest_but_empty_repository_is_valid(self):
+        (self.feature / 'plan.md').write_text('Implement src/Notes.Core/Notes.Core.csproj in C#.')
+        with self.assertRaisesRegex(ValueError, 'eng/architecture.json'):
+            knowledge.check(self.root, self.feature, 'after-plan')
+        eng = self.root / 'eng'; eng.mkdir()
+        (eng / 'architecture.json').write_text('{"runtimeComposition":{"projects":[],"bindings":[]}}')
+        knowledge.check(self.root, self.feature, 'after-plan')
+
     def test_constitution_amendment_is_independent_and_preserves_previous_approval(self):
         import os
         import governance_state as governance

@@ -15,11 +15,14 @@ from repository_sync import audit_toolchain, provider, write
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--profile', type=Path, help='Exact candidate profile; otherwise exercise the qualified default.')
+    parser.add_argument('--catalog', type=Path, help='Explicit target catalog for the exact candidate profile.')
     args = parser.parse_args()
+    if args.catalog is not None and args.profile is None:
+        parser.error('--catalog requires an explicit --profile')
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
     import building_blocks as blocks
     from public_availability import verify_oci
-    catalog = (blocks.materialize_dependency_profile(blocks.load_json(blocks.default_catalog(Path(blocks.__file__))),
+    catalog = (blocks.materialize_dependency_profile(blocks.load_json(args.catalog or blocks.default_catalog(Path(blocks.__file__))),
                blocks.load_json(args.profile)) if args.profile else blocks.new_project_catalog())
     host = catalog['packages']['oci:ghcr.io/orbyss-io/foundation-host']
     image = verify_oci(host, catalog['sources'][host['source']])['reference']

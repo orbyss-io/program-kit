@@ -481,7 +481,7 @@ def main() -> int:
             "before_plan": ["speckit.program-kit-governance.phase-context"],
             "after_plan": ["speckit.program-kit-governance.architecture-check"],
             "before_tasks": ["speckit.program-kit-governance.phase-context"],
-            "after_tasks": ["speckit.analyze"],
+            "after_tasks": ["speckit.program-kit-governance.architecture-check", "speckit.analyze"],
             "before_implement": ["speckit.program-kit-governance.phase-context", "speckit.program-kit-governance.implementation-check"],
             "after_implement": ["speckit.program-kit-governance.architecture-check"],
         }

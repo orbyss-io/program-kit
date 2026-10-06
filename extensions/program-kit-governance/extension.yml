@@ -149,10 +149,14 @@ hooks:
     optional: false
     description: "Carry applicable design choices and real tests into tasks."
   after_tasks:
-    command: "speckit.analyze"
-    priority: 5
-    optional: false
-    description: "Use normal Spec Kit consistency analysis."
+    - command: "speckit.program-kit-governance.architecture-check"
+      priority: 1
+      optional: false
+      description: "Validate the planned compilation graph before affected implementation."
+    - command: "speckit.analyze"
+      priority: 5
+      optional: false
+      description: "Use normal Spec Kit consistency analysis."
   before_implement:
     - command: "speckit.program-kit-governance.phase-context"
       priority: 1
