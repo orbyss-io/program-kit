@@ -1,7 +1,7 @@
 # Application handoff implementation plan
 
-Date: 2026-10-06. W1, W2, W4 and W5 implemented and validated; W3 has a demonstrated
-application-owned metadata path and remains incomplete for publisher-owned framework coverage.
+Date: 2026-10-06. Updated 2026-10-07: W1–W5 implemented and validated, including W3's
+applicable owning-producer settings coverage and actual packaged independent READY receiver.
 See [execution journal](application-handoff-execution-journal.md) for source boundaries, recovery,
 implementation details, validation evidence and the concrete upstream dependency.
 
@@ -33,6 +33,13 @@ This plan scopes implementation to Program Kit and disposable fixtures. Foundati
 inspected for real descriptor/settings interfaces, but changes in Foundation or real consumers
 require separate authorization. Do not migrate De Zaaglijst. Record concrete external dependencies
 and complete unaffected work rather than inventing upstream APIs.
+
+Execution amendment: the user subsequently authorized Foundation implementation/publication and
+coordination of both implementation tasks on one common Program Kit branch. Current execution is
+`C:\Users\tech_\Code\program-kit`, branch `codex/human-infrastructure-handoff`, with an isolated
+Foundation source checkout under ignored artifacts. The old Foundation checkout and isolated
+handoff evidence remain preserved. De Zaaglijst is strictly read-only. The execution journals
+record the source transition and exact authorization; no real-consumer migration is included.
 
 ## Product boundary
 
@@ -104,7 +111,7 @@ references/guidance, scaffold/upgrade regression fixtures.
       defaults/constraints, secret classification, binding/precedence and restart/reload behavior.
       Include semantic explanations and cross-setting constraints when structural schemas cannot
       express them.
-- [ ] Reuse the selected SPA-PKCE schema where applicable. Export framework-owned metadata from its
+- [x] Reuse the selected SPA-PKCE schema where applicable. Export framework-owned metadata from its
       owning producer and application-owned metadata from source-backed consumer declarations.
       Do not infer a complete contract from configuration sample values.
 - [x] Ensure metadata export does not open storage, contact identity services or run application
@@ -116,17 +123,24 @@ references/guidance, scaffold/upgrade regression fixtures.
 Completion: settings metadata matches actual fixture validation/defaults/scope and remains
 independent of runtime initialization. Missing metadata is explicit, with no fabricated coverage.
 
-Status: **partial, upstream dependency open**. `settings-metadata.schema.json` and the native
-assembler implement source-bound application metadata with explicit owner/scope requirements,
-secret exclusion and conflict/staleness checks. The real fixture exporter shares its typed defaults
-and range declarations with actual validation, without application initialization. The selected
-SPA-PKCE structural schema is reused when present. Required missing scopes still prevent ready output. The separately authorized Foundation
-follow-on now implements source-candidate Build 0.2.0 settings companion schema 1. Program Kit
-binds the actual selected nupkg ID/version/hash and its compiled assembly, without interpreting
-publisher source paths as consumer paths. Real locally packed JsonProfileSettings metadata
-matches compiled defaults and admission and is consumed outside the toolkit. This complete
-named-type scope does not cover host, CShells/Nuplane, authentication, Json.AspNetCore binding
-or other option owners; W3 therefore remains partial. No unpublished version enters selection.
+Status: **implemented and qualified for the applicable supported scopes**. Additive source/output
+schema2 covers nullable/nested settings and exact named-type dependency imports; published schema1
+and its historical named Json scope preserve their meanings. Source-bound declarations cover18
+Foundation package owners/26 scopes. The Host adds four boot/transport/CShells/Nuplane binding
+scopes with102 source snapshots and nine exact native origins. Foundation owns the vendor
+integration contract; this does not claim CShells/Nuplane publisher metadata or change their code.
+Compiled native tests check actual defaults, binding and validation. Pure static export performs
+no application/storage/identity initialization. The selected SPA-PKCE schema remains reused.
+
+The native receiver binds actual selected package/version/archive/compiled assembly and imported
+metadata, plus the exact Host OCI index/manifest/config/ordered layers/native archives/source
+origins. Missing/stale/conflicting/unsupported required scopes still prevent READY output;
+defaults are never inferred from samples. Actual private6 READY acceptance succeeds after toolkit
+removal, including native cold OpenAPI/client production and independent Python -I verification.
+Evidence: `artifacts/w3-packaged-handoff-candidate6-8/result.json`. Final bounded Development
+passes76/76 at `artifacts/validation-runs/20261006T234945Z-7d5568c5/journal.json`.
+Foundation Build0.3.0 is officially published; runtime0.3.0 publication and future Program Kit
+public-profile selection remain separate gates. The selecting public default is unchanged.
 
 ### W4 Receiver index and assembly
 
@@ -201,7 +215,7 @@ Baseline evidence from this session: 15 release-bundle tests passed and generate
 validation passed. Re-run relevant checks after implementation; these results do not validate new
 handoff behavior. Preserve logs and report exact coverage/limitations.
 
-## Implemented outputs and exact acceptance scope
+## Initial implemented outputs and acceptance scope (historical)
 
 - Consumer-owned `eng/application-handoff.json`: explicit stable application identity; component
   bindings to existing package IDs/API registry identities; category applicability and required
@@ -275,7 +289,7 @@ Host/CShells/Nuplane ownership remains explicit and requires their supported con
 checkouts, real consumers and concurrent dirty runtime work remain untouched.
 
 
-## Common Program Kit branch integration status (2026-10-06)
+## Initial common Program Kit branch integration status (historical; 2026-10-06)
 
 The committed Foundation-contracts tranche6ae93b5 is integrated with handoff source9cb7298
 on codex/human-infrastructure-handoff. Combined targeted checks and 74/74 bounded
@@ -291,6 +305,25 @@ promotion, then final combined validation and clean/pushed-tree checks. The conc
 owner performs its remaining planned Program Kit edits on the same common branch
 after safely switching its clean checkout. No Program Kit Release/publication or
 consumer migration authority is supplied by this merge.
+
+## Current completion checkpoint (2026-10-07)
+
+The separately authorized W3 follow-on is complete in code and private qualification. Foundation
+source is merged/clean/pushed at9f188270f99543684268515c3a0cde146ec08417, with successful
+Linux/Windows main CI. Source/private installed Build/native owner/no-build publication checks
+and actual private6 Host/Nuplane/two-shell/PostgreSQL F6 and amd64 image acceptance pass.
+All18 non-Host owners have compiled-default/binding/boundary qualification (220 checks),
+authentication has80 native cases, and Host vendor contracts have69 default/11 binding/8 stale
+checks. Actual no-toolkit READY and final76/76 Development pass as recorded above. Earlier partial
+scope statements and failed results remain historical evidence; they are not current blockers.
+
+The user holds new Notes runs until the additional patches are completed in a fresh session and
+the fixture's purpose/run procedure is jointly specified. Program Kit publication/default
+promotion and complete Release retain their later gates. Foundation Build0.3.0 is verified
+published; cancelled runtime v0.3.0 recovery awaits approval for the exact corrected commit/tag
+and successful full upstream Release/public availability. Those release and cross-repository
+work packages remain open in the separate contract journal; neither release nor consumer rollout
+is declared complete by this application-handoff implementation checkpoint.
 
 ## Completion and execution boundaries
 

@@ -4014,7 +4014,11 @@
       "owner": "program-kit",
       "inputs": [
         "tests/validate_dependency_profile_catalogs.py",
+        "extensions/program-kit-dotnet/scripts/dependency_profile.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
         "extensions/program-kit-building-blocks/scripts/**",
+        "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/**",
+        "extensions/program-kit-building-blocks/references/dependency-profiles/dependency-profile-foundation-0.3.0.json",
         "extensions/program-kit-building-blocks/references/dependency-profile-index.schema.json",
         "extensions/program-kit-building-blocks/references/dependency-qualification-recipe.schema.json",
         "tests/validate_default_dependency_profile.py",
@@ -4048,6 +4052,50 @@
       "outputs": [],
       "resources": [],
       "isolation": "Static/disposable fixture checks; actual installed-tool acceptance is explicit and separately retained."
+    },
+    {
+      "id": "validate_bootstrap_runtime_bindings",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_runtime_bindings.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Neutral public Host capture, exact shared archive bindings, native provenance, retained inputs and owned timeout cleanup guards; no public image or container execution.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_bootstrap_runtime_bindings.py",
+        "tests/validate_bootstrap_runtime.py",
+        "extensions/program-kit-governance/examples/bootstrap-runtime/**",
+        "scripts/build_dependency_qualification.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique synthetic payload/archive and mocked Docker fixtures; actual public qualification remains explicit."
+    },
+    {
+      "id": "validate_settings_authorities",
+      "command": ["{python}", "tests/validate_settings_authorities.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Independent package and OCI Host settings authority, applicable scope/import completeness, bounded source provenance and receiver-ready rejection guards; no registry or runtime qualification claim.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_settings_authorities.py",
+        "tests/validate_w3_packaged_handoff.py",
+        "tests/fixtures/application-handoff-native-w3/**",
+        "tests/validate_application_handoff.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/application_handoff.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/handoff_contract.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/verify_handoff.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/*settings*.schema.json",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/handoff-index.schema.json"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique synthetic package, OCI layer and portable receiver fixtures; actual packaged/native acceptance is separately retained."
     },
     {
       "id": "validate_application_handoff",

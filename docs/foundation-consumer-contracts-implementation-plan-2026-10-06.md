@@ -1,28 +1,10 @@
 # Foundation and consumer contracts implementation plan
 
-Date: 2026-10-06. Reusable implementation tranche integrated; qualification and public-default promotion remain in progress.
+Date: 2026-10-06. Direction confirmed by the user; implementation has not started.
 
 Implement reusable Foundation contracts and configuration, enforce physical modular boundaries in Program Kit, and migrate the consumer to bounded result delivery. The outcome is code whose required dependencies and mechanisms are established through public contracts, registration and tests, with ordinary source review covering responsibility ownership that compilation cannot prove.
 
 The [first audit](C:/Users/tech_/Code/program-kit/docs/reviews/consumer-coding-standards-audit-2026-10-06.md) and [second audit](C:/Users/tech_/Code/program-kit/docs/reviews/consumer-foundation-contracts-audit-2026-10-06.md) provide the diagnosis. This plan adds the user's decisions that persistence entities belong only to the provider and large results must be paged/chunked rather than admitted as enormous HTTP responses.
-
-
-## Common Program Kit branch integration status (2026-10-06)
-
-The committed Foundation-contracts tranche6ae93b5 is integrated with handoff source9cb7298
-on codex/human-infrastructure-handoff. Combined targeted checks and 74/74 bounded
-Development checks pass with chromium,webkit; see the execution journals and
-artifacts/validation-runs/20261006T153453Z-060b3e58/journal.json. Both acceptance controls and all
-validation-inventory entries are retained, and original compatibility fixture bytes
-remain unchanged. This merged tranche is reviewable but remains in progress.
-
-Remaining work: W3's publisher-owned settings scopes, Foundation Host/package and
-publication qualification, selected Build pin rendering, fresh candidate/public
-profile inputs and native lock/recipe/availability/Forms/Host/sealed evidence/default
-promotion, then final combined validation and clean/pushed-tree checks. The concurrent
-owner performs its remaining planned Program Kit edits on the same common branch
-after safely switching its clean checkout. No Program Kit Release/publication or
-consumer migration authority is supplied by this merge.
 
 ## Repositories and execution boundaries
 

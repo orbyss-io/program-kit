@@ -276,3 +276,141 @@ evidence and default promotion, then final combined Development/clean-tree check
 All further Program Kit product work must use this common branch after the concurrent
 owner safely switches its clean checkout. No original checkout, Foundation or real
 consumer was edited here; no publication, tag, paid worker or complete Release ran.
+
+## Resumed W3 implementation and user sequencing (2026-10-06)
+
+The user requires W3 to be finished in the current implementation before a completed
+checkpoint. The earlier suggestion to carry wider metadata into the later patch series
+is withdrawn. Work now uses the common Program Kit branch in the original checkout and
+the authoritative isolated Foundation source, under the explicit cross-repository
+authorization and recorded coordination. De Zaaglijst stays strictly read-only.
+
+Foundation publication is authorized now after its qualification/release gates; Program Kit
+publication waits for the additional patches and jointly specified Notes fixture. Those
+patches will run in a fresh user session. No new Notes, paid worker, public default promotion
+or complete Program Kit Release run is authorized here. Candidate5 F6, native image and
+PK2A passes are preserved as pre-W3 evidence, not relabeled for this changed payload.
+
+The inspected upstream contracts can now be implemented without a source-access gate:
+all nine exact CShells/Nuplane native DLLs match their captured official archives and owning
+source commits. Those packages emit no settings metadata. A Foundation-owned Host binding
+producer records exact vendor-origin provenance and finite metadata-only source snapshots;
+it does not claim vendor publisher emission or fork vendor runtime behavior.
+
+Explicit additive amendment: new source/output schema2 supports real nullable/object/nested
+settings and compiled dependency imports. Published Build0.2.0/schema1 and the named Json
+scope preserve their meanings. A new independently versioned Build tool is required.
+The native receiver rechecks selected package/assembly metadata and the exact Host OCI
+index/manifest/config/ordered-layer chain, sources and native origins outside the toolkit.
+Actual selected feature/configuration scopes, imports and all Host scopes remain required;
+missing contracts still prevent ready output.
+
+Source owners are recorded in the cross-repository execution journal. Root adds Host
+transport/boot declarations and the build/publish assembler; the startup flags use typed
+options with the original true defaults. Authentication/Keycloak/profile declarations bind
+real typed source and imported Authentication metadata. Wider source/native/installed and
+actual independent receiver acceptance is underway; W3 is not yet marked complete.
+
+Root's Host metadata assembly integrity guards pass16 groups. Runtime inventory fail-firsts
+demonstrate that release-payload, development-profile and public Host checks previously
+ignored metadata-source snapshots. Corrected payload self-test, nine development-profile
+checks and67 public Host binding/capture groups pass, preserving prior failures and receipts.
+Evidence paths and exact implementation checks are in the cross-repository journal.
+Pre-W3 bounded Development passed75/75; final integrated W3 validation remains required.
+
+Installed private Build schema2 acceptance now passes34 observations, including actual public
+Build0.2 fail-first, native constructed defaults, imported nominal types, recursive secrets,
+finite graph/encoding bounds and no initializer execution. Independent Build0.3.0 is selected;
+published0.2 remains immutable. Full native Host binding acceptance passes69 defaults across15
+types,11 binding checks and8 stale/provenance guards, retaining all9 official native archives.
+Actual no-build Host publication rejects a forged default behind consistent hashes without
+recompilation or changing accepted outputs; removing only the typed guard reproduces admission.
+Portable receiver root/ancestor layer whiteouts are qualified with12 authority groups and11
+handoff tests. Evidence and earlier failures are retained in the cross-repository journal.
+Fresh runtime archive/image/no-toolkit READY and final bounded Development still remain;
+these intermediate passes do not mark W3 complete or publish a package.
+
+Final frozen-source diagnostics pass80 native authentication cases and220 compiled-default,
+binding and boundary checks across all18 non-Host package owners. The native PostgreSQL probe
+first rejected an inaccurate connection-timeout maximum; corrected metadata now matches
+Npgsql's1024-second cap. All diagnostic feeds/failures are preserved. Source/native Host,
+vendor defaults and installed graph evidence are recorded in the cross-repository journal.
+Portable process receipts distinguish cleanup policy from actual descendant observation;
+13 authority groups and six bounded OCI-adapter structural tests pass. Final committed-source
+packages, Host/image/no-toolkit READY acceptance and bounded Development remain required.
+
+## Committed W3 producers and receiver acceptance (2026-10-07; in progress)
+
+Foundation W3 source is committed asbd363c0 and merged/pushed as
+9f188270f99543684268515c3a0cde146ec08417 after successful Linux/Windows PR and main CI.
+Only four CI environment lines differ from the candidate source; private6 archives retain
+their actualbd363c0 nuspec provenance. All23 focused validators,31 installed descriptor and23
+settings/reference/resource checks, expanded graph and actual no-build forged-default rejection
+pass. Native qualification covers18 package owners/26 scopes (220 checks),80 authentication
+cases and Host's four scopes/102 snapshots/nine exact native origins. Vendor acceptance covers
+69 defaults/11 binding checks/8 stale guards. Detailed results and hashes remain in the
+cross-repository journal; no historical evidence is relabeled.
+
+Fresh private6 actual Host/Nuplane/two-shell/PostgreSQL F6 and ordinary custom problem
+composition pass. All88 archives/139 runtime files remain unchanged; exact amd64 OCI image
+startup, payload/native binding, UID1654, no downloads and observed cleanup pass. Actual
+PK2A private6 preparation/verification uses immutable recipev4. Public default/index remain
+unchanged; new Build3 public profile/catalog is unregistered.
+
+Separately authorized Foundation Build0.3.0 officially publishes through successful full
+tool Release37545647468 at9f18827. Actual NuGet SHA256
+a33b71cbe36351c3f351f0d28a06d9414e59637986bac8780ba14c164d211b0d matches every validated
+workflow payload entry, with only the repository signature added. Evidence:
+artifacts/foundation-build-release-0.3.0-37545647468/result.json. Runtime0.3.0 is still
+unpublished; exact corrected same-tag approval is pending under AGENTS.md. No Program Kit
+publication, complete Release run, paid worker, new Notes or consumer write occurs.
+
+Actual no-toolkit native READY qualification is still in progress. Preserved failures exposed
+full-F6 versus actual-consumer package selection, POSIX layer filenames, relative child-cwd
+tool inputs, absent API operation identity and credential-detector false positives in public
+package documentation. Exact selected native closure, POSIX-only in-memory image admission,
+CLI boundary normalization and stable native operation identity are corrected. Narrow
+credential context/placeholder handling and regressions are under independent review.
+Required scopes and exact package/image/native/source authorities remain enforced.
+
+Integrated W3 Development first passes75/76; the sole obsolete Notes guard used now-qualified
+private6 as unreviewed. The negative now explicitly selects unqualified99; no Notes runtime
+starts. Subsequent POSIX-fixed Development passes76/76 at
+artifacts/validation-runs/20261006T231028Z-ff5b44a6/journal.json. Actual READY and a fresh
+Development run on the current shipped credential correction remain required before W3 is
+marked complete and the requested checkpoint is pushed.
+
+## W3 completed implementation checkpoint (2026-10-07)
+
+Actual private6 native READY passes at artifacts/w3-packaged-handoff-candidate6-8/result.json,
+SHA256bd52a040b57941fced8195e40a7d4271473f2a706f8b8fed123aa83a1ba314f1.
+The independent Python -I receiver outside source/toolkit verifies all receiver references and
+hashes; archive SHA2565134c2ac7f31cf382e1762e03b7cf8ff8ff5f19ee9206d88f8eccdb336ca797d.
+All17 native stages exit0 with observed Windows descendant cleanup. Native ordinary/locked
+restore/build/pack, actual typed application settings validation/export, cold OpenAPI/client,
+bundle/receiver assembly run after toolkit removal. All15 applicable setting contracts include
+the four real Host scopes, bound to exact package/assembly/import and OCI/native/source authority.
+The actual consumer closure is60 archives; all88 separate F6 inputs rehash unchanged.
+No application/storage/identity initialization, Notes, paid worker or public availability is claimed.
+
+Credential/context review preserves all fail-firsts, then passes26 authority/11 handoff checks
+and all337 text members from60 actual selected archives. Narrow full-literal source placeholders
+and the complete fictional C# connection template admit public documentation only; real values,
+modified/partial examples, escaping/concatenation, JSON defaults/arrays and separate credentials
+still reject. No package/path/single-password exemption exists. Detailed logs/decisions are in the
+cross-repository journal and artifacts/w3-handoff-authorities/credential-context-*.log.
+
+Final bounded Development passes76/76 with exactSDK202/Node24.20.0/npm11.19.0 and Chromium/WebKit:
+artifacts/validation-runs/20261006T234945Z-7d5568c5/journal.json. Root log:
+artifacts/foundation-w3-checkpoint-development-credential-fixed.log. The journal records precommit
+HEAD0982b57/treeff3bc90, not an exact-commit Release receipt; final implementation was staged and
+subsequent changes are non-shipped progress documentation. Firefox remains CI authority.
+
+W1–W5 are now implemented and qualified for applicable supported outputs; W3 is no longer
+deferred. The plan reflects current completion while retaining historical scope/evidence.
+Foundation source is clean/pushed9f18827 with main CI green; Build0.3.0 is officially verified
+published. Runtime same-tag exact-commit approval/full Release/public availability remains a
+separate gate. Additional patches run in a fresh user session; new Notes waits until those are
+complete and its purpose/run procedure is jointly specified. Program Kit public/default/Release
+gates and the strictly read-only real consumer remain unchanged. Cross-repository work is not
+declared complete. Clean common-branch checkpoint source and push results follow below.

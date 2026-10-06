@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import copy
 import io
+import importlib.util
 import json
 from pathlib import Path
 import shutil
@@ -31,6 +32,54 @@ import json_schema
 IDENTITY = 'synthetic-additive-contracts-profile'
 CORE = 'nuget:Orbyss.Foundation.Authentication.Core'
 AUTH = 'nuget:Orbyss.Foundation.Authentication'
+
+
+class GeneratedEngineeringPinsTests(unittest.TestCase):
+    def setUp(self):
+        source = ROOT / 'extensions/program-kit-dotnet/scripts/dependency_profile.py'
+        spec = importlib.util.spec_from_file_location('catalog_pin_renderer', source)
+        self.renderer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.renderer)
+        registry = blocks.profile_registry() / 'catalogs/foundation-0-3-0-contracts'
+        self.target = blocks.load_json(next(registry.glob('target-*.json')))
+        self.base = blocks.load_json(blocks.default_catalog(Path(blocks.__file__)))
+        self.content = (ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props').read_bytes()
+
+    def render(self, catalog, content=None):
+        with patch.object(self.renderer, 'retained_catalog', return_value=catalog):
+            return self.renderer.render(ROOT, 'eng/ProgramKit.Packages.props',
+                                        self.content if content is None else content)
+
+    def test_selected_catalog_generates_independent_build_and_analyzer_pins(self):
+        original = copy.deepcopy(self.target)
+        generated = ET.fromstring(self.render(self.target))
+        pins = {node.attrib['Include']: node.attrib['Version'] for node in generated.iter('PackageVersion')}
+        self.assertEqual('0.2.0', pins['Orbyss.Foundation.Build'])
+        self.assertEqual('0.3.0', pins['Orbyss.Foundation.Analyzers'])
+        self.assertEqual(self.target, original)
+        with patch.object(self.renderer, 'retained_catalog', return_value=self.target):
+            retained = self.renderer.render(ROOT, 'eng/building-blocks.catalog.json', b'{}')
+        self.assertEqual(self.target, json.loads(retained))
+
+    def test_missing_or_duplicate_selected_build_pin_rejects_managed_rendering(self):
+        line = b'    <PackageVersion Include="Orbyss.Foundation.Build" Version="0.1.0" />'
+        self.assertEqual(1, self.content.count(line))
+        for content in (self.content.replace(line, b''), self.content.replace(line, line + b'\n' + line)):
+            with self.subTest(content=content), self.assertRaisesRegex(ValueError, 'builder pin.*exactly once'):
+                self.render(self.target, content)
+
+    def test_historical_catalog_preserves_unregistered_build_pin_and_unrelated_content(self):
+        self.assertNotIn('nuget:Orbyss.Foundation.Build', self.base['packages'])
+        generated = ET.fromstring(self.render(self.base))
+        pins = {node.attrib['Include']: node.attrib['Version'] for node in generated.iter('PackageVersion')}
+        self.assertEqual('0.1.0', pins['Orbyss.Foundation.Build'])
+        for identity, version in pins.items():
+            if identity != 'Orbyss.Foundation.Analyzers':
+                original = next(node.attrib['Version'] for node in ET.fromstring(self.content).iter('PackageVersion')
+                                if node.attrib['Include'] == identity)
+                self.assertEqual(original, version)
+        with patch.object(self.renderer, 'retained_catalog', return_value=None):
+            self.assertEqual(self.content, self.renderer.render(ROOT, 'eng/ProgramKit.Packages.props', self.content))
 
 
 class OfficialToolBindingTests(unittest.TestCase):

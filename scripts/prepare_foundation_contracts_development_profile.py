@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
 import building_blocks as blocks
 
-RECIPE = ROOT / 'extensions/program-kit-building-blocks/references/foundation-contracts-development-v1.json'
+RECIPE = ROOT / 'extensions/program-kit-building-blocks/references/foundation-contracts-development-v4.json'
 HELD_KINDS = {'dotnet-tool', 'nuget-global-analyzer', 'host-image'}
 OUTPUTS = ('profile.json', 'catalog.json', 'supplemental-packages.json', 'runtime-packages.props')
 
@@ -41,9 +41,14 @@ def host_runtime_inventory(host: Path) -> dict[str, str]:
     required = {host.name, host.stem + '.deps.json', host.stem + '.runtimeconfig.json', 'appsettings.json'}
     require(all((host.parent / name).is_file() for name in required), 'private Host runtime/configuration closure is incomplete')
     files = set(host.parent.glob('*.dll'))
-    files.update(host.parent.glob('*.deps.json'))
-    files.update(host.parent.glob('*.runtimeconfig.json'))
+    files.update(host.parent.glob('*.json'))
     files.add(host.parent / 'appsettings.json')
+    profile_configuration = host.parent / '.orbyss-foundation'
+    if profile_configuration.is_dir():
+        files.update(profile_configuration.glob('*.json'))
+        metadata_sources = profile_configuration / 'settings-sources'
+        if metadata_sources.is_dir():
+            files.update(path for path in metadata_sources.rglob('*.txt') if path.is_file())
     runtimes = host.parent / 'runtimes'
     if runtimes.is_dir():
         files.update(path for path in runtimes.rglob('*') if path.is_file())
@@ -128,7 +133,7 @@ def inventory(feed: Path) -> tuple[dict[str, str], dict[str, dict]]:
 def f6_inputs(result_path: Path, feed: Path, host: Path, version: str, selected_recipe: dict) -> tuple[dict, dict, dict]:
     result, inputs = read(result_path), read(result_path.parent / 'inputs.json')
     require(result.get('status') == 'passed' and result.get('version') == version
-            and all(result.get(key) is True for key in ('actualHost', 'actualNugetPackages', 'actualPostgreSql', 'twoShells', 'historicalEvidencePreserved')),
+            and all(result.get(key) is True for key in ('actualHost', 'actualNugetPackages', 'actualPostgreSql', 'twoShells', 'neutralHost', 'actualCustomProblemComposition', 'historicalEvidencePreserved')),
             'F6 must pass actual packages, Host, PostgreSQL and two-shell qualification for this exact version')
     require(result.get('publicAvailabilityEstablished', False) is False, 'private F6 cannot establish public availability')
     require(inputs.get('version') == version and inputs.get('sourceProjectReferences') is False,

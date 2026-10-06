@@ -5,6 +5,7 @@ consumer architecture, migration, compatibility, or publication approval.
 """
 from __future__ import annotations
 import argparse
+import importlib.util
 import json
 from pathlib import Path
 import sys
@@ -21,6 +22,21 @@ import validate_default_dependency_profile as native_qualifier
 def require(condition, detail):
     if not condition:
         raise ValueError('Incomplete dependency qualification: ' + detail)
+
+
+def verify_named_host_evidence(host: Path, result: dict) -> None:
+    """Recheck retained image, archive, native provenance and cleanup bytes before sealing."""
+    require(blocks.load_json(host / 'runtime-inputs.json') == result['inputs'],
+            'named Host retained inputs differ from the claimed profile/catalog')
+    path = ROOT / 'extensions/program-kit-governance/examples/bootstrap-runtime/runtime_probe.py'
+    spec = importlib.util.spec_from_file_location('qualified_public_host_contract', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    require(module.contracts_profile(result['inputs']), 'named Host contract profile differs')
+    module.verify_published_host_evidence(host, result)
+    for name, field in (('runtime-package-inputs.json', 'runtimePackageInputsSha256'),
+                        ('runtime-shared-bindings.json', 'runtimeSharedBindingsSha256')):
+        require(blocks.raw_sha256(host / name) == result.get(field), 'named Host manifest alias changed')
 
 
 def verify_official_tool_evidence(native: Path, source: dict, selected: dict) -> None:
@@ -104,6 +120,8 @@ def build(profile: Path, native: Path, browser: Path, availability: Path, host: 
     summary = {'stages': browser_stages, 'profile': browser_profile, 'engines': browser_result['engines']}
     host_result = blocks.load_json(host / 'qualification-result.json')
     require(host_result.get('satisfied') is True and host_result['inputs']['catalogResolutionSha256'] == selected['catalogResolutionSha256'], 'host profile differs')
+    if explicit:
+        verify_named_host_evidence(host, host_result)
     host_artifact = next(p for p in available['artifacts'] if p['packageKey'] == 'oci:ghcr.io/orbyss-io/foundation-host')
     require(host_result['inputs']['hostImage'] == host_artifact['reference'] and
             host_result['inputs']['foundationRelease'] == selected['families']['foundation']['releaseVersion'], 'host image or runtime pin differs')

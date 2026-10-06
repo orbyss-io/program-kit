@@ -1,16 +1,24 @@
 # Foundation contracts development candidate
 
-The named recipe [foundation-contracts-development-v1.json](foundation-contracts-development-v1.json)
-selects `0.3.0-contracts.20261006.2` explicitly. Qualification requires the private runtime package/Host path
+The named recipe [foundation-contracts-development-v4.json](foundation-contracts-development-v4.json)
+selects `0.3.0-contracts.20261006.6` explicitly. The prior v1, v2 and v3 recipes remain preserved for historical evidence.
+Qualification requires the private runtime package/Host path
 through actual F6 managed-host, Nuplane, two-shell and PostgreSQL tests. The public dependency registry,
 its selected default and historical qualification receipts remain authoritative for public adoption.
+
+The Host supplies native ASP.NET status handling and shares only its two CShells contracts.
+Each shell selects its Foundation or custom problem mechanisms. Foundation authentication and typed
+JSON retain their shared bounded failures; an unowned root route uses the native platform status response.
+Configure `WebRouting.Path` explicitly, including an empty path for a root shell, when native routing
+failures must use that shell's representation. Foundation runtime archives stay in the actual loader
+feed; their assemblies are not forced into the Host.
 
 Prepare only after F6 writes a successful `result.json` alongside its matching `inputs.json`:
 
 ```powershell
 python scripts/prepare_foundation_contracts_development_profile.py prepare `
-  --profile foundation-contracts-0.3.0-contracts.20261006.2-development `
-  --version 0.3.0-contracts.20261006.2 `
+  --profile foundation-contracts-0.3.0-contracts.20261006.6-development `
+  --version 0.3.0-contracts.20261006.6 `
   --f6-result <F6-run>/result.json `
   --packages <F6-run>/feed `
   --host <exact-private-host>/Orbyss.Foundation.Host.dll `
@@ -19,7 +27,7 @@ python scripts/prepare_foundation_contracts_development_profile.py prepare `
 
 The helper verifies the complete live feed against F6 hashes, reads actual nuspec identities/versions,
 and checks the Host plus its adjacent native loader assemblies, dependency/runtime configuration and
-copied application settings. Swapping those dependencies behind an unchanged Host DLL invalidates the
+all root JSON settings, optional web-profile configuration and native runtime assets. Swapping those dependencies behind an unchanged Host DLL invalidates the
 evidence. It generates `profile.json` and `catalog.json` through the maintained
 dependency profile overlay adapters, preserving composition choices. `runtime-packages.props` uses the
 maintained central-pin renderer and admits each generated pin only when its exact package exists in the
@@ -39,7 +47,7 @@ restoring or qualifying their disposable scenario:
 
 ```powershell
 python scripts/prepare_foundation_contracts_development_profile.py verify `
-  --profile foundation-contracts-0.3.0-contracts.20261006.2-development `
+  --profile foundation-contracts-0.3.0-contracts.20261006.6-development `
   --directory artifacts/foundation-contracts-development-profile `
   --f6-result <F6-run>/result.json `
   --packages <F6-run>/feed `

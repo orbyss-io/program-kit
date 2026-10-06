@@ -93,4 +93,10 @@ def render(root: Path, relative: str, content: bytes) -> bytes:
     text, count = re.subn(r'(Include="Orbyss.Foundation.Analyzers" Version=")[^"]+("\s*/>)', lambda m: m[1] + pin + m[2], content.decode('utf-8'))
     if count != 1:
         raise ValueError('Managed analyzer pin must occur exactly once')
+    builder = catalog['packages'].get('nuget:Orbyss.Foundation.Build')
+    if builder is not None:
+        text, count = re.subn(r'(Include="Orbyss.Foundation.Build" Version=")[^"]+("\s*/>)',
+                             lambda match: match[1] + builder['version'] + match[2], text)
+        if count != 1:
+            raise ValueError('Managed builder pin must occur exactly once')
     return text.encode('utf-8')

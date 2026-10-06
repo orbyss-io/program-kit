@@ -173,6 +173,8 @@ def verify_document(document: dict, evidence: dict, directory: Path, closure: Pa
     require(all(side_effects.get(key) is False for key in ('listenerStarted', 'consumerHostedServicesStarted', 'shellInitializersRun')),
             'Metadata export started application execution.')
     operation = document.get('paths', {}).get('/probe/sample', {}).get('post', {})
+    require(operation.get('operationId') == 'PublishedTools_CreateSample',
+            'Native fixture operation must retain its stable declared API identity.')
     contracts = operation.get('x-foundation-json-contracts', [])
     require(len(contracts) == 2, 'Actual official export omitted typed JSON metadata.')
     require({(value['direction'], value['profile'], value['preset'], value['maximumBytes']) for value in contracts}
@@ -263,12 +265,16 @@ def qualify(args) -> Path:
                            'sha256': hashlib.sha256(archive.read('lib/net10.0/PublishedTools.Contract.Api.dll')).hexdigest()}
     # Observe actual published Build rejection of an unreviewed but compilable wire change.
     wire = source / 'Api/SampleRequest.cs'
-    original = wire.read_text(encoding='utf-8')
-    wire.write_text(original.replace('SampleRequest(string Text)', 'SampleRequest(string Text, int UnreviewedValue = 0)'), encoding='utf-8')
-    output = run([args.dotnet, 'pack', str(source / 'Api/PublishedTools.Contract.Api.csproj'), '-c', 'Release', '--no-build', '--no-restore',
-                  '--output', str(work / 'rejected-pack'), *properties], source, work / 'unreviewed-source-rejection.log', environment, expected=1)
-    require('Publisher metadata source binding changed: SampleRequest.cs' in output, 'Official Build did not reject the changed wire contract specifically.')
-    wire.write_text(original, encoding='utf-8')
+    original = wire.read_bytes()
+    wire.write_bytes(original.replace(b'SampleRequest(string Text)', b'SampleRequest(string Text, int UnreviewedValue = 0)'))
+    try:
+        output = run([args.dotnet, 'pack', str(source / 'Api/PublishedTools.Contract.Api.csproj'), '-c', 'Release', '--no-build', '--no-restore',
+                      '--output', str(work / 'rejected-pack'), *properties], source, work / 'unreviewed-source-rejection.log', environment, expected=1)
+        require('Publisher metadata source binding changed: SampleRequest.cs' in output, 'Official Build did not reject the changed wire contract specifically.')
+    finally:
+        wire.write_bytes(original)
+    require(wire.read_bytes() == (FIXTURE / 'Api/SampleRequest.cs').read_bytes(),
+            'Negative probe did not restore exact fixture source bytes.')
     dependency_project = source / 'RuntimeClosure.csproj'
     dependency_project.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>'
         '<RestoreEnablePackagePruning>false</RestoreEnablePackagePruning></PropertyGroup><ItemGroup>'

@@ -36,6 +36,26 @@ ORACLE_SCENARIO = 'foundation-notes-v1'
 PROJECTS = ('Notes.Core', 'Notes', 'Notes.Api', 'Notes.PostgreSql')
 FIXTURE_VERSION = '1.0.0-fixture.1'
 HOST_CONTRACT_PACKAGES = {'cshells.abstractions', 'cshells.aspnetcore.abstractions'}
+HOST_SHARED_PACKAGES = {
+    'cshells.abstractions': 'CShells.Abstractions.dll',
+    'cshells.aspnetcore.abstractions': 'CShells.AspNetCore.Abstractions.dll',
+    'orbyss.foundation.web.problemdetails': 'Orbyss.Foundation.Web.ProblemDetails.dll',
+    'orbyss.foundation.web.problemdetails.core': 'Orbyss.Foundation.Web.ProblemDetails.Core.dll',
+    'orbyss.foundation.json': 'Orbyss.Foundation.Json.dll',
+    'orbyss.foundation.collections.core': 'Orbyss.Foundation.Collections.Core.dll',
+}
+HOST_NATIVE_SHARED_PACKAGES = {identity: HOST_SHARED_PACKAGES[identity] for identity in sorted(HOST_CONTRACT_PACKAGES)}
+HOST_BINDING_SCHEMES = {
+    '0.3.0-contracts.20261006.4': HOST_SHARED_PACKAGES,
+    '0.3.0-contracts.20261006.5': HOST_NATIVE_SHARED_PACKAGES,
+    '0.3.0-contracts.20261006.6': HOST_NATIVE_SHARED_PACKAGES,
+}
+# Immutable CShells147 archives from the independently retained public-preview
+# restore. Current Host admission cannot accept a resealed altered native archive.
+HOST_PUBLIC_CSHELLS_HASHES = {
+    'cshells.abstractions': '4191cb931317d52f0b7532ac16c2bc22f71f6a37653685730207fd2f52fab945',
+    'cshells.aspnetcore.abstractions': 'ae3ab1fd4cdb49212f39104a0d798bf89bb9fd85361d72d6f529b56a66e5f482',
+}
 BEHAVIOR_SEEDS = ('private-claim-parsing', 'profile-bypass', 'shared-concurrent-context', 'programming-error-400', 'inconsistent-envelope')
 GRAPH_SEEDS = {'merged-roles': 'Binding capability must have a Core role:',
                'missing-bindings': 'Unlisted active capability binding:'}
@@ -87,6 +107,430 @@ def apply_seed(source: Path, name: str) -> None:
 def require(value, message):
     if not value:
         raise AssertionError(message)
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def copy_notes_runtime_feed(feed: Path, target: Path, host: Path, f6_inputs: dict, version: str,
+                            *, recipe_id: str | None = None) -> list[dict]:
+    """Admit the complete portable F6 bindings before writing an owned native runtime feed."""
+    require(not target.exists(), 'Runtime roots must use a new owned directory.')
+    require(f6_inputs.get('version') == version, 'F6 shared bindings select another Foundation version.')
+    require(version in HOST_BINDING_SCHEMES, 'Notes requires an explicitly reviewed Host binding version.')
+    archived = version == '0.3.0-contracts.20261006.4'
+    require(recipe_id == 'foundation-contracts-' + version or (archived and recipe_id is None),
+            'The selected recipe does not own this exact Host binding scheme.')
+    shared_packages = HOST_BINDING_SCHEMES[version]
+    bindings = f6_inputs.get('hostProvidedSharedPackages')
+    require(isinstance(bindings, list) and len(bindings) == len(shared_packages),
+            'The complete exact Host-provided F6 shared binding set is required.')
+    package_hashes = f6_inputs.get('packages')
+    require(isinstance(package_hashes, dict) and package_hashes, 'The full F6 archive inventory is missing.')
+    host_hashes = f6_inputs.get('hostRuntimeFiles')
+    require(isinstance(host_hashes, dict) and host_hashes, 'The retained F6 Host inventory is missing.')
+    require(host.is_file() and f6_inputs.get('host', {}).get('sha256') == file_sha256(host)
+            and host_hashes.get(host.name) == file_sha256(host), 'The retained Host differs from F6 bindings.')
+    if not archived:
+        require(f6_inputs.get('hostProvidedContractPackages') == sorted(HOST_CONTRACT_PACKAGES),
+                'Current F6 must retain exactly the two native Host contract identities.')
+        configuration = host.parent / 'appsettings.json'
+        dependencies = host.parent / (host.stem + '.deps.json')
+        for path in (configuration, dependencies):
+            require(path.is_file() and host_hashes.get(path.name) == file_sha256(path),
+                    'The native Host configuration/dependencies differ from F6 bindings.')
+        expected_policy = [{'Name': assembly[:-4], 'PublicKeyToken': None, 'MajorVersion': 0}
+                           for assembly in shared_packages.values()]
+        selected_policy = json.loads(configuration.read_text(encoding='utf-8')).get('Nuplane', {}).get('Loading', {}).get('SharedAssemblies')
+        require(isinstance(selected_policy, list) and len(selected_policy) == len(expected_policy)
+                and all(isinstance(row, dict) and set(row) == {'Name', 'PublicKeyToken', 'MajorVersion'}
+                        and isinstance(row.get('Name'), str) and row.get('PublicKeyToken') is None and type(row.get('MajorVersion')) is int
+                        and row['MajorVersion'] == 0 for row in selected_policy)
+                and sorted(row['Name'] for row in selected_policy) == sorted(row['Name'] for row in expected_policy),
+                'The current Host shared assembly policy differs from the two-contract scheme.')
+        native_libraries = json.loads(dependencies.read_text(encoding='utf-8')).get('libraries', {})
+        require(isinstance(native_libraries, dict), 'Native Host package dependency metadata is missing.')
+        for identity in shared_packages:
+            observed = [(name.rsplit('/', 1)[1], value.get('type')) for name, value in native_libraries.items()
+                        if '/' in name and name.rsplit('/', 1)[0].casefold() == identity]
+            require(observed == [('0.0.29-preview.147', 'package')], 'The current Host selects another native contract version.')
+        require(not any(name.rsplit('/', 1)[0].casefold().startswith('orbyss.foundation.')
+                        and name.rsplit('/', 1)[0].casefold() != 'orbyss.foundation.host'
+                        for name in native_libraries)
+                and not any(Path(name.replace('\\', '/')).name.casefold().startswith('orbyss.foundation.')
+                            and Path(name.replace('\\', '/')).suffix.casefold() == '.dll'
+                            and name.casefold() != host.name.casefold()
+                            for name in host_hashes), 'The neutral Host retains a Foundation runtime representation dependency.')
+
+    def safe_archive(name):
+        return isinstance(name, str) and re.fullmatch(r'[^/\\:\x00-\x1f]+\.nupkg', name) is not None
+
+    def digest(value):
+        return isinstance(value, str) and re.fullmatch(r'[0-9a-f]{64}', value) is not None
+
+    archives = {path.name: path for path in feed.glob('*.nupkg')}
+    require(len({name.casefold() for name in archives}) == len(archives), 'Runtime archive names are ambiguous.')
+    require(all(safe_archive(name) and digest(expected) for name, expected in package_hashes.items())
+            and len({name.casefold() for name in package_hashes}) == len(package_hashes),
+            'The full F6 archive inventory has unsafe or ambiguous bindings.')
+    for name, expected in package_hashes.items():
+        require(name in archives and file_sha256(archives[name]) == expected,
+                'The full retained feed differs from F6-qualified archive bytes: ' + name)
+    by_identity = {}
+    for binding in bindings:
+        require(isinstance(binding, dict), 'A Host shared binding is malformed.')
+        identity = binding.get('identity')
+        require(isinstance(identity, str) and identity in shared_packages and identity not in by_identity,
+                'A Host shared binding has an unknown or duplicate identity.')
+        assembly = shared_packages[identity]
+        expected_version = '0.0.29-preview.147' if identity in HOST_CONTRACT_PACKAGES else version
+        archive = binding.get('archive')
+        require(binding.get('version') == expected_version and binding.get('omittedRuntimeRoot') is True,
+                'A Host shared binding has the wrong exact version or ownership.')
+        require(safe_archive(archive) and archive in package_hashes
+                and binding.get('archiveSha256') == package_hashes[archive],
+                'A Host shared archive is not bound to the full F6 input feed.')
+        if not archived:
+            require(binding['archiveSha256'] == HOST_PUBLIC_CSHELLS_HASHES[identity],
+                    'A native Host contract differs from its immutable public-preview archive.')
+            restored = f6_inputs.get('freshRestoredPackages')
+            require(isinstance(restored, dict) and restored.get(archive) == binding['archiveSha256'],
+                    'A native Host contract was not retained by the qualified fresh package restore.')
+        require(binding.get('assemblyPath') == 'lib/net10.0/' + assembly and binding.get('hostAssembly') == assembly,
+                'A Host shared binding selects the wrong native assembly.')
+        expected = binding.get('assemblySha256')
+        require(digest(expected) and host_hashes.get(assembly) == expected
+                and (host.parent / assembly).is_file() and file_sha256(host.parent / assembly) == expected,
+                'A Host shared DLL differs from the retained verified Host payload.')
+        by_identity[identity] = binding
+    require(set(by_identity) == set(shared_packages), 'The Host shared identity set is incomplete.')
+    observed_shared, runtime_packages = set(), []
+    for package in archives.values():
+        try:
+            with zipfile.ZipFile(package) as archive:
+                nuspecs = [entry for entry in archive.namelist() if entry.endswith('.nuspec')]
+                require(len(nuspecs) == 1, 'Runtime archive metadata is missing or ambiguous: ' + package.name)
+                metadata = ET.fromstring(archive.read(nuspecs[0]))
+                identity = metadata.find('./{*}metadata/{*}id').text.casefold()
+                if not archived and identity.startswith('orbyss.foundation.'):
+                    require(metadata.find('./{*}metadata/{*}version').text == version,
+                            'A Foundation runtime archive selects another exact candidate version.')
+                if not archived and package.name not in package_hashes:
+                    require(identity in {project.casefold() for project in PROJECTS}
+                            and metadata.find('./{*}metadata/{*}version').text == FIXTURE_VERSION,
+                            'An unqualified archive supplements the full F6 feed.')
+                if identity in shared_packages:
+                    require(identity not in observed_shared, 'A Host shared identity has multiple native archives.')
+                    binding = by_identity[identity]
+                    require(package.name == binding['archive']
+                            and metadata.find('./{*}metadata/{*}version').text == binding['version'],
+                            'Native Host shared archive identity/version differs from its F6 binding.')
+                    require(archive.namelist().count(binding['assemblyPath']) == 1,
+                            'The exact shared native assembly is missing or duplicated.')
+                    assembly_hash = hashlib.sha256()
+                    with archive.open(binding['assemblyPath']) as stream:
+                        for block in iter(lambda: stream.read(1024 * 1024), b''):
+                            assembly_hash.update(block)
+                    require(assembly_hash.hexdigest() == binding['assemblySha256'],
+                            'Native shared archive DLL differs from the retained verified Host.')
+                    observed_shared.add(identity)
+                else:
+                    runtime_packages.append(package)
+        except (zipfile.BadZipFile, ET.ParseError, AttributeError) as error:
+            raise AssertionError('Invalid native runtime archive metadata: ' + package.name) from error
+    require(observed_shared == set(shared_packages), 'Native shared archive closure is incomplete.')
+    target.mkdir()
+    for package in runtime_packages:
+        shutil.copy2(package, target / package.name)
+    return [dict(by_identity[identity]) for identity in sorted(by_identity)]
+
+
+def self_test_host_bindings() -> None:
+    """Exercise portable evidence admission without launching Host or importing Foundation source."""
+    version, cshells_version = '0.3.0-contracts.20261006.4', '0.0.29-preview.147'
+
+    def write_archive(path, identity, package_version, assembly, payload):
+        with zipfile.ZipFile(path, 'w') as archive:
+            archive.writestr(identity + '.nuspec', f'<package><metadata><id>{identity}</id><version>{package_version}</version></metadata></package>')
+            archive.writestr('lib/net10.0/' + assembly, payload)
+
+    def fixture(directory):
+        feed, host = directory / 'feed', directory / 'host/Orbyss.Foundation.Host.dll'
+        feed.mkdir(parents=True)
+        host.parent.mkdir()
+        host.write_bytes(b'synthetic-host')
+        inputs = {'version': version, 'host': {'sha256': file_sha256(host)},
+                  'hostRuntimeFiles': {host.name: file_sha256(host)}, 'packages': {}, 'hostProvidedSharedPackages': []}
+        for identity, assembly in HOST_SHARED_PACKAGES.items():
+            payload = ('synthetic:' + assembly).encode()
+            (host.parent / assembly).write_bytes(payload)
+            selected_version = cshells_version if identity in HOST_CONTRACT_PACKAGES else version
+            name = identity + '.' + selected_version + '.nupkg'
+            write_archive(feed / name, identity, selected_version, assembly, payload)
+            inputs['packages'][name] = file_sha256(feed / name)
+            inputs['hostRuntimeFiles'][assembly] = hashlib.sha256(payload).hexdigest()
+            inputs['hostProvidedSharedPackages'].append({'identity': identity, 'version': selected_version,
+                'archive': name, 'archiveSha256': inputs['packages'][name],
+                'assemblyPath': 'lib/net10.0/' + assembly, 'hostAssembly': assembly,
+                'assemblySha256': inputs['hostRuntimeFiles'][assembly], 'omittedRuntimeRoot': True})
+        write_archive(feed / 'external.nupkg', 'External', '1.0.0', 'External.dll', b'external')
+        inputs['packages']['external.nupkg'] = file_sha256(feed / 'external.nupkg')
+        # Notes packages supplement the complete F6 input feed; they remain runtime roots.
+        write_archive(feed / 'notes.nupkg', 'Notes', FIXTURE_VERSION, 'Notes.dll', b'notes')
+        return feed, host, inputs
+
+    negatives = ('missing-bindings', 'missing-identity', 'duplicate-identity', 'unknown-identity',
+                 'wrong-version', 'wrong-native-version', 'wrong-native-identity', 'missing-host',
+                 'changed-host', 'missing-archive', 'changed-archive', 'missing-full-feed',
+                 'changed-full-feed', 'wrong-assembly-path', 'unsafe-archive')
+    with tempfile.TemporaryDirectory(prefix='notes-host-bindings-') as temporary:
+        directory = Path(temporary).resolve()
+        require(directory.is_relative_to(Path(tempfile.gettempdir()).resolve()), 'The binding fixture is outside its owned temporary directory.')
+        for name in negatives:
+            feed, host, inputs = fixture(directory / name)
+            binding = next(entry for entry in inputs['hostProvidedSharedPackages'] if entry['identity'] == 'orbyss.foundation.collections.core')
+            package = feed / binding['archive']
+            if name == 'missing-bindings':
+                del inputs['hostProvidedSharedPackages']
+            elif name == 'missing-identity':
+                inputs['hostProvidedSharedPackages'].remove(binding)
+            elif name == 'duplicate-identity':
+                inputs['hostProvidedSharedPackages'].append(copy.deepcopy(binding))
+            elif name == 'unknown-identity':
+                binding['identity'] = 'unexpected.library'
+            elif name == 'wrong-version':
+                binding['version'] = '0.3.0-other'
+            elif name in ('wrong-native-version', 'wrong-native-identity', 'changed-archive'):
+                write_archive(package, binding['identity'] if name != 'wrong-native-identity' else 'Unexpected.Library',
+                    binding['version'] if name != 'wrong-native-version' else '0.3.0-other', binding['hostAssembly'],
+                    (host.parent / binding['hostAssembly']).read_bytes() if name != 'changed-archive' else b'changed')
+                binding['archiveSha256'] = inputs['packages'][package.name] = file_sha256(package)
+            elif name == 'missing-host':
+                (host.parent / binding['hostAssembly']).rename(host.parent / 'preserved-missing.dll')
+            elif name == 'changed-host':
+                (host.parent / binding['hostAssembly']).write_bytes(b'changed')
+            elif name == 'missing-archive':
+                package.rename(feed / 'preserved-missing.zip')
+            elif name == 'missing-full-feed':
+                (feed / 'external.nupkg').rename(feed / 'preserved-external.zip')
+            elif name == 'changed-full-feed':
+                (feed / 'external.nupkg').write_bytes(b'changed')
+            elif name == 'wrong-assembly-path':
+                binding['assemblyPath'] = 'lib/net8.0/' + binding['hostAssembly']
+            else:
+                binding['archive'] = '../' + package.name
+            try:
+                copy_notes_runtime_feed(feed, feed.parent / 'runtime', host, inputs, version)
+            except AssertionError:
+                pass
+            else:
+                raise AssertionError('Runtime admitted invalid F6 shared binding: ' + name)
+            require(not (feed.parent / 'runtime').exists(), 'Invalid binding mutated runtime roots before admission: ' + name)
+        feed, host, inputs = fixture(directory / 'matching')
+        original = {path.name: file_sha256(path) for path in feed.glob('*.nupkg')}
+        admitted = copy_notes_runtime_feed(feed, feed.parent / 'runtime', host, inputs, version)
+        require(len(admitted) == 6 and {entry['identity'] for entry in admitted} == set(HOST_SHARED_PACKAGES),
+                'The complete exact Host shared binding set was not retained.')
+        require({path.name for path in (feed.parent / 'runtime').glob('*.nupkg')} == {'external.nupkg', 'notes.nupkg'},
+                'Runtime roots must exclude only the exact six Host-provided archives.')
+        require(original == {path.name: file_sha256(path) for path in feed.glob('*.nupkg')}, 'Runtime preparation changed the archived full feed.')
+    print('Notes Host shared binding guards passed; fifteen invalid proofs fail before runtime mutation. No native loading qualification is claimed.')
+
+
+def self_test_neutral_host_bindings() -> None:
+    """A neutral Host shares only two native contracts; Foundation remains in package roots."""
+    from unittest.mock import patch
+    version = '0.3.0-contracts.20261006.5'
+    recipe_id = 'foundation-contracts-' + version
+    native_shared = {identity: HOST_SHARED_PACKAGES[identity] for identity in sorted(HOST_CONTRACT_PACKAGES)}
+
+    def fixture(directory):
+        feed, host = directory / 'feed', directory / 'host/Orbyss.Foundation.Host.dll'
+        feed.mkdir(parents=True)
+        host.parent.mkdir()
+        host.write_bytes(b'neutral-host')
+        inputs = {'version': version, 'host': {'sha256': file_sha256(host)},
+                  'hostRuntimeFiles': {host.name: file_sha256(host)}, 'packages': {},
+                  'hostProvidedSharedPackages': [], 'freshRestoredPackages': {},
+                  'hostProvidedContractPackages': sorted(HOST_CONTRACT_PACKAGES)}
+        public_hashes = {}
+        for identity, assembly in HOST_SHARED_PACKAGES.items():
+            payload = ('native:' + assembly).encode()
+            native = identity in HOST_CONTRACT_PACKAGES
+            package_version = '0.0.29-preview.147' if native else version
+            name = identity + '.' + package_version + '.nupkg'
+            with zipfile.ZipFile(feed / name, 'w') as archive:
+                archive.writestr(identity + '.nuspec', f'<package><metadata><id>{identity}</id><version>{package_version}</version></metadata></package>')
+                archive.writestr('lib/net10.0/' + assembly, payload)
+            inputs['packages'][name] = file_sha256(feed / name)
+            if native:
+                (host.parent / assembly).write_bytes(payload)
+                inputs['hostRuntimeFiles'][assembly] = hashlib.sha256(payload).hexdigest()
+                inputs['freshRestoredPackages'][name] = inputs['packages'][name]
+                public_hashes[identity] = inputs['packages'][name]
+                inputs['hostProvidedSharedPackages'].append({'identity': identity, 'version': package_version,
+                    'archive': name, 'archiveSha256': inputs['packages'][name], 'assemblyPath': 'lib/net10.0/' + assembly,
+                    'hostAssembly': assembly, 'assemblySha256': inputs['hostRuntimeFiles'][assembly], 'omittedRuntimeRoot': True})
+        for name, value in {
+            'appsettings.json': {'Nuplane': {'Loading': {'SharedAssemblies': [
+                {'Name': assembly[:-4], 'PublicKeyToken': None, 'MajorVersion': 0} for assembly in native_shared.values()]}}},
+            'Orbyss.Foundation.Host.deps.json': {'libraries': {assembly[:-4] + '/0.0.29-preview.147': {'type': 'package'}
+                                                            for assembly in native_shared.values()}},
+        }.items():
+            (host.parent / name).write_text(json.dumps(value), encoding='utf-8')
+            inputs['hostRuntimeFiles'][name] = file_sha256(host.parent / name)
+        with zipfile.ZipFile(feed / 'Notes.1.0.0-fixture.1.nupkg', 'w') as archive:
+            archive.writestr('Notes.nuspec', '<package><metadata><id>Notes</id><version>1.0.0-fixture.1</version></metadata></package>')
+        return feed, host, inputs, public_hashes
+
+    with tempfile.TemporaryDirectory(prefix='notes-neutral-host-bindings-') as temporary:
+        directory = Path(temporary)
+        feed, host, inputs, public_hashes = fixture(directory / 'matching')
+        before = {path.name: file_sha256(path) for path in feed.glob('*.nupkg')}
+        with patch.dict(globals(), {'HOST_PUBLIC_CSHELLS_HASHES': public_hashes}):
+            admitted = copy_notes_runtime_feed(feed, feed.parent / 'runtime', host, inputs, version, recipe_id=recipe_id)
+        require({entry['identity'] for entry in admitted} == set(native_shared), 'Neutral Host admitted another shared identity set.')
+        require({path.name for path in (feed.parent / 'runtime').glob('*.nupkg')}
+                == set(before) - {entry['archive'] for entry in admitted}, 'Neutral Host omitted Foundation application inputs.')
+        require(before == {path.name: file_sha256(path) for path in feed.glob('*.nupkg')}, 'Neutral Host mutated the full input feed.')
+        negatives = {
+            'missing-bindings': 'complete exact', 'extra-archived-binding': 'complete exact',
+            'duplicate-identity': 'unknown or duplicate', 'unknown-identity': 'unknown or duplicate',
+            'wrong-version': 'exact version', 'wrong-recipe': 'selected recipe', 'unreviewed-version': 'reviewed Host binding version',
+            'missing-fresh-public-restore': 'qualified fresh package restore', 'resealed-native-archive': 'immutable public-preview',
+            'changed-native-dll': 'DLL differs', 'resealed-native-dll': 'Native shared archive DLL differs',
+            'missing-native-dll': 'DLL differs', 'wrong-native-path': 'wrong native assembly', 'unsafe-archive': 'full F6 input feed',
+            'missing-full-feed': 'full retained feed differs', 'changed-full-feed': 'full retained feed differs',
+            'missing-host-configuration': 'configuration/dependencies differ', 'extra-configured-shared-identity': 'shared assembly policy differs',
+            'missing-configured-shared-identity': 'shared assembly policy differs', 'duplicate-configured-shared-identity': 'shared assembly policy differs',
+            'wrong-shared-major': 'shared assembly policy differs', 'wrong-native-deps-version': 'native contract version',
+            'missing-native-deps': 'native contract version', 'foundation-host-dependency': 'Foundation runtime representation dependency',
+            'foundation-host-dll': 'Foundation runtime representation dependency', 'unqualified-extra-archive': 'supplements the full F6 feed',
+            'foundation-authentication-dll': 'Foundation runtime representation dependency',
+            'foundation-native-execution-dll': 'Foundation runtime representation dependency',
+            'foundation-native-host-dll': 'Foundation runtime representation dependency',
+            'foundation-execution-dependency': 'Foundation runtime representation dependency',
+            'mixed-foundation-runtime-version': 'another exact candidate version',
+        }
+        for name, diagnostic in negatives.items():
+            feed, host, inputs, public_hashes = fixture(directory / name)
+            binding = inputs['hostProvidedSharedPackages'][0]
+            archive_path = feed / binding['archive']
+            selected_version, selected_recipe = version, recipe_id
+
+            def rewrite_configuration(filename, mutate):
+                path = host.parent / filename
+                value = json.loads(path.read_text(encoding='utf-8'))
+                mutate(value)
+                path.write_text(json.dumps(value), encoding='utf-8')
+                inputs['hostRuntimeFiles'][filename] = file_sha256(path)
+
+            if name == 'missing-bindings':
+                del inputs['hostProvidedSharedPackages']
+            elif name == 'extra-archived-binding':
+                inputs['hostProvidedSharedPackages'].append({'identity': 'orbyss.foundation.json'})
+            elif name == 'duplicate-identity':
+                inputs['hostProvidedSharedPackages'][1] = copy.deepcopy(binding)
+            elif name == 'unknown-identity':
+                binding['identity'] = 'unexpected.library'
+            elif name == 'wrong-version':
+                binding['version'] = '0.0.29-preview.148'
+            elif name == 'wrong-recipe':
+                selected_recipe = 'foundation-contracts-0.3.0-contracts.20261006.4'
+            elif name == 'unreviewed-version':
+                selected_version = inputs['version'] = '0.3.0-contracts.20261006.99'
+                require(selected_version not in HOST_BINDING_SCHEMES,
+                        'The unreviewed-version seed must remain outside qualified binding selections.')
+                selected_recipe = 'foundation-contracts-' + selected_version
+            elif name == 'missing-fresh-public-restore':
+                inputs['freshRestoredPackages'].pop(binding['archive'])
+            elif name == 'resealed-native-archive':
+                with zipfile.ZipFile(archive_path, 'a') as archive:
+                    archive.writestr('unexpected-content', b'changed')
+                binding['archiveSha256'] = inputs['packages'][binding['archive']] = file_sha256(archive_path)
+                inputs['freshRestoredPackages'][binding['archive']] = binding['archiveSha256']
+            elif name in ('changed-native-dll', 'resealed-native-dll'):
+                (host.parent / binding['hostAssembly']).write_bytes(b'changed')
+                if name == 'resealed-native-dll':
+                    binding['assemblySha256'] = inputs['hostRuntimeFiles'][binding['hostAssembly']] = file_sha256(host.parent / binding['hostAssembly'])
+            elif name == 'missing-native-dll':
+                (host.parent / binding['hostAssembly']).rename(host.parent / 'preserved-missing.dll')
+            elif name == 'wrong-native-path':
+                binding['assemblyPath'] = 'lib/net8.0/' + binding['hostAssembly']
+            elif name == 'unsafe-archive':
+                binding['archive'] = '../' + binding['archive']
+            elif name in ('missing-full-feed', 'changed-full-feed'):
+                package = next(path for path in feed.glob('orbyss.foundation.json.*.nupkg'))
+                if name == 'missing-full-feed':
+                    package.rename(feed / 'preserved-package.zip')
+                else:
+                    package.write_bytes(b'changed')
+            elif name == 'missing-host-configuration':
+                (host.parent / 'appsettings.json').rename(host.parent / 'preserved-settings.txt')
+            elif name in ('extra-configured-shared-identity', 'missing-configured-shared-identity', 'duplicate-configured-shared-identity', 'wrong-shared-major'):
+                def change(value):
+                    shared = value['Nuplane']['Loading']['SharedAssemblies']
+                    if name == 'extra-configured-shared-identity':
+                        shared.append({'Name': 'Orbyss.Foundation.Json', 'PublicKeyToken': None, 'MajorVersion': 0})
+                    elif name == 'missing-configured-shared-identity':
+                        shared.pop()
+                    elif name == 'duplicate-configured-shared-identity':
+                        shared[1] = copy.deepcopy(shared[0])
+                    else:
+                        shared[0]['MajorVersion'] = 1
+                rewrite_configuration('appsettings.json', change)
+            elif name in ('wrong-native-deps-version', 'missing-native-deps', 'foundation-host-dependency', 'foundation-execution-dependency'):
+                def change(value):
+                    libraries = value['libraries']
+                    if name == 'foundation-host-dependency':
+                        libraries['Orbyss.Foundation.Json/' + version] = {'type': 'project'}
+                    elif name == 'foundation-execution-dependency':
+                        libraries['orbyss.FOUNDATION.Execution/' + version] = {'type': 'package'}
+                    else:
+                        key = next(iter(libraries))
+                        entry = libraries.pop(key)
+                        if name == 'wrong-native-deps-version':
+                            libraries[key.rsplit('/', 1)[0] + '/0.0.29-preview.148'] = entry
+                rewrite_configuration('Orbyss.Foundation.Host.deps.json', change)
+            elif name in ('foundation-host-dll', 'foundation-authentication-dll',
+                          'foundation-native-execution-dll', 'foundation-native-host-dll'):
+                relative = {
+                    'foundation-host-dll': 'Orbyss.Foundation.Json.dll',
+                    'foundation-authentication-dll': 'orbyss.FOUNDATION.Authentication.DLL',
+                    'foundation-native-execution-dll': 'runtimes/linux-x64/lib/net10.0/orbyss.FOUNDATION.Execution.DLL',
+                    'foundation-native-host-dll': 'runtimes/linux-x64/lib/net10.0/Orbyss.Foundation.Host.dll',
+                }[name]
+                path = host.parent / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b'coupled-runtime')
+                inputs['hostRuntimeFiles'][relative] = file_sha256(path)
+            elif name == 'mixed-foundation-runtime-version':
+                path = next(feed.glob('orbyss.foundation.json.*.nupkg'))
+                with zipfile.ZipFile(path) as archive:
+                    entries = {entry: archive.read(entry) for entry in archive.namelist()}
+                nuspec = next(entry for entry in entries if entry.endswith('.nuspec'))
+                entries[nuspec] = entries[nuspec].replace(version.encode(), b'0.3.0-contracts.20261006.4')
+                with zipfile.ZipFile(path, 'w') as archive:
+                    for entry, content in entries.items():
+                        archive.writestr(entry, content)
+                inputs['packages'][path.name] = file_sha256(path)
+            else:
+                with zipfile.ZipFile(feed / 'unexpected.nupkg', 'w') as archive:
+                    archive.writestr('Unexpected.nuspec', '<package><metadata><id>Unexpected</id><version>1.0.0</version></metadata></package>')
+            try:
+                with patch.dict(globals(), {'HOST_PUBLIC_CSHELLS_HASHES': public_hashes}):
+                    copy_notes_runtime_feed(feed, feed.parent / 'runtime', host, inputs, selected_version, recipe_id=selected_recipe)
+            except AssertionError as error:
+                require(diagnostic in str(error), 'Invalid neutral Host failed without its intended diagnostic: ' + name + ': ' + str(error))
+            else:
+                raise AssertionError('Neutral Host admitted invalid evidence: ' + name)
+            require(not (feed.parent / 'runtime').exists(), 'Invalid neutral Host proof mutated runtime roots: ' + name)
+    print(f'Notes neutral Host binding guards passed: one positive and {len(negatives)} precise negatives; archived six-binding guards retained. No native qualification is claimed.')
 
 
 def recipe():
@@ -148,6 +592,8 @@ def validate_source(source: Path) -> None:
 
 
 def self_test() -> None:
+    self_test_host_bindings()
+    self_test_neutral_host_bindings()
     validate_source(FIXTURE)
     cases = seed_cases()
     for name, (relative, mutate) in cases.items():
@@ -329,16 +775,6 @@ def qualify(args, evidence: Path, source: Path) -> None:
             'Qualification requires the independently supplied disposable PostgreSQL database; never use a consumer database.')
     runtime = evidence / 'runtime'
     runtime.mkdir()
-    runtime_feed = runtime / 'packages'
-    runtime_feed.mkdir()
-    # Preserve the complete F6 feed for proof/restore. Native activation shares
-    # these exact contracts from Host and must not load a second archive identity.
-    for package in (evidence / 'packages').glob('*.nupkg'):
-        with zipfile.ZipFile(package) as archive:
-            nuspec = next(entry for entry in archive.namelist() if entry.endswith('.nuspec'))
-            identity = ET.fromstring(archive.read(nuspec)).find('./{*}metadata/{*}id').text
-        if identity.lower() not in HOST_CONTRACT_PACKAGES:
-            shutil.copy2(package, runtime_feed / package.name)
     host = Path(args.host).resolve()
     require(host.is_file() and (host.parent / 'appsettings.json').is_file(), 'The actual Foundation Host output is missing.')
     f6_inputs_path = Path(args.f6_evidence).resolve().parent / 'inputs.json'
@@ -374,6 +810,11 @@ def qualify(args, evidence: Path, source: Path) -> None:
         require(hashlib.sha256(copied.read_bytes()).hexdigest() == expected_hash,
                 'Notes Host snapshot differs from admitted F6 inputs.')
     qualified_host = host_snapshot / host.name
+    # The selected immutable recipe owns the exact shared set. Archived4 retains
+    # six; neutral5 shares only two native contracts and loads Foundation normally.
+    shared_bindings = copy_notes_runtime_feed(evidence / 'packages', runtime / 'packages',
+                                            qualified_host, f6_inputs, args.version, recipe_id=selected['recipeId'])
+    (evidence / 'runtime-shared-bindings.json').write_text(json.dumps(shared_bindings, indent=2) + '\n', encoding='utf-8')
     shutil.copy2(host_snapshot / 'appsettings.json', runtime / 'appsettings.json')
     address, issuer = 'http://127.0.0.1:' + str(free_port()), 'http://127.0.0.1:' + str(free_port())
     (runtime / 'shells.json').write_text(json.dumps(settings(issuer), indent=2), encoding='utf-8')
@@ -422,7 +863,8 @@ def qualify(args, evidence: Path, source: Path) -> None:
         'developmentProfile': args.profile_identity,
         'developmentEvidenceSha256': hashlib.sha256((Path(args.development_profile) / 'evidence.json').read_bytes()).hexdigest(),
         'hostSha256': hashlib.sha256(qualified_host.read_bytes()).hexdigest(),
-        'hostRuntimeFiles': host_runtime_files, 'executedHost': str(qualified_host), 'processCleanup': cleanup}
+        'hostRuntimeFiles': host_runtime_files, 'hostProvidedSharedPackages': shared_bindings,
+        'executedHost': str(qualified_host), 'processCleanup': cleanup}
     (evidence / 'result.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     print('Actual Notes package/Host/PostgreSQL/native OIDC oracle passed: ' + str(evidence))
 

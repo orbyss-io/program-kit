@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "recipeId": "foundation-contracts-0.3.0-contracts.20261006.5",
+  "profileId": "foundation-contracts-0.3.0-contracts.20261006.5-development",
+  "foundationVersion": "0.3.0-contracts.20261006.5",
+  "scope": "Exact private Foundation runtime packages and neutral Host payload qualified by F6; shells select Foundation representation explicitly, while native root status handling remains platform-owned. Public tools, analyzer and OCI pins remain at the established stable profile.",
+  "supplementalRuntimePackages": [
+    "Orbyss.Foundation.Authentication.Core",
+    "Orbyss.Foundation.Collections.Core",
+    "Orbyss.Foundation.Execution",
+    "Orbyss.Foundation.Execution.Core",
+    "Orbyss.Foundation.PostgreSql",
+    "Orbyss.Foundation.Web.ProblemDetails.Core"
+  ],
+  "independentPackages": {
+    "Orbyss.Foundation.Build": "0.1.0"
+  },
+  "compatibility": {
+    "validatedIssuerClaim": "urn:orbyss-foundation:authentication:validated-issuer",
+    "validatedSubjectClaim": "urn:orbyss-foundation:authentication:validated-subject",
+    "identityAdmission": "Exactly one authenticated identity and one nonempty validated issuer/subject pair; projection claims survive native claim actions.",
+    "problemEnvelope": "Foundation-selected mechanisms use correlationId with traceId compatibility alias and native shared domain mapping. The neutral Host's unowned status responses remain platform-owned.",
+    "canonicalBytes": "Existing canonical-v1 schema order, normalization, bytes, hashes and replay identities remain application-owned and unchanged.",
+    "persistence": "Provider-owned native contexts use independent nonpooled factories inside tracked shell leases; cancellation does not establish rollback or commit certainty.",
+    "json": "Typed strict request and bounded success/problem profiles; server output failures remain safe server failures before success commitment."
+  },
+  "publicAvailabilityEstablished": false,
+  "publicHostAvailabilityEstablished": false,
+  "defaultPromotionPerformed": false
+}

@@ -62,7 +62,10 @@ exporter commands. Do not infer metadata from sample hostsettings values. Secret
 have exported defaults/examples. The selected SPA-PKCE structural schema is included when present,
 but does not establish complete framework semantics. Publisher-owned Foundation/CShells/Nuplane
 metadata is a required upstream dependency; absent coverage stays explicit and blocks ready output.
-Declare every required owner/scope in requiredSettingsScopes, including each applicable shell.
+Declare application-owned and schema1 required owner/scopes in requiredSettingsScopes,
+including each applicable shell. Schema2 package metadata also supplies source-bound
+applicability: selected feature identities or configured section prefixes make its scopes
+required, imported scopes remain required, and Host scopes always apply to the selected Host.
 Do not delete required scopes simply to make a release green.
 
 Build stages artifacts and runs the existing API compatibility/client pipeline; staging alone is
@@ -118,9 +121,39 @@ runtime-closure package, verifies ID/version/hash and its compiled assembly bind
 and carries the unchanged publisher metadata under metadata/settings/ for readers.
 Required settings ownership is the publisher package ID plus its declared scope.
 Publisher source hashes are package-owned provenance, not paths in the application.
-Keep applicable host/shell/Nuplane requirements until their owners deliver coverage;
-Json's code-construction scope does not satisfy those requirements. Build 0.2.0 is a
-source candidate, not an available public dependency; no selection/version pins change here.
+Json's code-construction scope does not satisfy applicable Host/shell/Nuplane requirements.
+Historical schema1 metadata and references retain their original meaning.
+
+Schema2 package references use the same fields with `schemaVersion: 2`. They admit
+nullable and nested settings and imported defaults bound to the actual selected owning
+package, metadata bytes and implementation assembly. Select only an independently
+qualified Build/runtime release; adding format support alone does not change package pins.
+
+The selected Foundation Host supplies its own offline binding metadata at
+`/app/.orbyss-foundation/host-settings.json`. For each actual Host scope, include a
+consumer-owned reference among `settings.files`:
+
+```json
+{"schemaVersion":2,"kind":"foundation-host-image","scope":"host-transport","evidencePath":"contracts/host-oci/evidence.json","evidenceSha256":"<sha256 of retained evidence>"}
+```
+
+The evidence names the exact descriptor's immutable Host image reference and selected
+platform, plus contained paths/hashes for the OCI index when present, manifest, config
+and every ordered layer. Its `nativePackages` records retain each native origin's exact
+package ID/version, contained archive path and SHA256 separately from application
+packages/component selections. Retain those bytes from that actual image and its
+proven native package closure. The assembler and
+independent receiver verify the hash chain, sizes, layer content and overwrite/whiteout
+semantics, compiled Host/native origin assemblies and metadata source snapshots.
+Host binding metadata is owned by Foundation's integration producer; vendor origins
+identify their actual packages, source commits and source bytes. An extracted JSON file
+or Docker image ID alone cannot establish this authority. Missing Host contracts or
+unverified evidence keep the handoff incomplete; no sample defaults fill the gap.
+
+Schema2 receiver archives include both `verify_handoff.py` and `handoff_contract.py`.
+Keep them together when running the verifier outside the source/toolkit. The index
+records the settings authority inputs so the receiver independently rechecks actual
+package, Host and applicable/imported scope completeness.
 
 Settings admission is bounded: 2 MiB metadata, 32 publisher contracts, 512 source hashes,
 256 settings/default items, 128 semantic/precedence strings, 4 Ki-character declaration

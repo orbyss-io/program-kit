@@ -336,6 +336,25 @@ class HandoffTests(unittest.TestCase):
         with zipfile.ZipFile(malicious,'w') as z:z.writestr('../outside','bad')
         with self.assertRaisesRegex(ValueError,'PKH002'):handoff.archive_members(malicious.getvalue(),'bad.zip')
 
+    def test_schema_two_defaults_are_finite_typed_and_nullable(self):
+        import copy
+        metadata=copy.deepcopy(self.metadata);metadata['schemaVersion']=2
+        metadata['appliesTo']={'kind':'code','features':[],'configuration':[]}
+        item=metadata['settings'][0];item.update(type='object',default={'Nested':{'Limit':4,'Names':['one','two']}})
+        handoff.validate_settings_metadata(metadata)
+        item.update(type='string',default=None,constraints={'nullable':True})
+        handoff.validate_settings_metadata(metadata)
+        for mutate in [lambda v:v['settings'][0].update(constraints={}),
+                       lambda v:v['settings'][0].update(secret=True),
+                       lambda v:v['settings'][0].update(type='number',default=float('inf')),
+                       lambda v:v['settings'][0].update(type='object',default={'nested':[float('nan')]}),
+                       lambda v:v['settings'][0].update(type='object',default={'nested':'x'*16385}),
+                       lambda v:v['settings'][0].update(type='object',default={'nested':list(range(257))})]:
+            bad=copy.deepcopy(metadata);mutate(bad)
+            with self.assertRaisesRegex(ValueError,'PKH006|PKH007'):handoff.validate_settings_metadata(bad)
+        old=copy.deepcopy(metadata);old['schemaVersion']=1;del old['appliesTo']
+        with self.assertRaisesRegex(ValueError,'PKH007'):handoff.validate_settings_metadata(old)
+
 
 if __name__ == '__main__':
     unittest.main()

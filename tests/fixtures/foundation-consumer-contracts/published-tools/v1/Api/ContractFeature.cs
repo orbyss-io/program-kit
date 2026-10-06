@@ -31,5 +31,6 @@ public sealed class ContractFeature : IWebShellFeature
     /// <inheritdoc />
     public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment) =>
         endpoints.MapPost("/sample", (HttpContext http, SampleEndpoint endpoint) => endpoint.HandleAsync(http))
+            .WithName("PublishedTools_CreateSample")
             .WithJsonRequest<SampleRequest>().WithJsonResponse<SampleResponse>();
 }

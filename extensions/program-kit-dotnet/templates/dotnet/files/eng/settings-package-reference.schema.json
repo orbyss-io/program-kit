@@ -1,38 +1,79 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://orbyss.io/program-kit/settings-package-reference.schema.json",
-  "type": "object",
-  "required": [
-    "schemaVersion",
-    "kind",
-    "packageId",
-    "packageVersion",
-    "packageSha256",
-    "scope"
-  ],
-  "properties": {
-    "schemaVersion": {
-      "const": 1
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "kind",
+        "packageId",
+        "packageVersion",
+        "packageSha256",
+        "scope"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "enum": [
+            1,
+            2
+          ]
+        },
+        "kind": {
+          "const": "foundation-package"
+        },
+        "packageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packageVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packageSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
     },
-    "kind": {
-      "const": "foundation-package"
-    },
-    "packageId": {
-      "type": "string",
-      "minLength": 1
-    },
-    "packageVersion": {
-      "type": "string",
-      "minLength": 1
-    },
-    "packageSha256": {
-      "type": "string",
-      "pattern": "^[a-f0-9]{64}$"
-    },
-    "scope": {
-      "type": "string",
-      "minLength": 1
+    {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "kind",
+        "scope",
+        "evidencePath",
+        "evidenceSha256"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 2
+        },
+        "kind": {
+          "const": "foundation-host-image"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "evidencePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\:]).+$"
+        },
+        "evidenceSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
     }
-  },
-  "additionalProperties": false
+  ]
 }

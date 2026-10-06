@@ -31,8 +31,15 @@ class DevelopmentProfileTests(unittest.TestCase):
         self.f6.mkdir()
         self.host = self.root / 'Orbyss.Foundation.Host.dll'
         self.host.write_bytes(b'unit-test-private-host')
-        for name in ('Orbyss.Foundation.Host.deps.json', 'Orbyss.Foundation.Host.runtimeconfig.json', 'appsettings.json'):
+        for name in ('Orbyss.Foundation.Host.deps.json', 'Orbyss.Foundation.Host.runtimeconfig.json', 'appsettings.json',
+                     'hostsettings.json', 'shells.json', 'Orbyss.Foundation.Host.staticwebassets.endpoints.json'):
             (self.root / name).write_text('{}', encoding='utf-8')
+        web_profile = self.root / '.orbyss-foundation/web-profile.shells.json'
+        web_profile.parent.mkdir()
+        web_profile.write_text('{}', encoding='utf-8')
+        owner_source = self.root / '.orbyss-foundation/settings-sources/host/Transport/Options.cs.txt'
+        owner_source.parent.mkdir(parents=True)
+        owner_source.write_text('qualified owner source', encoding='utf-8')
         (self.root / 'Nuplane.Loading.dll').write_bytes(b'unit-test-native-loader')
         self.native = self.root / 'runtimes/win-x64/native/fixture-native.dll'
         self.native.parent.mkdir(parents=True)
@@ -53,7 +60,8 @@ class DevelopmentProfileTests(unittest.TestCase):
             'candidatePackageIdentities': sorted(identities), 'sourceProjectReferences': False,
             'postgresql': 'synthetic unit-test evidence only'}
         self.result = {'status': 'passed', 'version': self.version, 'actualHost': True,
-            'actualNugetPackages': True, 'actualPostgreSql': True, 'twoShells': True,
+            'actualNugetPackages': True, 'actualPostgreSql': True, 'twoShells': True, 'neutralHost': True,
+            'actualCustomProblemComposition': True,
             'historicalEvidencePreserved': True}
         write(self.f6 / 'inputs.json', self.inputs)
         write(self.f6 / 'result.json', self.result)
@@ -90,6 +98,8 @@ class DevelopmentProfileTests(unittest.TestCase):
     def test_f6_failed_malformed_version_and_project_reference_evidence_rejected(self):
         for mutate in (lambda value: value.update(status='failed'), lambda value: value.update(actualHost=False),
                        lambda value: value.update(actualPostgreSql=False), lambda value: value.update(twoShells=False),
+                       lambda value: value.update(neutralHost=False),
+                       lambda value: value.update(actualCustomProblemComposition=False),
                        lambda value: value.update(version='0.2.4')):
             changed = copy.deepcopy(self.result)
             mutate(changed)
@@ -121,6 +131,9 @@ class DevelopmentProfileTests(unittest.TestCase):
     def test_host_dependencies_and_configuration_cannot_change_behind_the_same_host_dll(self):
         self.prepare()
         for name in ('Nuplane.Loading.dll', 'appsettings.json', 'Orbyss.Foundation.Host.deps.json', 'Orbyss.Foundation.Host.runtimeconfig.json',
+                     'hostsettings.json', 'shells.json', 'Orbyss.Foundation.Host.staticwebassets.endpoints.json',
+                     '.orbyss-foundation/web-profile.shells.json',
+                     '.orbyss-foundation/settings-sources/host/Transport/Options.cs.txt',
                      self.native.relative_to(self.root).as_posix()):
             path = self.root / name
             original = path.read_bytes()
