@@ -216,3 +216,17 @@ published schema) passes, log settings-review-integration-final.log. Generated o
 under artifacts; source plan/journals record finite admission and incomplete scope boundaries.
 No public dependency selections, immutable artifacts, original checkouts or real consumers
 changed; no Release suite, publication, tags or paid workers ran.
+
+Additional independent review found encoded-output amplification before the 2 MiB check
+and unbounded DLL hash reads. Foundation follow-on bcf0b9f is pushed on the preserved repair
+branch. One fixed 2 MiB IBufferWriter now admits each setting before retaining another,
+encodes constraints/final output without unbounded strings, and streams admitted DLL hashes
+with a 256 MiB size cap. Installed single-array4,194,304-byte and multi-property1,061,158,912-byte
+theoretical output expansions reject during encoding, preserving metadata/package output.
+Exact final evidence: settings-build/tmp5hkdpj78/results.json, feature-build/tmpl00xi6k5/
+descriptor-validation.json, settings-owner/tmpx0udxd2a/results.json under the isolated Foundation
+artifacts directory. Actual final Json/Collections/schema/independent receiver integration passes
+in settings-streaming-integration.log. Receiver product code is unchanged since the successful
+70/70 Development run at20261006T120358Z-02d878c1; this is supplementary publisher evidence,
+not a Release receipt. Older5ef/0cd candidates remain preserved and require the follow-on before
+integration; newer runtimecf495f7 overlay/Host/F6/publication remains the authoritative owner's job.
