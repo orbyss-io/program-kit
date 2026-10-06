@@ -648,7 +648,7 @@ def main() -> int:
         "atomic_replace",
     )
     require_text(reconciliation, 'producer_reconciliation.py', 'catalog_transition', 'apply_catalog_transition')
-    require_text(extension_root / "scripts/implementation_preflight.py", "project", "render", "Compatibility option")
+    require_text(extension_root / "scripts/implementation_preflight.py", "check", "render", "Compatibility option")
     context_script = extension_root / "scripts/bootstrap_context.py"
     intake_script = extension_root / "scripts/bootstrap_intake.py"
     architecture_map_script = extension_root / "scripts/architecture_map.py"

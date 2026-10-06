@@ -56,7 +56,7 @@ def validate_hooks() -> None:
         "before_plan": ["speckit.program-kit-governance.phase-context"],
         "after_plan": ["speckit.program-kit-governance.architecture-check"],
         "before_tasks": ["speckit.program-kit-governance.phase-context"],
-        "after_tasks": ["speckit.analyze"],
+        "after_tasks": ["speckit.program-kit-governance.architecture-check", "speckit.analyze"],
         "before_implement": ["speckit.program-kit-governance.phase-context", "speckit.program-kit-governance.implementation-check"],
         "after_implement": ["speckit.program-kit-governance.architecture-check"],
     }
@@ -69,7 +69,7 @@ def validate_hooks() -> None:
         priorities = {
             "before_specify": [5, 10], "after_specify": [5, 10],
             "before_plan": [1], "after_plan": [5], "before_tasks": [1],
-            "after_tasks": [5], "before_implement": [1, 5], "after_implement": [5],
+            "after_tasks": [1, 5], "before_implement": [1, 5], "after_implement": [5],
         }
         if [entry["priority"] for entry in entries] != priorities[event]:
             raise AssertionError(f"{event} priorities are invalid")

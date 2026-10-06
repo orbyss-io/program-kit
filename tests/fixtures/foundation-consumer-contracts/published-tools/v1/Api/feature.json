@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "packageId": "PublishedTools.Contract.Api",
+  "features": [
+    {
+      "identity": "PublishedTools.Contract",
+      "featureDependencies": ["Orbyss.Foundation.Json.AspNetCore", "Orbyss.Foundation.Web.OpenApi"],
+      "runtimeDependencies": [],
+      "routes": ["/sample"],
+      "dormant": false,
+      "composeForOpenApi": true,
+      "requiresContractCoverage": true
+    }
+  ],
+  "sourceSha256": {}
+}

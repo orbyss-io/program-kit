@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "runtimeComposition": {
+    "projects": [
+      {
+        "path": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "role": "composition",
+        "feature": "frame-workbench",
+        "package": "DeZaaglijst.Workbench",
+        "assembly": "DeZaaglijst.Workbench",
+        "projectReferences": [],
+        "persistenceOwnerNamespaces": [
+          "DeZaaglijst.Workbench.Projectopslag"
+        ]
+      },
+      {
+        "path": "tests/Domain/DeZaaglijst.Domain.Tests.csproj",
+        "role": "test",
+        "projectReferences": [
+          "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+        ]
+      },
+      {
+        "path": "tests/Contracts/DeZaaglijst.Contracts.Tests.csproj",
+        "role": "test",
+        "projectReferences": [
+          "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+        ]
+      },
+      {
+        "path": "tests/Architecture/DeZaaglijst.Architecture.Tests.csproj",
+        "role": "test",
+        "projectReferences": [
+          "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+        ]
+      },
+      {
+        "path": "tests/Persistence/DeZaaglijst.Persistence.Tests.csproj",
+        "role": "test",
+        "projectReferences": [
+          "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+        ]
+      },
+      {
+        "path": "tests/Runtime/DeZaaglijst.Runtime.Tests.csproj",
+        "role": "test",
+        "projectReferences": [
+          "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+        ]
+      }
+    ],
+    "coreReferences": [],
+    "bindings": [
+      {
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "capability": "DeZaaglijst.Workbench.Core.Projectopslag.IProjectStorageReadiness",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "implementation": "DeZaaglijst.Workbench.Projectopslag.Persistence.SchemaCompatibility",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices"
+      },
+      {
+        "capability": "DeZaaglijst.Workbench.Core.Projectopslag.IOwnedProjectCreation",
+        "implementation": "DeZaaglijst.Workbench.Projectopslag.CreateOwnedProject",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+      },
+      {
+        "capability": "DeZaaglijst.Workbench.Core.Projectopslag.IOwnedFrameCreation",
+        "implementation": "DeZaaglijst.Workbench.Projectopslag.AddOwnedFrame",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+      },
+      {
+        "capability": "DeZaaglijst.Workbench.Core.Projectopslag.IOwnedProjectQuery",
+        "implementation": "DeZaaglijst.Workbench.Projectopslag.OwnedProjectQuery",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+      },
+      {
+        "capability": "DeZaaglijst.Workbench.Core.Wandinvoer.IWallDraftAdmission",
+        "implementation": "DeZaaglijst.Workbench.Wandinvoer.WallDraftAdmission",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+      },
+      {
+        "capability": "DeZaaglijst.Workbench.Core.Frameregels.IWallEvaluation",
+        "implementation": "DeZaaglijst.Workbench.Frameregels.WallEvaluator",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+      },
+      {
+        "capability": "DeZaaglijst.Workbench.Core.Werkdocumenten.IWallResultProjection",
+        "implementation": "DeZaaglijst.Workbench.Werkdocumenten.WallResultProjection",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj"
+      },
+      {
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capability": "DeZaaglijst.Workbench.Core.Projectopslag.IOwnedProjectRevisionQuery",
+        "implementation": "DeZaaglijst.Workbench.Projectopslag.OwnedProjectRevisionQuery"
+      },
+      {
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capability": "DeZaaglijst.Workbench.Core.Frameregels.IWallCanonicalEncoding",
+        "implementation": "DeZaaglijst.Workbench.Frameregels.WallCanonicalEncoding"
+      },
+      {
+        "capabilityProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "implementationProject": "src/DeZaaglijst.Workbench/DeZaaglijst.Workbench.csproj",
+        "registration": "DeZaaglijst.Workbench.Composition.WorkbenchFeature.ConfigureServices",
+        "capability": "DeZaaglijst.Workbench.Core.Projectopslag.IOwnedFrameRevisionMutation",
+        "implementation": "DeZaaglijst.Workbench.Projectopslag.OwnedProjectRevisionMutation"
+      }
+    ]
+  },
+  "namespacePolicy": {
+    "assembly": "DeZaaglijst.Workbench",
+    "core": "DeZaaglijst.Workbench.Core",
+    "modules": [
+      "Wandinvoer",
+      "Frameregels",
+      "Werkdocumenten",
+      "Projectopslag",
+      "Toegang"
+    ],
+    "composition": "DeZaaglijst.Workbench.Composition",
+    "adapters": "DeZaaglijst.Workbench.Api",
+    "coreExternalReferences": [
+      "System",
+      "Microsoft.CSharp"
+    ],
+    "allowedProjectReferences": [],
+    "allowedImplementationInheritance": []
+  }
+}

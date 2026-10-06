@@ -45,7 +45,8 @@ prefix. Tool downloads/remediation retain their existing authorization boundary.
 
 ## Modular DDD topology
 
-Apply `modularity-and-contracts.md` and `vertical-slicing.md`. A default solution graph is:
+Apply `modularity-and-contracts.md` and `vertical-slicing.md`. The required compilation graph, for
+the responsibilities actually present, is:
 
 ```text
 external Orbyss.Foundation.Host
@@ -76,6 +77,12 @@ layer. Project, package, and namespace names MUST NOT contain a generic `.Featur
 domain language and name an implementation by the behavior, protocol, provider, consumer/provider
 bridge, helper, or composition preset it contributes. A class such as `CatalogFeature` remains
 appropriate inside `PriceCalculator.Catalog`.
+
+Separate Core, runtime implementation, API and persistence projects even within one bounded context
+and deployment bundle. Package, feature activation and deployment decisions remain distinct from
+compiler boundaries. Composition selects runtime behavior rather than containing the implementations
+it selects. Namespace waivers and role relabeling cannot replace this rule. Pure Core utilities and
+empty initial repositories remain legitimate without invented runtime projects.
 
 `Application.Context.Core` defines the context's deliberately stable semantic surface: aggregates,
 entities, value objects, domain commands and queries, business result models, invariants, policies,
@@ -169,12 +176,39 @@ HTTP boundary. A web feature maps a feature-owned `RouteGroupBuilder` from
 `IWebShellFeature.MapEndpoints`; each slice contributes a small mapping method and co-located wire
 contracts, policies, handler/orchestration, and tests.
 
-For multiple operations, use `Operations/<Operation>/` inside the owning `.Api` project: place the
-endpoint mapping and the request, response, validation and mapping types that operation actually
-needs together. Mirror operation ownership in tests. `IWebShellFeature` composes registrations and
+Use `Operations/<Operation>/Endpoint.cs` inside the owning `.Api` project. Co-locate the actual
+`Request.cs`, `Response.cs`, admission and mapping types needed by that operation. Each endpoint owns
+its route and success/failure metadata; peer operations never call each other's implementation helpers.
+Resolve endpoint instances per request with explicit constructor dependencies on owned capabilities.
+Do not capture scoped endpoint instances during startup. Mirror operation ownership in tests.
+`IWebShellFeature` composes registrations and
 route mappings; it does not accumulate DTOs, validators or business orchestration. A small/bodyless
 operation may keep one simple mapping with a reviewed rationale; no mediator, handler class, empty
 request model or new layer is required. Keep domain behavior in its owned semantic capability.
+
+For example, `Operations/ReadNote/Endpoint.cs` can register a request-resolved instance while the
+feature registers its scoped endpoint and the selected implementation registers `INoteLookup`:
+
+```csharp
+internal sealed class Endpoint(INoteLookup notes)
+{
+    internal static void Map(RouteGroupBuilder group) => group.MapGet(
+        "/{id:guid}",
+        (Guid id, [FromServices] Endpoint endpoint, CancellationToken cancellation) =>
+            endpoint.Handle(id, cancellation));
+
+    private async Task<IResult> Handle(Guid id, CancellationToken cancellation)
+    {
+        var outcome = await notes.Read(id, cancellation);
+        return ResponseMapping.Map(outcome);
+    }
+}
+```
+
+The operation-owned `ResponseMapping` uses the selected qualified typed Foundation response budget
+and problem contribution contracts. This layout example does not supply that application mapping,
+authorization or metadata: each operation must define and test them. For a protected read, pass the
+admitted identity through the application-owned resource policy; do not parse provider claims here.
 
 Record stable operation identity, ownership, paths and behavior in the normal plan/tasks.
 Generate and compare OpenAPI through eng/ and test the actual operation contracts. Use ordinary
@@ -208,7 +242,11 @@ Before implementation, record the capability, its owning Core project, concrete 
 implementing project, registration entry point, and the implementation project's activated feature
 identity in the existing plan/tasks and the engineering composition configuration where applicable.
 No artifact-ownership runtimeComposition dossier is required. Endpoint implementations never reference
-persistence providers merely to make the external host aware of both packages.
+persistence providers merely to make the external host aware of both packages. List every active owned
+capability binding; its Core and implementation projects are distinct, and composition is not an
+implementation role. Validate `eng/architecture.json` with `repository_architecture.py --planned`
+after-plan/after-tasks and before affected implementation. Real shell activation/resolution/lifetime
+tests must prove registration behavior; method existence alone cannot prove correct DI wiring.
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
 and dynamic endpoint refresh when those CShells capabilities are used.
 
@@ -252,12 +290,20 @@ or admits protected business state additionally invokes the owning resource/stat
   `ICatalogRevisionLifecycle`, or `IPriceDashboardQueries`; do not prescribe repositories, stores,
   units of work, generic CRUD, `DbSet`, or `IQueryable` boundaries.
 - Provider-specific persistence records, mappings, migrations, `DbContext`, SQL/query expressions,
-  cursors, and schema details remain private to the provider package. A provider may instead map a
-  persistence-ignorant Core POCO directly when no storage concern shapes or escapes through it.
+  cursors, and schema details remain private to the provider package. Use separate provider-owned EF
+  entities; do not map Core models directly, even when they are persistence-ignorant POCOs.
 - Cross-context reads use a consumer-owned capability/bridge, an intentionally published Core
   language, a read projection, or an API. Domains exchange business-semantic boundary models, never
   persistence records or another context's internal aggregates.
 - Cross-module writes and shared transactions require an Accepted ADR.
+
+Prefer exported Foundation identity/profile/problem constants and typed public contribution seams
+when the qualified selection supplies them. Preserve exact-version compatibility adapters for older
+selections. Deployment byte/depth/deadline budgets use typed validated options; lifecycle-bound route,
+schema and replay values use cohesive owner-specific Constants/keys types. Preserve canonical byte
+versions and page large result sections independently through construction/storage/browser delivery.
+Review serializers and provider configuration using only BCL types explicitly in source review;
+dependency-prefix checks and green analyzers cannot establish their semantic ownership.
 
 ## Domain and integration events
 

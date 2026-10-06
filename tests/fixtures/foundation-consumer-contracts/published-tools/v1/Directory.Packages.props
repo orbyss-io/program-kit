@@ -1,0 +1,10 @@
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="CShells.Abstractions" Version="[0.0.29-preview.147]" />
+    <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="[0.0.29-preview.147]" />
+    <PackageVersion Include="Orbyss.Foundation.Build" Version="[0.1.0]" />
+    <PackageVersion Include="Orbyss.Foundation.Collections.Core" Version="[$(FoundationRuntimeVersion)]" />
+    <PackageVersion Include="Orbyss.Foundation.Json.AspNetCore" Version="[$(FoundationRuntimeVersion)]" />
+    <PackageVersion Include="Orbyss.Foundation.Web.OpenApi" Version="[$(FoundationRuntimeVersion)]" />
+  </ItemGroup>
+</Project>

@@ -1464,6 +1464,99 @@ def materialize_dependency_profile(catalog: dict, selected: dict) -> dict:
     return result
 
 
+def validate_additive_profile_catalog(base: dict, target: dict) -> None:
+    """Permit new contracts/selections without rewriting any historical rule owner."""
+    validate_catalog(base)
+    validate_catalog(target)
+    for field in set(base) | set(target):
+        if field in {'$schema', 'resolutionRevision', 'families', 'packages', 'capabilities', 'compositions'}:
+            continue
+        if base.get(field) != target.get(field):
+            fail('PKB610', f'additive profile catalog must preserve {field!r} unchanged')
+    if not set(base['families']) <= set(target['families']):
+        fail('PKB610', 'additive profile catalog must preserve existing family identities')
+    for key, family in base['families'].items():
+        metadata = lambda value: {field: item for field, item in value.items() if field not in {'releaseVersion', 'toolVersions'}}
+        if metadata(family) != metadata(target['families'][key]):
+            fail('PKB610', f'additive profile catalog must preserve family {key!r} metadata')
+    for field in ('capabilities', 'compositions'):
+        for key, value in base[field].items():
+            if target[field].get(key) != value:
+                fail('PKB610', f'additive profile catalog must preserve existing {field} {key!r} unchanged')
+    for key, package in base['packages'].items():
+        current = target['packages'].get(key)
+        if current is None:
+            fail('PKB610', f'additive profile catalog cannot remove artifact {key!r}')
+        metadata = lambda value: {field: item for field, item in value.items() if field not in {'version', 'requires'}}
+        if metadata(package) != metadata(current):
+            fail('PKB610', f'additive profile catalog must preserve artifact {key!r} metadata unchanged')
+        if current['requires'][:len(package['requires'])] != package['requires']:
+            fail('PKB610', f'additive profile catalog requires append-only companions for {key!r}')
+        if len({canonical_sha256(item) for item in current['requires']}) != len(current['requires']):
+            fail('PKB610', f'additive profile catalog duplicates companions for {key!r}')
+
+
+def dependency_profile_catalog(directory: Path, entry: dict, supplied: dict) -> dict:
+    """Select only an index-bound immutable catalog, from its exact base or retained target."""
+    binding = entry.get('catalogSnapshot')
+    if binding is None:
+        return supplied  # Historical profiles retain their existing materialization contract.
+    binding = require_object(binding, 'profile.catalogSnapshot')
+    if set(binding) != {'path', 'sha256', 'base'}:
+        fail('PKB611', 'catalog snapshot requires exact target and immutable base bindings')
+
+    def snapshot(reference: dict, label: str) -> dict:
+        reference = require_object(reference, label)
+        if set(reference) != {'path', 'sha256'}:
+            fail('PKB611', f'{label} requires an exact path and hash')
+        path = repository_path(directory, normalize_path(reference['path'], label + '.path'))
+        expected = require_sha(reference['sha256'], label + '.sha256')
+        if not path.is_file() or raw_sha256(path) != expected:
+            fail('PKB611', f'{label} catalog is missing or changed')
+        return load_json(path)
+
+    base = snapshot(binding['base'], 'immutable base')
+    target = snapshot({key: binding[key] for key in ('path', 'sha256')}, 'selected snapshot')
+    validate_additive_profile_catalog(base, target)
+    actual = canonical_sha256(composition_projection(supplied))
+    if actual not in {canonical_sha256(composition_projection(base)), canonical_sha256(composition_projection(target))}:
+        fail('PKB610', 'profile catalog requires its exact base or target composition; review an architecture transition')
+    return target
+
+
+def dependency_profile_changes(old: dict, new: dict) -> dict:
+    """Expose additive and semantic artifact changes in the existing consumer review."""
+    before, after = resolution_projection(old)['packages'], resolution_projection(new)['packages']
+    added, removed = sorted(set(after) - set(before)), sorted(set(before) - set(after))
+    changed = [key for key in old['packages'] if before[key] != after.get(key)] + added
+    return {'changedArtifacts': changed, 'addedArtifacts': added, 'removedArtifacts': removed}
+
+
+def named_official_tool_bindings(source: dict, selected: dict) -> dict:
+    """New named recipes bind selected Build/exporter bytes; historical receipts stay unchanged."""
+    tools = require_object(source.get('officialTools'), 'named qualification officialTools')
+    public_source = 'https://api.nuget.org/v3/index.json'
+    expected = {'Orbyss.Foundation.Build', 'Orbyss.Foundation.OpenApi.Exporter'}
+    if set(tools) != expected:
+        fail('PKB611', 'named qualification requires exact official Build and exporter bindings')
+    for identity, binding in tools.items():
+        binding = require_object(binding, 'named qualification official tool')
+        version = selected['artifacts'].get('nuget:' + identity)
+        archive = ('https://api.nuget.org/v3-flatcontainer/' + identity.lower() + '/' + str(version).lower()
+                   + '/' + identity.lower() + '.' + str(version).lower() + '.nupkg')
+        if (set(binding) != {'id', 'version', 'sha256', 'source', 'nativeSource', 'archiveUrl', 'nativeProvenanceSha256'}
+                or version is None or binding.get('id') != identity or binding.get('version') != version
+                or binding.get('source') != public_source or binding.get('nativeSource') not in (None, public_source)
+                or binding.get('archiveUrl') != archive
+                or not re.fullmatch(r'[a-f0-9]{64}', str(binding.get('sha256', '')))
+                or not re.fullmatch(r'[a-f0-9]{64}', str(binding.get('nativeProvenanceSha256', '')))):
+            fail('PKB611', 'named qualification official tooling differs from exact selected versions or public source')
+    digest = hashlib.sha256((json.dumps(tools, indent=2, sort_keys=True) + '\n').encode('utf-8')).hexdigest()
+    if source.get('officialToolsSha256') != digest:
+        fail('PKB611', 'named qualification official tooling proof changed')
+    return tools
+
+
 def qualified_dependency_profile(directory: Path, identity: str | None, catalog: dict) -> tuple[dict, dict]:
     directory = Path(directory).resolve()
     index = load_json(directory / 'index.json')
@@ -1475,10 +1568,37 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
     if raw_sha256(path) != entry['sha256']: fail('PKB611', 'qualified profile changed')
     selected = load_json(path)
     if selected['id'] != identity: fail('PKB611', 'profile identity differs')
-    result = materialize_dependency_profile(catalog, selected)
+    result = materialize_dependency_profile(dependency_profile_catalog(directory, entry, catalog), selected)
     proof = repository_path(directory, entry['evidence']['path'])
     if raw_sha256(proof) != entry['evidence']['sha256']: fail('PKB611', 'qualification evidence changed')
     receipt = load_json(proof)
+    named_recipe = entry.get('qualificationRecipe')
+    named_tools = None
+    named_hash = receipt.get('source', {}).get('qualificationRecipeSha256')
+    if (named_recipe is None) != (named_hash is None):
+        fail('PKB611', 'named qualification receipt requires its matching registered recipe')
+    if named_recipe is not None:
+        named_recipe = require_object(named_recipe, 'profile.qualificationRecipe')
+        if set(named_recipe) != {'path', 'sha256'}:
+            fail('PKB611', 'named qualification recipe requires an exact path and hash')
+        recipe_path = repository_path(directory, normalize_path(named_recipe['path'], 'profile.qualificationRecipe.path'))
+        if not recipe_path.is_file() or raw_sha256(recipe_path) != require_sha(named_recipe['sha256'], 'profile.qualificationRecipe.sha256'):
+            fail('PKB611', 'named qualification recipe changed')
+        recipe = load_json(recipe_path)
+        snapshot = entry.get('catalogSnapshot', {})
+        if (set(recipe) != {'schemaVersion', 'id', 'profile', 'families', 'catalogSnapshot', 'nativeLock', 'executor'}
+                or recipe.get('schemaVersion') != 1 or not isinstance(recipe.get('id'), str) or not ID.fullmatch(recipe['id'])
+                or receipt.get('status') != 'dependency-profile-qualified' or receipt.get('schemaVersion') != 2
+                or named_hash != named_recipe['sha256']
+                or recipe.get('profile', {}).get('id') != identity
+                or recipe.get('profile', {}).get('sha256') != entry['sha256']
+                or recipe.get('families') != selected['families']
+                or recipe.get('catalogSnapshot', {}).get('sha256') != snapshot.get('sha256')
+                or recipe.get('catalogSnapshot', {}).get('base', {}).get('sha256') != snapshot.get('base', {}).get('sha256')
+                or recipe.get('executor', {}).get('sha256') != receipt.get('source', {}).get('recipeSha256')
+                or recipe.get('nativeLock', {}).get('sha256') != receipt.get('source', {}).get('lockSha256')):
+            fail('PKB611', 'named qualification recipe differs from its exact profile, catalog, executor or lock evidence')
+        named_tools = named_official_tool_bindings(receipt['source'], selected)
     steps = receipt.get('steps')
     if (receipt.get('catalog', {}).get('sha256') != selected['catalogResolutionSha256']
             or not isinstance(steps, list) or not steps
@@ -1535,11 +1655,19 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
             fail('PKB611', 'generic qualification requires representative compositions with registered activation closures')
         artifacts = require_object(receipt.get('artifacts'), 'qualification.artifacts')
         for package in result['packages'].values():
-            if package['ecosystem'] == 'nuget' and package.get('activations'):
-                bound = require_object(artifacts.get(package['packageId']), 'qualification.artifact')
+            if package['ecosystem'] == 'nuget' and (package.get('activations') or named_recipe is not None
+                    and package['materialization']['kind'] == 'nuget-project'):
+                bound = require_object(named_tools['Orbyss.Foundation.Build'] if named_tools is not None
+                                       and package['packageId'] == 'Orbyss.Foundation.Build'
+                                       else artifacts.get(package['packageId']), 'qualification.artifact')
                 if (bound.get('version') != package['version']
                         or not re.fullmatch(r'[0-9a-f]{64}', str(bound.get('sha256', '')))):
                     fail('PKB611', 'generic qualification artifact differs from the exact dependency profile')
+        if named_tools is not None:
+            for identity, binding in named_tools.items():
+                artifact = require_object(artifacts.get(identity), 'qualification.officialToolArtifact')
+                if artifact.get('version') != binding['version'] or artifact.get('sha256') != binding['sha256']:
+                    fail('PKB611', 'named qualification official tool artifact differs from its source proof')
         browser = require_object(receipt.get('browserIntegration'), 'qualification.browserIntegration')
         browser_profile = require_object(browser.get('profile'), 'qualification.browserProfile')
         browser_stages = require_object(browser.get('stages'), 'qualification.browserStages')

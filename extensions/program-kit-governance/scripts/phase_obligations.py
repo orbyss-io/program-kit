@@ -15,6 +15,7 @@ from pathlib import Path
 _engineering = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/eng'
 sys.path.insert(0, str(_engineering))
 from test_results import test_results, require, text
+from repository_architecture import validate_planned
 
 def inside(root, relative):
     path = (root / relative).resolve()
@@ -97,10 +98,23 @@ def render(value, phase):
 
 
 def check(root, feature, phase):
-    # Drafting is not blocked by absent metadata. Completion must run engineering.
+    if phase in ('after-plan', 'after-tasks', 'implementation'):
+        validate_planned_architecture(root, feature)
     if phase == 'delivery':
         execute(root, feature)
     return model(root, feature, phase)
+
+
+def validate_planned_architecture(root, feature):
+    """Fail on incompatible planned ownership before affected source/build work."""
+    path = root / 'eng/architecture.json'
+    if not path.is_file():
+        declarations = '\n'.join((feature / name).read_text(encoding='utf-8')
+            for name in ('plan.md', 'research.md', 'data-model.md') if (feature / name).is_file())
+        if '.csproj' in declarations:
+            raise ValueError('Declare the planned compilation graph in eng/architecture.json before affected implementation')
+        return
+    validate_planned(root, read(path))
 
 
 def execute(root, feature):

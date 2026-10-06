@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>PublishedTools.Contract.Api</PackageId>
+    <FoundationFeatureDescriptorSource>feature.json</FoundationFeatureDescriptorSource>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../Core/PublishedTools.Contract.Core.csproj" />
+    <PackageReference Include="CShells.Abstractions" PrivateAssets="all" />
+    <PackageReference Include="CShells.AspNetCore.Abstractions" PrivateAssets="all" />
+    <PackageReference Include="Orbyss.Foundation.Json.AspNetCore" />
+    <PackageReference Include="Orbyss.Foundation.Web.OpenApi" />
+    <PackageReference Include="Orbyss.Foundation.Build" PrivateAssets="all" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>

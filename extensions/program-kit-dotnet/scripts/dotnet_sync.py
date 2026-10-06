@@ -14,6 +14,10 @@ import spa_profile
 import persistence_selection
 import dependency_profile
 
+_architecture_engine = Path(__file__).resolve().parents[1] / 'templates/dotnet/files/eng'
+sys.path.insert(0, str(_architecture_engine))
+from repository_architecture import validate_manifest
+
 
 def sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
@@ -347,9 +351,11 @@ def engineering_architecture(target: Path, default: bytes) -> bytes:
             bindings[canonical_json_hash(item)] = item
     if not projects:
         return default
-    return (json.dumps({'schemaVersion':1, 'runtimeComposition': {
+    manifest = {'schemaVersion':1, 'runtimeComposition': {
         'projects':list(projects.values()),'coreReferences':list(edges.values()),
-        'bindings':list(bindings.values())}}, indent=2) + '\n').encode()
+        'bindings':list(bindings.values())}}
+    validate_manifest(target, manifest)
+    return (json.dumps(manifest, indent=2) + '\n').encode()
 
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
@@ -557,6 +563,17 @@ def main() -> int:
     actions: list[dict] = []
     next_files: dict[str, dict] = {}
 
+    architecture_path = target / 'eng/architecture.json'
+    if architecture_path.is_file():
+        try:
+            validate_manifest(target, load_json(architecture_path, {}))
+        except (ValueError, KeyError, TypeError) as error:
+            conflicts.append('eng/architecture.json')
+            conflict_details['eng/architecture.json'] = (
+                'PKA001 incompatible retained architecture: ' + str(error)
+                + '. Preserve the ADR and configuration; explicitly separate the projects and correct bindings. '
+                  'Sync does not relabel roles or grant namespace exceptions.')
+
     for relative, desired_entry in desired_by_path.items():
         ownership = desired_entry["ownership"]
         destination = target / relative
@@ -592,7 +609,14 @@ def main() -> int:
                 conflicts.append(legacy)
                 conflict_details[legacy] = 'Customized engineering implementation preserved; merge its code into ' + relative
         if relative == 'eng/architecture.json' and not destination.exists():
-            desired = engineering_architecture(target, desired)
+            try:
+                desired = engineering_architecture(target, desired)
+            except (ValueError, KeyError, TypeError) as error:
+                conflicts.append(relative)
+                conflict_details[relative] = (
+                    'PKA001 incompatible historical architecture: ' + str(error)
+                    + '. Preserve the ADR and source graph; supply an explicitly corrected eng/architecture.json. '
+                      'Sync does not relabel roles or grant namespace exceptions.')
             desired_hash = sha256_bytes(desired)
         previous = old_files.get(relative)
         previous_contribution = None

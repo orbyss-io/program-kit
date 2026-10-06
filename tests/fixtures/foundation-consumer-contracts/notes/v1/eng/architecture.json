@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "runtimeComposition": {
+    "projects": [
+      {"path":"src/Notes.Core/Notes.Core.csproj","role":"core","projectReferences":[],"packageReferences":[]},
+      {"path":"src/Notes/Notes.csproj","role":"implementation","projectReferences":["src/Notes.Core/Notes.Core.csproj"],"packageReferences":["CShells.Abstractions","Microsoft.Extensions.DependencyInjection.Abstractions","Orbyss.Foundation.Build"]},
+      {"path":"src/Notes.Api/Notes.Api.csproj","role":"implementation","projectReferences":["src/Notes.Core/Notes.Core.csproj"],"packageReferences":["CShells.AspNetCore.Abstractions","Orbyss.Foundation.Authentication","Orbyss.Foundation.Authentication.BffCookie","Orbyss.Foundation.Json.AspNetCore","Orbyss.Foundation.Web.ProblemDetails","Orbyss.Foundation.Build"]},
+      {"path":"src/Notes.PostgreSql/Notes.PostgreSql.csproj","role":"provider","projectReferences":["src/Notes.Core/Notes.Core.csproj"],"packageReferences":["CShells.Abstractions","Microsoft.EntityFrameworkCore","Npgsql","Orbyss.Foundation.PostgreSql","Orbyss.Foundation.Json","Orbyss.Foundation.Build"]},
+      {"path":"oracle/Notes.Oracle.csproj","role":"test","projectReferences":[],"packageReferences":["Npgsql"]}
+    ],
+    "coreReferences": [],
+    "bindings": [
+      {"capabilityProject":"src/Notes.Core/Notes.Core.csproj","implementationProject":"src/Notes/Notes.csproj","capability":"Notes.Core.INoteAuthoring","implementation":"Notes.NoteAuthoring","registration":"Notes.NotesFeature.ConfigureServices"},
+      {"capabilityProject":"src/Notes.Core/Notes.Core.csproj","implementationProject":"src/Notes.PostgreSql/Notes.PostgreSql.csproj","capability":"Notes.Core.INoteRevisionLifecycle","implementation":"Notes.PostgreSql.NoteRevisionLifecycle","registration":"Notes.PostgreSql.NotesPostgreSqlFeature.ConfigureServices"},
+      {"capabilityProject":"src/Notes.Core/Notes.Core.csproj","implementationProject":"src/Notes.PostgreSql/Notes.PostgreSql.csproj","capability":"Notes.Core.INoteQueries","implementation":"Notes.PostgreSql.NoteQueries","registration":"Notes.PostgreSql.NotesPostgreSqlFeature.ConfigureServices"}
+    ]
+  }
+}

@@ -274,6 +274,24 @@ need an independently qualified owning producer; this task does not infer or han
 Host/CShells/Nuplane ownership remains explicit and requires their supported contracts. Original
 checkouts, real consumers and concurrent dirty runtime work remain untouched.
 
+
+## Common Program Kit branch integration status (2026-10-06)
+
+The committed Foundation-contracts tranche6ae93b5 is integrated with handoff source9cb7298
+on codex/human-infrastructure-handoff. Combined targeted checks and 74/74 bounded
+Development checks pass with chromium,webkit; see the execution journals and
+artifacts/validation-runs/20261006T153453Z-060b3e58/journal.json. Both acceptance controls and all
+validation-inventory entries are retained, and original compatibility fixture bytes
+remain unchanged. This merged tranche is reviewable but remains in progress.
+
+Remaining work: W3's publisher-owned settings scopes, Foundation Host/package and
+publication qualification, selected Build pin rendering, fresh candidate/public
+profile inputs and native lock/recipe/availability/Forms/Host/sealed evidence/default
+promotion, then final combined validation and clean/pushed-tree checks. The concurrent
+owner performs its remaining planned Program Kit edits on the same common branch
+after safely switching its clean checkout. No Program Kit Release/publication or
+consumer migration authority is supplied by this merge.
+
 ## Completion and execution boundaries
 
 Implementation is complete when applicable receiver outputs are maintained, generated and

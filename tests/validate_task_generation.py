@@ -32,7 +32,7 @@ def validate_installed_workflow(project):
     import yaml
     hooks = yaml.safe_load((project / '.specify/extensions.yml').read_text(encoding='utf-8'))['hooks']
     for event, commands in {'before_tasks': ['speckit.program-kit-governance.phase-context'],
-                            'after_tasks': ['speckit.analyze']}.items():
+                            'after_tasks': ['speckit.program-kit-governance.architecture-check', 'speckit.analyze']}.items():
         selected = [h for h in hooks[event] if h.get('extension') == 'program-kit-governance']
         if [h['command'] for h in selected] != commands or any(h.get('optional') is not False or
                 h.get('enabled') is not True or h.get('condition') is not None for h in selected):

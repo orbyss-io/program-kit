@@ -242,3 +242,37 @@ tranche and provide the exact integration commit. This chat owns the combined me
 resolution, relevant targeted validation plus bounded Development chromium,webkit and common
 branch push. Foundation qualification/publication remains with the concurrent owner. Branch
 integration is pending; neither plan is declared complete and this is no publication authority.
+
+
+## Committed-source integration on the common branch (2026-10-06)
+
+Integrated the frozen Foundation-contracts Program Kit tranche
+6ae93b54b930710514eee147a8c06ff9af200de2 (implementation parent23eb5309) with clean
+handoff source9cb7298 on codex/human-infrastructure-handoff. Only committed objects
+were imported from the original checkout. Two merge conflicts were resolved by retaining
+both standalone-engineering controls and all106 distinct validation-inventory entries.
+The automatic dotnet_sync merge retains architecture validation plus native contract-path
+migration; retained-catalog rendering and the existing receiver/publication gates remain.
+The original saved-schema-one raw SHA256 remains
+8c6d925ce6fd2fcaed805a7465c5de4109eef588770d2398c013748524572c34.
+
+Targeted15 bundle tests,10 handoff tests, generated schemas,27 catalog/proof guards and
+architecture placement pass. The first architecture command used plain Python without
+specify_cli; its log is preserved. The suite-interpreter rerun passes. Combined bounded
+Development passes 74/74 with chromium,webkit at
+artifacts/validation-runs/20261006T153453Z-060b3e58/journal.json; log
+artifacts/handoff-validation/combined-development.log. Validation ran on the staged
+combined source before the merge commit, so the journal's source commit/tree identify
+the pre-merge HEAD9cb7298; this is Development evidence, not an exact-commit Release
+receipt. Subsequent edits in this integration are contributor plan/journal updates only.
+
+This is an interim integration, not completion of either implementation plan. W3 still
+lacks framework-wide owner metadata; the named Json scope is the qualified companion
+scope. The concurrent owner retains Foundation405/Host/package qualification and
+publication. Remaining Program Kit work after this merge includes selected Build pin
+rendering with historical0.1 preservation, fresh candidate4 profile/recipe inputs,
+public runtime0.3/Build0.2 native lock/availability/Forms/Host qualification, sealed
+evidence and default promotion, then final combined Development/clean-tree checks.
+All further Program Kit product work must use this common branch after the concurrent
+owner safely switches its clean checkout. No original checkout, Foundation or real
+consumer was edited here; no publication, tag, paid worker or complete Release ran.

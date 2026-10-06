@@ -116,7 +116,7 @@
         "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
         "program-kit-dotnet/references/technology-profiles/dotnet.md"
       ],
-      "requirement": "Verify evaluated project and compiled type dependencies, Core purity, feature activation and resolution, and compatibility of owned extension protocols. When the published Foundation host is selected, package shell, host and Nuplane settings with optional NuGet feeds as an application release bundle and verify it on the unchanged digest-pinned host, including activation and restart where applicable. That profile does not build a consumer host DLL or derived image. A substantively accepted alternative host uses its own documented engineering adapter.",
+      "requirement": "Enforce separate Core, implementation, API and provider compilation projects when present; one package, activation bundle or deployment does not waive those roles. Validate planned roles/edges/Core-owned bindings in eng/architecture.json after-plan, after-tasks and before affected implementation without building. Reject namespace waivers, role relabeling and omitted active capabilities. Verify evaluated/compiled dependencies, actual feature activation/resolution/lifetimes and compatibility. Review serializers and provider settings hidden behind BCL types; dependency prefixes cannot prove semantic ownership. When the published Foundation host is selected, verify the application release bundle on its unchanged digest-pinned host, including activation/restart as applicable. A substantively accepted alternative host uses its documented adapter.",
       "phases": [
         "planning",
         "after-plan",
@@ -136,7 +136,7 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Keep domain policy independent of persistence and serializers. Put an EF DbContext in the data-owner provider. Declare project roles once in eng/architecture.json; MSBuild and compiled assemblies supply the actual graph.",
+      "example": "A Notes.Core capability is implemented in Notes or Notes.PostgreSql, never its own Core/composition project. Validate that graph before building; MSBuild and compiled assemblies then prove structural reality and real shell tests prove registration behavior.",
       "sections": {
         "program-kit-governance/references/modularity-and-contracts.md": [
           "Core, helper, and implementation packages"
@@ -597,7 +597,7 @@
         "program-kit-governance/references/modularity-and-contracts.md",
         "program-kit-dotnet/references/technology-profiles/dotnet.md"
       ],
-      "requirement": "Bind scoped HTTP operations to operation-owned sources, thin IWebShellFeature composition, current generated OpenAPI identity and the existing registered baseline. Prove DTO/parser/schema parity, supported old-client/snapshot behavior and explicit version/deprecation decisions through contract and compatibility tests. Review proportional small operations; non-HTTP contracts use their own compatibility mechanism.",
+      "requirement": "Bind HTTP operations to Operations/<Operation>/Endpoint.cs and their real Request.cs/Response.cs where needed; instance endpoints resolve explicit constructor dependencies per request and own route/metadata. IWebShellFeature composes registrations. Use typed public Foundation identity/problem/JSON contracts when the selected qualified version supplies them; preserve named exact-version adapters otherwise. Prove DTO/parser/schema parity, common managed/application failure envelopes, bounded independently paged results, old-client/snapshot behavior and explicit version decisions through tests. Review proportional small/bodyless operations; never invent empty models or abstractions.",
       "phases": [
         "planning",
         "after-plan",
@@ -627,6 +627,16 @@
     }
   ],
   "sources": [
+    {
+      "path": "program-kit-building-blocks/references/foundation-contracts-development.md",
+      "phases": [
+        "planning",
+        "setup",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "Explicit development profile selection and hash-bound F6/Host/package evidence; public adoption retains immutable availability and release gates."
+    },
     {
       "path": "program-kit-building-blocks/references/orbyss-building-blocks.md",
       "phases": [

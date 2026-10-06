@@ -73,13 +73,28 @@ prerequisite tasks; they do not block saving tasks or reporting architecture-che
   transaction/integration decision rather than a shared context.
 - Provider-specific persistence records never appear in Core, peer projects, transport contracts,
   or integration contracts. Map them to business-semantic domain/boundary models inside the provider.
-  Direct mapping of a persistence-ignorant Core POCO is permitted when provider concerns do not shape
-  or escape through it.
+  EF entities are separate provider-owned types. Direct mapping of Core POCOs is not permitted;
+  storage representation and tracking/equality never shape the public domain model.
 - Put every EF mapping in `IEntityTypeConfiguration<T>` in the provider package. Map aggregate
   roots and owned/value objects deliberately: explicit stable keys, value converters/comparers,
   concurrency tokens, constraints, indexes, column types/lengths, and provider behavior.
 - Register `DbContext` as scoped for a request/unit of work. It is not thread-safe. Pool only after
   verifying that no request/tenant state leaks through pooled instances and measuring benefit.
+- Independent units, parallel operations and long-lived callers use a nonpooled
+  `IDbContextFactory<TContext>` with cancellation and caller-owned `await using` disposal. A mutation
+  and receipt reconciliation own separate contexts; clearing tracking does not create a fresh unit.
+  Keep one atomic transaction on one context. A single sequential request unit may use its scoped
+  context unless the application chooses the stricter factory convention.
+- Factories and provider configuration follow actual shell lifetimes. Own every factory-created unit
+  inside a tracked `IShell.BeginScope` or equivalent shell lease, including initialization, background
+  work and cleanup. Context disposal alone does not track the datasource. Test rejection outside a
+  lease, cancellation/creation failure, active-unit drain and datasource disposal after units finish.
+  A stable datasource owns connection pooling per shell/provider generation; context pooling is a
+  separate decision. Do not rewrite connection strings per operation to select time budgets.
+- Native connection/command/lock/deadline options remain provider-owned typed validated configuration.
+  Consumers own operation policy and map safe SQLSTATE plus named constraints to outcomes. Preserve
+  commit uncertainty: cancellation cannot prove rollback. Verify independent contexts, replay races,
+  actual provider state reset and redacted application diagnostics with real PostgreSQL.
 - Disable lazy-loading packages/proxies by default. Select only required columns, use projections
   for reads, default read-only queries to no tracking, pass cancellation tokens, and test query count
   or SQL shape where N+1/cartesian behavior is a risk.

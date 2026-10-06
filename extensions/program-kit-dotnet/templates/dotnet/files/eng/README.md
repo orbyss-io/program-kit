@@ -21,6 +21,12 @@ Contract generation runs registered contracts and compares their baselines. A de
 contract change can update its baseline explicitly; never bypass an unexpected compatibility failure.
 
 Declare actual project roles and scoped dependency exceptions once in eng/architecture.json.
+Before affected implementation, validate planned roles, edges and Core-owned capability bindings:
+`python eng/repository_architecture.py --repository . --manifest eng/architecture.json --planned`.
+This command performs no restore/build or receipt mutation. Keep Core, runtime implementations,
+API and provider mechanisms in separate compilation projects; one bundle/deployment does not merge
+their ownership. Namespace waivers and role relabeling cannot authorize a mixed project. List every
+selected owned runtime capability binding; compiled verification also detects unlisted implementations.
 Native MSBuild/compiled assemblies supply real dependencies. An exception needs a rationale and an
 existing verification test. Record the substantive approval in normal review or an ADR. No document
 hash or ratification receipt is needed to compile. Domain semantics and security behavior still need

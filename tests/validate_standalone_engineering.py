@@ -43,6 +43,16 @@ def main():
         run([sys.executable,str(ROOT/'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
              '--target',str(root),'--profile-selected','--foundation-host-accepted',
              '--building-block-sources-approved','--web-profile','none'])
+        run([sys.executable, 'eng/repository_architecture.py', '--manifest', 'eng/architecture.json', '--planned'])
+        write('eng/architecture.json', json.dumps({'runtimeComposition': {'projects': [
+            {'path': 'src/Slots.Core/Slots.Core.csproj', 'role': 'provider'}]}}))
+        invalid = run([sys.executable, 'eng/repository_architecture.py', '--manifest', 'eng/architecture.json', '--planned'], expected=2)
+        assert 'Core project role cannot be relabeled' in invalid.stderr
+        write('eng/architecture.json', json.dumps({'runtimeComposition': {'projects': [
+            {'path': 'src/Slots/Slots.csproj', 'role': 'composition',
+             'persistenceOwnerNamespaces': ['Slots.Persistence']}], 'bindings': []}}))
+        invalid = run([sys.executable, 'eng/repository_architecture.py', '--manifest', 'eng/architecture.json', '--planned'], expected=2)
+        assert 'namespace waiver' in invalid.stderr
         write('App.slnx','<Solution><Project Path="src/Slots.Core/Slots.Core.csproj" /><Project Path="tests/Slots.Tests/Slots.Tests.csproj" /></Solution>')
         write('src/Slots.Core/Slots.Core.csproj','<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><PackageId>Slots.Core</PackageId></PropertyGroup></Project>')
         write('src/Slots.Core/Slots.cs','''namespace Slots;
@@ -137,7 +147,8 @@ public static class Policy
         result={'governanceDeleted':True,'codingAgentsStarted':False,'commands':commands,
                 'applicationChecksPassedBeforeMutation':True,'wrongBehaviorRejected':True,
                 'nativeHandoffGeneratedAfterToolkitRemoval':True,'handoffStatus':'incomplete',
-                'externalSettingsCoverage':'Foundation host/shell/Nuplane missing; release-ready status correctly withheld'}
+                'externalSettingsCoverage':'Foundation host/shell/Nuplane missing; release-ready status correctly withheld',
+                'plannedRelabelAndNamespaceWaiverRejected':True}
         (artifacts/'result.json').write_text(json.dumps(result,indent=2)+'\n')
         print('Standalone restore/build/behavior/architecture/pack passed; wrong behavior rejected. Timings: '+str([c['elapsedSeconds'] for c in commands]))
     return 0

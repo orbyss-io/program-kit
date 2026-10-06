@@ -4,6 +4,10 @@ scripts:
   py: scripts/phase_obligations.py
 ---
 For the current feature, obtain applicable guidance with `{SCRIPT} project --feature-dir <feature>`.
+After planning run `{SCRIPT} check --feature-dir <feature> --phase after-plan`; after tasks run
+`{SCRIPT} check --feature-dir <feature> --phase after-tasks`. These commands validate the planned
+roles, dependency edges and bindings in ordinary `eng/architecture.json` without building or
+changing design files. Correct confirmed structural violations before affected implementation.
 Before a feature directory exists, review the request and existing constitutional/architectural
 context directly; do not require a feature-dependent command or create a feature on the hook's behalf.
 Compare the specification, plan, tasks or changed code with the constitution, domain design,
