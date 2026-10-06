@@ -173,3 +173,46 @@ results are preserved in publisher-settings-integration-initial.json. Ten handof
 including exact publisher and credential-named source hash coverage, pass in final Development.
 No dependency pins change and no new public package availability is claimed. No complete Release
 suite, Firefox retry, tag, package publication, paid worker or real consumer change was run.
+
+## Independent review repair (candidate supersession)
+
+The concurrent Foundation owner reported blockers in 0cd7947 before integration: new
+JsonProfileKeys const/default and expanded Json source inventory, unbound conditional
+compiler semantics, obj versus final NuGet bin assembly mismatch, and SkipCompilerExecution
+refreshing metadata despite stale binary output. Its candidate remains preserved unchanged;
+do not integrate or publish it. Repair uses committed runtime base
+6d9c1b73b0428ec24f6481779958e6c7449d7501 on codex/settings-metadata-companion-repair,
+without importing the owner's dirty changes or replacing the old branch.
+
+Repaired emitter resolves primitive constants statically using the compiler language and
+reference assemblies; rejects conditional directives explicitly; compiles/copies through
+direct invocation; rejects skipped/design-time compiler provenance; and binds final TargetPath
+plus NuGet FinalOutputPath. Finite source/declaration/payload/count/string/default bounds now
+apply. Receiver admits at most 2 MiB metadata, 32 package contracts, 512 source hashes,
+256 settings/default items, 128 semantic/precedence strings, 4 Ki-character declaration text,
+16 KiB constraints and 16 Ki-character string defaults. Earlier coverage remains qualified,
+not framework-wide. New current Json dependency Collections.Core is explicit in the optional
+source integration fixture, never downloaded or selected as a public dependency.
+
+Installed repair accepts const/current21-source Json; FEATURE actually compiles default9
+while conditional metadata rejects; bin-only tamper rejects; skipped/direct/design-time
+refresh cases preserve metadata and packed output; direct invocation compiles a fresh default4;
+eight resource-limit negatives reject. Current Json runtime defaults/admission and actual
+package/assembly/independent receiver integration pass. The design-time test initially required
+an unchanged binary, although SDK design-time compilation may alter bin; its logs remain
+preserved. Correct acceptance checks immutable metadata/packed output and rejection of later
+no-build packing, then recompiles a fresh source through the direct target.
+Bounded Development repair run follows. Runtime/Host/F6 source and publication qualification
+remain owned by the other chat, including its newer runtime fixes after the 6d9 base.
+
+Repair completion: Foundation 5ef85c8 is pushed on codex/settings-metadata-companion-repair,
+based on committed runtime6d9 plus cherry-picked companion27f544c. The prior0cd7947 branch
+remains intact and superseded for integration. Exact final Build nupkg hashes match both
+installed settings and descriptor acceptance; current Json hash matches its runtime owner probe.
+Program Kit final repair Development is 70/70 with chromium,webkit:
+artifacts/validation-runs/20261006T120358Z-02d878c1/journal.json. Log: artifacts/handoff-validation/settings-review-development.log.
+Final repaired source integration (including real Json Collections dependency and bounded
+published schema) passes, log settings-review-integration-final.log. Generated outputs remain
+under artifacts; source plan/journals record finite admission and incomplete scope boundaries.
+No public dependency selections, immutable artifacts, original checkouts or real consumers
+changed; no Release suite, publication, tags or paid workers ran.

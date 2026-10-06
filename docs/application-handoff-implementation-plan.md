@@ -256,6 +256,16 @@ artifacts/validation-runs/20261006T112456Z-4e2da65f/journal.json. The initial 69
 required the new managed schema to be staged; its failure and rerun remain preserved. Foundation
 source candidate is pushed at 0cd7947f9c8b3624c72929b9feb67afddd8ae772. W3 remains partial.
 
+Independent review found stale/default/compiler/assembly blockers in Foundation candidate
+0cd7947 before integration; it is superseded by a repair based on committed runtime 6d9c1b7.
+Repair source5ef85c8 is pushed on codex/settings-metadata-companion-repair. It explicitly
+rejects conditional and skipped/design-time metadata semantics, resolves
+constant defaults, checks final NuGet output and admits finite resources. Current Json's named
+type remains the only qualified framework scope; the concurrent owner still needs newer runtime
+fixes and runtime/Host/F6 qualification before any publication or availability claim. Repair bounded Development passes 70/70 with
+chromium,webkit; exact current publisher package/schema/assembly/receiver integration passes.
+Evidence: artifacts/validation-runs/20261006T120358Z-02d878c1/journal.json.
+
 Next required action: review/integrate this source candidate with the authoritative Foundation
 owner, qualify metadata declarations for the remaining applicable configuration scopes, and
 publish through that owner's existing gates before changing Program Kit dependency selections.

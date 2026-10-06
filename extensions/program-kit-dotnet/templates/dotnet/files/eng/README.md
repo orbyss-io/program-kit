@@ -115,3 +115,9 @@ Publisher source hashes are package-owned provenance, not paths in the applicati
 Keep applicable host/shell/Nuplane requirements until their owners deliver coverage;
 Json's code-construction scope does not satisfy those requirements. Build 0.2.0 is a
 source candidate, not an available public dependency; no selection/version pins change here.
+
+Settings admission is bounded: 2 MiB metadata, 32 publisher contracts, 512 source hashes,
+256 settings/default items, 128 semantic/precedence strings, 4 Ki-character declaration
+text, 16 KiB constraints and 16 Ki-character string defaults. Oversized inputs fail rather
+than becoming ready handoffs. Compiler-conditioned and skipped/design-time publisher
+exports need supported owning semantics; the current source candidate explicitly rejects them.

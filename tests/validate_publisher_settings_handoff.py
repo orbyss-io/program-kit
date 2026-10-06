@@ -3,7 +3,7 @@ import argparse,json,shutil,subprocess,sys,zipfile
 from pathlib import Path
 from validate_application_handoff import HandoffTests, handoff, verify_handoff
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('--package',type=Path,required=True);parser.add_argument('--build-package',type=Path);args=parser.parse_args();package=args.package.resolve()
+ parser=argparse.ArgumentParser();parser.add_argument('--package',type=Path,required=True);parser.add_argument('--build-package',type=Path);parser.add_argument('--dependency-package',type=Path,action='append',default=[]);args=parser.parse_args();package=args.package.resolve()
  test=HandoffTests();test.setUp()
  try:
   with zipfile.ZipFile(package) as archive:envelope=json.loads(archive.read('orbyss-foundation/settings.json'))
@@ -15,6 +15,10 @@ def main():
    assert not list(validator.iter_errors(envelope))
   package_id=envelope['packageId'];scope=envelope['contracts'][0]['scope']
   shutil.copyfile(package,test.packages/package.name)
+  for dependency in args.dependency_package:
+   identity,_=handoff.release_bundle.package_identity(dependency)
+   shutil.copyfile(dependency,test.packages/dependency.name)
+   test.selected['components'][0]['packages'].append(identity)
   reference=dict(schemaVersion=1,kind='foundation-package',packageId=package_id,packageVersion=envelope['packageVersion'],packageSha256=handoff.digest(package),scope=scope)
   test.write('contracts/framework-settings.json',reference)
   test.selected['categories']['settings']['files'].append('contracts/framework-settings.json')

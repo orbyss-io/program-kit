@@ -318,6 +318,14 @@ class HandoffTests(unittest.TestCase):
             with self.assertRaises(ValueError):handoff_contract.safe_name(name)
         for payload,name in [(b'{"Password":"development-password"}','settings.json'),(b'password: local-password','example.yml'),(b'Bearer abcdefghijkl','example.md'),(b'-----BEGIN PRIVATE KEY-----','example.md')]:
             with self.assertRaisesRegex(ValueError,'PKH006'):handoff.reject_secrets(payload,name)
+        import copy
+        for mutate in [lambda v:v.update(settings=[copy.deepcopy(v['settings'][0]) for _ in range(257)]),
+                       lambda v:v.update(semanticConstraints=['rule'+str(i) for i in range(129)]),
+                       lambda v:v['settings'][0].update(description='x'*4097),
+                       lambda v:v['settings'][0].update(type='string',default='x'*16385),
+                       lambda v:v['settings'][0].update(type='array',default=list(range(257)))]:
+            value=copy.deepcopy(self.metadata);mutate(value)
+            with self.assertRaisesRegex(ValueError,'PKH007'):handoff.validate_settings_metadata(value)
         # Credential-oriented source filenames carry hashes, not credential values.
         handoff.reject_secrets(json.dumps({'sourceSha256':{'ClientCredentialsFeature.cs':'a'*64}}).encode(),'feature.json')
         with self.assertRaisesRegex(ValueError,'PKH006'):

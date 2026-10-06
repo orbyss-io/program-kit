@@ -68,6 +68,8 @@ def archive_members(payload: bytes, name: str) -> dict[str, bytes]:
 
 
 def settings_metadata(repository: Path, path: Path) -> dict:
+    if path.stat().st_size > 2_097_152:
+        raise ValueError('PKH007 settings metadata exceeds 2 MiB limit')
     value = read(path)
     check_hashes(repository, value.get('sources'))
     validate_settings_metadata(value)
@@ -80,17 +82,19 @@ def validate_settings_metadata(value: dict) -> None:
     if not isinstance(value, dict) or set(value) != required or type(value['schemaVersion']) is not int or value['schemaVersion'] != 1 or type(value['complete']) is not bool:
         raise ValueError('PKH007 invalid settings metadata envelope')
     for key in ('owner', 'scope'):
-        if not isinstance(value[key], str) or not value[key].strip():
+        if not isinstance(value[key], str) or not value[key].strip() or len(value[key]) > 4096:
             raise ValueError(f'PKH007 settings {key} required')
     sources = value['sources']
-    if not isinstance(sources, dict) or not sources:
-        raise ValueError('PKH007 settings source hashes required')
+    if not isinstance(sources, dict) or not sources or len(sources) > 512:
+        raise ValueError('PKH007 settings require 1 to 512 source hashes')
     for name, expected in sources.items():
         safe_name(name)
         if not isinstance(expected, str) or not re.fullmatch(r'[a-f0-9]{64}', expected):
             raise ValueError('PKH007 invalid settings source hash')
-    if not isinstance(value['settings'], list) or not isinstance(value['semanticConstraints'], list) or any(not isinstance(x, str) or not x for x in value['semanticConstraints']):
+    if not isinstance(value['settings'], list) or not isinstance(value['semanticConstraints'], list) or any(not isinstance(x, str) or not x or len(x) > 4096 for x in value['semanticConstraints']):
         raise ValueError('PKH007 settings and semanticConstraints must be arrays')
+    if len(value['settings']) > 256 or len(value['semanticConstraints']) > 128:
+        raise ValueError('PKH007 settings or semantic constraint count exceeds admitted limit')
     seen = set()
     fields = {'path', 'type', 'required', 'secret', 'constraints', 'binding', 'precedence', 'reload', 'description'}
     for item in value['settings']:
@@ -105,11 +109,17 @@ def validate_settings_metadata(value: dict) -> None:
                 or any(not isinstance(x, str) or not x.strip() for x in item['precedence'])
                 or any(not isinstance(item[k], str) or not item[k].strip() for k in ('binding', 'description'))):
             raise ValueError('PKH007 invalid or conflicting setting metadata')
+        if (len(item['path']) > 4096 or len(item['binding']) > 4096 or len(item['description']) > 4096
+                or len(item['precedence']) > 128 or any(len(x) > 4096 for x in item['precedence'])
+                or len(canonical(item['constraints'])) > 16_384):
+            raise ValueError('PKH007 setting text or constraints exceed admitted limit')
         seen.add(item['path'].casefold())
         if item['secret'] and ('default' in item or {'default','example','examples','const','enum'}.intersection(item['constraints'])):
             raise ValueError('PKH006 secret settings cannot export defaults or examples')
         if 'default' in item:
             default = item['default']
+            if isinstance(default, str) and len(default) > 16_384 or isinstance(default, (list, dict)) and len(default) > 256:
+                raise ValueError('PKH007 setting default exceeds admitted limit')
             types = {'string': str, 'integer': int, 'number': (int, float), 'boolean': bool, 'array': list, 'object': dict}
             if not isinstance(default, types[item['type']]) or (item['type'] in {'integer','number'} and isinstance(default, bool)):
                 raise ValueError('PKH007 default differs from declared setting type')
@@ -128,11 +138,13 @@ def packaged_settings(reference: dict, package: Path) -> tuple[dict, bytes]:
     if member not in members:
         raise ValueError('PKH007 selected publisher has no settings companion')
     payload = members[member]
+    if len(payload) > 2_097_152:
+        raise ValueError('PKH007 publisher settings metadata exceeds 2 MiB limit')
     reject_secrets(payload, member)
     envelope = loads(payload.decode('utf-8-sig'))
     if (set(envelope) != {'schemaVersion', 'packageId', 'packageVersion', 'sourceSha256', 'contracts', 'assembly'}
             or type(envelope['schemaVersion']) is not int or envelope['schemaVersion'] != 1 or envelope['packageId'] != identity or envelope['packageVersion'] != version
-            or not isinstance(envelope['contracts'], list) or not envelope['contracts']):
+            or not isinstance(envelope['contracts'], list) or not 1 <= len(envelope['contracts']) <= 32):
         raise ValueError('PKH007 invalid publisher settings companion envelope')
     assembly = envelope['assembly']
     if not isinstance(assembly, dict) or set(assembly) != {'name', 'sha256'} or not isinstance(assembly['name'], str):
