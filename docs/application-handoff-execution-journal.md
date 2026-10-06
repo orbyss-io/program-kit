@@ -117,3 +117,59 @@ publisher-owned settings companion recommendation. Foundation follow-on implemen
 authorized within that scope, after inspecting its authoritative source and preserving concurrent
 work. This authorizes no publication, stable tag, real-consumer change, paid worker or Release run.
 
+## Authorized publisher companion follow-on
+
+- Initial application handoff committed/pushed first: 4ed712fa3493ca1a1ca84b24e6d95b12a089868d.
+- User accepted the publisher companion recommendation and explicitly authorized coordination
+  with “Implement Cross-Repository Plan”. That chat confirmed no overlap in Build/Directory.Build.targets;
+  its new runtime options remain uncovered. No concurrent checkout or dirty files imported.
+- Foundation candidate isolated at artifacts/foundation-settings-source, branch
+  codex/settings-metadata-companion, main base ab22740d9bc86f01d3220751182cdcfcef9104ef.
+  Build source version 0.2.0 preserves published 0.1.0. Runtime version is unchanged in this
+  candidate; local Json 0.2.4 archive is never presented as a republication/available new payload.
+- Companion schema 1 uses actual package ID/version, reviewed source inventory, explicit named
+  type scopes/settings semantics and actual compiled assembly SHA256. Defaults/types derive
+  from supported Roslyn syntax; no publisher assembly, initializer or service startup runs.
+  Packing revalidates compiled metadata, including --no-build; stale source/declarations reject.
+- First real owner is JsonProfileSettings code construction, independently tested against
+  actual defaults, bounds/preset admission and unknown-extension denial. This is not shell
+  binder, host, authentication, CShells/Nuplane or framework-wide coverage. W3 remains partial.
+- Program Kit accepts explicit package scope references via managed settings-package-reference
+  schema, binds selected closure package ID/version/hash/assembly, carries unchanged publisher
+  metadata and preserves all missing scope/conflict/secret/integrity gates. No dependency pins
+  or selection catalog defaults change. Actual locally built Json archive passes native selected
+  closure assembly and the standalone receiver verifier outside source/toolkit directories.
+- Installed Build candidate passes 23 settings rejection/source-boundary cases and 31 existing FeatureDescriptor
+  rejection cases, preserving outputs and schemas 1/2. Real owner default/validator/assembly checks
+  and independent tool release selection tests pass. Parser uses existing centrally pinned Roslyn
+  package and notices, with private build-only dependencies. Existing CI/tool/runtime release
+  workflows add focused checks before publication; no workflow or publication is launched here.
+- Program Kit targeted/Development follow-on verification is recorded below when finished.
+  No Release suite, tags, paid workers, real consumer or original checkout changes authorized.
+
+- Foundation source commit pushed for review/coordination:
+  0cd7947f9c8b3624c72929b9feb67afddd8ae772 (codex/settings-metadata-companion).
+  Its journal records exact focused evidence paths and local artifact hashes. The concurrent
+  owner received that source commit/schema/independent version and incomplete-coverage limits.
+- First follow-on Development: 69/70 pass, journal
+  artifacts/validation-runs/20261006T111757Z-76050c2f/journal.json, log
+  artifacts/handoff-validation/settings-development.log. validate_components correctly rejected
+  the new managed settings-package-reference schema because it was not yet staged/versioned.
+  Stage the new source; preserve the gate and failed evidence. Rerun follows. Settings source
+  filenames containing credential words now retain verified SHA256 provenance while raw secret
+  values still reject; setting paths conflict case-insensitively within their scope.
+- Concrete remaining dependency: host-provided settings owners outside the bundled package
+  closure need supported metadata bound to the exact selected host/artifact authority. The
+  bundled-package companion does not claim to cover host/CShells/Nuplane or that dependency seam.
+
+Final follow-on verification: bounded Development 70/70 passes with chromium,webkit,
+artifacts/validation-runs/20261006T112456Z-4e2da65f/journal.json. Log: artifacts/handoff-validation/settings-development-final.log.
+The failed 69/70 run and its versioned-input diagnosis remain preserved unchanged.
+Targeted schema/scaffold/native-build checks pass; actual final repacked Json owner archive
+passes package/schema/compiled assembly binding and Python -I independent receiver verification
+again, logged in artifacts/handoff-validation/settings-publisher-integration-final.log. This
+supplement was needed because repacking changes the nupkg archive hash; prior integration
+results are preserved in publisher-settings-integration-initial.json. Ten handoff regressions,
+including exact publisher and credential-named source hash coverage, pass in final Development.
+No dependency pins change and no new public package availability is claimed. No complete Release
+suite, Firefox retry, tag, package publication, paid worker or real consumer change was run.

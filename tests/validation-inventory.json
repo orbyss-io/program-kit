@@ -3957,7 +3957,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Stable/historical identity, multi-API offline receiver assembly, real HTTP/settings behavior, negative references/secrets/freshness and independent consumption; no agents.",
+      "purpose": "Stable/historical identity, multi-API offline receiver assembly, real HTTP/settings behavior, exact publisher package/assembly settings bindings, rejection checks and independent consumption; no agents.",
       "owner": "program-kit",
       "inputs": [
         "extensions/program-kit-dotnet/templates/dotnet/**",

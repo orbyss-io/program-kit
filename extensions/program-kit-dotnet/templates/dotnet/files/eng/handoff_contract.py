@@ -9,7 +9,7 @@ DECLARATION = 'eng/application-handoff.json'
 CATEGORIES = {'documentation', 'runtime', 'settings', 'assets', 'migrations'}
 
 
-def read(path: Path) -> dict:
+def loads(text: str) -> dict:
     def pairs(items):
         result = {}
         for key, value in items:
@@ -19,10 +19,14 @@ def read(path: Path) -> dict:
         return result
     def invalid(value):
         raise ValueError(f'PKH001 non-JSON numeric constant: {value}')
-    value = json.loads(path.read_text(encoding='utf-8-sig'), object_pairs_hook=pairs, parse_constant=invalid)
+    value = json.loads(text, object_pairs_hook=pairs, parse_constant=invalid)
     if not isinstance(value, dict):
-        raise ValueError(f'PKH001 expected JSON object: {path}')
+        raise ValueError('PKH001 expected JSON object')
     return value
+
+
+def read(path: Path) -> dict:
+    return loads(path.read_text(encoding='utf-8-sig'))
 
 
 def digest(path: Path) -> str:

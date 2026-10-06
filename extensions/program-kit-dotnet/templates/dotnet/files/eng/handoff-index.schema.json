@@ -103,6 +103,12 @@
               "string",
               "null"
             ]
+          },
+          "settingsDescriptor": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "additionalProperties": false

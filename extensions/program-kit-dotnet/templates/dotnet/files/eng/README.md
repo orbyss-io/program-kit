@@ -99,3 +99,19 @@ Assembly rejects an activated `requiresContractCoverage` feature with no registe
 shell. This lower bound cannot establish exhaustive registration of all implemented interfaces;
 application review/tests still maintain that registry. The receiver archive also carries its format
 schemas under format/ and ordinary engineering instructions when present.
+
+For a publisher package containing Foundation Build settings companion schema 1,
+list a consumer-owned JSON reference among category `settings.files`:
+
+```json
+{"schemaVersion":1,"kind":"foundation-package","packageId":"Orbyss.Foundation.Json","packageVersion":"<exact selected version>","packageSha256":"<sha256 of selected nupkg>","scope":"json-profile"}
+```
+
+Use `eng/settings-package-reference.schema.json`. Assembly reads the actual selected
+runtime-closure package, verifies ID/version/hash and its compiled assembly binding,
+and carries the unchanged publisher metadata under metadata/settings/ for readers.
+Required settings ownership is the publisher package ID plus its declared scope.
+Publisher source hashes are package-owned provenance, not paths in the application.
+Keep applicable host/shell/Nuplane requirements until their owners deliver coverage;
+Json's code-construction scope does not satisfy those requirements. Build 0.2.0 is a
+source candidate, not an available public dependency; no selection/version pins change here.

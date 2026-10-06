@@ -257,11 +257,71 @@ class HandoffTests(unittest.TestCase):
         index=handoff.assemble(self.root,draft=True);self.assertEqual(index['status'],'incomplete')
         with self.assertRaisesRegex(ValueError,'PKH011'):verify_handoff.verify(self.root/'artifacts/handoff/application-handoff.zip')
 
+    def test_packaged_settings_require_exact_identity_sources_and_assembly(self):
+        import copy
+        import hashlib
+        package = self.packages/'Example.App.1.2.3.nupkg'
+        with zipfile.ZipFile(package) as archive:
+            members = {name:archive.read(name) for name in archive.namelist()}
+        compiled = b'offline assembler fixture assembly; real Foundation emission is qualified separately'
+        metadata = copy.deepcopy(self.metadata)
+        metadata['owner'] = 'Example.App'
+        envelope = {'schemaVersion':1, 'packageId':'Example.App', 'packageVersion':'1.2.3',
+                    'sourceSha256':metadata['sources'], 'contracts':[metadata],
+                    'assembly':{'name':'Example.App.dll','sha256':hashlib.sha256(compiled).hexdigest()}}
+        members['lib/net10.0/Example.App.dll'] = compiled
+        def replace(value):
+            members['orbyss-foundation/settings.json'] = json.dumps(value).encode()
+            with zipfile.ZipFile(package,'w') as archive:
+                for name,payload in members.items():archive.writestr(name,payload)
+            self.reference = {'schemaVersion':1,'kind':'foundation-package','packageId':'Example.App',
+                              'packageVersion':'1.2.3','packageSha256':handoff.digest(package),'scope':'shared-process'}
+            self.write('contracts/package-settings.json',self.reference)
+            self.produce()
+        self.selected['categories']['settings']['files'] = ['contracts/package-settings.json']
+        self.selected['requiredSettingsScopes'] = {'Example.App':['shared-process']}
+        self.write('eng/application-handoff.json',self.selected)
+        replace(envelope)
+        index = handoff.assemble(self.root)
+        self.assertEqual(index['status'],'ready')
+        self.assertEqual(index['packages']['Example.App']['settingsDescriptor'],'orbyss-foundation/settings.json')
+        with zipfile.ZipFile(self.root/'artifacts/handoff/application-handoff.zip') as archive:
+            self.assertEqual(json.loads(archive.read('metadata/settings/Example.App.json')),envelope)
+        self.assertEqual(verify_handoff.verify(self.root/'artifacts/handoff/application-handoff.zip')['status'],'ready')
+        # Duplicate setting paths also conflict when their case differs.
+        duplicate = copy.deepcopy(envelope)
+        duplicate['contracts'][0]['settings'].append(copy.deepcopy(duplicate['contracts'][0]['settings'][0]))
+        duplicate['contracts'][0]['settings'][-1]['path'] = duplicate['contracts'][0]['settings'][0]['path'].upper()
+        replace(duplicate)
+        with self.assertRaisesRegex(ValueError,'PKH007'):handoff.assemble(self.root)
+        replace(envelope)
+        for field,value in [('packageSha256','0'*64),('packageVersion','1.2.4'),('scope','unknown')]:
+            bad=dict(self.reference);bad[field]=value;self.write('contracts/package-settings.json',bad)
+            with self.assertRaisesRegex(ValueError,'PKH005|PKH007'):handoff.assemble(self.root)
+        self.write('contracts/package-settings.json',self.reference)
+        for mutate in [lambda v:v['assembly'].update(sha256='0'*64),
+                       lambda v:v.update(packageId='Other'),
+                       lambda v:v['contracts'][0].update(owner='Other'),
+                       lambda v:v['contracts'].append(copy.deepcopy(v['contracts'][0])),
+                       lambda v:v['contracts'][0].update(sources={'Options.cs':'a'*64})]:
+            bad=copy.deepcopy(envelope);mutate(bad);replace(bad)
+            with self.assertRaisesRegex(ValueError,'PKH005|PKH007'):handoff.assemble(self.root)
+        partial=copy.deepcopy(envelope);partial['contracts'][0]['complete']=False;replace(partial)
+        with self.assertRaisesRegex(ValueError,'PKH011'):handoff.assemble(self.root)
+        replace(envelope)
+        self.selected['requiredSettingsScopes']['foundation']=['host','shell:default','nuplane']
+        self.write('eng/application-handoff.json',self.selected)
+        with self.assertRaisesRegex(ValueError,'PKH011.*foundation'):handoff.assemble(self.root)
+
     def test_secrets_and_unsafe_paths_archives_are_rejected(self):
         for name in ('../escape','/absolute','C:/outside','a\\b','a/../b','a//b','NUL.txt','a./b'):
             with self.assertRaises(ValueError):handoff_contract.safe_name(name)
         for payload,name in [(b'{"Password":"development-password"}','settings.json'),(b'password: local-password','example.yml'),(b'Bearer abcdefghijkl','example.md'),(b'-----BEGIN PRIVATE KEY-----','example.md')]:
             with self.assertRaisesRegex(ValueError,'PKH006'):handoff.reject_secrets(payload,name)
+        # Credential-oriented source filenames carry hashes, not credential values.
+        handoff.reject_secrets(json.dumps({'sourceSha256':{'ClientCredentialsFeature.cs':'a'*64}}).encode(),'feature.json')
+        with self.assertRaisesRegex(ValueError,'PKH006'):
+            handoff.reject_secrets(b'{"sourceSha256":{"ClientCredentialsFeature.cs":"plaintext-password"}}','feature.json')
         self.metadata['settings'][0]['secret']=True;self.write('contracts/settings.json',self.metadata)
         with self.assertRaisesRegex(ValueError,'PKH006'):handoff.assemble(self.root)
         malicious=io.BytesIO()

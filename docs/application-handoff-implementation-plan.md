@@ -120,9 +120,13 @@ Status: **partial, upstream dependency open**. `settings-metadata.schema.json` a
 assembler implement source-bound application metadata with explicit owner/scope requirements,
 secret exclusion and conflict/staleness checks. The real fixture exporter shares its typed defaults
 and range declarations with actual validation, without application initialization. The selected
-SPA-PKCE structural schema is reused when present. No framework metadata or supported Foundation
-export API is fabricated; required missing scopes prevent ready output. Actual integration of
-publisher metadata awaits a supported owning producer and agreed source/version binding.
+SPA-PKCE structural schema is reused when present. Required missing scopes still prevent ready output. The separately authorized Foundation
+follow-on now implements source-candidate Build 0.2.0 settings companion schema 1. Program Kit
+binds the actual selected nupkg ID/version/hash and its compiled assembly, without interpreting
+publisher source paths as consumer paths. Real locally packed JsonProfileSettings metadata
+matches compiled defaults and admission and is consumed outside the toolkit. This complete
+named-type scope does not cover host, CShells/Nuplane, authentication, Json.AspNetCore binding
+or other option owners; W3 therefore remains partial. No unpublished version enters selection.
 
 ### W4 Receiver index and assembly
 
@@ -225,7 +229,7 @@ and application review; no live Foundation/multi-API runtime or full framework s
 is claimed. The .NET removal fixture correctly generates an incomplete handoff for missing framework
 metadata; the standalone application-owned fixture qualifies ready assembly and independent reading.
 
-Final checks: 9 handoff tests and 15 bundle tests pass; schema, scaffold, native build contract,
+Initial completion checks: 9 handoff tests and 15 bundle tests pass; schema, scaffold, native build contract,
 availability, exporter-upgrade, dependency-profile and targeted OpenAPI/feature-closure checks pass.
 Final bounded Development passes all 70 checks with the requested chromium,webkit
 configuration. Evidence: `artifacts/handoff-validation/` and
@@ -234,14 +238,31 @@ not a Release receipt, browser integration qualification or paid-worker authoriz
 in CI under the known Windows host limitation. The initial targeted failures and corrections are
 preserved and explained in the execution journal.
 
-Next required action: agree the publisher-owned settings metadata extension on the authoritative
-Foundation branch, starting from existing FeatureDescriptor production/package identities and
-preserving their v1/v2 meanings. The current source/schema cover features/dependencies/routes,
-activation/OpenAPI flags and source bindings, but lack supported-setting types/defaults/constraints,
-secret classification, binding/precedence and restart/reload semantics. Reuse that producer rather
-than introduce another feature registry. A companion metadata payload can preserve current runtime
-descriptors; the exact upstream shape/API and source/coverage owners require agreement. Foundation
-changes require prior user notice/approval; none were made in this implementation.
+The user subsequently accepted the companion recommendation after requesting the initial
+implementation push (4ed712f). Foundation follow-on uses an isolated source checkout at main
+ab22740d9bc86f01d3220751182cdcfcef9104ef on codex/settings-metadata-companion, coordinated with
+the concurrent contract owner by explicit user authorization. Its schemas/emitter preserve
+FeatureDescriptor v1/v2 meanings. Settings type/defaults are read from a deliberately bounded
+Roslyn syntax subset; owning semantics bind the exact reviewed source inventory. Compilation
+binds the assembly hash, and no-build packing cannot refresh stale provenance. The first real
+owner declaration covers JsonProfileSettings code construction only. Build candidate 0.2.0 is
+independently versioned; neither it nor the changed runtime package has been published here.
+
+Follow-on acceptance: 10 handoff tests and all 70 bounded Development checks pass with
+chromium,webkit. Targeted schema/scaffold/native build contract and actual publisher schema/
+package/assembly integration pass; independent receiver uses Python -I outside source/toolkit.
+Evidence: artifacts/handoff-validation/settings-development-final.log and
+artifacts/validation-runs/20261006T112456Z-4e2da65f/journal.json. The initial 69/70 run correctly
+required the new managed schema to be staged; its failure and rerun remain preserved. Foundation
+source candidate is pushed at 0cd7947f9c8b3624c72929b9feb67afddd8ae772. W3 remains partial.
+
+Next required action: review/integrate this source candidate with the authoritative Foundation
+owner, qualify metadata declarations for the remaining applicable configuration scopes, and
+publish through that owner's existing gates before changing Program Kit dependency selections.
+Dynamic defaults, nested/partial/inherited/constructed settings and nonprimitive option graphs
+need an independently qualified owning producer; this task does not infer or hand-copy defaults.
+Host/CShells/Nuplane ownership remains explicit and requires their supported contracts. Original
+checkouts, real consumers and concurrent dirty runtime work remain untouched.
 
 ## Completion and execution boundaries
 

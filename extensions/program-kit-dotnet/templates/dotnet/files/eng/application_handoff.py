@@ -10,7 +10,7 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-from handoff_contract import declaration, contained, read, digest, safe_name, DECLARATION, source_inputs
+from handoff_contract import declaration, contained, read, digest, safe_name, DECLARATION, source_inputs, loads
 import release_bundle
 
 
@@ -35,17 +35,18 @@ def reject_secrets(payload: bytes, name: str) -> None:
     if re.search(r'(?im)\b(?:password|clientsecret|api[_-]?key|access[_-]?token)\s*[:=]\s*[\x22\x27]?(?!\$\{|<|null\b|false\b|true\b)[A-Za-z0-9][^\s,;\x22\x27]+', text):
         raise ValueError(f'PKH006 credential assignment in {name}')
     if name.lower().endswith('.json'):
-        def visit(value):
+        def visit(value, parent=None):
             if isinstance(value, dict):
                 for key, child in value.items():
                     # Metadata classification is a boolean, never a credential value.
                     sensitive = re.search(r'password|clientsecret|apikey|access.?token|privatekey|connectionstrings|credentials', key, re.I)
-                    if sensitive and child not in (None, '', {}, []):
+                    is_source_hash = parent in {'sources', 'sourceSha256', 'sourceInputs'} and isinstance(child, str) and re.fullmatch(r'[a-f0-9]{64}', child)
+                    if sensitive and child not in (None, '', {}, []) and not is_source_hash:
                         raise ValueError(f'PKH006 secret value in {name}: {key}')
-                    visit(child)
+                    visit(child, key)
             elif isinstance(value, list):
                 for child in value:
-                    visit(child)
+                    visit(child, parent)
         visit(json.loads(text))
 
 
@@ -68,13 +69,26 @@ def archive_members(payload: bytes, name: str) -> dict[str, bytes]:
 
 def settings_metadata(repository: Path, path: Path) -> dict:
     value = read(path)
+    check_hashes(repository, value.get('sources'))
+    validate_settings_metadata(value)
+    reject_secrets(path.read_bytes(), path.name)
+    return value
+
+
+def validate_settings_metadata(value: dict) -> None:
     required = {'schemaVersion', 'owner', 'scope', 'complete', 'sources', 'settings', 'semanticConstraints'}
-    if set(value) != required or value['schemaVersion'] != 1 or type(value['complete']) is not bool:
+    if not isinstance(value, dict) or set(value) != required or type(value['schemaVersion']) is not int or value['schemaVersion'] != 1 or type(value['complete']) is not bool:
         raise ValueError('PKH007 invalid settings metadata envelope')
     for key in ('owner', 'scope'):
         if not isinstance(value[key], str) or not value[key].strip():
             raise ValueError(f'PKH007 settings {key} required')
-    check_hashes(repository, value['sources'])
+    sources = value['sources']
+    if not isinstance(sources, dict) or not sources:
+        raise ValueError('PKH007 settings source hashes required')
+    for name, expected in sources.items():
+        safe_name(name)
+        if not isinstance(expected, str) or not re.fullmatch(r'[a-f0-9]{64}', expected):
+            raise ValueError('PKH007 invalid settings source hash')
     if not isinstance(value['settings'], list) or not isinstance(value['semanticConstraints'], list) or any(not isinstance(x, str) or not x for x in value['semanticConstraints']):
         raise ValueError('PKH007 settings and semanticConstraints must be arrays')
     seen = set()
@@ -82,7 +96,7 @@ def settings_metadata(repository: Path, path: Path) -> dict:
     for item in value['settings']:
         if not isinstance(item, dict) or not fields <= set(item) or set(item) - fields - {'default'}:
             raise ValueError('PKH007 invalid setting metadata fields')
-        if (not isinstance(item['path'], str) or not item['path'] or item['path'] in seen
+        if (not isinstance(item['path'], str) or not item['path'] or item['path'].casefold() in seen
                 or item['type'] not in {'string', 'integer', 'number', 'boolean', 'array', 'object'}
                 or type(item['required']) is not bool or type(item['secret']) is not bool
                 or item['reload'] not in {'restart', 'reload', 'immutable'}
@@ -91,7 +105,7 @@ def settings_metadata(repository: Path, path: Path) -> dict:
                 or any(not isinstance(x, str) or not x.strip() for x in item['precedence'])
                 or any(not isinstance(item[k], str) or not item[k].strip() for k in ('binding', 'description'))):
             raise ValueError('PKH007 invalid or conflicting setting metadata')
-        seen.add(item['path'])
+        seen.add(item['path'].casefold())
         if item['secret'] and ('default' in item or {'default','example','examples','const','enum'}.intersection(item['constraints'])):
             raise ValueError('PKH006 secret settings cannot export defaults or examples')
         if 'default' in item:
@@ -99,8 +113,46 @@ def settings_metadata(repository: Path, path: Path) -> dict:
             types = {'string': str, 'integer': int, 'number': (int, float), 'boolean': bool, 'array': list, 'object': dict}
             if not isinstance(default, types[item['type']]) or (item['type'] in {'integer','number'} and isinstance(default, bool)):
                 raise ValueError('PKH007 default differs from declared setting type')
-    reject_secrets(path.read_bytes(), path.name)
-    return value
+
+
+def packaged_settings(reference: dict, package: Path) -> tuple[dict, bytes]:
+    fields = {'schemaVersion', 'kind', 'packageId', 'packageVersion', 'packageSha256', 'scope'}
+    if set(reference) != fields or type(reference['schemaVersion']) is not int or reference['schemaVersion'] != 1 or reference['kind'] != 'foundation-package':
+        raise ValueError('PKH007 invalid packaged settings reference')
+    identity, version = release_bundle.package_identity(package)
+    if (identity != reference['packageId'] or version != reference['packageVersion']
+            or digest(package) != reference['packageSha256']):
+        raise ValueError('PKH005 packaged settings identity/version/hash differs from selected package')
+    members = archive_members(package.read_bytes(), package.name)
+    member = 'orbyss-foundation/settings.json'
+    if member not in members:
+        raise ValueError('PKH007 selected publisher has no settings companion')
+    payload = members[member]
+    reject_secrets(payload, member)
+    envelope = loads(payload.decode('utf-8-sig'))
+    if (set(envelope) != {'schemaVersion', 'packageId', 'packageVersion', 'sourceSha256', 'contracts', 'assembly'}
+            or type(envelope['schemaVersion']) is not int or envelope['schemaVersion'] != 1 or envelope['packageId'] != identity or envelope['packageVersion'] != version
+            or not isinstance(envelope['contracts'], list) or not envelope['contracts']):
+        raise ValueError('PKH007 invalid publisher settings companion envelope')
+    assembly = envelope['assembly']
+    if not isinstance(assembly, dict) or set(assembly) != {'name', 'sha256'} or not isinstance(assembly['name'], str):
+        raise ValueError('PKH007 settings assembly binding required')
+    safe_name(assembly['name'])
+    if '/' in assembly['name'] or not assembly['name'].endswith('.dll'):
+        raise ValueError('PKH007 settings assembly name invalid')
+    compiled = members.get('lib/net10.0/' + assembly['name'])
+    if compiled is None or hashlib.sha256(compiled).hexdigest() != assembly['sha256']:
+        raise ValueError('PKH005 settings companion differs from packed compiled assembly')
+    scopes = {}
+    for contract in envelope['contracts']:
+        validate_settings_metadata(contract)
+        if (contract['owner'] != identity or contract['sources'] != envelope['sourceSha256']
+                or contract['scope'] in scopes):
+            raise ValueError('PKH007 publisher owner/source/scope conflict')
+        scopes[contract['scope']] = contract
+    if not isinstance(reference['scope'], str) or reference['scope'] not in scopes:
+        raise ValueError('PKH007 selected settings scope is not published by the owner')
+    return scopes[reference['scope']], payload
 
 
 def assemble(repository: Path, *, draft: bool = False) -> dict:
@@ -168,14 +220,17 @@ def assemble(repository: Path, *, draft: bool = False) -> dict:
     add(archive_path, 'application'); add(checksum_path, 'application'); add(closure_path, 'integrity')
     add(contained(repository, DECLARATION), 'declaration')
     packages = {}
+    selected_packages = {}
     required_features = set()
     for entry in closure['packages']:
         package = contained(stage, entry['file'])
         package_id, version = release_bundle.package_identity(package)
         package_members = archive_members(package.read_bytes(), package.name)
         descriptor_entry = next((name for name in ('orbyss-foundation/feature.json', 'program-kit/feature.json') if name in package_members), None)
+        selected_packages[package_id] = package
         packages[package_id] = {'path': add(package, 'package'), 'version': version,
-                              'featureDescriptor': descriptor_entry}
+                              'featureDescriptor': descriptor_entry,
+                              'settingsDescriptor': 'orbyss-foundation/settings.json' if 'orbyss-foundation/settings.json' in package_members else None}
         required_features.update(feature['identity'] for feature in release_bundle.package_features(package)
                                  if feature.get('requiresContractCoverage') is True)
     registry_path = contained(repository, selected['openapiRegistry'])
@@ -234,13 +289,25 @@ def assemble(repository: Path, *, draft: bool = False) -> dict:
         for name in category['files']:
             path = contained(repository, name)
             if key == 'settings':
-                metadata = settings_metadata(repository, path)
+                reference = read(path)
+                if reference.get('kind') == 'foundation-package':
+                    package = selected_packages.get(reference.get('packageId'))
+                    if package is None:
+                        raise ValueError('PKH007 settings package is not in the selected runtime closure')
+                    metadata, payload = packaged_settings(reference, package)
+                    destination = 'metadata/settings/' + safe_name(reference['packageId']) + '.json'
+                    if destination not in files:
+                        files[destination] = payload
+                        rows.append({'path': destination, 'source': package.relative_to(repository).as_posix()+'#orbyss-foundation/settings.json',
+                                     'category': 'settings', 'sha256': hashlib.sha256(payload).hexdigest()})
+                else:
+                    metadata = settings_metadata(repository, path)
                 if metadata['complete']:
                     owners.add((metadata['owner'], metadata['scope']))
                 else:
                     missing.append('settings: incomplete metadata from '+metadata['owner'])
                 for item in metadata['settings']:
-                    setting_key = (metadata['scope'], item['path'])
+                    setting_key = (metadata['scope'], item['path'].casefold())
                     if setting_key in settings_keys:
                         raise ValueError('PKH007 conflicting setting path/scope')
                     settings_keys.add(setting_key)
@@ -260,7 +327,7 @@ def assemble(repository: Path, *, draft: bool = False) -> dict:
     if (repository / 'eng/README.md').is_file():
         add(repository / 'eng/README.md', 'documentation')
     for name in ('application-handoff.schema.json', 'settings-metadata.schema.json',
-                 'handoff-index.schema.json', 'application-bundle.schema.json'):
+                 'handoff-index.schema.json', 'application-bundle.schema.json', 'settings-package-reference.schema.json'):
         payload = Path(__file__).with_name(name).read_bytes()
         destination = 'format/' + name
         files[destination] = payload

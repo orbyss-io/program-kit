@@ -246,6 +246,10 @@
       "ownership": "managed"
     },
     {
+      "path": "eng/settings-package-reference.schema.json",
+      "ownership": "managed"
+    },
+    {
       "path": "eng/handoff-index.schema.json",
       "ownership": "managed"
     },
