@@ -414,3 +414,11 @@ separate gate. Additional patches run in a fresh user session; new Notes waits u
 complete and its purpose/run procedure is jointly specified. Program Kit public/default/Release
 gates and the strictly read-only real consumer remain unchanged. Cross-repository work is not
 declared complete. Clean common-branch checkpoint source and push results follow below.
+
+Program Kit implementation commit is `bf772ede0bb603788e6870c22b8ca8fedd72070b`, tree
+`51abb9cdd7e90cd573e2dae4b787c50959aa4b1b`, common branch codex/human-infrastructure-handoff.
+The full35-file list is retained in the cross-repository journal. Final actual READY8 and76/76
+Development precede the commit; later differences are non-shipped progress documentation.
+This source is ready for the clean common-branch push after a journal-only follow-up. W1–W5
+remain complete; Foundation runtime approval/publication, fresh-session patches and future
+joint Notes work retain the explicitly recorded boundaries.
