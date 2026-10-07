@@ -31,6 +31,20 @@
     "intake": { "$ref": "#/$defs/intake_projection" },
     "architecture_map": { "$ref": "#/$defs/architecture_projection" },
     "authorities": { "type": "object", "additionalProperties": { "type": "object" } },
+    "decision_constraints": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "source", "constraint"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "pattern": "^\\.specify/extensions/", "minLength": 1 },
+          "constraint": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "managed_profile_pins": {
       "type": ["object", "null"],
       "additionalProperties": false,

@@ -98,6 +98,12 @@ class ProfileRoutingTests(unittest.TestCase):
             self.assertTrue(architecture["runtime_release"]["managed_host"]["version"])
             self.assertEqual(intake_path.read_bytes(), original)
             self.assertEqual(architecture["intake"]["routing"]["languages"], [])
+            self.assertEqual({'authority-conflicts', 'compilation-responsibilities'},
+                             {r['id'] for r in architecture['decision_constraints']})
+            allowed = architecture['reading_policy']['allowed_sources']
+            for name in ('program-kit-governance/references/modularity-and-contracts.md',
+                         'program-kit-dotnet/references/technology-profiles/dotnet.md'):
+                self.assertIn('.specify/extensions/' + name, allowed)
             schema_path = ROOT / "extensions/program-kit-governance/references/bootstrap-context.schema.json"
             schema = json.loads(schema_path.read_text(encoding="utf-8"))
             for brief in (assessment, research, architecture):

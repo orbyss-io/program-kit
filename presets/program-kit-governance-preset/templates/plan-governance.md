@@ -3,6 +3,14 @@
 Describe the complete vertical outcome, domain owner, public contracts and allowed dependency
 boundaries. Apply the relevant Program Kit knowledge before selecting implementation patterns.
 Record substantive choices and applicable ADRs here; preserve existing accepted architecture.
+Review actual responsibility placement against applicable canonical constraints and accepted decisions.
+In `eng/architecture.json`, each project has compact `responsibilities` records: meaningful `name`,
+`kind` (contract, pure-policy, pure-helper, runtime, http, persistence, composition or test), named
+`effects`, and `provides` for implemented public capabilities. Every provided capability needs its
+real binding. Core contracts/policies have no runtime effects. Describe the reasons here; declaration
+consistency is not proof of semantic ownership. Record surfaced conflicts and their governed resolution.
+Use the phase-context command's normal inline resolution procedure for retained feature-plan decisions;
+review provenance refers to the actual review, not a generated claim of human approval.
 Conditional optimizations require their conditions and, where relevant, measurements.
 
 Plan actual compiler/analyzer, architecture, contract, security and behavioral tests at the

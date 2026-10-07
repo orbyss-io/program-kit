@@ -417,15 +417,9 @@ def main() -> int:
             report.relative_to(repository)
             return complete_analysis(repository, feature_dir, report)
         if args.command == 'verify-delivery':
-            from historical_phase_evidence import check, review_basis, digest
-            check(repository, feature_dir, 'delivery')
-            path = state_path(repository, feature_dir)
-            state = load_state(path)
-            state['phases']['delivery'] = {'basis': digest(review_basis(repository, feature_dir)),
-                                           'completedAtUtc': utc_now()}
-            atomic_write(path, state)
-            print('Delivery has current required verification and semantic review')
-            return 0
+            raise ValueError('verify-delivery is retired: historical dossiers cannot establish current delivery. '
+                             'Use phase_obligations.py finish for engineering verification and complete normal '
+                             'semantic/human review. Inspect preserved evidence with historical_phase_evidence.py.')
         return verify_before_implement(repository, feature_dir)
     except (FileNotFoundError, ValueError, json.JSONDecodeError) as error:
         print(str(error), file=sys.stderr)

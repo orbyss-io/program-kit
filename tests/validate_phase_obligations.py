@@ -123,7 +123,7 @@ raise SystemExit(not result.wasSuccessful())
         with self.assertRaisesRegex(ValueError, 'Missing/ambiguous'):
             obligations.knowledge_section(path, 'Async')
 
-    def test_delivered_roadmap_requires_current_executed_proof(self):
+    def test_historical_delivery_audit_remains_explicit(self):
         import os
         import governance_state as governance
         from validate_governance_state import roadmap
@@ -134,18 +134,19 @@ raise SystemExit(not result.wasSuccessful())
         previous = Path.cwd()
         os.chdir(self.root)
         try:
+            governance.validate_roadmap(False)  # Consumer status is not a new execution claim.
             with self.assertRaisesRegex(ValueError, 'lacks current required evidence'):
-                governance.validate_roadmap(False)
+                governance.validate_roadmap(False, verify_delivery=True)
             obligations.execute(self.root, self.feature)
             self.review('delivery')
-            governance.validate_roadmap(False)
+            governance.validate_roadmap(False, verify_delivery=True)
             # The active pointer is navigation; changing it cannot revoke another
             # feature's proof or force unrelated feature revalidation.
             self.write('.specify/feature.json', {'feature_directory': 'specs/002-other'})
-            governance.validate_roadmap(False)
+            governance.validate_roadmap(False, verify_delivery=True)
             (self.root / 'run_tests.py').write_text('raise Exception("changed behavior")', encoding='utf-8')
             with self.assertRaisesRegex(ValueError, 'lacks current required evidence'):
-                governance.validate_roadmap(False)
+                governance.validate_roadmap(False, verify_delivery=True)
         finally:
             os.chdir(previous)
 

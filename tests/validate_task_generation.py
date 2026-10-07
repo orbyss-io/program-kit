@@ -22,7 +22,7 @@ def validate_sections(catalog):
             raise ValueError('Every source needs a focused section: ' + rule['id'])
         for source, sections in rule['sections'].items():
             text = (ROOT / 'extensions' / source).read_text(encoding='utf-8')
-            headings = set(re.findall(r'^## (.+)$', text, re.M))
+            headings = set(re.findall(r'^#{1,2} (.+)$', text, re.M))
             if not sections or not set(sections) <= headings:
                 raise ValueError('Missing focused heading: ' + source)
 

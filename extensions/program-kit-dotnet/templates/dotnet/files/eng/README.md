@@ -21,6 +21,14 @@ Contract generation runs registered contracts and compares their baselines. A de
 contract change can update its baseline explicitly; never bypass an unexpected compatibility failure.
 
 Declare actual project roles and scoped dependency exceptions once in eng/architecture.json.
+For affected design, include responsibilities with a meaningful name, kind, effects and optional
+provided capability names. For example, a Core `NamePolicy` uses `pure-policy` with `effects: []`;
+a persistence-calling `NotesService` uses `runtime` in an implementation project with
+`effects: ["persistence"]`. Each supplied capability also needs its normal binding to that
+implementation. Contract/pure-policy/pure-helper belong in Core; provider mechanics use a provider
+project. Existing unrelated manifests retain their structural scope; review missing metadata in
+the selected design before dependent source work. Metadata detects declared contradictions;
+normal review must check the actual responsibilities and governing constraints.
 Development uses explicit scopes rather than the acceptance pipeline at every checkpoint:
 
 ```powershell
@@ -79,7 +87,10 @@ This command performs no restore/build or receipt mutation. Keep Core, runtime i
 API and provider mechanisms in separate compilation projects; one bundle/deployment does not merge
 their ownership. Namespace waivers and role relabeling cannot authorize a mixed project. List every
 selected owned runtime capability binding; compiled verification also detects unlisted implementations.
-Native MSBuild/compiled assemblies supply real dependencies. An exception needs a rationale and an
+Native MSBuild/compiled assemblies supply real dependencies. Separation applies when those
+responsibilities exist; pure Core utilities and empty initial graphs remain valid. Graph passes
+establish structure, while registration/resolution tests and semantic review assess behavior.
+An exception needs a rationale and an
 existing verification test. Record the substantive approval in normal review or an ADR. No document
 hash or ratification receipt is needed to compile. Domain semantics and security behavior still need
 application tests and code review; green analyzers alone cannot establish them.

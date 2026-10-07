@@ -6,8 +6,11 @@ metadata, page-level discovery intent, and opt-in analytics. Read `../ui-experie
 evidence register. Native CSS is the default adapter; accepted frontend/framework decisions remain
 authoritative. The isolated UI acceptance graph must not change the application's own npm graph.
 
+## Admission and verification
+
 When TypeScript or a browser UI is detected, evaluate and normally enforce:
 
+<!-- program-kit:decision-rule typescript-admission -->
 - strict TypeScript mode and no implicit unsafe boundary casts;
 - linting and formatting with pinned, non-conflicting tools;
 - explicit runtime validation for untrusted API, storage, URL, and message data;
@@ -17,6 +20,7 @@ When TypeScript or a browser UI is detected, evaluate and normally enforce:
 - dependency, lockfile, license, secret, and supply-chain checks;
 - bundle-size and performance budgets appropriate to the product;
 - safe rendering, CSP, CSRF/session/token treatment, and secret-free client configuration.
+<!-- /program-kit:decision-rule -->
 
 For an authenticated browser UI, adopt the versioned secure web profile selected by the bootstrap.
 The default is a same-origin BFF even when the UI is a React or other single-page application. The

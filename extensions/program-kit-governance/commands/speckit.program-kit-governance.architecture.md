@@ -14,6 +14,12 @@ Missing bootstrap, ratification or hash receipts do not prevent drafting or impl
 Do not generate a new bootstrap context, approval dossier or recovery continuation. Return after
 this scoped work. The remaining instructions apply only to native initial bootstrap stage briefs.
 
+During placement authoring apply the stage brief's `decision_constraints` from canonical references.
+Classify responsibilities before choosing project roles. Stable contracts/pure policies may be Core;
+persistence-calling orchestration, endpoint adaptation and provider mechanisms require their actual
+present compilation roles. An accepted earlier decision is not an implicit waiver. Surface conflicts
+and resolve substantive changes through governed review. No universal project count is prescribed.
+
 
 Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage architecture --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.
 

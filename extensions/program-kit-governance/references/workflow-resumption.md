@@ -37,7 +37,11 @@ human-owned terminal:
 python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <completed-source-id> --post-bootstrap
 ```
 
-Plain resume of a completed run retains its existing meaning. The explicit flag verifies
+Plain resume of a completed run retains its existing meaning. This maintenance path is for
+changed architecture authority. Ordinary feature-plan decision resolutions belong in
+the selected plan and normal design review, consumed by phase-context and native eligibility;
+they do not reopen bootstrap or rewrite its approved ledger. Retained compatibility and delivery
+execution still require their actual evidence. For maintenance, the explicit flag verifies
 the bound completed engine and intact approval, validates current ratification, and recovers
 the historical constitution/readiness bytes by their exact completion hashes. It
 preserves the source run, completion, approval and current artifacts in content-addressed

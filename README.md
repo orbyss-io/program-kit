@@ -356,7 +356,11 @@ for the selected roadmap entry. The interview reuses settled facts, resolves mat
 pauses for your confirmation of one concise feature brief before specification setup begins. Small
 features can have a short review; uncertain features receive deeper questioning. Saved interviews
 resume, and changes reopen affected decisions. The spec uses the confirmed brief and retains its
-hash; missing or stale evidence blocks later checks and implementation preflight.
+hash. Product confirmation remains distinct from mechanical workflow state. Applicable knowledge is
+routed from scoped adopted targets before planning; canonical conditions and prohibitions survive the brief.
+Declared graph checks require responsibility/effect/capability consistency; normal review establishes
+semantic ownership. Retained feature-plan decisions resolve inside the reviewed plan without rewriting
+approved bootstrap history. Engineering-command success reports its actual scope and is not overall acceptance.
 
 You can prepare a feature ahead of time with `$speckit-program-kit-governance-specification-intake`.
 Bootstrap grilling supplies context but does not replace feature confirmation. After upgrading to

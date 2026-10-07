@@ -5,6 +5,7 @@ ownership rules are profile requirements.
 
 ## Async and shell-owned work
 
+<!-- program-kit:decision-rule async-ownership -->
 - `Task`/`Task<T>` is the default asynchronous representation. Use `ValueTask` only for a measured hot path
   whose consumers obey its single-consumption constraints.
 - `async void` is limited to event handlers. Do not use `.Result`, `.Wait()`, sync-over-async, unobserved work,
@@ -15,6 +16,7 @@ ownership rules are profile requirements.
   a shell provider.
 - Startup tasks may be scoped. Background and recurring tasks are shell-singletons owned by the task manager.
   Shutdown is idempotent, cancels, awaits with a bound, drains before provider disposal, and has disposal fallback.
+<!-- /program-kit:decision-rule -->
 - Custom schedulers, `Task.Factory.StartNew`, invisible fire-and-forget, and runtime work without an owner require
   an Accepted ADR and measured evidence.
 - Await asynchronous I/O directly. `Task.Run` does not improve server I/O scalability; CPU offload needs a
@@ -40,9 +42,11 @@ ownership rules are profile requirements.
 
 ## Resource and memory ownership
 
+<!-- program-kit:decision-rule resource-ownership -->
 - The creator owns disposal unless ownership is explicitly transferred. DI disposes services it creates; do not
   manually dispose them or register pre-created disposable instances without an owner.
 - Use `IAsyncDisposable` when teardown performs asynchronous work. Constructors do not start background work.
+<!-- /program-kit:decision-rule -->
 - Bound caches, queues, buffers, subscriptions, and retained task state. Static references, timers, event
   handlers, callbacks, threads, and outstanding work must not retain a drained shell generation.
 - `Span<T>` is stack-only and synchronous; `Memory<T>` can cross async boundaries. Follow explicit buffer

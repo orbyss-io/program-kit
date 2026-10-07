@@ -8,13 +8,30 @@ before planning. Run `{SCRIPT} project --feature-dir <feature> --phase tasks` be
 The after-plan hook already checked the planned graph; task drafting carries those choices without
 immediately repeating that check. The after-tasks and combined implementation-check hooks validate
 the current graph before affected coding. Do not invoke phase-context again before implementation.
-Use the returned summaries as the default context. The focused section pointers are optional
-lookup for a concrete unresolved choice, not a checklist to reread every source. Use `--only <id>`
+Use the returned phase actions and canonical decision constraints before choosing patterns.
+Their conditions, prohibitions and exceptions are binding guidance, not optional explanation.
+Scoped accepted targets and feature ownership inform routing before a plan or project exists.
+Resolve reported associations/conflicts; repository-wide adoption does not select every owner's mechanisms.
+Use focused section lookup for a concrete unresolved choice, not a checklist to reread every source. Use `--only <id>`
 for a focused follow-up. Apply their conditions to concrete design/code choices;
 record decisions, exceptions and actual required tests in the existing plan and tasks.
 Use the project's analyzers and targeted tests during implementation. Do not create phase-context,
 obligation-design/review, semantic-contract or proof-attestation files. No renewed human approval
 is needed for generated context, changed toolkit bytes or test execution.
+
+## Retained feature planning decisions
+
+The projection names open feature-plan prerequisite IDs, owners and tasks from retained history.
+Draft their resolutions in the normal plan/contracts; pending review does not forbid that drafting.
+After the actual normal design review, record each exact resolution with:
+`python .specify/extensions/program-kit-governance/scripts/feature_plan_decisions.py record --feature-dir <feature> --prerequisite <id> --evidence "<feature>/plan.md#Exact heading" --reviewer "<actual reviewer>" --provenance "<actual review context>"`.
+This preserves a small inline plan record and binds its reviewed section and existing intent/condition.
+It creates no separate receipt or new human gate. Never invent human approval or substitute an agent's
+review for a required ADR acceptance. Changed evidence reopens only its dependent decision.
+Readiness and implementation consume this same resolution without changing the approved bootstrap ledger,
+confirmed intake, constitution, ADR history or original approval hashes. A plan cannot close compatibility,
+delivery, rights or production evidence. Missing legacy annotations are diagnosed for the affected decision;
+do not automatically rewrite an existing approved plan.
 
 ## Task drafting and resume (before_tasks)
 

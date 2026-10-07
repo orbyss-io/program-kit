@@ -91,6 +91,7 @@ prerequisite tasks; they do not block saving tasks or reporting architecture-che
   lease, cancellation/creation failure, active-unit drain and datasource disposal after units finish.
   A stable datasource owns connection pooling per shell/provider generation; context pooling is a
   separate decision. Do not rewrite connection strings per operation to select time budgets.
+<!-- program-kit:decision-rule persistence-admission -->
 - Native connection/command/lock/deadline options remain provider-owned typed validated configuration.
   Consumers own operation policy and map safe SQLSTATE plus named constraints to outcomes. Preserve
   commit uncertainty: cancellation cannot prove rollback. Verify independent contexts, replay races,
@@ -105,6 +106,7 @@ prerequisite tasks; they do not block saving tasks or reporting architecture-che
   result atomically; conflicting reuse is a defined denial, not a new execution. For durable external
   delivery, use an admitted outbox and idempotent receiver. Retry the complete unit only when its
   replay/commit verification contract is safe; never promise exactly-once network delivery.
+<!-- /program-kit:decision-rule -->
 - Connection strings and secrets come from environment/secret providers. `shells.json` may contain
   feature activation and validated configuration names only, never credentials.
 - Never run destructive or uncontrolled migrations at application startup. CI checks pending model

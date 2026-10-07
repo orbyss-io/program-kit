@@ -22,9 +22,13 @@ ephemeral toast or replace the entire application for one failed request.
 | Unexpected app failure | Usable fallback, safe reference for support, no raw internal diagnostics |
 | Success | Confirm the established outcome and appropriate next action |
 
+<!-- program-kit:decision-rule ui-outcome-ownership -->
 Only applicable states belong in the affected feature. No separate state dossier or per-task gate
 is required. Draft retention follows privacy/security and lifetime rules; do not automatically put
 private drafts or tokens in persistent browser storage. Cancellation does not prove server rollback.
+Unknown completion requires reconciliation or safe replay; failed retrieval is never an empty result.
+Generated UI callbacks do not establish backend idempotency or actual provider login/logout behavior.
+<!-- /program-kit:decision-rule -->
 
 ## Complete fields and forms
 
