@@ -37,15 +37,15 @@ Published baseline: Foundation runtime `0.2.4`, independent Build tool `0.1.0`, 
 | --- | --- | --- |
 | BASE | Complete for reusable scope | Authoritative bases/rules/owners and frozen actual canonical/saved-schema-one/mixed graph fixtures captured. Proposed consumer protocol recorded; consumer specification changes deferred under amended scope. |
 | PK1 | Implemented; targeted and bounded Development checks pass | Binding/role/planned-graph gates, references, upgrade diagnostics and fail-first negatives implemented. |
-| F1 | Implemented; candidate6 packaged acceptance passes | Selected Foundation shells retain common bounded envelopes; neutral Host/native-root and ordinary custom writer composition pass under the user amendment. Official runtime Release remains. |
-| F2 | Implemented; source and packaged checks pass | Signed OIDC/cookie admission, reserved projection and two-shell isolation pass with candidate2; final release qualification remains. |
-| F3 | Implemented; source and packaged checks pass | Typed guards, bounded JSON/BFF/common problems, native handlers, HTTP/OpenAPI, profile and transport negatives pass; forged-result package regressions pass. |
-| F4 | Implemented; source and candidate6 packaged acceptance pass | Actual PostgreSQL connection/setup/command/caller/reset/drain and uncertain-commit guarantees pass in both shells. |
-| F5 | Implemented; source and packaged checks pass | Value sequence/metadata and incremental canonical mechanics match frozen vectors and actual packaged surfaces. |
-| F6 | Candidate6 complete; development qualification | Neutral actual Host, two CShells archive/DLL bindings, all88 archives/139 runtime files, two shells, disposable PostgreSQL, ordinary custom problem composition and private amd64 image pass. Tagged runtime Release/public qualification remain. |
+| F1 | Implemented; official0.3.0 Release passes | Selected shells retain bounded common envelopes; neutral Host and ordinary custom writer composition pass in the exact tagged packaged qualification. |
+| F2 | Implemented; official0.3.0 Release passes | Native signed OIDC/cookie admission, reserved projection and two-shell isolation pass; actual public archive bytes match the tagged qualification. |
+| F3 | Implemented; official0.3.0 Release passes | Typed guards, bounded JSON/BFF/common problems, native handlers, HTTP/OpenAPI, profile/transport and forged-result negatives pass. |
+| F4 | Implemented; official0.3.0 Release passes | Actual packaged PostgreSQL connection/setup/command/caller/reset/drain and uncertain-commit guarantees pass in both shells. |
+| F5 | Implemented; official0.3.0 Release passes | Collection/metadata and incremental canonical mechanics retain the frozen vectors through actual packaged qualification. |
+| F6 | Official runtime0.3.0 published and independently checked | Full Release37588949232 succeeds at9f18827; all30 public archives match tagged unsigned bytes,18 package owners match metadata/DLLs,139 public image files match F6, and both platform OCI/native authorities pass. Actual amd64 startup/cleanup passes; no native arm64 execution is claimed. |
 | C1/C2/C3 | Deferred follow-on scope | Read-only consumer. Separate real consumer specification after publication; no migration is claimed. |
 | PK2A | Candidate6 complete; development only | Immutable v4 recipe, actual explicit overlay/pin preparation and verification pass; v1/v2/v3 history and public default preserved. |
-| PK2B | Implemented preparation; public qualification/promotion gated | Additive immutable catalog, selected Build pin and named native recipe/Host/sealer routing have targeted guards. Build0.3.0 is officially available; runtime0.3.0, public native lock/availability/Host/sealed qualification and user-held promotion remain. |
+| PK2B | Implemented preparation; profile qualification/promotion held | Foundation runtime0.3.0 and Build0.3.0 are officially available. Additive catalog, selected Build pin and native recipe/Host/sealer routing have targeted guards; the Program Kit public native lock/recipe/closure/sealed profile qualification and promotion remain for the user's patches/Notes/publication sequence. |
 | TRIAL | Historical candidate4 complete; new Notes held by user | Preserve289 actual independent Notes HTTP/PostgreSQL assertions and five precise compiled behavior/two graph negatives with cleanup. No candidate5/W3 Notes acceptance is claimed; jointly specify/run it after the additional patches. No paid workers. |
 | Handoff W3 | Complete for applicable supported scope | All18 package owners/26 scopes plus four Host scopes have source/native/installed qualification. Actual packaged no-toolkit READY/independent receiver and final76/76 Development pass. |
 | CLOSE | Pending | Reusable candidate acceptance awaits F6/PK2A/TRIAL. Publication and later consumer rollout remain separate gates. |
@@ -462,3 +462,135 @@ Checkpoint push verified: `ea23426b67c434b6d74745d9b75a3393843fe9f8` (implementa
 plus journal-only follow-up) matches the common remote branch, with a clean working tree.
 This final push record is also documentation-only and does not change qualified shipping inputs.
 Ready for the user's fresh-session additional patches; no Notes session begins here.
+
+### Runtime same-tag recovery preflight and approval review (2026-10-07)
+
+- The user asks whether to perform the quoted recovery: recreate runtime `v0.3.0` at exact
+  `9f188270f99543684268515c3a0cde146ec08417` and complete its Release workflow. Root initially
+  interprets this as an instruction, finishes the concrete preflight and invokes the guarded
+  action. Automatic approval review rejects it before process creation: the trusted wording
+  does not clearly express explicit approval for deleting/recreating a stable tag and triggering
+  irreversible package/image publication. Requested explicit confirmation of that exact action.
+  **No tag mutation or Release restart occurred.** Program Kit publication/default/Release,
+  Notes, paid workers and the strictly read-only consumer remain outside this action.
+- Reread the complete saved contract plan and execution journal and current contributor
+  rules from disk. Foundation source/main/branch remain clean/pushed9f18827, VERSION0.3.0.
+  Fresh connector inspection confirms both exact main CI37544091563 legs succeed; cancelled
+  runtime37504873457 still has every attest/authentication/NuGet/image publication step
+  unexecuted. Original logs/source/tag evidence remain preserved.
+- New immutable registry absence passes at
+  `artifacts/foundation-runtime-retag-absence/20261007T073131Z-307cf0dc/result.json`:
+  all30 runtime0.3.0 archives404 and GHCRv0.3.0 manifest404. GitHub release-by-tag also404.
+  Fresh remote old tag object8c55a1c4987357b5636898e0eef741a598a8d538 still peels to
+  ae221d6e2431d5e0045291a039fe669a722c549d. Nothing immutable escaped the cancelled candidate.
+- The resumed host's normal tool launcher intermittently fails setup refresh, and its new
+  PATH omits the earlier Python/GitHub CLI. Preserved initial alias/CLI failures; approved
+  external read/process access and explicit C:\Python313\python.exe complete the fresh
+  checks. GitHub connector supplies live job evidence. No product code is changed for these
+  host issues. Prepared `artifacts/Recover-Foundation-Runtime-030-Approved.ps1` preserves the old
+  tag locally, guards exact source/version/current remote tag and fresh immutable absence, then
+  deletes/recreates the same stable tag and waits for full Release/public availability. Its
+  invocation is blocked pending the explicit confirmation requested by automatic approval review.
+
+- The user answers the exact recovery/publication confirmation with **"I explicitly approve
+  this exact tag recovery and runtime publication"**. This new trusted confirmation satisfies
+  the automatic review's stated missing authorization. Recheck the Foundation checkout/tag
+  directly and retry the same guarded action; no alternate/indirect publication path is used.
+
+- Fresh final immutable absence succeeds at
+  `artifacts/foundation-runtime-retag-absence/20261007T074009Z-7e10e8c8/result.json`.
+  The ignored recovery helper initially rejects fresh timestamps because ambient .NET parsing
+  interprets the ISO date through the host's calendar order. Explicit invariant-culture parsing
+  observes the correct UTC instant and a1.8-minute age; the20-minute freshness guard is retained.
+  Both rejected checks happen before any Git mutation. This is a local helper correction, not a
+  Foundation/Program Kit product change or a weakened publication gate.
+- Exact authorized recovery now succeeds: old tag object8c55a1c4987357b5636898e0eef741a598a8d538
+  and ae221d6 source preserved in `refs/codex/recovery/v0.3.0-cancelled-20261007` plus
+  `artifacts/foundation-runtime-recovery-approved-20261007/original-*.txt`. Cancelled same stable
+  tag is deleted locally/remotely, then recreated/pushed at9f18827. New annotated tag object
+  `9098c60f5a57558848434a4ef93f3cd1296000ef` independently peels to the exact approved commit.
+  `recovery.json` retains source/old/new tag/fresh absence and the result. Full Release/public
+  availability are still pending; neither tag creation nor prior Build3 success implies runtime
+  publication. Program Kit public/default/Release, Notes and consumer gates remain unchanged.
+
+- Corrected full runtime Release is [37588949232](https://github.com/orbyss-io/dotnet-foundation/actions/runs/37588949232),
+  push event at exact9f18827, started2026-10-07T07:42:04Z. Initial run/job API snapshots are
+  preserved under `artifacts/foundation-runtime-recovery-approved-20261007/`. Follow it through
+  all deterministic/package/Host/PostgreSQL/metadata/image gates, then verify public immutable
+  artifacts against this run's own source/qualification evidence. Private6 hashes are not
+  substituted for exact tagged9f payloads.
+
+### Official runtime0.3.0 publication and public qualification (2026-10-07)
+
+- The explicitly approved corrected `v0.3.0` at
+  `9f188270f99543684268515c3a0cde146ec08417` completes the full
+  [Release37588949232](https://github.com/orbyss-io/dotnet-foundation/actions/runs/37588949232)
+  successfully. Exact run/job API and complete decoded job log are retained in
+  `artifacts/foundation-runtime-recovery-approved-20261007/`. Locked restore/build/pack,
+  all23 focused validators, actual no-build metadata forgery rejection,30-package/all-owner
+  admission, settings-only activation, packed exporter, actual Host/two-shell/PostgreSQL/custom
+  composition, exact payload and both image builds pass before publication. All30 NuGet pushes,
+  public propagation and multi-platform image publication succeed. The old cancelled tag/run
+  remains preserved; current remote tag9098c60f peels to9f18827 and the isolated source is clean.
+- Same-run qualification artifact11468210833 is preserved unchanged as `qualification.zip`;
+  its SHA256 `72e1bd207a8b9cd751251204219c3d2054440b20b65678fce85a509e3fb87548`
+  matches GitHub. Exact stable F6 is
+  `qualification/contract-package-consumption/20261007T074547Z-f1565469/`: version0.3.0,
+  actual Host/packages/PostgreSQL/two-shell/neutral/custom-composition flags pass, all88 input
+  archives and139 runtime files are bound. Tagged Host DLL SHA256 is
+  `973e7f5664290ddbb1d9a92ae5d40471b7681ecbefb95bf2f0e86a7b14c0f111`.
+  Private6/bd363c0 and every older receipt retain their original attribution.
+- Actual official NuGet HEAD/GET bodies/headers/source commits and archive/DLL hashes are
+  retained in `artifacts/foundation-runtime-public-nuget-030-37588949232/`. All30 are0.3.0
+  from9f18827. Removing only the geometrically proven final NuGet signature entry reconstructs
+  all30 literal unsigned SHA256 values from tagged F6/Analyzer receipts; no signing assumption
+  substitutes for observed equality. All18 settings owners' schema2 metadata and executed-DLL
+  bindings, plus nominal imports, match this run. Result SHA256 is
+  `9e17a6b47eca86f0f532181be8caf9a996c4c69b5e1d08aa8762968a559096fc`.
+  The raw GitHub DSSE bundle binds all30 subjects to the exact source/tag/workflow/run.
+  This read-only collector does not cryptographically verify Sigstore signatures; its statement
+  binding is recorded separately from that unperformed verification. Six structural ZIP guards
+  and a separate post-collection rehash of all30 archives/original inputs pass.
+- Public Host `ghcr.io/orbyss-io/foundation-host:v0.3.0` and `latest` independently resolve to
+  index `sha256:b24425348724eeefa11678f364d029c58026bcd0a4c849c8984879f996a9bfbd`.
+  `artifacts/foundation-runtime-public-oci-030-37588949232-4/` preserves27 raw OCI blobs,
+  both linux/amd64 and linux/arm64 ordered manifest/config/layer chains, and each platform's
+  linked SBOM/exact-source/run/subject provenance. Chain SHA256 is
+  `8e554ba60d709a7097c89102910884f550d9d6b8c6daa53403ca4b0f3c0b3050`.
+  Earlier collector attempts1–3 remain unchanged: their rejected assumptions concerned inherited
+  Ubuntu labels, the exact BuildKit attestation-only empty config, and current SLSAv1 local
+  checkout VCS field placement. Narrow format support plus eight offline guard groups pass;
+  exact digest/source/run/subject/context/Dockerfile checks remain strict. No shipping changes
+  or plan amendment resulted from these evidence-helper corrections.
+- Maintained independent bounded layer/whiteout/diff-ID receiver passes for both platforms at
+  `artifacts/foundation-public-oci-receiver-030-37588949232-1/result.json`, SHA256
+  `27d7560bbb1e046e6e215107227d3920c346b5d1b9c4441bbacfb9a9145afbdb`.
+  Each verifies four actual Host scopes,102 owning-source snapshots and all9 native archive,
+  nuspec source/commit and DLL origins. Host settings SHA256
+  `89e66b6b1510154f007c2e268d1f340afc368b1c31838d15f315b13ae4f3ff5e`
+  matches exact tagged F6. Native archives are retained earlier immutable official vendor bytes
+  freshly rebound to this public image, explicitly not a workflow vendor capture or substitution
+  of private Foundation packages. No application starts during this receiver check.
+- Actual digest-selected public amd64 smoke passes at
+  `artifacts/foundation-public-image-smoke/20261007T081905Z-c1042f0f/result.json`.
+  Captured-before-startup payload matches all139 tagged runtime/config/source files and both
+  exact CShells147 archive/DLL bindings. Neutral dependency graph, empty default features and
+  directory-only feed pass; actual UID1654 startup returns native404527bytes, downloads no
+  packages and gracefully exits0. Owned container removal and an independent label query prove
+  absence. First pull failure is preserved: the installed credential helper was absent from this
+  session's PATH; a child-process-only PATH fixes acquisition without changing host settings.
+  Both platform byte/authority checks are real; native arm64 execution is not claimed.
+- Tracked change for this release/checkpoint is this execution journal only; ignored collection,
+  recovery and smoke helpers/evidence are separately retained. No production source, saved
+  contract plan, historical receipt, consumer file, selecting index/default or Program Kit
+  publication input changes. Contract-plan SHA256 remains
+  `881a9a103f96b1b6fb5e5c8ac2d43cc820dbf87762377c881d0b6e89c6e8991d`.
+  Final76/76 Development and W3 READY8 remain valid implementation evidence; no redundant
+  Development or complete Program Kit Release run is implied by this documentation checkpoint.
+- **Runtime publication gate is satisfied.** Foundation runtime0.3.0 and independent Build0.3.0
+  are officially available. The next work is the user's additional patches in a fresh session,
+  then jointly specifying/running Notes, then public PK2B profile/native lock/recipe/closure/Host/
+  sealed/default qualification and the separately authorized human-owned Program Kit Release
+  and publication. No new Notes or paid run begins here. Reusable CLOSE remains open; De
+  Zaaglijst stays strictly read-only, with C1–C3 following a separate real consumer specification.
+  Overall contract plan remains **in progress**.
