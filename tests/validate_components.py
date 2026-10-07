@@ -10,7 +10,7 @@ from specify_cli.extensions import ExtensionManifest
 from specify_cli.presets import PresetManifest
 from specify_cli.workflows.base import StepContext
 from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
-from specify_cli.workflows.steps.switch import SwitchStep
+from specify_cli.workflows.step.switch import SwitchStep
 
 
 EXPECTED_STEPS = [
@@ -181,7 +181,11 @@ def main() -> int:
     if dotnet_commands:
         raise AssertionError("The .NET extension must not expose a retired public sync command")
     preset = yaml.safe_load(preset_path.read_text(encoding="utf-8"))
-    preset_templates = preset["provides"]["templates"]
+    preset_entries = preset["provides"]["templates"]
+    preset_templates = [entry for entry in preset_entries if entry['type'] == 'template']
+    commands = [entry for entry in preset_entries if entry['type'] == 'command']
+    if len(commands) != 1 or commands[0]['name'] != 'speckit.implement' or commands[0]['strategy'] != 'replace':
+        raise AssertionError('Governance must supply one concise implement command with its own hook dispatch')
     if {template["name"] for template in preset_templates} != {
         "constitution-template",
         "spec-template",

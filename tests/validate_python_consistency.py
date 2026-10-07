@@ -82,7 +82,7 @@ class RuntimeTests(unittest.TestCase):
 
 class WorkerTests(unittest.TestCase):
     def setUp(self):
-        from specify_cli.workflows.steps.command import CommandStep
+        from specify_cli.workflows.step.command import CommandStep
         from specify_cli.workflows.base import StepContext
         self.step = CommandStep()
         self.temp = tempfile.TemporaryDirectory()

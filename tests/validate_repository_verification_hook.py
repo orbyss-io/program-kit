@@ -15,7 +15,7 @@ SOURCE = (
 RESTORE_SOURCE = SOURCE.with_name("Restore.ps1")
 
 
-def run(shell: str, script: Path, environment: dict[str, str]) -> subprocess.CompletedProcess[str]:
+def run(shell: str, script: Path, environment: dict[str, str], *arguments: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
             shell,
@@ -26,6 +26,7 @@ def run(shell: str, script: Path, environment: dict[str, str]) -> subprocess.Com
             str(script),
             "-Mode",
             "CI",
+            *arguments,
         ],
         capture_output=True,
         text=True,
@@ -60,7 +61,8 @@ def main() -> int:
         environment = os.environ.copy()
         environment["PROGRAMKIT_TEST_VERIFICATION_MARKER"] = str(marker)
         (managed / "Build.ps1").write_text(
-            "param([switch]$SkipReleaseBundle, [switch]$LockedMode)\n"
+            "param([switch]$SkipReleaseBundle, [switch]$LockedMode, [switch]$VerifyArchitecture)\n"
+            "if (-not $VerifyArchitecture) { throw 'Fallback must own fresh architecture verification' }\n"
             "Set-Content -LiteralPath $env:PROGRAMKIT_TEST_VERIFICATION_MARKER -Value 'fallback'\n",
             encoding="utf-8",
         )
@@ -99,7 +101,37 @@ def main() -> int:
         if unsafe.returncode == 0 or "regular repository file" not in (unsafe.stdout + unsafe.stderr):
             raise AssertionError("non-file consumer verification path was accepted")
 
-    print("Managed repository verification hook absence, presence, failure, and path safety passed.")
+        # Scoped execution must select the native runner without invoking either
+        # acceptance path, forward filters literally and preserve its failure.
+        (managed / 'repository_verification.py').write_text(
+            "import json,os,sys\nfrom pathlib import Path\n"
+            "Path(os.environ['PROGRAMKIT_TEST_VERIFICATION_MARKER']).write_text(json.dumps(sys.argv[1:]))\n"
+            "sys.exit(int(os.environ.get('PROGRAMKIT_TEST_EXIT','0')))\n", encoding='utf-8')
+        scoped = run(shell, wrapper, environment, '-Scope', 'Focused', '-Projects',
+                     'tests/Notes.Tests/Notes.Tests.csproj', '-TestArguments', '--filter-uid=one', '-Plan')
+        if scoped.returncode or '--test-argument=--filter-uid=one' not in marker.read_text():
+            raise AssertionError('Scoped selection/filter forwarding failed: ' + scoped.stdout + scoped.stderr)
+        environment['PROGRAMKIT_TEST_EXIT'] = '9'
+        failed = run(shell, wrapper, environment, '-Scope', 'Affected', '-ChangedFrom', 'initial-commit')
+        if failed.returncode == 0 or 'No full-suite fallback' not in failed.stdout + failed.stderr:
+            raise AssertionError('Scoped native failure did not propagate without acceptance fallback')
+        for arguments in (('-Projects', 'tests/Notes.Tests/Notes.Tests.csproj'), ('-Plan',)):
+            narrowed = run(shell, wrapper, environment, *arguments)
+            if narrowed.returncode == 0 or 'Acceptance cannot be narrowed' not in narrowed.stdout + narrowed.stderr:
+                raise AssertionError('Acceptance accepted a scoped parameter')
+
+        adapter = managed / 'verify-scoped.ps1'
+        adapter.write_text('param($Scope,$Projects,$TestArguments,$ChangedPaths,$ChangedFrom,$FeatureDirectory,$Configuration,[switch]$Restore,[switch]$Plan)\n'
+                           "if ($Scope -ne 'Affected' -or $ChangedFrom -ne 'initial-commit') { throw 'Wrong scoped arguments' }\n"
+                           "Set-Content -LiteralPath $env:PROGRAMKIT_TEST_VERIFICATION_MARKER -Value 'scoped-adapter'\n", encoding='utf-8')
+        delegated = run(shell, wrapper, environment, '-Scope', 'Affected', '-ChangedFrom', 'initial-commit')
+        if delegated.returncode or marker.read_text().strip() != 'scoped-adapter':
+            raise AssertionError('Fixed scoped consumer adapter did not receive the scope')
+        adapter.write_text('exit 23\n', encoding='utf-8')
+        if run(shell, wrapper, environment, '-Scope', 'Affected', '-ChangedFrom', 'initial-commit').returncode == 0:
+            raise AssertionError('Scoped adapter failure was accepted')
+
+    print("Managed acceptance and scoped routing, filter forwarding, failure propagation and path safety passed.")
     return 0
 
 

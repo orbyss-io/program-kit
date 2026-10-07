@@ -38,7 +38,7 @@ provides:
 ''', encoding='utf-8')
             (source / 'commands/sync.md').write_text('---\ndescription: Synchronize previous baseline.\n---\n\nPrevious test command.\n')
             manager = ExtensionManager(root)
-            manager.install_from_directory(source, '1.0.1')
+            manager.install_from_directory(source, '1.1.1')
             skill = root / '.agents/skills' / retired.SKILL / 'SKILL.md'
             original = skill.read_bytes()
             retired.preflight(root)
@@ -53,11 +53,11 @@ provides:
                 retired.preflight(root)
             extra.unlink()
             retired.preflight(root)
-            manager.install_from_directory(ROOT / 'extensions/program-kit-dotnet', '1.0.1', force=True)
+            manager.install_from_directory(ROOT / 'extensions/program-kit-dotnet', '1.1.1', force=True)
             retired.verify_removed(root)
             self.assertFalse(skill.exists())
             for force in (False, True):
-                manager.install_from_directory(ROOT / 'extensions/program-kit-governance', '1.0.1', force=force)
+                manager.install_from_directory(ROOT / 'extensions/program-kit-governance', '1.1.1', force=force)
             self.assertTrue((root / '.agents/skills/speckit-program-kit-governance-sync/SKILL.md').is_file())
             retired.verify_removed(root)
 

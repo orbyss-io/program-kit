@@ -105,7 +105,7 @@ class ProxyTests(unittest.TestCase):
     def test_native_proxy_handoffs_bind_evidence_and_run_real_shell_validation(self):
         import proxy_bootstrap as bootstrap
         from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-        from specify_cli.workflows.steps.command import CommandStep
+        from specify_cli.workflows.step.command import CommandStep
         self.full_draft()
         definition = WorkflowDefinition.from_yaml(ROOT / 'workflows/program-kit-bootstrap/workflow.yml')
         definition.data['steps'] = [

@@ -57,6 +57,18 @@ class RecipeTests(unittest.TestCase):
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         restore(self.root / 'Provider/Slots.Provider.csproj')
         self.assertEqual(2, len(execute(self.root, self.manifest, 'Debug')))
+        subprocess.run(['dotnet', 'new', 'sln', '--name', 'Consumer'], cwd=self.root,
+                       capture_output=True, check=True, timeout=60)
+        solution = next(self.root.glob('Consumer.sln*'))
+        subprocess.run(['dotnet', 'sln', str(solution), 'add', *[str(self.root/p['path'])
+                       for p in self.manifest['runtimeComposition']['projects']]], cwd=self.root,
+                       capture_output=True, check=True, timeout=60)
+        self.assertEqual(2, len(recipe.execute(self.root, self.manifest, 'Debug',
+                               build_subject=solution.name, version='9.0.0')))
+        subprocess.run(['dotnet', 'sln', str(solution), 'remove', str(self.root/'Provider/Slots.Provider.csproj')],
+                       cwd=self.root, capture_output=True, check=True, timeout=60)
+        with self.assertRaisesRegex(ValueError, 'include every declared'):
+            recipe.execute(self.root, self.manifest, 'Debug', build_subject=solution.name)
         rogue = self.root / 'Rogue/Rogue.csproj'
         rogue.parent.mkdir()
         rogue.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><NuGetAudit>false</NuGetAudit></PropertyGroup></Project>', encoding='utf-8')

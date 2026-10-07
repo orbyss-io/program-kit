@@ -13,8 +13,8 @@ import validate_workflow_resumption as fixture
 from live.v2.authorization import issue_authorization, validate_authorization
 from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, load_object
 from live.v2.workflow_acceptance import driver, reserve_dispatch, reported_usage, reviewed_input, parent_checkpoint
-from specify_cli.workflows.steps.command import CommandStep
-from specify_cli.workflows.steps.shell import ShellStep
+from specify_cli.workflows.step.command import CommandStep
+from specify_cli.workflows.step.shell import ShellStep
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -92,7 +92,7 @@ def main():
                 config = copy.deepcopy(config)
                 config['run'] = config['run'].replace('python ', f'"{sys.executable}" ', 1)
                 return original_shell(self, config, context)
-            def dispatch(self, command, integration, model, args, context):
+            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                 (project / fixture.g.READINESS_REPORT).write_text('**Status**: READY\n\nCurrent test authority agrees.\n', encoding='utf-8')
                 return {'exit_code': 0, 'stdout': event, 'stderr': ''}
             with patch.object(CommandStep, '_try_dispatch', dispatch), patch.object(ShellStep, 'execute', execute):

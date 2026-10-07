@@ -10,7 +10,7 @@ extension:
   license: "MIT"
 
 requires:
-  speckit_version: ">=1.0.1,<2.0.0"
+  speckit_version: ">=1.1.1,<2.0.0"
 
 provides:
   scripts:
@@ -158,19 +158,15 @@ hooks:
       optional: false
       description: "Use normal Spec Kit consistency analysis."
   before_implement:
-    - command: "speckit.program-kit-governance.phase-context"
+    - command: "speckit.program-kit-governance.implementation-check"
       priority: 1
       optional: false
-      description: "Apply the relevant knowledge before writing affected code."
-    - command: "speckit.program-kit-governance.implementation-check"
-      priority: 5
-      optional: false
-      description: "Check concrete implementation choices and run targeted engineering checks."
+      description: "Supply focused implementation guidance and validate planned architecture once without building."
   after_implement:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
     optional: false
-    description: "Require actual engineering checks and substantive review before completion."
+    description: "Distinguish progress from feature closure/formal handoff; require complete engineering acceptance only at delivery."
 
 tags:
   - "architecture"

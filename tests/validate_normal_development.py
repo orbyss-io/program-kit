@@ -164,6 +164,40 @@ class DevelopmentTests(unittest.TestCase):
         self.assertIn('dotnet-source-quality',rules)
         self.assertIn('not a blanket replacement',rules['dotnet-source-quality']['example'])
 
+    def test_excluded_capabilities_do_not_activate_guidance(self):
+        (self.feature/'plan.md').write_text('C# policy only. No database. API and browser are future out of scope.')
+        ids = {r['id'] for r in knowledge.project(self.root, self.feature, 'planning')['requirements']}
+        self.assertNotIn('persistence-adoption', ids)
+        self.assertNotIn('browser-experience', ids)
+        self.assertNotIn('http-operation-contracts', ids)
+        self.assertNotIn('dotnet-concurrency', ids)
+
+    def test_selected_ef_package_supplies_planning_knowledge_even_without_keywords(self):
+        store = self.root/'src/Slots.Store'; store.mkdir(parents=True)
+        (store/'Slots.Store.csproj').write_text('<Project><PackageReference Include="Microsoft.EntityFrameworkCore" /></Project>')
+        (self.feature/'plan.md').write_text('Use C# source at src/Slots.Store/Slots.Store.csproj.')
+        ids = {r['id'] for r in knowledge.project(self.root, self.feature, 'planning')['requirements']}
+        self.assertIn('persistence-adoption', ids)
+        self.assertIn('dotnet-queries', ids)
+
+    def test_positive_api_prefix_and_nested_non_goals_are_scoped_separately(self):
+        (self.feature/'plan.md').write_text('C# API without database.\n## Non-goals\n### Later\nBrowser frontend\n## Design\nPure policy.')
+        ids = {r['id'] for r in knowledge.project(self.root, self.feature, 'planning')['requirements']}
+        self.assertIn('http-operation-contracts', ids)
+        self.assertNotIn('persistence-adoption', ids)
+        self.assertNotIn('browser-experience', ids)
+
+    def test_phase_projection_is_concise_and_changes_the_immediate_action(self):
+        (self.feature/'plan.md').write_text('dotnet API with database persistence and async cancellation.')
+        outputs = {p: knowledge.render(knowledge.project(self.root, self.feature, p), p)
+                   for p in ('planning','tasks','implementation','delivery')}
+        self.assertTrue(all(len(o.split()) < 750 for o in outputs.values()))
+        self.assertIn('decisions', outputs['planning'])
+        self.assertIn('test tasks', outputs['tasks'])
+        self.assertIn('focused', outputs['implementation'])
+        self.assertIn('acceptance', outputs['delivery'])
+        self.assertNotIn('Focused lookup:', outputs['implementation'])
+
     def test_historical_cli_is_read_only_and_keeps_original_results(self):
         receipt=self.feature/'verification-results.json'
         receipt.write_text('{"status":"failed","basis":"original old source"}')
@@ -179,6 +213,30 @@ class DevelopmentTests(unittest.TestCase):
     def test_completion_cannot_claim_success_without_an_engineering_command(self):
         with self.assertRaisesRegex(ValueError,'no completion claim'):
             knowledge.check(self.root,self.feature,'delivery')
+
+    def test_partial_checkpoint_never_runs_full_acceptance_but_explicit_handoff_does(self):
+        (self.feature/'tasks.md').write_text('- [X] T001 Test the operation\n- [ ] T002 Finish the story\n')
+        with patch.object(knowledge, 'execute') as execute:
+            result = knowledge.finish(self.root, self.feature)
+            self.assertEqual('in-progress', result['status'])
+            self.assertFalse(result['acceptanceEstablished'])
+            execute.assert_not_called()
+            knowledge.finish(self.root, self.feature, handoff=True)
+            execute.assert_called_once_with(self.root, self.feature)
+        (self.feature/'tasks.md').write_text('> Draft: incomplete\n- [X] T001 A saved phase\n')
+        with patch.object(knowledge, 'execute') as execute:
+            self.assertFalse(knowledge.finish(self.root, self.feature)['acceptanceEstablished'])
+            execute.assert_not_called()
+        (self.feature/'tasks.md').write_text('- [X] T001 A saved phase\n<!-- program-kit:tasks-draft {"status":"draft"} -->\n')
+        with patch.object(knowledge, 'execute') as execute:
+            self.assertFalse(knowledge.finish(self.root, self.feature)['acceptanceEstablished'])
+            execute.assert_not_called()
+
+    def test_feature_closure_runs_acceptance_once_and_forwards_affected_scope(self):
+        (self.feature/'tasks.md').write_text('- [X] T001 Delivered behavior\n')
+        with patch.object(knowledge, 'execute', return_value={'acceptanceEstablished': True}) as execute:
+            self.assertTrue(knowledge.finish(self.root, self.feature)['acceptanceEstablished'])
+            execute.assert_called_once_with(self.root, self.feature)
 
     def test_failed_engineering_remains_failed_and_preserves_diagnostics(self):
         eng = self.root/'eng';eng.mkdir()

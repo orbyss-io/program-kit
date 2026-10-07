@@ -233,7 +233,7 @@ def validate_graph(root, manifest, evaluated, compiled):
     return {'evaluated-and-compiled-graph', 'compiled-capability-bindings'}
 
 
-def execute(root, manifest, configuration, feature=None):
+def execute(root, manifest, configuration, feature=None, build_subject=None, version=None):
     validate_planned(root, manifest)
     declared = [p['path'] for p in manifest['runtimeComposition']['projects']]
     require(len(set(declared)) == len(declared), 'Duplicate architecture project identity')
@@ -243,19 +243,46 @@ def execute(root, manifest, configuration, feature=None):
             + ', '.join(sorted(physical - set(declared))))
     require(all(p['role'] in ALLOWED_ROLE_REFERENCES for p in manifest['runtimeComposition']['projects']),
             'Unknown architecture role')
+    # One fresh build session owns the graph inspected below. There is no
+    # --no-build acceptance switch and no reliance on cached DLL timestamps.
+    if build_subject:
+        subject = inside(root, build_subject)
+        require(subject.is_file() and subject.suffix in {'.sln', '.slnx'}, 'Build subject must be a repository solution')
+        listed = subprocess.run(['dotnet', 'sln', str(subject), 'list'], cwd=root, capture_output=True,
+                                text=True, encoding='utf-8', check=True, timeout=60).stdout
+        covered = {(subject.parent / line.strip().replace('\\', '/')).resolve() for line in listed.splitlines()
+                   if line.strip().endswith('.csproj')}
+        require({inside(root, p) for p in declared} <= covered, 'Build solution must include every declared architecture project')
+        arguments = ['dotnet', 'build', str(subject), '--no-restore', '--configuration', configuration,
+                     '--nologo', '-v:q']
+        if version:
+            arguments.append('-p:Version=' + version)
+        subprocess.run(arguments, cwd=root, capture_output=True, text=True, encoding='utf-8', check=True, timeout=300)
+    elif declared:
+        # A traversal builds all projects in one MSBuild process; shared references
+        # are scheduled by MSBuild instead of separate dotnet build processes.
+        import tempfile
+        directory = root / 'artifacts/cache/architecture'
+        directory.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='build-', dir=directory) as temporary:
+            traversal = ET.Element('Project')
+            target = ET.SubElement(traversal, 'Target', Name='Build')
+            ET.SubElement(target, 'MSBuild', Projects=';'.join(str(inside(root, p)) for p in declared),
+                          Targets='Build', BuildInParallel='true', Properties='Configuration=' + configuration)
+            project = Path(temporary) / 'Architecture.proj'
+            ET.ElementTree(traversal).write(project, encoding='utf-8', xml_declaration=True)
+            subprocess.run(['dotnet', 'msbuild', str(project), '-nologo', '-verbosity:quiet', '-target:Build'],
+                           cwd=root, capture_output=True, text=True, encoding='utf-8', check=True, timeout=300)
     if not declared:
         return validate_graph(root, manifest, {}, [])
     evaluated = {}
     paths = []
     for project in manifest['runtimeComposition']['projects']:
         path = inside(root, project['path'])
-        # A prior DLL's existence is not evidence for current sources. Rebuild the
-        # evaluated inputs without admitting a network restore from verification.
-        subprocess.run(['dotnet', 'build', str(path), '--no-restore', '--configuration', configuration,
-                        '--nologo', '-v:q'], cwd=root, capture_output=True, text=True,
-                       encoding='utf-8', check=True, timeout=180)
         command = ['dotnet', 'msbuild', str(path), '-nologo', f'-p:Configuration={configuration}',
                    '-getProperty:AssemblyName,TargetPath,ManagePackageVersionsCentrally', '-getItem:ProjectReference,PackageReference,PackageVersion']
+        if version:
+            command.append('-p:Version=' + version)
         result = subprocess.run(command, cwd=root, capture_output=True, text=True, encoding='utf-8', check=True, timeout=120)
         data = json.loads(result.stdout)
         evaluated[project['path']] = data
@@ -282,6 +309,8 @@ def main():
     parser.add_argument('--configuration', default='Debug')
     parser.add_argument('--output')
     parser.add_argument('--planned', action='store_true', help='Validate declared roles/edges/bindings without restore or builds')
+    parser.add_argument('--build-subject', help='Build this complete solution once, then inspect its current graph')
+    parser.add_argument('--version', help='Version property for the owned solution build')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     suite = ET.Element('testsuite', name='ProgramKit.Architecture')
@@ -292,7 +321,8 @@ def main():
             checks = {'planned-compilation-graph'}
         else:
             require(bool(args.output), 'Compiled verification requires --output')
-            checks = execute(root, read(manifest_path), args.configuration, manifest_path.parent.relative_to(root).as_posix())
+            checks = execute(root, read(manifest_path), args.configuration, manifest_path.parent.relative_to(root).as_posix(),
+                             args.build_subject, args.version)
         for check in sorted(checks):
             ET.SubElement(suite, 'testcase', classname='ProgramKit.Architecture', name=check)
         status = 0

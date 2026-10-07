@@ -31,6 +31,22 @@ class PublicCoreTests(unittest.TestCase):
                 self.assertEqual(os.path.abspath(sys.executable), runtime.resolve(self.root))
                 lookup.assert_called_once_with('python')
 
+    def test_active_manifests_and_ci_share_the_public_cli_baseline(self):
+        import yaml
+        from packaging.specifiers import SpecifierSet
+        manifests = [ROOT/'bundle.yml', *ROOT.glob('extensions/*/extension.yml'),
+                     *ROOT.glob('presets/*/preset.yml'), *ROOT.glob('workflows/*/workflow.yml')]
+        for path in manifests:
+            with self.subTest(path=path):
+                supported = SpecifierSet(yaml.safe_load(path.read_text(encoding='utf-8'))['requires']['speckit_version'])
+                self.assertIn('1.1.1', supported)
+                self.assertNotIn('1.0.1', supported)
+                self.assertNotIn('2.0.0', supported)
+        for name in ('ci.yml','release.yml'):
+            text = (ROOT/'.github/workflows'/name).read_text(encoding='utf-8')
+            self.assertIn('specify-cli==1.1.1', text)
+            self.assertNotIn('specify-cli==1.0.1', text)
+
     def test_missing_native_dependency_and_unsupported_version_preserve_diagnostic(self):
         for diagnostic in ("ModuleNotFoundError: No module named 'yaml'", 'Python >=3.11 is required'):
             with patch.dict(os.environ, {'SPECKIT_PYTHON': sys.executable}, clear=True), \
@@ -64,7 +80,7 @@ class PublicCoreTests(unittest.TestCase):
 
     def test_actual_public_package_generates_an_accepted_unmodified_consumer(self):
         import importlib.metadata
-        self.assertEqual('1.0.1', importlib.metadata.version('specify-cli'))
+        self.assertEqual('1.1.1', importlib.metadata.version('specify-cli'))
         environment = dict(os.environ, SPECKIT_PYTHON=sys.executable)
         result = subprocess.run([sys.executable, '-c', 'from specify_cli import main; main()',
             'init', '.', '--force', '--non-interactive', '--integration', 'codex',
@@ -105,7 +121,7 @@ class PublicCoreTests(unittest.TestCase):
 
     def test_zero_exit_worker_without_output_fails_the_native_artifact_gate(self):
         from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-        from specify_cli.workflows.steps.command import CommandStep
+        from specify_cli.workflows.step.command import CommandStep
         from specify_cli.workflows.base import RunStatus
         script = ROOT / 'extensions/program-kit-governance/scripts/bootstrap_context.py'
         definition = WorkflowDefinition({'schema_version': '1.0',

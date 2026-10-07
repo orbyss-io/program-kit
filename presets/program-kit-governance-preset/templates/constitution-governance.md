@@ -9,6 +9,9 @@ requires a concrete rationale and an alternative verification method in the plan
 Reuse qualified component coverage; test the application's own policies, boundaries and integration
 rather than duplicating a publisher's internal suite. Test output is ordinary execution output,
 not a separate approval or proof dossier.
+Run focused red/green/refactor and affected regression checks while coding. Task batches, progress
+saves and resumes are not full-suite checkpoints. Complete feature/domain closure or formal review
+handoff requires complete application acceptance; publication retains its own full Release gate.
 
 ### Architecture and implementation quality
 

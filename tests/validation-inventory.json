@@ -52,6 +52,32 @@
       "isolation": "Unique disposable application; real consumer untouched."
     },
     {
+      "id": "validate_scoped_verification",
+      "command": [
+        "{python}",
+        "tests/validate_scoped_verification.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Focused/affected test selection, shared dependencies, complete worktree delta, zero-test and scope guards; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-governance/**",
+        "presets/**",
+        "tests/validate_scoped_verification.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_scoped_verification"
+      ],
+      "resources": [],
+      "isolation": "Unique disposable repositories; production consumer and Notes untouched."
+    },
+    {
       "id": "validate_task_generation",
       "command": [
         "{python}",
@@ -4061,7 +4087,10 @@
       ],
       "group": "development",
       "needs": [],
-      "platforms": ["Windows", "Linux"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
       "purpose": "Neutral public Host capture, exact shared archive bindings, native provenance, retained inputs and owned timeout cleanup guards; no public image or container execution.",
       "owner": "program-kit",
       "inputs": [
@@ -4076,10 +4105,16 @@
     },
     {
       "id": "validate_settings_authorities",
-      "command": ["{python}", "tests/validate_settings_authorities.py"],
+      "command": [
+        "{python}",
+        "tests/validate_settings_authorities.py"
+      ],
       "group": "development",
       "needs": [],
-      "platforms": ["Windows", "Linux"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
       "purpose": "Independent package and OCI Host settings authority, applicable scope/import completeness, bounded source provenance and receiver-ready rejection guards; no registry or runtime qualification claim.",
       "owner": "program-kit",
       "inputs": [

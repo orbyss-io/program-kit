@@ -172,7 +172,7 @@ class PostBootstrapTests(unittest.TestCase):
         self.assertEqual(old_completion, (directory / 'original' / saved['original'][g.BOOTSTRAP_COMPLETION.as_posix()]).read_bytes())
         self.assertFalse(workflow.source_ready(self.root, self.source.run_id))
         calls = []
-        def dispatch(step, command, integration, model, args, context):
+        def dispatch(step, command, integration, model, args, context, integration_args=None, integration_options=None):
             calls.append(command)
             self.assertEqual('speckit.program-kit-governance.bootstrap-recovery', command)
             roadmap.write_text(active, encoding='utf-8')

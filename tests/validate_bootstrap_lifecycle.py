@@ -120,7 +120,7 @@ def cli(root, script, *args):
 def workflow_gate(root):
     """Exercise shipped readiness steps with the real workflow engine; dispatch cannot start an agent."""
     from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-    from specify_cli.workflows.steps.command import CommandStep
+    from specify_cli.workflows.step.command import CommandStep
     import yaml
     import copy
     shipped = yaml.safe_load((ROOT / 'workflows/program-kit-bootstrap/workflow.yml').read_text(encoding='utf-8'))

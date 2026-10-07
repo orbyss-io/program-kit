@@ -14,7 +14,7 @@
       "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.12.8/program-kit-0.12.8.zip",
       "repository": "https://github.com/orbyss-io/program-kit",
       "requires": {
-        "speckit_version": ">=1.0.1,<2.0.0"
+        "speckit_version": ">=1.1.1,<2.0.0"
       },
       "provides": {
         "extensions": 3,

@@ -237,6 +237,7 @@ def main() -> int:
             "templates/spec-governance.md",
             "templates/plan-governance.md",
             "templates/tasks-governance.md",
+            "commands/speckit.implement.md",
         ):
             if not (extracted_preset / path).is_file():
                 raise AssertionError(f"Governance preset release ZIP is missing {path}")
@@ -281,7 +282,7 @@ def main() -> int:
         )
         if not (project / ".agents/skills/speckit-constitution/SKILL.md").is_file():
             raise AssertionError(
-                "Spec Kit 1.0.1 did not install the core speckit.constitution command"
+                "Spec Kit did not install the core speckit.constitution command"
             )
         python_resolver = project / ".specify/scripts/python/resolve_template.py"
         if not python_resolver.is_file():
@@ -482,7 +483,7 @@ def main() -> int:
             "after_plan": ["speckit.program-kit-governance.architecture-check"],
             "before_tasks": ["speckit.program-kit-governance.phase-context"],
             "after_tasks": ["speckit.program-kit-governance.architecture-check", "speckit.analyze"],
-            "before_implement": ["speckit.program-kit-governance.phase-context", "speckit.program-kit-governance.implementation-check"],
+            "before_implement": ["speckit.program-kit-governance.implementation-check"],
             "after_implement": ["speckit.program-kit-governance.architecture-check"],
         }
         for event, commands in expected_order.items():
@@ -551,7 +552,7 @@ def main() -> int:
         if step_ids != expected_steps:
             raise AssertionError(f"Installed workflow steps {step_ids} != {expected_steps}")
 
-        # Spec Kit 1.0.1 resolves third-party primitives through their catalogs
+        # Spec Kit resolves third-party primitives through their catalogs
         # even when a bundle is installed from a local ZIP. The archive is
         # therefore verified for its pinned component graph here; the live
         # public-catalog test validates catalog-backed bundle installation.

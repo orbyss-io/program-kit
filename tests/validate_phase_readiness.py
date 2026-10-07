@@ -126,8 +126,8 @@ class PhaseReadinessTests(unittest.TestCase):
         self.baseline([fixture.item(trigger='before-specification')], 'Candidate')
         import yaml
         from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-        from specify_cli.workflows.steps.command import CommandStep
-        from specify_cli.workflows.steps.shell import ShellStep
+        from specify_cli.workflows.step.command import CommandStep
+        from specify_cli.workflows.step.shell import ShellStep
         import sys
         shipped = yaml.safe_load((fixture.ROOT / 'workflows/program-kit-bootstrap/workflow.yml').read_text())
         steps = [copy.deepcopy(s) for s in shipped['steps'] if s['id'] in {'readiness', 'require-readiness', 'complete-bootstrap'}]

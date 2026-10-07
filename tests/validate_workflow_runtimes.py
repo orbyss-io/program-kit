@@ -117,7 +117,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path.cwd() / '.specify/extensions/program-kit-governance/scripts'))
 import workflow_lifecycle as workflow
 from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine, RunState
-from specify_cli.workflows.steps.command import CommandStep
+from specify_cli.workflows.step.command import CommandStep
 def forbidden(*args, **kwargs):
     raise AssertionError('This test must never start a coding agent')
 CommandStep._try_dispatch = forbidden

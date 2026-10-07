@@ -21,6 +21,58 @@ Contract generation runs registered contracts and compares their baselines. A de
 contract change can update its baseline explicitly; never bypass an unexpected compatibility failure.
 
 Declare actual project roles and scoped dependency exceptions once in eng/architecture.json.
+Development uses explicit scopes rather than the acceptance pipeline at every checkpoint:
+
+```powershell
+./eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects tests/Notes.Tests/Notes.Tests.csproj
+./eng/Invoke-RepositoryVerification.ps1 -Scope Affected -ChangedFrom <implementation-base> -Plan
+./eng/Invoke-RepositoryVerification.ps1 -Scope Affected -ChangedFrom <implementation-base>
+```
+
+Focused builds named test projects and runs their native MTP tests; `-TestArguments` accepts the
+selected framework's filters as an argument array. Each selected module must execute at least one
+test. Discovery/help, suppressed exits, hidden response files and zero-test overrides cannot turn
+this into an empty green run. It does not pack, stage, start services or execute unrelated browser
+tests. Use `-Restore` only for changed locks/packages or missing restore assets. Default compilation
+is Debug for these development paths; acceptance retains the Release build.
+
+Affected includes the complete Git comparison from the retained implementation baseline to the
+current worktree, including committed, staged, unstaged, untracked, deleted and renamed inputs.
+`-ChangedPaths` can instead supply the complete known delta. It selects reverse project dependencies,
+tests for shared build inputs, and explicitly owned non-source inputs. A feature directory is context,
+not evidence that other callers are unaffected. New and previously failing cases remain part of
+the required development work. Inspect `-Plan` without executing tests; unknown ownership blocks
+narrowing rather than silently invoking all tests. Reuse unchanged successful results honestly;
+relevant external/runtime/environment changes can invalidate them independently of Git.
+Ordinary Spec Kit design/checklist Markdown and constitution text are context rather than native
+build inputs: checking off tasks does not select unrelated tests. Explicit test-group mappings
+still take precedence. A context-only delta requests reuse/design review and executes no tests;
+it never claims an empty test run passed. Delivered contracts and application guides need their
+actual engineering mapping; arbitrary Markdown is not automatically excluded.
+
+Ordinary literal project graphs need complete projectReferences in eng/architecture.json, checked
+against project source. Dynamic/imported graphs, browser journeys, custom executable oracles and
+provider provisioning can use an optional consumer-owned **eng/verify-scoped.ps1**, accepting Scope,
+Projects, TestArguments, ChangedPaths, ChangedFrom, FeatureDirectory, Configuration, Restore and Plan.
+That adapter must compute current evaluated dependencies, require actual selected tests, retain
+failed results and preserve relevant contracts/provider/security checks. A scoped adapter never
+replaces eng/verify.ps1 at full acceptance. Both are fixed contained regular file paths.
+
+Only non-source mappings need optional eng/verification.json; it is ordinary test configuration,
+not a feature proof or approval dossier. For example:
+
+```json
+{"schemaVersion":1,"testGroups":[{"id":"notes-wire","projects":["tests/Notes.Tests/Notes.Tests.csproj"],"inputs":["contracts/notes/**"]}]}
+```
+
+Progress saves, task batches, story checkpoints and resumes earn focused/affected checks, not full
+acceptance. Complete feature/domain closure or formal review handoff runs the default command once.
+The fallback builds the solution once and inspects its current assemblies without a second project
+build loop. Opaque consumer eng/verify.ps1 scripts still receive an independent fresh graph build;
+the wrapper cannot infer their actual build coverage safely. All original contract/package checks
+remain in the full acceptance/build path. -Scope Acceptance cannot be combined with narrowing flags,
+and -Mode Release cannot be combined with development scopes.
+
 Before affected implementation, validate planned roles, edges and Core-owned capability bindings:
 `python eng/repository_architecture.py --repository . --manifest eng/architecture.json --planned`.
 This command performs no restore/build or receipt mutation. Keep Core, runtime implementations,

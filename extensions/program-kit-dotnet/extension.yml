@@ -12,7 +12,7 @@ extension:
   effect: "read-write"
 
 requires:
-  speckit_version: ">=1.0.1,<2.0.0"
+  speckit_version: ">=1.1.1,<2.0.0"
 
 provides:
   commands: []

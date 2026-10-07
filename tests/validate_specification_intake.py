@@ -220,7 +220,7 @@ class HookContractTests(unittest.TestCase):
             ]}}), encoding="utf-8")
             manager = ExtensionManager(repository)
             for force in (False, True):
-                manager.install_from_directory(SCRIPTS.parent, "1.0.1", force=force)
+                manager.install_from_directory(SCRIPTS.parent, "1.1.1", force=force)
                 hooks = yaml.safe_load(config.read_text(encoding="utf-8"))["hooks"]["before_specify"]
                 owned = [h for h in hooks if h["extension"] == "program-kit-governance"]
                 self.assertEqual([h["command"] for h in owned], ["speckit.program-kit-governance.architecture-check",

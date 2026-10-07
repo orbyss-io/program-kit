@@ -4,16 +4,22 @@ preset:
   id: "program-kit-governance-preset"
   name: "Program Kit Governance Templates"
   version: "0.12.8"
-  description: "Adds architecture-governance traceability to the standard Spec Kit feature, plan, and task artifacts."
+  description: "Adds focused implementation, phase-specific guidance and architecture traceability to the standard Spec Kit flow."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
   license: "MIT"
 
 requires:
-  speckit_version: ">=1.0.1,<2.0.0"
+  speckit_version: ">=1.1.1,<2.0.0"
 
 provides:
   templates:
+    - type: "command"
+      name: "speckit.implement"
+      file: "commands/speckit.implement.md"
+      strategy: "replace"
+      replaces: "speckit.implement"
+      description: "Preserve hook dispatch and focused TDD with explicit progress and acceptance boundaries."
     - type: "template"
       name: "constitution-template"
       file: "templates/constitution-governance.md"

@@ -35,6 +35,14 @@
         "program-kit-governance/references/vertical-slicing.md": [
           "Slice contract"
         ]
+      },
+      "guidance": {
+        "planning": "Define owned policies, transitions, effects, admission and failure outcomes.",
+        "after-plan": "Define owned policies, transitions, effects, admission and failure outcomes.",
+        "tasks": "Map required denial, retry, cancellation and acknowledgement cases to test tasks.",
+        "after-tasks": "Map required denial, retry, cancellation and acknowledgement cases to test tasks.",
+        "implementation": "Test changed domain behavior first through its owned public capability.",
+        "delivery": "Verify all required outcomes and meaningful denials through actual behavior."
       }
     },
     {
@@ -72,6 +80,14 @@
           "Cohesion and coupling",
           "Proportional exceptions"
         ]
+      },
+      "guidance": {
+        "planning": "Choose cohesive typed boundaries and existing extension points; identify affected delivery documentation.",
+        "after-plan": "Choose cohesive typed boundaries and existing extension points; identify affected delivery documentation.",
+        "tasks": "Schedule boundary tests and affected guides/contracts without adding review dossiers.",
+        "after-tasks": "Schedule boundary tests and affected guides/contracts without adding review dossiers.",
+        "implementation": "Review changed responsibilities, internal helpers and owner constants; avoid unused abstractions.",
+        "delivery": "Review relevant SOLID conclusions against changed source and behavior; maintain delivered guides and contracts."
       }
     },
     {
@@ -103,6 +119,14 @@
         "program-kit-governance/references/modularity-and-contracts.md": [
           "Dependency and ownership rules"
         ]
+      },
+      "guidance": {
+        "planning": "Preserve accepted ownership, exact pins and scoped exceptions.",
+        "after-plan": "Preserve accepted ownership, exact pins and scoped exceptions.",
+        "tasks": "Carry accepted decisions and required exception tests into affected tasks.",
+        "after-tasks": "Carry accepted decisions and required exception tests into affected tasks.",
+        "implementation": "Keep accepted boundaries; resolve substantive exceptions in normal design/code review.",
+        "delivery": "Check changed ownership and exceptions in normal review; no renewed approval for unchanged decisions."
       }
     },
     {
@@ -152,6 +176,14 @@
         "program-kit-dotnet/references/technology-profiles/dotnet.md": [
           "ASP.NET Core Minimal API slices"
         ]
+      },
+      "guidance": {
+        "planning": "Declare separate Core, implementation, API and provider projects and complete bindings in eng/architecture.json.",
+        "after-plan": "Declare separate Core, implementation, API and provider projects and complete bindings in eng/architecture.json.",
+        "tasks": "Schedule planned/compiled graph checks and actual activation/resolution tests at their required boundaries.",
+        "after-tasks": "Schedule planned/compiled graph checks and actual activation/resolution tests at their required boundaries.",
+        "implementation": "Validate planned roles before affected coding; change-aware tests complement compilation.",
+        "delivery": "Verify current evaluated/compiled boundaries, actual activation/lifetimes and applicable host/bundle compatibility."
       }
     },
     {
@@ -195,6 +227,14 @@
           "Security assurance contract",
           "Mandatory verification"
         ]
+      },
+      "guidance": {
+        "planning": "Choose typed wire admission, version compatibility and real OpenAPI production.",
+        "after-plan": "Choose typed wire admission, version compatibility and real OpenAPI production.",
+        "tasks": "Schedule parser/schema parity and operation/client compatibility cases.",
+        "after-tasks": "Schedule parser/schema parity and operation/client compatibility cases.",
+        "implementation": "Run affected HTTP/contract tests when operation admission or wire behavior changes.",
+        "delivery": "Verify real generated contracts and behavior compatibility; structural diff alone is insufficient."
       }
     },
     {
@@ -233,6 +273,14 @@
           "Independent choices",
           "Quality and evidence"
         ]
+      },
+      "guidance": {
+        "planning": "Select real user journeys, accessibility and the declared security boundary.",
+        "after-plan": "Select real user journeys, accessibility and the declared security boundary.",
+        "tasks": "Schedule relevant browser journeys and accessibility tests, not every journey per task.",
+        "after-tasks": "Schedule relevant browser journeys and accessibility tests, not every journey per task.",
+        "implementation": "Run affected browser/client tests when that journey or contract changes.",
+        "delivery": "Verify actual browser journeys and accessibility; generated examples are not acceptance."
       }
     },
     {
@@ -280,6 +328,14 @@
         "program-kit-building-blocks/references/orbyss-building-blocks.md": [
           "Ordinary feature use"
         ]
+      },
+      "guidance": {
+        "planning": "Use the selected qualified public mechanisms and concrete composition boundaries.",
+        "after-plan": "Use the selected qualified public mechanisms and concrete composition boundaries.",
+        "tasks": "Schedule materialization, configured activation and public mechanism-use tests.",
+        "after-tasks": "Schedule materialization, configured activation and public mechanism-use tests.",
+        "implementation": "Use accepted mechanisms; test changed registrations and application-specific integration.",
+        "delivery": "Verify actual activation/resolution and supported public use; package presence alone is insufficient."
       }
     },
     {
@@ -317,7 +373,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Await a ValueTask once. Forward cancellation to operations that accept it; a deliberately independent lifetime needs a narrowly scoped documented suppression."
+      "example": "Await a ValueTask once. Forward cancellation to operations that accept it; a deliberately independent lifetime needs a narrowly scoped documented suppression.",
+      "guidance": {
+        "planning": "Define async work ownership, fault observation and cancellation boundaries.",
+        "after-plan": "Define async work ownership, fault observation and cancellation boundaries.",
+        "tasks": "Schedule cancellation, async completion and fault tests for affected operations.",
+        "after-tasks": "Schedule cancellation, async completion and fault tests for affected operations.",
+        "implementation": "Observe async work and forward cancellation; compiler CA2012/CA2016 checks accompany affected builds.",
+        "delivery": "Verify owned completion, cancellation and relevant Task/ValueTask lifetimes."
+      },
+      "mechanism": "dotnet-async"
     },
     {
       "id": "dotnet-concurrency",
@@ -348,7 +413,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation."
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Define shared invariants, coordination, bounded producers and terminal completion.",
+        "after-plan": "Define shared invariants, coordination, bounded producers and terminal completion.",
+        "tasks": "Schedule controlled contention, acquire/release, cancellation and bounded-completion tests.",
+        "after-tasks": "Schedule controlled contention, acquire/release, cancellation and bounded-completion tests.",
+        "implementation": "Test changed shared-state coordination; avoid unbounded queues or fan-out.",
+        "delivery": "Verify affected invariants under contention, cancellation and controlled scheduling."
+      },
+      "mechanism": "dotnet-concurrency"
     },
     {
       "id": "dotnet-lifetime",
@@ -379,7 +453,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation."
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Choose real shell/DI scopes and explicit resource/disposal owners.",
+        "after-plan": "Choose real shell/DI scopes and explicit resource/disposal owners.",
+        "tasks": "Schedule activation, partial-startup and disposal tests for changed lifetime boundaries.",
+        "after-tasks": "Schedule activation, partial-startup and disposal tests for changed lifetime boundaries.",
+        "implementation": "Keep scope/resource ownership explicit; test changed registration and teardown behavior.",
+        "delivery": "Verify actual scopes, partial-startup cleanup and disposal; unload checks apply only to selected live reload."
+      },
+      "mechanism": "dotnet-lifetime"
     },
     {
       "id": "dotnet-construction",
@@ -411,7 +494,15 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation."
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Choose identity/value/default/equality semantics and constructor invariants; do not hide I/O in construction.",
+        "after-plan": "Choose identity/value/default/equality semantics and constructor invariants; do not hide I/O in construction.",
+        "tasks": "Schedule meaningful value and construction invariants; deferred initialization tests only when used.",
+        "after-tasks": "Schedule meaningful value and construction invariants; deferred initialization tests only when used.",
+        "implementation": "Preserve admitted immutable values and clear factories; private pure helpers need no extra DI ceremony.",
+        "delivery": "Review value invariants, equality and constructor behavior; prove initialization ownership where applicable."
+      }
     },
     {
       "id": "dotnet-queries",
@@ -442,7 +533,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation."
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Define ordering, cardinality, pagination and deliberate provider materialization.",
+        "after-plan": "Define ordering, cardinality, pagination and deliberate provider materialization.",
+        "tasks": "Schedule real-provider tests for translation, ordering, bounded pages and applicable N+1 risks.",
+        "after-tasks": "Schedule real-provider tests for translation, ordering, bounded pages and applicable N+1 risks.",
+        "implementation": "Run affected query/provider tests; do not replace real provider semantics with InMemory.",
+        "delivery": "Verify actual provider translation, bounds and ordering for delivered queries."
+      },
+      "mechanism": "dotnet-queries"
     },
     {
       "id": "dotnet-runtime-io",
@@ -473,7 +573,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation."
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Define monotonic deadlines, configuration admission, resource ownership and safe retry boundaries.",
+        "after-plan": "Define monotonic deadlines, configuration admission, resource ownership and safe retry boundaries.",
+        "tasks": "Schedule applicable deadline, invalid-configuration, cancellation and uncertain-effect tests.",
+        "after-tasks": "Schedule applicable deadline, invalid-configuration, cancellation and uncertain-effect tests.",
+        "implementation": "Test changed I/O/deadline mechanisms and preserve ambiguity after uncertain commit.",
+        "delivery": "Verify real configuration activation, resource lifetimes, deadlines and safe retry behavior."
+      },
+      "mechanism": "dotnet-io"
     },
     {
       "id": "dotnet-runtime-security",
@@ -504,7 +613,16 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation."
+      "example": "Record the applicable choice and its concrete test in the plan and tasks. Apply the referenced conditions before choosing an implementation.",
+      "guidance": {
+        "planning": "Reuse selected WEB/JSON/assets controls and identify actual trust boundaries.",
+        "after-plan": "Reuse selected WEB/JSON/assets controls and identify actual trust boundaries.",
+        "tasks": "Schedule denied, malformed, oversized and redacted fault cases at the affected boundary.",
+        "after-tasks": "Schedule denied, malformed, oversized and redacted fault cases at the affected boundary.",
+        "implementation": "Run affected security tests when identity, admission, common envelopes or trust boundaries change.",
+        "delivery": "Verify applicable denied/fault/oversized paths and safe diagnostics, including shared operation consumers."
+      },
+      "mechanism": "dotnet-security"
     },
     {
       "id": "dotnet-source-quality",
@@ -552,7 +670,15 @@
         ],
         "coverageScope": "Toolkit routing/recipe tests; application-specific semantic outcomes require consumer tests and code review."
       },
-      "example": "A readonly struct is appropriate for a small immutable value with value semantics. It is not a blanket replacement for entities or polymorphic reference objects."
+      "example": "A readonly struct is appropriate for a small immutable value with value semantics. It is not a blanket replacement for entities or polymorphic reference objects.",
+      "guidance": {
+        "planning": "Select actual analyzer rules and deliberate source/documentation conventions.",
+        "after-plan": "Select actual analyzer rules and deliberate source/documentation conventions.",
+        "tasks": "Use existing analyzer enforcement; schedule semantic review of changed responsibilities.",
+        "after-tasks": "Use existing analyzer enforcement; schedule semantic review of changed responsibilities.",
+        "implementation": "Build affected targets with their analyzers; document contract meaning rather than repeated design history.",
+        "delivery": "Review scoped suppressions, responsibility and meaningful documentation; green analyzers cannot certify SOLID."
+      }
     },
     {
       "id": "persistence-adoption",
@@ -586,6 +712,14 @@
           "Ordinary development decisions",
           "Architecture and implementation contract"
         ]
+      },
+      "guidance": {
+        "planning": "Choose admitted provider ownership, consistency, migration and replay semantics.",
+        "after-plan": "Choose admitted provider ownership, consistency, migration and replay semantics.",
+        "tasks": "Schedule real-provider tests for rollback/contention, replay and uncertain commits where required.",
+        "after-tasks": "Schedule real-provider tests for rollback/contention, replay and uncertain commits where required.",
+        "implementation": "Run affected real-provider tests when queries, mapping, mutation or replay behavior changes.",
+        "delivery": "Verify actual provider integration, atomicity, replay, uncertainty and applicable migration/recovery behavior."
       }
     },
     {
@@ -623,6 +757,14 @@
         "program-kit-dotnet/references/technology-profiles/dotnet.md": [
           "ASP.NET Core Minimal API slices"
         ]
+      },
+      "guidance": {
+        "planning": "Choose operation-owned endpoints/DTOs, constructor dependencies and qualified typed Foundation identity/problem/JSON contracts.",
+        "after-plan": "Choose operation-owned endpoints/DTOs, constructor dependencies and qualified typed Foundation identity/problem/JSON contracts.",
+        "tasks": "Schedule operation, managed failure-envelope, bounded-output and client compatibility cases.",
+        "after-tasks": "Schedule operation, managed failure-envelope, bounded-output and client compatibility cases.",
+        "implementation": "Use per-request instance endpoints and typed admission/results; run affected operation/contract tests.",
+        "delivery": "Verify parser/schema/runtime parity, common managed/application envelopes, bounded pages and old-client behavior."
       }
     }
   ],

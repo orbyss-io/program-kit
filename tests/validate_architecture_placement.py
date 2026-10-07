@@ -29,7 +29,7 @@ def context_error(module, fragment, action):
 def workflow_checks(root, context, run_id):
     """Real workflow engine/CLI, mocked agent dispatch; no coding agent can start."""
     from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-    from specify_cli.workflows.steps.command import CommandStep
+    from specify_cli.workflows.step.command import CommandStep
     import yaml
 
     shutil.copytree(ROOT / "extensions/program-kit-governance", root / ".specify/extensions/program-kit-governance", dirs_exist_ok=True)

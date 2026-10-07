@@ -29,7 +29,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install pinned Spec Kit
-        run: python -m pip install --disable-pip-version-check "specify-cli==1.0.1"
+        run: python -m pip install --disable-pip-version-check "specify-cli==1.1.1"
 
       - name: Prepare project-local JSON Schema runtime
         run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
@@ -89,7 +89,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install pinned Spec Kit
-        run: python -m pip install --disable-pip-version-check "specify-cli==1.0.1"
+        run: python -m pip install --disable-pip-version-check "specify-cli==1.1.1"
 
       - name: Validate Python-flavor Codex bootstrap on Windows
         run: python tests/validate_codex_bootstrap.py

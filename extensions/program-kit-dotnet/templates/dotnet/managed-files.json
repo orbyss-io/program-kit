@@ -2,6 +2,10 @@
   "schemaVersion": 1,
   "files": [
     {
+      "path": "eng/repository_verification.py",
+      "ownership": "managed"
+    },
+    {
       "path": ".editorconfig",
       "ownership": "managed"
     },

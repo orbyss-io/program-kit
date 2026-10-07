@@ -125,7 +125,7 @@ class ShellContractTests(unittest.TestCase):
             self.path += os.pathsep + '/usr/bin' + os.pathsep + '/bin'
 
     def test_probe_uses_the_same_shell_mode_as_the_installed_adapter_and_restores_environment(self):
-        from specify_cli.workflows.steps.shell import ShellStep
+        from specify_cli.workflows.step.shell import ShellStep
         from specify_cli.workflows.base import StepContext
         import python_runtime
         with mock.patch.dict(os.environ, {'PATH': self.path, 'SPECKIT_PYTHON': self.python}):

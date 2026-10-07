@@ -50,6 +50,10 @@ Use framework constants or cohesive owner-scoped values without changing wire/ve
 An attributed review cites affected source and behavior for each relevant principle; a generic
 "SOLID passed" statement or a file-count threshold is not evidence. Static analysis proves only its
 specified properties; use substitution, boundary and architecture tests where the contract needs them.
+Review the responsibilities changed by the diff, with source and behavioral evidence. Do not repeat
+an entire SOLID inventory for each trivial edit, invent interfaces for private pure helpers, or add
+new review approvals. Keep one named type per file and purposeful XML documentation as explicit
+Orbyss source policy; these choices do not replace runtime correctness or architectural ownership.
 
 ## Maintained application handoff
 
