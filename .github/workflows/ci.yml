@@ -111,7 +111,8 @@ jobs:
       - name: Set up distinct shell Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version-file: .python-version
+          # This older compatibility runtime must remain distinct from the engine.
+          python-version-file: .python-compat-version
 
       - name: Validate mixed Python workflow run and resume without agents
         # This is a positive native-runtime trial. Missing-dependency rejection
