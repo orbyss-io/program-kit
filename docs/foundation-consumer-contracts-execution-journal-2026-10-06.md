@@ -48,7 +48,7 @@ Published baseline: Foundation runtime `0.2.4`, independent Build tool `0.1.0`, 
 | PK2B | Implemented preparation; profile qualification/promotion held | Foundation runtime0.3.0 and Build0.3.0 are officially available. Additive catalog, selected Build pin and native recipe/Host/sealer routing have targeted guards; the Program Kit public native lock/recipe/closure/sealed profile qualification and promotion remain for the user's patches/Notes/publication sequence. |
 | TRIAL | Historical candidate4 complete; new Notes held by user | Preserve289 actual independent Notes HTTP/PostgreSQL assertions and five precise compiled behavior/two graph negatives with cleanup. No candidate5/W3 Notes acceptance is claimed; jointly specify/run it after the additional patches. No paid workers. |
 | Handoff W3 | Complete for applicable supported scope | All18 package owners/26 scopes plus four Host scopes have source/native/installed qualification. Actual packaged no-toolkit READY/independent receiver and final76/76 Development pass. |
-| CLOSE | Pending | Reusable candidate acceptance awaits F6/PK2A/TRIAL. Publication and later consumer rollout remain separate gates. |
+| CLOSE | Pending | F6 and PK2A candidate qualification are complete. Final reusable acceptance awaits the additional patches and jointly specified Notes; public PK2B qualification, Program Kit publication and later consumer rollout retain their separate gates. |
 
 ## Validation and changed files
 
@@ -594,3 +594,8 @@ Ready for the user's fresh-session additional patches; no Notes session begins h
   and publication. No new Notes or paid run begins here. Reusable CLOSE remains open; De
   Zaaglijst stays strictly read-only, with C1–C3 following a separate real consumer specification.
   Overall contract plan remains **in progress**.
+
+Publication checkpoint `d1c55cdd507698414109c686b96da5e37c2bd75b` is pushed on
+`codex/human-infrastructure-handoff`; local/remote equality and a clean tree were verified.
+This subsequent CLOSE-row/push record is documentation only. Ready for the user's fresh
+patch session; Foundation publication is no longer an external gate.
