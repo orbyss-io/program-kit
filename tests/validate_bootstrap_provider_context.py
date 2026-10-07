@@ -44,7 +44,7 @@ class ProviderContextTests(unittest.TestCase):
                     checked += 1
         self.assertGreater(checked, 0)
         tools = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json'
-        exporter = json.loads(CATALOG.read_text())['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']
+        exporter = load_module(RESOLVER).new_project_catalog()['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']
         self.assertEqual(exporter, json.loads(tools.read_text())['tools']['orbyss.foundation.openapi.exporter']['version'])
 
     def setUp(self):

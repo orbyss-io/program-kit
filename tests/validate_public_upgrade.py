@@ -489,10 +489,10 @@ def main() -> int:
             "--id", "program-kit", "--policy", "install-allowed", cwd=project,
         )
 
-        # Capture the historical unsafe order. Bundle update refreshes the
-        # extension and bundle record, but cannot refresh the separately owned
-        # workflow in Spec Kit 1.0.1.
-        run(
+        # Spec Kit 1.1.1 rejects the unsafe bundle-first order when an older
+        # separately owned workflow remains installed.
+        try:
+            run(
             "specify",
             "bundle",
             "update",
@@ -501,7 +501,16 @@ def main() -> int:
             "codex",
             cwd=project,
             input_text="y\n",
-        )
+            )
+        except subprocess.CalledProcessError as error:
+            diagnostic=(error.stdout or '')+(error.stderr or '')
+            if 'pins workflow' not in diagnostic or 'unchanged' not in diagnostic:
+                raise AssertionError('Unsafe update failed for an unintended reason: '+diagnostic) from error
+        else:
+            raise AssertionError('Bundle-first update did not reject the separately owned old workflow')
+        # Reproduce the still-relevant partial installation through a real
+        # independent component update, then require the kit coherence guard.
+        run('specify','extension','update','program-kit-governance',cwd=project,input_text='y\n')
         mixed = installed_versions(project)
         if mixed["workflow"] != previous_version or mixed["extension"] != current_version:
             raise AssertionError(f"Regression did not reproduce the mixed installation: {mixed}")

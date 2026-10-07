@@ -36,6 +36,9 @@ def engineering_default(root: Path) -> dict | None:
     record = {'profile': selected['id'], 'catalogResolutionSha256': blocks.catalog_resolution_sha256(catalog),
               'entrySha256': blocks.canonical_sha256(index['profiles'][identity])}
     if previous is not None and previous != record:
+        if (previous.get('profile')==record['profile'] and previous.get('catalogResolutionSha256')==record['catalogResolutionSha256']
+                and blocks.profile_entry_matches_hash(index['profiles'][identity],previous.get('entrySha256'))):
+            return previous
         raise ValueError('Scaffolded dependency qualification changed; review its profile explicitly')
     return record
 
@@ -99,4 +102,17 @@ def render(root: Path, relative: str, content: bytes) -> bytes:
                              lambda match: match[1] + builder['version'] + match[2], text)
         if count != 1:
             raise ValueError('Managed builder pin must occur exactly once')
+    # Runtime/shared contracts advance together. Retained consumers must keep the
+    # ABI of their selected Host when the kit's new-project default advances.
+    blocks=resolver()
+    contracts=blocks.load_json(blocks.profile_registry()/'engineering-contracts.json')
+    version=catalog['families']['foundation']['releaseVersion']
+    binding=contracts.get('releases',{}).get(version.split('-')[0])
+    if binding is None:
+        raise ValueError('Kit is missing publisher shared-contract pins for selected Foundation '+version)
+    for identity in ('CShells.Abstractions','CShells.AspNetCore.Abstractions'):
+        pin=binding['pins'][identity]
+        text,count=re.subn(r'(Include="'+re.escape(identity)+r'" Version=")[^"]+("\s*/>)',
+                          lambda match:match[1]+pin+match[2],text)
+        if count!=1: raise ValueError('Managed shared-contract pin must occur exactly once: '+identity)
     return text.encode('utf-8')

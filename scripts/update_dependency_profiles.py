@@ -45,6 +45,11 @@ def sync_publisher_engineering(profile):
     url='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+commit+'/Directory.Packages.props'
     with urllib.request.urlopen(url,timeout=30) as response: source=ET.fromstring(response.read(1_048_576))
     pins={n.get('Include'):n.get('Version') for n in source.iter('PackageVersion')}
+    contracts_path=REGISTRY/'engineering-contracts.json'
+    contracts=blocks.load_json(contracts_path) if contracts_path.exists() else {'schemaVersion':1,'releases':{}}
+    contracts['releases'][version]={'sourceCommit':commit,'url':url,
+        'pins':{name:pins[name] for name in ('CShells.Abstractions','CShells.AspNetCore.Abstractions')}}
+    write(contracts_path,contracts)
     path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props'
     text=path.read_text(encoding='utf-8')
     import re
@@ -132,7 +137,7 @@ def new_result(parent,before,filename):
 def publisher_knowledge(directory,native,profile,host):
     """Copy exact public package facts and frozen source docs, with per-file hashes."""
     destination=directory/'knowledge'; destination.mkdir(exist_ok=False)
-    packages=[]; commits=set(); package_sources={}
+    packages=[]; commits=set(); package_sources={}; package_pack=destination/'package.pack'
     archives=[]
     for key,version in profile['artifacts'].items():
         if not key.startswith('nuget:Orbyss.Foundation.'): continue
@@ -164,10 +169,13 @@ def publisher_knowledge(directory,native,profile,host):
                         or item.filename.rsplit('/',1)[-1].casefold()=='readme.md'):
                     if len(data)>2*1024*1024: raise ValueError('Publisher fact exceeds two MiB')
                     facts[item.filename]=data.decode('utf-8')
-            fact_path=destination/(fields['id']+'.json')
-            write(fact_path,{'id':fields['id'],'version':version,'license':fields.get('license'),
-                             'repository':repo.attrib,'payloadFiles':files,'facts':facts})
-            packages.append({'id':fields['id'],'version':version,**reference(fact_path,REGISTRY)})
+            data=(json.dumps({'id':fields['id'],'version':version,'license':fields.get('license'),
+                             'repository':repo.attrib,'payloadFiles':files,'facts':facts},indent=2)+'\n').encode('utf-8')
+            if len(data)>16*1_048_576: raise ValueError('Publisher package knowledge exceeds sixteen MiB')
+            offset=package_pack.stat().st_size if package_pack.exists() else 0
+            with package_pack.open('ab') as stream: stream.write(data)
+            packages.append({'id':fields['id'],'version':version,'path':package_pack.relative_to(REGISTRY).as_posix(),
+                             'sha256':hashlib.sha256(data).hexdigest(),'byteOffset':offset,'byteLength':len(data)})
     if len(commits)!=1 or not next(iter(commits),None): raise ValueError('Runtime knowledge requires one exact publisher source commit')
     commit=next(iter(commits)); documents=[]; source_pack=destination/'source.pack'
     for source_commit,identities in sorted(package_sources.items()):
@@ -189,7 +197,8 @@ def publisher_knowledge(directory,native,profile,host):
                               'publisherPath':relative,'url':url,'sourceCommit':source_commit})
     if not any(d['publisherPath']=='README.md' for d in documents): raise ValueError('Publisher usage guidance is missing')
     value={'schemaVersion':1,'profileId':profile['id'],'releaseVersion':profile['families']['foundation']['releaseVersion'],
-           'sourceCommit':commit,'packages':packages,'documents':documents,'sourcePack':reference(source_pack,REGISTRY),'hostImage':host['inputs']['hostImage'],
+           'sourceCommit':commit,'packages':packages,'documents':documents,'sourcePack':reference(source_pack,REGISTRY),
+           'packagePack':reference(package_pack,REGISTRY),'hostImage':host['inputs']['hostImage'],
            'boundary':'Exact publisher facts and source guidance; selected architecture and compatibility remain Program Kit/consumer responsibilities.'}
     manifest=destination/'index.json'; write(manifest,value)
     return reference(manifest,REGISTRY)

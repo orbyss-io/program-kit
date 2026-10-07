@@ -76,8 +76,10 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
         original_builder=next(node.attrib['Version'] for node in ET.fromstring(self.content).iter('PackageVersion')
                               if node.attrib['Include']=='Orbyss.Foundation.Build')
         self.assertEqual(original_builder, pins['Orbyss.Foundation.Build'])
+        shared = blocks.load_json(blocks.profile_registry()/'engineering-contracts.json')['releases'][self.base['families']['foundation']['releaseVersion']]['pins']
+        for identity, version in shared.items(): self.assertEqual(version, pins[identity])
         for identity, version in pins.items():
-            if identity != 'Orbyss.Foundation.Analyzers':
+            if identity != 'Orbyss.Foundation.Analyzers' and identity not in shared:
                 original = next(node.attrib['Version'] for node in ET.fromstring(self.content).iter('PackageVersion')
                                 if node.attrib['Include'] == identity)
                 self.assertEqual(original, version)

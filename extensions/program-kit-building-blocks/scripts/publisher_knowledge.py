@@ -36,7 +36,7 @@ def main():
     if args.package:
         row=next((p for p in manifest['packages'] if p['id']==args.package),None)
         if row is None: parser.error('Select a package listed by this exact profile')
-        package=blocks.load_json(registry/row['path'])
+        package=blocks.publisher_package_fact(registry,row)
         if args.fact:
             if args.fact not in package['facts']: parser.error('Select an available package fact')
             text=package['facts'][args.fact]

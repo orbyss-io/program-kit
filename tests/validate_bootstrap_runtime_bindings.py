@@ -354,7 +354,7 @@ def main():
             target = base / name
             target.mkdir()
             (target / 'Feature.csproj').write_text('<Project><ItemGroup><PackageReference Include="Orbyss.Foundation.Json" Version="0.2.2"/></ItemGroup></Project>')
-            wrapper.retarget_fixture(target, {'packages': {'nuget:Orbyss.Foundation.Json': {'version': '0.3.0' if use_contracts else '0.2.2'}}}, use_contracts)
+            wrapper.retarget_fixture(target, {'families': {'foundation': {'releaseVersion': '0.3.0' if use_contracts else '0.2.2'}}, 'packages': {'nuget:Orbyss.Foundation.Json': {'version': '0.3.0' if use_contracts else '0.2.2'}}}, use_contracts)
             project = ET.parse(target / 'Feature.csproj')
             settings = list(project.iter('RestoreEnablePackagePruning'))
             assert ([setting.text for setting in settings] == ['false']) if use_contracts else not settings

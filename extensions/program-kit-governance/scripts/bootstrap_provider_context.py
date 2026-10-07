@@ -70,7 +70,7 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
             module.qualified_dependency_profile(registry,identity,json.loads(candidate_path.read_text(encoding='utf-8')))
             source = (registry / entry['knowledge']['path']).relative_to(root).as_posix()
             knowledge = json.loads(bind(source).read_text(encoding='utf-8'))
-            declarations = [json.loads((registry / p['path']).read_text(encoding='utf-8')) for p in knowledge['packages']]
+            declarations = [module.publisher_package_fact(registry,p) for p in knowledge['packages']]
             evidence = {'sourceCommit':knowledge['sourceCommit'],'hostImage':knowledge['hostImage'],
                 'packageMetadata':declarations,'hostDistribution':{'noticeFiles':[p for p in knowledge['documents'] if p['publisherPath'] in {'LICENSE','THIRD-PARTY-NOTICES.md','src/Orbyss.Foundation.Host/NOTICE.md'}],
                 'metadataExceptions':[{'id':'Foundation Host','resolution':'OCI distribution; full runtime/OS redistribution notices remain due before distribution.'}]},

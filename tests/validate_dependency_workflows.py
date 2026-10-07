@@ -17,6 +17,15 @@ import dependency_maintenance as maintenance
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_added_knowledge_preserves_existing_authority_but_changed_proof_does_not(self):
+        import building_blocks as blocks
+        original={'path':'exact.json','sha256':'a'*64,'status':'qualified','evidence':{'path':'proof.json','sha256':'b'*64}}
+        expected=blocks.canonical_sha256(original)
+        augmented={**original,'knowledge':{'path':'knowledge/index.json','sha256':'c'*64}}
+        self.assertTrue(blocks.profile_entry_matches_hash(augmented,expected))
+        self.assertFalse(blocks.profile_entry_matches_hash({**augmented,'sha256':'d'*64},expected))
+        self.assertFalse(blocks.profile_entry_matches_hash({**augmented,'unreviewedAuthority':True},expected))
+
     def test_profile_requires_successful_tagged_release_for_exact_package_commit(self):
         commit='a'*40
         spec=('<package><metadata><repository commit="'+commit+'"/></metadata></package>').encode()
@@ -52,6 +61,14 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual('second😀',blocks.publisher_document_bytes(root,document).decode())
             for invalid in ({**document,'byteOffset':-1},{**document,'byteLength':100},{**document,'path':'../outside'}):
                 with self.assertRaises(blocks.ResolverError): blocks.publisher_document_bytes(root,invalid)
+
+    def test_indexed_package_facts_preserve_identity_and_utf8(self):
+        import building_blocks as blocks
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); value={'id':'Orbyss.Foundation.Json','version':'0.3.1','facts':{'readme.md':'é😀'}}
+            data=json.dumps(value,ensure_ascii=False).encode(); (root/'package.pack').write_bytes(b'prefix'+data+b'suffix')
+            row={'path':'package.pack','byteOffset':6,'byteLength':len(data)}
+            self.assertEqual(value,blocks.publisher_package_fact(root,row))
 
     def test_full_update_uses_complete_deterministic_inventory_without_release_receipt(self):
         text=(ROOT/'scripts/update_dependencies.py').read_text()

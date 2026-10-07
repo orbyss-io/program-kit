@@ -701,11 +701,10 @@ constitution:
             )
             write(managed_project / relative, source.read_text(encoding="utf-8"))
         pins = {
-            "dotnet-sdk": "10.0.202",
-            "node": "24.20.0",
-            "typescript": "7.0.2",
-            "@types/node": "24.13.3",
-            "@playwright/test": "1.62.1",
+            "dotnet-sdk": json.loads((managed_project/module.DOTNET_SDK_MANIFEST).read_text())['sdk']['version'],
+            "node": (managed_project/module.NODE_VERSION_MANIFEST).read_text().strip(),
+            **{name:json.loads((managed_project/module.WEB_PACKAGE_MANIFEST).read_text())['devDependencies'][name]
+               for name in ('typescript','@types/node','@playwright/test')},
         }
         managed_decisions = {
             "selected_profiles": ["dotnet", "typescript-web"],

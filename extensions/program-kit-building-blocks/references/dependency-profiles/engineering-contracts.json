@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "releases": {
+    "0.2.2": {
+      "sourceCommit": "8d60cdd55e7fb9056c83d614786667c04ef78bdf",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/8d60cdd55e7fb9056c83d614786667c04ef78bdf/Directory.Packages.props",
+      "pins": {
+        "CShells.Abstractions": "0.0.29-preview.147",
+        "CShells.AspNetCore.Abstractions": "0.0.29-preview.147"
+      }
+    },
+    "0.2.4": {
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/Directory.Packages.props",
+      "pins": {
+        "CShells.Abstractions": "0.0.29-preview.147",
+        "CShells.AspNetCore.Abstractions": "0.0.29-preview.147"
+      }
+    },
+    "0.3.0": {
+      "sourceCommit": "9f188270f99543684268515c3a0cde146ec08417",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/9f188270f99543684268515c3a0cde146ec08417/Directory.Packages.props",
+      "pins": {
+        "CShells.Abstractions": "0.0.29-preview.147",
+        "CShells.AspNetCore.Abstractions": "0.0.29-preview.147"
+      }
+    },
+    "0.3.1": {
+      "sourceCommit": "aa7ae11678b0dbcf96af009e347d06673a9dce06",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/aa7ae11678b0dbcf96af009e347d06673a9dce06/Directory.Packages.props",
+      "pins": {
+        "CShells.Abstractions": "0.0.30-preview.159",
+        "CShells.AspNetCore.Abstractions": "0.0.30-preview.159"
+      }
+    }
+  }
+}

@@ -178,7 +178,7 @@ class DevelopmentProfileTests(unittest.TestCase):
         self.package('orbyss.foundation.Json', self.version)
         self.inputs['packages'] = {entry.name: candidate.digest(entry) for entry in self.feed.glob('*.nupkg')}
         write(self.f6 / 'inputs.json', self.inputs)
-        with self.assertRaisesRegex(ValueError, 'noncanonical casing'): self.prepare()
+        with self.assertRaisesRegex(ValueError, 'noncanonical casing|filenames collide by case'): self.prepare()
 
     def test_identity_membership_is_exact_independent_of_platform_path_sorting(self):
         self.inputs['candidatePackageIdentities'].reverse()

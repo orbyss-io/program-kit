@@ -30,12 +30,18 @@ def runtime_environment(credential_names=()):
 
 def retarget_fixture(target, catalog, shared_contracts):
     # All changed restore policy and pins belong to this disposable fixture.
+    shared_pins = {}
+    if shared_contracts:
+        contracts = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles/engineering-contracts.json'
+        shared_pins = json.loads(contracts.read_text(encoding='utf-8'))['releases'][catalog['families']['foundation']['releaseVersion']]['pins']
     for project in target.rglob('*.csproj'):
         value = ET.parse(project)
         for reference in value.iter('PackageReference'):
             package = catalog['packages'].get('nuget:' + reference.get('Include', ''))
             if package:
                 reference.set('Version', package['version'])
+            if reference.get('Include') in shared_pins:
+                reference.set('Version', shared_pins[reference.get('Include')])
         if shared_contracts:
             pruning = list(value.iter('RestoreEnablePackagePruning'))
             if not pruning:

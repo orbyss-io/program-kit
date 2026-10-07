@@ -81,7 +81,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Domain behavior failed' }
 ''')
         # Use a normal package source, optionally the already restored exact package.
         feed = ROOT/'artifacts/dotnet-engineering/packages'
-        if list((feed/'orbyss.foundation.analyzers/0.2.4').glob('*.nupkg')):
+        import xml.etree.ElementTree as ET
+        analyzer = next(node.get('Version') for node in ET.parse(root/'eng/ProgramKit.Packages.props').iter('PackageVersion') if node.get('Include')=='Orbyss.Foundation.Analyzers')
+        if list((feed/'orbyss.foundation.analyzers'/analyzer).glob('*.nupkg')):
             from xml.sax.saxutils import escape
             write('NuGet.config','<configuration><packageSources><clear/><add key="cached-package" value="'+escape(str(feed))+'"/></packageSources></configuration>')
         write('docs/architecture/decisions/accepted.md','Accepted domain ownership; unchanged.')

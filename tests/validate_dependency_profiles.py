@@ -161,6 +161,12 @@ class ProfileTests(unittest.TestCase):
                     manifest = root / 'eng/.config/dotnet-tools.json'
                     _,selected=blocks.qualified_dependency_profile(registry,default,blocks.load_json(fixtures.CATALOG))
                     self.assertEqual(selected['artifacts']['nuget:Orbyss.Foundation.OpenApi.Exporter'], blocks.load_json(manifest)['tools']['orbyss.foundation.openapi.exporter']['version'])
+                    from xml.etree import ElementTree as ET
+                    contracts=blocks.load_json(registry/'engineering-contracts.json')['releases']
+                    shared=contracts[selected['families']['foundation']['releaseVersion']]['pins']
+                    props=root/'eng/ProgramKit.Packages.props'
+                    pins={node.get('Include'):node.get('Version') for node in ET.parse(props).iter('PackageVersion')}
+                    self.assertTrue(all(pins[name]==value for name,value in shared.items()))
                     # Model the same scaffold captured by 0.12.6. Sync must use its
                     # original exact qualification, rather than the changed default.
                     managed['newProjectDependencyProfile'] = captured
@@ -169,6 +175,8 @@ class ProfileTests(unittest.TestCase):
                     self.assertEqual(0, result.returncode, result.stdout + result.stderr)
                     self.assertEqual(captured, blocks.load_json(managed_path)['newProjectDependencyProfile'])
                     self.assertEqual('0.2.2', blocks.load_json(manifest)['tools']['orbyss.foundation.openapi.exporter']['version'])
+                    pins={node.get('Include'):node.get('Version') for node in ET.parse(props).iter('PackageVersion')}
+                    self.assertTrue(all(pins[name]==value for name,value in contracts['0.2.2']['pins'].items()))
                     result = subprocess.run(command + ['--check'], capture_output=True, text=True, encoding='utf-8')
                     self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
@@ -253,7 +261,7 @@ class ProfileTests(unittest.TestCase):
             catalog, selected = blocks.qualified_dependency_profile(
                 registry, None, blocks.load_json(fixtures.CATALOG))
             self.assertEqual(index['default'], selected['id'])
-            self.assertEqual('0.2.4', catalog['packages'][profiles.producers.EXPORTER_KEY]['version'])
+            self.assertEqual(selected['artifacts'][profiles.producers.EXPORTER_KEY], catalog['packages'][profiles.producers.EXPORTER_KEY]['version'])
             original = profile.read_bytes()
             profile.write_bytes(original + b'\n')
             with self.assertRaisesRegex(ValueError, 'qualified profile changed'):
@@ -276,6 +284,10 @@ class ProfileTests(unittest.TestCase):
                 self.assertEqual(0, result.returncode, result.stdout + result.stderr)
             managed = blocks.load_json(root / '.program-kit/managed.json')
             captured = managed['newProjectDependencyProfile']
+            from validate_local_upgrade import load_updater
+            upgrade_pins = load_updater().building_block_versions(ROOT, root)
+            selected_catalog = blocks.new_project_catalog(captured['profile'])
+            self.assertEqual({p['packageId']:p['version'] for p in selected_catalog['packages'].values() if p['ecosystem']=='nuget'}, upgrade_pins)
             registry = root / 'registry'
             shutil.copytree(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles', registry)
             index = blocks.load_json(registry / 'index.json')

@@ -69,6 +69,7 @@ jobs:
           name: program-kit-${{ github.sha }}
           path: |
             artifacts/validation-runs/
+            artifacts/bootstrap-postgresql/
             artifacts/*.json
             artifacts/*.zip
             artifacts/*.cmd

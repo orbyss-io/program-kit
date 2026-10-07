@@ -1557,17 +1557,31 @@ def named_official_tool_bindings(source: dict, selected: dict) -> dict:
     return tools
 
 
-def publisher_document_bytes(directory: Path, item: dict) -> bytes:
+def profile_entry_matches_hash(entry: dict, expected: str) -> bool:
+    """Retain the original authority when only optional publisher knowledge was added."""
+    if canonical_sha256(entry)==expected: return True
+    if 'knowledge' not in entry: return False
+    original={key:value for key,value in entry.items() if key!='knowledge'}
+    return canonical_sha256(original)==expected
+
+
+def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576) -> bytes:
     """Read one frozen document from an ordinary file or an indexed source pack."""
     source=repository_path(directory,item['path'])
     offset=item.get('byteOffset',0)
     length=item.get('byteLength',source.stat().st_size)
     if (type(offset) is not int or type(length) is not int or offset<0 or length<0
-            or length>1_048_576 or offset+length>source.stat().st_size):
+            or length>limit or offset+length>source.stat().st_size):
         fail('PKB611','publisher document range is invalid')
     with source.open('rb') as stream:
         stream.seek(offset)
         return stream.read(length)
+
+
+def publisher_package_fact(directory: Path, item: dict) -> dict:
+    value=json.loads(publisher_document_bytes(directory,item,16*1_048_576).decode('utf-8'))
+    if not isinstance(value,dict): fail('PKB611','publisher package fact must be an object')
+    return value
 
 
 def qualified_dependency_profile(directory: Path, identity: str | None, catalog: dict) -> tuple[dict, dict]:
@@ -1588,14 +1602,17 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
         facts = load_json(knowledge_path)
         if facts.get('profileId') != identity or facts.get('releaseVersion') != selected['families']['foundation']['releaseVersion']:
             fail('PKB611', 'publisher knowledge differs from the selected dependency profile')
-        for item in facts.get('packages', []) + ([facts['sourcePack']] if facts.get('sourcePack') else []):
+        for item in [facts[key] for key in ('sourcePack','packagePack') if facts.get(key)]:
             source = repository_path(directory, item['path'])
             if raw_sha256(source) != item['sha256']:
                 fail('PKB611', 'versioned publisher fact/source changed')
+        for item in facts.get('packages',[]):
+            if hashlib.sha256(publisher_document_bytes(directory,item,16*1_048_576)).hexdigest()!=item['sha256']:
+                fail('PKB611','versioned publisher package fact changed')
         for item in facts.get('documents', []):
             if hashlib.sha256(publisher_document_bytes(directory,item)).hexdigest()!=item['sha256']:
                 fail('PKB611','versioned publisher source document changed')
-        package_commits={item['id']:load_json(repository_path(directory,item['path'])).get('repository',{}).get('commit')
+        package_commits={item['id']:publisher_package_fact(directory,item).get('repository',{}).get('commit')
                          for item in facts.get('packages',[])}
         for document in facts.get('documents',[]):
             relative=document.get('publisherPath','')
@@ -1794,7 +1811,7 @@ def verify_new_project_profile(repository: Path, catalog: dict, activations: lis
     if qualification is None: return  # Retained historical selections make no new qualification claim.
     directory = profile_registry()
     entry = load_json(directory / 'index.json')['profiles'].get(qualification.get('profile'))
-    if entry is None or canonical_sha256(entry) != qualification.get('entrySha256'):
+    if entry is None or not profile_entry_matches_hash(entry,qualification.get('entrySha256')):
         fail('PKB611', 'new-project qualification scope changed; review its profile explicitly')
     qualified, _ = qualified_dependency_profile(directory, qualification['profile'], catalog)
     if catalog_resolution_sha256(qualified) != catalog_resolution_sha256(catalog):
@@ -1810,7 +1827,7 @@ def draft_qualified_selection(repository: Path, selection_path: Path, catalog: d
     engineering = load_json(managed).get('newProjectDependencyProfile') if managed.is_file() else None
     if identity is None and engineering:
         entry = load_json(directory / 'index.json')['profiles'].get(engineering.get('profile'))
-        if entry is None or canonical_sha256(entry) != engineering.get('entrySha256'):
+        if entry is None or not profile_entry_matches_hash(entry,engineering.get('entrySha256')):
             fail('PKB611', 'scaffolded dependency qualification changed; review a profile explicitly')
         identity = engineering['profile']
     qualified, selected = qualified_dependency_profile(directory, identity, catalog)
