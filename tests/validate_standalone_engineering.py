@@ -15,7 +15,8 @@ def main():
     artifacts = ROOT / 'artifacts/standalone-engineering'
     artifacts.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
-    sdk = ROOT / 'artifacts/tools/dotnet/10.0.202'
+    selected_sdk=json.loads((ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json').read_text())['sdk']['version']
+    sdk = ROOT / 'artifacts/tools/dotnet' / selected_sdk
     if (sdk / ('dotnet.exe' if os.name == 'nt' else 'dotnet')).is_file():
         env['DOTNET_ROOT'] = str(sdk)
         env['PATH'] = str(sdk) + os.pathsep + env.get('PATH','')

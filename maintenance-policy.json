@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "profileRegistry": "extensions/program-kit-building-blocks/references/dependency-profiles",
+  "inputs": [
+    "scripts/dependency_maintenance.py",
+    ".github/workflows/*.yml",
+    "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.npm-version",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/*.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml",
+    "extensions/program-kit-governance/templates/ui-experience/acceptance/package.json",
+    "extensions/program-kit-governance/scripts/json-schema-requirements.txt",
+    "extensions/program-kit-governance/references/c4-viewer-tool.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/index.json",
+    "extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json",
+    "extensions/program-kit-dotnet/references/persistence-runtimes.json",
+    ".python-version"
+  ],
+  "families": {
+    "foundation": "Orbyss.Foundation.WebDefaults",
+    "foundation-build": "Orbyss.Foundation.Build",
+    "forms": "Orbyss.Forms.Abstractions",
+    "localization": "Orbyss.Localization.Abstractions"
+  },
+  "additionalPins": [
+    {
+      "kind": "github",
+      "name": "structurizr/structurizr",
+      "path": "extensions/program-kit-governance/references/c4-viewer-tool.json",
+      "pointer": "/selected/version"
+    }
+  ],
+  "metadataOverrides": {
+    "CShells.Abstractions": "https://f.feedz.io/valence-works/cshells/nuget/v3/packages/cshells.abstractions/index.json",
+    "CShells.AspNetCore.Abstractions": "https://f.feedz.io/valence-works/cshells/nuget/v3/packages/cshells.aspnetcore.abstractions/index.json",
+    "image:postgres": {
+      "tag": "latest",
+      "omitTag": true,
+      "versionEnvironment": "PG_VERSION"
+    },
+    "image:quay.io/keycloak/keycloak": {
+      "github": "keycloak/keycloak"
+    }
+  },
+  "immutableInputs": [
+    "extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json"
+  ]
+}

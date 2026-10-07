@@ -1,15 +1,15 @@
 {
   "schema_version": "1.0",
   "profile_id": "program-kit-c4-viewer-v1",
-  "retrieved": "2026-09-07",
+  "retrieved": "2026-10-07",
   "selected": {
     "product": "Structurizr",
     "command": "local",
-    "version": "2026.06.28",
-    "docker_image": "structurizr/structurizr:2026.06.28",
-    "docker_digest": "sha256:251905a1a2d73195e84b784966babc71b329223fdbb25368261a9e3ba39041c4",
-    "java_war": "structurizr-2026.06.28.war",
-    "java_war_url": "https://download.structurizr.com/structurizr-2026.06.28.war",
+    "version": "2026.09.19",
+    "docker_image": "structurizr/structurizr:2026.09.19",
+    "docker_digest": "sha256:721136283c2f9cf1ba69037bc9de136c579d66fdcb2d771cb60546ec68def1a5",
+    "java_war": "structurizr-2026.09.19.war",
+    "java_war_url": "https://download.structurizr.com/structurizr-2026.09.19.war",
     "java_minimum": 21,
     "default_port": 8081
   },
@@ -40,7 +40,7 @@
       "supports": "Structurizr Lite is end-of-life and replaced by local."
     },
     {
-      "url": "https://github.com/structurizr/structurizr/releases/tag/v2026.06.28",
+      "url": "https://github.com/structurizr/structurizr/releases/tag/v2026.09.19",
       "authority": "upstream-release",
       "supports": "Selected immutable release tag and release notes."
     }
@@ -52,8 +52,6 @@
     "removal_path": "Stop the viewer, remove the exact tagged image or cached versioned WAR if the user requests it, then remove this optional profile and launcher references. Canonical architecture JSON and DSL remain usable without the viewer."
   },
   "tested": {
-    "date": "2026-09-07",
-    "platform": "Windows 11, Docker Desktop server 29.0.1",
-    "evidence": "Pinned image rendered the Program Kit clean-bootstrap System Context and Domain Context views on 127.0.0.1:8081 from a temporary bind mount; repeated invocation reused the same container and the consumer fixture remained unchanged."
+    "status": "pending-update-validation"
   }
 }

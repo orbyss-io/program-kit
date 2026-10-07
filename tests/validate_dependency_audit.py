@@ -234,9 +234,12 @@ class AuditTests(unittest.TestCase):
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes((source / relative).read_bytes())
         relative = 'eng/ProgramKit.Packages.props'
-        previous = (installed / relative).read_bytes().replace(b'    <PackageVersion Include="Orbyss.Foundation.Build" Version="0.1.0" />\n', b'')
+        import re
+        previous = re.sub(rb'[^\n]*<PackageVersion Include="Orbyss.Foundation.Build" Version="[^"]+" />\n',b'',(installed / relative).read_bytes())
         self.assertNotEqual(previous, (source / relative).read_bytes())
         (installed / relative).write_bytes(previous)
+        from repository_sync import provider
+        previous=provider('program-kit-dotnet/scripts/dependency_profile.py').render(self.root,relative,previous)
         (self.root / relative).write_bytes(previous)
         state_path = self.root / '.program-kit/managed.json'
         state = json.loads(state_path.read_text())

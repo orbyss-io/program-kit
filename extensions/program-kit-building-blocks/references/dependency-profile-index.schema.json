@@ -64,7 +64,8 @@
         "excludedActivations": { "$ref": "#/$defs/strings" },
         "limitations": { "$ref": "#/$defs/strings" },
         "recipeSha256": { "$ref": "#/$defs/hash" },
-        "nativeLockSha256": { "$ref": "#/$defs/hash" }
+        "nativeLockSha256": { "$ref": "#/$defs/hash" },
+        "knowledge": { "$ref": "#/$defs/reference" }
       }
     }
   }

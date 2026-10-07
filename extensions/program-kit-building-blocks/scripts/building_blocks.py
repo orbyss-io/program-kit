@@ -1557,6 +1557,19 @@ def named_official_tool_bindings(source: dict, selected: dict) -> dict:
     return tools
 
 
+def publisher_document_bytes(directory: Path, item: dict) -> bytes:
+    """Read one frozen document from an ordinary file or an indexed source pack."""
+    source=repository_path(directory,item['path'])
+    offset=item.get('byteOffset',0)
+    length=item.get('byteLength',source.stat().st_size)
+    if (type(offset) is not int or type(length) is not int or offset<0 or length<0
+            or length>1_048_576 or offset+length>source.stat().st_size):
+        fail('PKB611','publisher document range is invalid')
+    with source.open('rb') as stream:
+        stream.seek(offset)
+        return stream.read(length)
+
+
 def qualified_dependency_profile(directory: Path, identity: str | None, catalog: dict) -> tuple[dict, dict]:
     directory = Path(directory).resolve()
     index = load_json(directory / 'index.json')
@@ -1567,6 +1580,34 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
     path = repository_path(directory, entry['path'])
     if raw_sha256(path) != entry['sha256']: fail('PKB611', 'qualified profile changed')
     selected = load_json(path)
+    knowledge = entry.get('knowledge')
+    if knowledge is not None:
+        knowledge_path = repository_path(directory, knowledge['path'])
+        if raw_sha256(knowledge_path) != knowledge['sha256']:
+            fail('PKB611', 'versioned publisher knowledge changed')
+        facts = load_json(knowledge_path)
+        if facts.get('profileId') != identity or facts.get('releaseVersion') != selected['families']['foundation']['releaseVersion']:
+            fail('PKB611', 'publisher knowledge differs from the selected dependency profile')
+        for item in facts.get('packages', []) + ([facts['sourcePack']] if facts.get('sourcePack') else []):
+            source = repository_path(directory, item['path'])
+            if raw_sha256(source) != item['sha256']:
+                fail('PKB611', 'versioned publisher fact/source changed')
+        for item in facts.get('documents', []):
+            if hashlib.sha256(publisher_document_bytes(directory,item)).hexdigest()!=item['sha256']:
+                fail('PKB611','versioned publisher source document changed')
+        package_commits={item['id']:load_json(repository_path(directory,item['path'])).get('repository',{}).get('commit')
+                         for item in facts.get('packages',[])}
+        for document in facts.get('documents',[]):
+            relative=document.get('publisherPath','')
+            owners=[identity for identity in package_commits if relative.startswith('src/'+identity+'/')]
+            expected_commit=package_commits[owners[0]] if len(owners)==1 else facts.get('sourceCommit')
+            if (document.get('sourceCommit')!=expected_commit or not re.fullmatch(r'[a-f0-9]{40}',str(expected_commit))
+                    or document.get('url')!='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+expected_commit+'/'+relative):
+                fail('PKB611','publisher guidance differs from its exact package/runtime source commit')
+        expected = {key.removeprefix('nuget:'): value for key, value in selected['artifacts'].items()
+                    if key.startswith('nuget:Orbyss.Foundation.')}
+        if {item['id']: item['version'] for item in facts.get('packages', [])} != expected:
+            fail('PKB611', 'publisher knowledge does not cover the exact selected Foundation package set')
     if selected['id'] != identity: fail('PKB611', 'profile identity differs')
     result = materialize_dependency_profile(dependency_profile_catalog(directory, entry, catalog), selected)
     proof = repository_path(directory, entry['evidence']['path'])

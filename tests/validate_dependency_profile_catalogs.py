@@ -62,7 +62,8 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
         self.assertEqual(self.target, json.loads(retained))
 
     def test_missing_or_duplicate_selected_build_pin_rejects_managed_rendering(self):
-        line = b'    <PackageVersion Include="Orbyss.Foundation.Build" Version="0.1.0" />'
+        import re
+        line=re.search(rb'[^\n]*<PackageVersion Include="Orbyss.Foundation.Build" Version="[^"]+" />',self.content)[0]
         self.assertEqual(1, self.content.count(line))
         for content in (self.content.replace(line, b''), self.content.replace(line, line + b'\n' + line)):
             with self.subTest(content=content), self.assertRaisesRegex(ValueError, 'builder pin.*exactly once'):
@@ -72,7 +73,9 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
         self.assertNotIn('nuget:Orbyss.Foundation.Build', self.base['packages'])
         generated = ET.fromstring(self.render(self.base))
         pins = {node.attrib['Include']: node.attrib['Version'] for node in generated.iter('PackageVersion')}
-        self.assertEqual('0.1.0', pins['Orbyss.Foundation.Build'])
+        original_builder=next(node.attrib['Version'] for node in ET.fromstring(self.content).iter('PackageVersion')
+                              if node.attrib['Include']=='Orbyss.Foundation.Build')
+        self.assertEqual(original_builder, pins['Orbyss.Foundation.Build'])
         for identity, version in pins.items():
             if identity != 'Orbyss.Foundation.Analyzers':
                 original = next(node.attrib['Version'] for node in ET.fromstring(self.content).iter('PackageVersion')
@@ -582,7 +585,8 @@ class CatalogProfileTests(unittest.TestCase):
             self.assertEqual(content, (original_registry / relative).read_bytes())
             if relative.as_posix() != 'index.json':
                 self.assertEqual(content, (self.registry / relative).read_bytes())
-        self.assertEqual(blocks.load_json(original_registry / 'index.json')['default'], self.index['default'])
+        self.assertEqual(json.loads(before[Path('index.json')])['default'],
+                         blocks.load_json(original_registry / 'index.json')['default'])
 
     def test_unbound_profile_and_unknown_caller_composition_are_rejected(self):
         binding = self.entry.pop('catalogSnapshot')

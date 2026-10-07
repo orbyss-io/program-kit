@@ -4158,6 +4158,60 @@
       ],
       "resources": [],
       "isolation": "Unique disposable source and receiver; source read-only; no credentials/registries or agents."
+    },
+    {
+      "id": "validate_dependency_updates",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_updates.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Automatic upgrade rollback, exact knowledge and promotion guards; no network or agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "maintenance-policy.json",
+        "scripts/dependency_maintenance.py",
+        "scripts/update_dependencies.py",
+        "scripts/update_dependency_profiles.py",
+        ".github/workflows/update-dependencies.yml",
+        "extensions/program-kit-building-blocks/**",
+        "tests/validate_dependency_updates.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Temporary files and in-process fixtures only."
+    },
+    {
+      "id": "validate_dependency_workflows",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_workflows.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Automatic upgrade rollback, exact knowledge and promotion guards; no network or agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "maintenance-policy.json",
+        "scripts/dependency_maintenance.py",
+        "scripts/update_dependencies.py",
+        "scripts/update_dependency_profiles.py",
+        ".github/workflows/update-dependencies.yml",
+        "extensions/program-kit-building-blocks/**",
+        "tests/validate_dependency_workflows.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Temporary files and in-process fixtures only."
     }
   ],
   "groups": {

@@ -46,7 +46,7 @@ def retarget_fixture(target, catalog, shared_contracts):
         value.write(project, encoding='utf-8', xml_declaration=True)
 
 
-def capture_public_host(target, image, runner=subprocess.run, credential_names=()):
+def capture_public_host(target, image, runner=subprocess.run, credential_names=(), release='0.3.0'):
     """Capture the neutral Host at its exact public digest; only CShells contracts are shared."""
     contract = runtime_contract_module()
     contract.validate_public_image(image)
@@ -95,7 +95,7 @@ def capture_public_host(target, image, runner=subprocess.run, credential_names=(
                [*(image_configuration.get('Cmd') or []), *(image_configuration.get('Entrypoint') or [])]):
             raise ValueError('Public image command overrides the captured Nuplane configuration')
         command(['cp', container + ':/app/.', str(payload)])
-        proof = contract.public_host_contract(payload, image, inspected[0].get('Image'))
+        proof = contract.public_host_contract(payload, image, inspected[0].get('Image'),release)
     finally:
         if creation_attempted:
             command(['rm', '-v', container])
@@ -189,7 +189,7 @@ def main():
                selected) if selected else blocks.new_project_catalog())
     inputs = {'foundationRelease': catalog['families']['foundation']['releaseVersion'],
               'catalogResolutionSha256': blocks.catalog_resolution_sha256(catalog)}
-    if inputs['foundationRelease'] == '0.3.0':
+    if tuple(map(int,inputs['foundationRelease'].split('.'))) >= (0,3,0):
         inputs['dependencyProfile'] = selected['id'] if selected else blocks.load_json(blocks.profile_registry() / 'index.json')['default']
     shared_contracts = runtime_contract_module().contracts_profile(inputs)
     host = catalog['packages']['oci:ghcr.io/orbyss-io/foundation-host']
@@ -212,10 +212,10 @@ def main():
         inputs['restoreEnablePackagePruning'] = False
         inputs['credentialEnvironmentNames'] = sorted({source['authentication']['credentialEnvironment']
             for source in catalog['sources'].values() if source.get('authentication', {}).get('credentialEnvironment')})
-        inputs['hostPayload'] = capture_public_host(target, image, credential_names=inputs['credentialEnvironmentNames'])
+        inputs['hostPayload'] = capture_public_host(target, image, credential_names=inputs['credentialEnvironmentNames'],release=inputs['foundationRelease'])
         inputs['runtimeContainer'] = 'pk-compat-' + uuid.uuid4().hex
     write(target / 'runtime-inputs.json', inputs)
-    audit_toolchain(target, {'dotnet': '10.0.202'})
+    audit_toolchain(target, {'dotnet': json.loads((target / 'global.json').read_text())['sdk']['version']})
     executor = provider('program-kit-building-blocks/scripts/restore_dependencies.py')
     plan = {'schemaVersion': 1, 'targets': [{'path': p, 'packages': [{'materializationKind': 'nuget-project'}]} for p in
             ['Core/Core.csproj', 'Feature/Feature.csproj', 'Boundary/Boundary.csproj']], 'registryRequirements': []}

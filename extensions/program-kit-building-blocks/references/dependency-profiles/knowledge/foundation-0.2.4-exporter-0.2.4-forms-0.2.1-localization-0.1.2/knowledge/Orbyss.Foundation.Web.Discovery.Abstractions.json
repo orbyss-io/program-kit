@@ -1,0 +1,23 @@
+{
+  "id": "Orbyss.Foundation.Web.Discovery.Abstractions",
+  "version": "0.2.4",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbyss-io/dotnet-foundation",
+    "commit": "ab22740d9bc86f01d3220751182cdcfcef9104ef"
+  },
+  "payloadFiles": {
+    "_rels/.rels": "7619ce96b64f0271629738c4f95526c9d468f9e23279047459ce22ce20689a1f",
+    "Orbyss.Foundation.Web.Discovery.Abstractions.nuspec": "997a42de13119d668e535b5ef99444720156b1d11c46eaa6f7db5d8b84211279",
+    "README.md": "c1461d38962cda13c6b830207f907d8fa10490c3d24a651d32e10e6062b8a3cb",
+    "lib/net10.0/Orbyss.Foundation.Web.Discovery.Abstractions.dll": "a744f8ca9509c2962c18b0e867081d48fb4282c8e1d6c95b72275926c0097ef8",
+    "lib/net10.0/Orbyss.Foundation.Web.Discovery.Abstractions.xml": "947909693b770eda5d5e838f99126a90dfd148f97a5832e4721d03d23df30aa3",
+    "[Content_Types].xml": "70b483c5066b0f062f2102cd8f0c4b2fde9e919b5a9204689dd67e64b0cc518e",
+    "package/services/metadata/core-properties/610f1d5604274c598281f19080ee3629.psmdcp": "b15213f65db8e36e85d6e406febcff6acbb04dad36e2e4413119ba9eda30f555"
+  },
+  "facts": {
+    "README.md": "# Orbyss.Foundation.Web.Discovery.Abstractions\n\n`IPublicDocumentCatalog` and `PublicDocument` are framework/provider-neutral contracts. Implement\na catalogue to adapt another CMS or renderer without changing the shell feature or Host. Every\nreturned document is deliberately anonymous/public. Never implement this interface over a private\ncontent repository without an explicit public projection. The catalogue is sampled once per shell\ngeneration; publish new content through a new generation/deployment, not mutable response bodies.\n",
+    "lib/net10.0/Orbyss.Foundation.Web.Discovery.Abstractions.xml": "<?xml version=\"1.0\"?>\n<doc>\n    <assembly>\n        <name>Orbyss.Foundation.Web.Discovery.Abstractions</name>\n    </assembly>\n    <members>\n        <member name=\"T:Orbyss.Foundation.Web.Discovery.IPublicDocumentCatalog\">\n            <summary>Supplies an immutable, explicitly public document snapshot for one shell generation.</summary>\n        </member>\n        <member name=\"M:Orbyss.Foundation.Web.Discovery.IPublicDocumentCatalog.ReadDocuments\">\n            <summary>Reads validated public documents; private application content must never be returned.</summary>\n        </member>\n        <member name=\"T:Orbyss.Foundation.Web.Discovery.PublicDocument\">\n            <summary>Represents content deliberately approved for anonymous publication at an exact route.</summary>\n            <param name=\"Route\">The root-relative, literal route without query, wildcards or parameters.</param>\n            <param name=\"ContentType\">The explicit response media type.</param>\n            <param name=\"Content\">The immutable snapshot of the response body.</param>\n            <param name=\"Index\">Whether the document may be indexed; this is not authorization.</param>\n        </member>\n        <member name=\"M:Orbyss.Foundation.Web.Discovery.PublicDocument.#ctor(System.String,System.String,System.ReadOnlyMemory{System.Byte},System.Boolean)\">\n            <summary>Represents content deliberately approved for anonymous publication at an exact route.</summary>\n            <param name=\"Route\">The root-relative, literal route without query, wildcards or parameters.</param>\n            <param name=\"ContentType\">The explicit response media type.</param>\n            <param name=\"Content\">The immutable snapshot of the response body.</param>\n            <param name=\"Index\">Whether the document may be indexed; this is not authorization.</param>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Web.Discovery.PublicDocument.Route\">\n            <summary>The root-relative, literal route without query, wildcards or parameters.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Web.Discovery.PublicDocument.ContentType\">\n            <summary>The explicit response media type.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Web.Discovery.PublicDocument.Content\">\n            <summary>The immutable snapshot of the response body.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Web.Discovery.PublicDocument.Index\">\n            <summary>Whether the document may be indexed; this is not authorization.</summary>\n        </member>\n    </members>\n</doc>\n"
+  }
+}

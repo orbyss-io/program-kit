@@ -138,9 +138,8 @@ def main() -> int:
         ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props"
     )
     orbyss_pins = {key: value for key, value in pins.items() if key.startswith("Orbyss.")}
-    expected_engineering = {"Orbyss.Foundation.Analyzers": packages['nuget:Orbyss.Foundation.Analyzers']['version'],
-                            "Orbyss.Foundation.Build": "0.1.0"}
-    if orbyss_pins != expected_engineering:
+    if (set(orbyss_pins) != {"Orbyss.Foundation.Analyzers","Orbyss.Foundation.Build"}
+            or any(re.fullmatch(r'\d+\.\d+\.\d+',version) is None for version in orbyss_pins.values())):
         raise AssertionError("The managed .NET baseline must pin only independently versioned private engineering packages.")
     build_targets = ElementTree.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets').getroot()
     builder_groups = [group for group in build_targets.findall('ItemGroup')

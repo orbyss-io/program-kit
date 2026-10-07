@@ -29,6 +29,8 @@ def write_json(path: Path, value: dict) -> None:
 def seed_project(project: Path, module, semantic, run_id: str) -> None:
     run = project / ".specify/workflows/runs" / run_id
     source_root = Path(module.__file__).resolve().parents[3]
+    shutil.copytree(source_root / 'extensions/program-kit-building-blocks',
+                    project / '.specify/extensions/program-kit-building-blocks',dirs_exist_ok=True)
     contract_references = {
         ".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md":
             "extensions/program-kit-governance/references/bootstrap-lifecycle.md",

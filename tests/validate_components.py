@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -781,8 +782,9 @@ def main() -> int:
     )
     viewer_profile = json.loads(c4_view_profile.read_text(encoding="utf-8"))
     selected_viewer = viewer_profile.get("selected", {})
-    if selected_viewer.get("docker_image") != "structurizr/structurizr:2026.06.28":
-        raise AssertionError("C4 viewer does not use the researched exact Structurizr pin")
+    if (selected_viewer.get("docker_image") != "structurizr/structurizr:"+selected_viewer.get('version','')
+            or not re.fullmatch(r'sha256:[0-9a-f]{64}',selected_viewer.get('docker_digest',''))):
+        raise AssertionError("C4 viewer does not use its exact version and immutable digest")
     if selected_viewer.get("default_port") != 8081:
         raise AssertionError("C4 viewer default conflicts with the Keycloak fixture")
 

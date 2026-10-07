@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "profile": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/profile.json",
+    "sha256": "c88f7fc68dc9e84ce34b28c4de350067d1b8fb66a1ecf86f814f33b1791d4a85"
+  },
+  "catalog": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/catalog.json",
+    "sha256": "7a950b88e955eb997ad7f1f1a5abca88c380bb2d28c7168946f4df458e8804d7"
+  },
+  "snapshot": {
+    "path": "catalogs/candidate-50568b04/target-7a950b88e955eb997ad7f1f1a5abca88c380bb2d28c7168946f4df458e8804d7.json",
+    "sha256": "7a950b88e955eb997ad7f1f1a5abca88c380bb2d28c7168946f4df458e8804d7",
+    "base": {
+      "path": "catalogs/candidate-50568b04/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+      "sha256": "105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8"
+    }
+  },
+  "identity": "foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2",
+  "status": "qualified",
+  "recipe": {
+    "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/recipe-b26ccd24.json",
+    "sha256": "4a2b186f894d952142a34cf4220d26c60188ffd6069ce53939c29031e9a35e62"
+  },
+  "proof": {
+    "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/qualification.json",
+    "sha256": "f3d9629d186f78a2cca58b0df3372d4bc5e53ebf0346c6db6d6ecf788e4c9938"
+  },
+  "lockSha256": "a348acf9f4ae21b31594780385f146e0d9f754933958248f51e96e05216c3e21",
+  "knowledge": {
+    "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+    "sha256": "9343cd6bd26bb707b6261cf3aabf835efa28ce231594374e4db5c7d469778c27"
+  },
+  "publisherRelease": {
+    "commit": "9f188270f99543684268515c3a0cde146ec08417",
+    "workflow": "https://github.com/orbyss-io/dotnet-foundation/actions/runs/37588949232"
+  }
+}

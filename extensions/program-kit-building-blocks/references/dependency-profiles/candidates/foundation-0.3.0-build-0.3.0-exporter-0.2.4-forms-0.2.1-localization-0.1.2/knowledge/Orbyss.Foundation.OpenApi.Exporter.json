@@ -1,0 +1,33 @@
+{
+  "id": "Orbyss.Foundation.OpenApi.Exporter",
+  "version": "0.2.4",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbyss-io/dotnet-foundation",
+    "commit": "672357af79ad27eafed900a7c549c790303ece87"
+  },
+  "payloadFiles": {
+    "_rels/.rels": "96907699785ee34a520faefbbb05e9f15dd1ffdfceb87fce67fe3be56beb3931",
+    "Orbyss.Foundation.OpenApi.Exporter.nuspec": "3c9e29c0ea40f8686cd688c3230ed2f4545c6e1296027e85dfa0795cf55e83d9",
+    "README.md": "dd79c247b4dd81015c71d93486b8e671d5b463c86a0917d2be2b4698acfe041f",
+    "tools/net10.0/any/CShells.Abstractions.dll": "c2741f1a8eb4954ca75ac07da9d21c451cf96e20149eba1b5124a1d2108d0445",
+    "tools/net10.0/any/CShells.AspNetCore.Abstractions.dll": "7048903ce260b3d5a85531b2d08e3ddbdb39b1207b4073e100b000a551dec391",
+    "tools/net10.0/any/DotnetToolSettings.xml": "3b163d3cab250ecb8ae6591644b01cf751c4c83dab7210c17f97a9d69792ea74",
+    "tools/net10.0/any/JetBrains.Annotations.dll": "8f2c837af3f4f61b1726a2e67eafcf5bae23debd9e1de425bb5ce1d4837508d6",
+    "tools/net10.0/any/Microsoft.AspNetCore.OpenApi.dll": "9f57fa2ac7bb47e26d8542de7dfd54c2d119ccffddd422c19baf8d8150bd2d88",
+    "tools/net10.0/any/Microsoft.OpenApi.dll": "64497b0a954493014d15494bb89f09dbed059b13efe64cdf008d5f0f6bf197e5",
+    "tools/net10.0/any/Orbyss.Foundation.OpenApi.Exporter.deps.json": "7df1461c78f18f1790054fa496fe6ce6bd6430ed30cd0c3c7cd572dd0b4c5a0f",
+    "tools/net10.0/any/Orbyss.Foundation.OpenApi.Exporter.dll": "1910b5b11a350ef665dbb39c632e549d569b9be434e2e16d0f8dc806c3d510f4",
+    "tools/net10.0/any/Orbyss.Foundation.OpenApi.Exporter.pdb": "6e5490569f7cd3fccb78db2886aff534fe89262269b38ac4513eff0a0739c34b",
+    "tools/net10.0/any/Orbyss.Foundation.OpenApi.Exporter.runtimeconfig.json": "f71b4c67b5233a19be9131b5fe4b45fe7829997cf2b42e762d6baa037da93863",
+    "tools/net10.0/any/Orbyss.Foundation.OpenApi.Exporter.staticwebassets.endpoints.json": "c1686417e8d5c31bba969f12b6f3d2b35e6609adb5ca42f212261a3a02771aac",
+    "tools/net10.0/any/Orbyss.Foundation.OpenApi.Exporter.xml": "58adbb811d3cbafdbcb2eeb416bc9a2372908544c62ac4fdce74a1f6858ab8de",
+    "tools/net10.0/any/web.config": "6ebdc0c48a8982b183c80b08fd6b40e09b0e38a415292f0729074e9f5425b084",
+    "[Content_Types].xml": "edc482355de6bd366901c176f57dc1492b4afe842dd796ee788bbc11de218c5e",
+    "package/services/metadata/core-properties/59761399a4504fdc871146b77a109fe8.psmdcp": "61dc1008a1ab9fef261cf205ad7ebb5cb3f583118ea601ad7325b941f665d7d6"
+  },
+  "facts": {
+    "README.md": "# Orbyss.Foundation.OpenApi.Exporter\n\nOrbyss Foundation-managed build tool that composes OpenAPI from a consumer application's validated,\nstaged feature-package closure without opening a network listener or running shell lifecycle\ninitializers. Consumer repositories invoke it through `.orbyss-foundation/eng/openapi_pipeline.py`; do not\nadd this package to feature or application projects.\n\nContract admission and producer evidence both use the `PackageVersion` assembly metadata generated\nfrom the MSBuild property that sets the tool's NuGet package version. Prerelease identifiers are\npreserved; assembly versions and informational source-revision metadata do not define this identity.\nThe contract must require the exact restored package version.\n\nRun `python tests/validate_openapi_exporter.py --packages artifacts/nuget` to restore the packed\nrelease tool into an isolated local manifest and export a real feature endpoint. The validator also\npacks a prerelease with an independent informational version, checks exact producer evidence for\nboth versions, and requires mismatching contracts to fail without producing output or evidence.\n"
+  }
+}

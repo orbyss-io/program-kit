@@ -1,0 +1,23 @@
+{
+  "id": "Orbyss.Foundation.Execution.Core",
+  "version": "0.3.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbyss-io/dotnet-foundation",
+    "commit": "9f188270f99543684268515c3a0cde146ec08417"
+  },
+  "payloadFiles": {
+    "_rels/.rels": "104ec8a3ad4566ba61d18d1b98898fcad6c130cdfbd42ec5225cec290589f737",
+    "Orbyss.Foundation.Execution.Core.nuspec": "037914ce00be13cebf34c7f38dab2177a9ca0cf17f68e93eb240f27d525d02b8",
+    "README.md": "ddc042981bdc15aa0dbe01ce95933f2e46645f23a7ee857b26f3b7ec33343adb",
+    "lib/net10.0/Orbyss.Foundation.Execution.Core.dll": "af720504bc5941f01cfd2964cd91b7e4ceb02f7ee4b9d3b43406b9c8150afb62",
+    "lib/net10.0/Orbyss.Foundation.Execution.Core.xml": "e2db8bd06d6c3a3f712281c85a547d1eab2d4cc787ca77879dd9e6853da811e9",
+    "[Content_Types].xml": "70b483c5066b0f062f2102cd8f0c4b2fde9e919b5a9204689dd67e64b0cc518e",
+    "package/services/metadata/core-properties/5278d2c97c224f7e89914f8427a51831.psmdcp": "0f58d0d1b316194fdedb69a8415f99241f33bcdd85644275dd62b10cc772a9fd"
+  },
+  "facts": {
+    "README.md": "# Orbyss Foundation Execution Core\n\nDefines owned operation deadlines, remaining time, expiry and independently owned stage caps.\nCaller cancellation remains distinguishable from deadline expiry. The contracts depend only on the BCL.\nProvider timeout settings and application outcome policy remain outside this package.\n",
+    "lib/net10.0/Orbyss.Foundation.Execution.Core.xml": "<?xml version=\"1.0\"?>\n<doc>\n    <assembly>\n        <name>Orbyss.Foundation.Execution.Core</name>\n    </assembly>\n    <members>\n        <member name=\"T:Orbyss.Foundation.Execution.Core.IExecutionDeadline\">\n            <summary>An owned monotonic operation deadline with caller and expiry cancellation.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Execution.Core.IExecutionDeadline.Token\">\n            <summary>Gets the cancellation token linked to caller cancellation and deadline expiry.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Execution.Core.IExecutionDeadline.Remaining\">\n            <summary>Gets the nonnegative time remaining, independently of wall-clock changes.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Execution.Core.IExecutionDeadline.IsExpired\">\n            <summary>Gets whether this deadline or its parent expired; caller cancellation alone is not expiry.</summary>\n        </member>\n        <member name=\"M:Orbyss.Foundation.Execution.Core.IExecutionDeadline.BeginStage(System.TimeSpan,System.Threading.CancellationToken)\">\n            <summary>Creates an independently owned stage capped by this deadline; retries cannot reset the parent.</summary>\n            <param name=\"maximumDuration\">The positive maximum stage duration.</param>\n            <param name=\"callerCancellation\">Optional additional cancellation for this stage.</param>\n            <returns>A stage that the caller must dispose.</returns>\n        </member>\n        <member name=\"T:Orbyss.Foundation.Execution.Core.IExecutionDeadlineFactory\">\n            <summary>Creates one owned outer deadline for a complete operation.</summary>\n        </member>\n        <member name=\"M:Orbyss.Foundation.Execution.Core.IExecutionDeadlineFactory.Create(System.TimeSpan,System.Threading.CancellationToken)\">\n            <summary>Creates an operation deadline without resetting it during subsequent stages or retries.</summary>\n            <param name=\"duration\">The positive operation budget.</param>\n            <param name=\"callerCancellation\">The caller's cancellation token.</param>\n            <returns>The owned deadline, which the caller must dispose.</returns>\n        </member>\n    </members>\n</doc>\n"
+  }
+}

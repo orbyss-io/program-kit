@@ -3,7 +3,10 @@ param([switch]$PrepareOnly, [switch]$AuthorizedCodexTask)
 
 $ErrorActionPreference = 'Stop'
 $releaseRoot = Split-Path -Parent $PSScriptRoot
-$releaseNode = Join-Path $releaseRoot 'artifacts\toolchains\node-v24.20.0-win-x64'
+$releaseTemplate = Join-Path $releaseRoot 'extensions/program-kit-dotnet/templates/dotnet/files'
+$releaseNodeVersion = (Get-Content -Raw -LiteralPath (Join-Path $releaseTemplate '.nvmrc')).Trim().TrimStart('v')
+$releaseNpmVersion = (Get-Content -Raw -LiteralPath (Join-Path $releaseTemplate '.npm-version')).Trim()
+$releaseNode = Join-Path $releaseRoot "artifacts\toolchains\node-v$releaseNodeVersion-win-x64"
 $releaseDotnet = Join-Path $releaseRoot 'artifacts\toolchains\dotnet'
 $releaseNpm = Join-Path $releaseNode 'npm.cmd'
 $savedLocation = Get-Location
@@ -29,10 +32,11 @@ try {
         $env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim()
     }
     $env:PLAYWRIGHT_BROWSERS_PATH = Join-Path $releaseRoot 'artifacts\toolchains\playwright-browsers'
-    if ((& node --version) -ne 'v24.20.0') { throw 'Cached Node 24.20.0 is unavailable.' }
-    if ((& dotnet --version) -ne '10.0.202') { throw 'Cached .NET SDK 10.0.202 is unavailable.' }
-    if ((& $releaseNpm --version) -ne '11.19.0') { throw 'Cached npm 11.19.0 is unavailable.' }
-    Write-Host 'Verified cached toolchains: Node 24.20.0, npm 11.19.0, .NET SDK 10.0.202.'
+    if ((& node --version) -ne "v$releaseNodeVersion") { throw "Cached Node $releaseNodeVersion is unavailable." }
+    $releaseSdkVersion = (Get-Content -Raw -LiteralPath (Join-Path $releaseRoot 'extensions/program-kit-dotnet/templates/dotnet/files/global.json') | ConvertFrom-Json).sdk.version
+    if ((& dotnet --version) -ne $releaseSdkVersion) { throw "Cached .NET SDK $releaseSdkVersion is unavailable. Prepare the selected exact SDK before release." }
+    if ((& $releaseNpm --version) -ne $releaseNpmVersion) { throw "Cached npm $releaseNpmVersion is unavailable." }
+    Write-Host "Verified cached toolchains: Node $releaseNodeVersion, npm $releaseNpmVersion, .NET SDK $releaseSdkVersion."
     if ($PrepareOnly) { return }
     # Fail before the full suite if its real database/host fixtures cannot run.
     $releaseContainerOs = ''

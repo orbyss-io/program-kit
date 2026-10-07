@@ -217,7 +217,7 @@ def main():
             assert not (root / 'runtime-archive-inputs').exists(), name
             results.append(name)
 
-        rejected('wrong-profile', lambda root, pins, assets: pins.update(dependencyProfile='another-0.3-profile'), 'exact reviewed')
+        rejected('wrong-profile', lambda root, pins, assets: pins.update(dependencyProfile='another-0.3-profile'), 'exact selected')
         rejected('mutable-image-tag', lambda root, pins, assets: pins.update(hostImage='ghcr.io/orbyss-io/foundation-host:0.3.0'), 'immutable public')
         rejected('changed-proof', lambda root, pins, assets: (root / 'public-host-inputs.json').write_text('{}'), 'capture inputs changed')
         rejected('external-proof-path', lambda root, pins, assets: pins['hostPayload'].update(inputs='../inputs.json'), 'fixture-owned')
@@ -269,7 +269,7 @@ def main():
             value['libraries']['CShells.Abstractions/0.0.29-preview.146'] = value['libraries'].pop('CShells.Abstractions/0.0.29-preview.147')
             write_json(path, value)
             reseal(root, pins)
-        rejected('native-version-even-resealed', wrong_native_version, 'shared package version')
+        rejected('native-version-even-resealed', wrong_native_version, 'another exact version')
         def wrong_host_version(root, pins, assets):
             path = root / 'public-host-payload/Orbyss.Foundation.Host.deps.json'
             value = json.loads(path.read_text())

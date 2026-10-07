@@ -20,6 +20,8 @@ from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
 CONTRACTS_PROFILE = 'foundation-0.3.0-build-0.2.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
+CONTRACTS_PROFILES = {CONTRACTS_PROFILE,
+    'foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2'}
 HOST_SHARED = {
     'CShells.Abstractions': '0.0.29-preview.147',
     'CShells.AspNetCore.Abstractions': '0.0.29-preview.147',
@@ -41,12 +43,15 @@ def file_sha256(path):
 
 
 def contracts_profile(pins):
-    """This new recipe admits one reviewed combination; historical inputs stay historical."""
-    if pins.get('foundationRelease') != '0.3.0':
+    """Admit the contracts protocol with exact selected release and native image binding."""
+    release=pins.get('foundationRelease','')
+    version=re.fullmatch(r'(\d+)\.(\d+)\.(\d+)',release)
+    if not version or tuple(map(int,version.groups())) < (0,3,0):
         require('hostPayload' not in pins, 'Historical profiles cannot supply the new Host binding contract')
         return False
-    require(pins.get('dependencyProfile') == CONTRACTS_PROFILE,
-            'Foundation 0.3.0 requires the exact reviewed contracts profile')
+    pattern='foundation-'+re.escape(release)+r'-build-\d+\.\d+\.\d+-exporter-\d+\.\d+\.\d+-forms-\d+\.\d+\.\d+-localization-\d+\.\d+\.\d+(?:-q-[0-9a-f]{8})?'
+    require(re.fullmatch(pattern,pins.get('dependencyProfile','')) is not None,
+            'Foundation contracts require the exact selected profile identity')
     return True
 
 
@@ -68,7 +73,18 @@ def host_runtime_inventory(payload):
     return {name: file_sha256(payload / name) for name in sorted(names)}
 
 
-def public_host_contract(payload, image, image_id):
+def shared_contract_versions(payload):
+    libraries=json.loads((payload/'Orbyss.Foundation.Host.deps.json').read_text(encoding='utf-8'))['libraries']
+    versions={}
+    for identity in HOST_SHARED:
+        selected=[name.rsplit('/',1)[1] for name in libraries if name.rsplit('/',1)[0].casefold()==identity.casefold()]
+        require(len(selected)==1 and re.fullmatch(r'\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?',selected[0]) is not None,
+                'Public Host shared package version is missing or ambiguous: '+identity)
+        versions[identity]=selected[0]
+    return versions
+
+
+def public_host_contract(payload, image, image_id, release='0.3.0'):
     validate_public_image(image)
     require(re.fullmatch(r'sha256:[0-9a-f]{64}', image_id or '') is not None, 'Captured native image ID is invalid')
     inventory = host_runtime_inventory(payload)
@@ -103,8 +119,8 @@ def public_host_contract(payload, image, image_id):
                     and name.rsplit('/', 1)[0] != 'Orbyss.Foundation.Host' for name in libraries),
             'Neutral public Host cannot reference a Foundation runtime package')
     require([name for name in libraries if name.rsplit('/', 1)[0] == 'Orbyss.Foundation.Host']
-            == ['Orbyss.Foundation.Host/0.3.0'], 'Public Host native version differs from the selected release')
-    for identity, version in HOST_SHARED.items():
+            == ['Orbyss.Foundation.Host/'+release], 'Public Host native version differs from the selected release')
+    for identity, version in shared_contract_versions(payload).items():
         versions = [name.rsplit('/', 1)[1] for name in libraries
                     if name.rsplit('/', 1)[0].casefold() == identity.casefold()]
         require(versions == [version] and identity + '.dll' in inventory,
@@ -127,7 +143,8 @@ def prepare_shared_runtime(root, pins, assets, runtime_packages):
     proof_path = root / binding['inputs']
     require(file_sha256(proof_path) == binding['inputsSha256'], 'Public image capture inputs changed')
     proof = json.loads(proof_path.read_text(encoding='utf-8'))
-    actual = public_host_contract(root / binding['path'], pins['hostImage'], proof.get('imageId'))
+    actual = public_host_contract(root / binding['path'], pins['hostImage'], proof.get('imageId'),pins['foundationRelease'])
+    shared_versions=shared_contract_versions(root/binding['path'])
     require(proof == actual, 'Captured public Host payload/configuration differs from its recorded inputs')
     roots = [Path(value) for value in assets['packageFolders']]
     archives, bindings, observed, provenance_inputs = [], [], set(), []
@@ -150,7 +167,7 @@ def prepare_shared_runtime(root, pins, assets, runtime_packages):
             canonical = next((name for name in HOST_SHARED if name.casefold() == package_id.casefold()), None)
             record = {'id': identity, 'archive': source.name, 'sha256': file_sha256(source)}
             if canonical:
-                require(canonical not in observed and version == HOST_SHARED[canonical],
+                require(canonical not in observed and version == shared_versions[canonical],
                         'Shared package is duplicated or selects another exact version: ' + identity)
                 assembly = 'lib/net10.0/' + canonical + '.dll'
                 require(archive.namelist().count(assembly) == 1, 'Shared archive must contain the exact net10 DLL: ' + identity)
@@ -193,7 +210,7 @@ def verify_retained_runtime_inputs(root, pins):
     binding = pins['hostPayload']
     require(file_sha256(root / binding['inputs']) == binding['inputsSha256'], 'Public capture inputs changed during runtime')
     proof = json.loads((root / binding['inputs']).read_text(encoding='utf-8'))
-    require(public_host_contract(root / binding['path'], pins['hostImage'], proof['imageId']) == proof,
+    require(public_host_contract(root / binding['path'], pins['hostImage'], proof['imageId'],pins['foundationRelease']) == proof,
             'Public Host payload changed during runtime')
     records = json.loads((root / 'runtime-package-inputs.json').read_text(encoding='utf-8'))
     retained = root / 'runtime-archive-inputs'
@@ -220,7 +237,7 @@ def verify_retained_runtime_inputs(root, pins):
             require(record['id'].casefold() == (identity + '/' + version).casefold(), 'Retained package identity differs')
             canonical = next((name for name in HOST_SHARED if name.casefold() == identity.casefold()), None)
             if canonical:
-                require(canonical not in observed and version == HOST_SHARED[canonical], 'Retained shared versions differ')
+                require(canonical not in observed and version == shared_contract_versions(root/binding['path'])[canonical], 'Retained shared versions differ')
                 assembly = 'lib/net10.0/' + canonical + '.dll'
                 require(archive.namelist().count(assembly) == 1, 'Retained shared archive has no unique net10 DLL')
                 digest = hashlib.sha256()

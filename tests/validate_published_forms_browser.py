@@ -87,6 +87,10 @@ def main():
         write(request, executor.restore_request(destination, lock, plan, mode))
         operation([sys.executable, str(executor.__file__), mode, '--target', str(destination), '--lock', lock.relative_to(destination).as_posix(),
                    '--request', request.relative_to(destination).as_posix(), '--approved'], mode, True)
+    browser_install = [*node, 'node_modules/playwright/cli.js', 'install']
+    if os.name != 'nt':
+        browser_install.append('--with-deps')
+    operation([*browser_install, *engines], 'browser-install')
     operation([*node, 'tests/forms-browser/build.mjs'], 'bundle')
     operation([*node, 'tests/forms-browser/browser.mjs', '--engines=' + args.engines], 'browser')
     write(destination / 'qualification-result.json', {'satisfied': True, 'engines': engines,

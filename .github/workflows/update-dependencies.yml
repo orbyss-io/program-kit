@@ -1,0 +1,79 @@
+name: Update dependencies
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+permissions:
+  contents: write
+  pull-requests: write
+  packages: read
+concurrency:
+  group: dependency-update
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version-file: .python-version
+      - name: Upgrade active external pins
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/dependency_maintenance.py upgrade
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version-file: .python-version
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc
+      - name: Select upgraded npm and Spec Kit
+        run: |
+          npm install --global "npm@$(cat extensions/program-kit-dotnet/templates/dotnet/files/.npm-version)" --ignore-scripts --no-audit --no-fund
+          python -m pip install --disable-pip-version-check "specify-cli==1.1.1"
+      - name: Qualify and promote the new profile and publisher knowledge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
+        run: python scripts/update_dependency_profiles.py update --engines=chromium,firefox,webkit
+      - name: Refresh locks and run all deterministic tests
+        env:
+          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
+        run: python scripts/update_dependencies.py
+      - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567
+        with:
+          version: v0.75.0
+      - name: Scan the actual qualified public Host
+        run: python scripts/dependency_maintenance.py scan --image "$(python scripts/dependency_maintenance.py host-image)"
+      - name: Open the tested update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then exit 0; fi
+          branch="codex/dependencies-${GITHUB_RUN_ID}"
+          git switch -c "$branch"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Update dependencies, qualified profile and versioned publisher knowledge"
+          git push origin "$branch"
+          gh pr create --title "Update dependencies and default profile" --body "Upgraded active tooling and packages, refreshed native locks, qualified and promoted the public profile and its publisher knowledge, passed the deterministic suite and scanned both Host platforms. Evidence is attached to this workflow run."
+      - name: Preserve update evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: dependency-update-${{ github.run_id }}
+          path: |
+            artifacts/dependency-update*.json
+            artifacts/dependency-update-tests/
+            artifacts/dependency-security/
+            artifacts/profile-update-native/
+            artifacts/published-forms-browser/
+            artifacts/bootstrap-runtime/
+            artifacts/validation-runs/

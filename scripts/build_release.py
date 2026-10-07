@@ -113,14 +113,16 @@ def build_dependency_qualification_assets(root: Path, output: Path, version: str
                 ('profile', profile, entry['sha256']), ('evidence', proof, entry['evidence']['sha256'])):
             if sha256(source) != expected_hash:
                 raise ValueError('Dependency qualification asset changed: ' + source.name)
-            if not source.name.startswith('dependency-profile-' if kind == 'profile' else 'dependency-qualification-'):
+            prefix='dependency-profile-' if kind == 'profile' else 'dependency-qualification-'
+            name=source.name if source.name.startswith(prefix) else prefix+identity+'.json'
+            if Path(name).name!=name or '/' in name or '\\' in name:
                 raise ValueError('Dependency qualification asset must have a publishable basename')
-            destination = output / source.name
+            destination = output / name
             if destination in assets:
                 raise ValueError('Repeated dependency qualification asset: ' + source.name)
             shutil.copyfile(source, destination)
             assets.append(destination)
-            record[kind] = {'file': source.name, 'sha256': expected_hash}
+            record[kind] = {'file': name, 'sha256': expected_hash}
         profiles.append(record)
     manifest = output / f'dependency-profile-index-{version}.json'
     manifest.write_text(json.dumps({'schemaVersion': 1, 'default': index['default'], 'profiles': profiles}, indent=2)

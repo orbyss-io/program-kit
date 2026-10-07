@@ -99,6 +99,9 @@ class ProfileTests(unittest.TestCase):
             registry = Path(directory) / 'registry'
             shutil.copytree(blocks.profile_registry(), registry)
             index = blocks.load_json(registry / 'index.json')
+            # Exercise the retained generic receipt independently of later defaults.
+            index['default']=CURRENT
+            fixtures.write_json(registry/'index.json',index)
             self.assertEqual(CURRENT, index['default'])
             entry = index['profiles'][CURRENT]
             receipt = blocks.load_json(registry / entry['evidence']['path'])
@@ -152,9 +155,12 @@ class ProfileTests(unittest.TestCase):
                     self.assertEqual(0, result.returncode, result.stdout + result.stderr)
                     managed_path = root / '.program-kit/managed.json'
                     managed = blocks.load_json(managed_path)
-                    self.assertEqual(CURRENT, managed['newProjectDependencyProfile']['profile'])
+                    registry=blocks.profile_registry()
+                    default=blocks.load_json(registry/'index.json')['default']
+                    self.assertEqual(default, managed['newProjectDependencyProfile']['profile'])
                     manifest = root / 'eng/.config/dotnet-tools.json'
-                    self.assertEqual('0.2.4', blocks.load_json(manifest)['tools']['orbyss.foundation.openapi.exporter']['version'])
+                    _,selected=blocks.qualified_dependency_profile(registry,default,blocks.load_json(fixtures.CATALOG))
+                    self.assertEqual(selected['artifacts']['nuget:Orbyss.Foundation.OpenApi.Exporter'], blocks.load_json(manifest)['tools']['orbyss.foundation.openapi.exporter']['version'])
                     # Model the same scaffold captured by 0.12.6. Sync must use its
                     # original exact qualification, rather than the changed default.
                     managed['newProjectDependencyProfile'] = captured

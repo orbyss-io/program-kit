@@ -96,9 +96,10 @@ def public_sources() -> list[Path]:
 
 def base_catalog() -> tuple[dict, dict]:
     registry = blocks.profile_registry()
-    index = read(registry / 'index.json')
-    # The public validator remains the authority for the unchanged historical baseline.
-    catalog, selected = blocks.qualified_dependency_profile(registry, index['default'], read(blocks.default_catalog(Path(blocks.__file__))))
+    # The retained v4 rehearsal is based on the established 0.12.7 profile.
+    # Advancing the public default must not silently change this older recipe.
+    baseline=recipe().get('baselineProfile') or read(registry/'dependency-profile-default-0.12.7.json')['id']
+    catalog, selected = blocks.qualified_dependency_profile(registry, baseline, read(blocks.default_catalog(Path(blocks.__file__))))
     return catalog, selected
 
 
