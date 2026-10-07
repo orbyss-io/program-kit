@@ -106,6 +106,21 @@ Record missed choices, premature recommendations, invented preferences, unnecess
 lost meaning. A routed reference or filled heading is supporting evidence, not proof of understanding.
 Keep later-feature detail proportional and preserve explicit exclusions.
 
+## UI experience and recovery review
+
+For an included UI, inspect the design layers and only the first feature's relevant states. Confirm
+that layouts derive from journeys, that existing frontend/component choices retain authority, and
+that a starter/default is distinguished from a human preference. Use the optional profile explain
+view after sources exist; it is not another intake gate or source of decision authority.
+
+At the existing feature handoff, review the actual composition in light/dark and relevant screen
+sizes. Check labels and useful hints before errors, invalid-field styling, preserved input, linked
+error focus, loading/empty/failure distinctions, safe conflict/unknown-result recovery and normal/
+reduced motion. Review the included login/error/success, expiry and logout states with the same
+brand. Inspect provider/application ownership, actual provider theme integration and honest
+local/provider logout results. Inert template previews or an axe pass do not prove the real flow.
+Do not seed this checklist or expected product answers into the fresh Notes consumer.
+
 ## Deterministic authoring regression
 
 The authoring helper and its worked example are exercised by `tests/validate_intake_authoring.py`.

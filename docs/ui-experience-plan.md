@@ -1,12 +1,24 @@
 # UI experience and discoverability implementation
 
-Status: initial implementation delivered; approved multi-device hardening is the next slice and is
-tracked in `forms-localization-implementation-plan.md`. Final verification of the initial boundary
-is recorded in `ui-experience-evidence.md`.
+Status: initial implementation and the cross-engine/emulated-device matrix are delivered. Historical
+verification of the initial boundary is recorded in `ui-experience-evidence.md`; it is not evidence
+for every later candidate. The current branch adds the modern presentation described below.
 The authentication release candidate at `5eb362d` is unchanged in
 history. This work is not a release or publication approval.
 
 ## Contract
+
+The current local candidate defaults new UI inputs to `modern-product-v1` while preserving classic
+appearance for inputs without that explicit presentation selection. `ui-design-model.md` exposes the
+layers, owners and adapter limits; `ui-feedback-and-recovery.md` defines complete fields and relevant
+operation/page states. The optional explain view derives choices and override paths from source.
+Integration patterns and eight branded authentication state templates remain outside public exports.
+The Keycloak login theme scaffold inherits provider templates; actual provider acceptance is still
+consumer-owned. No login-success interstitial, provider replacement or extra workflow hook is added.
+Focused browser groups supplement normal/reduced-motion, form outcome and identity presentation
+coverage; feature closure/handoff owns broader consumer acceptance. Toolkit fixtures do not prove
+real login/logout, backend idempotency or actual product task success. The local Firefox host
+limitation remains; the full three-engine CI matrix is unchanged.
 
 Deliver `ui-experience-v1` as an opt-in, framework-neutral profile shipped with the governance
 extension. A consumer owns its profile and content sources. Program Kit generates deterministic,
@@ -31,8 +43,8 @@ head updates. Private page bodies are never emitted into public exports.
 - [x] Deterministic contract/security/upgrade tests, browser accessibility and interaction suite,
   measured asset budgets, local comprehension-evaluation contract and honest manual evidence.
 - [x] Build/pack/install regression verification and usage/evidence handoff.
-- [ ] Replace Chromium-only responsive approximation with the mandatory Chromium/Firefox/WebKit,
-  phone/tablet/desktop, touch and orientation acceptance matrix before the Forms UI runtime ships.
+- [x] Ship the Chromium/Firefox/WebKit, phone/tablet/desktop, touch and orientation fixture matrix;
+  retain real-device and assistive-technology consumer acceptance as separate evidence.
 
 ## Acceptance boundaries
 

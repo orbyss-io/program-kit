@@ -553,6 +553,13 @@ consent-gated analytics. Generated native HTML is a reference renderer; accepted
 retain ownership through an initial-render adapter. The optional `Orbyss.Foundation.Web.Discovery` NuGet
 feature serves an explicit public projection through CShells, without adding logic to the Host.
 
+The [UI design model](extensions/program-kit-governance/references/ui-design-model.md) makes global/page
+layout, brand/theme, components, feedback/recovery, motion, icons and implementation choices explicit.
+New inputs use `modern-product-v1`; existing profiles without a presentation selection retain classic
+styling. `ui_profile.py explain --target .` exposes choices and override paths without writing.
+Complete form patterns and branded login/logout state templates are generated outside public exports;
+the inherited Keycloak theme scaffold preserves provider flows and requires actual provider acceptance.
+
 Consumer-owned profile/content inputs generate reproducible, conflict-protected outputs. Core
 tests cover contrast, SVG safety, metadata/private-export boundaries, browser accessibility and
 keyboard/reflow behavior. [Evidence and implementation status](docs/ui-experience-plan.md) distinguish

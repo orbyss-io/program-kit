@@ -6,6 +6,7 @@
   "required":["profile","archetype","navigation","density","brand","scheme","motion","css","discovery","budgets"],
   "properties":{
     "profile":{"const":"ui-experience-v1"},
+    "presentation":{"enum":["classic-v1","modern-product-v1"]},
     "archetype":{"enum":["journey","product-shell","workspace","content-hub","showcase"]},
     "navigation":{"enum":["sidebar","top","contextual","none"]},
     "density":{"enum":["comfortable","compact"]},
@@ -56,7 +57,9 @@
       "primary":{"$ref":"#/$defs/color"},"on-primary":{"$ref":"#/$defs/color"},
       "secondary":{"$ref":"#/$defs/color"},"on-secondary":{"$ref":"#/$defs/color"},
       "danger":{"$ref":"#/$defs/color"},"on-danger":{"$ref":"#/$defs/color"},
-      "focus":{"$ref":"#/$defs/color"},"border":{"$ref":"#/$defs/color"}
+      "focus":{"$ref":"#/$defs/color"},"border":{"$ref":"#/$defs/color"},
+      "divider":{"$ref":"#/$defs/color"},"canvas":{"$ref":"#/$defs/color"},
+      "raised":{"$ref":"#/$defs/color"},"success":{"$ref":"#/$defs/color"},"warning":{"$ref":"#/$defs/color"}
     }}
   }
 }

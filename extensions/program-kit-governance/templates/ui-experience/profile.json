@@ -1,5 +1,6 @@
 {
   "profile":"ui-experience-v1",
+  "presentation":"modern-product-v1",
   "archetype":"product-shell",
   "navigation":"sidebar",
   "density":"comfortable",

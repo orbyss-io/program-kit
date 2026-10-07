@@ -12,6 +12,14 @@ const resources = new Map(manifest.resources.map(r => [r.route, r]));
 resources.set('/__tailwind.css', { file: 'acceptance/tailwind-compiled.css', contentType: 'text/css; charset=utf-8' });
 const archetypes = ['journey', 'product-shell', 'workspace', 'content-hub', 'showcase'];
 for (const name of archetypes) resources.set(`/__gallery/${name}`, { file: `acceptance/archetypes/${name}.html`, contentType: 'text/html; charset=utf-8' });
+const authStates = ['login', 'login-success', 'login-error', 'session-expired', 'logout-confirmation', 'logout-progress', 'logout-success', 'logout-error'];
+const modern = JSON.parse(await readFile(resolve(root, 'acceptance/report.json'), 'utf8')).presentation === 'modern-product-v1';
+if (modern) for (const state of authStates) resources.set(`/__auth/${state}`, { file: `integration/auth/${state}.html`, contentType: 'text/html; charset=utf-8' });
+const supportedCases = ['gallery', 'forms', 'motion', 'auth'];
+const caseArgument = process.argv.find(value => value.startsWith('--cases='));
+const selectedCases = new Set((caseArgument?.slice('--cases='.length) || supportedCases.join(',')).split(',').filter(Boolean));
+assert(selectedCases.size && [...selectedCases].every(value => supportedCases.includes(value)), 'Unsupported or empty browser case selection');
+if (!modern && [...selectedCases].some(value => value !== 'gallery') && caseArgument) throw new Error('Modern cases require modern-product-v1');
 const server = createServer(async (request, response) => {
   const route = new URL(request.url, 'http://127.0.0.1').pathname;
   const resource = resources.get(route);
@@ -164,14 +172,126 @@ async function verifyTouchDevice(profile, browser) {
   }
 }
 
+async function verifyModern(engine, browser) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage(); await securePage(page, `${engine}/modern`);
+  try {
+    if (selectedCases.has('forms')) {
+      await page.goto(`${origin}/__gallery/product-shell`);
+      const form = page.locator('[data-pk-demo-form]');
+      const name = form.locator('#example-name'), description = form.locator('#example-description');
+      await description.fill('Keep this draft');
+      await form.getByRole('button', { name: 'Save example' }).click();
+      await form.locator('[data-pk-error-summary]').waitFor();
+      assert.equal(await name.getAttribute('aria-invalid'), 'true');
+      assert((await name.getAttribute('aria-describedby')).includes('example-name-hint'));
+      assert.equal(await description.inputValue(), 'Keep this draft');
+      assert.equal(await page.evaluate(() => document.activeElement.hasAttribute('data-pk-error-summary')), true);
+      assert.equal(await name.evaluate(el => getComputedStyle(el).borderTopWidth), '2px');
+      await form.getByRole('link', { name: 'Enter a name.' }).click();
+      assert.equal(await name.evaluate(el => el === document.activeElement), true);
+      await name.fill('Example'); await form.getByRole('button', { name: 'Save example' }).click();
+      await form.locator('[data-pk-operation-status]').filter({ hasText: 'Example saved' }).waitFor();
+      assert.equal(await name.getAttribute('aria-invalid'), null);
+      assert.equal(await description.inputValue(), 'Keep this draft');
+      await page.evaluate(async () => {
+        const { bindOperation } = await import('/assets/interactions.mjs');
+        const form = document.querySelector('[data-pk-demo-form]');
+        window.fixtureCalls = 0;
+        window.fixtureDispose = bindOperation(form, () => { window.fixtureCalls++; return new Promise(resolve => { window.fixtureResolve = resolve; }); });
+        form.requestSubmit(); form.requestSubmit();
+      });
+      assert.equal(await page.evaluate(() => window.fixtureCalls), 1);
+      assert.equal(await form.getAttribute('aria-busy'), 'true');
+      assert.equal(await form.getByRole('button', { name: 'Save example' }).isDisabled(), true);
+      await page.evaluate(() => window.fixtureResolve({ state: 'conflict', message: 'Review the latest version before reapplying your draft.' }));
+      await form.locator('[data-pk-operation-status]').filter({ hasText: 'Review the latest version' }).waitFor();
+      assert.equal(await name.inputValue(), 'Example');
+      await page.evaluate(async () => {
+        const { bindOperation } = await import('/assets/interactions.mjs');
+        bindOperation(document.querySelector('[data-pk-demo-form]'), async () => { throw new Error('Response lost'); });
+      });
+      await form.getByRole('button', { name: 'Save example' }).click();
+      await form.locator('[data-pk-operation-status]').filter({ hasText: 'couldn’t confirm' }).waitFor();
+      assert.equal(await form.getAttribute('data-pk-state'), 'unknown');
+      assert.equal(await description.inputValue(), 'Keep this draft');
+      await page.evaluate(async () => {
+        const { bindOperation } = await import('/assets/interactions.mjs');
+        bindOperation(document.querySelector('[data-pk-demo-form]'), async () => ({ state: 'failure', message: 'Service unavailable. Your draft is still here.' }));
+      });
+      await form.getByRole('button', { name: 'Save example' }).click();
+      await form.locator('[data-pk-operation-status]').filter({ hasText: 'Service unavailable' }).waitFor();
+      assert.equal(await description.inputValue(), 'Keep this draft');
+      await page.evaluate(async () => {
+        const { bindOperation } = await import('/assets/interactions.mjs');
+        bindOperation(document.querySelector('[data-pk-demo-form]'), async () => ({ state: 'validation', errors: {} }), { pending: 'Bezig…', unknown: 'Resultaat onbekend.' });
+      });
+      await form.getByRole('button', { name: 'Save example' }).click();
+      await form.locator('[data-pk-operation-status]').filter({ hasText: 'Resultaat onbekend.' }).waitFor();
+      await page.evaluate(async () => {
+        const { bindOperation } = await import('/assets/interactions.mjs');
+        const form = document.querySelector('[data-pk-demo-form]');
+        const dispose = bindOperation(form, () => new Promise(resolve => { window.fixtureResolve = resolve; }));
+        form.requestSubmit(); dispose();
+        window.fixtureResolve({ state: 'success', message: 'Late success must not replace current state' });
+      });
+      assert.equal(await form.locator('[data-pk-operation-status]').textContent(), 'Saving…');
+      assert.equal(await form.getByRole('button', { name: 'Save example' }).isDisabled(), false);
+      // Server-admitted text remains text, not markup, and summaries link to actual fields.
+      await page.evaluate(async () => {
+        const { presentFormErrors } = await import('/assets/interactions.mjs');
+        presentFormErrors(document.querySelector('[data-pk-demo-form]'), { 'example-name': '<img src=x onerror=alert(1)> is not a valid name' });
+      });
+      assert.equal(await form.locator('.pk-error img').count(), 0);
+      results.push({ engine, case: 'forms', validation: 'passed', preservedInput: 'passed', conflict: 'passed', unknown: 'passed', malformedOutcome: 'passed', serviceFailure: 'passed', duplicateSubmission: 'passed', staleCallback: 'passed' });
+    }
+    if (selectedCases.has('motion')) {
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.goto(`${origin}/__gallery/product-shell`);
+      const opener = page.getByRole('button', { name: 'Open confirmation' });
+      assert(parseFloat(await opener.evaluate(el => getComputedStyle(el).transitionDuration)) > 0);
+      await opener.click();
+      assert(parseFloat(await page.locator('dialog').evaluate(el => getComputedStyle(el).animationDuration)) > 0);
+      assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Cancel');
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator('dialog').evaluate(el => el.open), false);
+      await page.emulateMedia({ reducedMotion: 'reduce' }); await opener.click();
+      assert.equal(await opener.evaluate(el => getComputedStyle(el).transitionDuration), '0s');
+      assert.equal(await page.locator('dialog').evaluate(el => getComputedStyle(el).animationName), 'none');
+      await page.keyboard.press('Escape');
+      results.push({ engine, case: 'motion', normalAndReducedMotion: 'passed', interruptedDialog: 'passed' });
+    }
+    if (selectedCases.has('auth')) {
+      for (const state of authStates) {
+        for (const scheme of ['light', 'dark']) {
+          await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'no-preference' });
+          await page.setViewportSize({ width: 390, height: 844 });
+          await page.goto(`${origin}/__auth/${state}`);
+          assert.equal(await page.locator('body').getAttribute('data-auth-state'), state);
+          await assertNoPageOverflow(page, `${engine}/${state}/${scheme}`);
+          assert.equal(await page.locator('[data-pk-slot]').count(), 1);
+          assert.equal(await page.locator('input[type=password]').count(), 0);
+          const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+          assert.deepEqual(axe.violations.map(v => v.id), [], `${engine}/${state}/${scheme}`);
+          await page.screenshot({ path: resolve(evidence, `${engine}-auth-${state}-${scheme}.png`), animations: 'disabled' });
+        }
+      }
+      results.push({ engine, case: 'auth', brandedStates: 'passed', providerFlow: 'consumer acceptance required' });
+    }
+  } finally { await context.close(); }
+}
+
 try {
   for (const { name, browserType } of engines) {
     const browser = await browserType.launch();
     try {
-      await verifyDesktop(name, browser);
-      for (const profile of deviceProfiles.filter(candidate => candidate.engine === name)) {
-        await verifyTouchDevice(profile, browser);
+      if (selectedCases.has('gallery')) {
+        await verifyDesktop(name, browser);
+        for (const profile of deviceProfiles.filter(candidate => candidate.engine === name)) {
+          await verifyTouchDevice(profile, browser);
+        }
       }
+      if (modern) await verifyModern(name, browser);
     } finally {
       await browser.close();
     }
@@ -181,6 +301,7 @@ try {
   await new Promise(resolve => server.close(resolve));
   await writeFile(resolve(evidence, 'report.json'), JSON.stringify({ results, errors,
     engines: requestedEngineNames,
+    cases: modern ? [...selectedCases] : ['gallery'],
     scope: 'Selected desktop engines plus their emulated touch phone/tablet fixture checks; not full WCAG certification, physical-device/virtual-keyboard proof, actual browser zoom, assistive-technology task acceptance, or production field performance.' }, null, 2));
 }
-console.log(`UI browser acceptance passed: ${results.length} engine/archetype/device combinations.`);
+console.log(`UI browser acceptance passed: ${results.length} recorded scenario groups.`);

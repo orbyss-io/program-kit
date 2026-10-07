@@ -26,8 +26,15 @@ files. All generated assets must be deployed as one coherent build; stale files 
 
 ## Independent choices
 
+Use [ui-design-model.md](ui-design-model.md) to distinguish global/page layout, branding, theme,
+components, feedback, motion, icons, implementation and authentication screens. For forms or async
+work use [ui-feedback-and-recovery.md](ui-feedback-and-recovery.md). Read their relevant sections
+once and reuse them; public discovery/analytics sources are needed only when those capabilities apply.
+`ui_profile.py explain --target .` exposes the current choices and override/knowledge paths read-only.
+
 | Dimension | Choices / default |
 | --- | --- |
+| Presentation | modern-product-v1 for new profiles; omitted selection retains classic-v1 |
 | Archetype | journey, product-shell (default), workspace, content-hub, showcase |
 | Navigation | sidebar (default), top, contextual, none |
 | Density | comfortable (default), compact |
@@ -109,6 +116,11 @@ Generated Keycloak brand CSS and email color values are bridge assets, not repla
 email templates. Explicitly integrate them with the existing consumer-owned Keycloak theme and
 rerun its provider/browser/mail suite. Do not modify upstream identity flows or assume email
 clients support CSS variables. Font files and logos remain consumer-owned; no remote fetch occurs.
+Modern presentation also generates inert branded login/success/error, expiry and logout state
+templates and an inherited Keycloak login theme scaffold under integration/auth. Bind actual
+provider/application controls and verified state; do not deploy the examples as authentication.
+The selected-provider flow/theme acceptance remains required, including failed provider logout
+after local termination. Login-success may continue directly to the app without a new interstitial.
 
 ## Discovery and analytics
 
@@ -173,6 +185,11 @@ First-code gates: token contrast, generated drift, semantic initial HTML and saf
 private-export negative tests, canonical/language/sitemap consistency, honest content extraction,
 keyboard dialog/focus behavior, state gallery, reduced motion, RTL, narrow/zoom-equivalent layouts,
 automated accessibility and asset budgets. Do not treat a gallery as consumer task acceptance.
+Modern presentation adds normal-motion behavior, complete hint/validation styling, executable
+form-state recovery and identity-screen presentation checks. Use `--cases=gallery,forms,motion,auth`
+to select affected browser groups during development; default acceptance includes all groups.
+Review visual hierarchy and the actual journey at the existing handoff; automated passing is not
+proof of a polished experience. Full browser acceptance belongs at feature closure/handoff.
 First-deployment gates: authenticated private routes, CSP fit, real screen reader and keyboard
 journey, actual translations, content/editorial approval, real crawler/WAF fetch, consent/network
 inspection, and production LCP/INP/CLS collection where approved. Lighthouse cannot certify field INP.

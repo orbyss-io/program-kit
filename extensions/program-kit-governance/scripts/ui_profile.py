@@ -12,6 +12,7 @@ from ui_content import discovery, document, gallery, head
 from ui_contracts import public, validate
 from ui_tokens import LAYERS, compile_tokens
 from ui_svg import icons, sanitize_svg
+from ui_patterns import AUTH_STATES, auth_contract, auth_document, feedback_patterns, form_pattern, list_detail
 
 TEMPLATES = Path(__file__).resolve().parents[1] / "templates/ui-experience"
 SOURCE = ".program-kit/ui"
@@ -55,6 +56,39 @@ def read_json(path: Path) -> dict:
     return result
 
 
+def explain(profile: dict, content: dict) -> dict:
+    """Read-only view derived from existing inputs, not another decision register."""
+    starter = read_json(TEMPLATES / 'profile.json')
+    values = {
+        'globalLayout': {'archetype': profile['archetype'], 'navigation': profile['navigation']},
+        'pageLayout': {page['id']: page.get('layout', 'content') for page in content['pages']},
+        'branding': profile['brand'],
+        'theme': {'scheme': profile['scheme'], 'density': profile['density']},
+        'components': {'presentation': profile.get('presentation', 'classic-v1')},
+        'feedbackAndRecovery': 'field, operation and page; adapter-owned semantics',
+        'motion': {'style': profile['motion'], 'reducedMotion': 'honor user preference'},
+        'icons': profile['brand'].get('icons', {'bundle': 'lucide'}),
+        'implementation': {'css': profile['css'], 'frontend': 'existing accepted consumer frontend'},
+        'authentication': auth_contract() if profile.get('presentation') == 'modern-product-v1' else 'existing identity-theme bridge',
+    }
+    return {'profile': profile['profile'], 'presentation': profile.get('presentation', 'classic-v1'),
+            'values': values, 'inputPaths': [f'{SOURCE}/profile.json', f'{SOURCE}/content.json'],
+            'decisionProvenance': 'Read the existing bootstrap-decisions.json/project intent; matching a default does not prove human preference.',
+            'matchesStarterDefault': {key: profile.get(key) == starter.get(key) for key in ('presentation', 'archetype', 'navigation', 'density', 'scheme', 'motion', 'css')},
+            'generatedPaths': {'assets': f'{OUTPUT}/public/assets', 'integration': f'{OUTPUT}/integration', 'acceptance': f'{OUTPUT}/acceptance'},
+            'override': 'Edit consumer inputs or the consumer CSS layer; build then check. Init never replaces inputs.',
+            'adapters': {'native': 'reference renderer, deterministic/browser fixture coverage',
+                         'tailwind': 'pinned semantic-token bridge and compiled browser comparison',
+                         'existing-system': 'consumer-owned mapping; consumer acceptance required',
+                         'Material or Bootstrap': 'design/component choices, no shipped dedicated adapter',
+                         'Keycloak': 'inherited theme scaffold; real selected-provider acceptance required'},
+            'phase': {'intake': 'experience intent and consequential recovery behavior',
+                      'planning': 'affected compositions, field rules, states, error mapping and identity screen owners',
+                      'implementation': 'focused changed state/journey tests',
+                      'handoff': 'affected feature acceptance and human visual review'},
+            'knowledge': ['ui-design-model.md', 'ui-feedback-and-recovery.md', 'ui-experience-v1.md', 'ui-evidence-v1.json']}
+
+
 def outputs(profile: dict, content: dict) -> dict[str, bytes]:
     validate(profile, content)
     generated: dict[str, bytes] = {}
@@ -82,11 +116,25 @@ def outputs(profile: dict, content: dict) -> dict[str, bytes]:
     for name in ("tokens.css",):
         add_resource("/assets/" + name, "assets/" + name, tokens.pop(name), "text/css; charset=utf-8")
     for name in ("layout.css", "interactions.mjs", "analytics.mjs"):
-        text = (TEMPLATES / name).read_text(encoding="utf-8")
+        source = 'layout-classic.css' if name == 'layout.css' and profile.get('presentation', 'classic-v1') == 'classic-v1' else name
+        text = (TEMPLATES / source).read_text(encoding="utf-8")
         kind = "text/css; charset=utf-8" if name.endswith("css") else "text/javascript; charset=utf-8"
         add_resource("/assets/" + name, "assets/" + name, text, kind)
     for name, text in tokens.items():
         generated[f"{OUTPUT}/integration/{name}"] = text.encode("utf-8")
+    if profile.get('presentation', 'classic-v1') == 'modern-product-v1':
+        for name, text in {'form': form_pattern(), 'list-detail': list_detail(), 'feedback': feedback_patterns()}.items():
+            generated[f'{OUTPUT}/integration/patterns/{name}.html'] = text.encode('utf-8')
+        for state in AUTH_STATES:
+            generated[f'{OUTPUT}/integration/auth/{state}.html'] = auth_document(profile, state).encode('utf-8')
+        generated[f'{OUTPUT}/integration/auth/contract.json'] = encoded(auth_contract())
+        generated[f'{OUTPUT}/integration/design-map.json'] = encoded(explain(profile, content))
+        # Inherit all provider templates and behaviors; consumer opts into realm/theme integration.
+        theme = f'{OUTPUT}/integration/auth/keycloak/login'
+        generated[f'{theme}/theme.properties'] = b'parent=keycloak\nimport=common/keycloak\nstyles=css/login.css css/program-kit-brand.css\n'
+        generated[f'{theme}/resources/css/program-kit-brand.css'] = tokens['keycloak-brand.css'].encode('utf-8')
+        if 'svg' in profile['brand'].get('logo', {}):
+            generated[f'{theme}/resources/img/brand-logo.svg'] = sanitize_svg(profile['brand']['logo']['svg'], 'pk-auth-logo').encode('utf-8')
     for page in content["pages"]:
         if not public(page):
             continue
@@ -116,6 +164,7 @@ def outputs(profile: dict, content: dict) -> dict[str, bytes]:
         if size > profile["budgets"][name]:
             raise ValueError(f"Asset budget {name} exceeded: {size} > {profile['budgets'][name]}")
     generated[f"{OUTPUT}/acceptance/report.json"] = encoded({"profile": profile["profile"], "assetBytes": sizes,
+        "presentation": profile.get('presentation', 'classic-v1'),
         "publicPages": sum(public(p) for p in content["pages"]), "privatePagesExcluded": sum(not public(p) for p in content["pages"]),
         "manualAcceptanceRequired": ["screen-reader and keyboard user journey", "actual branding and translations", "deployment authentication/CSP/WAF", "field Core Web Vitals where applicable"],
         "claims": "Generation and contract checks only; not WCAG conformance, search ranking or universal AI comprehension."})
@@ -180,6 +229,9 @@ def execute(root: Path, command: str) -> dict:
         return {"created": [str(path.relative_to(root)) for path in targets.values()]}
     profile = read_json(safe_path(root, f"{SOURCE}/profile.json"))
     content = read_json(safe_path(root, f"{SOURCE}/content.json"))
+    if command == 'explain':
+        validate(profile, content)
+        return explain(profile, content)
     expected = outputs(profile, content)
     if command == "validate":
         return {"valid": True, "files": len(expected)}
@@ -188,7 +240,7 @@ def execute(root: Path, command: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("init", "validate", "build", "check"))
+    parser.add_argument("command", choices=("init", "validate", "build", "check", "explain"))
     parser.add_argument("--target", default=".")
     args = parser.parse_args()
     try:

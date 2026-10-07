@@ -78,7 +78,11 @@ baseline with its workflow rationale in the existing synthesis. Retain accessibi
 reduced-motion obligations regardless of visual taste. Detailed styling can wait for the feature;
 layout and interaction questions that change the first journey cannot all be deferred as styling.
 
-Use the relevant UI guidance in `ui-experience-v1.md`. Keep its technical adapter defaults separate
+Use the relevant UI guidance in `ui-experience-v1.md` and the mental-model layers in
+`ui-design-model.md`; for forms/async work consult the relevant
+`ui-feedback-and-recovery.md` guidance to uncover consequential errors and recovery choices.
+Treat branded login/logout/error screens as part of the same journey when authentication is included.
+Keep technical adapter defaults separate
 from proposed navigation/brand choices. Never apply UI discovery to an explicitly headless product.
 
 ## Functional handoff

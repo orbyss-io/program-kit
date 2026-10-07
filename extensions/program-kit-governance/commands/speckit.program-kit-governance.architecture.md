@@ -347,8 +347,11 @@ Canonical `WEB-Cxx` identifiers retain the decision text and profile applicabili
 evidence registry. Project-specific verification cases use another namespace, such as `WEB-Qxx`,
 and map explicitly to one or more canonical controls; they never redefine a `WEB-Cxx` identifier.
 
-For `ui-experience-v1`, include consumer-owned branding/content, generated semantic tokens and
-initial-render metadata, optional public discovery projection, and independent analytics adapters.
+For `ui-experience-v1`, include consumer-owned branding/content, generated semantic tokens,
+initial-render metadata, optional public discovery projection, independent analytics adapters and
+the versioned presentation/composition choices from ui-design-model.md. Assign field/error recovery
+and provider/application authentication screen ownership to the actual consuming feature/adapter.
+Keep provider forms, callback validation, redirects and logout semantics under the secure profile.
 Map each page's public/private/indexing intent; no private body may enter public build artifacts.
 Keep .NET endpoints in `Orbyss.Foundation.Web.Discovery` or consumer-owned IWebShellFeature adapters,
 never in Orbyss.Foundation.Host. Accepted frontend frameworks consume the same contracts through their

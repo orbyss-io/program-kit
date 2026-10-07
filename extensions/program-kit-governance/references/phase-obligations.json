@@ -275,12 +275,12 @@
         ]
       },
       "guidance": {
-        "planning": "Select real user journeys, accessibility and the declared security boundary.",
-        "after-plan": "Select real user journeys, accessibility and the declared security boundary.",
+        "planning": "Select real compositions, complete field guidance, relevant loading/error/recovery and login/logout states, accessibility and the declared security boundary.",
+        "after-plan": "Select real compositions, complete field guidance, relevant loading/error/recovery and login/logout states, accessibility and the declared security boundary.",
         "tasks": "Schedule relevant browser journeys and accessibility tests, not every journey per task.",
         "after-tasks": "Schedule relevant browser journeys and accessibility tests, not every journey per task.",
-        "implementation": "Run affected browser/client tests when that journey or contract changes.",
-        "delivery": "Verify actual browser journeys and accessibility; generated examples are not acceptance."
+        "implementation": "Run focused affected state/journey tests, including changed field hints/errors, normal/reduced motion and authentication presentation; no full gallery per task.",
+        "delivery": "Verify actual browser journeys, recovery, identity flow/theme and accessibility; review visual quality at the existing handoff. Generated examples are not acceptance."
       }
     },
     {
@@ -917,6 +917,16 @@
         "specification"
       ],
       "enforcement": "human functional walkthrough and linked semantic handoff; routing tests do not prove interview quality"
+    },
+    {
+      "path": "program-kit-governance/references/ui-design-model.md",
+      "phases": ["intake", "bootstrap", "planning", "implementation", "delivery"],
+      "enforcement": "selected UI choices, generated explain/design map, browser presentation and actual consumer/provider review"
+    },
+    {
+      "path": "program-kit-governance/references/ui-feedback-and-recovery.md",
+      "phases": ["intake", "planning", "implementation", "delivery"],
+      "enforcement": "complete field/operation templates and affected state tests; backend and provider outcomes require consumer evidence"
     },
     {
       "path": "program-kit-governance/references/intake-method.md",

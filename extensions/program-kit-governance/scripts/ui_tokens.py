@@ -49,6 +49,12 @@ def palettes(profile: dict) -> dict:
             "danger": "#AD1632" if light else "#FF90A2",
             "focus": "#173F8A" if light else "#A6C7FF"
         }
+        modern = profile.get("presentation", "classic-v1") == "modern-product-v1"
+        if modern:
+            values.update(divider="#D8DFE9" if light else "#3B4555",
+                          canvas="#F5F7FB" if light else "#0D111A", raised=surface,
+                          success="#156744" if light else "#75DBAF",
+                          warning="#805400" if light else "#F5CD73")
         for name in ("primary", "secondary", "danger"):
             values[f"on-{name}"] = foreground(values[name])
         values.update(profile["brand"].get("overrides", {}).get(mode, {}))
@@ -63,6 +69,15 @@ def palettes(profile: dict) -> dict:
             required = 4.5 if name == "danger" else 3
             if contrast(values[name], values["surface"]) < required:
                 raise ValueError(f"{mode}: {name}/surface fails {required}:1 contrast")
+        if modern:
+            for text in ("on-surface", "on-muted", "danger", "success", "warning"):
+                for background in ("surface", "muted", "canvas", "raised"):
+                    if contrast(values[text], values[background]) < 4.5:
+                        raise ValueError(f"{mode}: {text}/{background} fails 4.5:1 text contrast")
+            for indicator in ("border", "focus"):
+                for background in ("canvas", "raised"):
+                    if contrast(values[indicator], values[background]) < 3:
+                        raise ValueError(f"{mode}: {indicator}/{background} fails 3:1 nontext contrast")
         result[mode] = values
     return result
 
@@ -101,6 +116,14 @@ def compile_tokens(profile: dict) -> dict[str, str]:
     root_mode = "dark" if profile["scheme"] == "dark" else "light"
     css = LAYERS + f"@layer pk.tokens {{\n:root {{\n{declarations(root_mode)}\n"
     css += f"  --pk-font: {profile['brand']['fontStack']};\n  --pk-radius: {radius};\n  --pk-space: {space};\n  --pk-duration: {duration};\n  --pk-shadow: {elevation};\n  color-scheme: {root_mode};\n}}\n"
+    if profile.get("presentation", "classic-v1") == "modern-product-v1":
+        expressive = profile['motion'] == 'expressive'
+        motion = {"feedback": 110, "enter": 240 if expressive else 150, "exit": 150 if expressive else 110, "emphasis": 400 if expressive else 240}
+        for name, value in motion.items():
+            primitive[f"motion-{name}"] = {"$type": "duration", "$value": {"value": value, "unit": "ms"}}
+            semantic["layout"][f"motion-{name}"] = {"$type": "duration", "$value": f"{{primitive.motion-{name}}}"}
+        css += ':root { ' + ' '.join(f'--pk-motion-{name}: {value}ms;' for name, value in motion.items()) + ' --pk-ease-enter: cubic-bezier(0,0,.38,.9); --pk-ease-exit: cubic-bezier(.2,0,1,.9); --pk-ease-standard: cubic-bezier(.2,0,.38,.9); --pk-text-small: .875rem; --pk-text-title: clamp(1.5rem, 3vw, 2.25rem); --pk-space-small: .5rem; --pk-space-large: 1.5rem; }\n'
+        css += '@media (prefers-reduced-motion: reduce) { :root { --pk-motion-feedback: 0ms; --pk-motion-enter: 0ms; --pk-motion-exit: 0ms; --pk-motion-emphasis: 0ms; } }\n'
     if profile["scheme"] == "system":
         css += f"@media (prefers-color-scheme: dark) {{ :root {{\n{declarations('dark')}\ncolor-scheme: dark;\n}} }}\n"
     css += "@media (prefers-reduced-motion: reduce) { :root { --pk-duration: 0ms; } }\n}\n"
@@ -111,6 +134,24 @@ def compile_tokens(profile: dict) -> dict[str, str]:
     bridge = {"loginStylesheet": "keycloak-brand.css", "fontLicense": profile["brand"]["fontLicense"],
               "email": colors["light"], "integration": "Import CSS in the consumer theme; apply literal email values in existing templates. Rerun identity-theme acceptance."}
     keycloak = css + "\n.login-pf body { font-family: var(--pk-font); background: var(--pk-surface); color: var(--pk-on-surface); }\n#kc-login { background: var(--pk-primary); color: var(--pk-on-primary); border-radius: var(--pk-radius); }\n"
+    if profile.get('presentation') == 'modern-product-v1':
+        keycloak += '''
+.login-pf body { background: var(--pk-canvas); }
+.login-pf .card-pf { background: var(--pk-raised); border: 1px solid var(--pk-divider); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); }
+#kc-header-wrapper, #kc-page-title, #kc-content-wrapper, #kc-info-wrapper { color: var(--pk-on-surface); font-family: var(--pk-font); }
+#kc-form input { color: var(--pk-on-surface); background: var(--pk-surface); border: 1px solid var(--pk-border); border-radius: var(--pk-radius); }
+#kc-form input[aria-invalid="true"], .pf-c-form-control[aria-invalid="true"] { border: 2px solid var(--pk-danger); }
+#kc-input-error, .alert-error { color: var(--pk-danger); }
+#kc-content a { color: var(--pk-primary); }
+#kc-logout-confirm button, #kc-login { background: var(--pk-primary); color: var(--pk-on-primary); border-radius: var(--pk-radius); }
+#kc-content :focus-visible { outline: 3px solid var(--pk-focus); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { #kc-content *, #kc-content *::before, #kc-content *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+'''
+        if 'svg' in profile['brand'].get('logo', {}):
+            keycloak += '#kc-header-wrapper::before { content: ""; display: block; height: 3rem; margin-bottom: 1rem; background: url("../img/brand-logo.svg") center/contain no-repeat; }\n'
+        bridge['authStates'] = ['login', 'login-success', 'login-error', 'session-expired', 'logout-confirmation', 'logout-progress', 'logout-success', 'logout-error']
+        bridge['themeScaffold'] = 'auth/keycloak/login'
+        bridge['integration'] = 'Inherit provider templates; copy generated stylesheet/logo into the consumer theme, set realm display name/locale from accepted brand, and bind app-owned state templates. Verify against the selected provider/version; no flow or redirect changes.'
     result = {"tokens.json": json.dumps(tokens, ensure_ascii=False, indent=2) + "\n", "tokens.css": css,
               "keycloak-brand.css": keycloak, "identity-theme.json": json.dumps(bridge, indent=2) + "\n"}
     if profile["css"] == "tailwind":
