@@ -61,6 +61,7 @@ class ReleaseBundleTests(unittest.TestCase):
         self.packages = self.root / 'artifacts/packages'
         self.packages.mkdir(parents=True)
         self.write('VERSION', '1.2.3\n')
+        self.write('eng/application-handoff.json', {'schemaVersion': 1, 'applicationId': 'example.release'})
         self.write('hostsettings.json', {})
         self.write('nuplane.settings.json', {'Nuplane': {'Setup': {'Feeds': []}, 'Loading': {'Enabled': True}}})
         self.write('shells.json', {'CShells': {'Shells': {'default': {'Features': {}}}}})
@@ -206,6 +207,11 @@ class ReleaseBundleTests(unittest.TestCase):
         expected['contracts'][0]['packageClosure'] = 'artifacts/release-bundle/packages'
         self.assertEqual(json.loads(migrated), expected)
         self.assertEqual(dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', migrated, migrations), migrated)
+        native = json.dumps({'schemaVersion': 1, 'contracts': ['contracts/openapi/api.contract.json']}).encode()
+        self.assertEqual(native, dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', native, migrations))
+        invalid = json.dumps({'contracts': [42]}).encode()
+        with self.assertRaises(ValueError):
+            dotnet_sync.apply_structured_migrations('eng/openapi-contracts.json', invalid, migrations)
 
 
 if __name__ == '__main__': unittest.main()

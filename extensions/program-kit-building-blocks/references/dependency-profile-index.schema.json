@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/dependency-profile-index.schema.json",
+  "title": "Immutable qualified dependency profile index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "default", "profiles"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "default": { "type": "string", "minLength": 1 },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/profile" }
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "path": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*[\\\\:])(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "catalogSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "base"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "base": { "$ref": "#/$defs/reference" }
+      }
+    },
+    "strings": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "status", "evidence"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "status": { "const": "qualified" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "catalogSnapshot": { "$ref": "#/$defs/catalogSnapshot" },
+        "qualificationRecipe": { "$ref": "#/$defs/reference" },
+        "sourceRelease": { "type": "string", "format": "uri" },
+        "qualificationScope": { "type": "string", "minLength": 1 },
+        "allowedActivations": { "$ref": "#/$defs/strings" },
+        "excludedActivations": { "$ref": "#/$defs/strings" },
+        "limitations": { "$ref": "#/$defs/strings" },
+        "recipeSha256": { "$ref": "#/$defs/hash" },
+        "nativeLockSha256": { "$ref": "#/$defs/hash" },
+        "knowledge": { "$ref": "#/$defs/reference" }
+      }
+    }
+  }
+}

@@ -5,6 +5,12 @@ with applicable architectural knowledge, composition defaults and engineering ch
 tasks carry substantive choices; compiler/analyzer checks, architecture tests, contract generation
 and behavioral tests enforce the software. Initial bootstrap remains available for initial setup.
 
+Implementation keeps focused test-first feedback: run the operation's tests, expand through affected
+dependencies when shared contracts or inputs change, and reserve complete application acceptance for
+feature/domain closure or formal review handoff. Progress checkpoints do not trigger full acceptance.
+One combined implementation preflight supplies concise applicable guidance; detailed references are
+available on demand. The separate publication Release gate remains unchanged.
+
 Application engineering lives in visible `eng/`, native project configuration and deployment
 inputs. Builds, tests, contract generation and packaging do not need AI, installed extensions or
 governance history. See [the consumer structure and removal classification](docs/consumer-engineering.md).
@@ -25,7 +31,7 @@ assets, not a platform product.
 
 Prerequisites:
 
-- Spec Kit `1.0.1` or a compatible `1.x` release.
+- Spec Kit `1.1.1` or a compatible newer `1.x` release. CI and release builds pin `specify-cli==1.1.1`.
 - The coding-agent tooling required by the selected Spec Kit integration; `specify init` validates
   it (for example, `codex` for Codex or `claude` for Claude).
 - Git, available as the `git` command.
@@ -85,7 +91,7 @@ not a PowerShell script.
 
 The required argument is the Spec Kit integration ID. For example, use `claude` instead of `codex`
 for Claude Code. Both launchers initialize the selected integration with Spec Kit's Python runtime, register all
-four catalogs, apply the Spec Kit 1.0.1 workflow workaround, and install Program Kit. They do not
+four catalogs, install the pinned bootstrap workflow, and install Program Kit. They do not
 require a prewritten design. After installation, describe the intended project naturally to the
 installed Program Kit bootstrap skill. It conducts adaptive intake, generates the canonical
 C4-aligned domain map and confirmed contract, and provides the final one-line workflow command. Do
@@ -131,7 +137,7 @@ specify bundle catalog add `
   --id program-kit `
   --policy install-allowed
 
-# Spec Kit 1.0.1 workaround: preinstall the catalog workflow before the bundle.
+# Install the bootstrap workflow before composing the bundle.
 specify workflow add program-kit-bootstrap
 specify bundle install program-kit --integration codex
 ```
@@ -139,14 +145,17 @@ specify bundle install program-kit --integration codex
 Replace `codex` with the integration you use in both initialization and bundle installation. The
 bundle itself is integration-agnostic.
 
-Keep all four catalogs registered. In Spec Kit 1.0.1, even a locally supplied third-party bundle
+Keep all four catalogs registered. A locally supplied third-party bundle
 archive resolves its extension, preset, and workflow primitives through their catalogs; the bundle
 is the pinned composition record, not a self-contained primitive installer. The standalone ZIP
 assets remain useful for inspecting or installing one component deliberately.
 
-### Spec Kit 1.0.1 compatibility note
+### Spec Kit CLI baseline
 
-Spec Kit 1.0.1's bundle adapter incorrectly routes a catalog workflow ID through its local-development installer. Preinstalling `program-kit-bootstrap` as shown above is the tested workaround: the bundle then recognizes the pinned workflow and installs the governance extension. Until Spec Kit fixes the adapter, remove the workflow separately with `specify workflow remove program-kit-bootstrap` if you uninstall the bundle.
+Program Kit targets the unmodified public Spec Kit 1.1.1 release, matching the current stable CLI.
+Upgrade an older installed tool with `uv tool install specify-cli==1.1.1 --force`, then verify
+`specify version`. Component manifests require at least 1.1.1; CI and build examples use the exact
+tested version. Historical 1.0.1 patch proposals and archived evidence retain their original baseline.
 
 ### Upgrade an existing Program Kit installation
 
@@ -495,7 +504,7 @@ combined `Test-LiveBootstrap.ps1 -Approved` entry point is retired.
 Build all release artifacts:
 
 ```powershell
-uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
+uv run --with "specify-cli==1.1.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
@@ -543,6 +552,13 @@ logos and Lucide/custom icons), semantic tokens, CSS adapters, page intent, publ
 consent-gated analytics. Generated native HTML is a reference renderer; accepted frontend frameworks
 retain ownership through an initial-render adapter. The optional `Orbyss.Foundation.Web.Discovery` NuGet
 feature serves an explicit public projection through CShells, without adding logic to the Host.
+
+The [UI design model](extensions/program-kit-governance/references/ui-design-model.md) makes global/page
+layout, brand/theme, components, feedback/recovery, motion, icons and implementation choices explicit.
+New inputs use `modern-product-v1`; existing profiles without a presentation selection retain classic
+styling. `ui_profile.py explain --target .` exposes choices and override paths without writing.
+Complete form patterns and branded login/logout state templates are generated outside public exports;
+the inherited Keycloak theme scaffold preserves provider flows and requires actual provider acceptance.
 
 Consumer-owned profile/content inputs generate reproducible, conflict-protected outputs. Core
 tests cover contrast, SVG safety, metadata/private-export boundaries, browser accessibility and

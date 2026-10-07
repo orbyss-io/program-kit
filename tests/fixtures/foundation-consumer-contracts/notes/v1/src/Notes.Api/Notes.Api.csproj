@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><PackageId>Notes.Api</PackageId><FoundationFeatureDescriptorSource>feature.json</FoundationFeatureDescriptorSource></PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../Notes.Core/Notes.Core.csproj" />
+    <PackageReference Include="CShells.AspNetCore.Abstractions" PrivateAssets="all" />
+    <PackageReference Include="Orbyss.Foundation.Authentication" />
+    <PackageReference Include="Orbyss.Foundation.Authentication.BffCookie" />
+    <PackageReference Include="Orbyss.Foundation.Json.AspNetCore" />
+    <PackageReference Include="Orbyss.Foundation.Web.ProblemDetails" />
+    <PackageReference Include="Orbyss.Foundation.Build" PrivateAssets="all" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>

@@ -1,11 +1,23 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
+      interval: weekly
+    open-pull-requests-limit: 5
     groups:
       official-actions:
         patterns:
-          - "actions/*"
-
+          - actions/*
+  - package-ecosystem: npm
+    directories:
+      - /extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web
+      - /extensions/program-kit-governance/templates/ui-experience/acceptance
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: pip
+    directory: /extensions/program-kit-governance/scripts
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

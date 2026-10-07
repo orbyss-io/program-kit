@@ -289,7 +289,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
                 "artifact": "contracts/openapi/catalog.json",
                 "baseline": "contracts/openapi/catalog.baseline.json",
                 "compatibility": {
-                    "oasdiffVersion": "1.29.1",
+                    "oasdiffVersion": (ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version').read_text(encoding='utf-8').strip().removeprefix('v'),
                     "approval": "contracts/openapi/catalog.breaking-change.json",
                 },
                 "generator": {
@@ -580,12 +580,12 @@ def main() -> int:
         )
         if partial.returncode != 2 or "PKU105 Install governance extension" not in partial.stderr:
             raise AssertionError(f"partial sequential upgrade fixture did not fail at step three:\n{partial.stdout}{partial.stderr}")
-        if "Resolve bundle composition record" not in partial.stdout or "Install bootstrap workflow" not in partial.stdout:
-            raise AssertionError("partial sequential upgrade did not complete its first two mutations")
+        if "Resolve bundle composition record" in partial.stdout or "Install bootstrap workflow" not in partial.stdout:
+            raise AssertionError("partial sequential upgrade advanced bundle authority before component refresh completed")
         partial_records = json.loads(
             (project / ".specify/bundle-records.json").read_text(encoding="utf-8")
         )["bundles"][0]
-        if partial_records.get("version") != expected or version(manifests[0]) != old:
+        if partial_records.get("version") != old or version(manifests[0]) != old:
             raise AssertionError("partial upgrade fixture did not leave the expected mixed component state")
 
         post_install_cli = project / 'post_install_specify.py'
@@ -617,13 +617,13 @@ def main() -> int:
         if 'deferredPersistenceAdmissions' not in installed.stdout or 'policy-portfolio' not in installed.stdout:
             raise AssertionError('Initialized consumer lost its explicit future admission obligations')
         order = (
-            "Resolve bundle composition record",
             "Install bootstrap workflow",
             "Install governance extension",
             "Install building-block extension",
             "Install .NET extension",
             "Remove prior governance preset",
             "Install governance preset",
+            "Resolve bundle composition record",
             "Synchronize existing repository setup",
             "Verify offline repository convergence",
             "Validate cross-component version coherence",
@@ -659,10 +659,10 @@ def main() -> int:
 
         old_runtime = "0.0.0-preview.1"
         building_blocks = json.loads(
-            (ROOT / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json").read_text(encoding="utf-8")
+            (ROOT / 'extensions/program-kit-building-blocks/references/orbyss-building-blocks.json').read_text(encoding='utf-8')
         )
         target_runtime = building_blocks["families"]["foundation"]["releaseVersion"]
-        target_exporter = building_blocks["packages"]["nuget:Orbyss.Foundation.OpenApi.Exporter"]["version"]
+        target_exporter = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json').read_text(encoding='utf-8'))['tools']['orbyss.foundation.openapi.exporter']['version']
         feature = seed_openapi_lifecycle(project, old_runtime)
         (project / "Program.slnx").write_text("<Solution />\n", encoding="utf-8")
         (project / "packages.lock.json").write_text(

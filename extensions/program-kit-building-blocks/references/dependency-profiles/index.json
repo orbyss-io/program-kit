@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "default": "foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2",
+  "default": "foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2",
   "profiles": {
     "foundation-0.2.2-exporter-0.2.2-forms-0.2.0-localization-0.1.1": {
       "path": "public-v0.12.5.json",
@@ -110,7 +110,165 @@
         "Consumer architecture, compatibility proofs and Delivery acceptance remain project-specific.",
         "Local browser evidence covers Chromium and WebKit; Firefox remains a required tagged CI gate."
       ],
-      "nativeLockSha256": "c300cd439ac582703f1aef1fbc050cb98e73bd991d222b9270b2375336f52e3b"
+      "nativeLockSha256": "c300cd439ac582703f1aef1fbc050cb98e73bd991d222b9270b2375336f52e3b",
+      "knowledge": {
+        "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "sha256": "619acb5415a67d18e1e159c56ad129e8093aba3374bba570063d8612f8e2bcea"
+      }
+    },
+    "foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2": {
+      "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/profile.json",
+      "sha256": "c88f7fc68dc9e84ce34b28c4de350067d1b8fb66a1ecf86f814f33b1791d4a85",
+      "status": "qualified",
+      "evidence": {
+        "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/qualification.json",
+        "sha256": "f3d9629d186f78a2cca58b0df3372d4bc5e53ebf0346c6db6d6ecf788e4c9938"
+      },
+      "catalogSnapshot": {
+        "path": "catalogs/candidate-50568b04/target-7a950b88e955eb997ad7f1f1a5abca88c380bb2d28c7168946f4df458e8804d7.json",
+        "sha256": "7a950b88e955eb997ad7f1f1a5abca88c380bb2d28c7168946f4df458e8804d7",
+        "base": {
+          "path": "catalogs/candidate-50568b04/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+          "sha256": "105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8"
+        }
+      },
+      "qualificationRecipe": {
+        "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/recipe-b26ccd24.json",
+        "sha256": "4a2b186f894d952142a34cf4220d26c60188ffd6069ce53939c29031e9a35e62"
+      },
+      "recipeSha256": "d6c72f202564817f3de843b6b74c8d06ac237da068c4209411deffa82e5a952d",
+      "nativeLockSha256": "a348acf9f4ae21b31594780385f146e0d9f754933958248f51e96e05216c3e21",
+      "knowledge": {
+        "path": "candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "sha256": "9343cd6bd26bb707b6261cf3aabf835efa28ce231594374e4db5c7d469778c27"
+      },
+      "allowedActivations": [
+        "FoundationTasks",
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Management",
+        "Orbyss.Forms.Management.Mcp.AspNetCore",
+        "Orbyss.Forms.Storage.FileSystem",
+        "Orbyss.Forms.Storage.InMemory",
+        "Orbyss.Forms.Submissions",
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+        "Orbyss.Forms.Web.Management",
+        "Orbyss.Forms.Web.Runtime",
+        "Orbyss.Forms.Web.Submissions",
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Authentication.ClientCredentials",
+        "Orbyss.Foundation.Authentication.DPoP",
+        "Orbyss.Foundation.Authentication.DownstreamApi",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.Authentication.TokenExchange",
+        "Orbyss.Foundation.DomainEvents",
+        "Orbyss.Foundation.Execution",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Access",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Applications",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.AuthenticationFlows",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Enrollment",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.IdentityProviders",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Organizations",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.RealmOperations",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Scopes",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Sessions",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Users",
+        "Orbyss.Foundation.Json.AspNetCore",
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Foundation.Web.Discovery",
+        "Orbyss.Foundation.Web.HostedPages",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Management.Mcp.AspNetCore",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+        "Orbyss.Localization.Storage.FileSystem",
+        "Orbyss.Localization.Storage.InMemory",
+        "Orbyss.Localization.Web.Management",
+        "Orbyss.Localization.Web.Runtime"
+      ]
+    },
+    "foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2": {
+      "path": "candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/profile.json",
+      "sha256": "4949707d0fdadbd20608339c51f86943e72136b3c09b617f49386ffea12c1122",
+      "status": "qualified",
+      "evidence": {
+        "path": "candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/qualification.json",
+        "sha256": "4f23c2a15dddb5143ba265c7ba9205fb321df279760ccd306b82e5b621ae3d32"
+      },
+      "catalogSnapshot": {
+        "path": "catalogs/candidate-26e0c720/target-b600cea777b5e355ac1f751b074845e8c46bb9abfd020915b5b9510a24862f99.json",
+        "sha256": "b600cea777b5e355ac1f751b074845e8c46bb9abfd020915b5b9510a24862f99",
+        "base": {
+          "path": "catalogs/candidate-26e0c720/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+          "sha256": "105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8"
+        }
+      },
+      "qualificationRecipe": {
+        "path": "candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-384b7de5.json",
+        "sha256": "a269767da7ac1148c0ea12c9f0f9a9208b7b6b20d3bd6f96d995bc73f2bdff85"
+      },
+      "recipeSha256": "d6c72f202564817f3de843b6b74c8d06ac237da068c4209411deffa82e5a952d",
+      "nativeLockSha256": "b24a9c36f92e2739909f53a56b12924b3a5fc9ebdf93d6dce4b64139b566c591",
+      "knowledge": {
+        "path": "candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+        "sha256": "4b9b10911cf999065175f3e5534cdfe9749ee7471a1c10f920224aa215b37ac6"
+      },
+      "allowedActivations": [
+        "FoundationTasks",
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Management",
+        "Orbyss.Forms.Management.Mcp.AspNetCore",
+        "Orbyss.Forms.Storage.FileSystem",
+        "Orbyss.Forms.Storage.InMemory",
+        "Orbyss.Forms.Submissions",
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+        "Orbyss.Forms.Web.Management",
+        "Orbyss.Forms.Web.Runtime",
+        "Orbyss.Forms.Web.Submissions",
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Authentication.ClientCredentials",
+        "Orbyss.Foundation.Authentication.DPoP",
+        "Orbyss.Foundation.Authentication.DownstreamApi",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.Authentication.TokenExchange",
+        "Orbyss.Foundation.DomainEvents",
+        "Orbyss.Foundation.Execution",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Access",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Applications",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.AuthenticationFlows",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Enrollment",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.IdentityProviders",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Organizations",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.RealmOperations",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Scopes",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Sessions",
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Users",
+        "Orbyss.Foundation.Json.AspNetCore",
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Foundation.Web.Discovery",
+        "Orbyss.Foundation.Web.HostedPages",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Management.Mcp.AspNetCore",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+        "Orbyss.Localization.Storage.FileSystem",
+        "Orbyss.Localization.Storage.InMemory",
+        "Orbyss.Localization.Web.Management",
+        "Orbyss.Localization.Web.Runtime"
+      ]
     }
   }
 }

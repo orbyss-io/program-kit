@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/settings-metadata.schema.json",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "owner",
+    "scope",
+    "complete",
+    "sources",
+    "settings",
+    "semanticConstraints"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "enum": [
+        1,
+        2
+      ]
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "complete": {
+      "type": "boolean"
+    },
+    "sources": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "maxProperties": 512
+    },
+    "settings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "type",
+          "required",
+          "secret",
+          "constraints",
+          "binding",
+          "precedence",
+          "reload",
+          "description"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "type": {
+            "enum": [
+              "string",
+              "integer",
+              "number",
+              "boolean",
+              "array",
+              "object"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "boolean"
+          },
+          "constraints": {
+            "type": "object",
+            "allOf": [{ "$ref": "#/$defs/constraintGraph" }]
+          },
+          "binding": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "precedence": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "minItems": 1,
+            "maxItems": 128
+          },
+          "reload": {
+            "enum": [
+              "restart",
+              "reload",
+              "immutable"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "default": {
+            "allOf": [
+              {
+                "if": {
+                  "type": "string"
+                },
+                "then": {
+                  "maxLength": 16384
+                }
+              },
+              {
+                "if": {
+                  "type": "array"
+                },
+                "then": {
+                  "maxItems": 256
+                }
+              },
+              {
+                "if": {
+                  "type": "object"
+                },
+                "then": {
+                  "maxProperties": 256
+                }
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "secret": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "properties": { "constraints": { "$ref": "#/$defs/noSecretValues" } },
+              "not": {
+                "required": [
+                  "default"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "maxItems": 256
+    },
+    "semanticConstraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4096
+      },
+      "maxItems": 128
+    },
+    "appliesTo": {
+      "type": "object",
+      "required": [
+        "kind",
+        "features",
+        "configuration"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "shell",
+            "host",
+            "code"
+          ]
+        },
+        "features": {
+          "type": "array",
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "configuration": {
+          "type": "array",
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "typeName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    }
+  },
+  "$defs": {
+    "noSecretValues": {
+      "if": { "type": "object" },
+      "then": {
+        "propertyNames": { "not": { "enum": ["default", "example", "examples", "const", "enum"] } },
+        "additionalProperties": { "$ref": "#/$defs/noSecretValues" }
+      },
+      "else": { "if": { "type": "array" }, "then": { "items": { "$ref": "#/$defs/noSecretValues" } } }
+    },
+    "constraintGraph": {
+      "if": { "type": "object" },
+      "then": {
+        "additionalProperties": { "$ref": "#/$defs/constraintGraph" },
+        "allOf": [{
+          "if": { "required": ["secret"], "properties": { "secret": { "const": true } } },
+          "then": { "$ref": "#/$defs/noSecretValues" }
+        }]
+      },
+      "else": { "if": { "type": "array" }, "then": { "items": { "$ref": "#/$defs/constraintGraph" } } }
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schemaVersion": {
+            "const": 2
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "appliesTo"
+        ]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "appliesTo"
+              ]
+            },
+            {
+              "required": [
+                "typeName"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

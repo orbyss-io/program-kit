@@ -53,6 +53,14 @@ Browser projects also adopt `ui-experience-v1`: independent brand/layout/CSS/pag
 SVG logo and default Lucide icons, WCAG 2.2 AA target, initial-render public metadata, private export
 exclusion, and no default analytics. These are reviewed baseline defaults, not new host middleware
 or a forced frontend framework. Override through the normal decision register.
+Technical profile adoption does not settle functional rules or user-specific visual preferences.
+New UI inputs use the inspectable modern-product-v1 presentation from ui-design-model.md, including
+complete form guidance/recovery and branded authentication state templates. Existing inputs without
+a presentation selection remain classic; upgrades are deliberate. Native/Tailwind/existing-system
+adapter coverage and real provider acceptance limits remain explicit in `ui_profile.py explain`.
+Carry the intake's functional discovery and experience proposals into assessment. Use UI layout/
+brand defaults as a disclosed provisional baseline where preferences remain unspecified or the
+human requests defaults; preserve explicit choices without another default-approval questionnaire.
 
 Classify every bootstrap choice by the first applicable source:
 

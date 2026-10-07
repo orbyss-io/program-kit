@@ -29,8 +29,9 @@ INSTRUCTIONS = """# Interactive intake evaluation
 
 Read .agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md in full and
 use that installed skill. Follow its routed references and Program Kit's own
-grilling method, not an unrelated personal grilling skill. Read product-idea.md
-as the user's starting idea. Ask the human questions in this conversation.
+grilling method, not an unrelated personal grilling skill. Use the human's opening
+message as the starting product idea. If product-idea.md is supplied, read it as
+additional user input. Ask the human questions in this conversation.
 This is intake only: do not run bootstrap, install/update components, start
 another agent, or implement the product. Stop after the intake review and handoff.
 Keep the skill's compact question/decision record current, including partial

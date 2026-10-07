@@ -1,6 +1,7 @@
 """Bounded exporter catalog transitions preserve design and reject runtime changes."""
 import copy
 import json
+import shutil
 import sys
 import tempfile
 import unittest
@@ -22,6 +23,16 @@ class ExporterUpgradeTests(unittest.TestCase):
         self.blocks = fixtures.load_module(fixtures.RESOLVER)
         self.upgrader = upgrades.load_updater()
         self.catalog = self.blocks.load_json(fixtures.CATALOG)
+        # Exercise the historical exporter-only release independently of today's
+        # newer qualified default and its managed tool template.
+        historical_release = tempfile.TemporaryDirectory(prefix='historical-exporter-release-')
+        self.addCleanup(historical_release.cleanup)
+        self.release = Path(historical_release.name)
+        shutil.copytree(ROOT / 'extensions/program-kit-building-blocks', self.release / 'extensions/program-kit-building-blocks')
+        shutil.copyfile(ROOT / 'VERSION', self.release / 'VERSION')
+        shutil.copyfile(ROOT / 'bundle.yml', self.release / 'bundle.yml')
+        tools = self.release / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json'
+        fixtures.write_json(tools, {'tools': {'orbyss.foundation.openapi.exporter': {'version': self.catalog['packages'][reconciliation.EXPORTER_KEY]['version']}}})
         old = copy.deepcopy(self.catalog)
         old['resolutionRevision'] -= 1
         old['families']['foundation'].pop('toolVersions')
@@ -38,11 +49,11 @@ class ExporterUpgradeTests(unittest.TestCase):
         self.originals = {p: p.read_bytes() for p in (self.selection, self.architecture, self.lock)}
 
     def test_explicit_transition_preserves_choices_history_and_current_lock_checks(self):
-        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, ROOT))
+        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, self.release))
         plan = {}
-        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, ROOT, plan))
+        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, self.release, plan))
         reconciliation.archive_catalog_transition(plan)
-        reconciliation.apply_catalog_transition(self.root, ROOT, plan, self.blocks, '0.12.5')
+        reconciliation.apply_catalog_transition(self.root, self.release, plan, self.blocks, '0.12.5')
         previous = json.loads(self.originals[self.selection])
         current = self.blocks.load_json(self.selection)
         for field in ('authority', 'scopes', 'targets', 'instances'):
@@ -55,27 +66,27 @@ class ExporterUpgradeTests(unittest.TestCase):
         # Old materialization cannot become current by changing its input binding.
         fixtures.write_json(self.old_path, self.catalog)
         with self.assertRaisesRegex(self.upgrader.UpgradeError, 'stale or corrupt'):
-            self.upgrader.building_block_upgrade_state(self.root, ROOT)
+            self.upgrader.building_block_upgrade_state(self.root, self.release)
         new = self.blocks.resolve(self.root, self.selection, self.old_path, '0.12.5')
         self.blocks.apply_materialization(self.root, self.lock, new, self.catalog)
         fixtures.write_json(self.old_path, self.catalog)
-        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, ROOT))
+        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, self.release))
 
     def test_interrupted_install_uses_preserved_old_catalog(self):
-        plan = reconciliation.catalog_transition(self.root, ROOT, self.blocks, self.blocks.load_json(self.selection))
+        plan = reconciliation.catalog_transition(self.root, self.release, self.blocks, self.blocks.load_json(self.selection))
         reconciliation.archive_catalog_transition(plan)
         fixtures.write_json(self.old_path, self.catalog)
-        resumed = reconciliation.catalog_transition(self.root, ROOT, self.blocks, self.blocks.load_json(self.selection))
+        resumed = reconciliation.catalog_transition(self.root, self.release, self.blocks, self.blocks.load_json(self.selection))
         self.assertEqual(plan['fromHash'], resumed['fromHash'])
         self.assertEqual(plan['originals'], resumed['originals'])
         version = self.root / '.specify/extensions/program-kit-governance/extension.yml'
         version.write_text('extension:\n  version: "0.12.6"\n')
         transition = {}
-        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, ROOT, transition))
+        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, self.release, transition))
         self.assertEqual('0.12.5', transition['previousInstalledVersion'])
 
     def test_interrupted_install_rejects_missing_and_changed_originals(self):
-        plan = reconciliation.catalog_transition(self.root, ROOT, self.blocks, self.blocks.load_json(self.selection))
+        plan = reconciliation.catalog_transition(self.root, self.release, self.blocks, self.blocks.load_json(self.selection))
         reconciliation.archive_catalog_transition(plan)
         fixtures.write_json(self.old_path, self.catalog)
         for name in ('governance-extension.yml', 'lock.json', 'originals.json'):
@@ -85,7 +96,7 @@ class ExporterUpgradeTests(unittest.TestCase):
                 if mutation is None: path.unlink()
                 else: path.write_bytes(mutation)
                 with self.subTest(name=name, mutation=mutation), self.assertRaises(reconciliation.ReconciliationError):
-                    reconciliation.catalog_transition(self.root, ROOT, self.blocks, self.blocks.load_json(self.selection))
+                    reconciliation.catalog_transition(self.root, self.release, self.blocks, self.blocks.load_json(self.selection))
                 path.write_bytes(original)
 
     def test_runtime_or_policy_changes_cannot_use_exporter_authorization(self):

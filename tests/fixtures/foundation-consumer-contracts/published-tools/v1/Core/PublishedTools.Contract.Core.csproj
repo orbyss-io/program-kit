@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><PackageId>PublishedTools.Contract.Core</PackageId></PropertyGroup>
+  <ItemGroup><PackageReference Include="Orbyss.Foundation.Collections.Core" /></ItemGroup>
+</Project>

@@ -6,11 +6,13 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 from architecture_verify import validate_graph, execute
+import repository_architecture as recipe
 
 
 class RecipeTests(unittest.TestCase):
@@ -55,6 +57,18 @@ class RecipeTests(unittest.TestCase):
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         restore(self.root / 'Provider/Slots.Provider.csproj')
         self.assertEqual(2, len(execute(self.root, self.manifest, 'Debug')))
+        subprocess.run(['dotnet', 'new', 'sln', '--name', 'Consumer'], cwd=self.root,
+                       capture_output=True, check=True, timeout=60)
+        solution = next(self.root.glob('Consumer.sln*'))
+        subprocess.run(['dotnet', 'sln', str(solution), 'add', *[str(self.root/p['path'])
+                       for p in self.manifest['runtimeComposition']['projects']]], cwd=self.root,
+                       capture_output=True, check=True, timeout=60)
+        self.assertEqual(2, len(recipe.execute(self.root, self.manifest, 'Debug',
+                               build_subject=solution.name, version='9.0.0')))
+        subprocess.run(['dotnet', 'sln', str(solution), 'remove', str(self.root/'Provider/Slots.Provider.csproj')],
+                       cwd=self.root, capture_output=True, check=True, timeout=60)
+        with self.assertRaisesRegex(ValueError, 'include every declared'):
+            recipe.execute(self.root, self.manifest, 'Debug', build_subject=solution.name)
         rogue = self.root / 'Rogue/Rogue.csproj'
         rogue.parent.mkdir()
         rogue.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><NuGetAudit>false</NuGetAudit></PropertyGroup></Project>', encoding='utf-8')
@@ -65,6 +79,90 @@ class RecipeTests(unittest.TestCase):
 
     def test_compiled_capability_and_evaluated_graph(self):
         self.assertEqual(2, len(self.check()))
+
+    def test_binding_roles_and_physical_separation_are_mandatory(self):
+        for index, role, message in ((0, 'composition', 'capability.*Core'),
+                                     (1, 'composition', 'implementation.*role')):
+            with self.subTest(role=role, index=index):
+                original = self.manifest['runtimeComposition']['projects'][index]['role']
+                self.manifest['runtimeComposition']['projects'][index]['role'] = role
+                with self.assertRaisesRegex(ValueError, message): self.check()
+                self.manifest['runtimeComposition']['projects'][index]['role'] = original
+        binding = self.manifest['runtimeComposition']['bindings'][0]
+        binding['implementationProject'] = binding['capabilityProject']
+        with self.assertRaisesRegex(ValueError, 'distinct'): self.check()
+
+    def test_omitted_active_capability_is_rejected(self):
+        self.manifest['runtimeComposition']['bindings'] = []
+        with self.assertRaisesRegex(ValueError, 'Unlisted active capability'): self.check()
+
+    def test_core_role_relabel_and_namespace_waiver_are_rejected(self):
+        self.manifest['runtimeComposition']['projects'][0]['role'] = 'provider'
+        with self.assertRaisesRegex(ValueError, 'Core.*role'): self.check()
+        self.manifest['runtimeComposition']['projects'][0]['role'] = 'core'
+        self.manifest['runtimeComposition']['projects'][1]['persistenceOwnerNamespaces'] = ['Slots.Provider']
+        with self.assertRaisesRegex(ValueError, 'namespace.*boundary'): self.check()
+
+    def test_mixed_workbench_graph_is_rejected_even_without_bindings(self):
+        self.manifest = {'runtimeComposition': {'projects': [{'path': 'Workbench/Workbench.csproj',
+            'role': 'provider'}], 'bindings': []}}
+        self.evaluated = {'Workbench/Workbench.csproj': {'Properties': {'AssemblyName': 'Workbench'},
+            'Items': {'ProjectReference': [], 'PackageReference': [{'Identity': 'Microsoft.EntityFrameworkCore'}]}}}
+        self.compiled = [{'name': 'Workbench', 'references': ['Microsoft.EntityFrameworkCore'], 'types': [
+            {'name': 'Workbench.Core.INotes', 'isInterface': True, 'baseType': '', 'interfaces': [], 'methods': []}]}]
+        with self.assertRaisesRegex(ValueError, 'Core types.*separate'): self.check()
+
+    def test_compiled_persistence_dependency_cannot_hide_in_composition(self):
+        self.manifest['runtimeComposition']['projects'][1]['role'] = 'composition'
+        self.manifest['runtimeComposition']['bindings'] = []
+        self.compiled[1]['references'].append('Microsoft.EntityFrameworkCore')
+        with self.assertRaisesRegex(ValueError, 'Persistence.*provider'): self.check()
+
+    def test_provider_cannot_relabel_api_types_or_unused_core_packages(self):
+        self.compiled[1]['types'].append({'name': 'Slots.Api.Operations.Read.Endpoint', 'isInterface': False,
+            'baseType': 'System.Object', 'interfaces': [], 'methods': []})
+        with self.assertRaisesRegex(ValueError, 'API types.*separate'): self.check()
+        self.compiled[1]['types'].pop()
+        self.manifest['runtimeComposition']['projects'][0].pop('packageReferences')
+        self.evaluated['Core/Slots.Core.csproj']['Items']['PackageReference'] = [{'Identity': 'System.Text.Json'}]
+        with self.assertRaisesRegex(ValueError, 'Core leaks'): self.check()
+
+    def test_planned_graph_checks_the_same_roles_without_building(self):
+        validate = getattr(recipe, 'validate_manifest', None)
+        self.assertIsNotNone(validate, 'Planned architecture validation must exist')
+        validate(self.root, self.manifest)
+        self.manifest['runtimeComposition']['projects'][1]['role'] = 'composition'
+        with self.assertRaisesRegex(ValueError, 'implementation.*role'):
+            validate(self.root, self.manifest)
+
+    def test_empty_initial_and_pure_core_graphs_remain_valid(self):
+        validate = getattr(recipe, 'validate_manifest', None)
+        self.assertIsNotNone(validate, 'Planned architecture validation must exist')
+        validate(self.root, {'runtimeComposition': {'projects': [], 'bindings': []}})
+        self.manifest['runtimeComposition']['projects'] = self.manifest['runtimeComposition']['projects'][:1]
+        self.manifest['runtimeComposition']['bindings'] = []
+        self.evaluated = {key: value for key, value in self.evaluated.items() if key.startswith('Core/')}
+        self.compiled = self.compiled[:1]
+        self.compiled[0]['types'].append({'name': 'Slots.UnicodeText', 'isInterface': False,
+            'baseType': 'System.Object', 'interfaces': [], 'methods': ['Admit']})
+        self.assertEqual(2, len(self.check()))
+
+    def test_empty_initial_verification_builds_nothing(self):
+        with patch.object(recipe.subprocess, 'run', side_effect=AssertionError('No project exists to build')):
+            self.assertEqual(2, len(execute(self.root, {'runtimeComposition': {'projects': [], 'bindings': []}}, 'Debug')))
+
+    def test_frozen_original_workbench_graph_is_rejected_without_mutation(self):
+        path = ROOT / 'tests/fixtures/foundation-consumer-contracts/baseline/mixed-workbench-architecture.json'
+        original = path.read_bytes()
+        with self.assertRaisesRegex(ValueError, 'namespace.*boundary'):
+            recipe.validate_manifest(self.root, json.loads(original))
+        self.assertEqual(original, path.read_bytes())
+
+    def test_planned_unassigned_source_project_is_rejected(self):
+        path = self.root / 'src/Rogue/Rogue.csproj'; path.parent.mkdir(parents=True)
+        path.write_text('<Project Sdk="Microsoft.NET.Sdk" />')
+        with self.assertRaisesRegex(ValueError, 'Assign an architectural role'):
+            recipe.validate_planned(self.root, self.manifest)
 
     def test_imported_reference_is_not_hidden_by_raw_project_xml(self):
         self.evaluated['Core/Slots.Core.csproj']['Items']['ProjectReference'] = [

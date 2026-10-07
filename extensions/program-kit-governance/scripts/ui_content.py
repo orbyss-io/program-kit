@@ -112,7 +112,7 @@ def document(page: dict, content: dict, profile: dict, extra_body: str = "", ext
     return f'''<!doctype html>
 <html lang="{page['language']}" dir="{page.get('direction', 'ltr')}">
 <head>{head(page, content, profile)}{extra_head}</head>
-<body data-archetype="{profile['archetype']}" data-navigation="{profile['navigation']}">
+<body data-archetype="{profile['archetype']}" data-navigation="{profile['navigation']}" data-presentation="{profile.get('presentation', 'classic-v1')}" data-page-layout="{page.get('layout', 'content')}">
 <a class="pk-skip" href="#main" tabindex="0">Skip to content</a>
 <header class="pk-header"><a class="pk-brand" href="/">{brand}</a></header>
 <div class="pk-shell">{navigation}<main id="main" tabindex="-1"><div class="pk-content">
@@ -179,6 +179,7 @@ def discovery(content: dict, profile: dict) -> dict[str, str]:
 
 
 def gallery(profile: dict) -> str:
+    from ui_patterns import feedback_patterns, form_pattern, list_detail
     page = {"id": "gallery", "path": "/", "intent": "public-utility", "index": False,
             "title": "Component acceptance gallery", "description": "Test states and keyboard behavior; not a consumer journey.",
             "language": "en", "lastModified": "2026-09-05", "blocks": []}
@@ -197,5 +198,10 @@ def gallery(profile: dict) -> str:
 <dialog id="confirm" aria-labelledby="confirm-title"><h2 id="confirm-title">Confirm action</h2>
 <p>Escape or Cancel closes this dialog and returns focus.</p><form method="dialog"><button autofocus>Cancel</button></form></dialog>'''
     body += '<section aria-labelledby="icons"><h2 id="icons">Icon semantics</h2><p>' + icon_markup(profile, "check") + ' Saved (decorative icon with visible text)</p><button type="button" aria-label="Search">' + icon_markup(profile, "search") + ' Search</button></section>'
+    if profile.get('presentation', 'classic-v1') == 'modern-product-v1':
+        body = body.replace('Could not save. Your input is preserved; try again.', 'The request was rejected. Your input is preserved; review the message before continuing.')
+        body += '<section class="pk-card pk-stack" aria-labelledby="form-example"><h2 id="form-example">Complete form pattern</h2>' + form_pattern(demo=True) + '</section>'
+        body += '<section class="pk-stack" aria-labelledby="feedback-example"><h2 id="feedback-example">Feedback and recovery patterns</h2>' + feedback_patterns() + '</section>'
+        body += '<section aria-labelledby="composition-example"><h2 id="composition-example">List/detail composition</h2>' + list_detail() + '</section>'
     return document(page, {"origin": "https://example.invalid", "pages": [page]}, profile, body,
                     '<script type="module" src="/assets/interactions.mjs"></script>')

@@ -37,8 +37,8 @@ def main():
     import governance_state as governance
     import bootstrap_lifecycle as lifecycle
     from bootstrap_proof_plan import require_proven_closure
-    from specify_cli.workflows.steps.command import CommandStep
-    from specify_cli.workflows.steps.shell import ShellStep
+    from specify_cli.workflows.step.command import CommandStep
+    from specify_cli.workflows.step.shell import ShellStep
     from specify_cli.workflows.base import RunStatus
 
     governance.configure_paths()
@@ -57,7 +57,7 @@ def main():
         config['run'] = config['run'].replace('python ', f'"{sys.executable}" ', 1)
         return original_shell(self, config, context)
 
-    def producer(self, command, integration, model, arguments, context):
+    def producer(self, command, integration, model, arguments, context, integration_args=None, integration_options=None):
         assert command == 'speckit.program-kit-governance.readiness', command
         dispatches.append(command)
         match = re.search(r'Read (\S+/program-kit-context/readiness.json) first', arguments)

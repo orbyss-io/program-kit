@@ -50,3 +50,18 @@ Use framework constants or cohesive owner-scoped values without changing wire/ve
 An attributed review cites affected source and behavior for each relevant principle; a generic
 "SOLID passed" statement or a file-count threshold is not evidence. Static analysis proves only its
 specified properties; use substitution, boundary and architecture tests where the contract needs them.
+Review the responsibilities changed by the diff, with source and behavioral evidence. Do not repeat
+an entire SOLID inventory for each trivial edit, invent interfaces for private pure helpers, or add
+new review approvals. Keep one named type per file and purposeful XML documentation as explicit
+Orbyss source policy; these choices do not replace runtime correctness or architectural ownership.
+
+## Maintained application handoff
+
+During planning identify affected delivered guides, public contracts, source-backed settings and
+runtime/data requirements. Add their implementation and meaningful review scenarios to ordinary
+feature tasks. During implementation maintain these consumer-owned inputs alongside behavior and
+normal tests. Delivery uses retained eng/application_handoff.py after actual bundle description and
+contract/settings export; it must reject required missing/stale coverage. Specifications and AI logs
+are not evidence of delivered behavior. Link the existing engineering README and docs/application/
+inputs; do not add an approval ledger. Infrastructure and documentation receivers own downstream
+workflows. Missing publisher settings metadata remains an explicit upstream dependency.

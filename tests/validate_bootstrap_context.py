@@ -29,6 +29,8 @@ def write_json(path: Path, value: dict) -> None:
 def seed_project(project: Path, module, semantic, run_id: str) -> None:
     run = project / ".specify/workflows/runs" / run_id
     source_root = Path(module.__file__).resolve().parents[3]
+    shutil.copytree(source_root / 'extensions/program-kit-building-blocks',
+                    project / '.specify/extensions/program-kit-building-blocks',dirs_exist_ok=True)
     contract_references = {
         ".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md":
             "extensions/program-kit-governance/references/bootstrap-lifecycle.md",
@@ -699,11 +701,10 @@ constitution:
             )
             write(managed_project / relative, source.read_text(encoding="utf-8"))
         pins = {
-            "dotnet-sdk": "10.0.202",
-            "node": "24.20.0",
-            "typescript": "7.0.2",
-            "@types/node": "24.13.3",
-            "@playwright/test": "1.62.1",
+            "dotnet-sdk": json.loads((managed_project/module.DOTNET_SDK_MANIFEST).read_text())['sdk']['version'],
+            "node": (managed_project/module.NODE_VERSION_MANIFEST).read_text().strip(),
+            **{name:json.loads((managed_project/module.WEB_PACKAGE_MANIFEST).read_text())['devDependencies'][name]
+               for name in ('typescript','@types/node','@playwright/test')},
         }
         managed_decisions = {
             "selected_profiles": ["dotnet", "typescript-web"],

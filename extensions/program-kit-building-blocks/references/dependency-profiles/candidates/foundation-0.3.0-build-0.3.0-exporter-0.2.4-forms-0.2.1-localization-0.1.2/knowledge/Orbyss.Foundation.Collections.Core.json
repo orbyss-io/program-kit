@@ -1,0 +1,23 @@
+{
+  "id": "Orbyss.Foundation.Collections.Core",
+  "version": "0.3.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbyss-io/dotnet-foundation",
+    "commit": "9f188270f99543684268515c3a0cde146ec08417"
+  },
+  "payloadFiles": {
+    "_rels/.rels": "3a4d23dbd9117ebad14c380d65d3da096339d7fc67e84bd7959d1afe3ee5561e",
+    "Orbyss.Foundation.Collections.Core.nuspec": "95aa11cae7bc2f3a667c45e068dcb196c5a97e71dd8993566ade1b3fa83c7cbe",
+    "README.md": "099312f493ec73524456b7079f97bb069cfbc8123068b3e38f34b47d7e449bca",
+    "lib/net10.0/Orbyss.Foundation.Collections.Core.dll": "27f733a4de991d86d189e0e89247fffb42e44559e2f23ac911c612816316573e",
+    "lib/net10.0/Orbyss.Foundation.Collections.Core.xml": "4524205df48d480db19b92f9feb63c0a1e8e8ba2bcf9de4265d2afd6c8ba8f5a",
+    "[Content_Types].xml": "70b483c5066b0f062f2102cd8f0c4b2fde9e919b5a9204689dd67e64b0cc518e",
+    "package/services/metadata/core-properties/51aec108ac574f28826874687ad23cfb.psmdcp": "6195c5b3a692474e1f6f99b9322fb27bae4c8f434f8772140ce7a32d13d54bba"
+  },
+  "facts": {
+    "README.md": "# Ordered collection values\n\n`ValueSequence<T>` owns a defensive shallow copy, rejects null sources/items and compares ordered values. Empty sequences compare equal. Containing records retain structural equality. Mutable elements keep their own equality and can still mutate; this collection does not deep-freeze them. `GetHashCode` is a process/runtime value hash, never a retained digest.\n\nUse BCL immutable collections when their ownership and equality semantics meet the model's requirements. `ImmutableArray<T>` has backing-array identity equality, which is insufficient for these containing-record contracts. This Core has no JSON, DI, shell or provider dependencies. JSON integration belongs to `Orbyss.Foundation.Json`.\n",
+    "lib/net10.0/Orbyss.Foundation.Collections.Core.xml": "<?xml version=\"1.0\"?>\n<doc>\n    <assembly>\n        <name>Orbyss.Foundation.Collections.Core</name>\n    </assembly>\n    <members>\n        <member name=\"T:Orbyss.Foundation.Collections.Core.ValueSequence`1\">\n            <summary>Owns a shallow ordered snapshot with value equality. Mutable elements are not deep frozen.</summary>\n        </member>\n        <member name=\"F:Orbyss.Foundation.Collections.Core.ValueSequence`1.items\">\n            <summary>Retains the privately owned shallow snapshot.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Collections.Core.ValueSequence`1.Empty\">\n            <summary>Gets the shared empty sequence.</summary>\n        </member>\n        <member name=\"M:Orbyss.Foundation.Collections.Core.ValueSequence`1.#ctor(System.Collections.Generic.IEnumerable{`0})\">\n            <summary>Copies the source and rejects null items. Elements retain their own equality semantics.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Collections.Core.ValueSequence`1.Count\">\n            <inheritdoc />\n        </member>\n        <member name=\"P:Orbyss.Foundation.Collections.Core.ValueSequence`1.Item(System.Int32)\">\n            <inheritdoc />\n        </member>\n        <member name=\"M:Orbyss.Foundation.Collections.Core.ValueSequence`1.GetEnumerator\">\n            <inheritdoc />\n        </member>\n        <member name=\"M:Orbyss.Foundation.Collections.Core.ValueSequence`1.Equals(Orbyss.Foundation.Collections.Core.ValueSequence{`0})\">\n            <inheritdoc />\n        </member>\n        <member name=\"M:Orbyss.Foundation.Collections.Core.ValueSequence`1.Equals(System.Object)\">\n            <inheritdoc />\n        </member>\n        <member name=\"M:Orbyss.Foundation.Collections.Core.ValueSequence`1.GetHashCode\">\n            <summary>Hashes ordered runtime values. This is not a persisted or cryptographic digest.</summary>\n        </member>\n        <member name=\"M:Orbyss.Foundation.Collections.Core.ValueSequence`1.System#Collections#IEnumerable#GetEnumerator\">\n            <summary>Enumerates values without exposing the owned array.</summary>\n        </member>\n    </members>\n</doc>\n"
+  }
+}

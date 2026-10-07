@@ -28,27 +28,63 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
     selection_relative = 'docs/architecture/building-block-selection.json'
     catalog_path = None
     module = None
-    if (root / selection_relative).is_file():
-        selection_path = bind(selection_relative)
+    managed_host = 'dotnet' in decisions.get('selected_profiles', []) and not decisions.get('dotnet', {}).get('program_kit_host_opt_out')
+    catalog = None
+    if (root / selection_relative).is_file() or managed_host:
+        selection_path = bind(selection_relative) if (root / selection_relative).is_file() else None
         candidate_path = bind(catalog_relative)
         resolver_path = bind('.specify/extensions/program-kit-building-blocks/scripts/building_blocks.py')
         spec = importlib.util.spec_from_file_location('bootstrap_provider_resolver', resolver_path)
         module = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = module
         spec.loader.exec_module(module)
-        selection = json.loads(selection_path.read_text(encoding='utf-8'))
-        catalog_path = module.consumer_catalog(root, selection, candidate_path)
+        selection = json.loads(selection_path.read_text(encoding='utf-8')) if selection_path else None
+        catalog_path = module.consumer_catalog(root, selection, candidate_path) if selection else candidate_path
+        if selection is None:
+            registry = module.profile_registry()
+            index = json.loads(bind((registry / 'index.json').relative_to(root).as_posix()).read_text(encoding='utf-8'))
+            entry = index['profiles'][index['default']]
+            for item in ('path',): bind((registry / entry[item]).relative_to(root).as_posix())
+            bind((registry / entry['evidence']['path']).relative_to(root).as_posix())
+            catalog, _ = module.qualified_dependency_profile(registry, None, json.loads(candidate_path.read_text(encoding='utf-8')))
         if catalog_path != candidate_path:
             bind(catalog_path.relative_to(root).as_posix())
             record = json.loads(bind('.program-kit/dependency-profile.json').read_text(encoding='utf-8'))
             bind(record['profilePath'])
-    if 'dotnet' in decisions.get('selected_profiles', []) and not decisions.get('dotnet', {}).get('program_kit_host_opt_out'):
-        catalog = json.loads((catalog_path or bind(catalog_relative)).read_text(encoding='utf-8'))
+    if managed_host:
+        catalog = catalog or json.loads((catalog_path or bind(catalog_relative)).read_text(encoding='utf-8'))
         relative = '.specify/extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json'
         evidence = json.loads(bind(relative).read_text(encoding='utf-8'))
         version = catalog['families']['foundation']['releaseVersion']
-        if evidence.get('releaseVersion') != version:
-            raise ValueError('PROVIDER-HANDOFF-MISSING: Foundation baseline source evidence must be reviewed for selected ' + version)
+        registry = module.profile_registry()
+        index = json.loads(bind((registry / 'index.json').relative_to(root).as_posix()).read_text(encoding='utf-8'))
+        matched = None
+        for identity, entry in index['profiles'].items():
+            if not entry.get('knowledge'): continue
+            profile = json.loads((registry / entry['path']).read_text(encoding='utf-8'))
+            if profile['families']['foundation']['releaseVersion'] != version: continue
+            if all(key in catalog['packages'] and catalog['packages'][key]['version'] == pin for key,pin in profile['artifacts'].items() if key.startswith('nuget:Orbyss.Foundation.')):
+                matched = (identity,entry); break
+        if matched:
+            identity,entry = matched
+            module.qualified_dependency_profile(registry,identity,json.loads(candidate_path.read_text(encoding='utf-8')))
+            source = (registry / entry['knowledge']['path']).relative_to(root).as_posix()
+            knowledge = json.loads(bind(source).read_text(encoding='utf-8'))
+            declarations = [module.publisher_package_fact(registry,p) for p in knowledge['packages']]
+            evidence = {'sourceCommit':knowledge['sourceCommit'],'hostImage':knowledge['hostImage'],
+                'packageMetadata':declarations,'hostDistribution':{'noticeFiles':[p for p in knowledge['documents'] if p['publisherPath'] in {'LICENSE','THIRD-PARTY-NOTICES.md','src/Orbyss.Foundation.Host/NOTICE.md'}],
+                'metadataExceptions':[{'id':'Foundation Host','resolution':'OCI distribution; full runtime/OS redistribution notices remain due before distribution.'}]},
+                'maintenance':{'conclusion':'Exact public package, source and Host inputs qualified by the selected profile.'},
+                'assessment':{'limits':['No blanket legal, security or support clearance; retain consumer-specific redistribution and acceptance obligations.']}}
+            relative = source
+            result['publisher_knowledge'] = {'profile':identity,'releaseVersion':version,'source':source,
+                'query_command':'python .specify/extensions/program-kit-building-blocks/scripts/publisher_knowledge.py --profile '+identity,
+                'packages':[p['id'] for p in knowledge['packages']],
+                'guidance':'Query the exact package or publisher-relative source document needed for this stage. Do not bulk-read the knowledge bundle.'}
+        elif evidence.get('releaseVersion') != version:
+            raise ValueError('KIT-DEPENDENCY-EVIDENCE-DRIFT: installed default/selection uses Foundation ' + version
+                             + ' but bundled source evidence covers ' + str(evidence.get('releaseVersion'))
+                             + '; update the kit profile and its publisher knowledge together before running consumer closure.')
         result['managed_baseline_evidence'] = {'source': relative, 'releaseVersion': version,
             'sourceCommit': evidence['sourceCommit'], 'hostImage': evidence['hostImage'],
             'publisher': catalog['families']['foundation']['repository'],
@@ -56,7 +92,7 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
             'distributionNoticeCount': len(evidence['hostDistribution']['noticeFiles']),
             'maintenance': evidence['maintenance'], 'assessment': evidence['assessment'],
             'metadataExceptions': evidence['hostDistribution']['metadataExceptions']}
-    if module is not None:
+    if module is not None and selection_path is not None:
         catalog = json.loads(catalog_path.read_text(encoding='utf-8'))
         # Reuse the existing resolver including its Draft placement and catalog checks.
         # The returned in-memory plan is never written as an Accepted lock.

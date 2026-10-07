@@ -9,6 +9,8 @@ description and does not need to create or name an initial-design file. Read
 `references/intake-method.md` in full. Read `references/capability-index.json`, then only the
 references routed by capabilities relevant to the user's description. Do not enumerate the entire
 extension or ask about capability categories that are absent or explicitly excluded.
+Read `references/functional-discovery.md` before the first question round. It defines the functional
+coverage and knowledge-informed discovery needed before an architectural baseline is ready.
 It conducts adaptive intake before the bootstrap workflow begins.
 
 Before the first interview round, read and follow Program Kit's own
@@ -61,9 +63,11 @@ On every invocation:
 ## Adaptive intake
 
 Use Program Kit grilling's decision tree and frontier rounds with the bootstrap-relevant scope in
-`references/intake-method.md`. Apply clear Program Kit defaults automatically and summarize them
-in the final review. Ask about ambiguous intent, contradictory requirements, and material choices
-that the defaults cannot resolve. Keep a compact question/decision record in
+`references/intake-method.md`. Introduce the relevant functional discovery areas and group questions
+by subject. Use routed domain, lifecycle, persistence, UI/UX and other relevant knowledge to uncover
+product choices before recommending mechanisms. Apply clear technical Program Kit defaults
+automatically; establish functional policies and experience choices with the human, preserving
+explicit answers and disclosed provisional proposals. Keep a compact question/decision record in
 `docs/architecture/project-intent.md` so partial answers and changed decisions survive re-entry.
 
 For every detected need separately record mechanism coverage, any Program Kit capability,
@@ -79,6 +83,8 @@ that Program Kit or the project cannot support it.
 Keep user intent, Program Kit defaults, derived conclusions, proposals, and unresolved questions
 distinct. Do not turn a suggested default into explicit user intent. Candidate vertical slices are
 discovery signals only and begin with an actor or trigger and end in an observable outcome.
+Maintain the linked functional model and walk through the first journey and material alternatives
+before convergence, following functional-discovery.md. An empty frontier alone is insufficient.
 
 Start with the first useful outcome and a concise portfolio of later journeys. Keep future
 journeys as actor/outcome summaries and minimal traceable interactions; do not predesign their

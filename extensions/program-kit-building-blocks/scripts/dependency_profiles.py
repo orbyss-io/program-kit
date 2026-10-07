@@ -51,7 +51,8 @@ def draft(root, catalog_path, identity, directory):
     destination = root / 'docs/architecture/dependency-transitions' / (source_digest[:16] + '-' + digest)
     proposed = copy.deepcopy(accepted)
     proposed.update(status='Draft', revision=accepted['revision'] + 1, catalog=blocks.catalog_binding(new))
-    changed = [key for key in old['packages'] if old['packages'][key]['version'] != new['packages'][key]['version']]
+    artifact_changes = blocks.dependency_profile_changes(old, new)
+    changed = artifact_changes['changedArtifacts']
     if not changed and blocks.catalog_resolution_sha256(old) == blocks.catalog_resolution_sha256(new):
         raise ValueError('PKB612 dependency profile is already selected; retain its existing transition history')
     producer_changes = {}
@@ -65,7 +66,7 @@ def draft(root, catalog_path, identity, directory):
               'qualificationEntrySha256': blocks.canonical_sha256(entry),
               'originalSelectionSha256': source_digest,
               'originalCatalogResolutionSha256': blocks.catalog_resolution_sha256(old),
-              'changedArtifacts': changed, 'approvalPerformed': False,
+              **artifact_changes, 'approvalPerformed': False,
               'acceptedSelectionChanged': False,
               'requiredReview': 'Accept an architecture decision naming this exact profile SHA-256 before promotion; renew affected compatibility proofs and materialize the reviewed plan.'}
     packet['producerChanges'] = {}
@@ -130,7 +131,9 @@ def accept(root, destination, directory, decision_id, rationale):
     original = blocks.load_json(destination / 'originals/selection.json')
     if (blocks.raw_sha256(destination / 'originals/selection.json') != packet['originalSelectionSha256']
             or blocks.catalog_resolution_sha256(old) != packet['originalCatalogResolutionSha256']
-            or packet['changedArtifacts'] != [key for key in old['packages'] if old['packages'][key]['version'] != new['packages'][key]['version']]):
+            or packet['changedArtifacts'] != blocks.dependency_profile_changes(old, new)['changedArtifacts']
+            or any(packet.get(key, []) != value for key, value in blocks.dependency_profile_changes(old, new).items()
+                   if key != 'changedArtifacts')):
         raise ValueError('PKB613 reviewed transition provenance differs')
     blocks.verify_catalog_binding(original, old)
     proposed = blocks.load_json(destination / 'selection.json')
@@ -168,7 +171,7 @@ def accept(root, destination, directory, decision_id, rationale):
     current = blocks.load_json(selection_path)
     if current not in (original, expected, accepted):
         raise ValueError('PKB613 consumer selection changed since the transition was reviewed')
-    changed_ids = {old['packages'][key]['packageId'] for key in packet['changedArtifacts']}
+    changed_ids = {(new['packages'].get(key) or old['packages'][key])['packageId'] for key in packet['changedArtifacts']}
     old_lock = blocks.load_json(destination / 'originals/lock.json') if (destination / 'originals/lock.json').is_file() else {}
     affected = [target['path'] for target in old_lock.get('targets', [])
                 if any(p.get('packageId') in changed_ids for p in target.get('packages', []))]
@@ -178,6 +181,7 @@ def accept(root, destination, directory, decision_id, rationale):
               'materializationPerformed': False, 'migrationCompletionEstablished': False,
               'producerChanges': sorted(packet.get('producerChanges', {})),
               'next': 'Synchronize engineering pins from the accepted profile through maintained dotnet_sync; renew affected compatibility evidence through its lifecycle; review and apply the building-block plan digest, then renew native locks and run consumer verification.'}
+    result.update({key: packet[key] for key in ('addedArtifacts', 'removedArtifacts') if key in packet})
     producer_changes = {}
     for relative, hashes in packet.get('producerChanges', {}).items():
         path = blocks.repository_path(root, relative)

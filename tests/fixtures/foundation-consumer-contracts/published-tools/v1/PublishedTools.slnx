@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Core/PublishedTools.Contract.Core.csproj" />
+  <Project Path="Api/PublishedTools.Contract.Api.csproj" />
+</Solution>

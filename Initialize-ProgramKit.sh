@@ -58,7 +58,7 @@ if {
 fi
 
 if ! command -v specify >/dev/null 2>&1; then
-  printf 'ERROR: Spec Kit 1.0.1 or a compatible 1.x specify command is required.\n' >&2
+  printf 'ERROR: Spec Kit 1.1.1 or a compatible newer 1.x specify command is required.\n' >&2
   exit 2
 fi
 if ! specify --version >/dev/null 2>&1; then
@@ -127,7 +127,7 @@ specify workflow catalog add "${catalog_root}/workflows.json" --name program-kit
 printf '[5/8] Registering the Program Kit bundle catalog...\n'
 specify bundle catalog add "${catalog_root}/bundles.json" --id program-kit --policy install-allowed
 
-printf '[6/8] Installing the bootstrap workflow required by Spec Kit 1.0.1...\n'
+printf '[6/8] Installing the bootstrap workflow...\n'
 specify workflow add program-kit-bootstrap
 
 printf '[7/8] Installing Program Kit...\n'

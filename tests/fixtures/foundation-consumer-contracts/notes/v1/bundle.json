@@ -1,0 +1,1 @@
+{"schemaVersion":1,"name":"notes-v1","features":["Notes","Notes.PostgreSql","Notes.Api","Orbyss.Foundation.Authentication.BffCookie","Orbyss.Foundation.Web.ProblemDetails","Orbyss.Foundation.Web.OpenApi"],"contractPackages":["Notes.Core"],"foundationVersionParameter":"FoundationCandidateVersion","publication":false}

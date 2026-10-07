@@ -1,0 +1,382 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/application-handoff.schema.json",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "applicationId",
+    "components",
+    "bundleDescriptor",
+    "openapiRegistry",
+    "categories",
+    "requiredSettingsScopes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "applicationId": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\x00-\\x1f/\\\\:]+$"
+        }
+      ]
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "packages",
+          "contracts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "packages": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "contracts": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "bundleDescriptor": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\:]).+$"
+    },
+    "openapiRegistry": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\:]).+$"
+    },
+    "categories": {
+      "type": "object",
+      "required": [
+        "documentation",
+        "runtime",
+        "settings",
+        "assets",
+        "migrations"
+      ],
+      "properties": {
+        "documentation": {
+          "type": "object",
+          "required": [
+            "status",
+            "reason",
+            "files"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "included",
+                "not-applicable",
+                "missing"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "files": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\:]).+$"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "included"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "files": {
+                    "minItems": 1
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "files": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "runtime": {
+          "type": "object",
+          "required": [
+            "status",
+            "reason",
+            "files"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "included",
+                "not-applicable",
+                "missing"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "files": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\:]).+$"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "included"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "files": {
+                    "minItems": 1
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "files": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "settings": {
+          "type": "object",
+          "required": [
+            "status",
+            "reason",
+            "files"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "included",
+                "not-applicable",
+                "missing"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "files": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\:]).+$"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "included"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "files": {
+                    "minItems": 1
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "files": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "assets": {
+          "type": "object",
+          "required": [
+            "status",
+            "reason",
+            "files"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "included",
+                "not-applicable",
+                "missing"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "files": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\:]).+$"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "included"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "files": {
+                    "minItems": 1
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "files": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "migrations": {
+          "type": "object",
+          "required": [
+            "status",
+            "reason",
+            "files"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "included",
+                "not-applicable",
+                "missing"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "files": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*[\\\\:]).+$"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "included"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "files": {
+                    "minItems": 1
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "files": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "requiredSettingsScopes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

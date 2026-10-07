@@ -12,6 +12,13 @@ authority for Firefox acceptance.
 
 ## Development and release validation
 
+Before selecting a release candidate, run the [dependency update workflow](docs/maintenance/dependency-review.md).
+Upgrade active external pins and lockfiles, run the deterministic tests, and regenerate the
+qualified default profile and versioned knowledge together. Add newly introduced dependencies
+to `maintenance-policy.json`. Preserve historical profiles/evidence and existing consumer locks.
+Keep update work out of ordinary Spec Kit hooks and implementation loops. Test, lookup and
+security failures block the update and identify the repair; they are never treated as success.
+
 Ordinary development uses targeted validators plus the bounded default
 `./scripts/Test-ProgramKit.ps1` Development suite. Do not run the complete deterministic suite after
 each change and do not imply that it was skipped; it is a publication gate, not an edit-loop gate.

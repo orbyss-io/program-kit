@@ -6,7 +6,7 @@
     "program-kit-governance-preset": {
       "name": "Program Kit Governance Templates",
       "id": "program-kit-governance-preset",
-      "description": "Adds architecture-governance traceability to the standard Spec Kit feature, plan, and task artifacts.",
+      "description": "Adds focused implementation with mandatory hook dispatch and architecture-aware feature, plan and task templates.",
       "author": "Orbyss",
       "version": "0.12.8",
       "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.12.8/program-kit-governance-preset-0.12.8.zip",
@@ -16,12 +16,17 @@
       "changelog": "https://github.com/orbyss-io/program-kit/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=1.0.1,<2.0.0"
+        "speckit_version": ">=1.1.1,<2.0.0"
       },
       "provides": {
-        "templates": 4
+        "templates": 5
       },
-      "tags": ["governance", "architecture", "vertical-slicing", "templates"],
+      "tags": [
+        "governance",
+        "architecture",
+        "vertical-slicing",
+        "templates"
+      ],
       "verified": false
     }
   }

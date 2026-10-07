@@ -19,11 +19,17 @@ def main() -> int:
     parser.add_argument("--install", action="store_true", help="Restore the isolated pinned npm graph with scripts disabled")
     parser.add_argument("--install-browser", action="store_true", help="Provision pinned Chromium, Firefox, WebKit and Linux system dependencies")
     parser.add_argument("--engines", default="chromium,firefox,webkit")
+    parser.add_argument("--presentation", choices=('classic-v1', 'modern-product-v1'), default='modern-product-v1')
+    parser.add_argument('--cases', help='Affected browser groups: gallery,forms,motion,auth; omission runs baseline acceptance')
     args = parser.parse_args()
     fixture = ROOT / "artifacts/ui-browser"
     fixture.mkdir(parents=True, exist_ok=True)
     if not (fixture / ".program-kit/ui/profile.json").exists():
         ui_profile.execute(fixture, "init")
+    profile_path = fixture / '.program-kit/ui/profile.json'
+    profile = json.loads(profile_path.read_text(encoding='utf-8'))
+    profile['presentation'] = args.presentation
+    profile_path.write_bytes(ui_profile.encoded(profile))
     ui_profile.execute(fixture, "build")
     ui_profile.execute(fixture, "check")
     package_root = fixture / ui_profile.OUTPUT / "acceptance/tests"
@@ -55,7 +61,8 @@ def main() -> int:
     if ".bg-primary" not in compiled or "var(--pk-primary)" not in compiled or ".text-on-primary" not in compiled:
         raise AssertionError("Tailwind did not compile the semantic-token bridge")
     print("Pinned Tailwind semantic-token compilation passed.")
-    run([str(node), "browser.mjs", f"--engines={args.engines}"])
+    case_arguments = [f'--cases={args.cases}'] if args.cases is not None else []
+    run([str(node), "browser.mjs", f"--engines={args.engines}", *case_arguments])
     (fixture / "toolchain-evidence.json").write_text(json.dumps({"node": package["engines"]["node"], "npm": package["engines"]["npm"],
         "trust": trust, "scriptsEnabled": False, "lockSha256": ui_profile.digest((package_root / "package-lock.json").read_bytes())}, indent=2))
     return 0

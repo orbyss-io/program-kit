@@ -53,6 +53,13 @@ ORM/provider types, persistence records and mappings, migrations, serializers, v
 private implementation interfaces. Do not put a type in Core merely because two implementations use
 it today.
 
+Core, runtime behavior, API adaptation and persistence mechanisms require separate compilation
+projects when present. One bounded context, feature bundle, package release or deployment does not
+waive that separation. Namespaces supplement compiler boundaries. Composition selects implementations;
+it does not contain the domain or provider implementations it selects. A capability belongs to Core
+and its runtime implementation belongs to a distinct implementation, provider or bridge project.
+An empty initial repository and a pure Core utility do not require invented implementation projects.
+
 Default activatable behavior uses the context name, such as `PriceCalculator.Catalog`. Qualify other
 implementations by what they contribute: `.Api`, `.PostgreSql`, `.Import.Excel`, `.Import.Json`, or
 another domain term. Use `<Application>.<Consumer>.<Provider>` for a consumer-owned bridge, such as
@@ -86,9 +93,9 @@ mock a framework in a unit test.
 
 Provider-specific records, mappings, schemas, indexes, migrations, ORM contexts, and query plans stay
 private to the provider. A provider maps those records to and from the owning domain or published
-boundary model. Direct ORM mapping of a persistence-ignorant Core POCO is also valid when no provider
-annotation, storage compromise, lazy-loading behavior, or schema concern shapes or escapes through
-that type. The invariant is provider ignorance, not mandatory duplicate classes.
+boundary model. Persistence entities are separate provider-owned types, including persistence-ignorant
+POCOs used by EF. Do not directly map Core models as ORM entities. Keep their storage representation,
+equality/tracking behavior and schema evolution independent of public business semantics.
 
 A context never accesses another context's database, schema, ORM context, persistence record, or
 internal model. A materialized analytical plane may expose a semantically named query capability
@@ -202,12 +209,41 @@ authorization decision; for a protected business effect it is only the outer gat
 Do not create an application-root `Administration.Api` or `Platform.WebBoundary` project merely to
 repeat generic host plumbing.
 
+Each operation owns `Operations/<Operation>/Endpoint.cs`, its real `Request.cs` and `Response.cs`
+when needed, local admission/mapping and route/metadata. Resolve endpoint instances per request with
+explicit constructor dependencies; never capture scoped instances at startup. Composition assembles
+operation registrations. A small/bodyless operation may remain a simple mapping with a reviewed
+rationale; do not invent empty DTOs or a mediator. Peer operations do not use each other's helpers.
+
+Use cohesive owner-specific Constants/keys types for route, schema, profile and replay identifiers;
+prefer exported framework constants. Deployment limits belong to typed validated options, and
+localized text to owned resources. Do not create a solution-wide Constants sink. Preserve canonical
+bytes, hashes and replay versions; runtime `GetHashCode` is not a persistent identity. Large result
+sections page independently and stay bounded through construction, storage, hashing and delivery.
+
+Use public typed Foundation identity, problem contribution and JSON budget contracts when the
+selected qualified version supplies them. Retained versions use named exact-version compatibility
+adapters rather than private-provider conventions scattered across endpoints. Application ownership,
+outcome policy and canonical ordering remain consumer semantics. Test managed and application error
+paths together; unexpected programming exceptions must retain safe server-failure handling.
+
 ## Enforcement evidence
 
 Keep ownership, semantic capability/event boundaries and dependency decisions in the existing
 architecture model, plan and ADRs. Use ordinary engineering configuration such as
 `eng/architecture.json` and the actual project/compiled graph for project roles, exact dependency
 edges and capability bindings; no additional runtimeComposition dossier or catalog set is required.
+Validate that planned graph after-plan, after-tasks and before affected implementation with
+`python eng/repository_architecture.py --repository . --manifest eng/architecture.json --planned`.
+List all selected owned runtime capabilities. Reject same-project bindings, relabeled Core/API roles,
+EF in API/composition and `persistenceOwnerNamespaces` waivers. Actual activation, registration,
+resolution and lifetime tests complement compiled interface/registration-method checks.
 Enforce names, edges, cycles, public compatibility, capability
 implementations, activation, provider-model leakage, endpoint authorization metadata, and data
 ownership in CI.
+
+Review serializers, native connection/deadline settings and other mechanisms hidden behind BCL-only
+types explicitly in normal source review. A filename, namespace or dependency-prefix check cannot
+certify semantic responsibility. Record source locations and dispositions in normal tasks/delivery
+output. Upgrade diagnoses incompatible retained graphs while preserving ADRs and consumer settings;
+it does not silently rewrite role authority or grant a namespace exception.

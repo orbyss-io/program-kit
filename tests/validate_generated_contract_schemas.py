@@ -73,6 +73,8 @@ def main() -> int:
         repository = root / "consumer"
         staged = repository / "artifacts/staged"
         repository.mkdir()
+        (repository / "eng").mkdir()
+        (repository / "eng/application-handoff.json").write_text(json.dumps({"schemaVersion": 1, "applicationId": "example.schema"}), encoding="utf-8")
         staged.mkdir(parents=True)
         (repository / "VERSION").write_text("1.0.0\n", encoding="utf-8")
         (staged / "hostsettings.json").write_text('{"Nuplane": {}}\n', encoding="utf-8")

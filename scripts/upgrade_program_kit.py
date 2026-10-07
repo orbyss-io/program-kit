@@ -24,6 +24,7 @@ from openapi_upgrade_reconciliation import (
     catalog_transition,
     archive_catalog_transition,
     apply_catalog_transition,
+    target_exporter_version,
 )
 
 
@@ -787,15 +788,19 @@ def preflight_mutation_destinations(
         ) from error
 
 
-def building_block_versions(release: Path) -> dict[str, str]:
+def building_block_versions(release: Path, target: Path) -> dict[str, str]:
     path = release / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        renderer = load_release_module(release / 'extensions/program-kit-dotnet/scripts/dependency_profile.py', 'upgrade_dependency_pin_renderer')
+        selected = renderer.retained_catalog(target)
+        value = selected if selected is not None else json.loads(path.read_text(encoding="utf-8"))
         versions = {
             package["packageId"]: package["version"]
             for package in value["packages"].values()
             if package.get("ecosystem") == "nuget"
         }
+        if selected is None:
+            versions['Orbyss.Foundation.OpenApi.Exporter'] = target_exporter_version(release)
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         raise UpgradeError(f"PKU101 release building-block manifest is invalid: {path}: {error}") from error
     if not versions or any(not package.startswith("Orbyss.") or not version for package, version in versions.items()):
@@ -1200,7 +1205,7 @@ def main() -> int:
             plan['releaseReadinessEstablished'] = False
             print(json.dumps(plan, indent=2))
             return 0
-        component_versions = building_block_versions(release)
+        component_versions = building_block_versions(release, target)
         if not (target / ".specify").is_dir():
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
@@ -1267,14 +1272,21 @@ def main() -> int:
             selection = blocks.load_json(target / 'docs/architecture/building-block-selection.json')
             installed = target / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
             blocks.preserve_dependency_profile(target, selection, blocks.consumer_catalog(target, selection, installed))
+        local_bundle=[sys.executable,str(release/'scripts/record_local_bundle.py')]
+        if '--site-packages' in specify:
+            local_bundle+=['--site-packages',specify[specify.index('--site-packages')+1]]
+        else:
+            environment=uv_windows_specify_environment(specify)
+            if environment is not None: local_bundle[0]=str(environment[0])
+        local_bundle+=['--release-root',str(release),'--target',str(target),'--integration',integration]
         steps = [
-            (specify + ["bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),
             (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
             (specify + ["extension", "add", str(release / "extensions/program-kit-governance"), "--dev", "--force"], "Install governance extension"),
             (specify + ["extension", "add", str(release / "extensions/program-kit-building-blocks"), "--dev", "--force"], "Install building-block extension"),
             (specify + ["extension", "add", str(release / "extensions/program-kit-dotnet"), "--dev", "--force"], "Install .NET extension"),
             (specify + ["preset", "remove", "program-kit-governance-preset"], "Remove prior governance preset"),
             (specify + ["preset", "add", "--dev", str(release / "presets/program-kit-governance-preset")], "Install governance preset"),
+            (local_bundle,"Resolve bundle composition record"),
         ]
         total = (
             len(steps)

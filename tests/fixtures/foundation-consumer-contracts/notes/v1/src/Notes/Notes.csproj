@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><PackageId>Notes</PackageId><FoundationFeatureDescriptorSource>feature.json</FoundationFeatureDescriptorSource></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../Notes.Core/Notes.Core.csproj" /><PackageReference Include="CShells.Abstractions" PrivateAssets="all" /><PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" /><PackageReference Include="Orbyss.Foundation.Build" PrivateAssets="all" IncludeAssets="build;buildTransitive" /></ItemGroup>
+</Project>

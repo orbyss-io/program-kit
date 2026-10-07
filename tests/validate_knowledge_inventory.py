@@ -54,6 +54,17 @@ class InventoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unregistered'):
             validate(ROOT, self.inventory, self.obligations)
 
+    def test_discovery_routes_resolve_to_registered_shipped_knowledge(self):
+        extension = ROOT/'extensions/program-kit-governance'
+        capabilities = json.loads((extension/'references/capability-index.json').read_text(encoding='utf-8'))['capabilities']
+        by_id = {row['id']: row for row in capabilities}
+        self.assertEqual('references/functional-discovery.md', by_id['functional-discovery']['reference'])
+        registered = {r['path'] for r in self.inventory['sources']}
+        for row in capabilities:
+            path = extension/row['reference']
+            self.assertTrue(path.is_file(), row['id'])
+            self.assertIn(path.relative_to(ROOT/'extensions').as_posix(), registered)
+
 
 if __name__ == '__main__':
     unittest.main()

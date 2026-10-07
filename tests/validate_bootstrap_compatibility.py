@@ -2,6 +2,7 @@
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -75,6 +76,10 @@ class CompatibilityTests(unittest.TestCase):
         # This isolated provider test owns no host selection. The full renderer's
         # selected-host admission is covered by validate_bootstrap_provider_context.
         selected = project(self.root, decisions, require_selection=False)
+        # The parent provisions the exact selected image. The isolated proof
+        # deliberately uses --pull=never and must not depend on a warm host cache.
+        runtime = next(p for p in selected['persistence_runtimes'] if p['profile']=='ef-postgresql')
+        subprocess.run(['docker', 'pull', runtime['image']], check=True, timeout=300)
         with patch.object(probes, '__file__', str(self.root / '.specify/extensions/program-kit-governance/scripts/managed_provider_probes.py')):
             plan = probes.render_postgresql(self.root, 'maintained-postgresql', selected)
         result = run_proof(self.root, plan['id'], plan['recipe'], plan['timeout'])

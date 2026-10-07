@@ -237,6 +237,7 @@ def main() -> int:
             "templates/spec-governance.md",
             "templates/plan-governance.md",
             "templates/tasks-governance.md",
+            "commands/speckit.implement.md",
         ):
             if not (extracted_preset / path).is_file():
                 raise AssertionError(f"Governance preset release ZIP is missing {path}")
@@ -281,7 +282,7 @@ def main() -> int:
         )
         if not (project / ".agents/skills/speckit-constitution/SKILL.md").is_file():
             raise AssertionError(
-                "Spec Kit 1.0.1 did not install the core speckit.constitution command"
+                "Spec Kit did not install the core speckit.constitution command"
             )
         python_resolver = project / ".specify/scripts/python/resolve_template.py"
         if not python_resolver.is_file():
@@ -363,6 +364,14 @@ def main() -> int:
         installed_skill_text = bootstrap_skill.read_text(encoding="utf-8")
         if "Stop. Do not call a shell tool" not in installed_skill_text:
             raise AssertionError("Installed bootstrap skill lost its execution-boundary guidance")
+        if 'references/functional-discovery.md' not in installed_skill_text:
+            raise AssertionError('Installed intake does not route functional discovery before convergence')
+        functional = project/'.specify/extensions/program-kit-governance/references/functional-discovery.md'
+        if functional.read_bytes() != (extracted_extension/'references/functional-discovery.md').read_bytes():
+            raise AssertionError('Installed functional discovery differs from the packaged contract')
+        specification = (project/'.agents/skills/speckit-program-kit-governance-specification-intake/SKILL.md').read_text(encoding='utf-8')
+        if 'functional-discovery.md' not in specification:
+            raise AssertionError('Installed specification intake cannot carry the functional model forward')
         run("specify", "workflow", "add", str(workflow_zip), "--dev", cwd=project)
 
         scenario_architecture = (
@@ -481,8 +490,8 @@ def main() -> int:
             "before_plan": ["speckit.program-kit-governance.phase-context"],
             "after_plan": ["speckit.program-kit-governance.architecture-check"],
             "before_tasks": ["speckit.program-kit-governance.phase-context"],
-            "after_tasks": ["speckit.analyze"],
-            "before_implement": ["speckit.program-kit-governance.phase-context", "speckit.program-kit-governance.implementation-check"],
+            "after_tasks": ["speckit.program-kit-governance.architecture-check", "speckit.analyze"],
+            "before_implement": ["speckit.program-kit-governance.implementation-check"],
             "after_implement": ["speckit.program-kit-governance.architecture-check"],
         }
         for event, commands in expected_order.items():
@@ -551,7 +560,7 @@ def main() -> int:
         if step_ids != expected_steps:
             raise AssertionError(f"Installed workflow steps {step_ids} != {expected_steps}")
 
-        # Spec Kit 1.0.1 resolves third-party primitives through their catalogs
+        # Spec Kit resolves third-party primitives through their catalogs
         # even when a bundle is installed from a local ZIP. The archive is
         # therefore verified for its pinned component graph here; the live
         # public-catalog test validates catalog-backed bundle installation.

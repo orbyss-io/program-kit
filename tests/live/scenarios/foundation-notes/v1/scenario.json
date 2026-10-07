@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "foundation-notes",
+  "fixtureVersion": 1,
+  "kind": "deterministic-specimen",
+  "specimen": "tests/fixtures/foundation-consumer-contracts/notes/v1",
+  "oracle": "tests/validate_foundation_notes.py",
+  "oracleScenario": "foundation-notes-v1",
+  "legacyLendingOracleAllowed": false,
+  "paidExecutionEnabled": false,
+  "status": "preparation",
+  "requiredDeterministicGates": ["PK1", "F6", "PK2A"],
+  "capabilities": ["create-note", "read-note", "rename-note", "list-notes"],
+  "acceptance": ["private-owner-isolation", "expected-revision", "exact-replay", "atomic-receipt", "bounded-pages", "uncertain-commit-reconciliation"]
+}

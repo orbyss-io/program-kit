@@ -26,7 +26,8 @@
       "properties": {
         "id": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Explicit stable consumer identity for new descriptors. Historical folder-derived IDs remain readable; migrate by retaining the last released ID."
         },
         "version": {
           "type": "string",

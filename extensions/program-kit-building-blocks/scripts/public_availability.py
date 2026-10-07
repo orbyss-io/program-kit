@@ -136,7 +136,10 @@ def verify_npm(package: dict, source: dict, runner=subprocess.run) -> dict:
         value = json.loads(result.stdout)
     except json.JSONDecodeError as error:
         raise AvailabilityError(f"PKB612 npm returned invalid metadata for {package['packageId']}") from error
-    if value.get("version") != package["version"] or not value.get("dist.tarball"):
+    # npm 12 returns a singleton array for an exact version query.
+    if isinstance(value, list) and len(value) == 1:
+        value = value[0]
+    if not isinstance(value, dict) or value.get("version") != package["version"] or not value.get("dist.tarball"):
         raise AvailabilityError(f"PKB612 npm metadata or tarball is missing for {package['packageId']} {package['version']}")
     return {
         "packageKey": f'npm:{package["packageId"]}',

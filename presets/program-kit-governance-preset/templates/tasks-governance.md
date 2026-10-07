@@ -18,11 +18,24 @@ optional. Retain security, ownership and real-provider verification before compl
 
 Deliver thin end-to-end outcomes with their actual tests. Carry applicable architecture and
 coding choices from the plan into implementation tasks. Run compiler/analyzer checks and
-relevant tests while coding, then the ordinary engineering verification command before completion.
+relevant tests while coding. Use Focused for the operation and Affected for changed responsibilities
+and reverse dependencies; name projects/filters and retain the implementation Git baseline in normal
+progress output. Include committed, staged, unstaged, untracked, deleted and generated inputs in the
+complete delta. Unknown ownership needs an explicit correction, not a silent full-suite fallback.
+Progress saves, task batches, story checkpoints and resumes do not run full acceptance. Story closure
+uses story regression coverage. Run complete application acceptance once at feature/domain closure
+or formal review handoff, then reuse its current result in the final report. Recheck relevant changes.
+Restore only when dependency inputs or preparation require it; pack/stage when affected tests consume
+those artifacts or at delivery. Keep new and previously failing cases in scope. Successful results
+can be reused only while source/configuration/generated/toolchain and relevant environment inputs
+remain unchanged; failures/interruption never establish acceptance. A scoped pass is not full acceptance.
 Map test tasks to each user story's requirements and acceptance scenarios; place them before their
 corresponding implementation tasks. Observe the intended failing behavior before writing the fix,
 then retain those tests as regression coverage. Preserve scoped constitutional exceptions.
 Preserve contract generation, security boundaries and release composition checks when applicable.
+Associate each test task with its operation/story, required scenarios, cheapest reliable level and
+actual command. Distinguish compiler/analyzer, behavior, architecture, provider, contract and review
+owners; do not schedule every category after each small task. Preserve required shared-boundary tests.
 
 Update the user-owned roadmap when the outcome changes. Do not create extra review receipts,
 proof attestations, metadata-repair notes or nonapplicability dossiers. Test output belongs in

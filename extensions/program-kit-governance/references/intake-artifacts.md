@@ -7,6 +7,11 @@ because the example contains them.
 
 ## One authoring source
 
+Retain the connected concepts, lifecycles, policies/conditions, journeys, experience choices and
+acceptance examples from functional-discovery.md in the existing project-intent.md. Reuse stable
+product references and answer evidence; project their meaning into existing map/intake fields.
+Do not add functional-model JSON fields, a second registry or another confirmation artifact.
+
 Write `docs/architecture/project-intent.md` and `docs/architecture/intake-authoring.json`.
 The authoring JSON contains exactly `map` and `intake`:
 

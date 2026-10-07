@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/Notes.Core/Notes.Core.csproj" />
+  <Project Path="src/Notes/Notes.csproj" />
+  <Project Path="src/Notes.Api/Notes.Api.csproj" />
+  <Project Path="src/Notes.PostgreSql/Notes.PostgreSql.csproj" />
+  <Project Path="oracle/Notes.Oracle.csproj" />
+</Solution>

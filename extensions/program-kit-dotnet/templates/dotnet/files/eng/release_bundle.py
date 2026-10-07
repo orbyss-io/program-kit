@@ -17,6 +17,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 from central_packages import central_package_versions
+from handoff_contract import application_identity
 
 import shell_composition
 import runtime_closure
@@ -593,7 +594,7 @@ def describe(
         "schemaVersion": 1,
         "files": [{"file": item["file"], "sha256": item["sha256"]} for item in closure["configuration"] + closure["packages"]],
         "application": {
-            "id": repository.name,
+            "id": application_identity(repository),
             "version": (repository / "VERSION").read_text(encoding="utf-8").strip(),
             "sourceCommit": source_commit(repository),
             "programKitVersion": PROGRAM_KIT_VERSION,

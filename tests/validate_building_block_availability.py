@@ -102,6 +102,18 @@ def main() -> int:
 
         if module.verify_npm(npm_package, npm_source, npm_run)["status"] != "metadata-tarball":
             raise AssertionError("npm availability did not require metadata and a tarball")
+        metadata={"version":npm_package["version"],"dist.tarball":"https://example.invalid/forms.tgz"}
+        def shape_runner(value):
+            return lambda *_args, **_kwargs: subprocess.CompletedProcess([],0,json.dumps(value),"")
+        if module.verify_npm(npm_package,npm_source,shape_runner([metadata]))["status"] != "metadata-tarball":
+            raise AssertionError("Exact npm 12 singleton metadata was rejected")
+        for invalid in ([],[metadata,metadata],[{"version":"wrong","dist.tarball":"https://example.invalid/forms.tgz"}],"unexpected"):
+            try:
+                module.verify_npm(npm_package,npm_source,shape_runner(invalid))
+            except module.AvailabilityError:
+                pass
+            else:
+                raise AssertionError("Ambiguous or wrong-version npm metadata was admitted")
     finally:
         if old_credential is None:
             os.environ.pop(credential, None)

@@ -5,7 +5,8 @@ param(
     [switch]$SkipReleaseBundle,
     [switch]$LockedMode,
     [switch]$InitializeOpenApiBaseline,
-    [switch]$UpdateOpenApiArtifact
+    [switch]$UpdateOpenApiArtifact,
+    [switch]$VerifyArchitecture
 )
 
 $ErrorActionPreference = 'Stop'
@@ -141,8 +142,16 @@ else {
     & (Join-Path $PSScriptRoot 'Restore.ps1') -Subject $solutions[0].FullName
 }
 if (-not $?) { throw 'Managed repository-isolated restore failed.' }
-dotnet build $solutions[0].FullName -c Release --no-restore -p:Version=$version
-if ($LASTEXITCODE -ne 0) { throw 'dotnet build failed.' }
+if ($VerifyArchitecture) {
+    python (Join-Path $PSScriptRoot 'repository_architecture.py') --repository $root `
+        --manifest eng/architecture.json --configuration Release --build-subject $solutions[0].FullName `
+        --version $version --output artifacts/tests/architecture.xml
+    if ($LASTEXITCODE -ne 0) { throw 'Fresh build/architecture checks failed.' }
+}
+else {
+    dotnet build $solutions[0].FullName -c Release --no-restore -p:Version=$version
+    if ($LASTEXITCODE -ne 0) { throw 'dotnet build failed.' }
+}
 
 if (-not $SkipTests) {
     $testProjectCount = Get-TestProjectCount -SolutionPath $solutions[0].FullName

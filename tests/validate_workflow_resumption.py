@@ -13,8 +13,8 @@ from unittest.mock import patch
 import validate_bootstrap_lifecycle as fixture
 from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine, RunState
 from specify_cli.workflows.base import RunStatus
-from specify_cli.workflows.steps.command import CommandStep
-from specify_cli.workflows.steps.shell import ShellStep
+from specify_cli.workflows.step.command import CommandStep
+from specify_cli.workflows.step.shell import ShellStep
 
 import workflow_lifecycle as workflow
 
@@ -75,7 +75,7 @@ def main():
                 architecture = root / 'docs/architecture/architecture.md'
                 good_architecture = architecture.read_bytes()
                 calls = []
-                def arch_dispatch(self, command, integration, model, args, context):
+                def arch_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                     calls.append(args)
                     if args == 'architecture-dispatch':
                         if calls.count('architecture-dispatch') == 1:
@@ -122,7 +122,7 @@ def main():
                 (root / g.BOOTSTRAP_COMPLETION).unlink()
 
                 dispatch_count = 0
-                def readiness_dispatch(self, command, integration, model, args, context):
+                def readiness_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                     nonlocal dispatch_count
                     dispatch_count += 1
                     if args == 'readiness':
@@ -171,7 +171,7 @@ def main():
                     # Interrupt the deterministic readiness shell; resumption
                     # must not repeat closure or start a readiness agent.
                     seen = []
-                    def interrupted(self, command, integration, model, args, context):
+                    def interrupted(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                         seen.append(command)
                         assert command != 'speckit.program-kit-governance.readiness'
                         return readiness_dispatch(self, command, integration, model, args, context)
@@ -203,7 +203,7 @@ def main():
                     raise AssertionError('Semantic rejection was converted into technical resumption')
                 (root / g.BOOTSTRAP_COMPLETION).unlink()
                 changed_calls = []
-                def changed_dispatch(self, command, integration, model, args, context):
+                def changed_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                     changed_calls.append(command)
                     if command == 'speckit.program-kit-governance.bootstrap-recovery':
                         architecture.write_bytes(architecture.read_bytes() + b'\nReviewed clarification of the first-slice narrative.\n')
@@ -264,7 +264,7 @@ def main():
                                   if s['id'] == 'recovery-execute-compatibility-proofs')
                 proof_step['run'] = 'python -c "from pathlib import Path; raise SystemExit(0 if Path(\'native-proof-repaired\').exists() else 2)"'
                 native_calls = []
-                def native_proof_dispatch(self, command, integration, model, args, context):
+                def native_proof_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                     native_calls.append(command)
                     return readiness_dispatch(self, command, integration, model, args, context)
                 approval_before_proof = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
@@ -304,7 +304,7 @@ def main():
                 legacy_readiness.update(id='recovery-readiness', type='command',
                     command='speckit.program-kit-governance.readiness', integration='{{ inputs.integration }}',
                     input={'args': 'Legacy inaccessible handoff'})
-                def legacy_dispatch(self, command, integration, model, args, context):
+                def legacy_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                     if args == 'Legacy inaccessible handoff':
                         report.write_text('**Status**: NOT READY\n- Blocker: READINESS-CURRENT-EVIDENCE | Owner: Operator | Next: Repair input access\n', encoding='utf-8')
                         return {'exit_code': 0, 'stdout': 'incomplete assessment', 'stderr': ''}
@@ -323,7 +323,7 @@ def main():
                     fixture.fails(lambda: workflow.resume(root, legacy_source.run_id), 'stale')
                 architecture.write_bytes(old_architecture)
                 retried_commands = []
-                def repaired_dispatch(self, command, integration, model, args, context):
+                def repaired_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                     retried_commands.append(command)
                     assert command == 'speckit.program-kit-governance.readiness'
                     return readiness_dispatch(self, command, integration, model, args, context)
@@ -378,7 +378,7 @@ def main():
                 # retaining all completed authoring and proof stages.
                 acceptance_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
                 acceptance_calls = []
-                def acceptance_dispatch(self, command, integration, model, args, context):
+                def acceptance_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                     acceptance_calls.append(args)
                     return {'exit_code': 0, 'stdout': 'prepared', 'stderr': ''}
                 acceptance_steps = [shell('accepted-prefix', 'python -c "print(1)"'),
@@ -405,7 +405,7 @@ def main():
                 import bootstrap_proof_plan
                 closure_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
                 closure_calls = []
-                def closure_dispatch(self, command, integration, model, args, context):
+                def closure_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                     closure_calls.append(args)
                     return {'exit_code': 0, 'stdout': 'prepared', 'stderr': ''}
                 closure_steps = [shell('accepted-prefix', 'python -c "print(1)"'),

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><PackageId>Notes.PostgreSql</PackageId><FoundationFeatureDescriptorSource>feature.json</FoundationFeatureDescriptorSource></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Notes.Core/Notes.Core.csproj" />
+    <PackageReference Include="Orbyss.Foundation.PostgreSql" />
+    <PackageReference Include="Orbyss.Foundation.Json" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="CShells.Abstractions" PrivateAssets="all" />
+    <PackageReference Include="Orbyss.Foundation.Build" PrivateAssets="all" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>

@@ -1,11 +1,11 @@
 <Project>
   <ItemGroup>
     <!-- Private engineering packages have independent pins; the builder is referenced only by feature projects. -->
-    <PackageVersion Include="Orbyss.Foundation.Analyzers" Version="0.2.2" />
-    <PackageVersion Include="Orbyss.Foundation.Build" Version="0.1.0" />
-    <PackageVersion Include="CShells.Abstractions" Version="0.0.29-preview.147" />
-    <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="0.0.29-preview.147" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
+    <PackageVersion Include="Orbyss.Foundation.Analyzers" Version="0.3.1" />
+    <PackageVersion Include="Orbyss.Foundation.Build" Version="0.3.1" />
+    <PackageVersion Include="CShells.Abstractions" Version="0.0.30-preview.159" />
+    <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="0.0.30-preview.159" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
   </ItemGroup>
 </Project>

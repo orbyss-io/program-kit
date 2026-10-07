@@ -4,7 +4,10 @@ scripts:
   py: scripts/phase_obligations.py
 ---
 Locate the current Spec Kit feature. Run `{SCRIPT} project --feature-dir <feature> --phase planning`
-before planning, `--phase after-plan` before tasks, and `--phase implementation` before coding.
+before planning. Run `{SCRIPT} project --feature-dir <feature> --phase tasks` before tasks.
+The after-plan hook already checked the planned graph; task drafting carries those choices without
+immediately repeating that check. The after-tasks and combined implementation-check hooks validate
+the current graph before affected coding. Do not invoke phase-context again before implementation.
 Use the returned summaries as the default context. The focused section pointers are optional
 lookup for a concrete unresolved choice, not a checklist to reread every source. Use `--only <id>`
 for a focused follow-up. Apply their conditions to concrete design/code choices;
@@ -15,7 +18,7 @@ is needed for generated context, changed toolkit bytes or test execution.
 
 ## Task drafting and resume (before_tasks)
 
-For tasks, use `--phase after-plan` even when resuming. Inspect existing tasks.md first.
+For tasks, use `--phase tasks` even when resuming. Inspect existing tasks.md first.
 Run the ordinary setup_tasks script once to resolve the feature and composed tasks template;
 reuse its result in the same turn. For a new draft, read spec.md, plan.md and the constitution,
 then immediately persist a draft before optional

@@ -70,3 +70,59 @@
   button, .pk-button, .pk-card, dialog { border: 1px solid ButtonText; box-shadow: none; }
   :focus-visible { outline-color: Highlight; }
 }
+@layer pk.base {
+  body { background: var(--pk-canvas); }
+  h1 { font-size: var(--pk-text-title); letter-spacing: -.025em; }
+  h2 { font-size: 1.25rem; }
+  p { margin-block: .5rem 1rem; }
+}
+@layer pk.layout {
+  .pk-header { background: var(--pk-raised); border-color: var(--pk-divider); }
+  .pk-nav { background: var(--pk-canvas); }
+  .pk-nav a { text-decoration: none; }
+  .pk-nav a[aria-current] { box-shadow: var(--pk-shadow); }
+  .pk-content { margin-inline: 0; }
+  [data-page-layout="content"] .pk-content { margin-inline: auto; }
+  [data-page-layout="form"] .pk-content { max-inline-size: 42rem; }
+  .pk-list-detail { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--pk-space-large); }
+  .pk-list-detail > * { min-inline-size: 0; }
+  .pk-item-list { list-style: none; padding: 0; }
+  .pk-item-list a { display: block; padding: .75rem; border-radius: var(--pk-radius); }
+  .pk-item-list a[aria-current] { background: var(--pk-muted); font-weight: 650; }
+  .pk-detail { background: var(--pk-raised); padding: var(--pk-space-large); border-radius: var(--pk-radius); }
+  @container (min-width: 48rem) { .pk-list-detail { grid-template-columns: minmax(14rem, 1fr) minmax(0, 2fr); } }
+}
+@layer pk.components {
+  .pk-card, .pk-panel { background: var(--pk-raised); border: 1px solid var(--pk-divider); border-radius: var(--pk-radius); padding: var(--pk-space-large); }
+  th, td, dialog { border-color: var(--pk-divider); }
+  .pk-button, button { transition: background-color var(--pk-motion-feedback), box-shadow var(--pk-motion-feedback), transform var(--pk-motion-feedback) var(--pk-ease-standard); }
+  button:hover:not(:disabled), .pk-button:hover { transform: none; text-decoration: none; box-shadow: var(--pk-shadow); }
+  button:active:not(:disabled), .pk-button:active { transform: translateY(1px); }
+  .pk-button-secondary { background: var(--pk-surface); color: var(--pk-on-surface); border-color: var(--pk-border); }
+  .pk-button-quiet { background: transparent; color: var(--pk-primary); }
+  .pk-field { display: grid; gap: var(--pk-space-small); }
+  .pk-field label { font-size: .9375rem; }
+  .pk-field input { inline-size: 100%; }
+  .pk-hint { color: var(--pk-on-muted); font-size: var(--pk-text-small); margin: 0; }
+  .pk-field .pk-error { margin: 0; font-size: var(--pk-text-small); }
+  input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { border: 2px solid var(--pk-danger); }
+  .pk-error-summary { padding: var(--pk-space); border: 2px solid var(--pk-danger); border-radius: var(--pk-radius); background: var(--pk-raised); }
+  .pk-error-summary h3 { margin-block-start: 0; }
+  .pk-error-summary a { color: var(--pk-danger); }
+  .pk-status { border-radius: var(--pk-radius); }
+  .pk-status-error { border-color: var(--pk-danger); }
+  .pk-status-warning { border-color: var(--pk-warning); }
+  .pk-status-success { border-color: var(--pk-success); }
+  .pk-skeleton { block-size: 5rem; background: var(--pk-muted); border-radius: var(--pk-radius); }
+  dialog[open] { animation: pk-enter var(--pk-motion-enter) var(--pk-ease-enter); }
+  @keyframes pk-enter { from { opacity: 0; transform: translateY(.35rem); } to { opacity: 1; transform: none; } }
+  .pk-auth-page { background: var(--pk-canvas); }
+  .pk-auth-shell { container-type: normal; display: grid; align-content: center; gap: 1.5rem; min-block-size: 100svh; max-inline-size: 34rem; margin-inline: auto; padding: clamp(1rem, 4vw, 2rem); }
+  .pk-auth-brand { text-align: center; font-size: 1.25rem; font-weight: 750; }
+  .pk-auth-logo { max-block-size: 3rem; max-inline-size: 100%; }
+  .pk-auth-card { background: var(--pk-raised); border: 1px solid var(--pk-divider); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); padding: clamp(1rem, 4vw, 2rem); }
+  .pk-auth-card h1 { font-size: 1.65rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled), .pk-button:active { transform: none; }
+}

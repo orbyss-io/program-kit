@@ -91,6 +91,10 @@ try {
         throw "Could not locate the specify-cli Python environment at $python"
     }
 
+    Invoke-ProgramKitNative $python @('-c',
+        'from importlib.metadata import version; from packaging.version import Version; actual=version("specify-cli"); print("Spec Kit CLI: " + actual); assert Version("1.1.1") <= Version(actual) < Version("2"), "PROGRAM_KIT_SPEC_KIT_VERSION: use Spec Kit >=1.1.1,<2"'
+    ) 'Program Kit requires the current Spec Kit baseline. Install specify-cli==1.1.1 and retry.'
+
     Invoke-ProgramKitNative $python @(
         (Join-Path $projectRoot 'extensions/program-kit-governance/scripts/schema_runtime.py'),
         'setup', '--offline'

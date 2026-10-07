@@ -26,24 +26,24 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.13"
+          python-version-file: .python-version
 
       - name: Install pinned Spec Kit
-        run: python -m pip install --disable-pip-version-check "specify-cli==1.0.1"
+        run: python -m pip install --disable-pip-version-check "specify-cli==1.1.1"
 
       - name: Prepare project-local JSON Schema runtime
         run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
 
       - name: Set up pinned Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "24.20.0"
+          node-version: "26.11.0"
 
       - name: Set up pinned npm
-        run: npm install --global npm@11.19.0 --ignore-scripts --no-audit --no-fund
+        run: npm install --global npm@12.2.0 --ignore-scripts --no-audit --no-fund
 
       - name: Set up managed .NET SDK
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
 
@@ -64,11 +64,12 @@ jobs:
 
       - name: Preserve validation evidence on success or failure
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: program-kit-${{ github.sha }}
           path: |
             artifacts/validation-runs/
+            artifacts/bootstrap-postgresql/
             artifacts/*.json
             artifacts/*.zip
             artifacts/*.cmd
@@ -86,10 +87,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.13"
+          python-version-file: .python-version
 
       - name: Install pinned Spec Kit
-        run: python -m pip install --disable-pip-version-check "specify-cli==1.0.1"
+        run: python -m pip install --disable-pip-version-check "specify-cli==1.1.1"
 
       - name: Validate Python-flavor Codex bootstrap on Windows
         run: python tests/validate_codex_bootstrap.py
@@ -111,7 +112,8 @@ jobs:
       - name: Set up distinct shell Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          # This older compatibility runtime must remain distinct from the engine.
+          python-version-file: .python-compat-version
 
       - name: Validate mixed Python workflow run and resume without agents
         # This is a positive native-runtime trial. Missing-dependency rejection
@@ -123,7 +125,7 @@ jobs:
 
       - name: Preserve Windows validation evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: windows-validation-${{ github.sha }}
           path: artifacts/validation-runs/

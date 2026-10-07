@@ -29,7 +29,7 @@ def context_error(module, fragment, action):
 def workflow_checks(root, context, run_id):
     """Real workflow engine/CLI, mocked agent dispatch; no coding agent can start."""
     from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-    from specify_cli.workflows.steps.command import CommandStep
+    from specify_cli.workflows.step.command import CommandStep
     import yaml
 
     shutil.copytree(ROOT / "extensions/program-kit-governance", root / ".specify/extensions/program-kit-governance", dirs_exist_ok=True)
@@ -67,6 +67,28 @@ def main():
     blocks = bt.load_module(bt.RESOLVER)
     context = ct.load_module(ROOT)
     catalog = blocks.load_json(bt.CATALOG)
+    sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+    from repository_architecture import validate_manifest
+    with tempfile.TemporaryDirectory(prefix='planned-modularity-') as temporary:
+        planned_root = Path(temporary)
+        valid = {'runtimeComposition': {'projects': [
+            {'path': 'src/Notes.Core/Notes.Core.csproj', 'role': 'core'},
+            {'path': 'src/Notes/Notes.csproj', 'role': 'implementation',
+             'projectReferences': ['src/Notes.Core/Notes.Core.csproj']}],
+            'bindings': [{'capabilityProject': 'src/Notes.Core/Notes.Core.csproj',
+                'implementationProject': 'src/Notes/Notes.csproj', 'capability': 'Notes.INotes',
+                'implementation': 'Notes.NoteOperations', 'registration': 'Notes.Feature.ConfigureServices'}]}}
+        validate_manifest(planned_root, valid)
+        assert not any(planned_root.iterdir()), 'Planned validation must not materialize projects'
+        invalid_graph = copy.deepcopy(valid)
+        invalid_graph['runtimeComposition']['projects'][1]['role'] = 'composition'
+        try:
+            validate_manifest(planned_root, invalid_graph)
+        except ValueError as error:
+            assert 'implementation/provider/bridge role' in str(error)
+        else:
+            raise AssertionError('Planned composition role hid a domain implementation')
+        validate_manifest(planned_root, {'runtimeComposition': {'projects': []}})
     write, write_json = ct.write, ct.write_json
     with tempfile.TemporaryDirectory(prefix="program-kit-placement-") as temporary:
         root = Path(temporary)

@@ -31,9 +31,9 @@ jobs:
 
       - name: Verify selected public building blocks
         run: |
-          python .specify/extensions/program-kit-building-blocks/scripts/public_availability.py \
+          python eng/public_availability.py \
             --target . \
-            --catalog .specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json \
+            --catalog eng/building-blocks.catalog.json \
             --evidence artifacts/building-block-public-availability.json
 
       - name: Verify tag and host image policy
@@ -47,9 +47,7 @@ jobs:
             echo "ORBYSS_FOUNDATION_HOST_IMAGE must name the approved application-neutral host by digest." >&2
             exit 1
           fi
-          expected_host="$(jq -r '.artifacts[] | select(.packageKey == "oci:ghcr.io/orbyss-io/foundation-host") | .reference' artifacts/building-block-public-availability.json)"
-          [[ -n "$expected_host" ]] || { echo "Accepted building-block selection has no Foundation host." >&2; exit 1; }
-          [[ "$ORBYSS_FOUNDATION_HOST_IMAGE" == "$expected_host" ]] || { echo "Configured host digest differs from selected public-availability evidence." >&2; exit 1; }
+          python eng/verify_host_image.py --evidence artifacts/building-block-public-availability.json --reference "$ORBYSS_FOUNDATION_HOST_IMAGE"
 
       - name: Run repository verification gate
         shell: pwsh
@@ -72,6 +70,9 @@ jobs:
             --digest "${ORBYSS_FOUNDATION_HOST_IMAGE#*@}" \
             --output artifacts/application-bundle.json
 
+      - name: Assemble receiver handoff
+        run: python eng/application_handoff.py --repository .
+
       - name: Attest application release bundle
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
@@ -80,6 +81,9 @@ jobs:
             artifacts/application-bundle.zip
             artifacts/application-bundle.zip.sha256
             artifacts/building-block-public-availability.json
+            artifacts/handoff/index.json
+            artifacts/handoff/application-handoff.zip
+            artifacts/handoff/application-handoff.zip.sha256
 
       - name: Publish GitHub release
         env:
@@ -91,6 +95,9 @@ jobs:
             artifacts/application-bundle.zip \
             artifacts/application-bundle.zip.sha256 \
             artifacts/building-block-public-availability.json \
+            artifacts/handoff/index.json \
+            artifacts/handoff/application-handoff.zip \
+            artifacts/handoff/application-handoff.zip.sha256 \
             --verify-tag \
             --title "Application $GITHUB_REF_NAME" \
             --generate-notes

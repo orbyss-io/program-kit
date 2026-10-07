@@ -15,10 +15,17 @@ bootstrap artifacts or assume Program Kit technical defaults apply to every topi
 Work the tree in **rounds**. The **frontier** is every in-scope decision requiring a user answer whose
 prerequisites are already settled: the questions you can ask now without guessing earlier answers.
 Resolve available facts and clearly applicable authorized defaults before forming the frontier.
-Ask the whole frontier in one round, grouped by related subject: number each question and give your
+Ask the frontier in coherent subject groups: number each question and give your
 recommended answer with its reason and material trade-offs. Keep question IDs stable across rounds.
+Introduce the relevant discovery areas and name the subject of each group so the human understands
+what is being explored. For a large frontier, use manageable subject groups across rounds; keep
+unasked questions open and preserve dependencies. Do not rush a whole design into one oversized round.
 Then wait for the user's answers before the next round. Do not invent a preference when evidence is
 insufficient to recommend an option; explain which missing fact matters.
+Use open walkthrough questions when goals or meanings are unknown, then recommend alternatives
+supported by the answers. Relevant knowledge should reveal gaps and consequences before decisions;
+it is not merely a final compliance checklist. Reuse the caller's applicable knowledge without
+enumerating unrelated sources. Technical defaults do not establish consumer rules or UI preferences.
 
 Format a round like so:
 
@@ -65,7 +72,8 @@ A pending investigation is an unsettled prerequisite, so only its dependent ques
 intent and preferences remain the user's decisions. Label unavailable facts as unknown and record
 what evidence or owner can resolve them instead of guessing.
 
-An empty frontier is necessary but not sufficient for completion: check every relevant branch for
+An empty frontier is necessary but not sufficient for completion: check the calling scope's
+discovery coverage and demonstrated understanding as well as every relevant branch for
 unanswered questions, pending evidence, and unresolved dependencies. Every branch must be answered,
 covered by a disclosed applicable default, excluded, or explicitly assigned/deferred with an owner
 or next action and a trigger. A decision that blocks the requested outcome cannot be hidden by

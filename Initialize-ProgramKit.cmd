@@ -59,7 +59,7 @@ if exist ".agents\skills\speckit-program-kit-governance-bootstrap\SKILL.md" goto
 
 where specify >nul 2>nul
 if errorlevel 1 (
-  echo ERROR: Spec Kit 1.0.1 or a compatible 1.x `specify` command is required. 1>&2
+  echo ERROR: Spec Kit 1.1.1 or a compatible newer 1.x `specify` command is required. 1>&2
   exit /b 2
 )
 call specify --version >nul 2>nul
@@ -127,7 +127,7 @@ echo [5/8] Registering the Program Kit bundle catalog...
 call specify bundle catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/bundles.json --id program-kit --policy install-allowed
 if errorlevel 1 goto :failed
 
-echo [6/8] Installing the bootstrap workflow required by Spec Kit 1.0.1...
+echo [6/8] Installing the bootstrap workflow...
 call specify workflow add program-kit-bootstrap
 if errorlevel 1 goto :failed
 

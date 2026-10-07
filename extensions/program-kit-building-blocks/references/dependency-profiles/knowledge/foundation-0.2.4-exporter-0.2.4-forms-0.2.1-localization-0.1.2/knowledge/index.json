@@ -1,0 +1,2623 @@
+{
+  "schemaVersion": 1,
+  "profileId": "foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2",
+  "releaseVersion": "0.2.4",
+  "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+  "packages": [
+    {
+      "id": "Orbyss.Foundation.Analyzers",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Analyzers.json",
+      "sha256": "913348df906a79d1688265fcd99eea6794eb1282e1e9e9351d35074efa72a206"
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.json",
+      "sha256": "8ecd188554fbd263e0882eae76828c45f5273ca9ed28e4e44338eb94be8bbcc1"
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.Assurance",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.Assurance.json",
+      "sha256": "7961377fdf4aa1990650e702a92da209a054dd511ba5a6f21730d991213b2aea"
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.BffCookie",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.BffCookie.json",
+      "sha256": "3786fab571b64fd017ae4aaca42a2c69e8a4fe27ef959b8b86525cce3f00e610"
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.ClientCredentials",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.ClientCredentials.json",
+      "sha256": "b243bd83c69b0383b9c383d447113e4821ddb34fc2898b8799453e8e975ca69e"
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.DownstreamApi",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.DownstreamApi.json",
+      "sha256": "bc7c19023dcd26d81960cb620929e557a78675a68875c90b4c05f4bca9bda739"
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.DPoP",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.DPoP.json",
+      "sha256": "442b36dd69f7a44d1452059c515241d9238ab2b7147053536d80af3dace32eb6"
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.SpaPkce",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.SpaPkce.json",
+      "sha256": "2f6212beed0e77e76e719eea96bb5682949674d9cbf2869b8ff8c5fbfa8e9af6"
+    },
+    {
+      "id": "Orbyss.Foundation.Authentication.TokenExchange",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.TokenExchange.json",
+      "sha256": "c8495850c8b35425ab22f0387c245d3a1635fa32d5dd19b637d93f23ec73f1fd"
+    },
+    {
+      "id": "Orbyss.Foundation.DomainEvents",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.DomainEvents.json",
+      "sha256": "da9ae4df8e5458fc413f2ec1ed8f1969abfac1bb5de9a02f5e2204694735560b"
+    },
+    {
+      "id": "Orbyss.Foundation.DomainEvents.Abstractions",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.DomainEvents.Abstractions.json",
+      "sha256": "7ae8f01aaf0daed878908d211b5b38a300efe865f1bedf563bfe242f388c3466"
+    },
+    {
+      "id": "Orbyss.Foundation.Identity.Admin.Abstractions",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Identity.Admin.Abstractions.json",
+      "sha256": "1761949f9e8179e0f77189a86a5dec7df3a85ae04219cc32871e24b4390a71cc"
+    },
+    {
+      "id": "Orbyss.Foundation.Identity.Keycloak.Admin",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Identity.Keycloak.Admin.json",
+      "sha256": "1fd350d250f9ae55422b82886c35dd80edbb69c1da52084bef64148ea0a51192"
+    },
+    {
+      "id": "Orbyss.Foundation.Json",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Json.json",
+      "sha256": "76d74ce762738f537868603fc76a2f9022ad83093035c2d4d80ae3ea02427af4"
+    },
+    {
+      "id": "Orbyss.Foundation.Json.AspNetCore",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Json.AspNetCore.json",
+      "sha256": "3edefc74f18b42a0bff3a4812d819196a998b8a1d83ba67c18b7d32143fbddfc"
+    },
+    {
+      "id": "Orbyss.Foundation.Mcp.AspNetCore",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Mcp.AspNetCore.json",
+      "sha256": "ac6f81f14f31dc2d06385a1cf5922466c6e2eb42bc568fa664798de46a147f9c"
+    },
+    {
+      "id": "Orbyss.Foundation.OpenApi.Exporter",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.OpenApi.Exporter.json",
+      "sha256": "94f1a924581089bf96d94f7927ea5b9dddfd7647118190b5537a5844b4f69560"
+    },
+    {
+      "id": "Orbyss.Foundation.Tasks",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Tasks.json",
+      "sha256": "e9d982705abc31d8c1c6f7dbfb49787ec58bd2997d50c04ad1f7103f2dff7be0"
+    },
+    {
+      "id": "Orbyss.Foundation.Tasks.Abstractions",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Tasks.Abstractions.json",
+      "sha256": "ea9e290254551f22d4a8e8fed77c29382d1269c274e6c5a3a27854566999717d"
+    },
+    {
+      "id": "Orbyss.Foundation.Web.Discovery",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.Discovery.json",
+      "sha256": "0ea2b94c0363e6d2ae7d354b6519023a4e1962639826b4c1cd1820095487184d"
+    },
+    {
+      "id": "Orbyss.Foundation.Web.Discovery.Abstractions",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.Discovery.Abstractions.json",
+      "sha256": "58be9d5bc48661f40ccc031b89f0ac93104e768d548a185a761f32eb5e901a02"
+    },
+    {
+      "id": "Orbyss.Foundation.Web.HostedPages",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.HostedPages.json",
+      "sha256": "949da1b572965c7b16ac64614defd1ed232993cd44daa2033435b291421161bc"
+    },
+    {
+      "id": "Orbyss.Foundation.Web.OpenApi",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.OpenApi.json",
+      "sha256": "fe06a10c1997f51170f89bbe9713f7762748b0c1b1cb0dee83fea6e8730cf260"
+    },
+    {
+      "id": "Orbyss.Foundation.Web.ProblemDetails",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.ProblemDetails.json",
+      "sha256": "a0b5b9de171757b9d852bb742bb2c23583908de1a229d8843661ff2d51d4b6fd"
+    },
+    {
+      "id": "Orbyss.Foundation.WebDefaults",
+      "version": "0.2.4",
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.WebDefaults.json",
+      "sha256": "1cdcd9151431f6e7490cb3731f204e8598a0f9cb813ad7349dfb809b3c07dcc7"
+    }
+  ],
+  "documents": [
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6121f3533ee85c0c8b6233d12a9e0799a6b1e716f884f34eecc9d68aafc03bdd",
+      "publisherPath": "LICENSE",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/LICENSE",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 0,
+      "byteLength": 1064
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "bce4c7fe1c8c28877e51201d7fb498b1011685cc70a12c9adedf6414b93ba472",
+      "publisherPath": "README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 1064,
+      "byteLength": 3460
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "332d08ade1e27e07a67247627797a8a8f76d8b358554da490736c6111171dfb7",
+      "publisherPath": "THIRD-PARTY-NOTICES.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/THIRD-PARTY-NOTICES.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 4524,
+      "byteLength": 480
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e48d3514df1f455a4382837252093a9f6b8106bde62abeb430c0f641eb5f4054",
+      "publisherPath": "docs/authentication.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/authentication.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 5004,
+      "byteLength": 755
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "33cf061c36b5b8a28f5d6c10a017cafffba1fb7b8b002c0bf39a29fd46870b20",
+      "publisherPath": "docs/json-canonicalization-decision.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/json-canonicalization-decision.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 5759,
+      "byteLength": 2479
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "707527f1162b2bb568b94bacadfa7e45115d754dac8010778953256946ccbf23",
+      "publisherPath": "docs/plans/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/plans/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 8238,
+      "byteLength": 2550
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "2c41287b4be03d08ba4eec892229974bfa1b61a5c3d1e34898782cd5e8ead95e",
+      "publisherPath": "docs/plans/issue-1-web-security-policies.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/plans/issue-1-web-security-policies.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 10788,
+      "byteLength": 5378
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "18cbda517040f6aaddee225132ddf742d3a22292e823a0d4869ec3f9e9e85849",
+      "publisherPath": "docs/plans/issue-2-typed-json.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/plans/issue-2-typed-json.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 16166,
+      "byteLength": 7315
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3e366f35e7f9f06a8b83f07313233c8a25e0e6cc429bd7adbeaa01cc8cd22f58",
+      "publisherPath": "docs/plans/issue-3-hosted-pages-assets.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/plans/issue-3-hosted-pages-assets.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 23481,
+      "byteLength": 6480
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "95ab2baf03f63d86a7d5260240328f9cea0c295eda7e8b3119ef913b81dbda4b",
+      "publisherPath": "docs/validation-0.2.0.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/validation-0.2.0.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 29961,
+      "byteLength": 4522
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "8e2417d3f7202331421ef06d4afc92382be04127e55cef501da3fa5e3c2544a9",
+      "publisherPath": "docs/validation-callback-routing-2026-09-16.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/validation-callback-routing-2026-09-16.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 34483,
+      "byteLength": 5867
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "1faeb2c9ee4d7779c7902759004222c7c5e8b28ee74bb769ea1af96b1baa3086",
+      "publisherPath": "docs/validation-openapi-exporter-version-2026-10-03.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/validation-openapi-exporter-version-2026-10-03.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 40350,
+      "byteLength": 3140
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "c6442581a1605389b46335e675f57a531059ae29787485b53159320d1e9b9c45",
+      "publisherPath": "docs/validation-scope-binding-2026-09-16.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/docs/validation-scope-binding-2026-09-16.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 43490,
+      "byteLength": 8030
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "fc87fe7680c1fdfaaa686924ce1605431893ee14d2492be493b3f51849cc120b",
+      "publisherPath": "src/Orbyss.Foundation.Analyzers/AnalyzerReleases.Shipped.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Analyzers/AnalyzerReleases.Shipped.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 51520,
+      "byteLength": 28
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "4b9d300f509a1006e3df1fb752874f1383ac0f4dcc67703dda521509a89b8aa5",
+      "publisherPath": "src/Orbyss.Foundation.Analyzers/AnalyzerReleases.Unshipped.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Analyzers/AnalyzerReleases.Unshipped.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 51548,
+      "byteLength": 582
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7baf87ccb291ac1e84d64250215388ba5cdb2c44db2a9ae22eb95d9f679239a2",
+      "publisherPath": "src/Orbyss.Foundation.Analyzers/FoundationAnalyzer.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Analyzers/FoundationAnalyzer.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 52130,
+      "byteLength": 15475
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "37dd3c374f8591ff59ed30a71928917eea5bd0105ce7ef6fc778350081615836",
+      "publisherPath": "src/Orbyss.Foundation.Analyzers/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Analyzers/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 67605,
+      "byteLength": 921
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6715a8b5527b6b17626dde1e2fdf91eb7b8c6238d8584f79549d96df1ce63539",
+      "publisherPath": "src/Orbyss.Foundation.Analyzers/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Analyzers/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 68526,
+      "byteLength": 4775
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6751604c12245c60aee88bc26f6cb2dedeb13b816bbf6a6725dd6593346a8ed8",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/AssuranceAuthorizationHandler.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/AssuranceAuthorizationHandler.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 73301,
+      "byteLength": 659
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "03fbc49068f21bc5c462bd1a41529c1a09ff3285c07c2071b22832b63b3408d0",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/AssuranceEvaluation.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/AssuranceEvaluation.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 73960,
+      "byteLength": 709
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "88931a1330e4823e3e249742e884a7fbdd472c26faecf379759b6a22f21c0c24",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/AssuranceEvaluator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/AssuranceEvaluator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 74669,
+      "byteLength": 3960
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7af7bc939e1fb22925ed4f2d78b6a40b87cdb1aee8be5d6790288199fa88fb0a",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/AssuranceOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/AssuranceOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 78629,
+      "byteLength": 696
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "20da0f953379bde3c81f6047c40ea8a4a386850925f507a4d7b95d33815dfd63",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/AssuranceOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/AssuranceOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 79325,
+      "byteLength": 2546
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "275b4b9f01587a922e5ed2461fc27432b34e7593e33cb7fb67bedd8542ea2071",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/AssurancePolicy.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/AssurancePolicy.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 81871,
+      "byteLength": 690
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e9081e5a429688d48f75eedf249af25dc43d12d6984c5869a56c0ce90187466f",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/AssurancePolicyNames.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/AssurancePolicyNames.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 82561,
+      "byteLength": 588
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ebb567c7c7a0c03b1fe6ccdcbd670a9cfa28ef77f5f325c8582c2ac680643d40",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/AssuranceRequirement.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/AssuranceRequirement.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 83149,
+      "byteLength": 282
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "25a42e51624912e4f4aa968d9ba125addb72e115396ac100ac5b278c36cf69d5",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/FoundationAssuranceFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/FoundationAssuranceFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 83431,
+      "byteLength": 1729
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "bd6d8f50e90eca2420f0e7cec12b386fbc65fb41ff9b3cc84dffe676548ce59d",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/IAssuranceEvaluator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/IAssuranceEvaluator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 85160,
+      "byteLength": 407
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6137675294540183c53ad127b1aa1e6c85681dc34d98f5c3ccdc7ec709284674",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 85567,
+      "byteLength": 680
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b2b3bc0aa81b058845af88951bb36d2c86da02345076d570d08c822e4d105f8b",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 86247,
+      "byteLength": 1387
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "0819a26c9b9fea19f9a2e17225b857d5052c1f31725d72571a5627ce62061f58",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.Assurance/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.Assurance/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 87634,
+      "byteLength": 636
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "5410785f15c26d52ee117ad7642c0f265e7b76fd3569cc8e916f7486df3b498d",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.BffCookie/AntiforgeryMiddleware.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.BffCookie/AntiforgeryMiddleware.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 88270,
+      "byteLength": 1537
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "771cf46c1cca7d8297809a40ec0adf3f9f0c6aa3cb2bb6e8c89e05770a0d598b",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.BffCookie/BffCookieOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.BffCookie/BffCookieOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 89807,
+      "byteLength": 2423
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "65cad9fabf6e8cd9ea43d3b8009275b65c618ceba4175ae4433e138deaf9d5b8",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.BffCookie/BffCookieProfileMarker.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.BffCookie/BffCookieProfileMarker.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 92230,
+      "byteLength": 319
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "84e481ce948c4f0b985034f0f3f8c25a948335347a269399e0f2ac0824dbbec8",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.BffCookie/DistributedTicketStore.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.BffCookie/DistributedTicketStore.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 92549,
+      "byteLength": 2880
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "09a38ad09f9b2d50cd545055e2961ff4dfc74e99a7ddc3c744d501d4d974bff1",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.BffCookie/FoundationBffCookieFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.BffCookie/FoundationBffCookieFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 95429,
+      "byteLength": 17873
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "2304774d6d78dc0ba8459a2cac7f07b02edad2c5f6a7e62010f4507de6e0eb3b",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.BffCookie/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.BffCookie/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 113302,
+      "byteLength": 1642
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "94e1357a092290748d29c07cc88e6f9ab05d72b4446d43fe5f267bdf7ca26fde",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.BffCookie/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.BffCookie/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 114944,
+      "byteLength": 1165
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "57edf9e52534d5b6f6d3038eb4326b564ed5056993566e5689277b67c222209f",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.BffCookie/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.BffCookie/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 116109,
+      "byteLength": 4153
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b19ebee8f18a6a43a14ee526f6ba839c3b64e499cd3fa9a5f620977b6d81dd4a",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/ClientCredentialsOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/ClientCredentialsOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 120262,
+      "byteLength": 614
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "22a4b7dbe5042b68b8590c93aee93462016c3b6b7b92ac3877599ed91896ce22",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/ClientCredentialsOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/ClientCredentialsOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 120876,
+      "byteLength": 3679
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "78a2d4f772e537e2cec059368274db11ac559980fe29b135136af46c7aade6ee",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/ClientCredentialsRegistration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/ClientCredentialsRegistration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 124555,
+      "byteLength": 1392
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "1a40fd87e54ec51af42b0627c723371fd879e4f52b2ea9daf13eede2763cdd33",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/ClientCredentialsTokenProvider.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/ClientCredentialsTokenProvider.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 125947,
+      "byteLength": 7405
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "539ca765d151ebb6c0a31ba7104ea7e5269f7bb4277276e581cb5b40f7fdf1dc",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/FoundationClientCredentialsFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/FoundationClientCredentialsFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 133352,
+      "byteLength": 1258
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b7d584d0b493f5933209ae155d1ade49113524040db82f6c305c843bd95787d9",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/IClientCredentialsTokenProvider.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/IClientCredentialsTokenProvider.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 134610,
+      "byteLength": 667
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "9a0e8428561080296e32257e46a15c5b9f8b0ba5f4d446669683697266cfc841",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/OAuthAccessToken.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/OAuthAccessToken.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 135277,
+      "byteLength": 492
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "86a117ab1c560e10bd905bc6b5682fa438e41fbaa74fd80850da31bcd8fd68cd",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 135769,
+      "byteLength": 717
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "fee9ad0ae689e32189691285b32c40af0249b62c52825b5b5e116f8604ef339a",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 136486,
+      "byteLength": 1156
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "0819a26c9b9fea19f9a2e17225b857d5052c1f31725d72571a5627ce62061f58",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.ClientCredentials/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.ClientCredentials/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 137642,
+      "byteLength": 636
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "90c7dfffa5f96377d99cd8d7342e4f0c6e2f62034b3e8d12925cb132993140b5",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/DPoPAuthorizationHeaderMiddleware.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/DPoPAuthorizationHeaderMiddleware.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 138278,
+      "byteLength": 1437
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e9d10b6735da33999a358b1498904b573e9f0e9489f49e19483ee1a9b72dda5c",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/DPoPJwtBearerPostConfigure.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/DPoPJwtBearerPostConfigure.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 139715,
+      "byteLength": 1389
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f82983dc6b521d37d3fd9225276a00bd693f7a00418c526b7db8cd44fa3eb537",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/DPoPOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/DPoPOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 141104,
+      "byteLength": 1383
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "826ded3b493148cea45303d35dbeb7b53f92c30eb9db25e508fc3823ecada60e",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/DPoPOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/DPoPOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 142487,
+      "byteLength": 1998
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "d412d5d2d1313e989163c8a231cd081ecc930c1bae4913e1735fbd8509cabb79",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/DPoPProofRequest.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/DPoPProofRequest.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 144485,
+      "byteLength": 1026
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f4149238c757fd70b5adf5470f37e6602379ecac185742b857b444e3560c6dbf",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/DPoPProofValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/DPoPProofValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 145511,
+      "byteLength": 8700
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ed34d8bd9144e621ead9c8310ceb10e4385b33d0e079985bc59da42702afd227",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/DPoPRequestState.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/DPoPRequestState.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 154211,
+      "byteLength": 515
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "0660ba72e9eb95bc308e831a9e3022073c5ff6bf54958c3ac570bb361822bea4",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/ECDsaDPoPProofGenerator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/ECDsaDPoPProofGenerator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 154726,
+      "byteLength": 5974
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f125238bb1a07a6ea81de6a63ab9401f9408e807ddbd29693867d20f34cb69be",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/FoundationDPoPFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/FoundationDPoPFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 160700,
+      "byteLength": 1800
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "9592f63a59119e83b4d048e663ead1836488d8013f49f41e2aa2f1b5351d2cc5",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/IDPoPNonceStore.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/IDPoPNonceStore.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 162500,
+      "byteLength": 622
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "32147271ca36fca7fd7b3124ab7edcfa1cbd04e75b285e2f02c1ceaab2f39dcf",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/IDPoPProofGenerator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/IDPoPProofGenerator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 163122,
+      "byteLength": 447
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b0de04e3584bb1106c16dab17968da96734b6ff555e6805109bd15cd0ba09b67",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/IDPoPReplayStore.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/IDPoPReplayStore.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 163569,
+      "byteLength": 604
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "8b6788981fe456e3979c3a5b1bdde5295687307ce8eebe8728108f9f0731c82b",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/InMemoryDPoPNonceStore.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/InMemoryDPoPNonceStore.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 164173,
+      "byteLength": 1055
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "c94e53fef96cadd23ed21a6529f5b48e71204b13113b38a017bbdae789c4b78f",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/InMemoryDPoPReplayStore.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/InMemoryDPoPReplayStore.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 165228,
+      "byteLength": 985
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "535a73bd77fba99074105ad27490b8b6376a2b352ff81d0b7871465cf595221b",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 166213,
+      "byteLength": 1612
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "c0acfec83bf2101bbe5e531f52aa3c39829be98dec8332adc7646b95f4be2d81",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 167825,
+      "byteLength": 1823
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "37d6ee8d370fb0ed4906504d8eec51aa88269811cb38b50ae1486901aba5d47e",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DPoP/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DPoP/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 169648,
+      "byteLength": 4461
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6eebece3891da35edadfa19dc67fd2c65b0b28726bd307c12bc63f81a131e04e",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/DownstreamApiClient.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/DownstreamApiClient.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 174109,
+      "byteLength": 5027
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ca1f1c3be86d1a38c4668373d2b122d04b1e4960e1d4ea815291fd63eb15c237",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/DownstreamApiOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/DownstreamApiOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 179136,
+      "byteLength": 574
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b10ab66b024e9e38f637968cb4dde2178274d8e50713549740acc6efe2917953",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/DownstreamApiOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/DownstreamApiOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 179710,
+      "byteLength": 3607
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "da3feaeea41ce553f1da2a6fd9daad694dc27c14cad6b3a9080cf1cd126cd7a9",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/DownstreamApiRegistration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/DownstreamApiRegistration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 183317,
+      "byteLength": 1173
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ee7844310af7977832d443dd9eb90364bdeecb3d368a60e989ea098c2bffb96b",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/FoundationDownstreamApiFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/FoundationDownstreamApiFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 184490,
+      "byteLength": 1414
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "720b43be403d5025cbcc26d7246c0f34c24f8a501becb56d32e81dc05b07e2c4",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/HttpContextAccessTokenAccessor.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/HttpContextAccessTokenAccessor.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 185904,
+      "byteLength": 1049
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6deed5eee3bb8b2a1b327df887aacf5b2c2a031ef6d38aa421795419032cf2d2",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/ICurrentAccessTokenAccessor.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/ICurrentAccessTokenAccessor.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 186953,
+      "byteLength": 403
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "5eb6d62fb76ff0b1c835f9c027b3198ddea32dbfd14b7369f52f18df25dfb001",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/IDownstreamApiClient.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/IDownstreamApiClient.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 187356,
+      "byteLength": 806
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f399c17a84ee9eef6c587e433ee4eb8e63a6eb599e8087eaa80684d1fc5f2588",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 188162,
+      "byteLength": 625
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "826bdfcd5c0db8e40c512e4b1e20b1c4905075e8ca43a4248f437427dfd6d707",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 188787,
+      "byteLength": 1230
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e80c2c067b245574db3e95e07d3a6ac085e7efc5b8d5204b2866a9ce0bd84f62",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.DownstreamApi/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.DownstreamApi/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 190017,
+      "byteLength": 826
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "85cbe060e0151753bab3eb18798dbadea55f2a0b863ae3610ecc1316a48b8ef7",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.SpaPkce/FoundationSpaPkceFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.SpaPkce/FoundationSpaPkceFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 190843,
+      "byteLength": 4908
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "39e887768d0fc97e922ab839c87e56e30357d7118d1c9beeee43a734938d34fb",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.SpaPkce/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.SpaPkce/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 195751,
+      "byteLength": 513
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b8962d0fec5376c809aac568c42926da7a9f4c85cd8f1cb2c954a7d9fd14fd71",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.SpaPkce/SpaPkceOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.SpaPkce/SpaPkceOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 196264,
+      "byteLength": 1456
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "1775cbae96726bc22498ba8e4737669cf058b4c0ff2cd0db94432edc5f968ec0",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.SpaPkce/SpaPkceProfileMarker.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.SpaPkce/SpaPkceProfileMarker.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 197720,
+      "byteLength": 318
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "44a0ffd732da6684bc6c19a782705dd09979512870a72944c5b2e0160d85a15d",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.SpaPkce/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.SpaPkce/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 198038,
+      "byteLength": 827
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "266918e68ac4bbd7a5403479995a7edce231e1202167690ac8ddedeea7052f09",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.SpaPkce/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.SpaPkce/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 198865,
+      "byteLength": 4149
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "0e9a36fe79df7ae98d3e48579a2ba1fd623f78c78fd4d0aa5bdff6e888c32202",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/FoundationTokenExchangeFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/FoundationTokenExchangeFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 203014,
+      "byteLength": 1184
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "00cab2e4100e07129d47d85938958d10d982a2460cd61e08884b3ac7dd8a2f8c",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/ITokenExchangeService.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/ITokenExchangeService.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 204198,
+      "byteLength": 767
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ae6b719908c733e2191d8e0d18ee805e60a9f935da4861a86211b42f22e22772",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 204965,
+      "byteLength": 513
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "92a61da16435cb9c4c88e24f636bfebf78d4f436182c49dc0cff31397a769b15",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 205478,
+      "byteLength": 595
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ed62ceafbb08b8e77da08070bf4ab2124b8e18d8d391e86163e1ade9b59923b7",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 206073,
+      "byteLength": 3197
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6ca7f579c582404661c4c78f4dc94b0bf1c261457c5951755d399c5d7ad1be1d",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeRegistration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeRegistration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 209270,
+      "byteLength": 1108
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "d2b5c61d6a563f1725567fb9280d1edc82f83d5fc76211eaa4344a52f489f470",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeRequest.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeRequest.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 210378,
+      "byteLength": 1353
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "bd30fdf96437c253e43203bac0eb0797a2d2cf874fdaa17aff73fd7177be42dd",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeResult.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeResult.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 211731,
+      "byteLength": 744
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7a4a42be8fd0001eee2f459f158428effe53c81d455072b392598460bf3276e3",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeService.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/TokenExchangeService.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 212475,
+      "byteLength": 8254
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7054b65d071d82ff083eea4c40fbaea5268f01f5f5f6f8b919a07a97240cf4cc",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 220729,
+      "byteLength": 1214
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "0819a26c9b9fea19f9a2e17225b857d5052c1f31725d72571a5627ce62061f58",
+      "publisherPath": "src/Orbyss.Foundation.Authentication.TokenExchange/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication.TokenExchange/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 221943,
+      "byteLength": 636
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "9f011d2222bb9f7615fa902dcf13c12541cb259832a28db8ec31c585c5f08090",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/DefaultAuthenticationErrorWriter.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/DefaultAuthenticationErrorWriter.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 222579,
+      "byteLength": 718
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3aafe90aabad98a4330a84feca2ca8fdb40fcec4c4697e6302fd13a26498ec19",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/FoundationAuthenticationFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/FoundationAuthenticationFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 223297,
+      "byteLength": 2778
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "d5cea8dde1008f58c300b02037447322332a5582303d34ddf4ce8f01fb51fa07",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/FoundationWebOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/FoundationWebOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 226075,
+      "byteLength": 3924
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "d2ceb8ce5309ca8da51b0e61c339abb7cf101a510a2f99c0d7d5862232345deb",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/FoundationWebOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/FoundationWebOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 229999,
+      "byteLength": 5692
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "d965483f0a1c5c817a0fc3415fc93d93e7bad83b32177750d840f143b9584b6a",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/IAuthenticationErrorWriter.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/IAuthenticationErrorWriter.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 235691,
+      "byteLength": 562
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b365e3944d9e1065953cbc32d66032d9895db65d38097f700d6dd3dd94eceedc",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/IFoundationAuthenticationProfile.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/IFoundationAuthenticationProfile.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 236253,
+      "byteLength": 285
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a087697b47b4d59ada7ebe1442930232867d23671ebe58eafb2cae83aaa0c837",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/PermissionClaimsTransformation.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/PermissionClaimsTransformation.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 236538,
+      "byteLength": 2164
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "25221ec37fc4d9e2aaf4bbdb28cc736fd0392a3bbb37e528b1c7142335a9f07a",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/PermissionPolicyProvider.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/PermissionPolicyProvider.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 238702,
+      "byteLength": 1264
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "43b375603f0dc6b1682d609a200fabd7480752cae96d7fcb725eb5704777b4b1",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 239966,
+      "byteLength": 1934
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "28beb03ed67900fc8be78bc3ae67b79e971aab457d9444df5d865040378e7ac7",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 241900,
+      "byteLength": 1226
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "0819a26c9b9fea19f9a2e17225b857d5052c1f31725d72571a5627ce62061f58",
+      "publisherPath": "src/Orbyss.Foundation.Authentication/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Authentication/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 243126,
+      "byteLength": 636
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "72c90f5cd339d4ebcf602e4ffe43e5fabf1d795fc68ca5f048715c9393a5539f",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents.Abstractions/DomainEventContext.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents.Abstractions/DomainEventContext.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 243762,
+      "byteLength": 756
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "8cb06a55820ec936bbc6d3cc2fefdd17327fe5d94988602ec19c6a97f76ed80c",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents.Abstractions/IDomainEvent.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents.Abstractions/IDomainEvent.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 244518,
+      "byteLength": 166
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a949708220e9dc1acadede7082fac85919ecbb9d95dc9cfeb85e74963492a1b2",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents.Abstractions/IDomainEventHandler.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents.Abstractions/IDomainEventHandler.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 244684,
+      "byteLength": 816
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3fc778bb2930c7605cbaa60df522b9ef2223792a0ffbfec145fb5ac98e32ce18",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents.Abstractions/IDomainEventPublisher.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents.Abstractions/IDomainEventPublisher.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 245500,
+      "byteLength": 778
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "d15a643e2a0088c23b9b6a17d3a3bcc5ff74e722d1a0fbb993f5a84ed6a119eb",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents.Abstractions/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents.Abstractions/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 246278,
+      "byteLength": 1084
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents.Abstractions/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents.Abstractions/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 247362,
+      "byteLength": 61
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7112d46c5322f305cd34779c8e76232c5523f0c3279f62f24186e36220b5a8d1",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents/DefaultDomainEventPublisher.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents/DefaultDomainEventPublisher.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 247423,
+      "byteLength": 4239
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7ab008d4ed30e6b46fc58c14f321412e2dd1e995a7c1fb72db8c9ad0b0cfc9bb",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents/DomainEventDispatchOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents/DomainEventDispatchOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 251662,
+      "byteLength": 886
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "22aa5cd42584dd806c414b84e0c651d56decbe584a606e07d218c7b15be3473a",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents/DomainEventDispatchState.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents/DomainEventDispatchState.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 252548,
+      "byteLength": 728
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a2af30ed07b507c8644e395e410686218d22e84067d8b5906575a0c8d3038d87",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents/FoundationDomainEventServiceCollectionExtensions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents/FoundationDomainEventServiceCollectionExtensions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 253276,
+      "byteLength": 1197
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "00439a59482fc18f9cc2c408faf7be5db762b4012a3b74f180df1ad4713e4316",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents/FoundationDomainEventsFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents/FoundationDomainEventsFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 254473,
+      "byteLength": 618
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "1e0b6dd3e43792aff22bea016f3ff2ff9a776daf5d135dfc18622677a9f7ef37",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 255091,
+      "byteLength": 1235
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "9eeb534f207ceca1a4adc79126817001452f65ccfbdc719247fbb90b9fac4aa1",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 256326,
+      "byteLength": 915
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "dfd9e3ab3d17a88db824d5d4ab317bcb647500dd9fdd68e69a97592f0a26a32c",
+      "publisherPath": "src/Orbyss.Foundation.DomainEvents/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.DomainEvents/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 257241,
+      "byteLength": 2535
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "9ab997637c81acce257d3bfdc70edd1cf76ca8ef530b617de981f65d2373fada",
+      "publisherPath": "src/Orbyss.Foundation.Host/NOTICE.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Host/NOTICE.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 259776,
+      "byteLength": 366
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "25d4e035898d94bb68a93785bb3d53d30ad981044c5682a488310cdedc767e92",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/CreateIdentityApplication.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/CreateIdentityApplication.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 260142,
+      "byteLength": 393
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "cf1f879a27cb84782e2d2eb55afa4e2414929251dc68d5d8029e50f9577ce721",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/CreateIdentityUser.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/CreateIdentityUser.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 260535,
+      "byteLength": 352
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "fbc56d76206188f544f092d9e6bf6a0db3a5b6ffb0e0a98de13e756db72bf1cb",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityAccessAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityAccessAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 260887,
+      "byteLength": 2090
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "57a2a473d6f326cba1973c16be6ad4bbf9bb04a820f30cbaccfcd0641a235e50",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityApplicationAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityApplicationAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 262977,
+      "byteLength": 1450
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "60a0a946aeb87f6da495f36d33818e736f234e25cddafd61213068ef93230e15",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityEnrollmentAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityEnrollmentAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 264427,
+      "byteLength": 1122
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b129bc32cd68c17b772d7c0bcabc692e5e3583130b4973c89d66b6d04e6b7549",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityScopeAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityScopeAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 265549,
+      "byteLength": 1621
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "83a68f3e506ad2448c9890a4529c3b782403ca8e95c8903d95c8f3b8e93085c5",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentitySessionAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentitySessionAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 267170,
+      "byteLength": 702
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a7d8851fefaa2de1a52cec808f58da902fc102717cd7643867a298d2770c2bf4",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityUserAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IIdentityUserAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 267872,
+      "byteLength": 1177
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "82c9d637d4d1e14984a6cad5e904d7ad6d1644dc71e35dcedf856abd36ddb7ca",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityApplication.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityApplication.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 269049,
+      "byteLength": 302
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "fab8af8df7a223135169dc8a67679a9dd2aa88857dcb2798fca5ee92e10fb44f",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityClaimMapping.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityClaimMapping.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 269351,
+      "byteLength": 347
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "021b5006e2daaeb0bbd2a58e0440b364d188541a315f9a602a3e81302f114437",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityCredential.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityCredential.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 269698,
+      "byteLength": 226
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "c31fafc9156a599402da882a9827e82b67ec44d96dfcf8d7d2f25461e7c58220",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityEnrollmentAction.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityEnrollmentAction.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 269924,
+      "byteLength": 600
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "aa9e86fa768084a9af5848b794cf99e4ba2e84d1ad33e5da1659beb66866c8c1",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityGroup.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityGroup.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 270524,
+      "byteLength": 174
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "1c740a8d671f30406d0d1e7cc91ab045320e4f4700b2692f9d6947fb82dfd792",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityPage.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityPage.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 270698,
+      "byteLength": 216
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ba27eb1bb217b751c4ac146d7eb8f4da12a51612e0ba235088bafe48380c3f3f",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityRole.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityRole.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 270914,
+      "byteLength": 196
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e28b9f809940d2a0d48f35cdebe52871075af82508bd599cb4f02680b2e1c955",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityScope.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityScope.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 271110,
+      "byteLength": 192
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "9e8e48f0e6aeaf93ef911ed9ed43c49a21b749c52bb75a76811800dd6bc21f90",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentitySession.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentitySession.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 271302,
+      "byteLength": 286
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "da216c69cf2be8bf36d5116663c83eed5b9ce53f4bb47c71349bb823fa835730",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityUser.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/IdentityUser.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 271588,
+      "byteLength": 299
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "179ef918c48767de5cbaa62e6e5f523362ceb1e1ed4152fb372787dc9410e010",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 271887,
+      "byteLength": 354
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "784dc378ed18181b1c72e9b310a5c1ddeaa64fd8f664f689e01f1d21adfe44ee",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/UpdateIdentityUser.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/UpdateIdentityUser.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 272241,
+      "byteLength": 340
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Admin.Abstractions/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Admin.Abstractions/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 272581,
+      "byteLength": 61
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "db60a49e117563004308b90b3c2e813646bee498c272123ef4abbbfc6a0b6f17",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/AccessToken.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/AccessToken.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 272642,
+      "byteLength": 216
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3e391b928df58fb8908eda8e92104ebfee15265aae037257953c8aa2b1559b06",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakAccessAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakAccessAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 272858,
+      "byteLength": 888
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "959843e1e958a59a6c941934652907bdc88f4b519eb0e77870be55cd30acef8e",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakApplicationsAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakApplicationsAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 273746,
+      "byteLength": 896
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "09afdca20186ecc2551726ae5869ed5952d56b87326d9df70e0f09b02cb89bb6",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakAuthenticationFlowsAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakAuthenticationFlowsAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 274642,
+      "byteLength": 879
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "59eba8097f17ef73c8345fe5e75e073f9436cd91fc7ac75e35f9c0e7d9d7ade6",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakEnrollmentAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakEnrollmentAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 275521,
+      "byteLength": 905
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "dd196f10a14a15a1a33807e77c42868916640793e4dcd7c08a786d16bbb8fccb",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakIdentityProvidersAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakIdentityProvidersAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 276426,
+      "byteLength": 868
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "aa390916118caf1326fc00d430a81428781f5c0f0c63a0882057a561262c20d7",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakOrganizationsAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakOrganizationsAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 277294,
+      "byteLength": 835
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a951918ac7f7711803d1a91c3d01e632ab505a69138915f818408715e5f0adc7",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakRealmOperationsFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakRealmOperationsFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 278129,
+      "byteLength": 832
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "003986e34804c3d6a69beb91771d4aa5d7101fcc66236af728af878d24b7d58a",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakScopesAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakScopesAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 278961,
+      "byteLength": 899
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "80117a94e22d3c32134a3d5aa0908d6ed62522e81d0a860f75be53753232e154",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakSessionsAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakSessionsAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 279860,
+      "byteLength": 880
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "8fd9e8877c8cd4e04ed1eba1f6a7409291235c2d03391b3698b24c41f2be769e",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakUsersAdminFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/FoundationKeycloakUsersAdminFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 280740,
+      "byteLength": 872
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "381ed770db5709065a5eb3722b892279305175d8ebeea18ceb5ec6892c49b954",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/IKeycloakAuthenticationFlowAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/IKeycloakAuthenticationFlowAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 281612,
+      "byteLength": 1732
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "126c61c9157a5feb7dcc0d11a7d872b76673b5bf132298fa996aed3b5f472359",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/IKeycloakIdentityProviderAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/IKeycloakIdentityProviderAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 283344,
+      "byteLength": 1970
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f2bd15d6f483040f1938466337ab0d03a8d06b2b2b81db11c9b4e8b61375ea8b",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/IKeycloakOrganizationAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/IKeycloakOrganizationAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 285314,
+      "byteLength": 1828
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3c48dab2a9ed1c97d2d16959555985b3440ba5c4ae44a2b8efbd3537ddb5eeb7",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/IKeycloakRealmOperations.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/IKeycloakRealmOperations.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 287142,
+      "byteLength": 1530
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ce9a716d48b4806010cab1cf9404c9b5ecd16d3bf0201447cad3641ff070fe09",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAccessAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAccessAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 288672,
+      "byteLength": 3895
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "98f7af2972eb7f6eddb887e4a48fbcb3027fb03f6ad7b36dda1d0f7f8feeb1c1",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAdminComposition.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAdminComposition.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 292567,
+      "byteLength": 1002
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "763ec3fb0e007e6aa21040fb04b614b85da4dd393a91581fcc3033be898791b8",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAdminOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAdminOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 293569,
+      "byteLength": 1573
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3306d9ebfc9e668e9e5e58cdffb27fb4b70a6cc62b3632585b9dfaf140707400",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAdminOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAdminOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 295142,
+      "byteLength": 2465
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "11eeb8a428355d70b958c998d5deaa42692e0c61c04142e1896d39f0b9d9c94d",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAdminTransport.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAdminTransport.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 297607,
+      "byteLength": 8308
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "0f2c69987b658a94b1282b4e04547fe24f77023b53c119b9d7aa3f19fb90e432",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakApplicationsAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakApplicationsAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 305915,
+      "byteLength": 3249
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "4ea033d75bf15ba2afe88737e33d523e6bbd00525f761fcceda5790da482eb44",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAuthenticationFlowAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakAuthenticationFlowAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 309164,
+      "byteLength": 2517
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "da9331cfb9f7cb05108b2cabee83d8da04dc6c8d3ea104603e93c07bd1ecd163",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakEnrollmentAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakEnrollmentAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 311681,
+      "byteLength": 3008
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ed8b47ce80d5ca4a3066afb28a4bbd99836ae9abaa43853e92080d5af5298274",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakIdentityProviderAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakIdentityProviderAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 314689,
+      "byteLength": 3153
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "4003017fedba8a4e292e71ab580c8471ca8033c01dd0e876d75fdf3a62aaaaa4",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakJson.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakJson.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 317842,
+      "byteLength": 5381
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "81ba07a641aba84269a4d0e569fa8d5ac7a5beabd4150a84889b41d024af3391",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakOrganizationAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakOrganizationAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 323223,
+      "byteLength": 3020
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "36636e9038e3c47f69485c98fe0a12f3e6681340b462740e2cb4036762a2bf07",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakRealmOperations.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakRealmOperations.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 326243,
+      "byteLength": 2486
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "96d61d98233c1e1380c4726e533b477d4130f86cd2f74c7c42ff5f9dbde5b371",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakScopesAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakScopesAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 328729,
+      "byteLength": 3364
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3f090f260ced4e75b50bc3b6585866e3fd4e2ce53754faeea5f8953a286f9d6f",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakSessionsAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakSessionsAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 332093,
+      "byteLength": 1163
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e5ca2d6744781cf5a3b040a775e3a9ee3913bf42e7e5857e1fcd3dc8dbda74c6",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakUsersAdministration.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/KeycloakUsersAdministration.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 333256,
+      "byteLength": 2481
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "2f65db9a4b3fc5bbea560369fa1acc3885a58b089c9abfc2a4cbf01af26335ac",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 335737,
+      "byteLength": 1152
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b190a1f35ac9198cfcbdcc9415cd6233bfeb631df4d093eec15815c9dcd22b6c",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 336889,
+      "byteLength": 6187
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "52e8a5ece34372b630b23deba35191b38de9c521af8c1c30153d65114daefbfa",
+      "publisherPath": "src/Orbyss.Foundation.Identity.Keycloak.Admin/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Identity.Keycloak.Admin/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 343076,
+      "byteLength": 728
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "10d9466818c0bcbefde70b88d881b4a9acec72e0974089e315df8eb19a5cff3f",
+      "publisherPath": "src/Orbyss.Foundation.Json.AspNetCore/FoundationJsonFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json.AspNetCore/FoundationJsonFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 343804,
+      "byteLength": 1873
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b8f75fdcde620603f6a9c0464ee164a39991c55ec9382a90c537bdaa2a68239b",
+      "publisherPath": "src/Orbyss.Foundation.Json.AspNetCore/FoundationJsonOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json.AspNetCore/FoundationJsonOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 345677,
+      "byteLength": 462
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e82df72ee824824b209668a0b7f31f586bf8a91074e9f77435d5a6a87cba41a5",
+      "publisherPath": "src/Orbyss.Foundation.Json.AspNetCore/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json.AspNetCore/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 346139,
+      "byteLength": 1089
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7a310987229f94a88c40be0e147e73021b262ef73781768e9961675360f55da8",
+      "publisherPath": "src/Orbyss.Foundation.Json.AspNetCore/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json.AspNetCore/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 347228,
+      "byteLength": 572
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "2784bbde07e303bbb72f7a1088e23a44c877accf7b161c549d4f04e27e1dfdbb",
+      "publisherPath": "src/Orbyss.Foundation.Json.AspNetCore/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json.AspNetCore/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 347800,
+      "byteLength": 1136
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "796fc5264ed316555091a38e9d0014ff911122984a01c4b80e2bff0455b510e9",
+      "publisherPath": "src/Orbyss.Foundation.Json/GuardedJsonTypeInfoResolver.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/GuardedJsonTypeInfoResolver.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 348936,
+      "byteLength": 676
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "1e588bb6dd552d500e727c52ee13d3522651a665c67e94c9386b35081affb423",
+      "publisherPath": "src/Orbyss.Foundation.Json/IJsonProfileExtension.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/IJsonProfileExtension.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 349612,
+      "byteLength": 688
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "500ea52096741a05a7795577aaa7c07e9d20ee72b7221479ccc089e56d560fcb",
+      "publisherPath": "src/Orbyss.Foundation.Json/JsonCanonicalizer.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/JsonCanonicalizer.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 350300,
+      "byteLength": 5950
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "2b61bb90be7ce64927798a6ec73dae9313cbe7ddbc21daac35c1f21ac43999e3",
+      "publisherPath": "src/Orbyss.Foundation.Json/JsonProfile.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/JsonProfile.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 356250,
+      "byteLength": 7547
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "4933e698636e5157935734589b856cf41eb1abf2d12a3ed7b29cec8278843b71",
+      "publisherPath": "src/Orbyss.Foundation.Json/JsonProfileCatalog.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/JsonProfileCatalog.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 363797,
+      "byteLength": 1171
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e4a010341d94cfe12777baa0a664f246c46009381ce782f5808ba5b337f73258",
+      "publisherPath": "src/Orbyss.Foundation.Json/JsonProfileException.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/JsonProfileException.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 364968,
+      "byteLength": 450
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "09eca592b7ce30939ae42f9014463e081e3827fd89d9ad04020edd7bad2f2a21",
+      "publisherPath": "src/Orbyss.Foundation.Json/JsonProfileSettings.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/JsonProfileSettings.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 365418,
+      "byteLength": 722
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b4f283fd0562157365eef7a643ffa77338013afe9db188a0f09bb84aeebe8504",
+      "publisherPath": "src/Orbyss.Foundation.Json/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 366140,
+      "byteLength": 3399
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ac04414581bb6ad01d3df7dd57947210a39cbbbafef1f26b65701231275ba2ca",
+      "publisherPath": "src/Orbyss.Foundation.Json/RawJsonNumber.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/RawJsonNumber.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 369539,
+      "byteLength": 931
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b415dd752f25c840f37c74214ffebd26894eae2c327c65ad77d6e8d17896cab4",
+      "publisherPath": "src/Orbyss.Foundation.Json/RawJsonNumberConverter.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/RawJsonNumberConverter.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 370470,
+      "byteLength": 965
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "publisherPath": "src/Orbyss.Foundation.Json/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Json/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 371435,
+      "byteLength": 61
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "09164ea5356f68ce50d3012ba60958c806e12cc08e368646274413002449a4f3",
+      "publisherPath": "src/Orbyss.Foundation.Mcp.AspNetCore/FoundationMcpFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Mcp.AspNetCore/FoundationMcpFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 371496,
+      "byteLength": 2170
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "acc15d4a3e044e358175a33582478df95dabcf30955bcf88ddc1ba426644f3ed",
+      "publisherPath": "src/Orbyss.Foundation.Mcp.AspNetCore/FoundationMcpWebOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Mcp.AspNetCore/FoundationMcpWebOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 373666,
+      "byteLength": 588
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e21df5d85ae2403e2601a6f88c9bf02a70b60d391395a7e8826f93902da2dc05",
+      "publisherPath": "src/Orbyss.Foundation.Mcp.AspNetCore/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Mcp.AspNetCore/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 374254,
+      "byteLength": 657
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "1d77a0b068c24de3825b74b66ae514f41a24d09ceb4e855b00ad8166d2fc211d",
+      "publisherPath": "src/Orbyss.Foundation.Mcp.AspNetCore/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Mcp.AspNetCore/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 374911,
+      "byteLength": 617
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "2f5dea596f17bb71d18bced6816e329f6f27565774e05b8d355ad9d3aa0ccde7",
+      "publisherPath": "src/Orbyss.Foundation.Mcp.AspNetCore/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Mcp.AspNetCore/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 375528,
+      "byteLength": 2290
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "bbd45d5400b98ec3f941fe4011bb78241a49f3eb45b744b0395b3054eec5eef4",
+      "publisherPath": "src/Orbyss.Foundation.Tasks.Abstractions/IBackgroundTask.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks.Abstractions/IBackgroundTask.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 377818,
+      "byteLength": 572
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "c9dd5ebc8231531d8199dcfeea962971a4c6b2e19588bc608750fee3326651b0",
+      "publisherPath": "src/Orbyss.Foundation.Tasks.Abstractions/IFoundationTask.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks.Abstractions/IFoundationTask.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 378390,
+      "byteLength": 272
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "5b2e076213ebd066e4cf5798addf1782a07f93fd9731ca9a034897884baece3d",
+      "publisherPath": "src/Orbyss.Foundation.Tasks.Abstractions/IRecurringTask.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks.Abstractions/IRecurringTask.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 378662,
+      "byteLength": 725
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6f1fa100ed3d30c6edee0d0e94207ff7a6e61674c022127fe8b82667464bc8f3",
+      "publisherPath": "src/Orbyss.Foundation.Tasks.Abstractions/IStartupTask.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks.Abstractions/IStartupTask.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 379387,
+      "byteLength": 448
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b0e1df70066872b85805d87938496996d30f82c39b99e97226f1f886dd277381",
+      "publisherPath": "src/Orbyss.Foundation.Tasks.Abstractions/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks.Abstractions/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 379835,
+      "byteLength": 612
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "422c6c73e3add9df9ac8718047029ba550314ead810271a36190d92629030962",
+      "publisherPath": "src/Orbyss.Foundation.Tasks.Abstractions/TaskServiceCollectionExtensions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks.Abstractions/TaskServiceCollectionExtensions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 380447,
+      "byteLength": 1882
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "2b69419cd25c90bcb459325b2797a45d152f0b41080e3f0624244d18e92af3bf",
+      "publisherPath": "src/Orbyss.Foundation.Tasks.Abstractions/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks.Abstractions/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 382329,
+      "byteLength": 346
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "01af38acc33258065adf2cd5e4f5f635f84d4a53010c3346dca94523ca1e7eb7",
+      "publisherPath": "src/Orbyss.Foundation.Tasks/FoundationTasksFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks/FoundationTasksFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 382675,
+      "byteLength": 935
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "71b0724a8702282d5264c5484db8628f16d380161011daaf276fedcd6e3ac13b",
+      "publisherPath": "src/Orbyss.Foundation.Tasks/IShellTaskManager.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks/IShellTaskManager.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 383610,
+      "byteLength": 767
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "4d5a9d632cd4b408fcf83909d4c98bbbfc4b20a46e4d9f84e88bd4955f2710fc",
+      "publisherPath": "src/Orbyss.Foundation.Tasks/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 384377,
+      "byteLength": 556
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6a2da1de31f19692195890f85ae1a4b7471fc07f275a5e9fad1750e3c0ad8b6f",
+      "publisherPath": "src/Orbyss.Foundation.Tasks/ShellTaskManager.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks/ShellTaskManager.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 384933,
+      "byteLength": 6755
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "12a7305fe61675ee8ecbec582ca7332fc809444688c2759e35f3f5f9b2ad0dbb",
+      "publisherPath": "src/Orbyss.Foundation.Tasks/StartShellTasksInitializer.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks/StartShellTasksInitializer.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 391688,
+      "byteLength": 458
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "d09be2447cb5edb75402b14f1471f640369bbf512b558fb0af93c1d9e9d6ca85",
+      "publisherPath": "src/Orbyss.Foundation.Tasks/StopShellTasksTerminator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks/StopShellTasksTerminator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 392146,
+      "byteLength": 460
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6df16e80460bcfef4634321a02695fab2689dabd7a9776d5c98a66259798e724",
+      "publisherPath": "src/Orbyss.Foundation.Tasks/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 392606,
+      "byteLength": 844
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7209e214ebf985a1990d2c89e08ba3ff4108b1082d2fc7a23475146354e39906",
+      "publisherPath": "src/Orbyss.Foundation.Tasks/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Tasks/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 393450,
+      "byteLength": 2911
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "dac957ca411531442c5ff3fc0950214b878272a32206ca546088881da24eea11",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery.Abstractions/IPublicDocumentCatalog.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery.Abstractions/IPublicDocumentCatalog.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 396361,
+      "byteLength": 360
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e2ef1bb0735acecd07c9e2d81326040a0abed1df4d696958d8503acd499aacc5",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery.Abstractions/PublicDocument.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery.Abstractions/PublicDocument.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 396721,
+      "byteLength": 618
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "c1461d38962cda13c6b830207f907d8fa10490c3d24a651d32e10e6062b8a3cb",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery.Abstractions/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery.Abstractions/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 397339,
+      "byteLength": 535
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery.Abstractions/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery.Abstractions/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 397874,
+      "byteLength": 61
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "b4b412263d527c5fe49f4b131ac0ccab4205704f8fd5bcef929b30dc0cb0f2df",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery/DiscoveryOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery/DiscoveryOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 397935,
+      "byteLength": 522
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "eeb099b623d5abeeb1f4bf548f7c29b355e2097b4b8aefc6a3689599095ad03b",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery/FilePublicDocumentCatalog.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery/FilePublicDocumentCatalog.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 398457,
+      "byteLength": 5146
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ef974aef9b7022b8baf0861063f3bfa734d961284871d3b509a9275e32ea58d1",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery/FoundationDiscoveryFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery/FoundationDiscoveryFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 403603,
+      "byteLength": 2886
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "056f9cbf79cc0471aadb44f3d1eb5d75cca9b10ea6541bbca10864f10d4baa5c",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery/PublicationManifest.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery/PublicationManifest.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 406489,
+      "byteLength": 432
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6136b5f6177846b70c2a9d1fb886ecacbc3ede96f111d26d2c96cf4cb4da58c3",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery/PublicationResource.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery/PublicationResource.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 406921,
+      "byteLength": 913
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "18347ec46a0f259e0f73bb38c3c991f061de36aa57d47814f39b25dff1ca18e3",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 407834,
+      "byteLength": 1637
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "5cc2df4cb4ce6d1f585063d4c63894fd5ba235e222b533d946a88c953ab9c732",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 409471,
+      "byteLength": 914
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "61648bc5761d2c2d5bbb1b660046d5840508981a69aca93fc942616c05a05f6a",
+      "publisherPath": "src/Orbyss.Foundation.Web.Discovery/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.Discovery/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 410385,
+      "byteLength": 1303
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f82eac4f42d8354bfc38517027dfb980f7fd2f576f260516c6d1a9a4cc7c8bb5",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/AdmittedHostedRevision.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/AdmittedHostedRevision.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 411688,
+      "byteLength": 695
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a065bdd295399c1ef0b092c50e92dc95f7b9a4b83ddb2a6f58427c44b7e673b9",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/FoundationHostedPagesFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/FoundationHostedPagesFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 412383,
+      "byteLength": 5319
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "bf0899130f1380befbdc0f36b30e40725a53e144889b56c7fc40bbdd9b4f0160",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedAssetAdmission.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedAssetAdmission.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 417702,
+      "byteLength": 3957
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "76e2a21c960803e3c096ad34cba17d5026d0f9c863d5ee8ef1668e9a5ee7a596",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedAssetDescriptor.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedAssetDescriptor.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 421659,
+      "byteLength": 924
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6f6618812a06b83a9f51a388160ef4161c17842f6954187725e31f2b7a1bb737",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedBrandLocale.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedBrandLocale.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 422583,
+      "byteLength": 917
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7b42ba832d6e0b5b439eb23acdf1eb63bd242dc068e2ac7077ab78a204f1e4e6",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedPageCatalog.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedPageCatalog.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 423500,
+      "byteLength": 8174
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7ab1bacb031f69da18e943d01bf9ae213db1e7ed5ac15f4323e5b2c20af5fa00",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedPageManifest.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedPageManifest.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 431674,
+      "byteLength": 616
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "0c2a53dd33a3a870cbd4caa0cbc75792bff4f18e23fb34263a8941d34cdbe284",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedPageOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedPageOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 432290,
+      "byteLength": 1106
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "4fa65a04fb199bd1f7987732dc48ea82db16aa5038b8cd83f3c9b838c82922da",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedPageRendering.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedPageRendering.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 433396,
+      "byteLength": 6265
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7e49ce263999d840eaba79542d9d16117e1df546a9f2b8657062ed70c57cb6f7",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedPageRevision.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedPageRevision.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 439661,
+      "byteLength": 1426
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "c2abdb654125efc3fb6b15f82bc81413805e33410c2e2f78c1aa5cb46f31a844",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/HostedViteChunk.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/HostedViteChunk.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 441087,
+      "byteLength": 1260
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "2ecd704b528cb3a093462fc6e1eea001f3140c5b29a1dac15211f9220a194edd",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/IHostedAssetSource.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/IHostedAssetSource.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 442347,
+      "byteLength": 374
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "e317ed0274ab74944ed700b94af890d194b3a16c6410e31ec137213a47db7847",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/LocalHostedAssetSource.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/LocalHostedAssetSource.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 442721,
+      "byteLength": 1808
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6760670f76612f94355b2b68141ca2e035178a7b21fa266da613616bf3bd0dd7",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/PngAdmission.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/PngAdmission.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 444529,
+      "byteLength": 3864
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "eec41f81b55ae7c23787095ea53abe7276a7d68aa1f4e68d1f5596d637c103f8",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 448393,
+      "byteLength": 5563
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ae51b838866c1db2e02928e5430b9b956eb76e1f6b5134716ad1acc1e47d2540",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 453956,
+      "byteLength": 1835
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "22e10217943444ce86cf6620fa80988f4b395b52514fa2e33ef71614a1818d77",
+      "publisherPath": "src/Orbyss.Foundation.Web.HostedPages/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.HostedPages/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 455791,
+      "byteLength": 1212
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "12d6768816aacbaf7c71451e3745eb0316765835ee0a1be751f69c619fa90e98",
+      "publisherPath": "src/Orbyss.Foundation.Web.OpenApi/FoundationOpenApiFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.OpenApi/FoundationOpenApiFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 457003,
+      "byteLength": 933
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "43a27e479d42c66480ab85f9ced67a6ee4fdbab7999dc46265df3a0955b756df",
+      "publisherPath": "src/Orbyss.Foundation.Web.OpenApi/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.OpenApi/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 457936,
+      "byteLength": 293
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "814c3a507f2b84852c2507c2384e16f8d7cda94f69a68d8470ea7af4a4797cec",
+      "publisherPath": "src/Orbyss.Foundation.Web.OpenApi/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.OpenApi/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 458229,
+      "byteLength": 531
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ba3cb3ff1bd525d87e99a50aa11c66d84ece4bb294e1feee79b73f9d3c0f17bc",
+      "publisherPath": "src/Orbyss.Foundation.Web.OpenApi/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.OpenApi/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 458760,
+      "byteLength": 1619
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a6dda565aa133ef454cd8bf094a67d419ebdc8a18c3691cd9bf555d2382d7d65",
+      "publisherPath": "src/Orbyss.Foundation.Web.ProblemDetails/FoundationProblemDetailsFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.ProblemDetails/FoundationProblemDetailsFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 460379,
+      "byteLength": 2319
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3ce907b672952b6aa7a4e66831bd5f8a0e3fe11b937ea8e4cefc73550ace1129",
+      "publisherPath": "src/Orbyss.Foundation.Web.ProblemDetails/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.ProblemDetails/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 462698,
+      "byteLength": 335
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "7578f4456a23a6fb34aa95b7734574c68ae6f1195aa675a3fdd59e622648168c",
+      "publisherPath": "src/Orbyss.Foundation.Web.ProblemDetails/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.ProblemDetails/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 463033,
+      "byteLength": 488
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f27815886a3d15bdfe9029f4f10de785af8800d33620b9abda2be615173c15e4",
+      "publisherPath": "src/Orbyss.Foundation.Web.ProblemDetails/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.Web.ProblemDetails/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 463521,
+      "byteLength": 1067
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "1f53e2c0e0650b649d5296df3e3f2d31f94ea0b8b14cb25fed8d83534b800150",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/CorrelationAndSecurityHeadersMiddleware.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/CorrelationAndSecurityHeadersMiddleware.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 464588,
+      "byteLength": 1456
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "113313707f353ea3100822d5b07c8f515cbf38060462d43e034140d89b449f10",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/FoundationWebDefaultsFeature.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/FoundationWebDefaultsFeature.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 466044,
+      "byteLength": 3784
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "104cd06d7440c3c26914d7cbffb51a34084898b7bce09eb2808da81692c94450",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/FoundationWebDefaultsOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/FoundationWebDefaultsOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 469828,
+      "byteLength": 504
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "9bc58c697dcc37daac0aad65353a77054e2bc618aca3cbf49768dafc3d35abc7",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/FoundationWebDefaultsOptionsValidator.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/FoundationWebDefaultsOptionsValidator.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 470332,
+      "byteLength": 1760
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "27621528e39ccf68eae811d62ba504e4c86242b6802e17ac6879b477714c7309",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/README.md",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 472092,
+      "byteLength": 3471
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "261b0c3ff52794dec1eabf524ec83725d0d415b21294686c42dc9fc4b8397ae4",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/WebResponseMetadata.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/WebResponseMetadata.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 475563,
+      "byteLength": 748
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f713bc35fba4b03fcba94407e0fbfe5d0be49ac3d63e86291dbe3aa74e1ea840",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/WebResponsePoliciesMiddleware.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/WebResponsePoliciesMiddleware.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 476311,
+      "byteLength": 3078
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6812cdd90a47581e4487cd1d04350207804585e9b665aff9be3d3afa9b40e7a0",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/WebResponsePoliciesOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/WebResponsePoliciesOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 479389,
+      "byteLength": 990
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a4a1f446cbb5a2dd6037bba5649f42427af80194feadb2f32c4094d47f2643c1",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/WebResponsePolicy.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/WebResponsePolicy.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 480379,
+      "byteLength": 647
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "50d148698f0167aba22c46af5da4a6e193d3dd453688251e0082df02af3a6806",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/WebResponsePolicyCatalog.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/WebResponsePolicyCatalog.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 481026,
+      "byteLength": 6127
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "077cbff4b433469a0f60d636f73d65a26cd8686ac76259e0b1da973492a10976",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/WebResponsePolicyOptions.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/WebResponsePolicyOptions.cs",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 487153,
+      "byteLength": 992
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6ff496103ce01695455c7d51f28e3e5428121c5879f58c2956847863f866308d",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/feature.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/feature.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 488145,
+      "byteLength": 1425
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "f27815886a3d15bdfe9029f4f10de785af8800d33620b9abda2be615173c15e4",
+      "publisherPath": "src/Orbyss.Foundation.WebDefaults/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/ab22740d9bc86f01d3220751182cdcfcef9104ef/src/Orbyss.Foundation.WebDefaults/packages.lock.json",
+      "sourceCommit": "ab22740d9bc86f01d3220751182cdcfcef9104ef",
+      "byteOffset": 489570,
+      "byteLength": 1067
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "8613b3dc84fe6b6a2e676b9a8fcb2d969ad09a71a44b321676b7f8db997f367b",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/Arguments.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/Arguments.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 490637,
+      "byteLength": 1308
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3a10a3404f0f0825f2719a6fa69513ac7f92594e3ebea5066f8fa92fe2496912",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/AssemblyResolver.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/AssemblyResolver.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 491945,
+      "byteLength": 1616
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3e0564865fbacc968c22b818d7000ee284755c96f4a024f774d2d34fe08636f7",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/BuiltInFeatureDefinition.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/BuiltInFeatureDefinition.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 493561,
+      "byteLength": 294
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "ec767639710c5396d66f81a0b65520e48959f8c0a86c2b6f4147a62ba6fe0cee",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/BuiltInFeatures.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/BuiltInFeatures.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 493855,
+      "byteLength": 4008
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "368ee09f75f0b4a60113a990360e954ff64395811b5d5b89128101f031401e68",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/Contract.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/Contract.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 497863,
+      "byteLength": 1375
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "4f4114cca581917eb0c47d8b1c1baf01527d1e2baec679beb32a3486588f5bca",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/Exporter.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/Exporter.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 499238,
+      "byteLength": 16552
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "6f501e3e06f2644002be000409dc6d1f42047e8e60efd2147d4f2323fdc12ac4",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/FeatureDescriptor.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/FeatureDescriptor.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 515790,
+      "byteLength": 468
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "bf8d9ae26b89037ae2e95e925dc3846c3bdbd0f813570e2bc19bd5d23204aa4b",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/NoopServer.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/NoopServer.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 516258,
+      "byteLength": 1005
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "3a9cf24c453fef69849c815c8e3596ba6b2195b1bdb7cd70246c3b306c09d6f4",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/PackageSet.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/PackageSet.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 517263,
+      "byteLength": 9578
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "a82e709acb356fbb68402eaa550014e5ea9eeee5b5ab6b7ccde3b3012656587d",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/Program.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/Program.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 526841,
+      "byteLength": 100
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "dd79c247b4dd81015c71d93486b8e671d5b463c86a0917d2be2b4698acfe041f",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/README.md",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/README.md",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 526941,
+      "byteLength": 1142
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "99c46b6c65874de81f608796e9fe4c452ae8a46cf693209f4824da20860e0b65",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/Shell.cs",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/Shell.cs",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 528083,
+      "byteLength": 3273
+    },
+    {
+      "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+      "sha256": "933125da71ec66a2dec516256097591d3e1540d5fc44c7f7b802b0d4cd42c65b",
+      "publisherPath": "src/Orbyss.Foundation.OpenApi.Exporter/packages.lock.json",
+      "url": "https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/672357af79ad27eafed900a7c549c790303ece87/src/Orbyss.Foundation.OpenApi.Exporter/packages.lock.json",
+      "sourceCommit": "672357af79ad27eafed900a7c549c790303ece87",
+      "byteOffset": 531356,
+      "byteLength": 1608
+    }
+  ],
+  "hostImage": "ghcr.io/orbyss-io/foundation-host@sha256:9511e8669a5896a2c10ee5f315fd28b38ccf8030ea45698a8a346a75fda33101",
+  "boundary": "Exact publisher facts and source guidance; selected architecture and compatibility remain Program Kit/consumer responsibilities.",
+  "sourcePack": {
+    "path": "knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+    "sha256": "3ad03ca0f7b50be8b70d0179b7a6158b09cca06b07fcea1d07def8b0513c651c"
+  }
+}

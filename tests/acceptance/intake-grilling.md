@@ -88,6 +88,39 @@ named journey survives, each decision's provenance is accurate, and no unresolve
 was hidden behind a deferral. Report observed failures, not merely whether prescribed phrases
 appeared. A successful conversation can become a reviewed fixture for later regression work.
 
+## Functional discovery review
+
+Review the new consumer's conversation against `functional-discovery.md`. Keep these reviewer
+expectations outside the consumer; the only product input remains the human's opening idea.
+
+| Evidence in the conversation and handoff | Acceptance expectation |
+| --- | --- |
+| Relevant discovery areas and question groups | The human understands the subject being explored. Groups follow dependencies and supplied answers, without a fixed questionnaire or an oversized all-at-once round. |
+| Concepts, identities, lifecycles, policies and conditions | The agent establishes product meaning with examples and relevant knowledge. It does not infer consumer rules from packages or turn every noun into an architectural boundary. |
+| First useful journey and material alternatives | A walkthrough connects actor, subject, decisions, changed state, visible result and recovery. Gaps are resolved or visibly assigned to a legitimate later trigger. |
+| Included UI | Brand/design-system references, theme and visual preferences are invited. Information hierarchy, navigation and interaction follow the journey. Unspecified preferences remain unspecified; proposals and technical defaults are distinguishable. Headless products receive no UI questionnaire. |
+| Compact connected functional handoff | Concepts, lifecycles, policies/conditions, journey steps, candidate slices and acceptance examples share stable references in the existing artifacts. No duplicate model dossier, JSON registry or extra confirmation gate appears. |
+| Assessment, architecture and first specification | Settled product meaning and experience choices survive the handoff. Feature intake deepens the chosen outcome rather than repeating whole-product discovery. |
+
+Record missed choices, premature recommendations, invented preferences, unnecessary questions and
+lost meaning. A routed reference or filled heading is supporting evidence, not proof of understanding.
+Keep later-feature detail proportional and preserve explicit exclusions.
+
+## UI experience and recovery review
+
+For an included UI, inspect the design layers and only the first feature's relevant states. Confirm
+that layouts derive from journeys, that existing frontend/component choices retain authority, and
+that a starter/default is distinguished from a human preference. Use the optional profile explain
+view after sources exist; it is not another intake gate or source of decision authority.
+
+At the existing feature handoff, review the actual composition in light/dark and relevant screen
+sizes. Check labels and useful hints before errors, invalid-field styling, preserved input, linked
+error focus, loading/empty/failure distinctions, safe conflict/unknown-result recovery and normal/
+reduced motion. Review the included login/error/success, expiry and logout states with the same
+brand. Inspect provider/application ownership, actual provider theme integration and honest
+local/provider logout results. Inert template previews or an axe pass do not prove the real flow.
+Do not seed this checklist or expected product answers into the fresh Notes consumer.
+
 ## Deterministic authoring regression
 
 The authoring helper and its worked example are exercised by `tests/validate_intake_authoring.py`.

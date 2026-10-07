@@ -1,0 +1,21 @@
+{
+  "id": "Orbyss.Foundation.Analyzers",
+  "version": "0.3.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbyss-io/dotnet-foundation",
+    "commit": "9f188270f99543684268515c3a0cde146ec08417"
+  },
+  "payloadFiles": {
+    "_rels/.rels": "386ce48f287cc66219bbc07cc7e5b9d184cb1c5a4199d8310ce11a793b7eb72a",
+    "Orbyss.Foundation.Analyzers.nuspec": "4c408d08a58903cc48ef9ed6766b9a6d50d0ea0f2147bb2eeaa575d4f0dfeacb",
+    "README.md": "37dd3c374f8591ff59ed30a71928917eea5bd0105ce7ef6fc778350081615836",
+    "analyzers/dotnet/cs/Orbyss.Foundation.Analyzers.dll": "b3f7534a9093177a6559300c45fbebaf891fbcfce6556e9a42c796997d8c6e78",
+    "[Content_Types].xml": "1a6670ec6cb20a6520f5d6b9be859fcd7416bef2ba0e8e40bfbf0aaab5409e4f",
+    "package/services/metadata/core-properties/b6e4021adec245e28b954e6143f427cf.psmdcp": "d31a67324ba31b7a61ab50b5d568c885070f2c6e2bd0510d11fd47cfd85bf114"
+  },
+  "facts": {
+    "README.md": "# Orbyss.Foundation.Analyzers\n\n- `ORB1001` prevents `AddHostedService` inside a CShells feature because the root Generic Host will not start it.\n- `ORB1002` suggests named arguments for calls with four or more arguments. Consumers control its severity in `.editorconfig`.\n- `ORB1003` requires each C# source file to declare exactly one named type, including nested and supporting types.\n- `ORB1004` requires private helper methods to appear after the type's other members.\n- `ORB1005` requires purposeful XML documentation on every declared type and member, including private members.\n- `ORB1006` requires every packaged CShells feature to declare `[ShellFeature]` with the exact\n  `FoundationFeatureIdentity`, preventing CLR, package-descriptor, and shell identity drift.\n\nThe consumer scaffold references this package centrally with `PrivateAssets=all`; application projects do not\nneed individual analyzer references.\n"
+  }
+}

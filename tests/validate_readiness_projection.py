@@ -11,8 +11,8 @@ from unittest.mock import patch
 import yaml
 import validate_bootstrap_lifecycle as fixture
 from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-from specify_cli.workflows.steps.command import CommandStep
-from specify_cli.workflows.steps.shell import ShellStep
+from specify_cli.workflows.step.command import CommandStep
+from specify_cli.workflows.step.shell import ShellStep
 import workflow_lifecycle as workflow
 
 g, life = fixture.governance, fixture.lifecycle

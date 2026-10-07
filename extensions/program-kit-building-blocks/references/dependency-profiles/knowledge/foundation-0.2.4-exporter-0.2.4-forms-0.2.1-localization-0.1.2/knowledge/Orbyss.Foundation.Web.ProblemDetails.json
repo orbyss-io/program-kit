@@ -1,0 +1,25 @@
+{
+  "id": "Orbyss.Foundation.Web.ProblemDetails",
+  "version": "0.2.4",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbyss-io/dotnet-foundation",
+    "commit": "ab22740d9bc86f01d3220751182cdcfcef9104ef"
+  },
+  "payloadFiles": {
+    "_rels/.rels": "a7f2e79fce0917122c5513f4db7894f2cb881b452e051d48f8693f5e553ff308",
+    "Orbyss.Foundation.Web.ProblemDetails.nuspec": "7d76e4f02d3e7220fae62190624a26f1380977461f69a935a8caa989b639b3dd",
+    "README.md": "3ce907b672952b6aa7a4e66831bd5f8a0e3fe11b937ea8e4cefc73550ace1129",
+    "lib/net10.0/Orbyss.Foundation.Web.ProblemDetails.dll": "7ceb54e313b550f3394aa37ec08757a7381f896a89a296548287543d333bf402",
+    "lib/net10.0/Orbyss.Foundation.Web.ProblemDetails.xml": "d105a072c36f915f0c99b7060f0fb48ff1f50ddf725620ae182384b1598d7cef",
+    "orbyss-foundation/feature.json": "15a81e1d2f329c01f75e1fc5fac119604231f466c90314b9d9a918fdab4c2bf3",
+    "[Content_Types].xml": "603043d59dee554187eacd0a3dee5070b5b1b540a33b1f079da81f1a28a8fe69",
+    "package/services/metadata/core-properties/ccf47e8c661b46f38e9de6c794c8d65a.psmdcp": "45dc59577781742fc409b2e1b9f1c02a3fe86a7652397d4f0ad84e221831e8f3"
+  },
+  "facts": {
+    "README.md": "# Orbyss.Foundation.Web.ProblemDetails\n\nAn optional CShells middleware feature for Orbyss Foundation's default Problem Details exception and\nempty-status response format. It is deliberately separate from authentication and the host so a\nconsumer can deactivate it and activate a custom global exception feature without forking either.\n",
+    "lib/net10.0/Orbyss.Foundation.Web.ProblemDetails.xml": "<?xml version=\"1.0\"?>\n<doc>\n    <assembly>\n        <name>Orbyss.Foundation.Web.ProblemDetails</name>\n    </assembly>\n    <members>\n        <member name=\"T:Orbyss.Foundation.Web.ProblemDetails.FoundationProblemDetailsFeature\">\n            <summary>Composes the optional Orbyss Foundation Problem Details policy into a shell.</summary>\n        </member>\n        <member name=\"P:Orbyss.Foundation.Web.ProblemDetails.FoundationProblemDetailsFeature.Order\">\n            <inheritdoc />\n        </member>\n        <member name=\"M:Orbyss.Foundation.Web.ProblemDetails.FoundationProblemDetailsFeature.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)\">\n            <inheritdoc />\n        </member>\n        <member name=\"M:Orbyss.Foundation.Web.ProblemDetails.FoundationProblemDetailsFeature.UseMiddleware(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.Extensions.Hosting.IHostEnvironment)\">\n            <inheritdoc />\n        </member>\n        <member name=\"M:Orbyss.Foundation.Web.ProblemDetails.FoundationProblemDetailsFeature.CodeFor(System.Int32)\">\n            <summary>Maps an HTTP status to the default stable problem code.</summary>\n        </member>\n    </members>\n</doc>\n",
+    "orbyss-foundation/feature.json": "{\n  \"schemaVersion\": 2,\n  \"packageId\": \"Orbyss.Foundation.Web.ProblemDetails\",\n  \"features\": [\n    {\n      \"identity\": \"Orbyss.Foundation.Web.ProblemDetails\",\n      \"featureDependencies\": [],\n      \"runtimeDependencies\": [],\n      \"routes\": [],\n      \"dormant\": true,\n      \"composeForOpenApi\": false,\n      \"requiresContractCoverage\": false\n    }\n  ],\n  \"sourceSha256\": {\n    \"FoundationProblemDetailsFeature.cs\": \"a6dda565aa133ef454cd8bf094a67d419ebdc8a18c3691cd9bf555d2382d7d65\"\n  },\n  \"hostProvidedDependencies\": [\n    {\n      \"packageId\": \"CShells.Abstractions\",\n      \"minimumVersion\": \"0.0.29-preview.147\"\n    },\n    {\n      \"packageId\": \"CShells.AspNetCore.Abstractions\",\n      \"minimumVersion\": \"0.0.29-preview.147\"\n    },\n    {\n      \"packageId\": \"JetBrains.Annotations\",\n      \"minimumVersion\": \"2025.2.4\"\n    }\n  ]\n}\n"
+  }
+}

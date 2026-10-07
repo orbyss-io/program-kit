@@ -48,8 +48,17 @@ named diagnostic.
 
 ## Rules
 
-Use `stage_plan.provider_inputs` before external discovery. Its managed baseline
-evidence supplies exact publisher/registry identities, dated package declarations,
+Use `stage_plan.provider_inputs` before external discovery. Its managed baseline evidence
+and `publisher_knowledge` query command, when supplied, expose the exact selected release's
+capabilities, settings schemas, interfaces and publisher usage guidance. Query the package/source
+needed for the current question; preserve the selected version and avoid a whole-bundle dump.
+`--package` lists its available facts; `--fact` selects a schema/descriptor and
+`--symbol` narrows XML API documentation to one exact member. `--document` selects
+one frozen publisher guide. Results are bounded and paginated.
+The same versioned knowledge remains available to architecture, planning and implementation.
+Its publisher facts do not grant consumer selection or behavior acceptance.
+
+The evidence supplies exact publisher/registry identities, dated package declarations,
 distribution notices, maintenance evidence and explicit gaps even before architecture
 has written its selection. Query the named evidence file for a specific package or
 notice; do not read the full inventory or reconstruct publisher URLs. A missing GitHub

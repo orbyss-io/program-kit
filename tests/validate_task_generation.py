@@ -32,7 +32,8 @@ def validate_installed_workflow(project):
     import yaml
     hooks = yaml.safe_load((project / '.specify/extensions.yml').read_text(encoding='utf-8'))['hooks']
     for event, commands in {'before_tasks': ['speckit.program-kit-governance.phase-context'],
-                            'after_tasks': ['speckit.analyze']}.items():
+                            'after_tasks': ['speckit.program-kit-governance.architecture-check', 'speckit.analyze'],
+                            'before_implement': ['speckit.program-kit-governance.implementation-check']}.items():
         selected = [h for h in hooks[event] if h.get('extension') == 'program-kit-governance']
         if [h['command'] for h in selected] != commands or any(h.get('optional') is not False or
                 h.get('enabled') is not True or h.get('condition') is not None for h in selected):
@@ -41,7 +42,7 @@ def validate_installed_workflow(project):
     phase = (skills / 'speckit-program-kit-governance-phase-context/SKILL.md').read_text(encoding='utf-8')
     tasks = (skills / 'speckit-tasks/SKILL.md').read_text(encoding='utf-8')
     analyze = (skills / 'speckit-analyze/SKILL.md').read_text(encoding='utf-8')
-    for marker in ('--phase after-plan', 'task_draft.py prepare', 'task_draft.py save-phase',
+    for marker in ('--phase tasks', 'task_draft.py prepare', 'task_draft.py save-phase',
                    'task_draft.py finalize', 'Do not invoke analyze on an incomplete draft'):
         if marker not in phase:
             raise AssertionError('Installed phase-context lost draft protocol: ' + marker)
@@ -50,6 +51,13 @@ def validate_installed_workflow(project):
             raise AssertionError('Installed tasks command lost hook dispatch: ' + marker)
     if 'STRICTLY READ-ONLY' not in analyze or 'complete `tasks.md`' not in analyze:
         raise AssertionError('Installed analyze must wait for complete tasks and remain read-only')
+    implement = (skills / 'speckit-implement/SKILL.md').read_text(encoding='utf-8')
+    for marker in ('hooks.before_implement', 'hooks.after_implement', 'MUST actually invoke the hook',
+                   '-Scope Focused', '-Scope Affected', 'finish --handoff', 'reuse', 'not full acceptance'):
+        if marker.lower() not in implement.lower():
+            raise AssertionError('Installed implement lost focused execution/handoff semantics: ' + marker)
+    if 'Common Patterns by Technology' in implement or 'Read research.md for technical decisions' in implement:
+        raise AssertionError('The installed command appended to the broad core body instead of replacing it')
     spec_root = project / 'specs'
     spec_root.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='999-task-resume-', dir=spec_root) as directory:
@@ -69,7 +77,7 @@ def validate_installed_workflow(project):
         if '## Incremental task generation' not in setup['TASKS_TEMPLATE_CONTENT']:
             raise AssertionError('Installed setup_tasks omitted the composed drafting guidance')
         guidance = run(project / '.specify/extensions/program-kit-governance/scripts/phase_obligations.py',
-                       'project', '--feature-dir', feature.relative_to(project).as_posix(), '--phase', 'after-plan')
+                       'project', '--feature-dir', feature.relative_to(project).as_posix(), '--phase', 'tasks')
         if len(guidance.encode('utf-8')) >= 24000 or 'not a reading checklist' not in guidance:
             raise AssertionError('Installed before_tasks context lost bounded guidance')
         helper = project / '.specify/extensions/program-kit-governance/scripts/task_draft.py'
@@ -83,6 +91,10 @@ def validate_installed_workflow(project):
         resumed = json.loads(run(helper, 'prepare', *arguments))
         if resumed['remainingPhases'] != ['US1'] or (feature / 'tasks.md').read_bytes() != saved:
             raise AssertionError('Installed helper lost or rewrote interrupted drafting progress')
+        progress = json.loads(run(project / '.specify/extensions/program-kit-governance/scripts/phase_obligations.py',
+                                  'finish', *arguments))
+        if progress['status'] != 'in-progress' or progress['acceptanceEstablished']:
+            raise AssertionError('A partial installed implementation checkpoint claimed acceptance')
 
 
 class TaskTests(unittest.TestCase):

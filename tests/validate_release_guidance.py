@@ -22,9 +22,13 @@ class GuidanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)
             assets = build_dependency_qualification_assets(ROOT, root, '0.12.6')
-            self.assertEqual(5, len(assets))
+            registry=ROOT/'extensions/program-kit-building-blocks/references/dependency-profiles'
+            index=json.loads((registry/'index.json').read_text())
+            published={identity for identity,entry in index['profiles'].items()
+                       if json.loads((registry/entry['evidence']['path']).read_text()).get('status')=='dependency-profile-qualified'}
+            self.assertEqual(1+2*len(published),len(assets))
             manifest = json.loads(assets[0].read_text())
-            self.assertEqual(2, len(manifest['profiles']))
+            self.assertEqual(published,{profile['id'] for profile in manifest['profiles']})
             required = [f'program-kit{suffix}-0.12.6.zip' for suffix in
                 ('', '-governance', '-building-blocks', '-dotnet', '-governance-preset', '-bootstrap')]
             required += ['Initialize-ProgramKit-0.12.6.cmd', 'Initialize-ProgramKit-0.12.6.sh',

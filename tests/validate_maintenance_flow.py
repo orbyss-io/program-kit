@@ -129,4 +129,26 @@ class MaintenanceTests(unittest.TestCase):
         for p,data in before.items():self.assertEqual(data,p.read_bytes())
         print(f'Legacy engineering relocation + preview + retry: {time.perf_counter()-started:.3f}s; 0 application/feature rewrites, 0 approvals')
 
+    def test_incompatible_historical_graph_is_diagnosed_without_rewriting_authority(self):
+        command = [sys.executable, str(ROOT/'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+            '--target', str(self.root), '--profile-selected', '--foundation-host-accepted',
+            '--building-block-sources-approved', '--web-profile', 'none', '--check', '--json']
+        graph = {'runtimeComposition': {'projects': [{'path': 'src/Workbench/Workbench.csproj',
+            'role': 'composition', 'packageReferences': ['Microsoft.EntityFrameworkCore'],
+            'persistenceOwnerNamespaces': ['Workbench.Persistence']}], 'bindings': []}}
+        project = self.root / 'src/Workbench/Workbench.csproj'; project.parent.mkdir(parents=True)
+        project.write_text('<Project Sdk="Microsoft.NET.Sdk" />')
+        for mode in ('historical', 'current'):
+            with self.subTest(mode=mode):
+                relative = 'docs/architecture/architecture-map.json' if mode == 'historical' else 'eng/architecture.json'
+                path = self.root / relative; path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps(graph))
+                before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+                result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8', timeout=90)
+                self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+                value = json.loads(result.stdout)
+                self.assertTrue(any('PKA001' in c['reason'] and 'boundary' in c['reason'] for c in value['conflicts']))
+                for p, content in before.items(): self.assertEqual(content, p.read_bytes())
+                self.assertFalse((self.root / '.program-kit/managed.json').exists())
+
 if __name__=='__main__':unittest.main()

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/dependency-qualification-recipe.schema.json",
+  "title": "Named exact dependency qualification recipe",
+  "description": "References are relative to the qualification repository. Profile and catalog hashes bind raw bytes; executor and native lock hashes use the retained LF-normalized source convention. This is input selection, not qualification or publication evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "profile", "families", "catalogSnapshot", "nativeLock", "executor"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$" },
+    "profile": {
+      "type": "object", "additionalProperties": false, "required": ["path", "sha256", "id"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" }, "sha256": { "$ref": "#/$defs/hash" },
+        "id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "families": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["releaseVersion"],
+        "properties": {
+          "releaseVersion": { "type": "string", "minLength": 1 },
+          "toolVersions": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "catalogSnapshot": {
+      "type": "object", "additionalProperties": false, "required": ["path", "sha256", "base"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" }, "sha256": { "$ref": "#/$defs/hash" },
+        "base": { "$ref": "#/$defs/reference" }
+      }
+    },
+    "nativeLock": { "$ref": "#/$defs/reference" },
+    "executor": { "$ref": "#/$defs/reference" }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "path": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*[\\\\:])(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
+    "reference": {
+      "type": "object", "additionalProperties": false, "required": ["path", "sha256"],
+      "properties": { "path": { "$ref": "#/$defs/path" }, "sha256": { "$ref": "#/$defs/hash" } }
+    }
+  }
+}

@@ -52,6 +52,32 @@
       "isolation": "Unique disposable application; real consumer untouched."
     },
     {
+      "id": "validate_scoped_verification",
+      "command": [
+        "{python}",
+        "tests/validate_scoped_verification.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Focused/affected test selection, shared dependencies, complete worktree delta, zero-test and scope guards; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-governance/**",
+        "presets/**",
+        "tests/validate_scoped_verification.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_scoped_verification"
+      ],
+      "resources": [],
+      "isolation": "Unique disposable repositories; production consumer and Notes untouched."
+    },
+    {
       "id": "validate_task_generation",
       "command": [
         "{python}",
@@ -93,7 +119,7 @@
       "inputs": [
         "extensions/**",
         "presets/**",
-        "tests/validate_normal_development.py"
+        "tests/validate_maintenance_flow.py"
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_maintenance_flow"
@@ -1017,6 +1043,7 @@
         "THIRD-PARTY-NOTICES.md",
         ".github/**",
         "tests/validate_architecture_recipe.py",
+        "tests/fixtures/foundation-consumer-contracts/baseline/mixed-workbench-architecture.json",
         "docs/**",
         "releases/**"
       ],
@@ -3944,6 +3971,247 @@
         "integration-fixtures",
         "browser-runtime"
       ]
+    },
+    {
+      "id": "validate_foundation_contracts_development_profile",
+      "command": [
+        "{python}",
+        "tests/validate_foundation_contracts_development_profile.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Explicit private candidate overlays reject stale F6 artifacts and public-default promotion claims; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/prepare_foundation_contracts_development_profile.py",
+        "tests/validate_foundation_contracts_development_profile.py",
+        "extensions/program-kit-building-blocks/references/foundation-contracts-development*",
+        "extensions/program-kit-building-blocks/references/dependency-profiles/**",
+        "extensions/program-kit-building-blocks/scripts/building_blocks.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique synthetic guard fixtures; actual package acceptance is a separate explicit F6 run."
+    },
+    {
+      "id": "validate_foundation_notes",
+      "command": [
+        "{python}",
+        "tests/validate_foundation_notes.py",
+        "--self-test"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Versioned Notes source/negative preparation and scenario oracle routing; no database or coding-agent execution.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_foundation_notes.py",
+        "tests/fixtures/foundation-consumer-contracts/notes/**",
+        "tests/live/scenarios/foundation-notes/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py",
+        "tests/run_foundation_notes_qualification.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique disposable negative sources; De Zaaglijst remains read-only."
+    },
+    {
+      "id": "validate_dependency_profile_catalogs",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_profile_catalogs.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Immutable additive profile catalogs and exact named qualification inputs preserve historical public qualification guards.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_dependency_profile_catalogs.py",
+        "extensions/program-kit-dotnet/scripts/dependency_profile.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
+        "extensions/program-kit-building-blocks/scripts/**",
+        "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/**",
+        "extensions/program-kit-building-blocks/references/dependency-profiles/dependency-profile-foundation-0.3.0.json",
+        "extensions/program-kit-building-blocks/references/dependency-profile-index.schema.json",
+        "extensions/program-kit-building-blocks/references/dependency-qualification-recipe.schema.json",
+        "tests/validate_default_dependency_profile.py",
+        "tests/validate_published_forms_browser.py",
+        "tests/validate_bootstrap_runtime.py",
+        "scripts/build_dependency_qualification.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique disposable registry/catalog fixtures; no promotion or external execution."
+    },
+    {
+      "id": "validate_foundation_published_tools",
+      "command": [
+        "{python}",
+        "tests/validate_foundation_published_tools.py",
+        "--self-test"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Independent public Build/exporter compatibility fixture rejects source authority and boundary violations before actual packaged qualification.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_foundation_published_tools.py",
+        "tests/fixtures/foundation-consumer-contracts/published-tools/**"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Static/disposable fixture checks; actual installed-tool acceptance is explicit and separately retained."
+    },
+    {
+      "id": "validate_bootstrap_runtime_bindings",
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_runtime_bindings.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Neutral public Host capture, exact shared archive bindings, native provenance, retained inputs and owned timeout cleanup guards; no public image or container execution.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_bootstrap_runtime_bindings.py",
+        "tests/validate_bootstrap_runtime.py",
+        "extensions/program-kit-governance/examples/bootstrap-runtime/**",
+        "scripts/build_dependency_qualification.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique synthetic payload/archive and mocked Docker fixtures; actual public qualification remains explicit."
+    },
+    {
+      "id": "validate_settings_authorities",
+      "command": [
+        "{python}",
+        "tests/validate_settings_authorities.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Independent package and OCI Host settings authority, applicable scope/import completeness, bounded source provenance and receiver-ready rejection guards; no registry or runtime qualification claim.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_settings_authorities.py",
+        "tests/validate_w3_packaged_handoff.py",
+        "tests/fixtures/application-handoff-native-w3/**",
+        "tests/validate_application_handoff.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/application_handoff.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/handoff_contract.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/verify_handoff.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/*settings*.schema.json",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/handoff-index.schema.json"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique synthetic package, OCI layer and portable receiver fixtures; actual packaged/native acceptance is separately retained."
+    },
+    {
+      "id": "validate_application_handoff",
+      "command": [
+        "{python}",
+        "tests/validate_application_handoff.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Stable/historical identity, multi-API offline receiver assembly, real HTTP/settings behavior, exact publisher package/assembly settings bindings, rejection checks and independent consumption; no agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/templates/dotnet/**",
+        "extensions/program-kit-dotnet/scripts/dependency_profile.py",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py",
+        "tests/validate_application_handoff.py",
+        "tests/fixtures/application-handoff/**"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_application_handoff"
+      ],
+      "resources": [],
+      "isolation": "Unique disposable source and receiver; source read-only; no credentials/registries or agents."
+    },
+    {
+      "id": "validate_dependency_updates",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_updates.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Automatic upgrade rollback, exact knowledge and promotion guards; no network or agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "maintenance-policy.json",
+        "scripts/dependency_maintenance.py",
+        "scripts/update_dependencies.py",
+        "scripts/update_dependency_profiles.py",
+        ".github/workflows/update-dependencies.yml",
+        "extensions/program-kit-building-blocks/**",
+        "tests/validate_dependency_updates.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Temporary files and in-process fixtures only."
+    },
+    {
+      "id": "validate_dependency_workflows",
+      "command": [
+        "{python}",
+        "tests/validate_dependency_workflows.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Automatic upgrade rollback, exact knowledge and promotion guards; no network or agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "maintenance-policy.json",
+        "scripts/dependency_maintenance.py",
+        "scripts/update_dependencies.py",
+        "scripts/update_dependency_profiles.py",
+        ".github/workflows/update-dependencies.yml",
+        "extensions/program-kit-building-blocks/**",
+        "tests/validate_dependency_workflows.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Temporary files and in-process fixtures only."
     }
   ],
   "groups": {

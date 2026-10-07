@@ -65,6 +65,60 @@ class UiExperienceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "contrast"):
             ui_profile.outputs(self.profile, self.content)
 
+    def test_presentation_is_explicit_and_legacy_inputs_keep_classic_assets(self):
+        self.profile.pop('presentation')
+        classic = ui_profile.outputs(self.profile, self.content)
+        self.assertEqual((ui_profile.TEMPLATES/'layout-classic.css').read_bytes(), classic[f'{ui_profile.OUTPUT}/public/assets/layout.css'])
+        self.assertNotIn(f'{ui_profile.OUTPUT}/integration/auth/login.html', classic)
+        self.assertNotIn('--pk-motion-enter', classic[f'{ui_profile.OUTPUT}/public/assets/tokens.css'].decode())
+        self.profile['presentation'] = 'unqualified-template'
+        with self.assertRaisesRegex(ValueError, 'unknown choice'):
+            ui_profile.outputs(self.profile, self.content)
+
+    def test_decorative_divider_can_be_soft_while_controls_remain_identifiable(self):
+        self.profile['brand']['overrides'] = {'light': {'divider': '#FFFFFF'}}
+        ui_profile.outputs(self.profile, self.content)
+        self.profile['brand']['overrides']['light']['border'] = '#FFFFFF'
+        with self.assertRaisesRegex(ValueError, 'nontext contrast'):
+            ui_profile.outputs(self.profile, self.content)
+
+    def test_explain_is_read_only_and_does_not_claim_default_is_user_intent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ui_profile.execute(root, 'init')
+            before = {p.relative_to(root): p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            view = ui_profile.execute(root, 'explain')
+            self.assertTrue(view['matchesStarterDefault']['presentation'])
+            self.assertIn('does not prove human preference', view['decisionProvenance'])
+            self.assertEqual(before, {p.relative_to(root): p.read_bytes() for p in root.rglob('*') if p.is_file()})
+
+    def test_identity_templates_are_branded_inert_and_excluded_from_public_exports(self):
+        self.profile['brand']['name'] = '<Acme & Co>'
+        output = ui_profile.outputs(self.profile, self.content)
+        contract = json.loads(output[f'{ui_profile.OUTPUT}/integration/auth/contract.json'])
+        self.assertEqual(8, len(contract['states']))
+        for state in contract['states']:
+            parsed = Html(output[f'{ui_profile.OUTPUT}/integration/auth/{state}.html'].decode())
+            self.assertIn('<Acme & Co>', ' '.join(parsed.text))
+            self.assertFalse(any(tag == 'form' or attrs.get('type') == 'password' for tag, attrs in parsed.tags))
+            self.assertTrue(any(attrs.get('data-pk-slot') for _, attrs in parsed.tags))
+            self.assertTrue(any(attrs.get('name') == 'robots' and 'noindex' in attrs['content'] for _, attrs in parsed.tags))
+        publication = json.loads(output[f'{ui_profile.OUTPUT}/publication.json'])
+        self.assertFalse(any('/auth/' in resource['file'] for resource in publication['resources']))
+        theme = output[f'{ui_profile.OUTPUT}/integration/auth/keycloak/login/theme.properties'].decode()
+        self.assertIn('parent=keycloak', theme)
+        self.assertFalse(any(name.endswith('.ftl') for name in output))
+
+    def test_modern_page_composition_and_hint_markup_escape_consumer_text(self):
+        from ui_patterns import field
+        self.content['pages'][0]['layout'] = 'form'
+        output = ui_profile.outputs(self.profile, self.content)
+        self.assertIn('data-page-layout="form"', output[f'{ui_profile.OUTPUT}/public/index.html'].decode())
+        parsed = Html(field('subject', '<Subject>', '<script>not executable</script>', '" autofocus="true'))
+        self.assertFalse(any(tag == 'script' or 'autofocus' in attrs for tag, attrs in parsed.tags))
+        self.assertIn('<Subject>', parsed.text)
+        self.assertIn('<script>not executable</script>', parsed.text)
+
     def test_dtcg_aliases_resolve_to_srgb_colors(self):
         tokens = json.loads(ui_tokens.compile_tokens(self.profile)["tokens.json"])
         for mode in ("light", "dark"):

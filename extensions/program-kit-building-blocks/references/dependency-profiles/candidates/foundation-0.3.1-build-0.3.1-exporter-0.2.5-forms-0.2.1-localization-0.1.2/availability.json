@@ -1,0 +1,382 @@
+{
+  "artifacts": [
+    {
+      "packageKey": "npm:@orbyss-io/forms-actions",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-actions/0.2.1/8eac74331738b010ff7e4ba21137bd31f5b51115"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-ajv-build",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-ajv-build/0.2.1/7f5caf660249c97b40dad1f22a01aca78c5db7ea"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-angular",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-angular/0.2.1/4ad86c5fd205f2008fcb25a81493f3a22c974187"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-contracts",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-contracts/0.2.1/2224a819e57f8f3af69d06e88400707526845c03"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-editor-contracts",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-editor-contracts/0.2.1/f00d0370a1bb08d8d226968bf42f5c386a845517"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-jsonforms-runtime",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-jsonforms-runtime/0.2.1/f77210a26d3597b7e5dacfb67d3ab07e183945b2"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-lookups",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-lookups/0.2.1/e84f93ca269221f631393db7f61bb2cd3470c268"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-react",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-react/0.2.1/c84f71f9ab1abb44b7cfdd347de3ed8630de83b6"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-renderer-registry",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-renderer-registry/0.2.1/af49da0cf46d1bc51c4277b9befcc2d6624498c4"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-ui-theme",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-ui-theme/0.2.1/af0731b42386c8d632a7e15b041b548e8f7aabbf"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-vue",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-vue/0.2.1/ac4fe071931b5539d0bafc5371f5e9dc60fba40b"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-wizard",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-wizard/0.2.1/4740f14f4387e7782b2206af8bb1fa74abf17170"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Abstractions",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.JsonForms",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Localization",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Management",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Management.Mcp.AspNetCore",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Management.Tool",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Storage.Abstractions",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Storage.FileSystem",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Storage.InMemory",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Submissions",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Submissions.Mcp.AspNetCore",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Submissions.Tool",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Web.Management",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Web.Runtime",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Web.Submissions",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Analyzers",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.Assurance",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.BffCookie",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.ClientCredentials",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.Core",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.DPoP",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.DownstreamApi",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.SpaPkce",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.TokenExchange",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Build",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Collections.Core",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.DomainEvents",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.DomainEvents.Abstractions",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Execution",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Execution.Core",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Identity.Admin.Abstractions",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Identity.Keycloak.Admin",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Json",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Json.AspNetCore",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Mcp.AspNetCore",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.OpenApi.Exporter",
+      "version": "0.2.5",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.PostgreSql",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Tasks",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Tasks.Abstractions",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.Discovery",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.Discovery.Abstractions",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.HostedPages",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.OpenApi",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.ProblemDetails",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.ProblemDetails.Core",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.WebDefaults",
+      "version": "0.3.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Abstractions",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Formats",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Management",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Management.Mcp.AspNetCore",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Management.Tool",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Runtime",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Runtime.Mcp.AspNetCore",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Runtime.Tool",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Storage.Abstractions",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Storage.FileSystem",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Storage.InMemory",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Web.Management",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Web.Runtime",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "oci:ghcr.io/orbyss-io/foundation-host",
+      "version": "0.3.1",
+      "reference": "ghcr.io/orbyss-io/foundation-host@sha256:8abe8dd28b1b99ac316f811dcd547f02da1f8b664dceb376feff4c0cb7cbfede",
+      "status": "manifest-digest"
+    }
+  ]
+}

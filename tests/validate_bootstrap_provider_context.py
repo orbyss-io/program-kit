@@ -44,7 +44,7 @@ class ProviderContextTests(unittest.TestCase):
                     checked += 1
         self.assertGreater(checked, 0)
         tools = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json'
-        exporter = json.loads(CATALOG.read_text())['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']
+        exporter = load_module(RESOLVER).new_project_catalog()['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']
         self.assertEqual(exporter, json.loads(tools.read_text())['tools']['orbyss.foundation.openapi.exporter']['version'])
 
     def setUp(self):
@@ -107,7 +107,9 @@ class ProviderContextTests(unittest.TestCase):
         self.selection.unlink()
         value = providers.project(self.root, self.decisions, require_selection=False)
         evidence = value['managed_baseline_evidence']
-        self.assertEqual('0.2.2', evidence['releaseVersion'])
+        resolver=load_module(RESOLVER)
+        expected=resolver.new_project_catalog()['families']['foundation']['releaseVersion']
+        self.assertEqual(expected, evidence['releaseVersion'])
         self.assertIn('dotnet-foundation', evidence['publisher'])
         self.assertTrue(evidence['metadataExceptions'])
         self.assertGreater(evidence['distributionNoticeCount'], 0)
@@ -115,7 +117,7 @@ class ProviderContextTests(unittest.TestCase):
         path = self.root / evidence['source']
         document = json.loads(path.read_text()); document['releaseVersion'] = '0.2.0'
         write_json(path, document)
-        with self.assertRaisesRegex(ValueError, 'reviewed for selected'):
+        with self.assertRaisesRegex(ValueError, 'publisher knowledge|versioned publisher|reviewed for selected|KIT-DEPENDENCY-EVIDENCE-DRIFT'):
             providers.project(self.root, self.decisions, require_selection=False)
 
     def test_persistence_runtime_available_before_selection_and_not_for_alternatives(self):

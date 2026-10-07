@@ -169,7 +169,8 @@ def main() -> int:
         assert not (target / "Dockerfile").exists()
         state = json.loads((target / ".program-kit/managed.json").read_text(encoding="utf-8"))
         assert state["programKitVersion"]
-        assert state["dotnetSdk"] == "10.0.202"
+        expected_sdk=json.loads((ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json').read_text())['sdk']['version']
+        assert state["dotnetSdk"] == expected_sdk
         assert state["dotnetSdkSource"] == "program-kit-default"
         assert state["schemaVersion"] == 2
         none_shell_profile = json.loads(

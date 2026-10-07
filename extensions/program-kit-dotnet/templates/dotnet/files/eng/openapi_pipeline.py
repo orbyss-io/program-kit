@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from handoff_contract import source_inputs
 import hashlib
 import json
 import os
@@ -442,6 +443,7 @@ def main() -> int:
                     "schemaVersion": 1,
                     "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": version},
                     "registrySha256": sha256(registry_path),
+                    "sourceInputs": source_inputs(repository),
                     "contracts": evidence,
                     "satisfied": True,
                 },

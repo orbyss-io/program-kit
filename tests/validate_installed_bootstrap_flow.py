@@ -19,8 +19,8 @@ from unittest.mock import patch
 import validate_bootstrap_lifecycle as fixture
 import workflow_lifecycle as lifecycle
 from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
-from specify_cli.workflows.steps.command import CommandStep
-from specify_cli.workflows.steps.shell import ShellStep
+from specify_cli.workflows.step.command import CommandStep
+from specify_cli.workflows.step.shell import ShellStep
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -80,7 +80,7 @@ def scenario(mode):
                     print(mode, config['id'], result.output, flush=True)
                 return result
 
-            def dispatch(self, command, integration, model, args, context):
+            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
                 calls.append(command)
                 allowed = {'speckit.constitution'} | {'speckit.program-kit-governance.' + name for name in
                            ('assessment', 'research', 'architecture', 'tooling', 'roadmap', 'bootstrap-closure')}

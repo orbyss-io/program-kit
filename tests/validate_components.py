@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -10,7 +11,7 @@ from specify_cli.extensions import ExtensionManifest
 from specify_cli.presets import PresetManifest
 from specify_cli.workflows.base import StepContext
 from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
-from specify_cli.workflows.steps.switch import SwitchStep
+from specify_cli.workflows.step.switch import SwitchStep
 
 
 EXPECTED_STEPS = [
@@ -181,7 +182,11 @@ def main() -> int:
     if dotnet_commands:
         raise AssertionError("The .NET extension must not expose a retired public sync command")
     preset = yaml.safe_load(preset_path.read_text(encoding="utf-8"))
-    preset_templates = preset["provides"]["templates"]
+    preset_entries = preset["provides"]["templates"]
+    preset_templates = [entry for entry in preset_entries if entry['type'] == 'template']
+    commands = [entry for entry in preset_entries if entry['type'] == 'command']
+    if len(commands) != 1 or commands[0]['name'] != 'speckit.implement' or commands[0]['strategy'] != 'replace':
+        raise AssertionError('Governance must supply one concise implement command with its own hook dispatch')
     if {template["name"] for template in preset_templates} != {
         "constitution-template",
         "spec-template",
@@ -648,7 +653,7 @@ def main() -> int:
         "atomic_replace",
     )
     require_text(reconciliation, 'producer_reconciliation.py', 'catalog_transition', 'apply_catalog_transition')
-    require_text(extension_root / "scripts/implementation_preflight.py", "project", "render", "Compatibility option")
+    require_text(extension_root / "scripts/implementation_preflight.py", "check", "render", "Compatibility option")
     context_script = extension_root / "scripts/bootstrap_context.py"
     intake_script = extension_root / "scripts/bootstrap_intake.py"
     architecture_map_script = extension_root / "scripts/architecture_map.py"
@@ -777,8 +782,9 @@ def main() -> int:
     )
     viewer_profile = json.loads(c4_view_profile.read_text(encoding="utf-8"))
     selected_viewer = viewer_profile.get("selected", {})
-    if selected_viewer.get("docker_image") != "structurizr/structurizr:2026.06.28":
-        raise AssertionError("C4 viewer does not use the researched exact Structurizr pin")
+    if (selected_viewer.get("docker_image") != "structurizr/structurizr:"+selected_viewer.get('version','')
+            or not re.fullmatch(r'sha256:[0-9a-f]{64}',selected_viewer.get('docker_digest',''))):
+        raise AssertionError("C4 viewer does not use its exact version and immutable digest")
     if selected_viewer.get("default_port") != 8081:
         raise AssertionError("C4 viewer default conflicts with the Keycloak fixture")
 

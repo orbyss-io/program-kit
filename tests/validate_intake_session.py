@@ -29,6 +29,8 @@ class IntakeSessionTests(unittest.TestCase):
         self.assertNotIn('bootstrap/SKILL.md', module.CONSUMER_INSTRUCTIONS)
         self.assertIn('INTAKE-SESSION.md', module.CONSUMER_INSTRUCTIONS)
         self.assertIn('no approval', module.CONSUMER_INSTRUCTIONS)
+        self.assertIn("human's opening", module.INSTRUCTIONS)
+        self.assertIn('If product-idea.md is supplied', module.INSTRUCTIONS)
 
     def test_catalog_copy_keeps_exact_binary_and_bounds_each_write(self):
         from local_catalog_server import CatalogHandler
