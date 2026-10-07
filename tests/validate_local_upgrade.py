@@ -289,7 +289,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
                 "artifact": "contracts/openapi/catalog.json",
                 "baseline": "contracts/openapi/catalog.baseline.json",
                 "compatibility": {
-                    "oasdiffVersion": "1.29.1",
+                    "oasdiffVersion": (ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version').read_text(encoding='utf-8').strip().removeprefix('v'),
                     "approval": "contracts/openapi/catalog.breaking-change.json",
                 },
                 "generator": {
