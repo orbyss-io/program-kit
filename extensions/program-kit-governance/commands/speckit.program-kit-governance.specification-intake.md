@@ -5,6 +5,11 @@ Use the normal feature request and any existing specification/intake. Follow the
 method at `.specify/extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md` proportionally: investigate facts, ask only unresolved product/architectural questions,
 and preserve settled answers and accepted defaults. The user owns the roadmap; a missing or
 non-Ready roadmap entry is not an intake blocker. Never require renewed bootstrap/ratification.
+Use references/functional-discovery.md to read the relevant established concepts, lifecycles,
+policies/conditions, journeys and experience choices from the existing project intent/design.
+Reuse settled answers; deepen the selected outcome and its material alternatives with the human.
+Carry the stable product and journey references into the brief/specification; do not restart a
+whole-product interview or choose a generic UI layout in place of the agreed experience.
 
 Clarify actors, user-visible outcomes, story priority, independent acceptance examples and relevant
 failure cases. Quantify material quality constraints and identify assumptions/dependencies. Ask only

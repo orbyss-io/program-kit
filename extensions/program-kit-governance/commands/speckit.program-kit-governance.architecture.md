@@ -36,6 +36,9 @@ ADRs. Preserve the confirmed interface choice and applicable defaults. Do not re
 device preference as a compatibility prerequisite or demand completed feature behavior before its
 specification exists. Separate external mechanism feasibility from verification of the later
 consumer implementation, and identify the actual owning gate for each condition.
+Preserve the confirmed concepts, lifecycles, policies/conditions, journey references and experience
+choices from the bound project intent. Use them to derive ownership, contracts and candidate slices;
+do not equate screens, CRUD operations or every named concept with architectural boundaries.
 Split planning a test from executing it using the disposition/trigger/verification table in that
 reference. Delivery behavior stays at delivery, never feature-plan. Author consumer `WEB-Qxx`
 definitions only in quality-attributes.md as `- WEB-Q01 (WEB-Cxx): scenario` with indented continuation

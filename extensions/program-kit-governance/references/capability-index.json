@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0",
   "capabilities": [
+    {"id":"functional-discovery","coverage":"guided","reference":"references/functional-discovery.md","signals":["product","concept","entity","lifecycle","business rule","user journey","interaction"]},
     {"id":"architecture-governance","coverage":"managed","reference":"references/architecture-method.md","signals":["architecture","adr","governance","decision","modularity"]},
     {"id":"vertical-slicing","coverage":"guided","reference":"references/vertical-slicing.md","signals":["journey","workflow","use case","feature","slice"]},
     {"id":"modularity-contracts","coverage":"guided","reference":"references/modularity-and-contracts.md","signals":["module","bounded context","contract","ownership","dependency"]},

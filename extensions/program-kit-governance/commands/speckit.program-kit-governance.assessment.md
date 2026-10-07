@@ -46,6 +46,10 @@ and could conflict with the confirmed intake; do not overwrite user-authored wor
 
 Apply the routed `default-adoption.md` authority. Preserve the intake's distinction between explicit intent,
 Program Kit defaults, derived conclusions, proposals, examples, and future options.
+Carry the linked functional model from the bound project-intent.md into assessment's concepts,
+policies, lifecycles, journey/slice traceability and experience choices. Query only the relevant
+functional section through the supplied reading policy when it is absent from the brief. Do not
+replace confirmed consumer meaning or product-specific layout/brand choices with generic defaults.
 Do not reopen an explicit intake selection or an applicable Program Kit default merely because its
 implementation details still need a specification. A valid question is not automatically a human
 decision or bootstrap blocker.

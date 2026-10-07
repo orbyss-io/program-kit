@@ -910,6 +910,15 @@
       "enforcement": "confirmed intake schemas and semantic review"
     },
     {
+      "path": "program-kit-governance/references/functional-discovery.md",
+      "phases": [
+        "intake",
+        "bootstrap",
+        "specification"
+      ],
+      "enforcement": "human functional walkthrough and linked semantic handoff; routing tests do not prove interview quality"
+    },
+    {
       "path": "program-kit-governance/references/intake-method.md",
       "phases": [
         "intake"

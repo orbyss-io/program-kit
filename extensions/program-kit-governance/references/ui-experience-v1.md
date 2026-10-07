@@ -5,6 +5,10 @@ Adopt when a browser UI is in scope; omit for non-UI projects. Record choice ID
 `ui-experience-v1` in selected_profiles, and record the independent branding/layout/discovery
 choices. Do not reopen standard defaults as repeated approval questions. Intake records intent;
 first-code generates the files. Existing frontend and authentication decisions retain authority.
+During intake, follow functional-discovery.md: invite product-specific layout, interaction, theme
+and brand preferences and derive navigation from user journeys. Profile defaults supply a disclosed
+provisional baseline after that discovery; they are not evidence of the user's preferences. Preserve
+explicit requests to use defaults and keep accessibility, privacy and reduced-motion obligations.
 
 The consumer owns `.program-kit/ui/profile.json` and `content.json`. Start with:
 

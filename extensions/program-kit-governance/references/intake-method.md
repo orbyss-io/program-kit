@@ -15,6 +15,11 @@ through repeated failing exports. Broad implementation discovery is still unnece
 
 ## Question policy
 
+Use [functional-discovery.md](functional-discovery.md) for the visible discovery areas, relevant
+knowledge, worked journeys and connected functional handoff. Architectural readiness includes a
+coherent functional baseline for the first useful outcome. A technically defaulted stack does not
+establish that baseline. Preserve later feature detail at its legitimate specification trigger.
+
 Architecture owns physical placement planning, including exact project/package/shell paths and
 target IDs. Do not ask product users for those filenames or move that bookkeeping into intake.
 Preserve repository and stack preferences when supplied; otherwise assign layout to architecture
@@ -43,7 +48,8 @@ useful follow-up depth: question count and interview duration are not targets to
 
 Apply a clearly applicable Program Kit default automatically when user intent neither contradicts
 it nor leaves its applicability ambiguous. Do not ask users to select or re-approve obvious tools,
-packages, versions, or profiles. Record the default's source, rationale, and material consequences
+packages, versions, or technical profiles. Functional policies and product-specific layout/brand
+preferences follow functional discovery; do not infer them from an omitted preference. Record the default's source, rationale, and material consequences
 for the final synthesis, where the user can revisit it. Technical importance alone is not a reason
 to spend an interview question on an unambiguous default.
 
@@ -69,6 +75,10 @@ present that proposal and its material limits in the final synthesis and obtain 
 do not preserve it simultaneously as an unanswered device-preference question. If the consumer
 cannot yet choose between materially different surfaces, ask now rather than assigning the choice
 to bootstrap closure. Do not ask for a device inventory without a consequential need.
+Include a coherent experience group: relevant brand/design-system references, visual character,
+theme, information hierarchy, navigation and interaction choices. Derive the layout from the
+journey before proposing UI profile dimensions. Use disclosed provisional preferences when the
+human has none; retain accessibility/security obligations and the single final synthesis review.
 
 Keep product suitability separate from executed device/accessibility verification. Confirming a
 browser proposal settles intended use, not empirical fitness of software that does not exist yet.
@@ -94,7 +104,9 @@ For a need with no declared Program Kit capability, say exactly that; do not cla
 Classify it as external, research-required, or project-owned design and ask only for information the
 project must supply. Defer questions that become material only at a named lifecycle trigger.
 
-Completion accounts for every bootstrap-relevant branch, not every future implementation choice.
+Completion accounts for every bootstrap-relevant branch and the functional discovery areas,
+not every future implementation choice. Walk the first journey's success and material alternative
+paths using the current concepts, lifecycle, policies/conditions and user-visible experience.
 Business outcomes, semantic ownership, and architecture-significant trust, data, or consistency
 boundaries need enough evidence now to prepare a coherent map and founding candidates. Feature
 fields, detailed business rules, and implementation choices can remain assigned to the first

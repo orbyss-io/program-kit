@@ -364,6 +364,14 @@ def main() -> int:
         installed_skill_text = bootstrap_skill.read_text(encoding="utf-8")
         if "Stop. Do not call a shell tool" not in installed_skill_text:
             raise AssertionError("Installed bootstrap skill lost its execution-boundary guidance")
+        if 'references/functional-discovery.md' not in installed_skill_text:
+            raise AssertionError('Installed intake does not route functional discovery before convergence')
+        functional = project/'.specify/extensions/program-kit-governance/references/functional-discovery.md'
+        if functional.read_bytes() != (extracted_extension/'references/functional-discovery.md').read_bytes():
+            raise AssertionError('Installed functional discovery differs from the packaged contract')
+        specification = (project/'.agents/skills/speckit-program-kit-governance-specification-intake/SKILL.md').read_text(encoding='utf-8')
+        if 'functional-discovery.md' not in specification:
+            raise AssertionError('Installed specification intake cannot carry the functional model forward')
         run("specify", "workflow", "add", str(workflow_zip), "--dev", cwd=project)
 
         scenario_architecture = (

@@ -88,6 +88,24 @@ named journey survives, each decision's provenance is accurate, and no unresolve
 was hidden behind a deferral. Report observed failures, not merely whether prescribed phrases
 appeared. A successful conversation can become a reviewed fixture for later regression work.
 
+## Functional discovery review
+
+Review the new consumer's conversation against `functional-discovery.md`. Keep these reviewer
+expectations outside the consumer; the only product input remains the human's opening idea.
+
+| Evidence in the conversation and handoff | Acceptance expectation |
+| --- | --- |
+| Relevant discovery areas and question groups | The human understands the subject being explored. Groups follow dependencies and supplied answers, without a fixed questionnaire or an oversized all-at-once round. |
+| Concepts, identities, lifecycles, policies and conditions | The agent establishes product meaning with examples and relevant knowledge. It does not infer consumer rules from packages or turn every noun into an architectural boundary. |
+| First useful journey and material alternatives | A walkthrough connects actor, subject, decisions, changed state, visible result and recovery. Gaps are resolved or visibly assigned to a legitimate later trigger. |
+| Included UI | Brand/design-system references, theme and visual preferences are invited. Information hierarchy, navigation and interaction follow the journey. Unspecified preferences remain unspecified; proposals and technical defaults are distinguishable. Headless products receive no UI questionnaire. |
+| Compact connected functional handoff | Concepts, lifecycles, policies/conditions, journey steps, candidate slices and acceptance examples share stable references in the existing artifacts. No duplicate model dossier, JSON registry or extra confirmation gate appears. |
+| Assessment, architecture and first specification | Settled product meaning and experience choices survive the handoff. Feature intake deepens the chosen outcome rather than repeating whole-product discovery. |
+
+Record missed choices, premature recommendations, invented preferences, unnecessary questions and
+lost meaning. A routed reference or filled heading is supporting evidence, not proof of understanding.
+Keep later-feature detail proportional and preserve explicit exclusions.
+
 ## Deterministic authoring regression
 
 The authoring helper and its worked example are exercised by `tests/validate_intake_authoring.py`.
