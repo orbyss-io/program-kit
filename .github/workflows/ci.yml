@@ -99,6 +99,14 @@ jobs:
       - name: Validate Python-flavor Codex bootstrap on Windows
         run: python tests/validate_codex_bootstrap.py
 
+      - name: Set up Node for the Windows npm launcher fixture
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "26.11.1"
+
+      - name: Validate automatic Windows workflow PATH preparation
+        run: python tests/test_workflow_shell_preflight.py
+
       - name: Validate scoped worker permissions with fixture subprocesses
         run: python tests/validate_codex_worker_policy.py
 

@@ -21,6 +21,7 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(HERE))
 import workflow_shell_preflight as probe
 import workflow_lifecycle as candidate
+import windows_workflow_path as windows_path
 
 
 @unittest.skipUnless(os.name == 'nt', 'Windows cmd.exe regression')
@@ -30,6 +31,16 @@ class WindowsShellLaunchTests(unittest.TestCase):
         cls.python = shutil.which('python')
         cls.short_path = str(Path(cls.python).parent) + ';' + str(Path(os.environ['SYSTEMROOT']) / 'System32')
         cls.long_path = cls.short_path + ';' + ('C:/nonexistent/path-padding;' * 400)
+        cls.directories = tempfile.TemporaryDirectory(prefix='program-kit-large-valid-path-')
+        cls.addClassCleanup(cls.directories.cleanup)
+        fixture_root = Path(cls.directories.name).resolve()
+        assert fixture_root.is_relative_to(Path(tempfile.gettempdir()).resolve())
+        paths = []
+        for index in range(100):
+            directory = fixture_root / (f'tool-{index:03}-' + 'long-directory-name-' * 4)
+            directory.mkdir()
+            paths.append(str(directory))
+        cls.uncompactable_path = cls.short_path + ';' + ';'.join(paths)
 
     def test_actual_shell_accepts_short_path(self):
         with mock.patch.dict(os.environ, {'PATH': self.short_path}):
@@ -41,26 +52,89 @@ class WindowsShellLaunchTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {'PATH': self.long_path}):
             direct = subprocess.run([self.python, '--version'], capture_output=True)
             shell = subprocess.run('python --version', shell=True, capture_output=True)
-            with self.assertRaisesRegex(probe.ShellPreflightError, '8191'):
-                probe.verify_shell_launch(ROOT)
+            repaired = probe.verify_shell_launch(ROOT)
         self.assertEqual(direct.returncode, 0)
         self.assertNotEqual(shell.returncode, 0)
+        self.assertEqual(repaired['exitCode'], 0)
+        self.assertLessEqual(repaired['pathCharacters'], 8191)
+        self.assertTrue(repaired['windowsPathPrepared'])
 
-    def test_oversized_path_stops_before_any_probe_process(self):
+    def test_unrepresentable_usable_path_stops_before_any_probe_process(self):
         runner = mock.Mock(side_effect=AssertionError('must stop before shell execution'))
-        with mock.patch.dict(os.environ, {'PATH': self.long_path}):
-            with self.assertRaisesRegex(probe.ShellPreflightError, 'not a workspace-write'):
+        with mock.patch.dict(os.environ, {'PATH': self.uncompactable_path}), \
+             mock.patch.object(windows_path, 'short_directory', side_effect=lambda directory: directory):
+            with self.assertRaisesRegex(probe.ShellPreflightError, 'after automatic PATH preparation'):
                 probe.verify_shell_launch(ROOT, runner=runner)
         runner.assert_not_called()
 
     def test_runtime_prefix_cannot_push_an_acceptable_inherited_path_over_the_limit(self):
         boundary = self.short_path + ';' + 'x' * (8191 - len(self.short_path) - 1)
-        runner = mock.Mock(side_effect=AssertionError('must stop before shell execution'))
         with mock.patch.dict(os.environ, {'PATH': boundary, 'SPECKIT_PYTHON': self.python}):
             probe.check_path(boundary, 'inherited')
-            with self.assertRaisesRegex(probe.ShellPreflightError, 'workflow PATH'):
-                probe.verify_shell_launch(ROOT, runner=runner)
-        runner.assert_not_called()
+            result = probe.verify_shell_launch(ROOT)
+        self.assertEqual(result['exitCode'], 0)
+        self.assertLessEqual(result['pathCharacters'], 8191)
+
+    def test_duplicate_usable_directories_are_removed_without_changing_tool_selection(self):
+        import python_runtime
+        value = ';'.join([self.short_path] * 200)
+        with mock.patch.dict(os.environ, {'PATH': value, 'SPECKIT_PYTHON': self.python}):
+            original = dict(os.environ)
+            result = probe.verify_shell_launch(ROOT)
+            with python_runtime.environment(ROOT):
+                self.assertLessEqual(len(os.environ['PATH']), 8191)
+                self.assertTrue(Path(shutil.which('python')).samefile(self.python))
+            self.assertEqual(original, dict(os.environ))
+        self.assertEqual(result['exitCode'], 0)
+
+    def test_npm_style_codex_launcher_retains_its_node_fallback_without_starting_an_agent(self):
+        node = shutil.which('node')
+        self.assertIsNotNone(node, 'Pinned Node is required for the Windows launcher fixture')
+        with tempfile.TemporaryDirectory(prefix='program-kit-npm-launcher-') as directory:
+            tools = Path(directory) / 'tools with spaces'
+            tools.mkdir()
+            (tools / 'codex.cmd').write_text('@echo off\nnode -e "console.log(\'NODE_PATH_OK\')"\n')
+            inherited = str(tools) + ';' + self.long_path + ';' + str(Path(node).parent)
+            with mock.patch.dict(os.environ, {'PATH': inherited, 'SPECKIT_PYTHON': self.python}):
+                result = probe.verify_shell_launch(ROOT)
+                import python_runtime
+                values = python_runtime.invocation_values(self.python)
+                self.assertTrue(Path(shutil.which('node', path=values['PATH'])).samefile(node))
+                launched = subprocess.run('codex', shell=True, env=values, capture_output=True, text=True)
+            self.assertEqual(launched.returncode, 0, launched.stderr)
+            self.assertEqual(launched.stdout.strip(), 'NODE_PATH_OK')
+            self.assertFalse(result['codingAgentStarted'])
+
+    def test_unreadable_tool_directory_is_retained_and_short_names_preserve_identity(self):
+        with tempfile.TemporaryDirectory(prefix='program-kit-tool-identity-') as directory:
+            original_stat = os.stat
+            def denied(path, **kwargs):
+                if os.path.normcase(os.path.abspath(path)) == os.path.normcase(directory):
+                    raise PermissionError('fixture access denied')
+                return original_stat(path, **kwargs)
+            with mock.patch.object(windows_path.os, 'stat', side_effect=denied):
+                prepared = windows_path.prepare_path(self.short_path + ';' + directory, self.python)
+            self.assertIn(directory, prepared.split(';'))
+            self.assertTrue(Path(windows_path.short_directory(directory)).samefile(directory))
+
+    def test_app_alias_is_resolved_only_without_a_record_and_probe_failures_remain_errors(self):
+        import python_runtime
+        with tempfile.TemporaryDirectory(prefix='program-kit-runtime-alias-') as directory:
+            root = Path(directory)
+            with mock.patch.dict(os.environ, {'SPECKIT_PYTHON': self.python}), \
+                 mock.patch.object(windows_path, 'canonical_python', return_value=sys.executable) as canonical:
+                self.assertEqual(sys.executable, python_runtime.selected(root))
+                canonical.assert_called_once_with(self.python)
+                record = root / '.specify/python-runtime.json'
+                record.parent.mkdir()
+                record.write_text(json.dumps({'contractVersion': 1, 'executable': self.python}))
+                canonical.reset_mock()
+                self.assertEqual(self.python, python_runtime.selected(root))
+                canonical.assert_not_called()
+            with mock.patch.object(windows_path.sys, 'executable', 'C:/other/python.exe'), \
+                 mock.patch.object(windows_path.subprocess, 'run', side_effect=subprocess.TimeoutExpired('Python identity', 30)):
+                with self.assertRaisesRegex(windows_path.WindowsPathError, 'timed out.*no worker'):
+                    windows_path.canonical_python(self.python)
 
     def test_unavailable_python_is_reported_before_dispatch(self):
         with mock.patch.dict(os.environ, {'PATH': 'C:/nonexistent/workflow-tools'}):
@@ -93,7 +167,8 @@ class WindowsShellLaunchTests(unittest.TestCase):
             hashes = {p: hashlib.sha256(p.read_bytes()).hexdigest() for p in state_paths}
             inventory = set(temporary_root.rglob('*'))
             for command in ('run', 'resume', 'reopen'):
-                with self.subTest(command=command), mock.patch.dict(os.environ, {'PATH': self.long_path}), \
+                with self.subTest(command=command), mock.patch.dict(os.environ, {'PATH': self.uncompactable_path}), \
+                     mock.patch.object(windows_path, 'short_directory', side_effect=lambda directory: directory), \
                      mock.patch.object(sys, 'argv', ['workflow_lifecycle.py', command, '--run-id', 'source']), \
                      mock.patch.object(candidate.Path, 'cwd', return_value=temporary_root), \
                      mock.patch('python_runtime.environment', side_effect=AssertionError('dependency probe reached')) as runtime, \
@@ -109,6 +184,29 @@ class WindowsShellLaunchTests(unittest.TestCase):
                     lock.assert_not_called()
             self.assertEqual(hashes, {p: hashlib.sha256(p.read_bytes()).hexdigest() for p in state_paths})
             self.assertEqual(inventory, set(temporary_root.rglob('*')))
+
+    def test_repaired_path_reaches_worker_policy_and_is_restored_on_failure(self):
+        with tempfile.TemporaryDirectory(prefix='program-kit-prepared-dispatch-') as directory:
+            root = Path(directory)
+            def stop_at_worker(*args):
+                self.assertLessEqual(len(os.environ['PATH']), 8191)
+                self.assertEqual('fixture-originator', os.environ['CODEX_SESSION_ID'])
+                raise ValueError('fixture stop before worker dispatch')
+            with mock.patch.dict(os.environ, {'PATH': self.long_path, 'SPECKIT_PYTHON': self.python,
+                                              'CODEX_SESSION_ID': 'fixture-originator'}), \
+                 mock.patch.object(sys, 'argv', ['workflow_lifecycle.py', 'run']), \
+                 mock.patch.object(candidate.Path, 'cwd', return_value=root), \
+                 mock.patch.object(candidate, 'execution_lock', return_value=contextlib.nullcontext()), \
+                 mock.patch('codex_worker_policy.worker_environment', side_effect=stop_at_worker) as worker, \
+                 mock.patch.object(candidate, 'WorkflowEngine') as engine, \
+                 contextlib.redirect_stderr(io.StringIO()) as errors:
+                original = dict(os.environ)
+                self.assertEqual(candidate.main(), 1)
+                self.assertIn('fixture stop before worker dispatch', errors.getvalue())
+                worker.assert_called_once()
+                engine.assert_not_called()
+                self.assertEqual(original, dict(os.environ))
+            self.assertEqual([], list(root.iterdir()))
 
 
 class ShellContractTests(unittest.TestCase):
@@ -169,6 +267,39 @@ class ShellContractTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {'PATH': self.path, 'SPECKIT_PYTHON': self.python}):
             with self.assertRaisesRegex(probe.ShellPreflightError, 'timed out.*no worker'):
                 probe.verify_shell_launch(self.root, runner=runner)
+
+    def test_source_launcher_scopes_old_runtime_without_changing_installation_or_gates(self):
+        scripts = self.root / '.specify/extensions/program-kit-governance/scripts'
+        scripts.mkdir(parents=True)
+        shutil.copyfile(SCRIPTS / 'python_runtime.py', scripts / 'python_runtime.py')
+        child = scripts / 'workflow_lifecycle.py'
+        # Simulate an old lifecycle's repeated runtime prefix and native shell.
+        # No Spec Kit engine, coding-agent CLI or workflow worker is invoked.
+        child.write_text('import json,os,sys,subprocess\nfrom pathlib import Path\n'
+                         'values=dict(os.environ)\n'
+                         'values["PATH"]=str(Path(values["SPECKIT_PYTHON"]).parent)+os.pathsep+values["PATH"]\n'
+                         'result=subprocess.run("python --version",shell=True,env=values,capture_output=True)\n'
+                         'print(json.dumps({"shellExit":result.returncode,"args":sys.argv[1:],'
+                         '"originator":values.get("CODEX_SESSION_ID"),"pathLength":len(values["PATH"])}))\n'
+                         'raise SystemExit(int(os.environ.get("PROGRAM_KIT_TEST_EXIT","0")))\n')
+        before = {p: p.read_bytes() for p in scripts.iterdir()}
+        environment = dict(os.environ, PATH=self.path + os.pathsep + 'missing-padding' * 1000,
+                           SPECKIT_PYTHON=sys.executable, CODEX_SESSION_ID='fixture-originator')
+        args = ['run', '--input', 'bootstrap_intake=docs/architecture/plan with spaces.json',
+                '--input', 'integration=auto']
+        launcher = SCRIPTS / 'windows_workflow_path.py'
+        for code in (0, 37):
+            environment['PROGRAM_KIT_TEST_EXIT'] = str(code)
+            result = subprocess.run([sys.executable, str(launcher), *args], cwd=self.root,
+                                    env=environment, capture_output=True, text=True)
+            self.assertEqual(code, result.returncode, result.stderr)
+            value = json.loads(result.stdout)
+            self.assertEqual(0, value['shellExit'])
+            self.assertEqual(args, value['args'])
+            self.assertEqual('fixture-originator', value['originator'])
+            if os.name == 'nt':
+                self.assertLessEqual(value['pathLength'], 8191)
+        self.assertEqual(before, {p: p.read_bytes() for p in scripts.iterdir() if p.is_file()})
 
 
 if __name__ == '__main__':

@@ -18,6 +18,9 @@ def selected(root: Path) -> str:
         raise ValueError('WORKFLOW_RUNTIME_PREFLIGHT: python is unavailable; select an absolute SPECKIT_PYTHON executable')
     if saved and os.path.normcase(os.path.abspath(executable)) != os.path.normcase(saved['executable']):
         raise ValueError('WORKFLOW_RUNTIME_PREFLIGHT: runtime differs from generated core instructions; regenerate them explicitly')
+    if os.name == 'nt' and not saved:
+        from windows_workflow_path import canonical_python
+        executable = canonical_python(executable)
     return executable
 
 
@@ -55,5 +58,6 @@ def invocation_values(executable: str) -> dict[str, str]:
     """Preview the exact scoped runtime environment without probing or changing it."""
     values = dict(os.environ)
     values['SPECKIT_PYTHON'] = executable
-    values['PATH'] = str(Path(executable).parent) + os.pathsep + values.get('PATH', '')
+    from windows_workflow_path import prepare_path
+    values['PATH'] = prepare_path(values.get('PATH', ''), executable)
     return values

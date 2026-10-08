@@ -31,11 +31,13 @@ def verify_shell_launch(root: Path, *, runner=subprocess.run) -> dict:
     No global environment or permissions are changed by this preflight.
     """
     inherited_path = os.environ.get('PATH', '')
-    check_path(inherited_path, 'inherited')  # Before even the absolute dependency probe.
     from python_runtime import selected, invocation_values
+    from windows_workflow_path import WindowsPathError
     try:
         selected_python = selected(root)
         environment = invocation_values(selected_python)
+    except WindowsPathError as error:
+        raise ShellPreflightError(str(error)) from error
     except (ValueError, OSError) as error:
         raise ShellPreflightError(f'WORKFLOW_SHELL_PREFLIGHT: cannot select the workflow Python: {error}') from error
     check_path(environment['PATH'], 'workflow')
@@ -75,4 +77,5 @@ def verify_shell_launch(root: Path, *, runner=subprocess.run) -> dict:
             'Correct the invocation environment before retrying; no worker was dispatched.')
     return {'kind': 'workflow-shell-launch', 'pathCharacters': len(environment['PATH']),
             'inheritedPathCharacters': len(inherited_path), 'selectedPython': selected_python,
+            'windowsPathPrepared': os.name == 'nt' and environment['PATH'] != inherited_path,
             'python': observed['python'], 'codingAgentStarted': False, 'exitCode': 0}

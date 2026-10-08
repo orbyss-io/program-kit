@@ -7,15 +7,20 @@ and all mechanical paths. Do not start an outer worker workflow inside an ordina
 
 Run, resume and reopen verify bare Python through the actual workflow shell mode
 before worker policy, schema setup, execution locks or history changes. On Windows,
-`WORKFLOW_SHELL_PREFLIGHT` rejects an inherited or projected workflow PATH longer
-than cmd.exe's 8191-character limit. Absolute-path executable checks do not establish
-shell lookup. The probe binds the same recorded Python and scoped environment used
-by native steps and requires its structured success marker and interpreter identity.
-For command lookup failures, use a human-owned launcher with an explicitly selected,
-bounded process PATH covering the resolved tools required by this workflow; restore
-its caller's environment afterward. Program Kit preserves inherited tool directories
-and global environment settings. Retry the same lifecycle command after fixing the
-launch environment; saved run state and approval gates need no manual edits.
+Program Kit automatically prepares the workflow PATH for cmd.exe: it removes duplicate
+and missing directories, keeps the recorded Python first, and preserves all usable
+tool directories, including Node for npm-installed coding-agent launchers. When needed,
+existing Windows short directory names reduce length without changing directory identity.
+The prepared PATH applies only to this invocation and its children; caller and persistent
+settings remain unchanged. No manual PATH adjustment is needed for oversized paths that
+can be represented safely. Useful directories are never truncated to fit the shell.
+
+The probe binds the same recorded Python and scoped environment used by native steps
+and requires its structured success marker and interpreter identity. A genuinely
+unrepresentable usable PATH, missing runtime, or failed shell probe still stops before
+dispatch or workflow-history changes. Saved state and approval gates need no manual edits.
+For installed releases predating this preparation, use the source launcher in the
+[current bootstrap instructions](https://github.com/orbyss-io/program-kit#windows-bootstrap-path-correction).
 
 A failed producer or validator resumes from its affected producer stage. Successful prefix
 stages remain recorded. The transition archives prior state, saved workflow and downstream

@@ -457,7 +457,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Native workflow shell lookup, PATH limits, recorded interpreter and pre-dispatch immutable history; no coding workers.",
+      "purpose": "Automatic Windows PATH preparation, native shell/npm launcher lookup, recorded interpreter, scoped restoration and pre-dispatch immutable history; no coding workers.",
       "owner": "program-kit",
       "inputs": [
         "scripts/**",
