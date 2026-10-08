@@ -117,6 +117,8 @@ ASSESSMENT_OPTIONAL_REFERENCES = (
 )
 
 DOTNET_REFERENCES = (
+    ".specify/extensions/program-kit-governance/references/modularity-and-contracts.md",
+    ".specify/extensions/program-kit-dotnet/references/technology-profiles/dotnet.md",
     ".specify/extensions/program-kit-dotnet/references/dotnet-engineering.md",
     ".specify/extensions/program-kit-dotnet/references/persistence-profiles.md",
     ".specify/extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
@@ -733,6 +735,8 @@ def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
         if stage == "assessment"
         else ()
     )
+    if stage in {'architecture', 'tooling'}:
+        result.append('.specify/extensions/program-kit-governance/references/architecture-method.md')
     if stage == "assessment" and (languages or interfaces):
         result.append(
             ".specify/extensions/program-kit-governance/references/software-language.md"
@@ -763,6 +767,20 @@ def required_routed_references(intake: dict, stage: str) -> tuple[str, ...]:
     if stage == "research":
         return tuple(path for path in routed if path in UI_EXPERIENCE_REFERENCES)
     return ()
+
+
+def decision_constraints(intake: dict, stage: str):
+    """Embed only decisive canonical clauses at the stage that makes the decision."""
+    if stage not in {'architecture', 'tooling'}:
+        return []
+    from decision_knowledge import decision_rule
+    directory = Path(__file__).resolve().parents[2]
+    catalog = load_json(Path(__file__).resolve().parents[1] / 'references/phase-obligations.json')
+    identities = ['authority-conflicts']
+    if '.specify/extensions/program-kit-dotnet/references/technology-profiles/dotnet.md' in routed_references(intake, stage):
+        identities.append('compilation-responsibilities')
+    return [{'id': i, 'source': '.specify/extensions/' + catalog['decisionRules'][i]['source'],
+             'constraint': decision_rule(directory, catalog['decisionRules'][i], i)} for i in identities]
 
 
 def _observed_command(command: list[str]) -> str:
@@ -1636,6 +1654,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "stage": stage,
         "stage_focus": STAGE_FOCUS[stage],
         "stage_plan": stage_plan(project_root, effective_intake, stage, authorities, run_id),
+        "decision_constraints": decision_constraints(effective_intake, stage),
         "runtime_release": runtime_release_projection(project_root, effective_intake),
         "bootstrap_intake": intake_record(project_root, run_id),
         "intake": intake_projection(intake, stage),

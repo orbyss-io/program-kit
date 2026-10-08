@@ -1,8 +1,10 @@
 """Independent automatic updates, promotion and bounded publisher knowledge contracts."""
 import importlib.util
+import contextlib
 import json
 import io
 from pathlib import Path
+import shlex
 import sys
 import tempfile
 import unittest
@@ -17,6 +19,25 @@ import dependency_maintenance as maintenance
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_update_installs_the_upgraded_ci_pin_and_rejects_ambiguous_pins(self):
+        import subprocess
+        import yaml
+        workflow = yaml.safe_load((ROOT / '.github/workflows/update-dependencies.yml').read_text())
+        step = next(step for step in workflow['jobs']['update']['steps']
+                    if step.get('name') == 'Select upgraded npm and Spec Kit')
+        command = shlex.split(step['run'].splitlines()[-1])
+        self.assertEqual(['python', '-c'], command[:2])
+        with patch.object(Path, 'read_text', return_value='specify-cli==1.1.2\nspecify-cli==1.1.2'), \
+                patch.object(subprocess, 'run') as install:
+            exec(command[2], {})
+        self.assertEqual('specify-cli==1.1.2', install.call_args.args[0][-1])
+        self.assertTrue(install.call_args.kwargs['check'])
+        with patch.object(Path, 'read_text', return_value='specify-cli==1.1.1\nspecify-cli==1.1.2'), \
+                patch.object(subprocess, 'run') as install:
+            with self.assertRaisesRegex(AssertionError, 'one exact'):
+                exec(command[2], {})
+            install.assert_not_called()
+
     def test_added_knowledge_preserves_existing_authority_but_changed_proof_does_not(self):
         import building_blocks as blocks
         original={'path':'exact.json','sha256':'a'*64,'status':'qualified','evidence':{'path':'proof.json','sha256':'b'*64}}
@@ -69,6 +90,17 @@ class WorkflowTests(unittest.TestCase):
             data=json.dumps(value,ensure_ascii=False).encode(); (root/'package.pack').write_bytes(b'prefix'+data+b'suffix')
             row={'path':'package.pack','byteOffset':6,'byteLength':len(data)}
             self.assertEqual(value,blocks.publisher_package_fact(root,row))
+
+    def test_failed_validation_retains_its_log_and_prints_the_actual_cause(self):
+        import update_dependencies as updates
+        with tempfile.TemporaryDirectory() as temp:
+            output = io.StringIO()
+            with patch.object(updates, 'ROOT', Path(temp)), contextlib.redirect_stdout(output):
+                with self.assertRaisesRegex(RuntimeError, 'fixture failed'):
+                    updates.run('fixture', [sys.executable, '-c',
+                        'print("Validation failed: actual-negative-control"); raise SystemExit(7)'])
+            self.assertIn('Validation failed: actual-negative-control', output.getvalue())
+            self.assertIn('actual-negative-control', (Path(temp) / 'artifacts/dependency-update-tests/fixture.log').read_text())
 
     def test_full_update_uses_complete_deterministic_inventory_without_release_receipt(self):
         text=(ROOT/'scripts/update_dependencies.py').read_text()

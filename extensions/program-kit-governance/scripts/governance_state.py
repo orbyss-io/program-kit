@@ -1988,7 +1988,12 @@ def roadmap_records(path: Path) -> list[dict[str, str]]:
     return records
 
 
-def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> list[dict[str, str]]:
+def validate_roadmap(require_ready: bool, *, verify_delivery: bool = False) -> list[dict[str, str]]:
+    """Validate roadmap authority. Status is consumer-owned, not current test acceptance.
+
+    verify_delivery explicitly inspects the historical dossier contract for legacy
+    evidence audits; ordinary validation must not restore that retired gate.
+    """
     records = roadmap_records(project_path(ROADMAP))
     lifecycle_call("validate_prerequisites", records)
     pending_review: set[str] | None = None

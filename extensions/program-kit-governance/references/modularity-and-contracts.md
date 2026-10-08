@@ -53,12 +53,17 @@ ORM/provider types, persistence records and mappings, migrations, serializers, v
 private implementation interfaces. Do not put a type in Core merely because two implementations use
 it today.
 
-Core, runtime behavior, API adaptation and persistence mechanisms require separate compilation
-projects when present. One bounded context, feature bundle, package release or deployment does not
-waive that separation. Namespaces supplement compiler boundaries. Composition selects implementations;
-it does not contain the domain or provider implementations it selects. A capability belongs to Core
-and its runtime implementation belongs to a distinct implementation, provider or bridge project.
-An empty initial repository and a pure Core utility do not require invented implementation projects.
+<!-- program-kit:decision-rule compilation-responsibilities -->
+Separate Core, runtime implementation, API and provider compilation projects when those responsibilities exist.
+Core owns stable contracts and pure policies, never persistence-calling orchestration or runtime effects.
+Role names, namespaces, one package or deployment do not waive separation. Declare actual responsibilities
+and complete capability bindings; a graph pass establishes structural consistency, not semantic correctness.
+Empty repositories and pure Core utilities need no invented runtime projects.
+<!-- /program-kit:decision-rule -->
+
+Composition selects implementations; it does not contain the domain or provider implementations it selects.
+A capability belongs to Core and its runtime implementation belongs to a distinct implementation,
+provider or bridge project.
 
 Default activatable behavior uses the context name, such as `PriceCalculator.Catalog`. Qualify other
 implementations by what they contribute: `.Api`, `.PostgreSql`, `.Import.Excel`, `.Import.Json`, or
@@ -201,11 +206,13 @@ authority, audience, origins, claim mappings, and limits.
 Each `.Api` implementation owns its route groups, wire models, endpoint-specific validation and
 bounds, OpenAPI metadata, stable application permission identities, and policy/rate requirements.
 Provider roles and token shapes are normalized by the host boundary; endpoints do not parse them.
+<!-- program-kit:decision-rule authorization-ownership -->
 Keep three owners distinct: deployment selects provider-role/scope mappings, the Program Kit
 authentication feature normalizes and evaluates dynamic `permission:<identity>` policies, and the
 owning application/domain capability evaluates resource/state/effect rules. Do not duplicate either
-of the first two in a consumer feature. For a no-effect probe, the endpoint policy is the complete
+of the first two or reparse canonical permission claims in a consumer feature. For a no-effect probe, the endpoint policy is the complete
 authorization decision; for a protected business effect it is only the outer gate.
+<!-- /program-kit:decision-rule -->
 Do not create an application-root `Administration.Api` or `Platform.WebBoundary` project merely to
 repeat generic host plumbing.
 

@@ -50,8 +50,10 @@ class DevelopmentTests(unittest.TestCase):
     def test_planned_roles_gate_after_plan_tasks_and_source_without_builds(self):
         eng = self.root / 'eng'; eng.mkdir()
         graph = {'runtimeComposition': {'projects': [
-            {'path': 'src/Notes.Core/Notes.Core.csproj', 'role': 'core'},
-            {'path': 'src/Notes/Notes.csproj', 'role': 'composition'}],
+            {'path': 'src/Notes.Core/Notes.Core.csproj', 'role': 'core',
+             'responsibilities': [{'name': 'Notes.INotes', 'kind': 'contract', 'effects': []}]},
+            {'path': 'src/Notes/Notes.csproj', 'role': 'composition',
+             'responsibilities': [{'name': 'Notes.Notes', 'kind': 'runtime', 'effects': [], 'provides': ['Notes.INotes']}]}],
             'bindings': [{'capabilityProject': 'src/Notes.Core/Notes.Core.csproj',
                 'implementationProject': 'src/Notes/Notes.csproj', 'capability': 'Notes.INotes',
                 'implementation': 'Notes.Notes', 'registration': 'Notes.Feature.ConfigureServices'}]}}
@@ -191,7 +193,10 @@ class DevelopmentTests(unittest.TestCase):
         (self.feature/'plan.md').write_text('dotnet API with database persistence and async cancellation.')
         outputs = {p: knowledge.render(knowledge.project(self.root, self.feature, p), p)
                    for p in ('planning','tasks','implementation','delivery')}
-        self.assertTrue(all(len(o.split()) < 750 for o in outputs.values()))
+        # Brevity cannot erase decisive canonical constraints; full references stay focused.
+        self.assertTrue(all(len(o.split()) < 1600 for o in outputs.values()))
+        self.assertTrue(all('canonical permission' in o and 'when those responsibilities exist' in o
+                            for o in outputs.values()))
         self.assertIn('decisions', outputs['planning'])
         self.assertIn('test tasks', outputs['tasks'])
         self.assertIn('focused', outputs['implementation'])
@@ -209,10 +214,30 @@ class DevelopmentTests(unittest.TestCase):
         self.assertTrue(value['historicalOnly'])
         self.assertEqual('failed',value['records']['verification-results.json']['status'])
         self.assertEqual(before,self.snapshot())
+        retired = subprocess.run([sys.executable, str(ROOT / 'extensions/program-kit-governance/scripts/lifecycle_state.py'),
+                                 '--repository', str(self.root), '--feature-dir', 'specs/001-slots', 'verify-delivery'],
+                                capture_output=True, text=True)
+        self.assertEqual(2, retired.returncode)
+        self.assertIn('retired', retired.stderr)
+        self.assertEqual(before, self.snapshot())
 
     def test_completion_cannot_claim_success_without_an_engineering_command(self):
         with self.assertRaisesRegex(ValueError,'no completion claim'):
             knowledge.check(self.root,self.feature,'delivery')
+
+    def test_successful_engineering_command_does_not_certify_semantic_or_human_acceptance(self):
+        eng = self.root / 'eng'
+        eng.mkdir(exist_ok=True)
+        (eng / 'Invoke-RepositoryVerification.ps1').write_text(
+            "Write-Output 'Fixture engineering oracle ran'\nexit 0\n", encoding='utf-8')
+        result = knowledge.execute(self.root, self.feature)
+        self.assertTrue(result['engineeringAcceptanceEstablished'])
+        self.assertFalse(result['acceptanceEstablished'])
+        self.assertFalse(result['semanticReviewEstablished'])
+        self.assertFalse(result['releaseReadinessEstablished'])
+        logs = list((self.root / 'artifacts/program-kit/runs').glob('*/stdout.log'))
+        self.assertEqual(1, len(logs))
+        self.assertIn('Fixture engineering oracle ran', logs[0].read_text())
 
     def test_partial_checkpoint_never_runs_full_acceptance_but_explicit_handoff_does(self):
         (self.feature/'tasks.md').write_text('- [X] T001 Test the operation\n- [ ] T002 Finish the story\n')

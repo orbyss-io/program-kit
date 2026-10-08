@@ -1,9 +1,10 @@
 # Unreleased
 
-The untagged Program Kit candidate is 0.12.8. Changes and migration instructions
-are maintained in [migration-0.12.8.md](migration-0.12.8.md), which generates the
-release body and shipped guidance. This patch reconciles task-generation references,
-provides bounded context, and saves task drafts incrementally with resume support.
-Dependency profiles and pins remain unchanged. Publication requires fresh local Release
-evidence and complete tagged CI. Consumer rollout remains a separate follow-up.
+The proposed Program Kit release is 0.12.9. Changes and migration instructions
+are maintained in [migration-0.12.9.md](migration-0.12.9.md), which generates the
+release body and shipped guidance. It includes the knowledge-application repair and
+the consumer contract, intake, UI and verification work prepared since 0.12.8.
+The separate architecture refresh/evolution investigation is deferred to a later patch.
+Candidate selection requires the dependency-update workflow. Publication requires
+fresh local Release evidence and complete tagged CI. Consumer rollout remains separate.
 No version is released by this document.

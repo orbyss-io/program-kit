@@ -29,7 +29,7 @@ jobs:
           python-version-file: .python-version
 
       - name: Install pinned Spec Kit
-        run: python -m pip install --disable-pip-version-check "specify-cli==1.1.1"
+        run: python -m pip install --disable-pip-version-check "specify-cli==1.1.2"
 
       - name: Prepare project-local JSON Schema runtime
         run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
@@ -37,7 +37,7 @@ jobs:
       - name: Set up pinned Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "26.11.0"
+          node-version: "26.11.1"
 
       - name: Set up pinned npm
         run: npm install --global npm@12.2.0 --ignore-scripts --no-audit --no-fund
@@ -75,6 +75,7 @@ jobs:
             artifacts/*.cmd
             artifacts/*.sh
             artifacts/SHA256SUMS
+            !artifacts/**/cache/nuget/http/**
           if-no-files-found: warn
           retention-days: 14
 
@@ -90,7 +91,7 @@ jobs:
           python-version-file: .python-version
 
       - name: Install pinned Spec Kit
-        run: python -m pip install --disable-pip-version-check "specify-cli==1.1.1"
+        run: python -m pip install --disable-pip-version-check "specify-cli==1.1.2"
 
       - name: Validate Python-flavor Codex bootstrap on Windows
         run: python tests/validate_codex_bootstrap.py

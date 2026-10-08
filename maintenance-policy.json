@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "profileRegistry": "extensions/program-kit-building-blocks/references/dependency-profiles",
   "inputs": [
+    "maintenance-policy.json",
     "scripts/dependency_maintenance.py",
     ".github/workflows/*.yml",
     "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
@@ -36,6 +37,10 @@
     }
   ],
   "metadataOverrides": {
+    "anonymousGithubMetadata": [
+      "aquasecurity/setup-trivy",
+      "aquasecurity/trivy"
+    ],
     "CShells.Abstractions": "https://f.feedz.io/valence-works/cshells/nuget/v3/packages/cshells.abstractions/index.json",
     "CShells.AspNetCore.Abstractions": "https://f.feedz.io/valence-works/cshells/nuget/v3/packages/cshells.aspnetcore.abstractions/index.json",
     "image:postgres": {

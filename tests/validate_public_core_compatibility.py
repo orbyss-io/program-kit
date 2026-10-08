@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -13,6 +14,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import python_runtime as runtime
 import codex_bootstrap_preflight as preflight
+
+
+def selected_cli_pin(root=ROOT):
+    pins = set(re.findall(r'specify-cli==([0-9.]+)',
+                         (root / '.github/workflows/ci.yml').read_text(encoding='utf-8')))
+    if len(pins) != 1:
+        raise ValueError('CI must select one exact public Spec Kit version')
+    return pins.pop()
 
 
 class PublicCoreTests(unittest.TestCase):
@@ -36,16 +45,27 @@ class PublicCoreTests(unittest.TestCase):
         from packaging.specifiers import SpecifierSet
         manifests = [ROOT/'bundle.yml', *ROOT.glob('extensions/*/extension.yml'),
                      *ROOT.glob('presets/*/preset.yml'), *ROOT.glob('workflows/*/workflow.yml')]
+        selected = selected_cli_pin()
+        self.assertIn(selected, SpecifierSet('>=1.1.1,<2.0.0'))
         for path in manifests:
             with self.subTest(path=path):
                 supported = SpecifierSet(yaml.safe_load(path.read_text(encoding='utf-8'))['requires']['speckit_version'])
                 self.assertIn('1.1.1', supported)
+                self.assertIn(selected, supported)
                 self.assertNotIn('1.0.1', supported)
                 self.assertNotIn('2.0.0', supported)
         for name in ('ci.yml','release.yml'):
             text = (ROOT/'.github/workflows'/name).read_text(encoding='utf-8')
-            self.assertIn('specify-cli==1.1.1', text)
-            self.assertNotIn('specify-cli==1.0.1', text)
+            pins = re.findall(r'specify-cli==([0-9.]+)', text)
+            self.assertTrue(pins, 'Missing exact public CLI pin: ' + name)
+            self.assertEqual({selected}, set(pins))
+
+    def test_disagreeing_ci_pins_are_rejected(self):
+        path = self.root / '.github/workflows/ci.yml'
+        path.parent.mkdir(parents=True)
+        path.write_text('specify-cli==1.1.1\nspecify-cli==1.1.2\n')
+        with self.assertRaisesRegex(ValueError, 'one exact'):
+            selected_cli_pin(self.root)
 
     def test_missing_native_dependency_and_unsupported_version_preserve_diagnostic(self):
         for diagnostic in ("ModuleNotFoundError: No module named 'yaml'", 'Python >=3.11 is required'):
@@ -80,7 +100,7 @@ class PublicCoreTests(unittest.TestCase):
 
     def test_actual_public_package_generates_an_accepted_unmodified_consumer(self):
         import importlib.metadata
-        self.assertEqual('1.1.1', importlib.metadata.version('specify-cli'))
+        self.assertEqual(selected_cli_pin(), importlib.metadata.version('specify-cli'))
         environment = dict(os.environ, SPECKIT_PYTHON=sys.executable)
         result = subprocess.run([sys.executable, '-c', 'from specify_cli import main; main()',
             'init', '.', '--force', '--non-interactive', '--integration', 'codex',

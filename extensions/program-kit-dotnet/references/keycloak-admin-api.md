@@ -1,8 +1,13 @@
 # Keycloak Admin REST feature boundary
 
+<!-- program-kit:decision-rule identity-administration -->
 The provider contract follows the official [Keycloak Admin REST API](https://www.keycloak.org/docs-api/latest/rest-api/index.html),
 but does not expose a generic `SendAsync` escape hatch. An arbitrary transport would defeat feature
 selection, least privilege, migration to another identity provider, and endpoint-level testing.
+Use portable identity-administration contracts for business orchestration; provider-specific facilities
+remain explicit selected features. Confidential service-account credentials stay server-owned.
+Verify denied operations and real create/use/cleanup; package activation alone is not that evidence.
+<!-- /program-kit:decision-rule -->
 
 ## Recommended application-facing baseline
 

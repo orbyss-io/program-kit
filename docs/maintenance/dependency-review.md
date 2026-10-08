@@ -13,6 +13,10 @@ profiles and existing consumer locks remain available.
 All deterministic checks and image vulnerability scans must pass before the job
 opens an update PR. Failed lookups or incompatible contracts stop the job and preserve
 diagnostics. Fix the failure and rerun; there are no per-dependency decision forms.
+The policy explicitly selects anonymous GitHub metadata access for the public Aqua
+repositories, whose release endpoints reject the Actions integration token. Other
+GitHub lookups retain token authentication. Anonymous lookup is not an error fallback:
+unavailable releases or unresolved action tags still block the update.
 
 New external inputs belong in maintenance-policy.json. Foundation has its own
 independent workflow and publishes knowledge with each release. Program Kit adopts

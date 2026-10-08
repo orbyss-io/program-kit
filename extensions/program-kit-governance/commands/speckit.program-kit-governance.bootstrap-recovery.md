@@ -13,6 +13,10 @@ separate exception for its disposable repository.
 
 For a completed source run, the supported human-owned entrypoint is
 `workflow_lifecycle.py resume --run-id <completed-source-id> --post-bootstrap`.
+Use this continuation when governing architecture authority actually changes. Ordinary retained
+feature-plan decisions are resolved in plan.md through phase-context after normal design review;
+they do not require a bootstrap continuation or changes to approved history. A plan resolution
+cannot replace execution of a retained compatibility, delivery or production prerequisite.
 Use the prepared handoff's current artifacts and preserved authority. Keep Active roadmap
 entries Active, preserve feature plans/code, and compact over-budget authored prose without
 changing the first-slice boundary or retained obligations. The native proof step attaches

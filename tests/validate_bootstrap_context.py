@@ -58,6 +58,7 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
         + module.SECURE_WEB_REFERENCES
         + module.UI_EXPERIENCE_REFERENCES
         + (
+            ".specify/extensions/program-kit-governance/references/architecture-method.md",
             ".specify/extensions/program-kit-governance/references/software-language.md",
         )
     ))
@@ -309,6 +310,13 @@ def main() -> int:
                 for required in ('quality-attributes.md', 'quality-system.md', 'traceability.md'):
                     assert 'docs/architecture/' + required in allowed
                 assert 'quality_requirements' in payload['intake']
+            if stage in {'architecture', 'tooling'}:
+                constraints = payload['decision_constraints']
+                assert any('constitution' in row['constraint'].lower() for row in constraints)
+                if 'dotnet' in payload['intake'].get('selected_profiles', []):
+                    assert any('Core' in row['constraint'] for row in constraints)
+                allowed = payload['reading_policy']['allowed_sources']
+                assert '.specify/extensions/program-kit-governance/references/architecture-method.md' in allowed
             if payload["bootstrap_intake"]["path"] != "docs/architecture/bootstrap-intake.json":
                 raise AssertionError("Bootstrap-intake provenance is not canonical")
             if payload["intake"]["status"] != "confirmed":

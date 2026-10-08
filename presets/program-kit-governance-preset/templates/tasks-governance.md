@@ -13,6 +13,10 @@ an owner and dependency before affected implementation/proof tasks. Drafting doe
 those prerequisites, start services or bootstrap, change approvals/pins or fabricate evidence.
 The constitution requires applicable tests even when upstream task instructions call tests
 optional. Retain security, ownership and real-provider verification before completion.
+Carry reviewed feature-plan resolutions and their precise plan sections into the affected tasks.
+Report unresolved/stale decisions and conflicting adopted constraints with their owners; resolve
+design prerequisites before dependent implementation. Recheck only changed decision inputs.
+A drafted task or plan never closes a compatibility/delivery execution obligation.
 
 ## Engineering verification
 

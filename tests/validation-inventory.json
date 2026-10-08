@@ -2,6 +2,19 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_knowledge_application",
+      "command": ["{python}", "tests/validate_knowledge_application.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Scoped adopted knowledge before design, canonical constraints in installed briefs, responsibility contradictions and semantic scope; no coding agents.",
+      "owner": "program-kit",
+      "inputs": ["extensions/**", "presets/**", "tests/validate_knowledge_application.py"],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique disposable consumer; original consumer and approved history untouched."
+    },
+    {
       "id": "validate_standalone_engineering",
       "command": [
         "{python}",

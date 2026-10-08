@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -172,15 +173,36 @@ try
     }
     File.WriteAllBytes(Path.Combine(root, "a", "manifest.json"), originalManifest);
     var link = Path.Combine(root, "linked");
-    try
+    if (OperatingSystem.IsWindows())
+    {
+        // Junctions exercise Windows reparse-point rejection without symlink privileges.
+        var start = new ProcessStartInfo(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.System),
+            "WindowsPowerShell", "v1.0", "powershell.exe"))
+        {
+            UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardOutput = true, RedirectStandardError = true
+        };
+        foreach (var argument in new[] { "-NoProfile", "-NonInteractive", "-Command",
+            "New-Item -ItemType Junction -Path '" + link.Replace("'", "''") +
+            "' -Target '" + Path.Combine(root, "a").Replace("'", "''") + "' -ErrorAction Stop | Out-Null" })
+            start.ArgumentList.Add(argument);
+        using var junction = Process.Start(start) ?? throw new Exception("Junction fixture did not start");
+        var output = junction.StandardOutput.ReadToEnd();
+        var error = junction.StandardError.ReadToEnd();
+        junction.WaitForExit();
+        Require(junction.ExitCode == 0, "Junction fixture failed: " + output + error);
+    }
+    else
     {
         Directory.CreateSymbolicLink(link, Path.Combine(root, "a"));
-        try { using var ignored = new LocalHostedAssetSource(root, "linked"); throw new Exception("Linked root accepted"); }
-        catch (InvalidDataException) { }
-        Directory.Delete(link);
-        Console.WriteLine("Linked-root rejection passed.");
     }
-    catch (UnauthorizedAccessException) { Console.WriteLine("Symbolic-link creation unavailable; run this case on Linux CI."); }
+    Require((File.GetAttributes(link) & FileAttributes.ReparsePoint) != 0,
+        "Linked-root fixture must be an actual reparse point");
+    try { using var ignored = new LocalHostedAssetSource(root, "linked"); throw new Exception("Linked root accepted"); }
+    catch (InvalidDataException) { }
+    Directory.Delete(link);
+    Console.WriteLine("Linked-root rejection passed.");
     Console.WriteLine("Malformed/incoherent manifest, public/private, MIME/hash and Vite dependency negatives passed.");
 }
 finally

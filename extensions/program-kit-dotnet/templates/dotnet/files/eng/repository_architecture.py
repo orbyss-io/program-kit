@@ -28,6 +28,47 @@ def read(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
+def validate_responsibilities(projects, bindings, required=False):
+    """Reject declared contradictions; this never certifies the truth of a label."""
+    allowed = {
+        'core': {'contract', 'pure-policy', 'pure-helper'},
+        'helper': {'pure-helper'},
+        'implementation': {'runtime', 'http', 'pure-helper'},
+        'provider': {'persistence', 'runtime', 'pure-helper'},
+        'bridge': {'runtime', 'pure-helper'},
+        'composition': {'composition', 'pure-helper'},
+        'test': {'test', 'pure-helper'},
+    }
+    for path, project in projects.items():
+        rows = project.get('responsibilities')
+        requires_review = required is True or isinstance(required, (set, list, tuple)) and path in required
+        require(rows is not None or not requires_review,
+                'Record planned responsibilities in eng/architecture.json before design review: ' + path)
+        if rows is None:
+            continue  # Older engineering manifests still prove only their structural scope.
+        require(isinstance(rows, list) and bool(rows), 'Project responsibilities must be a nonempty list: ' + path)
+        names = set()
+        for row in rows:
+            require(isinstance(row, dict) and isinstance(row.get('name'), str) and row['name'].strip(),
+                    'Responsibility requires its meaningful name: ' + path)
+            require(row['name'] not in names, 'Duplicate responsibility: ' + row['name'])
+            names.add(row['name'])
+            require(row.get('kind') in allowed.get(project['role'], set()),
+                    'Core/runtime responsibility conflicts with declared project role: ' + path + ' / ' + row['name'])
+            effects = row.get('effects')
+            require(isinstance(effects, list) and all(isinstance(e, str) and e.strip() for e in effects),
+                    'Responsibility effects must be named: ' + path)
+            require(project['role'] not in {'core', 'helper'} and row['kind'] not in {'pure-policy', 'pure-helper'}
+                    or not effects, 'Core/pure responsibility cannot own runtime effects: ' + path)
+            provides = row.get('provides', [])
+            require(isinstance(provides, list) and all(isinstance(c, str) and c.strip() for c in provides),
+                    'Provided capabilities must be named: ' + path)
+            for capability in provides:
+                require(any(b['implementationProject'] == path and b['capability'] == capability
+                            and b['implementation'] == row['name'] for b in bindings),
+                        'Missing planned capability binding: ' + capability + ' -> ' + row['name'])
+
+
 def validate_manifest(root, manifest):
     """Validate the planned compilation graph without restore, builds or source mutation.
 
@@ -70,6 +111,7 @@ def validate_manifest(root, manifest):
         identities.add(identity)
         if 'projectReferences' in projects[implementation]:
             require(capability in projects[implementation]['projectReferences'], 'Binding implementation must reference its Core capability project')
+    validate_responsibilities(projects, bindings)
     authorized = set()
     for edge in composition.get('coreReferences', []):
         require(edge.get('fromProject') in projects and edge.get('toProject') in projects,
@@ -117,8 +159,9 @@ def validate_cycles(projects, edges):
         visit(node, set(), visited)
 
 
-def validate_planned(root, manifest):
+def validate_planned(root, manifest, require_responsibilities=False):
     projects = validate_manifest(root, manifest)
+    validate_responsibilities(projects, manifest['runtimeComposition'].get('bindings', []), require_responsibilities)
     physical = {p.relative_to(root).as_posix() for directory in ('src', 'tests')
                 for p in (root / directory).rglob('*.csproj') if not {'obj', 'bin'} & set(p.parts)}
     require(physical <= set(projects), 'Assign an architectural role to new projects in eng/architecture.json: '

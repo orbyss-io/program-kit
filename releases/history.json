@@ -88,6 +88,32 @@
       "recovery": [
         "Preserve existing tasks, task IDs, checked boxes, consumer edits and interrupted checkpoints; retry the verified updater or resume the same task draft."
       ]
+    },
+    {
+      "version": "0.12.9",
+      "previous": "0.12.8",
+      "guide": "migration-0.12.9.md",
+      "automatic": [
+        "Update managed toolkit guidance and scoped adopted-context routing while preserving consumer artifacts and dependency locks.",
+        "Install canonical decision constraints, declared responsibility checks and reviewed feature-plan resolution helpers.",
+        "Retire the historical delivery writer as an ordinary development acceptance path."
+      ],
+      "review": [
+        "Review missing responsibility metadata in the affected design and record actual normal-review provenance for retained feature-plan decisions.",
+        "Use existing governed review for substantive architecture, product intent or dependency changes; this patch does not introduce architecture refresh."
+      ],
+      "verification": [
+        "Verify installation coherence and exact retained dependency inputs.",
+        "Run the affected normal plan/tasks/preflight checks; preserve real compatibility and delivery prerequisites.",
+        "Verify affected consumer behavior and receiver handoff configuration independently of structural or command passes."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve approved history and failed-attempt evidence; retry the verified updater or resume the existing feature with scoped corrections."
+      ]
     }
   ]
 }

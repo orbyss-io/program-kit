@@ -13,7 +13,9 @@ def run(name,arguments):
     path=output/(name+'.log')
     with path.open('w',encoding='utf-8') as log:
         result=subprocess.run(arguments,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=False)
-    if result.returncode: raise RuntimeError(name+' failed; '+str(path))
+    if result.returncode:
+        print(path.read_text(encoding='utf-8', errors='replace')[-12000:], flush=True)
+        raise RuntimeError(name+' failed; '+str(path))
     print(name+' passed',flush=True)
 
 

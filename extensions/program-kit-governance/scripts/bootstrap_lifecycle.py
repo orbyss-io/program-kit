@@ -290,6 +290,9 @@ def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -
     record = selected[0]
     items = load(root / LEDGER)['prerequisites'] if (root / LEDGER).is_file() else []
     resolved_feature = satisfied_feature_proofs(root, records, items)
+    if phase != 'specification':
+        from feature_plan_decisions import satisfied
+        resolved_feature.update(satisfied(root, entry, items))
     brief_path = root / '.program-kit/specification-intake' / entry / 'brief.json'
     if phase != 'specification' and brief_path.is_file():
         proposed = {d.get('bootstrapPrerequisite') for d in load(brief_path).get('decisions', [])
@@ -312,7 +315,9 @@ def phase_eligibility(root: Path, records: list[dict], entry: str, phase: str) -
         blockers.insert(0, {'id': 'journey-scope', 'owner': 'Consumer and architecture owner',
                            'task': 'Clarify this candidate outcome and boundary through roadmap/design resolution.',
                            'due': 'specification'})
+    drafting_allowed = phase == 'planning' and all(b['due'] == 'planning' for b in blockers)
     return {'entry': entry, 'phase': phase, 'eligible': not blockers, 'blockers': blockers,
+            'draftingAllowed': not blockers or drafting_allowed,
             'satisfied_prerequisites': sorted(resolved_feature | {i['id'] for i in items if i['status'] == 'closed'})}
 
 

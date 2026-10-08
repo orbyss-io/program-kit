@@ -2,9 +2,12 @@
 import copy
 import contextlib
 import io
+import json
 import os
 from pathlib import Path
 import tempfile
+import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 import validate_bootstrap_lifecycle as fixture
@@ -217,6 +220,86 @@ class PhaseReadinessTests(unittest.TestCase):
         fixture.ledger(self.root, [item])
         with self.assertRaisesRegex(ValueError, 'not executed proof'):
             self.eligibility('planning')
+
+    def test_normal_plan_resolves_design_without_rewriting_approved_history(self):
+        import feature_plan_decisions as decisions
+        import phase_obligations as current
+        design = fixture.item('feature-contract-design', disposition='feature', trigger='feature-plan')
+        design.update(verification='decision', task='Define capability ownership')
+        checks = fixture.item('feature-verification-plan', disposition='feature', trigger='feature-plan')
+        checks.update(verification='decision', task='Name the actual future tests')
+        self.baseline([design, checks, fixture.item()])
+        protected = {p: (self.root / p).read_bytes() for p in [G.BOOTSTRAP_APPROVAL, L.LEDGER, G.BOOTSTRAP_DECISIONS]}
+        feature = self.root / 'specs/001-feature'
+        feature.mkdir(parents=True)
+        brief_path = intake.begin(self.root, 'SPEC-001', 'Define the owned first outcome')
+        brief = intake.read(brief_path)
+        brief.update({k: 'Reviewed ' + k for k in intake.FIELDS})
+        brief['decisions'] = [{'id': 'Q1', 'question': 'Whose outcome?', 'answer': 'The named user',
+            'provenance': 'Fixture product review', 'rationale': 'Owned first outcome',
+            'disposition': 'answered', 'blocking': False, 'dependsOn': []}]
+        intake.atomic_write(brief_path, brief)
+        review = intake.review(self.root, 'SPEC-001')
+        intake.confirm(self.root, 'SPEC-001', review['reviewHash'], 'Fixture human review', 'Approved fixture product brief')
+        identity = intake.check(self.root, 'SPEC-001')
+        (feature / 'spec.md').write_text('# Feature\n'
+            '- **Specification roadmap entry**: SPEC-001\n'
+            '- **Confirmed intake SHA256**: ' + identity['briefHash'] + '\n'
+            '- **Confirmed intake brief**: ' + identity['brief'] + '\n', encoding='utf-8')
+        plan = feature / 'plan.md'
+        plan.write_text('# Plan\n## Ownership\nCore owns pure policy; runtime owns effects.\n'
+                        '## Verification\nTest actual denial, rollback and replay behavior.\n', encoding='utf-8')
+        brief_bytes = brief_path.read_bytes()
+        self.assertFalse(self.eligibility('planning')['eligible'])
+        self.assertTrue(self.eligibility('planning')['draftingAllowed'])
+        self.assertEqual(2, len(current.project(self.root, feature, 'planning')['decisions']))
+        decisions.record(self.root, feature, design['id'], 'specs/001-feature/plan.md#Ownership',
+                         'Fixture normal design reviewer', 'Reviewed ownership in this test fixture')
+        self.assertEqual(identity['briefHash'], decisions.saved(feature)['resolutions'][0]['briefSha256'])
+        with self.assertRaisesRegex(ValueError, checks['id']):
+            decisions.require_resolved(self.root, feature)
+        decisions.record(self.root, feature, checks['id'], 'specs/001-feature/plan.md#Verification',
+                         'Fixture normal design reviewer', 'Reviewed test design in this test fixture')
+        decisions.require_resolved(self.root, feature)
+        self.assertTrue(self.eligibility('planning')['eligible'])
+        self.assertFalse(self.eligibility('implementation')['eligible'])  # Provider proof remains open.
+        with self.assertRaisesRegex(ValueError, 'provider'):
+            current.check(self.root, feature, 'implementation')
+        with self.assertRaisesRegex(ValueError, 'provider'):
+            current.execute(self.root, feature)
+        before = plan.read_bytes()
+        decisions.record(self.root, feature, checks['id'], 'specs/001-feature/plan.md#Verification',
+                         'Fixture normal design reviewer', 'Reviewed test design in this test fixture')
+        self.assertEqual(before, plan.read_bytes())
+        script = self.root / '.specify/extensions/program-kit-governance/scripts/feature_plan_decisions.py'
+        command = [sys.executable, str(script), 'record', '--repository', str(self.root),
+                   '--feature-dir', 'specs/001-feature', '--prerequisite', checks['id'],
+                   '--evidence', 'specs/001-feature/plan.md#Verification',
+                   '--reviewer', 'Fixture normal design reviewer', '--provenance', 'Reviewed test design in this test fixture']
+        installed = subprocess.run(command, cwd=self.root, capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(0, installed.returncode, installed.stdout + installed.stderr)
+        self.assertEqual({'resolved'}, {r['status'] for r in json.loads(installed.stdout)})
+        self.assertEqual(before, plan.read_bytes())
+        with self.assertRaisesRegex(ValueError, 'current feature'):
+            decisions.section(self.root, feature, 'docs/architecture/architecture.md#Overview')
+        with self.assertRaisesRegex(ValueError, 'Missing/ambiguous'):
+            decisions.section(self.root, feature, 'specs/001-feature/plan.md#Missing')
+        plan.write_text(plan.read_text().replace('Test actual denial', 'Test additional denial'), encoding='utf-8')
+        state = {r['id']: r['status'] for r in decisions.project(self.root, feature)}
+        self.assertEqual('resolved', state[design['id']])
+        self.assertEqual('pending-review', state[checks['id']])
+        self.assertFalse(self.eligibility('planning')['eligible'])
+        spec = feature / 'spec.md'
+        original_spec = spec.read_bytes()
+        spec.write_text(spec.read_text().replace('**Confirmed intake SHA256**', '**Incorrect intake SHA256**'), encoding='utf-8')
+        self.assertTrue(all(r['status'] == 'pending-review' for r in decisions.project(self.root, feature)))
+        spec.write_bytes(original_spec)
+        with self.assertRaisesRegex(ValueError, 'compatibility/delivery'):
+            decisions.record(self.root, feature, 'provider', 'specs/001-feature/plan.md#Verification', 'Reviewer', 'Normal review')
+        for p, expected in protected.items():
+            self.assertEqual(expected, (self.root / p).read_bytes())
+        self.assertEqual(brief_bytes, brief_path.read_bytes())
+        G.validate_bootstrap(require_approval=True, require_ready=False)
 
     def test_explicit_late_consumer_decision_remains_a_valid_deferral(self):
         item = fixture.item('release-choice', disposition='feature', trigger='delivery')

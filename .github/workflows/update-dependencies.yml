@@ -36,7 +36,7 @@ jobs:
       - name: Select upgraded npm and Spec Kit
         run: |
           npm install --global "npm@$(cat extensions/program-kit-dotnet/templates/dotnet/files/.npm-version)" --ignore-scripts --no-audit --no-fund
-          python -m pip install --disable-pip-version-check "specify-cli==1.1.1"
+          python -c "import re, subprocess, sys; from pathlib import Path; pins=set(re.findall(r'specify-cli==([0-9.]+)', Path('.github/workflows/ci.yml').read_text())); assert len(pins)==1, 'CI must select one exact Spec Kit pin'; subprocess.run([sys.executable, '-m', 'pip', 'install', '--disable-pip-version-check', 'specify-cli=='+pins.pop()], check=True)"
       - name: Qualify and promote the new profile and publisher knowledge
         env:
           GH_TOKEN: ${{ github.token }}
@@ -77,3 +77,4 @@ jobs:
             artifacts/published-forms-browser/
             artifacts/bootstrap-runtime/
             artifacts/validation-runs/
+            !artifacts/**/cache/nuget/http/**

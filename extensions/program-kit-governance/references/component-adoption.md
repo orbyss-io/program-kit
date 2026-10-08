@@ -64,5 +64,9 @@ For future work, link the roadmap entry and the prerequisite's due phase in the 
 Task generation schedules compatibility/admission work; it does not execute probes, provision
 services or claim acceptance. Execute the relevant checks before dependent implementation
 and require actual executed behavior and normal code review before completion.
+<!-- program-kit:decision-rule capability-evidence -->
 Keep selected, materialized, activated and exercised claims separate; none substitutes
 for the next. Historical dossier readers remain available only for historical evidence.
+Compiled bindings establish structural registration possibilities; consumer composition tests must
+exercise actual public mechanisms, activation/resolution and applicable lifetime/replacement behavior.
+<!-- /program-kit:decision-rule -->

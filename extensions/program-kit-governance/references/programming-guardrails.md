@@ -31,10 +31,12 @@ Apply rules proportionally. Pure transformations and trivial adapters should rem
 
 ## Typed boundaries and design evidence
 
-Known request/response/configuration envelopes use typed contracts after admission. Prove agreement
-between parser, schema and runtime behavior, including valid variants and rejected inputs. Bounded
+<!-- program-kit:decision-rule typed-admission -->
+Known request/response/configuration envelopes use typed contracts after admission. Prove
+parser/schema/runtime parity, including valid variants and rejected inputs. Bounded
 dynamic schemas and lexical/canonical JSON processing remain legitimate exceptions when encapsulated
 and tested. A DTO alone does not establish validation, authorization or deep immutability.
+<!-- /program-kit:decision-rule -->
 
 Evaluate SOLID against changed responsibilities and actual consumers:
 
