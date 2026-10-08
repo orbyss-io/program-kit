@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
 PROGRAM_KIT_REF="v0.12.9"
+program_kit_stage="prerequisite checks"
+trap 'status=$?; printf "ERROR: Program Kit initialization stopped during %s with exit code %s. Preserve the output and partial installation for diagnosis.\n" "$program_kit_stage" "$status" >&2; exit "$status"' ERR
 
 # Run from a normal user-owned Bash shell in Linux, macOS, or WSL.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -61,19 +63,26 @@ if ! command -v specify >/dev/null 2>&1; then
   printf 'ERROR: Spec Kit 1.1.1 or a compatible newer 1.x specify command is required.\n' >&2
   exit 2
 fi
-if ! specify --version >/dev/null 2>&1; then
+if ! specify_version="$(specify --version)"; then
   printf 'ERROR: The specify command was found but could not execute successfully. Repair Spec Kit and rerun the initializer.\n' >&2
+  exit 2
+fi
+printf '%s\n' "$specify_version"
+if [[ ! "$specify_version" =~ ^specify\ 1\.([0-9]+)\.([0-9]+)$ ]] \
+  || (( 10#${BASH_REMATCH[1]} < 1 )) \
+  || (( 10#${BASH_REMATCH[1]} == 1 && 10#${BASH_REMATCH[2]} < 1 )); then
+  printf 'ERROR: Spec Kit >=1.1.1,<2 is required; selected version: %s\n' "$specify_version" >&2
   exit 2
 fi
 if ! command -v git >/dev/null 2>&1; then
   printf 'ERROR: Git must be available as git because coding-agent workflows run inside a Git work tree.\n' >&2
   exit 2
 fi
-if ! git --version >/dev/null 2>&1; then
+if ! git --version; then
   printf 'ERROR: The git command was found but could not execute successfully. Repair Git and rerun the initializer.\n' >&2
   exit 2
 fi
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+if ! git rev-parse --is-inside-work-tree; then
   printf 'ERROR: This directory is not inside an initialized Git work tree.\n' >&2
   printf 'Run these commands from %s, then rerun %s %s:\n\n' "$current_root" "$script_name" "$program_kit_integration" >&2
   printf '  git init\n' >&2
@@ -112,30 +121,38 @@ if ! "$SPECKIT_PYTHON" -c 'import yaml' >/dev/null 2>&1; then
 fi
 catalog_root="https://raw.githubusercontent.com/orbyss-io/program-kit/${PROGRAM_KIT_REF}/catalogs"
 
+program_kit_stage="step 1/8"
 printf '[1/8] Initializing Spec Kit for %s with the Python script flavor...\n' "$program_kit_integration"
 specify init . --force --non-interactive --integration "$program_kit_integration" --script py
 
+program_kit_stage="step 2/8"
 printf '[2/8] Registering the Program Kit extension catalog...\n'
 specify extension catalog add "${catalog_root}/extensions.json" --name program-kit --install-allowed
 
+program_kit_stage="step 3/8"
 printf '[3/8] Registering the Program Kit preset catalog...\n'
 specify preset catalog add "${catalog_root}/presets.json" --name program-kit --install-allowed
 
+program_kit_stage="step 4/8"
 printf '[4/8] Registering the Program Kit workflow catalog...\n'
 specify workflow catalog add "${catalog_root}/workflows.json" --name program-kit
 
+program_kit_stage="step 5/8"
 printf '[5/8] Registering the Program Kit bundle catalog...\n'
 specify bundle catalog add "${catalog_root}/bundles.json" --id program-kit --policy install-allowed
 
+program_kit_stage="step 6/8"
 printf '[6/8] Installing the bootstrap workflow...\n'
 specify workflow add program-kit-bootstrap
 
+program_kit_stage="step 7/8"
 printf '[7/8] Installing Program Kit...\n'
 specify bundle install program-kit --integration "$program_kit_integration"
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target .
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/schema_runtime.py setup
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/schema_runtime.py record-copy
 
+program_kit_stage="step 8/8"
 printf '[8/8] Switching Program Kit catalogs to the update channel...\n'
 specify extension catalog remove program-kit
 specify preset catalog remove program-kit

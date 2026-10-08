@@ -4192,6 +4192,9 @@
         "scripts/update_dependencies.py",
         "scripts/update_dependency_profiles.py",
         ".github/workflows/update-dependencies.yml",
+        ".github/workflows/published-readme.yml",
+        ".github/scripts/update_published_readme.py",
+        "README.md",
         "extensions/program-kit-building-blocks/**",
         "tests/validate_dependency_updates.py"
       ],

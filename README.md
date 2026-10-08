@@ -1,5 +1,9 @@
 # Program Kit
 
+<!-- latest-published-release:start -->
+Latest available release: **[v0.12.9](https://github.com/orbyss-io/program-kit/releases/tag/v0.12.9)**. [Check the latest release](https://github.com/orbyss-io/program-kit/releases/latest) before installing; use its assets rather than an older cached version.
+<!-- latest-published-release:end -->
+
 Program Kit extends Spec Kit's ordinary **specify -> plan -> tasks -> implement -> test** flow
 with applicable architectural knowledge, composition defaults and engineering checks. Plans and
 tasks carry substantive choices; compiler/analyzer checks, architecture tests, contract generation
@@ -31,7 +35,7 @@ assets, not a platform product.
 
 Prerequisites:
 
-- Spec Kit `1.1.1` or a compatible newer `1.x` release. CI and release builds pin `specify-cli==1.1.1`.
+- Spec Kit `1.1.1` or a compatible newer `1.x` release. CI and release builds pin `specify-cli==1.1.2`.
 - The coding-agent tooling required by the selected Spec Kit integration; `specify init` validates
   it (for example, `codex` for Codex or `claude` for Claude).
 - Git, available as the `git` command.
@@ -72,6 +76,13 @@ Run these steps from the repository root.
 
 The command script works in Windows environments that enforce PowerShell `AllSigned` because it is
 not a PowerShell script.
+
+The Windows initializer resolves native executable paths automatically, including the persisted
+Windows user/machine PATH when CMD cannot find a tool. If a tool is installed in a custom location,
+set `$env:PROGRAM_KIT_SPECIFY`, `$env:PROGRAM_KIT_GIT`, or `$env:SPECKIT_PYTHON` to its full executable
+path in this terminal before running the initializer. It prints the selected paths and retains the
+underlying command errors. Installation failures identify the stage and exit code; preserve that
+output and the partial installation for diagnosis.
 
 ### Bash on Linux, macOS, or WSL
 

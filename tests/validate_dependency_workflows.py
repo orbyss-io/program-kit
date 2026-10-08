@@ -19,6 +19,44 @@ import dependency_maintenance as maintenance
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_readme_updates_only_successfully_published_stable_release_examples(self):
+        spec = importlib.util.spec_from_file_location('published_readme', ROOT / '.github/scripts/update_published_readme.py')
+        updater = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(updater)
+        text = (ROOT / 'README.md').read_text()
+        updated = updater.update_text(text, '0.13.1')
+        self.assertIn('Latest available release: **[v0.13.1]', updated)
+        self.assertIn('releases/download/v0.13.1/Initialize-ProgramKit-0.13.1.cmd', updated)
+        self.assertIn('program-kit-0.13.1.zip', updated)
+        self.assertIn('v0.12.5', updated)
+        self.assertEqual(updated, updater.update_text(updated, '0.13.1'))
+        hotfix = '<!-- initializer-hotfix:start -->\nHotfix for v0.12.9\n<!-- initializer-hotfix:end -->\n\n'
+        self.assertIn(hotfix, updater.update_text(text + hotfix, '0.12.9'))
+        self.assertNotIn('initializer-hotfix:', updater.update_text(text + hotfix, '0.13.1'))
+        with self.assertRaises(ValueError): updater.update_text(text, '0.13.1-rc.1')
+        with self.assertRaises(ValueError): updater.update_text('missing marker', '0.13.1')
+        release = {'tag_name': 'v0.13.1', 'draft': False, 'prerelease': False}
+        run = {'name': 'Release', 'event': 'push', 'conclusion': 'success',
+               'head_sha': 'published-commit', 'head_branch': 'v0.13.1',
+               'head_repository': {'full_name': 'orbyss-io/program-kit'}}
+        with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}]):
+            self.assertEqual('0.13.1', updater.published_version({'workflow_run': run}))
+        for changes in ({'conclusion': 'failure'}, {'head_sha': 'other-commit'},
+                        {'event': 'pull_request'}, {'head_repository': {'full_name': 'fork/repo'}}):
+            with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}]):
+                with self.assertRaises(ValueError):
+                    updater.published_version({'workflow_run': {**run, **changes}})
+        with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}]):
+            self.assertIsNone(updater.published_version({'workflow_run': {**run, 'head_branch': 'v0.12.9'}}))
+        with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}, {'workflow_runs': [run]}]):
+            self.assertEqual('0.13.1', updater.published_version({}))
+        with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}, {'workflow_runs': []}]):
+            with self.assertRaises(ValueError): updater.published_version({})
+        import yaml
+        workflow = yaml.safe_load((ROOT / '.github/workflows/published-readme.yml').read_text())
+        self.assertIn("conclusion == 'success'", workflow['jobs']['update']['if'])
+        self.assertEqual('main', workflow['jobs']['update']['steps'][0]['with']['ref'])
+
     def test_update_installs_the_upgraded_ci_pin_and_rejects_ambiguous_pins(self):
         import subprocess
         import yaml

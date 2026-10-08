@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import shutil
 import sys
 import subprocess
@@ -328,7 +329,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
         core_skill.parent.mkdir(parents=True)
         core_skill.write_text("Existing core Spec Kit skill\n", encoding="utf-8")
 
-        tool_dir = project / ".test-tools"
+        tool_dir = project / ".test-tools with spaces"
         tool_dir.mkdir()
         command_log = project / ".initializer-commands.log"
         pyyaml_marker = project / ".test-pyyaml-installed"
@@ -336,7 +337,8 @@ def validate_populated_repository_initializer(root: Path) -> None:
             stub = tool_dir / "specify.cmd"
             stub.write_text(
                 "@echo off\n"
-                "if \"%1\"==\"--version\" exit /b 0\n"
+                'if "%1"=="--version" (echo specify 1.1.1 & exit /b 0)\n'
+                'if "%1"=="init" ("%SystemRoot%\\System32\\where.exe" git >nul && "%SystemRoot%\\System32\\where.exe" python >nul || exit /b 38)\n'
                 '>>"%PROGRAM_KIT_TEST_LOG%" echo %*\n'
                 "exit /b 0\n",
                 encoding="utf-8",
@@ -379,7 +381,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
             stub = tool_dir / "specify"
             stub.write_text(
                 "#!/usr/bin/env sh\n"
-                "if [ \"${1:-}\" = '--version' ]; then exit 0; fi\n"
+                "if [ \"${1:-}\" = '--version' ]; then echo specify 1.1.1; exit 0; fi\n"
                 "printf '%s\\n' \"$*\" >> \"$PROGRAM_KIT_TEST_LOG\"\n",
                 encoding="utf-8",
             )
@@ -531,6 +533,75 @@ def validate_populated_repository_initializer(root: Path) -> None:
         )
 
         command_log.unlink()
+        original_version_stub = stub.read_text()
+        for incompatible in ("1.1.0", "2.0.0", "not-a-version"):
+            stub.write_text(original_version_stub.replace("specify 1.1.1", f"specify {incompatible}"))
+            rejected = subprocess.run(command, cwd=project, env=environment,
+                                      capture_output=True, text=True, errors="replace")
+            if rejected.returncode != 2 or command_log.exists():
+                raise AssertionError(f"Initializer accepted incompatible Spec Kit {incompatible}")
+            require_phrases("Incompatible Spec Kit", rejected.stdout + rejected.stderr,
+                            ("Spec Kit >=1.1.1,<2 is required", incompatible))
+        stub.write_text(original_version_stub)
+        if suffix == "cmd":
+            # Reproduce machine-dependent CMD lookup failures. Absolute overrides
+            # must work even when CMD discards an overlong inherited PATH, and
+            # discovery must not depend on the caller's PATHEXT or where.exe.
+            for variant in ("missing-pathext", "missing-system32", "overlong-path"):
+                lookup_environment = environment.copy()
+                if variant == "missing-pathext":
+                    lookup_environment["PATHEXT"] = ".INVALID"
+                elif variant == "missing-system32":
+                    lookup_environment["PATH"] = str(tool_dir) + os.pathsep + str(Path(git_executable).parent)
+                else:
+                    lookup_environment["PATH"] = environment["PATH"] + os.pathsep + ("X" * 8500)
+                    lookup_environment["PROGRAM_KIT_SPECIFY"] = str(stub)
+                    lookup_environment["PROGRAM_KIT_GIT"] = git_executable
+                    lookup_environment["SPECKIT_PYTHON"] = str(python_stub)
+                # Stub Python uses findstr; this is deliberately absolute as real
+                # Python does not depend on System32 command discovery.
+                python_stub.write_text(python_stub.read_text().replace(
+                    " | findstr ", ' | "%SystemRoot%\\System32\\findstr.exe" '))
+                result = subprocess.run(command, cwd=project, env=lookup_environment,
+                                        capture_output=True, text=True, errors="replace")
+                if result.returncode != 0:
+                    raise AssertionError(f"Initializer lookup regression ({variant}): "
+                                         f"{result.stdout}{result.stderr}")
+                require_phrases(variant, command_log.read_text(),
+                                (f"bundle install program-kit --integration {integration}",))
+                command_log.unlink()
+
+            # Explicit bad paths must fail before modifying the repository.
+            invalid_environment = environment.copy()
+            invalid_environment["PROGRAM_KIT_SPECIFY"] = str(tool_dir / "missing.exe")
+            result = subprocess.run(command, cwd=project, env=invalid_environment,
+                                    capture_output=True, text=True, errors="replace")
+            if result.returncode != 2 or command_log.exists():
+                raise AssertionError("Invalid executable override did not fail before setup")
+            require_phrases("Invalid override", result.stdout + result.stderr,
+                            ("missing.exe", "could not execute", "PROGRAM_KIT_SPECIFY"))
+
+        # A real command failure retains its exact exit code and stage instead
+        # of presenting a generic missing-prerequisite or success message.
+        original_stub = stub.read_text()
+        if suffix == "cmd":
+            stub.write_text(original_stub.replace('>>"%PROGRAM_KIT_TEST_LOG%" echo %*',
+                'if "%1"=="bundle" if "%2"=="install" (echo fixture-network-error 1>&2 & exit /b 37)\n'
+                '>>"%PROGRAM_KIT_TEST_LOG%" echo %*'))
+        else:
+            stub.write_text(original_stub.replace("printf '%s\\n'",
+                'if [ "${1:-}" = bundle ] && [ "${2:-}" = install ]; then echo fixture-network-error >&2; exit 37; fi\n'
+                "printf '%s\\n'"))
+        failed = subprocess.run(command, cwd=project, env=environment,
+                                capture_output=True, text=True, errors="replace")
+        if failed.returncode != 37:
+            raise AssertionError(f"Initializer lost command failure: {failed.stdout}{failed.stderr}")
+        require_phrases("Stage failure", failed.stdout + failed.stderr,
+                        ("fixture-network-error", "step 7/8", "exit code 37"))
+        if "initialization is complete" in failed.stdout:
+            raise AssertionError("Initializer reported success after a failed installation")
+        stub.write_text(original_stub)
+        command_log.unlink()
         partial_marker = project / ".specify/workflow-catalogs.yml"
         partial_marker.write_text(
             "catalogs:\n  - name: program-kit\n", encoding="utf-8"
@@ -556,6 +627,26 @@ def validate_populated_repository_initializer(root: Path) -> None:
         )
         if command_log.exists():
             raise AssertionError("Initializer invoked specify after detecting Program Kit")
+        if suffix == "cmd":
+            partial_environment = environment.copy()
+            partial_environment["PATH"] = str(tool_dir)
+            partial_environment["PATHEXT"] = ".INVALID"
+            rejected = subprocess.run(command, cwd=project, env=partial_environment,
+                                      capture_output=True, text=True, errors="replace")
+            if rejected.returncode != 2 or command_log.exists():
+                raise AssertionError("Broken lookup bypassed partial-install detection")
+            require_phrases("Partial installation with broken lookup", rejected.stdout + rejected.stderr,
+                            ("Program Kit is already installed", "update commands"))
+        partial_marker.unlink()
+        for key in ("CODEX_SESSION_ID", "CODEX_THREAD_ID", "CODEX_INTERNAL_ORIGINATOR_OVERRIDE"):
+            agent_environment = environment.copy()
+            agent_environment[key] = "fixture-agent"
+            rejected = subprocess.run(command, cwd=project, env=agent_environment,
+                                      capture_output=True, text=True, errors="replace")
+            if rejected.returncode != 2 or command_log.exists():
+                raise AssertionError(f"Initializer bypassed the agent boundary for {key}")
+            require_phrases(key, rejected.stdout + rejected.stderr,
+                            ("not from a Codex Desktop task or interactive Codex CLI agent",))
 
 
 def main() -> int:
@@ -691,6 +782,10 @@ def main() -> int:
         label = f"{suffix} consumer initializer"
         initializer_path = root / f"Initialize-ProgramKit.{suffix}"
         initializer = initializer_path.read_text(encoding="utf-8")
+        # Check the invocation contracts after normalizing the Windows resolver's
+        # absolute executable variables to their command names.
+        initializer = initializer.replace('"%PROGRAM_KIT_SPECIFY%"', 'specify').replace(
+            '"%PROGRAM_KIT_GIT%"', 'git')
         require_phrases(
             label,
             initializer,
@@ -791,6 +886,10 @@ def main() -> int:
     reject_workaround("Root Windows guide", root_guidance)
 
     readme = (root / "README.md").read_text(encoding="utf-8")
+    published = re.search(r"Latest available release: \*\*\[v(\d+\.\d+\.\d+)\]", readme)
+    if not published:
+        raise AssertionError("README must identify the latest successfully published release")
+    published_version = published[1]
     require_phrases(
         "Root installation instructions",
         readme,
@@ -800,10 +899,10 @@ def main() -> int:
             "existing Spec Kit initialization are allowed",
             "existing or partial Program Kit installation",
             "Invoke-WebRequest",
-            f"releases/download/v{version}/Initialize-ProgramKit-{version}.cmd",
+            f"releases/download/v{published_version}/Initialize-ProgramKit-{published_version}.cmd",
             ".\\Initialize-ProgramKit.cmd codex",
             "curl -fL",
-            f"releases/download/v{version}/Initialize-ProgramKit-{version}.sh",
+            f"releases/download/v{published_version}/Initialize-ProgramKit-{published_version}.sh",
             "bash ./Initialize-ProgramKit.sh codex",
             "use `claude` instead of `codex`",
         ),
