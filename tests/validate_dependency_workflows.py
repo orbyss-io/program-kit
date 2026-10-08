@@ -33,6 +33,8 @@ class WorkflowTests(unittest.TestCase):
         hotfix = '<!-- initializer-hotfix:start -->\nHotfix for v0.12.9\n<!-- initializer-hotfix:end -->\n\n'
         self.assertIn(hotfix, updater.update_text(text + hotfix, '0.12.9'))
         self.assertNotIn('initializer-hotfix:', updater.update_text(text + hotfix, '0.13.1'))
+        self.assertNotIn('/63ba307f3f856e826428d452e22e798f9a62ab3e/Initialize-ProgramKit.cmd', updated)
+        self.assertEqual(text, updater.update_text(text, '0.12.9'))
         with self.assertRaises(ValueError): updater.update_text(text, '0.13.1-rc.1')
         with self.assertRaises(ValueError): updater.update_text('missing marker', '0.13.1')
         release = {'tag_name': 'v0.13.1', 'draft': False, 'prerelease': False}

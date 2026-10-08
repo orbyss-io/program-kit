@@ -60,11 +60,17 @@ Run these steps from the repository root.
 
 ### Windows
 
+<!-- initializer-hotfix:start -->
+**Windows initializer fix for v0.12.9:** The [original published launcher](https://github.com/orbyss-io/program-kit/releases/download/v0.12.9/Initialize-ProgramKit-0.12.9.cmd)
+predates the command-lookup repair. The command below downloads the corrected launcher from a fixed
+source commit; it still installs the published v0.12.9 kit. Future releases include this repair.
+<!-- initializer-hotfix:end -->
+
 1. Download the Windows command initializer:
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.9/Initialize-ProgramKit-0.12.9.cmd `
+     https://raw.githubusercontent.com/orbyss-io/program-kit/63ba307f3f856e826428d452e22e798f9a62ab3e/Initialize-ProgramKit.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
