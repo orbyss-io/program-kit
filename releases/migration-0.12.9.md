@@ -53,7 +53,8 @@ The qualified default adopts published Foundation 0.3.1, Build 0.3.1 and exporte
 Historical qualified profiles and exact existing consumer pins remain preserved.
 The maintenance workflow updates active external pins, locks and qualified publisher
 knowledge together; lookup, deterministic validation and security failures block it.
-Spec Kit CLI 1.1.1 is the current tested baseline. Human-owned infrastructure inputs
+Spec Kit CLI 1.1.2 is the tested pin, within the supported >=1.1.1,<2 range.
+Human-owned infrastructure inputs
 and outer workflow launch remain explicit boundaries; no agent permission bypass is
 introduced by this patch.
 
