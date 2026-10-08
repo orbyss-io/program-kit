@@ -91,22 +91,29 @@ def main():
     command([*tools['dotnet'], 'pack', 'Probe.csproj', '--no-restore', '-c', 'Release', '-o', str(packages), '-p:UseSharedCompilation=false'], 90)
     assets = json.loads(Path('obj/project.assets.json').read_text())
     package_roots = [Path(p) for p in assets['packageFolders']]
+    from runtime_probe import contracts_profile, prepare_shared_runtime
+    shared = contracts_profile(inputs)
     copied = []
-    for name, library in assets['libraries'].items():
-        if library['type'] != 'package' or name.lower().startswith(('cshells.', 'nuplane')):
-            continue
-        package_id, version = name.rsplit('/', 1)
-        relative = Path(library['path']) / f'{package_id.lower()}.{version.lower()}.nupkg'
-        source = next((p / relative for p in package_roots if (p / relative).is_file()), None)
-        if source is None:
-            raise RuntimeError('Locked package archive is unavailable: ' + name)
-        shutil.copyfile(source, packages / source.name)
-        copied.append({'id': name, 'sha256': hashlib.sha256(source.read_bytes()).hexdigest()})
-    Path('runtime-package-inputs.json').write_text(json.dumps(copied, indent=2))
-    nuplane = {'Nuplane': {'Setup': {'AutomaticReconciliation': True, 'PollInterval': '00:00:01',
+    if shared:
+        shared_assemblies = prepare_shared_runtime(root, inputs, assets, packages)
+    else:
+        for name, library in assets['libraries'].items():
+            if library['type'] != 'package' or name.lower().startswith(('cshells.', 'nuplane')):
+                continue
+            package_id, version = name.rsplit('/', 1)
+            relative = Path(library['path']) / f'{package_id.lower()}.{version.lower()}.nupkg'
+            source = next((p / relative for p in package_roots if (p / relative).is_file()), None)
+            if source is None:
+                raise RuntimeError('Locked package archive is unavailable: ' + name)
+            shutil.copyfile(source, packages / source.name)
+            copied.append({'id': name, 'sha256': hashlib.sha256(source.read_bytes()).hexdigest()})
+        Path('runtime-package-inputs.json').write_text(json.dumps(copied, indent=2))
+        shared_assemblies = [{'Name': n, 'PublicKeyToken': None, 'MajorVersion': 0}
+                             for n in ['CShells.Abstractions', 'CShells.AspNetCore.Abstractions']]
+    nuplane = {'Nuplane': {'FeedResolution': {'PackageInstallRoot': '/tmp/compatibility-installed'}, 'Setup': {'AutomaticReconciliation': True, 'PollInterval': '00:00:01',
         'Feeds': [{'Name': 'local-packages', 'DirectoryPath': 'packages', 'IncludePatterns': ['*'], 'Directory': {'Watch': False}}]},
         'Loading': {'Enabled': True, 'DefaultLoadMode': 'HostIntegrated', 'LoadModeSelectionPolicy': 'ExplicitOnly',
-                    'SharedAssemblies': [{'Name': n, 'PublicKeyToken': None, 'MajorVersion': 0} for n in ['CShells.Abstractions', 'CShells.AspNetCore.Abstractions']]}}}
+                    'SharedAssemblies': shared_assemblies}}}
     for name in ['hostsettings.json', 'nuplane.settings.json']:
         (bundle / name).write_text(json.dumps(nuplane))
     shells = json.loads(Path('shell-source.json').read_text())

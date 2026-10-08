@@ -45,10 +45,14 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
         self.base = blocks.load_json(blocks.default_catalog(Path(blocks.__file__)))
         self.content = (ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props').read_bytes()
 
-    def render(self, catalog, content=None):
-        with patch.object(self.renderer, 'retained_catalog', return_value=catalog):
-            return self.renderer.render(ROOT, 'eng/ProgramKit.Packages.props',
-                                        self.content if content is None else content)
+    def render(self, catalog, content=None, relative='eng/ProgramKit.Packages.props'):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            selection, _ = fixtures.accepted_fixture(blocks, root, catalog)
+            source = root / 'captured-catalog.json'
+            fixtures.write_json(source, catalog)
+            blocks.preserve_dependency_profile(root, blocks.load_json(selection), source)
+            return self.renderer.render(root, relative, self.content if content is None else content)
 
     def test_selected_catalog_generates_independent_build_and_analyzer_pins(self):
         original = copy.deepcopy(self.target)
@@ -57,8 +61,7 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
         self.assertEqual('0.2.0', pins['Orbyss.Foundation.Build'])
         self.assertEqual('0.3.0', pins['Orbyss.Foundation.Analyzers'])
         self.assertEqual(self.target, original)
-        with patch.object(self.renderer, 'retained_catalog', return_value=self.target):
-            retained = self.renderer.render(ROOT, 'eng/building-blocks.catalog.json', b'{}')
+        retained = self.render(self.target, b'{}', 'eng/building-blocks.catalog.json')
         self.assertEqual(self.target, json.loads(retained))
 
     def test_missing_or_duplicate_selected_build_pin_rejects_managed_rendering(self):
@@ -83,8 +86,10 @@ class GeneratedEngineeringPinsTests(unittest.TestCase):
                 original = next(node.attrib['Version'] for node in ET.fromstring(self.content).iter('PackageVersion')
                                 if node.attrib['Include'] == identity)
                 self.assertEqual(original, version)
-        with patch.object(self.renderer, 'retained_catalog', return_value=None):
-            self.assertEqual(self.content, self.renderer.render(ROOT, 'eng/ProgramKit.Packages.props', self.content))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixtures.write_json(root / '.program-kit/managed.json', {})
+            self.assertEqual(self.content, self.renderer.render(root, 'eng/ProgramKit.Packages.props', self.content))
 
 
 class OfficialToolBindingTests(unittest.TestCase):

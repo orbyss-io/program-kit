@@ -872,13 +872,41 @@ def validate_placement_handoff(inventory: dict, contracts: dict, planning: dict)
                            + "; provide the architecture-owned Draft placement planning contract before dispatch.")
 
 
+def effective_dependencies(project_root):
+    from repository_sync import provider
+    blocks = provider('program-kit-building-blocks/scripts/building_blocks.py')
+    try:
+        return blocks.effective_dependency_context(project_root)
+    except ValueError as error:
+        raise ContextError('DEPENDENCY-AUTHORITY-CONFLICT: ' + str(error)) from error
+
+
+def dependency_summary(project_root, effective):
+    """Current factual summaries cannot override selected structured package facts."""
+    host = effective['catalog']['packages']['oci:ghcr.io/orbyss-io/foundation-host']
+    tag = host['materialization']['tagTemplate'].format(version=host['version'])
+    radar = project_root / 'docs/architecture/technology-radar.md'
+    if radar.is_file():
+        for version in re.findall(r'(?i)(?:selected(?:-profile)?\s+Host(?:\s+release)?|(?:supplied\s+)?host\s+catalog)\s+v?(\d+\.\d+\.\d+)', radar.read_text(encoding='utf-8')):
+            if version != host['version']:
+                raise ContextError('DEPENDENCY-SUMMARY-CONFLICT: docs/architecture/technology-radar.md claims Host '
+                    + version + ' but the verified selection supplies ' + host['version']
+                    + '; repair this tooling summary through scoped tooling review and refresh its source-bound evidence. '
+                    + 'Preserve the selection, dependency profile and accepted ADRs; no dependency upgrade or bootstrap reset is required.')
+    return {'hostVersion': host['version'], 'hostTag': tag,
+            'familyReleases': {key: value['releaseVersion'] for key, value in effective['catalog']['families'].items()},
+            'independentTools': effective['catalog']['families']['foundation'].get('toolVersions', {}),
+            'rule': 'Use these selected structured facts for current version summaries. Historical examples describe only their recorded profiles.'}
+
+
 def building_block_stage_contract(project_root: Path, intake: dict) -> dict | None:
     catalog_path = project_root / (
         ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
     )
     if not catalog_path.is_file():
         return None
-    catalog = load_json(catalog_path)
+    effective = effective_dependencies(project_root)
+    catalog = effective['catalog']
     capabilities = catalog.get("capabilities")
     compositions = catalog.get("compositions")
     if not isinstance(capabilities, dict) or not isinstance(compositions, dict):
@@ -1011,13 +1039,17 @@ def runtime_release_projection(project_root: Path, intake: dict) -> dict | None:
     section = content.split(heading, 1)[1].split("\n## ", 1)[0].strip()
     catalog_relative = ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
     catalog_path = project_root / catalog_relative
-    catalog = load_json(catalog_path)
+    effective = effective_dependencies(project_root)
+    catalog = effective['catalog']
     host_key = "oci:ghcr.io/orbyss-io/foundation-host"
     host = catalog["packages"][host_key]
     return {
         "source": relative, "sha256": sha256_file(path), "contract": section,
         "managed_host": {
-            "catalog": catalog_relative, "sha256": sha256_file(catalog_path),
+            "catalog": Path(effective["authorityPath"]).relative_to(project_root.resolve()).as_posix(),
+            "catalogKind": "qualified-exact-profile" if effective['authority'] in {'recorded-scaffold', 'qualified-default'} else "captured-catalog",
+            "sha256": sha256_file(Path(effective["authorityPath"])),
+            "resolutionSha256": effective["resolutionSha256"], "profile": effective["profile"],
             "package": host_key, "version": host["version"],
             "tag": host["materialization"]["tagTemplate"].format(version=host["version"]),
             "source": catalog["sources"][host["source"]],
@@ -1722,6 +1754,14 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
                                                for j in intake['journeys'] if j['id'] not in first_ids]
             projection['journeys'] = [j for j in intake['journeys'] if j['id'] in first_ids]
         payload['stage_plan']['first_slice'] = decisions['first_slice']
+    if (project_root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json').is_file():
+        effective = effective_dependencies(project_root)
+        payload['dependency_context'] = {key: effective[key] for key in
+            ('authority', 'profile', 'qualification', 'resolutionSha256', 'sharedAbi')}
+        payload['dependency_context']['summary'] = dependency_summary(project_root, effective)
+        payload['dependency_context']['sources'] = [
+            {'path': Path(path).relative_to(project_root.resolve()).as_posix(), 'sha256': digest}
+            for path, digest in sorted(effective['sources'].items())]
     bind_projected_sources(project_root, payload, evidence)
     return context_path(run_directory, stage), payload, evidence_destination, evidence
 
@@ -1735,7 +1775,7 @@ def bind_projected_sources(project_root, payload, evidence):
             for key, child in value.items():
                 if (key in {'path', 'source', 'catalog'} and isinstance(child, str)
                         and (child.startswith('.specify/extensions/')
-                             or key == 'path' and 'sha256' in value and child.startswith('docs/'))):
+                             or key == 'path' and 'sha256' in value and child.startswith(('docs/', '.program-kit/')))):
                     relative = child.split('#', 1)[0]
                     resolved = (project_root / relative).resolve()
                     if not resolved.is_relative_to(project_root.resolve()) or not resolved.is_file():
@@ -1748,12 +1788,24 @@ def bind_projected_sources(project_root, payload, evidence):
 
     for key in ('stage_plan', 'managed_profile_pins', 'runtime_release'):
         visit(payload.get(key))
+    reading_paths = set(paths)
+    visit(payload.get('dependency_context'))
     known = {item['path'] for item in evidence['artifacts']}
     for relative in sorted(paths - known):
         record, _ = artifact_record(project_root, relative)
         evidence['artifacts'].append(record)
+    # The evidence index retains individual source hashes. Keep only its compact
+    # authority binding in the worker brief instead of repeating the full list.
+    dependency = payload.get('dependency_context', {})
+    if 'sources' in dependency:
+        dependency['sourcesSha256'] = sha256_bytes(compact_json({'sources': dependency['sources']}).encode('utf-8'))
+        dependency['sourceCount'] = len(dependency.pop('sources'))
+    if payload.get('stage') in {'roadmap', 'readiness'} and 'dependency_context' in payload:
+        # These briefs do not author dependency decisions. Their existing evidence
+        # digest binds the complete authority without repeating it in the brief.
+        evidence['dependency_context'] = payload.pop('dependency_context')
     payload['reading_policy']['allowed_sources'] = list(dict.fromkeys([
-        *payload['reading_policy']['allowed_sources'], *sorted(paths)]))
+        *payload['reading_policy']['allowed_sources'], *sorted(reading_paths)]))
     payload['evidence_index']['bytes'] = len(compact_json(evidence).encode('utf-8'))
     payload['evidence_index']['sha256'] = sha256_bytes(compact_json(evidence).encode('utf-8'))
     return sorted(paths)

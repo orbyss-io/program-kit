@@ -22,6 +22,7 @@
     "reading_policy"
   ],
   "properties": {
+    "dependency_context": {"type": "object"},
     "schema_version": { "const": "4.0" },
     "run_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
     "stage": { "enum": ["assessment", "research", "architecture", "tooling", "roadmap", "closure", "readiness"] },
@@ -90,6 +91,9 @@
           "required": ["catalog", "sha256", "package", "version", "tag", "source", "evidence_boundary"],
           "properties": {
             "catalog": { "type": "string", "minLength": 1 },
+            "catalogKind": { "type": "string", "enum": ["qualified-exact-profile", "captured-catalog"] },
+            "resolutionSha256": { "$ref": "#/$defs/sha256" },
+            "profile": { "type": ["string", "null"] },
             "sha256": { "$ref": "#/$defs/sha256" },
             "package": { "type": "string", "minLength": 1 },
             "version": { "type": "string", "minLength": 1 },

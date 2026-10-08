@@ -197,6 +197,7 @@ class ProviderContextTests(unittest.TestCase):
         shutil.copytree(ROOT / 'extensions/program-kit-governance/examples', governance / 'examples')
         (governance / 'scripts').mkdir()
         shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts/compatibility_process.py', governance / 'scripts/compatibility_process.py')
+        shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts/runtime_fixture.py', governance / 'scripts/runtime_fixture.py')
         templates = self.root / '.specify/extensions/program-kit-dotnet/templates/dotnet/web-profiles'
         shutil.copytree(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles', templates, dirs_exist_ok=True)
         decisions = {**self.decisions, 'web': {'secure_profile': 'bff-cookie-v1'},

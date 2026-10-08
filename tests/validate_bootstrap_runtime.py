@@ -29,85 +29,14 @@ def runtime_environment(credential_names=()):
 
 
 def retarget_fixture(target, catalog, shared_contracts):
-    # All changed restore policy and pins belong to this disposable fixture.
-    shared_pins = {}
-    if shared_contracts:
-        contracts = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles/engineering-contracts.json'
-        shared_pins = json.loads(contracts.read_text(encoding='utf-8'))['releases'][catalog['families']['foundation']['releaseVersion']]['pins']
-    for project in target.rglob('*.csproj'):
-        value = ET.parse(project)
-        for reference in value.iter('PackageReference'):
-            package = catalog['packages'].get('nuget:' + reference.get('Include', ''))
-            if package:
-                reference.set('Version', package['version'])
-            if reference.get('Include') in shared_pins:
-                reference.set('Version', shared_pins[reference.get('Include')])
-        if shared_contracts:
-            pruning = list(value.iter('RestoreEnablePackagePruning'))
-            if not pruning:
-                group = ET.SubElement(value.getroot(), 'PropertyGroup')
-                pruning = [ET.SubElement(group, 'RestoreEnablePackagePruning')]
-            for setting in pruning:
-                setting.text = 'false'
-        value.write(project, encoding='utf-8', xml_declaration=True)
+    from runtime_fixture import retarget_fixture as prepare
+    contracts = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles/engineering-contracts.json'
+    abi = json.loads(contracts.read_text(encoding='utf-8'))['releases'][catalog['families']['foundation']['releaseVersion']]
+    prepare(target, catalog, abi)
 
 
-def capture_public_host(target, image, runner=subprocess.run, credential_names=(), release='0.3.0'):
-    """Capture the neutral Host at its exact public digest; only CShells contracts are shared."""
-    contract = runtime_contract_module()
-    contract.validate_public_image(image)
-    container = 'pk-public-host-capture-' + uuid.uuid4().hex
-    payload = target / 'public-host-payload'
-    payload.mkdir()
-    operations = []
-    environment = runtime_environment(credential_names)
-
-    def command(arguments):
-        ordinal = len(operations) + 1
-        try:
-            result = runner(['docker', *arguments], cwd=target, env=environment,
-                            capture_output=True, text=True, timeout=300, check=False)
-        except subprocess.TimeoutExpired as error:
-            def decoded(value):
-                return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else (value or '')
-            (target / f'image-capture-{ordinal}.stdout').write_text(decoded(error.stdout), encoding='utf-8')
-            (target / f'image-capture-{ordinal}.stderr').write_text(decoded(error.stderr), encoding='utf-8')
-            operations.append({'args': ['docker', *arguments], 'timedOut': True})
-            write(target / 'image-capture-operations.json', operations)
-            raise
-        (target / f'image-capture-{ordinal}.stdout').write_text(result.stdout or '', encoding='utf-8')
-        (target / f'image-capture-{ordinal}.stderr').write_text(result.stderr or '', encoding='utf-8')
-        operations.append({'args': ['docker', *arguments], 'exitCode': result.returncode})
-        write(target / 'image-capture-operations.json', operations)
-        if result.returncode:
-            raise RuntimeError('Public image capture command failed; retained operation ' + str(ordinal))
-        return (result.stdout or '').strip()
-
-    # Pull deliberately precedes create --pull=never. A warm developer image
-    # cannot stand in for the independently selected public digest.
-    command(['pull', image])
-    creation_attempted = False
-    try:
-        creation_attempted = True
-        command(['create', '--name', container, '--pull=never', '--label', 'program-kit.fixture=host-capture', image])
-        inspected = json.loads(command(['inspect', container]))
-        if (not isinstance(inspected, list) or len(inspected) != 1
-                or inspected[0].get('Config', {}).get('Image') != image):
-            raise ValueError('Native capture does not select the requested public image digest')
-        image_configuration = inspected[0].get('Config', {})
-        if any(str(value).upper().startswith('NUPLANE__') for value in image_configuration.get('Env', []) or []):
-            raise ValueError('Public image environment overrides the captured Nuplane configuration')
-        if any('nuplane' in str(argument).lower() for argument in
-               [*(image_configuration.get('Cmd') or []), *(image_configuration.get('Entrypoint') or [])]):
-            raise ValueError('Public image command overrides the captured Nuplane configuration')
-        command(['cp', container + ':/app/.', str(payload)])
-        proof = contract.public_host_contract(payload, image, inspected[0].get('Image'),release)
-    finally:
-        if creation_attempted:
-            command(['rm', '-v', container])
-    write(target / 'public-host-inputs.json', proof)
-    return {'path': 'public-host-payload', 'inputs': 'public-host-inputs.json',
-            'inputsSha256': contract.file_sha256(target / 'public-host-inputs.json')}
+from runtime_fixture import capture_public_host
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/examples/bootstrap-runtime'))
 
 
 def cleanup_runtime_container(target, pins, runner=subprocess.run):

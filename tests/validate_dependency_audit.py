@@ -43,6 +43,8 @@ class AuditTests(unittest.TestCase):
         installed['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter'] = '0.2.3'
         accepted_fixture(self.blocks, self.root, installed)
         self.write('.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json', installed)
+        shutil.copytree(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles',
+                        self.root / '.specify/extensions/program-kit-building-blocks/references/dependency-profiles')
         manifest = json.dumps({'tools': {'orbyss.foundation.openapi.exporter': {'version': '0.2.4'}}}).encode()
         before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
         rendered = renderer.render(self.root, 'eng/.config/dotnet-tools.json', manifest)

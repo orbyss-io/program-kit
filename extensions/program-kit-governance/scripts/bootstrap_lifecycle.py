@@ -426,7 +426,10 @@ def proof_tooling(scoped: bool = False):
         'program-kit-dotnet/templates/dotnet/files/.nvmrc',
         'program-kit-dotnet/templates/dotnet/files/.npm-version',
     ]
-    if scoped: paths.remove('program-kit-building-blocks/references/orbyss-building-blocks.json')
+    if scoped:
+        paths.remove('program-kit-building-blocks/references/orbyss-building-blocks.json')
+        paths += ['program-kit-building-blocks/scripts/dependency_context.py',
+                  'program-kit-governance/scripts/runtime_fixture.py']
     return {name: digest(extensions / name) for name in paths}
 
 

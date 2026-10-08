@@ -2,6 +2,58 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_effective_dependency_context",
+      "command": [
+        "{python}",
+        "tests/validate_effective_dependency_context.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Selected dependency authority, scaffold continuity, both ownership audits and both actual consumer recipe preparation paths.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/**",
+        "tests/validate_effective_dependency_context.py"
+      ],
+      "outputs": [],
+      "resources": [
+        "source-fixtures"
+      ]
+    },
+    {
+      "id": "validate_consumer_provider_runtime",
+      "command": [
+        "{python}",
+        "tests/validate_consumer_provider_runtime.py"
+      ],
+      "group": "release",
+      "needs": [
+        "validate_effective_dependency_context"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "isolation": "Unique disposable consumer and scratch per invocation; preserve native streams and clean owned containers.",
+      "purpose": "Separately execute activation and BFF/Keycloak using the consumer recipe generator and exact verified profile; no coding agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/**",
+        "tests/validate_consumer_provider_runtime.py",
+        "tests/validate_effective_dependency_context.py"
+      ],
+      "outputs": [
+        "artifacts/consumer-provider-runtime"
+      ],
+      "resources": [
+        "docker"
+      ]
+    },
+    {
       "id": "validate_knowledge_application",
       "command": ["{python}", "tests/validate_knowledge_application.py"],
       "group": "development",

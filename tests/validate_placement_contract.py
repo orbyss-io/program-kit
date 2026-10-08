@@ -23,6 +23,7 @@ class PlacementContractTests(unittest.TestCase):
         installed.mkdir(parents=True)
         for name in ('building-block-selection.schema.json', 'orbyss-building-blocks.json'):
             shutil.copyfile(BLOCKS / 'references' / name, installed / name)
+        shutil.copytree(BLOCKS / 'references/dependency-profiles', installed / 'dependency-profiles')
         self.blocks = blocks_test.load_module(blocks_test.RESOLVER)
         self.context = context_test.load_module(ROOT)
         self.schema = self.blocks.load_json(installed / 'building-block-selection.schema.json')

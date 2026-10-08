@@ -54,14 +54,14 @@ class ProofPlanTests(unittest.TestCase):
         blocks.preserve_dependency_profile(self.root, selected, new_path)
         self.assertIsNotNone(admitted())
         self.assertEqual(original, proof_path.read_bytes())
-        changed['families']['foundation']['toolVersions']['Orbyss.Foundation.DomainEvents'] = '0.2.3'
-        changed['packages']['nuget:Orbyss.Foundation.DomainEvents']['version'] = '0.2.3'
+        changed['families']['foundation']['toolVersions']['Orbyss.Foundation.DomainEvents'] = '0.2.4'
+        changed['packages']['nuget:Orbyss.Foundation.DomainEvents']['version'] = '0.2.4'
         # Runtime pins cannot use tool overrides; retain a valid full runtime family.
         changed['families']['foundation']['toolVersions'].pop('Orbyss.Foundation.DomainEvents')
-        changed['families']['foundation']['releaseVersion'] = '0.2.3'
+        changed['families']['foundation']['releaseVersion'] = '0.2.4'
         for package in changed['packages'].values():
             if package['family'] == 'foundation' and package['packageId'] not in changed['families']['foundation']['toolVersions']:
-                package['version'] = '0.2.3'
+                package['version'] = '0.2.4'
         selected['catalog'] = blocks.catalog_binding(changed)
         write(selection_path, selected)
         write(new_path, changed)
@@ -75,12 +75,12 @@ class ProofPlanTests(unittest.TestCase):
         # fixture version against a newly accepted runtime profile.
         from compatibility_scope import bindings
         project = self.root / 'docs/architecture/runtime.csproj'
-        project.write_text('<Project><ItemGroup><PackageReference Include="Orbyss.Foundation.DomainEvents" Version="0.2.3" /></ItemGroup></Project>')
+        project.write_text('<Project><ItemGroup><PackageReference Include="Orbyss.Foundation.DomainEvents" Version="0.2.4" /></ItemGroup></Project>')
         contract['fixtures'] = {'Probe.csproj': project.relative_to(self.root).as_posix()}
         contract['dependencyScope']['artifactKeys'] = []
         with self.assertRaisesRegex(ValueError, 'omits fixture'): bindings(self.root, contract)
         contract['dependencyScope']['artifactKeys'] = ['nuget:Orbyss.Foundation.DomainEvents']
-        project.write_text(project.read_text().replace('0.2.3', '0.2.2'))
+        project.write_text(project.read_text().replace('0.2.4', '0.2.2'))
         with self.assertRaisesRegex(ValueError, 'fixture pin differs'): bindings(self.root, contract)
 
     def test_standalone_receipt_attaches_without_rerun_or_active_demotion(self):

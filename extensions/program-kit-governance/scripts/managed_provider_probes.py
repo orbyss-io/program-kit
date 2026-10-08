@@ -25,8 +25,15 @@ def render(root, kind, identity, host_image):
     if kind == 'ef-postgresql':
         return render_postgresql(root, identity, selected)
     host = next((p for p in selected['selected_packages'] if p['ecosystem'] == 'oci'), None)
-    if not host or host['version'] != '0.2.2':
-        raise ValueError('Maintained activation fixture requires selected Foundation 0.2.2; review the fixture for other releases')
+    if not host:
+        raise ValueError('Compatibility recipe needs the selected Foundation Host')
+    from compatibility_scope import catalog as effective_catalog
+    blocks, catalog, _ = effective_catalog(root)
+    effective = blocks.effective_dependency_context(root)
+    if host['version'] != catalog['packages'][host['packageKey']]['version']:
+        raise ValueError('Selected Host projection differs from verified dependency authority')
+    if tuple(map(int, host['version'].split('.'))) >= (0, 3, 0) and effective['profile'] is None:
+        raise ValueError('Retained exact tuple lacks a maintained Host protocol qualification; qualify that tuple or review an explicit dependency transition before generating a recipe')
     if not isinstance(host_image, str) or not re.fullmatch(re.escape(host['packageId']) + r'@sha256:[0-9a-f]{64}', host_image):
         raise ValueError('Supply --host-image with the registry-verified digest for the selected Foundation tag')
     if decisions.get('toolchain', {}).get('pins', {}).get('dotnet-sdk', '').split('.')[0] != '10':
@@ -35,7 +42,7 @@ def render(root, kind, identity, host_image):
     recipe = directory / (identity + '.py')
     config = directory / (identity + '.inputs.json')
     contract = recipe.with_suffix('.contract.json')
-    if any(p.exists() for p in (recipe, config, contract)):
+    if any(p.exists() for p in (recipe, config, contract, directory / (identity + '.fixtures'))):
         raise ValueError('Recipe already exists; preserve reviewed inputs or use a new identity')
     governance = Path(__file__).resolve().parents[1]
     extensions = governance.parent
@@ -45,10 +52,22 @@ def render(root, kind, identity, host_image):
                   'source': selected['publisher_sources']['foundation']['repository'],
                   'license': 'MIT; exact tagged publisher and package license evidence remains in tooling-evaluation.md'}
 
+    parameters.update(dependencyProfile=effective['profile'], catalogResolutionSha256=effective['resolutionSha256'],
+                      sharedAbi=effective['sharedAbi'],
+                      credentialEnvironmentNames=sorted({source['authentication']['credentialEnvironment']
+                          for source in catalog['sources'].values() if source.get('authentication', {}).get('credentialEnvironment')}))
+    generated = {}
+
     def fixture(destination, source):
         if not source.is_file():
             raise ValueError('Maintained provider fixture is missing: ' + str(source))
-        sources[destination] = source.relative_to(root).as_posix()
+        if source.suffix == '.csproj':
+            from runtime_fixture import retarget_project
+            output = directory / (identity + '.fixtures') / destination
+            generated[output] = retarget_project(source.read_bytes(), catalog, effective['sharedAbi'])
+            sources[destination] = output.relative_to(root).as_posix()
+        else:
+            sources[destination] = source.relative_to(root).as_posix()
 
     if kind == 'foundation-activation':
         example = governance / 'examples/bootstrap-runtime'
@@ -75,11 +94,19 @@ def render(root, kind, identity, host_image):
             fixture('themes/' + source.relative_to(theme).as_posix(), source)
         targets = ['Probe.csproj', 'package.json']
         entry = 'identity_probe'
+    fixture('runtime_fixture.py', governance / 'scripts/runtime_fixture.py')
+    fixture('runtime_probe.py', governance / 'examples/bootstrap-runtime/runtime_probe.py')
+    for path, payload in generated.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(payload)
     from compatibility_scope import fixture_keys
     scope = {'schemaVersion': 1, 'artifactKeys': fixture_keys(root, sources, ('oci:ghcr.io/orbyss-io/foundation-host',))}
     directory.mkdir(parents=True, exist_ok=True)
     config.write_text(json.dumps(parameters, indent=2) + '\n', encoding='utf-8')
     recipe.write_text('from pathlib import Path\nimport sys\nsys.path.insert(0, str(Path.cwd()))\n'
+                      + 'import json\nfrom runtime_fixture import provision_public_host\n'
+                      + 'pins = json.loads(Path("runtime-inputs.json").read_text())\n'
+                      + 'provision_public_host(Path.cwd(), pins)\n'
                       + 'from ' + entry + ' import main\nraise SystemExit(main())\n', encoding='utf-8')
     contract.write_text(json.dumps({'schemaVersion': 1, 'checks': [{'id': kind,
         'kind': 'runtime-compatibility', 'testCases': CASES[kind]}], 'fixtures': sources,

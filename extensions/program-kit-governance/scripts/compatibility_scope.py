@@ -19,15 +19,11 @@ def validate(contract):
 def catalog(root):
     from repository_sync import provider
     blocks = provider('program-kit-building-blocks/scripts/building_blocks.py')
-    path = root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
-    if not path.is_file(): path = blocks.default_catalog(Path(blocks.__file__))
+    effective = blocks.effective_dependency_context(root)
     selection_path = root / 'docs/architecture/building-block-selection.json'
     selection = blocks.load_json(selection_path) if selection_path.is_file() else None
-    if selection is not None: path = blocks.consumer_catalog(root, selection, path)
-    value = blocks.load_json(path)
-    blocks.validate_catalog(value)
-    if selection is not None: blocks.verify_catalog_binding(selection, value)
-    return blocks, value, selection
+    return blocks, effective['catalog'], selection
+
 
 
 def fixture_keys(root, fixtures, extra=()):

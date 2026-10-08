@@ -64,6 +64,24 @@ def prepare(root: Path, scratch: Path, contract: dict):
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source_path, destination)
         inputs.append({'path': source, 'sha256': digest(source_path)})
+    if (scratch / 'runtime-inputs.json').is_file() and (scratch / 'runtime_fixture.py').is_file():
+        from compatibility_scope import catalog as effective_catalog
+        blocks, catalog, _ = effective_catalog(root)
+        effective = blocks.effective_dependency_context(root)
+        parameters = load(scratch / 'runtime-inputs.json')
+        if (parameters.get('catalogResolutionSha256') != effective['resolutionSha256']
+                or parameters.get('sharedAbi') != effective['sharedAbi']
+                or parameters.get('foundationRelease') != catalog['packages']['oci:ghcr.io/orbyss-io/foundation-host']['version']
+                or parameters.get('dependencyProfile') != effective['profile']):
+            raise ValueError('Managed recipe authority is stale; generate a new recipe identity from the retained selection')
+        from runtime_fixture import retarget_project
+        for relative in contract.get('dependencyTargets', []):
+            if Path(relative).suffix == '.csproj':
+                payload = (scratch / relative).read_bytes()
+                if retarget_project(payload, catalog, effective['sharedAbi']) != payload:
+                    raise ValueError('Managed recipe project pins or restore policy differ from selected authority; regenerate this recipe before provisioning')
+        inputs.extend({'path': Path(path).relative_to(root.resolve()).as_posix(), 'sha256': sha}
+                      for path, sha in effective['sources'].items())
     targets = contract.get('dependencyTargets', [])
     if not isinstance(targets, list) or len(targets) != len(set(targets)):
         raise ValueError('Compatibility dependencyTargets must be distinct fixture paths')

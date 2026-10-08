@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -1101,10 +1102,10 @@ def check_output(repository: Path, output: dict) -> None:
         fail("PKB401", f"lock contains unsupported managed output kind {kind!r}")
 
 
-def check_materialization(repository: Path, lock: dict) -> None:
+def check_materialization(repository: Path, lock: dict, *, catalog_path: Path | None = None) -> None:
     for output in lock.get("managedOutputs", []):
         check_output(repository, output)
-    audit_unmanaged_dependencies(repository, load_json(default_catalog(Path(__file__))), lock)
+    audit_unmanaged_dependencies(repository, effective_dependency_context(repository, catalog_path=catalog_path)['catalog'], lock)
 
 
 def repository_files(repository: Path, pattern: str) -> list[Path]:
@@ -1801,6 +1802,14 @@ def verify_qualification_scope(entry: dict, activations: list[dict]) -> None:
 
 def new_project_catalog(identity: str | None = None) -> dict:
     return qualified_dependency_profile(profile_registry(), identity, load_json(default_catalog(Path(__file__))))[0]
+
+
+def effective_dependency_context(repository: Path, *, catalog_path: Path | None = None) -> dict:
+    spec = importlib.util.spec_from_file_location('program_kit_dependency_context', Path(__file__).with_name('dependency_context.py'))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    from types import SimpleNamespace
+    return module.resolve(SimpleNamespace(**globals()), repository, catalog_path=catalog_path)
 
 
 def verify_new_project_profile(repository: Path, catalog: dict, activations: list[dict]) -> None:

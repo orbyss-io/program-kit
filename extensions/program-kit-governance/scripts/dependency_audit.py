@@ -187,8 +187,9 @@ def planned_selection_errors(root, projects):
     from repository_sync import provider
     blocks = provider('program-kit-building-blocks/scripts/building_blocks.py')
     catalog_path = blocks.default_catalog(Path(blocks.__file__))
-    catalog = blocks.load_json(catalog_path)
-    lock = blocks.resolve(root, selection, catalog_path, blocks.find_program_kit_version(Path(blocks.__file__)))
+    catalog = blocks.effective_dependency_context(root)['catalog']
+    lock = blocks.resolve(root, selection, catalog_path, blocks.find_program_kit_version(Path(blocks.__file__)),
+                          require_accepted=blocks.load_json(selection)["status"] == "Accepted")
     catalog_ids = {item['packageId'].casefold() for item in catalog['packages'].values() if item['ecosystem'] == 'nuget'}
     by_path = {target['path']: {item['packageId'].casefold() for item in target['packages']
                               if item['materializationKind'] == 'nuget-project'} for target in lock['targets']}

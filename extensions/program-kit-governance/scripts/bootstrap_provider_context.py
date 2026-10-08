@@ -19,7 +19,8 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
         path = root / relative
         if not path.is_file():
             raise ValueError('PROVIDER-HANDOFF-MISSING: installed/selected input is missing: ' + relative)
-        sources.append({'path': relative, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
+        if not any(item['path'] == relative for item in sources):
+            sources.append({'path': relative, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
         return path
 
     result = {'sources': sources, 'selected_packages': [], 'identity_runtime': None, 'persistence_runtimes': [],
@@ -39,18 +40,13 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
         sys.modules[spec.name] = module
         spec.loader.exec_module(module)
         selection = json.loads(selection_path.read_text(encoding='utf-8')) if selection_path else None
-        catalog_path = module.consumer_catalog(root, selection, candidate_path) if selection else candidate_path
-        if selection is None:
-            registry = module.profile_registry()
-            index = json.loads(bind((registry / 'index.json').relative_to(root).as_posix()).read_text(encoding='utf-8'))
-            entry = index['profiles'][index['default']]
-            for item in ('path',): bind((registry / entry[item]).relative_to(root).as_posix())
-            bind((registry / entry['evidence']['path']).relative_to(root).as_posix())
-            catalog, _ = module.qualified_dependency_profile(registry, None, json.loads(candidate_path.read_text(encoding='utf-8')))
-        if catalog_path != candidate_path:
-            bind(catalog_path.relative_to(root).as_posix())
-            record = json.loads(bind('.program-kit/dependency-profile.json').read_text(encoding='utf-8'))
-            bind(record['profilePath'])
+        effective = module.effective_dependency_context(root)
+        catalog_path = Path(effective['catalogPath'])
+        catalog = effective['catalog']
+        for source in effective['sources']:
+            bind(Path(source).relative_to(root.resolve()).as_posix())
+        result['dependency_context'] = {key: effective[key] for key in
+            ('authority', 'profile', 'qualification', 'resolutionSha256', 'sharedAbi')}
     if managed_host:
         catalog = catalog or json.loads((catalog_path or bind(catalog_relative)).read_text(encoding='utf-8'))
         relative = '.specify/extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json'
@@ -58,13 +54,8 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
         version = catalog['families']['foundation']['releaseVersion']
         registry = module.profile_registry()
         index = json.loads(bind((registry / 'index.json').relative_to(root).as_posix()).read_text(encoding='utf-8'))
-        matched = None
-        for identity, entry in index['profiles'].items():
-            if not entry.get('knowledge'): continue
-            profile = json.loads((registry / entry['path']).read_text(encoding='utf-8'))
-            if profile['families']['foundation']['releaseVersion'] != version: continue
-            if all(key in catalog['packages'] and catalog['packages'][key]['version'] == pin for key,pin in profile['artifacts'].items() if key.startswith('nuget:Orbyss.Foundation.')):
-                matched = (identity,entry); break
+        identity = effective['profile']
+        matched = (identity, index['profiles'][identity]) if effective['publisherKnowledge'] else None
         if matched:
             identity,entry = matched
             module.qualified_dependency_profile(registry,identity,json.loads(candidate_path.read_text(encoding='utf-8')))
@@ -93,7 +84,6 @@ def project(root: Path, decisions: dict, *, require_selection=True) -> dict:
             'maintenance': evidence['maintenance'], 'assessment': evidence['assessment'],
             'metadataExceptions': evidence['hostDistribution']['metadataExceptions']}
     if module is not None and selection_path is not None:
-        catalog = json.loads(catalog_path.read_text(encoding='utf-8'))
         # Reuse the existing resolver including its Draft placement and catalog checks.
         # The returned in-memory plan is never written as an Accepted lock.
         plan = module.resolve(root, selection_path, catalog_path,

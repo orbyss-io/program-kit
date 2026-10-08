@@ -867,7 +867,10 @@ def building_block_upgrade_state(target: Path, release: Path, exporter_transitio
                 previous = module.materialized_plan(target, previous)
             if actual != previous:
                 raise UpgradeError("PKU116 generated building-block lock is stale or corrupt; repair materialized state before upgrading")
-            module.check_materialization(target, actual)
+            if hasattr(module, 'effective_dependency_context'):
+                module.check_materialization(target, actual, catalog_path=installed_catalog)
+            else:
+                module.check_materialization(target, actual)
             module.audit_unmanaged_dependencies(target, catalog, actual)
             return "materialized"
         module.validate_placements(target, selection, require_all=True)
