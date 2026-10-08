@@ -890,6 +890,18 @@ def main() -> int:
     if not published:
         raise AssertionError("README must identify the latest successfully published release")
     published_version = published[1]
+    windows_instructions = readme.split("### Windows", 1)[1].split("### Bash", 1)[0]
+    download = re.search(r"Invoke-WebRequest\s+`\s+(https://\S+)", windows_instructions)
+    if not download:
+        raise AssertionError("Windows installation must contain a concrete download command")
+    if "<!-- initializer-hotfix:start -->" in windows_instructions:
+        expected_launcher = ("https://raw.githubusercontent.com/orbyss-io/program-kit/"
+                             "63ba307f3f856e826428d452e22e798f9a62ab3e/Initialize-ProgramKit.cmd")
+    else:
+        expected_launcher = (f"https://github.com/orbyss-io/program-kit/releases/download/"
+                             f"v{published_version}/Initialize-ProgramKit-{published_version}.cmd")
+    if download[1] != expected_launcher:
+        raise AssertionError("Windows download command does not use the advertised corrected launcher")
     require_phrases(
         "Root installation instructions",
         readme,
@@ -899,7 +911,7 @@ def main() -> int:
             "existing Spec Kit initialization are allowed",
             "existing or partial Program Kit installation",
             "Invoke-WebRequest",
-            f"releases/download/v{published_version}/Initialize-ProgramKit-{published_version}.cmd",
+            expected_launcher,
             ".\\Initialize-ProgramKit.cmd codex",
             "curl -fL",
             f"releases/download/v{published_version}/Initialize-ProgramKit-{published_version}.sh",

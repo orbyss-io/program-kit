@@ -59,7 +59,10 @@ Use a normal terminal owned by the human account:
 1. Open PowerShell directly, or open a WSL shell when the repository and toolchain live in WSL.
 2. Change to the repository root. Existing project files and an existing Spec Kit initialization
    are allowed; the initializer stops if Program Kit itself is already or partially installed.
-3. Download the appropriate root initializer from the matching GitHub release and run it there:
+3. Download the appropriate root initializer using the
+   [current installation instructions](https://github.com/orbyss-io/program-kit#install-in-a-repository)
+   and run it there. Follow any initializer correction listed there before selecting a release asset;
+   opening a fresh terminal does not refresh an already downloaded launcher.
 
    - `Initialize-ProgramKit.sh codex` from Bash in WSL; or
    - `Initialize-ProgramKit.cmd codex` from PowerShell on Windows, including under `AllSigned`.

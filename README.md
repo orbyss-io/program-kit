@@ -1,7 +1,7 @@
 # Program Kit
 
 <!-- latest-published-release:start -->
-Latest available release: **[v0.12.9](https://github.com/orbyss-io/program-kit/releases/tag/v0.12.9)**. [Check the latest release](https://github.com/orbyss-io/program-kit/releases/latest) before installing; use its assets rather than an older cached version.
+Latest available release: **[v0.12.9](https://github.com/orbyss-io/program-kit/releases/tag/v0.12.9)**. Before installing, follow the [current installation instructions](#install-in-a-repository), including initializer corrections. [Check the latest release](https://github.com/orbyss-io/program-kit/releases/latest) for the kit version.
 <!-- latest-published-release:end -->
 
 Program Kit extends Spec Kit's ordinary **specify -> plan -> tasks -> implement -> test** flow
@@ -61,9 +61,11 @@ Run these steps from the repository root.
 ### Windows
 
 <!-- initializer-hotfix:start -->
-**Windows initializer fix for v0.12.9:** The [original published launcher](https://github.com/orbyss-io/program-kit/releases/download/v0.12.9/Initialize-ProgramKit-0.12.9.cmd)
-predates the command-lookup repair. The command below downloads the corrected launcher from a fixed
-source commit; it still installs the published v0.12.9 kit. Future releases include this repair.
+**Required Windows initializer correction for v0.12.9:** Use the download command below, including
+when you already downloaded `Initialize-ProgramKit.cmd`. It replaces the original launcher, which
+can incorrectly report that Spec Kit is missing. Opening a fresh terminal keeps the downloaded file
+unchanged. This corrected launcher comes from a fixed source commit and installs the published
+v0.12.9 kit. Future releases include this repair.
 <!-- initializer-hotfix:end -->
 
 1. Download the Windows command initializer:

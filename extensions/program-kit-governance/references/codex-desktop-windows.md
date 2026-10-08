@@ -25,7 +25,9 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
 1. Open PowerShell directly, or WSL when the repository lives in WSL.
 2. Change to the repository root. Existing project files and an existing Spec Kit initialization
    are allowed; the initializer stops if Program Kit itself is already or partially installed.
-3. Download the root initializer from the matching GitHub release and run it with the required
+3. Download the root initializer using the
+   [current installation instructions](https://github.com/orbyss-io/program-kit#install-in-a-repository),
+   including any initializer correction, and run it with the required
    Spec Kit integration ID: `Initialize-ProgramKit.sh codex` from Bash in WSL, or
    `Initialize-ProgramKit.cmd codex` from PowerShell on Windows, including under `AllSigned`.
    Pass `claude` instead for Claude Code. The command launcher requires no execution-policy change.

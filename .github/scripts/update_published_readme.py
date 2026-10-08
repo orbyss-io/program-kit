@@ -50,8 +50,9 @@ def update_text(text, version):
         raise ValueError("README must contain exactly one latest-published-release block")
     block = (f"{START}\nLatest available release: **[v{version}]"
              f"(https://github.com/{REPOSITORY}/releases/tag/v{version})**. "
-             f"[Check the latest release](https://github.com/{REPOSITORY}/releases/latest) "
-             "before installing; use its assets rather than an older cached version.\n"
+             "Before installing, follow the [current installation instructions](#install-in-a-repository), "
+             "including initializer corrections. "
+             f"[Check the latest release](https://github.com/{REPOSITORY}/releases/latest) for the kit version.\n"
              f"{END}")
     text = pattern.sub(lambda _: block, text)
     if tuple(map(int, version.split('.'))) > (0, 12, 9):
