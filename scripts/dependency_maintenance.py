@@ -16,6 +16,7 @@ import re
 import subprocess
 import tarfile
 import tempfile
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -244,7 +245,10 @@ def collect(root, policy, observer=observe):
         try:
             return {**pin, **observer(pin, policy.get("metadataOverrides", {}))}
         except Exception as error:
-            return {**pin, "latest": None, "source": "unavailable", "error": type(error).__name__}
+            diagnostic = {"error": type(error).__name__}
+            if isinstance(error, urllib.error.HTTPError):
+                diagnostic['httpStatus'] = error.code
+            return {**pin, "latest": None, "source": "unavailable", **diagnostic}
     with ThreadPoolExecutor(max_workers=6) as executor:
         value["pins"] = list(executor.map(query, value["pins"]))
     return {"schemaVersion": 1, "observedAt": datetime.now(timezone.utc).isoformat(), **value}

@@ -76,6 +76,16 @@ class UpdateTests(unittest.TestCase):
         self.assertTrue(all(p['latest'] is None and p['error']=='OSError' for p in observations['pins']))
         self.assertNotIn('credential diagnostic', json.dumps(observations))
 
+    def test_http_lookup_status_is_retained_without_sensitive_response_text(self):
+        def failure(*args):
+            raise m.urllib.error.HTTPError('https://api.github.com/repos/example/publisher', 403,
+                                          'credential diagnostic must not be recorded', None, None)
+        observations = m.collect(self.root, self.policy, failure)
+        self.assertTrue(all(p['latest'] is None and p['httpStatus'] == 403 for p in observations['pins']))
+        self.assertNotIn('credential diagnostic', json.dumps(observations))
+        with self.assertRaisesRegex(ValueError, 'lookup failed'):
+            m.upgrade(self.root, self.policy, observations)
+
     def test_oci_scan_selects_both_real_platforms_from_nested_index(self):
         payloads={}
         def blob(value):
