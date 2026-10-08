@@ -77,3 +77,4 @@ jobs:
             artifacts/published-forms-browser/
             artifacts/bootstrap-runtime/
             artifacts/validation-runs/
+            !artifacts/**/cache/nuget/http/**

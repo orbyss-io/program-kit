@@ -75,6 +75,7 @@ jobs:
             artifacts/*.cmd
             artifacts/*.sh
             artifacts/SHA256SUMS
+            !artifacts/**/cache/nuget/http/**
           if-no-files-found: warn
           retention-days: 14
 

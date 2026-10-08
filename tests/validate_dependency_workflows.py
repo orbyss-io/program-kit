@@ -1,5 +1,6 @@
 """Independent automatic updates, promotion and bounded publisher knowledge contracts."""
 import importlib.util
+import contextlib
 import json
 import io
 from pathlib import Path
@@ -69,6 +70,17 @@ class WorkflowTests(unittest.TestCase):
             data=json.dumps(value,ensure_ascii=False).encode(); (root/'package.pack').write_bytes(b'prefix'+data+b'suffix')
             row={'path':'package.pack','byteOffset':6,'byteLength':len(data)}
             self.assertEqual(value,blocks.publisher_package_fact(root,row))
+
+    def test_failed_validation_retains_its_log_and_prints_the_actual_cause(self):
+        import update_dependencies as updates
+        with tempfile.TemporaryDirectory() as temp:
+            output = io.StringIO()
+            with patch.object(updates, 'ROOT', Path(temp)), contextlib.redirect_stdout(output):
+                with self.assertRaisesRegex(RuntimeError, 'fixture failed'):
+                    updates.run('fixture', [sys.executable, '-c',
+                        'print("Validation failed: actual-negative-control"); raise SystemExit(7)'])
+            self.assertIn('Validation failed: actual-negative-control', output.getvalue())
+            self.assertIn('actual-negative-control', (Path(temp) / 'artifacts/dependency-update-tests/fixture.log').read_text())
 
     def test_full_update_uses_complete_deterministic_inventory_without_release_receipt(self):
         text=(ROOT/'scripts/update_dependencies.py').read_text()
