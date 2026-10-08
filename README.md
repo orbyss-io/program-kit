@@ -164,6 +164,30 @@ specify bundle install program-kit --integration codex
 Replace `codex` with the integration you use in both initialization and bundle installation. The
 bundle itself is integration-agnostic.
 
+<!-- workflow-path-hotfix:start -->
+### Windows bootstrap PATH correction
+
+The current source automatically prepares an oversized Windows PATH for workflow commands.
+Existing v0.12.9 installations predate this repair. From the installed consumer's normal user-owned
+PowerShell terminal, download this pinned source launcher and use it for bootstrap:
+
+```powershell
+Invoke-WebRequest `
+  https://raw.githubusercontent.com/orbyss-io/program-kit/da44715c563db7eb4d2ffe471ac3120729713c9c/extensions/program-kit-governance/scripts/windows_workflow_path.py `
+  -OutFile Start-ProgramKitWorkflow.py
+python .\Start-ProgramKitWorkflow.py run `
+  --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" `
+  --input "integration=auto"
+```
+
+This launcher prepares the child process PATH automatically and invokes the existing installed
+lifecycle. It keeps usable tool directories, the selected Python and Node runtime, and all existing
+worker permissions and approval gates. It does not replace installed extension files or alter
+persistent environment settings. For an existing run, use `resume --run-id <existing-id>` with the
+same launcher and your normal approved arguments. Future releases include preparation in the normal
+`workflow_lifecycle.py` command.
+<!-- workflow-path-hotfix:end -->
+
 Keep all four catalogs registered. A locally supplied third-party bundle
 archive resolves its extension, preset, and workflow primitives through their catalogs; the bundle
 is the pinned composition record, not a self-contained primitive installer. The standalone ZIP

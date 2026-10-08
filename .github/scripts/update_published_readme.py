@@ -58,6 +58,8 @@ def update_text(text, version):
     if tuple(map(int, version.split('.'))) > (0, 12, 9):
         text = re.sub(r"<!-- initializer-hotfix:start -->\n.*?\n<!-- initializer-hotfix:end -->\n\n",
                       "", text, flags=re.DOTALL)
+        text = re.sub(r"<!-- workflow-path-hotfix:start -->\n.*?\n<!-- workflow-path-hotfix:end -->\n\n",
+                      "", text, flags=re.DOTALL)
         text = re.sub(r"https://raw\.githubusercontent\.com/orbyss-io/program-kit/[0-9a-f]{40}/Initialize-ProgramKit\.cmd",
                       f"https://github.com/{REPOSITORY}/releases/download/v{version}/Initialize-ProgramKit-{version}.cmd", text)
     # Only kit install/upgrade/verification examples; retain historical explanations

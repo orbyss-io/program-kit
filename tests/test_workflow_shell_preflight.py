@@ -301,6 +301,13 @@ class ShellContractTests(unittest.TestCase):
                 self.assertLessEqual(value['pathLength'], 8191)
         self.assertEqual(before, {p: p.read_bytes() for p in scripts.iterdir() if p.is_file()})
 
+    def test_current_release_bootstrap_instructions_supply_the_source_launcher(self):
+        readme = (ROOT / 'README.md').read_text(encoding='utf-8')
+        if 'Latest available release: **[v0.12.9]' in readme:
+            self.assertIn('da44715c563db7eb4d2ffe471ac3120729713c9c/extensions/program-kit-governance/scripts/windows_workflow_path.py', readme)
+            self.assertIn('python .\\Start-ProgramKitWorkflow.py run', readme)
+            self.assertIn('normal user-owned', readme)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
