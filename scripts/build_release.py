@@ -33,6 +33,8 @@ BUNDLE_SOURCE_PREFIXES = (
     "workflows/program-kit-bootstrap/",
 )
 BUNDLE_RUNTIME_SCRIPTS = {
+    "scripts/record_local_bundle.py",
+    "scripts/consumer_upgrade_workspace.py",
     "scripts/invoke_specify.py",
     "scripts/openapi_upgrade_reconciliation.py",
     "scripts/upgrade_program_kit.py",
@@ -350,6 +352,11 @@ def main() -> int:
         for entry in json.loads((guidance / 'migration-index.json').read_text())['entries']:
             destination = output / entry['guide']
             shutil.copyfile(guidance / entry['guide'], destination)
+            expected.append(destination)
+        metadata = json.loads((guidance / 'migration-index.json').read_text()).get('consumerChanges')
+        if metadata:
+            destination = output / metadata['file']
+            shutil.copyfile(guidance / metadata['file'], destination)
             expected.append(destination)
     deterministic_zip(root / "extensions/program-kit-building-blocks", expected[1])
     deterministic_zip(root / "extensions/program-kit-dotnet", expected[2])

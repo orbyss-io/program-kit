@@ -120,6 +120,8 @@ def main() -> int:
                 f"Program Kit install bundle contains repository-only source: {leaked[:10]}"
             )
         required_runtime = {
+            "scripts/record_local_bundle.py",
+            "scripts/consumer_upgrade_workspace.py",
             "bundle.yml",
             "VERSION",
             "scripts/upgrade_program_kit.py",
@@ -159,6 +161,10 @@ def main() -> int:
                 raise AssertionError(f"Building-block extension release ZIP is missing {path}")
         for path in (
             "scripts/codex_bootstrap_preflight.py",
+            "scripts/consumer_upgrade.py",
+            "commands/speckit.program-kit-governance.upgrade.md",
+            "references/consumer-upgrade.md",
+            "references/consumer-migration-recipes.json",
             "scripts/bootstrap_context.py",
             "scripts/bootstrap_intake.py",
             "scripts/specification_intake.py",

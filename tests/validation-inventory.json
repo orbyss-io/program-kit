@@ -2,6 +2,15 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_consumer_upgrade",
+      "command": ["{python}", "tests/validate_consumer_upgrade.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Cumulative consumer semantics, selective phase repair, local migration recovery, sanitized export and owned ignored installation reproduction; no coding agents.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-governance/**", "scripts/consumer_upgrade_workspace.py", "scripts/upgrade_program_kit.py", "scripts/build_release*.py", "releases/**", "tests/validate_consumer_upgrade.py"],
+      "outputs": [], "resources": [],
+      "isolation": "Unique disposable Git consumers and packaged local extension installation."
+    },
+    {
       "id": "validate_effective_dependency_context",
       "command": [
         "{python}",
@@ -3640,6 +3649,15 @@
       "resources": [
         "release-assets"
       ]
+    },
+    {
+      "id": "validate_consumer_upgrade_install",
+      "command": ["{python}", "tests/validate_consumer_upgrade_install.py"],
+      "group": "package", "needs": ["build-release"], "platforms": ["Windows", "Linux"],
+      "purpose": "Real packaged primitive installation, isolated updater and fresh destination activation; no coding agents.",
+      "owner": "program-kit", "inputs": ["extensions/**", "scripts/**", "releases/**", "tests/validate_consumer_upgrade_install.py"],
+      "outputs": ["artifacts/consumer-upgrade-install.json"], "resources": ["release-artifacts"],
+      "isolation": "Unique disposable source/worktree and exact packaged release; original setup protected."
     },
     {
       "id": "validate_installed_bootstrap_flow",

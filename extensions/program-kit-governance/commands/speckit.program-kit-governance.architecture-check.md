@@ -14,6 +14,14 @@ Reconcile its responsibility and capability inventory with the plan and relevant
 repeat role labels. A passing declared graph is structural evidence and never a semantic PASS.
 Before a feature directory exists, review the request and existing constitutional/architectural
 context directly; do not require a feature-dependent command or create a feature on the hook's behalf.
+When a consumer upgrade record exists, run the lightweight compatibility scan with a
+request/brief JSON carrying known architectureScope, contracts and affectedPaths:
+`python .specify/extensions/program-kit-governance/scripts/consumer_upgrade.py scan --input <request.json> --phase specification`.
+Use the existing intake brief when available; an ignored temporary request is a regenerable
+view, not a feature or approval packet. Resolve due ownership/contract findings and carry
+matching migrations into existing plan/tasks. Unknown scope is explicitly limited.
+Refine the same scope during planning. A new discovery immediately enters the local
+upgrade discovery/pickup route; keep unaffected work available and preserve prior findings.
 Compare the specification, plan, tasks or changed code with the constitution, applicable canonical constraints, domain design,
 architecture model and relevant Accepted ADRs when available. Missing governance history is not
 an application failure. Preserve accepted choices; request a decision only for substantive changes.

@@ -96,3 +96,19 @@ The equivalent new guidance fixture maintains none of those seven files. The old
 fixture could not proceed without constructing/renewing that state, so no comparable old complete
 runtime is claimed. These are local fixture measurements, not a universal upgrade SLA; network,
 actual builds and tests account for the remaining engineering time.
+
+Consumer upgrades use `speckit.program-kit-governance.upgrade` and the maintained
+[upgrade method](../extensions/program-kit-governance/references/consumer-upgrade.md).
+The isolated attempt reproduces owned ignored installation assets and preserves source
+setup/customization; destination activation uses the existing updater and tested recovery.
+The single coordination record holds scoped findings and bounded migration briefs.
+Ordinary pre-spec intake and planning refine matching owner/contract scope; dependencies
+stay in existing plans/tasks. Valid requirements, confirmed intent, task IDs and completed
+work survive selective repair. A new toolkit default offers supported retention or explicit
+reviewed adoption. Shared incompatibilities due for upgrade must be resolved before
+activation; credible future implementation migrations can remain deferred.
+
+Scans and reports are regenerable views. They are never native application build/runtime
+inputs. Toolkit convergence, current affected tests, substantive review and destination
+activation remain separate outcomes. External rollout cannot be undone by worktree recovery.
+Maintenance evidence export is bounded, sanitized and local; sharing is a consumer action.

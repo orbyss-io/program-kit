@@ -21,7 +21,7 @@
         "speckit_version": ">=1.1.1,<2.0.0"
       },
       "provides": {
-        "commands": 23,
+        "commands": 24,
         "hooks": 9
       },
       "tags": [

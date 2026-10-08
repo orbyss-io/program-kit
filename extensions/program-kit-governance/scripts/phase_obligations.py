@@ -89,7 +89,9 @@ def model(root, feature, phase='planning', affected_paths=()):
     registry_phase = 'after-plan' if phase == 'tasks' else phase
     inherited = adopted_context(root, feature)
     from feature_plan_decisions import project as decisions
-    return {'schemaVersion': 1, 'feature': feature.relative_to(root).as_posix(),
+    from consumer_upgrade import scan, request_scope
+    compatibility = scan(root, request_scope(root, feature=feature), {'after-plan': 'planning', 'after-tasks': 'tasks'}.get(phase, phase))
+    return {'schemaVersion': 1, 'feature': feature.relative_to(root).as_posix(), 'upgradeCompatibility': compatibility,
             'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
             'decisions': decisions(root, feature),
             'prerequisites': retained_proofs(root, feature, phase),
@@ -125,6 +127,13 @@ def render(value, phase, detailed=False):
                   + ' Semantic responsibility review remains required; no overall boundary acceptance is established.', '']
     if value.get('execution'):
         lines += ['Engineering command: PASS for Acceptance scope. Semantic/human acceptance is not established.', '']
+    compatibility = value.get('upgradeCompatibility', {})
+    if compatibility.get('recordPresent'):
+        for item in compatibility.get('migrations', []) + compatibility.get('findings', []):
+            lines += ['Upgrade impact ' + item['id'] + ': ' + item.get('status', item.get('disposition', 'unresolved'))
+                      + ('; blocks affected work now.' if item['blocksNow'] else '; preserve its due phase.'), '']
+        for limitation in compatibility.get('limitations', []):
+            lines += ['Compatibility scope: ' + limitation, '']
     for diagnostic in value.get('context', {}).get('diagnostics', []):
         lines += ['Context finding: ' + diagnostic, '']
     for source in value.get('context', {}).get('sources', []):
@@ -152,6 +161,10 @@ def render(value, phase, detailed=False):
 
 def check(root, feature, phase, affected_paths=()):
     graph_checked, execution = None, None
+    from consumer_upgrade import scan, request_scope
+    compatibility = scan(root, request_scope(root, feature=feature), {'after-plan': 'planning', 'after-tasks': 'tasks'}.get(phase, phase))
+    if not compatibility['canProceed']:
+        raise ValueError('Affected upgrade work is due: ' + ', '.join(compatibility['blockers']) + '; use migration pickup/local recovery. Unaffected work remains available.')
     if phase in ('after-plan', 'after-tasks', 'implementation'):
         graph_checked = validate_planned_architecture(root, feature)
     if phase in ('implementation', 'delivery'):

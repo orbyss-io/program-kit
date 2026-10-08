@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "changes": [
+    {
+      "id": "canonical-consumer-descriptors",
+      "introduced": "0.12.6",
+      "kind": "contract",
+      "summary": "Canonical consumer descriptors use the selected Foundation Build engineering package.",
+      "constraint": "Engineering packages stay outside runtime dependencies; actual delivered descriptors must remain compatible with selected contracts.",
+      "selectors": {"paths": ["**/*.csproj", "eng/**", "contracts/**"]},
+      "supportedRetention": ["Retain exact selected runtime and engineering profile where its descriptor contract is supported; inspect existing outputs."],
+      "alternatives": ["Retain supported selected contracts", "Use the reviewed dependency transition and update affected descriptors"],
+      "verification": ["Check actual package/runtime separation", "Verify packed descriptor contents and actual receiver behavior"],
+      "method": "canonical-descriptors-v1",
+      "duePhase": "delivery",
+      "supersedes": [], "dependencies": [],
+      "review": {"basis": "migration-0.12.6.md and existing component contract checks", "route": "Normal affected contract/architecture review; dependency_profiles.py for changed exact pins"}
+    },
+    {
+      "id": "retained-dependency-profile",
+      "introduced": "0.12.7",
+      "kind": "default",
+      "summary": "New default profiles are offered to existing consumers without silently changing their exact selections.",
+      "constraint": "Installation retains accepted and scaffold-captured profiles; adoption requires the existing exact reviewed dependency transition.",
+      "selectors": {"paths": ["docs/architecture/building-block-selection.json"], "selectedDependencies": true},
+      "supportedRetention": ["An existing supported selected profile remains valid; native compatibility still needs its actual checks."],
+      "alternatives": ["Retain exact selected profile", "Adopt a qualified profile through dependency_profiles.py draft/accept"],
+      "verification": ["Check retained exact selection and native locks", "If adopted, run transition-scoped native verification"],
+      "method": "dependency-transition-v1",
+      "duePhase": "implementation",
+      "supersedes": [], "dependencies": [],
+      "review": {"basis": "migration-0.12.7.md and accepted-selection preservation contract", "route": "Existing dependency transition authority"}
+    },
+    {
+      "id": "incremental-task-guidance",
+      "introduced": "0.12.8",
+      "kind": "guidance",
+      "summary": "Task drafting resumes incrementally and applies focused phase guidance.",
+      "constraint": "Preserve existing task identity, checked work and authored requirements; changed inputs reopen only affected planning.",
+      "selectors": {"paths": ["specs/*/tasks.md", "specs/*/plan.md"]},
+      "supportedRetention": ["Existing unmarked tasks remain editable in place without conversion to a new checkpoint."],
+      "alternatives": ["Resume saved draft phases", "Repair affected unmarked tasks in place"],
+      "verification": ["Inspect retained IDs and completed work", "Run normal consistency analysis after affected draft repair"],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "tasks",
+      "supersedes": [], "dependencies": [],
+      "review": {"basis": "migration-0.12.8.md and task_draft.py contract", "route": "Normal plan/tasks review; unchanged product intake remains confirmed"}
+    },
+    {
+      "id": "declared-responsibilities",
+      "introduced": "0.12.9",
+      "kind": "constraint",
+      "summary": "Affected .NET plans declare actual responsibility kinds, effects and provided capabilities.",
+      "constraint": "Core/runtime placement must match actual behavior. A declared graph pass does not prove semantic correctness.",
+      "selectors": {"paths": ["eng/architecture.json", "**/*.csproj"]},
+      "supportedRetention": ["Pure policies and valid minimal graphs remain supported; existing valid ownership and architecture decisions carry forward."],
+      "alternatives": ["Retain valid declarations and behavior", "Correct affected responsibility/capability declarations", "Use normal governed review for a substantive architecture change"],
+      "verification": ["Run affected phase_obligations/implementation_preflight graph checks", "Review actual code effects and exercise changed behavior"],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "implementation",
+      "supersedes": [], "dependencies": [],
+      "review": {"basis": "migration-0.12.9.md and declared responsibility negative controls", "route": "Existing architecture and normal code review"}
+    },
+    {
+      "id": "current-qualified-profile",
+      "introduced": "0.12.9",
+      "kind": "default",
+      "summary": "The current qualified default is available as an optional dependency adoption.",
+      "constraint": "New profile availability does not revoke an existing supported retained choice.",
+      "selectors": {"paths": ["docs/architecture/building-block-selection.json"], "selectedDependencies": true},
+      "supportedRetention": ["Retain the exact accepted or scaffold-captured supported profile and its consumer locks."],
+      "alternatives": ["Retain current exact profile", "Adopt the exact qualified target using dependency_profiles.py"],
+      "verification": ["Inspect selected profile support and native dependency results", "Verify affected contracts and behavior after an explicit transition"],
+      "method": "dependency-transition-v1",
+      "duePhase": "implementation",
+      "supersedes": ["retained-dependency-profile"], "dependencies": [],
+      "review": {"basis": "migration-0.12.9.md and qualified dependency profile catalog", "route": "Existing exact dependency transition; no repeated choice for intermediate defaults"}
+    }
+  ]
+}

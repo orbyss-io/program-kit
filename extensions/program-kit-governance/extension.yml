@@ -21,6 +21,9 @@ provides:
       file: "scripts/schema_runtime.py"
       description: "Explicit project-local dependency setup and installed-copy checks."
   commands:
+    - name: "speckit.program-kit-governance.upgrade"
+      file: "commands/speckit.program-kit-governance.upgrade.md"
+      description: "Prepare, assess, reconcile and activate an isolated consumer upgrade; pick up scoped migrations and export local evidence."
     - name: "speckit.program-kit-governance.phase-context"
       file: "commands/speckit.program-kit-governance.phase-context.md"
       description: "Project applicable knowledge before planning and task generation."

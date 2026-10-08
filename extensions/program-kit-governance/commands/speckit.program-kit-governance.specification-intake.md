@@ -1,6 +1,12 @@
 ---
 description: Clarify substantive feature intent and preserve settled answers.
 ---
+When `.program-kit/consumer-upgrade.json` exists, inspect compatibility before creating
+a feature directory. Use `specification_intake.py --repository . compatibility --request-file
+<existing-brief-or-temporary-request.json>` with known architectureScope, contracts and
+affectedPaths. Refine missing ownership honestly and resolve only due affected work.
+Preserve unchanged confirmed product intent; toolkit version changes do not reconfirm it.
+
 Use the normal feature request and any existing specification/intake. Follow the installed grilling
 method at `.specify/extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md` proportionally: investigate facts, ask only unresolved product/architectural questions,
 and preserve settled answers and accepted defaults. The user owns the roadmap; a missing or

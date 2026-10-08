@@ -202,6 +202,17 @@ tested version. Historical 1.0.1 patch proposals and archived evidence retain th
 
 ### Upgrade an existing Program Kit installation
 
+Use `speckit.program-kit-governance.upgrade` for a conversational, resumable consumer
+upgrade. It assesses cumulative semantic changes against actual code, architecture,
+customization and exact dependencies, preserves unchanged intent and saved tasks,
+and records bounded scoped migrations. New defaults offer optional adoption.
+The maintained [consumer upgrade method](extensions/program-kit-governance/references/consumer-upgrade.md)
+prepares a separate worktree with owned ignored setup, delegates installation to the
+updater below, and verifies destination activation with original-setup recovery.
+Normal feature intake/planning scans relevant migrations without creating a feature
+or approval dossier. Application builds remain independent of toolkit coordination.
+The local sanitized evidence export sends nothing automatically.
+
 Download and verify the full `program-kit-<version>.zip` release asset, extract it **outside the
 consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:

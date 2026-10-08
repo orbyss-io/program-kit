@@ -67,6 +67,13 @@ def artifact_records(artifacts: Path, version: str) -> list[dict[str, object]]:
     }
     files = sorted((artifacts / name for name in names), key=lambda path: path.name.casefold())
     index = json.loads((artifacts / f'migration-index-{version}.json').read_text(encoding='utf-8'))
+    if index.get('consumerChanges'):
+        semantic = index['consumerChanges']
+        if Path(semantic['file']).name != semantic['file']:
+            raise RuntimeError('Consumer change metadata must be a basename')
+        if sha256(artifacts / semantic['file']) != semantic['sha256']:
+            raise RuntimeError('Consumer change metadata is missing or changed')
+        files.append(artifacts / semantic['file'])
     for entry in index['entries']:
         name = entry['guide']
         if Path(name).name != name:

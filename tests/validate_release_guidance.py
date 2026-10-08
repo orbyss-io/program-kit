@@ -11,11 +11,29 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
-from build_release_guidance import build
+from build_release_guidance import build, validate_recipes
 from release_guidance import plan, load_index, require_review, completion
 
 
 class GuidanceTests(unittest.TestCase):
+    def test_semantic_changes_require_maintained_complete_recipe_contracts(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            relative = Path('extensions/program-kit-governance/references/consumer-migration-recipes.json')
+            path = root / relative
+            path.parent.mkdir(parents=True)
+            shutil.copy2(ROOT / relative, path)
+            changes = [{'method': 'selective-feature-repair-v1'}]
+            validate_recipes(root, changes)
+            with self.assertRaisesRegex(ValueError, 'unmaintained'):
+                validate_recipes(root, [{'method': 'missing-recipe'}])
+            registry = json.loads(path.read_text())
+            registry['recipes'][0]['verification'] = []
+            path.write_text(json.dumps(registry))
+            with self.assertRaisesRegex(ValueError, 'verification'):
+                validate_recipes(root, changes)
+
     def test_qualification_assets_and_release_receipt_reject_missing_or_changed_bytes(self):
         from build_release import build_dependency_qualification_assets
         from write_release_receipt import artifact_records, sha256

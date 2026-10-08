@@ -937,6 +937,18 @@
   ],
   "sources": [
     {
+      "path": "program-kit-governance/references/consumer-upgrade.md",
+      "phases": ["upgrade", "planning", "implementation"],
+      "enforcement": "Scoped applicability review and actual consumer tests; installation/graph passes do not prove semantic acceptance.",
+      "route": {
+        "kind": "manual",
+        "via": ["extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "scripts/consumer_upgrade_workspace.py"],
+        "sections": ["Consumer upgrade and migration planning method"],
+        "requirements": [],
+        "review": "Existing substantive review, scoped recovery and destination activation; no founding bootstrap restart."
+      }
+    },
+    {
       "path": "program-kit-building-blocks/references/foundation-contracts-development.md",
       "phases": [
         "explicit maintainer invocation"

@@ -269,12 +269,16 @@ def main() -> int:
             command.add_argument("--confirmation-source", required=True)
             command.add_argument("--confirmation-text", required=True)
     commands.add_parser("check-spec").add_argument("--spec", required=True)
+    commands.add_parser('compatibility').add_argument('--request-file', required=True)
     args = parser.parse_args()
     repository = Path(args.repository).resolve()
     previous = Path.cwd()
     try:
         os.chdir(repository)
-        if args.command == "begin":
+        if args.command == 'compatibility':
+            from consumer_upgrade import scan, request_scope
+            result = scan(repository, request_scope(repository, read(inside(repository, args.request_file))), 'specification')
+        elif args.command == "begin":
             result = str(begin(repository, args.entry, args.request))
         elif args.command == 'context':
             result = context(repository, args.entry)

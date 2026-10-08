@@ -137,3 +137,10 @@ records remain artifact evidence but do not satisfy this engine-completion contr
 Report fresh and resumed completion separately, including source/continuation run IDs and
 statuses. Mocked-dispatch deterministic tests prove mechanics; they do not prove paid real-agent
 execution. Preserve that distinction in every report.
+
+Consumer toolkit upgrades use the separate conversational upgrade command and
+references/consumer-upgrade.md. Preserve founding bootstrap history and unchanged intake;
+resume affected existing feature documents at their earliest affected phase. Use normal
+task_draft resume/analysis for saved work. Upgrade coordination never becomes a generic
+bootstrap gate. Isolated preparation, low-level updater retry, reviewed source integration
+and destination installation activation each retain their own state and recovery evidence.

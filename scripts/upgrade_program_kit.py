@@ -199,7 +199,7 @@ def release_fingerprint(release: Path) -> str:
     # Match packaging's build/cache exclusions. Running validation must not
     # change the identity of the same shipped candidate via compiled outputs.
     excluded = {'__pycache__', 'bin', 'obj', 'node_modules', 'playwright-report', 'test-results', '.auth'}
-    for directory in ('scripts', 'extensions', 'presets', 'workflows'):
+    for directory in ('scripts', 'extensions', 'presets', 'workflows', 'releases'):
         for path in sorted((release / directory).rglob('*')):
             if (path.is_file() and not path.is_symlink()
                     and not excluded.intersection(path.relative_to(release).parts)
@@ -208,6 +208,9 @@ def release_fingerprint(release: Path) -> str:
                               + hashlib.sha256(path.read_bytes()).digest())
     for name in ('VERSION', 'bundle.yml'):
         digest.update(name.encode() + b'\0' + hashlib.sha256((release / name).read_bytes()).digest())
+    for name in ('README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md'):
+        if (release / name).is_file():
+            digest.update(name.encode() + b'\0' + hashlib.sha256((release / name).read_bytes()).digest())
     return digest.hexdigest()
 
 
@@ -1185,6 +1188,11 @@ def main() -> int:
     try:
         release = Path(args.release_root).resolve()
         target = Path(args.target).resolve()
+        effective_root = os.environ.get('SPECIFY_INIT_DIR')
+        if not args.plan and effective_root and Path(effective_root).resolve() != target:
+            raise UpgradeError('PKU133 inherited SPECIFY_INIT_DIR targets another project; no mutation started. '
+                               'Use consumer_upgrade_workspace.py, which binds this variable only in its intended child processes, '
+                               'or explicitly scope the variable to the selected target in your own shell.')
         if release.is_relative_to(target):
             raise UpgradeError('PKU120 stage the verified release outside the consumer workspace before upgrading. '
                                'Release examples and templates must not enter consumer dependency audits. '

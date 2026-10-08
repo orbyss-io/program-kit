@@ -46,7 +46,7 @@ if os.name == 'nt':
     ntdll.NtResumeProcess.restype = wintypes.LONG
 
 
-def run(command, cwd, stdout, stderr, timeout):
+def run(command, cwd, stdout, stderr, timeout, env=None):
     """Return exit status after terminating descendants; output goes to owned files."""
     job = None
     process = None
@@ -61,7 +61,7 @@ def run(command, cwd, stdout, stderr, timeout):
         else:
             kwargs = {'start_new_session': True}
         process = subprocess.Popen(command, cwd=cwd, stdin=subprocess.DEVNULL,
-                                   stdout=stdout, stderr=stderr, **kwargs)
+                                   stdout=stdout, stderr=stderr, env=env, **kwargs)
         if os.name == 'nt':
             if not kernel.AssignProcessToJobObject(job, wintypes.HANDLE(process._handle)):
                 raise OSError('Cannot assign compatibility recipe to its Job Object')

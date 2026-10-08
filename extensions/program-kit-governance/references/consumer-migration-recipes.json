@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "recipes": [
+    {
+      "id": "selective-feature-repair-v1", "version": 1,
+      "applicability": "Affected architecture, requirements, plan or task guidance; actual code establishes the scope.",
+      "preservedBehavior": "Valid requirements, product confirmation, task IDs, completed work, consumer edits and original authority.",
+      "allowedScope": "Affected owners, contracts and dependency closure only.",
+      "ordering": ["Inspect current inputs", "Resolve substantive architecture choices normally", "Edit affected plan/tasks in place", "Run normal consistency/preflight and behavioral tests"],
+      "verification": ["Retained task identity and requirements", "Declared graph plus actual effect placement", "Meaningful affected behavior tests"],
+      "recoveryLimits": "Workspace edits can be reverted under consumer authority. External state requires separate rollout and recovery."
+    },
+    {
+      "id": "dependency-transition-v1", "version": 1,
+      "applicability": "Explicit optional adoption or demonstrated unsupported exact dependency selection.",
+      "preservedBehavior": "Accepted architecture, supported retained profile and existing locks until an exact reviewed transition.",
+      "allowedScope": "Selected dependency artifacts and actual reverse contract closure.",
+      "ordering": ["Inspect selected profile/catalog/native locks", "dependency_profiles.py draft exact profile", "Normal Accepted transition review", "dependency_profiles.py accept", "Run affected native and behavioral checks"],
+      "verification": ["Transition digest and Accepted authority", "Exact locks and native restore", "Actual provider and consumer compatibility"],
+      "recoveryLimits": "Keep original transition evidence; native package retention does not roll back deployed services or databases."
+    },
+    {
+      "id": "canonical-descriptors-v1", "version": 1,
+      "applicability": "Consumer descriptor production/receiver contract changes at the selected exact engineering profile.",
+      "preservedBehavior": "Public contract identity and provider behavior; engineering dependencies remain outside runtime.",
+      "allowedScope": "Shared producer/receiver contract and affected projects/domains, grouped once.",
+      "ordering": ["Inspect actual produced descriptors and selected dependencies", "Review contract alternatives", "Plan producer/receiver ordering and tests", "Implement in disposable resources", "Verify actual receiver behavior"],
+      "verification": ["Descriptor contents", "Package/runtime separation", "Independent consumer behavior and handoff checks"],
+      "recoveryLimits": "Git restoration cannot undo published packages or deployed receiver state; scope external activation separately."
+    }
+  ]
+}

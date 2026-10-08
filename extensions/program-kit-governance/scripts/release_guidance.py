@@ -43,7 +43,62 @@ def load_index(directory, target):
         checks = entry.get('verificationChecks')
         if not isinstance(checks, list) or not checks or len(checks) != len(set(checks)) or set(checks) - VERIFICATION_CHECKS:
             raise ValueError('PKU130 missing or unsupported migration verification checks')
+    semantic = index.get('consumerChanges')
+    if semantic:
+        path = directory / semantic['file']
+        if Path(semantic['file']).name != semantic['file'] or hashlib.sha256(path.read_bytes()).hexdigest() != semantic['sha256']:
+            raise ValueError('PKU130 consumer semantic metadata differs from verified release guidance')
+        validate_changes(json.loads(path.read_text(encoding='utf-8')), versions)
     return index
+
+
+def validate_changes(value, versions):
+    if value.get('schemaVersion') != 1 or not isinstance(value.get('changes'), list):
+        raise ValueError('PKU130 unsupported consumer change metadata')
+    ids = set()
+    for change in value['changes']:
+        required = {'id', 'introduced', 'kind', 'summary', 'constraint', 'selectors', 'supportedRetention',
+                    'alternatives', 'verification', 'method', 'duePhase', 'supersedes', 'dependencies', 'review'}
+        if not required <= change.keys() or not re.fullmatch(r'[a-z][a-z0-9-]{0,63}', change['id']) or change['id'] in ids:
+            raise ValueError('PKU130 incomplete or duplicate semantic change')
+        if change['introduced'] not in versions or change['kind'] not in {'guidance', 'default', 'constraint', 'contract'}:
+            raise ValueError('PKU130 invalid semantic applicability')
+        if change['duePhase'] not in {'upgrade', 'specification', 'planning', 'tasks', 'implementation', 'delivery', 'production'}:
+            raise ValueError('PKU130 invalid semantic due phase')
+        for field in ('summary', 'constraint', 'method'):
+            if not isinstance(change[field], str) or not change[field].strip():
+                raise ValueError('PKU130 semantic change needs ' + field)
+        for field in ('supportedRetention', 'alternatives', 'verification'):
+            if not isinstance(change[field], list) or not change[field] or not all(isinstance(v, str) and v for v in change[field]):
+                raise ValueError('PKU130 semantic change needs ' + field)
+        review = change['review']
+        if not isinstance(review, dict) or not review.get('basis') or not review.get('route'):
+            raise ValueError('PKU130 semantic change requires maintained review provenance')
+        selector = change['selectors']
+        if not isinstance(selector, dict) or not isinstance(selector.get('paths'), list):
+            raise ValueError('PKU130 semantic selectors require paths')
+        if not set(change['supersedes'] + change['dependencies']) <= ids:
+            raise ValueError('PKU130 semantic references must name earlier maintained changes')
+        if change.get('retired') and version_key(change['retired']) <= version_key(change['introduced']):
+            raise ValueError('PKU130 invalid semantic retirement')
+        ids.add(change['id'])
+
+
+def semantic_changes(directory, installed, target):
+    index = load_index(directory, target)
+    source, destination = version_key(installed), version_key(target)
+    if source > destination:
+        raise ValueError('PKU130 downgrade migration is unsupported')
+    asset = index.get('consumerChanges')
+    if not asset:
+        return {'changes': [], 'limitations': ['Structured semantic coverage is missing; inspect actual release guidance and consumer layout.']}
+    changes = json.loads((Path(directory) / asset['file']).read_text(encoding='utf-8'))['changes']
+    active = [c for c in changes if version_key(c['introduced']) <= destination and
+              (not c.get('retired') or version_key(c['retired']) > destination)]
+    superseded = {identity for c in active for identity in c['supersedes']}
+    applicable = [c for c in active if c['id'] not in superseded and source < version_key(c['introduced'])]
+    return {'changes': applicable, 'limitations': ['Source predates structured history; inspect actual layout without inventing historical approval.']
+            if source < version_key(BASELINE) else []}
 
 
 def plan(directory, installed, target):
