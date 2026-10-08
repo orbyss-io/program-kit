@@ -76,6 +76,30 @@ class UpdateTests(unittest.TestCase):
         self.assertTrue(all(p['latest'] is None and p['error']=='OSError' for p in observations['pins']))
         self.assertNotIn('credential diagnostic', json.dumps(observations))
 
+    def test_explicit_public_metadata_policy_resolves_the_exact_action_commit(self):
+        calls = []
+        def metadata(url, **kwargs):
+            calls.append((url, kwargs))
+            if url.endswith('/releases/latest'):
+                return {'tag_name': 'v0.3.1'}
+            if '/git/ref/tags/' in url:
+                return {'object': {'type': 'tag', 'url': 'https://api.github.com/repos/aquasecurity/setup-trivy/git/tags/exact'}}
+            return {'object': {'type': 'commit', 'sha': 'a' * 40}}
+        pin = {'kind': 'github-action', 'name': 'aquasecurity/setup-trivy'}
+        with patch.object(m, 'fetch', side_effect=metadata):
+            result = m.observe(pin, {'anonymousGithubMetadata': [pin['name']]})
+        self.assertEqual('a' * 40, result['latest'])
+        self.assertEqual('v0.3.1', result['release'])
+        self.assertEqual(3, len(calls))
+        self.assertTrue(all(kwargs == {'use_github_token': False} for _, kwargs in calls))
+        calls.clear()
+        with patch.object(m, 'fetch', side_effect=metadata):
+            m.observe(pin, {})
+        self.assertTrue(all(not kwargs for _, kwargs in calls))
+        with patch.object(m, 'fetch', side_effect=OSError('publisher unavailable')):
+            with self.assertRaises(OSError):
+                m.observe(pin, {'anonymousGithubMetadata': [pin['name']]})
+
     def test_http_lookup_status_is_retained_without_sensitive_response_text(self):
         def failure(*args):
             raise m.urllib.error.HTTPError('https://api.github.com/repos/example/publisher', 403,
