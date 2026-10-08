@@ -680,8 +680,9 @@ def validate_preflight_seams() -> None:
 def validate_toolchain_workflow() -> None:
     toolchain = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolchain.py"
     with tempfile.TemporaryDirectory(prefix="program-kit-toolchain-") as value:
-        repository = Path(value)
-        tools = repository / "tools"
+        repository = Path(value) / "consumer"
+        repository.mkdir()
+        tools = Path(value) / "shared-tools"
         tools.mkdir()
         (repository / "global.json").write_text('{"sdk":{"version":"10.0.202"}}\n', encoding="utf-8")
         (repository / ".nvmrc").write_text("24.20.0\n", encoding="utf-8")
@@ -739,20 +740,21 @@ def validate_toolchain_workflow() -> None:
         declined = run("--remediate", "--decline")
         if (
             declined.returncode != 3
-            or "PKT003" not in declined.stderr
+            or "PKT030" not in declined.stderr
             or "PKT011" not in declined.stderr
             or "managed pins remain authoritative" not in declined.stderr
         ):
             raise AssertionError("declined toolchain remediation changed state or returned the wrong code")
         unavailable = run("--remediate", "--approve")
-        if unavailable.returncode != 4 or "PKT004" not in unavailable.stderr:
+        if unavailable.returncode != 2 or "PKT030" not in unavailable.stderr:
             raise AssertionError(f"unavailable installer path was not actionable: {unavailable.stdout}{unavailable.stderr}")
         offline_result = run("--remediate", "--approve", "--dotnet-installer", str(offline))
-        if offline_result.returncode != 4 or "PKT006" not in offline_result.stderr:
+        if offline_result.returncode != 2 or "PKT030" not in offline_result.stderr:
             raise AssertionError("offline/failed installer path was not distinguished")
         approved = run("--remediate", "--approve", "--dotnet-installer", str(installer))
-        if approved.returncode != 0 or "PKT010" not in approved.stdout:
-            raise AssertionError(f"approved remediation did not re-verify: {approved.stdout}{approved.stderr}")
+        if approved.returncode != 2 or "PKT030" not in approved.stderr or marker.exists():
+            raise AssertionError(f"legacy approval executed a device installer: {approved.stdout}{approved.stderr}")
+        marker.write_text('simulated user completion')
         satisfied = run()
         if satisfied.returncode != 0 or "PKT000" not in satisfied.stdout:
             raise AssertionError("already-satisfied toolchain did not avoid installation")
@@ -793,8 +795,9 @@ def validate_toolchain_workflow() -> None:
             raise AssertionError("successful toolchain renewal retained stale failure evidence")
 
     with tempfile.TemporaryDirectory(prefix="program-kit-fnm-recheck-") as value:
-        repository = Path(value)
-        tools = repository / "tools"
+        repository = Path(value) / "consumer"
+        repository.mkdir()
+        tools = Path(value) / "shared-tools"
         tools.mkdir()
         (repository / "global.json").write_text('{"sdk":{"version":"10.0.202"}}\n', encoding="utf-8")
         (repository / ".nvmrc").write_text("24.20.0\n", encoding="utf-8")
@@ -856,7 +859,7 @@ def validate_toolchain_workflow() -> None:
             capture_output=True,
             text=True,
         )
-        if fnm_result.returncode != 0 or "PKT010" not in fnm_result.stdout:
+        if fnm_result.returncode != 2 or "PKT030" not in fnm_result.stderr or installed.exists():
             raise AssertionError(
                 "fnm installation was not re-verified in the same command: "
                 + fnm_result.stdout
@@ -866,10 +869,9 @@ def validate_toolchain_workflow() -> None:
             (repository / "artifacts/program-kit/toolchain.json").read_text(encoding="utf-8")
         )
         if (
-            evidence["resolved"]["node"] != "24.20.0"
-            or evidence["resolved"]["npm"] != "11.19.0"
-            or evidence["commands"]["node"] != [str(pinned_node.resolve())]
-            or evidence["satisfied"] is not True
+            evidence["resolved"]["node"] != "20.11.1"
+            or evidence["commands"]["node"] != [str(node.resolve())]
+            or evidence["satisfied"] is not False
         ):
             raise AssertionError(f"fnm re-verification evidence is incorrect: {evidence}")
 

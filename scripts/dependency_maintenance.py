@@ -2,6 +2,10 @@
 
 Normal Spec Kit commands do not call this tool. Historical profiles are immutable.
 This standard-library tool is independently maintained in each owning repository.
+It changes repository metadata only, never device software. update_dependencies.py
+owns the shared device readiness gate before lock restoration/profile qualification.
+Human-device updates use the user-terminal-only device-toolchain-policy.md contract;
+CI's owning workflow provisions its tools in separate unattended setup steps.
 """
 from __future__ import annotations
 

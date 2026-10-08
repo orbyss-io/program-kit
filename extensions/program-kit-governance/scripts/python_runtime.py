@@ -8,7 +8,13 @@ import shutil
 import subprocess
 
 
+def device_preflight(root: Path) -> None:
+    import package_execution
+    package_execution.javascript_runtime().device.require_python(root)
+
+
 def selected(root: Path) -> str:
+    device_preflight(root)
     record = root / '.specify/python-runtime.json'
     saved = json.loads(record.read_text(encoding='utf-8')) if record.is_file() else {}
     if not isinstance(saved, dict) or (saved and saved.get('contractVersion') != 1):
@@ -21,6 +27,8 @@ def selected(root: Path) -> str:
     if os.name == 'nt' and not saved:
         from windows_workflow_path import canonical_python
         executable = canonical_python(executable)
+    # Project venv libraries are usable only after independent device readiness;
+    # this helper never downloads an interpreter or establishes readiness from a venv.
     return executable
 
 

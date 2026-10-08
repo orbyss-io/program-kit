@@ -4,6 +4,12 @@ description: Turn researched capabilities into a staged repository quality syste
 
 ## Ordinary tooling changes
 
+For device software follow `references/device-toolchain-policy.md`: pause dependent execution,
+show exact pins, detected versions/paths, officially verified user-terminal commands, persistent
+selection, privilege/refresh requirements and verification. The agent must never run device
+install/update commands. Repository-local fallbacks and temporary PATH overrides cannot establish
+readiness. Re-probe the actual shared device selection after the user reports completion.
+
 Outside initial bootstrap, use native engineering configuration and dependency locks as authority.
 Inspect the requested tool's applicability, propose material technology changes in the normal plan
 or ADR, and run the relevant actual checks. Refresh mechanical metadata automatically; do not

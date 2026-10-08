@@ -1,6 +1,7 @@
 """Real packaged Specify/updater preparation and destination activation; no agents."""
 from __future__ import annotations
 import json
+import argparse
 import os
 import shutil
 import subprocess
@@ -58,7 +59,9 @@ def fixture_runtime(target):
 
 def main():
     version = (ROOT/'VERSION').read_text().strip()
-    archive = ROOT/'artifacts'/f'program-kit-{version}.zip'
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--archive', type=Path, default=ROOT/'artifacts'/f'program-kit-{version}.zip')
+    archive = parser.parse_args().archive.resolve()
     with tempfile.TemporaryDirectory(prefix='consumer-upgrade-package-') as name:
         base = Path(name).resolve()
         release, source, target = base/'release', base/'consumer', base/'upgrade'

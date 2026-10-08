@@ -168,11 +168,15 @@ def toolchain_current(repository: Path, pins: dict) -> bool:
         required["dotnet"] = load(repository / "global.json")["sdk"]["version"]
     environment = os.environ.copy()
     node = evidence.get("commands", {}).get("node", [])
-    if node:
-        environment["PATH"] = str(Path(node[0]).parent) + os.pathsep + environment.get("PATH", "")
+    try:
+        runtime.context(repository, repository / 'artifacts/program-kit/toolchain.json')
+    except (ValueError, OSError):
+        return False
     for key, expected in required.items():
         command = evidence.get("commands", {}).get(key)
-        if not command or not Path(command[0]).is_file() or runtime.version(command, repository, environment) != expected:
+        if not command or not Path(command[0]).is_file() or not runtime.device.shared(Path(command[0]), repository) or runtime.version(command, repository, environment) != expected:
+            return False
+        if key == 'dotnet' and runtime.device.executable('dotnet', repository) != Path(command[0]).resolve():
             return False
     return True
 
@@ -220,6 +224,7 @@ def describe(repository: Path, phase: str, feature: str | None = None) -> dict:
 def audit_toolchain(repository: Path, pins: dict) -> None:
     """Resolve only the toolchains required by this setup or compatibility scope."""
     runtime = package_execution.javascript_runtime()
+    runtime.device.require_python(repository)
     proof = {'schemaVersion': 2, 'required': dict(pins), 'resolved': {}, 'commands': {}, 'satisfied': True}
     if 'node' in pins or 'npm' in pins:
         if not all(key in pins for key in ('node', 'npm')):
@@ -234,16 +239,32 @@ def audit_toolchain(repository: Path, pins: dict) -> None:
                      satisfied=bool(node and npm))
     sdk = pins.get('dotnet') or (load(repository / 'global.json')['sdk']['version'] if (repository / 'global.json').is_file() else None)
     if sdk:
-        executable = shutil.which('dotnet')
+        selected = runtime.device.executable('dotnet', repository)
+        executable = str(selected) if selected else None
         command = [executable] if executable else []
         actual = runtime.version(command, repository) if command else None
         proof['required']['dotnet'] = sdk
         proof['resolved']['dotnet'] = actual
         proof['commands']['dotnet'] = command
         proof['satisfied'] = proof['satisfied'] and sdk == actual
-    write(repository / 'artifacts/program-kit/toolchain.json', proof)
+    proof['devicePolicy'] = {'installation': 'user-terminal-only', 'diagnostics': []}
+    authorities = {'node': '.nvmrc / selected profile', 'npm': '.npm-version / selected profile', 'dotnet': 'global.json sdk.version'}
+    for name, required in proof['required'].items():
+        if proof['resolved'].get(name) != required:
+            command = proof['commands'].get(name) or []
+            path = command[0] if command else shutil.which('npm.cmd' if name == 'npm' and os.name == 'nt' else name)
+            proof['devicePolicy']['diagnostics'].append(runtime.device.diagnostic(name, required,
+                authorities[name], proof['resolved'].get(name), path, repository))
+    evidence = repository / 'artifacts/program-kit/toolchain.json'
+    if not proof['satisfied'] and load(evidence, {}).get('satisfied') is True:
+        proof.update(previousEvidencePreserved=True, reason='toolchain-resolution-failed')
+        write(evidence.with_name('toolchain.failure.json'), proof)
+    else:
+        write(evidence, proof)
+        if proof['satisfied']: evidence.with_name('toolchain.failure.json').unlink(missing_ok=True)
     if not proof['satisfied']:
-        raise ValueError(f"PKS004 exact toolchain unavailable: required={pins}, resolved={proof['resolved']}; install the approved versions, then resume sync")
+        diagnostics = [runtime.device.render(value) for value in proof['devicePolicy']['diagnostics']]
+        raise ValueError('PKS004 exact device toolchain unavailable; resume sync after verification.\n' + '\n\n'.join(diagnostics))
 
 
 @contextmanager

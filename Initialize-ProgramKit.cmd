@@ -64,7 +64,8 @@ if not defined PROGRAM_KIT_SPECIFY call :resolve_command specify PROGRAM_KIT_SPE
 if not defined PROGRAM_KIT_GIT call :resolve_command git PROGRAM_KIT_GIT
 if not defined SPECKIT_PYTHON call :resolve_command python SPECKIT_PYTHON
 if not defined PROGRAM_KIT_SPECIFY (
-  echo ERROR: Cannot resolve Spec Kit. Install Spec Kit ^>=1.1.1,^<2 or set PROGRAM_KIT_SPECIFY to its full executable path in this terminal. 1>&2
+  echo PKT030: Spec Kit required ^>=1.1.1,^<2 from the Program Kit bundle; detected=missing executable=missing. In your own terminal use a shared installation: uv tool install specify-cli==1.1.1 --force --no-python-downloads then uv tool update-shell. Refresh and verify Get-Command specify -All and specify version. 1>&2
+  echo If uv is absent, follow https://docs.astral.sh/uv/getting-started/installation/. If already installed, repair persistent PATH rather than installing another copy. 1>&2
   exit /b 2
 )
 if not defined PROGRAM_KIT_GIT (
@@ -72,13 +73,26 @@ if not defined PROGRAM_KIT_GIT (
   exit /b 2
 )
 if not defined SPECKIT_PYTHON (
-  echo ERROR: Cannot resolve Python. Install Python 3.11 or newer or set SPECKIT_PYTHON to its full executable path in this terminal. 1>&2
+  echo PKT030: Python required ^>=3.11 from the Spec Kit runtime contract; detected=missing executable=missing. In your own terminal use uv python install 3.11 --default then uv python update-shell, or retain your existing device installer. 1>&2
+  echo If uv is absent, follow https://docs.astral.sh/uv/getting-started/installation/. Refresh and verify Get-Command python -All and python --version. No installer was run. 1>&2
   exit /b 2
 )
 rem Child tools (including Spec Kit's integration/Git checks) need a usable PATH
 rem and PATHEXT too. Keep changes local to this initializer's process tree.
 set "PATHEXT=.EXE;.COM;.BAT;.CMD;%PATHEXT%"
 set "PROGRAM_KIT_ORIGINAL_PATH=%PATH%"
+call "%SPECKIT_PYTHON%" -c "import sys; print(sys.executable); assert sys.version_info >= (3,11), 'Python >=3.11 is required; update shared device Python in your own terminal and refresh the session'"
+if errorlevel 1 exit /b 2
+rem Check the original device selection before invocation-scoped PATH preparation.
+rem Only release-owned diagnostic Python/data are downloaded; no device installer runs.
+if exist "%~dp0scripts\initialize_device.py" (
+  call "%SPECKIT_PYTHON%" "%~dp0scripts\initialize_device.py" --ref "%PROGRAM_KIT_REF%" --project-root "%CD%" --release-root "%~dp0."
+  if errorlevel 1 exit /b 2
+) else (
+  set "PROGRAM_KIT_DEVICE_PREFLIGHT=%TEMP%\program-kit-device-%RANDOM%-%RANDOM%.py"
+  call :device_preflight
+  if errorlevel 1 exit /b 2
+)
 set "PATH="
 call :prepare_path
 if not defined PATH (
@@ -221,6 +235,16 @@ exit /b %PROGRAM_KIT_FAILURE_CODE%
 :resolve_command
 set "PROGRAM_KIT_LOOKUP=%~1"
 for /f "delims=" %%P in ('call "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -Command "$ErrorActionPreference='Stop'; $env:PATHEXT='.EXE;.COM;.BAT;.CMD'; $c=Get-Command $env:PROGRAM_KIT_LOOKUP -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if (-not $c) { $env:PATH=[Environment]::GetEnvironmentVariable('PATH','Machine')+';'+[Environment]::GetEnvironmentVariable('PATH','User'); $c=Get-Command $env:PROGRAM_KIT_LOOKUP -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1 }; if ($c) { $c.Source }"') do set "%~2=%%P"
+exit /b 0
+
+:device_preflight
+call "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -Command "$ErrorActionPreference='Stop'; Invoke-WebRequest -UseBasicParsing ('https://raw.githubusercontent.com/orbyss-io/program-kit/'+$env:PROGRAM_KIT_REF+'/scripts/initialize_device.py') -OutFile $env:PROGRAM_KIT_DEVICE_PREFLIGHT"
+if errorlevel 1 (
+  echo ERROR: Exact-release device policy could not be obtained; initialization has not started. 1>&2
+  exit /b 2
+)
+call "%SPECKIT_PYTHON%" "%PROGRAM_KIT_DEVICE_PREFLIGHT%" --ref "%PROGRAM_KIT_REF%" --project-root "%CD%"
+if errorlevel 1 exit /b 2
 exit /b 0
 
 :prepare_path

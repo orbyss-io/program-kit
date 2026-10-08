@@ -3,40 +3,24 @@ param([switch]$PrepareOnly, [switch]$AuthorizedCodexTask)
 
 $ErrorActionPreference = 'Stop'
 $releaseRoot = Split-Path -Parent $PSScriptRoot
-$releaseTemplate = Join-Path $releaseRoot 'extensions/program-kit-dotnet/templates/dotnet/files'
-$releaseNodeVersion = (Get-Content -Raw -LiteralPath (Join-Path $releaseTemplate '.nvmrc')).Trim().TrimStart('v')
-$releaseNpmVersion = (Get-Content -Raw -LiteralPath (Join-Path $releaseTemplate '.npm-version')).Trim()
-$releaseNode = Join-Path $releaseRoot "artifacts\toolchains\node-v$releaseNodeVersion-win-x64"
-$releaseDotnet = Join-Path $releaseRoot 'artifacts\toolchains\dotnet'
-$releaseNpm = Join-Path $releaseNode 'npm.cmd'
 $savedLocation = Get-Location
 $savedEnvironment = @{}
-foreach ($environmentName in @('PATH','DOTNET_ROOT','PROGRAMKIT_NODE_EXECUTABLE','PROGRAMKIT_NPM_EXECUTABLE','PLAYWRIGHT_BROWSERS_PATH','PROGRAM_KIT_NPM_TOKEN','NODE_OPTIONS')) {
+foreach ($environmentName in @('PROGRAM_KIT_NPM_TOKEN','NODE_OPTIONS')) {
     $savedEnvironment[$environmentName] = [Environment]::GetEnvironmentVariable($environmentName,'Process')
 }
 try {
     Set-Location -LiteralPath $releaseRoot
-    # Native npm uses cmd.exe, whose PATH expansion fails beyond its command
-    # length limit. Keep the owned validation process tree's PATH bounded.
-    $releasePathDirectories = @($releaseNode,$releaseDotnet)
-    foreach ($releaseTool in @('specify','uv','git','python','docker','gh','pwsh','powershell')) {
-        $releaseCommand = Get-Command $releaseTool -ErrorAction Stop
-        $releasePathDirectories += Split-Path -Parent $releaseCommand.Source
-    }
-    $releasePathDirectories += @((Join-Path $env:SystemRoot 'System32'),$env:SystemRoot,$PSHOME)
-    $env:PATH = ($releasePathDirectories | Select-Object -Unique) -join ';'
-    $env:DOTNET_ROOT = $releaseDotnet
-    $env:PROGRAMKIT_NODE_EXECUTABLE = Join-Path $releaseNode 'node.exe'
-    $env:PROGRAMKIT_NPM_EXECUTABLE = $releaseNpm
+    # Verify the shared device selection. Cached SDK/Node/npm distributions cannot
+    # establish readiness and this wrapper never modifies PATH or DOTNET_ROOT.
+    $uv = Get-Command uv -ErrorAction Stop
+    $toolRoot = (& $uv.Source tool dir).Trim()
+    $python = Join-Path $toolRoot 'specify-cli/Scripts/python.exe'
+    & $python (Join-Path $releaseRoot 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py') --contributor $releaseRoot
+    if ($LASTEXITCODE -ne 0) { throw 'Device readiness failed; complete the printed user-terminal update and refresh the session before retrying.' }
     if ('--use-system-ca' -notin ($env:NODE_OPTIONS -split '\s+')) {
         $env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim()
     }
-    $env:PLAYWRIGHT_BROWSERS_PATH = Join-Path $releaseRoot 'artifacts\toolchains\playwright-browsers'
-    if ((& node --version) -ne "v$releaseNodeVersion") { throw "Cached Node $releaseNodeVersion is unavailable." }
-    $releaseSdkVersion = (Get-Content -Raw -LiteralPath (Join-Path $releaseRoot 'extensions/program-kit-dotnet/templates/dotnet/files/global.json') | ConvertFrom-Json).sdk.version
-    if ((& dotnet --version) -ne $releaseSdkVersion) { throw "Cached .NET SDK $releaseSdkVersion is unavailable. Prepare the selected exact SDK before release." }
-    if ((& $releaseNpm --version) -ne $releaseNpmVersion) { throw "Cached npm $releaseNpmVersion is unavailable." }
-    Write-Host "Verified cached toolchains: Node $releaseNodeVersion, npm $releaseNpmVersion, .NET SDK $releaseSdkVersion."
+    Write-Host 'Verified shared device toolchains against authoritative pins.'
     if ($PrepareOnly) { return }
     # Fail before the full suite if its real database/host fixtures cannot run.
     $releaseContainerOs = ''

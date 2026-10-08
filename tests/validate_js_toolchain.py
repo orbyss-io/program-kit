@@ -15,12 +15,14 @@ NPM_GRAPH = ROOT / "extensions/program-kit-governance/scripts/npm_graph.py"
 
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-js-toolchain-") as value:
-        repository = Path(value)
+        repository = Path(value) / 'consumer'
+        repository.mkdir()
         managed = repository / "eng"
         managed.mkdir(parents=True)
         (managed / "js_toolchain.py").write_bytes(JS_TOOLCHAIN.read_bytes())
-        exact = repository / "exact"
-        wrong = repository / "wrong"
+        (managed / "device_toolchain.py").write_bytes(JS_TOOLCHAIN.with_name("device_toolchain.py").read_bytes())
+        exact = Path(value) / "shared-exact"
+        wrong = Path(value) / "shared-wrong"
         exact.mkdir()
         wrong.mkdir()
         invocation_log = repository / "npm-invocations.txt"
@@ -108,8 +110,14 @@ def main() -> int:
             capture_output=True,
             text=True,
         )
-        if wrapper.returncode != 0 or (wrong / "used.txt").exists():
-            raise AssertionError(f"exact npm wrapper did not isolate PATH/cache/system trust: {wrapper.stderr}")
+        if wrapper.returncode == 0 or "PKT017" not in wrapper.stderr or invocation_log.exists():
+            raise AssertionError(f"stale PATH was masked by old command evidence: {wrapper.stderr}")
+        environment['PATH'] = str(exact) + os.pathsep + environment.get('PATH', '')
+        wrapper = subprocess.run([sys.executable, str(managed / 'js_toolchain.py'),
+            '--repository', str(repository), '--evidence', str(evidence), 'npm', '--', 'test'],
+            cwd=repository, env=environment, capture_output=True, text=True)
+        if wrapper.returncode != 0 or (wrong / 'used.txt').exists():
+            raise AssertionError(f"refreshed shared npm wrapper failed cache/system trust: {wrapper.stderr}")
 
         candidate = repository / "candidate-package.json"
         candidate.write_text(

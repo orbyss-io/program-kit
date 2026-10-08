@@ -78,6 +78,17 @@ if ($Suite -eq 'Release' -and -not $List) {
 }
 
 try {
+    if (-not $List) {
+        $devicePython = Get-Command python -ErrorAction SilentlyContinue
+        if (-not $devicePython) {
+            $requiredPython = (Get-Content -Raw -LiteralPath (Join-Path $projectRoot '.python-version')).Trim()
+            throw "PKT030 pause dependent execution: python required=$requiredPython pin=.python-version detected=missing executable=missing. Ask the user to run in their own terminal: uv python install $requiredPython --default; uv python update-shell. If uv is absent follow https://docs.astral.sh/uv/getting-started/installation/. Reopen the terminal and verify Get-Command python -All and python --version. Do not install a repository-local copy."
+        }
+        Invoke-ProgramKitNative $devicePython.Source @(
+            (Join-Path $projectRoot 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'),
+            '--contributor', $projectRoot
+        ) 'Device readiness failed. Ask the user to run the printed commands in their own terminal, refresh the session, and retry; no device installer was run.'
+    }
     $specify = Get-Command specify -ErrorAction Stop
     $uv = Get-Command uv -ErrorAction Stop
     $toolRoot = (& $uv.Source tool dir).Trim()
@@ -91,9 +102,10 @@ try {
         throw "Could not locate the specify-cli Python environment at $python"
     }
 
-    Invoke-ProgramKitNative $python @('-c',
-        'from importlib.metadata import version; from packaging.version import Version; actual=version("specify-cli"); print("Spec Kit CLI: " + actual); assert Version("1.1.1") <= Version(actual) < Version("2"), "PROGRAM_KIT_SPEC_KIT_VERSION: use Spec Kit >=1.1.1,<2"'
-    ) 'Program Kit requires the current Spec Kit baseline. Install specify-cli==1.1.1 and retry.'
+    Invoke-ProgramKitNative $python @(
+        (Join-Path $projectRoot 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'),
+        '--contributor', $projectRoot, '--specify-runtime'
+    ) 'Program Kit requires the current shared Spec Kit baseline. Complete the printed user-terminal repair and retry.'
 
     Invoke-ProgramKitNative $python @(
         (Join-Path $projectRoot 'extensions/program-kit-governance/scripts/schema_runtime.py'),

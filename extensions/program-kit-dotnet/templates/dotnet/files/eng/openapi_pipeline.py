@@ -206,7 +206,8 @@ def ensure_openapi_toolchain(
     if result.returncode != 0:
         raise ValueError(
             "PKO210 exact OpenAPI toolchain evidence could not be renewed without system changes or "
-            "downloads. Stage the reviewed pinned oasdiff binary with toolchain.py --include-openapi "
+            "downloads. Follow PKT030 user-terminal device instructions above, then verify actual paths/versions. "
+            "If only oasdiff is missing, stage the reviewed pinned project binary with toolchain.py --include-openapi "
             "--remediate and explicit approval, then rerun the pipeline."
         )
 

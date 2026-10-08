@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
@@ -8,6 +9,10 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+_policy_spec = importlib.util.spec_from_file_location('program_kit_device_policy', Path(__file__).with_name('device_toolchain.py'))
+device = importlib.util.module_from_spec(_policy_spec)
+_policy_spec.loader.exec_module(device)
 
 
 def version(command: list[str], cwd: Path, environment: dict[str, str] | None = None) -> str | None:
@@ -38,136 +43,31 @@ def executable(value: str) -> Path | None:
     return Path(resolved).resolve() if resolved else None
 
 
-def known_node_candidates(required: str) -> list[Path]:
-    roots: list[Path] = []
-    configured = os.environ.get("FNM_DIR")
-    if configured:
-        roots.append(Path(configured))
-    local = os.environ.get("LOCALAPPDATA")
-    roaming = os.environ.get("APPDATA")
-    if local:
-        roots.append(Path(local) / "fnm")
-    if roaming:
-        roots.append(Path(roaming) / "fnm")
-    home = Path.home()
-    roots.extend([home / ".local/share/fnm", home / ".fnm"])
-    result: list[Path] = []
-    for root in roots:
-        for label in (f"v{required}", required):
-            installation = root / "node-versions" / label / "installation"
-            result.extend([installation / "node.exe", installation / "bin/node"])
-    explicit = os.environ.get("PROGRAMKIT_NODE_EXECUTABLE")
-    if explicit:
-        result.insert(0, Path(explicit))
-    return result
-
-
-def manager_node(required: str, selected: str) -> Path | None:
-    names = [selected] if selected != "auto" else ["fnm", "volta", "nvm"]
-    for name in names:
-        manager = shutil.which(name)
-        if not manager:
-            continue
-        if name == "fnm":
-            command = [manager, "exec", f"--using={required}", "node", "-p", "process.execPath"]
-        elif name == "volta":
-            command = [manager, "run", "--node", required, "node", "-p", "process.execPath"]
-        else:
-            root = subprocess.run(
-                [manager, "root"], capture_output=True, text=True, check=False, timeout=10
-            ).stdout.strip()
-            for candidate in (
-                Path(root) / f"v{required}" / "node.exe",
-                Path(root) / required / "node.exe",
-                Path(root) / f"v{required}" / "bin/node",
-            ):
-                if candidate.is_file():
-                    return candidate.resolve()
-            continue
-        try:
-            result = subprocess.run(
-                command, capture_output=True, text=True, check=False, timeout=10
-            )
-        except (OSError, subprocess.TimeoutExpired):
-            continue
-        candidate = Path(result.stdout.strip())
-        if result.returncode == 0 and candidate.is_file():
-            return candidate.resolve()
-    return None
-
-
 def resolve_node(repository: Path, required: str, requested: str, manager: str) -> tuple[Path | None, str | None]:
-    candidates: list[Path] = []
-    direct = executable(requested)
-    if direct:
-        candidates.append(direct)
-    if requested == "node":
-        local_root = repository / 'artifacts/tools/node'
-        directories = [local_root / required]
-        directories.extend(sorted(local_root.glob('node-v' + required + '-*')))
-        candidates[0:0] = [directory / name for directory in directories for name in ('node.exe', 'bin/node')]
-        candidates.extend(known_node_candidates(required))
-    managed = manager_node(required, manager)
-    if managed:
-        candidates.append(managed)
-    seen: set[Path] = set()
-    actual: str | None = None
-    for candidate in candidates:
-        try:
-            resolved = candidate.resolve()
-        except OSError:
-            continue
-        if resolved in seen or not resolved.is_file():
-            continue
-        seen.add(resolved)
-        actual = version([str(resolved)], repository)
-        if actual == required:
-            return resolved, actual
-    return None, actual
+    # Read only the active persistent selection. Manager exec/run can download tools or
+    # hide a stale default, so neither manager caches nor PROGRAMKIT_* overrides are used.
+    node = executable(requested)
+    if requested != 'node' and node != executable('node'):
+        node = executable('node')  # Explicit paths cannot hide the active device default.
+    if node and not device.shared(node, repository):
+        return None, None
+    actual = version([str(node)], repository) if node else None
+    return (node if actual == required else None), actual
 
 
 def npm_candidates(node: Path, requested: str, repository: Path | None = None, required: str = '') -> list[list[str]]:
-    result: list[list[str]] = []
-    if repository is not None and required:
-        for relative in ('node_modules/npm/bin/npm-cli.js', 'lib/node_modules/npm/bin/npm-cli.js', 'package/bin/npm-cli.js'):
-            local = repository / 'artifacts/tools/npm' / required / relative
-            if local.is_file():
-                result.append([str(node), str(local.resolve())])
-    explicit = os.environ.get("PROGRAMKIT_NPM_EXECUTABLE") or requested
-    if explicit:
-        resolved = executable(explicit)
-        if resolved:
-            if resolved.suffix.casefold() == ".js":
-                result.append([str(node), str(resolved)])
-            elif resolved.parent == node.parent:
-                result.append([str(resolved)])
-    directory = node.parent
-    if os.name == "nt":
-        for candidate in (directory / "npm.cmd", directory / "npm.exe"):
-            if candidate.is_file():
-                result.append([str(candidate.resolve())])
-    for candidate in (
-        directory / "node_modules/npm/bin/npm-cli.js",
-        directory.parent / "lib/node_modules/npm/bin/npm-cli.js",
-    ):
-        if candidate.is_file():
-            result.append([str(node), str(candidate.resolve())])
-    if os.name != "nt":
-        candidate = directory / "npm"
-        if candidate.is_file():
-            result.append([str(candidate.resolve())])
-    return result
+    active = executable('npm.cmd' if os.name == 'nt' else 'npm')
+    selected = active  # A requested path cannot hide the current shared device selection.
+    if not selected or (repository is not None and not device.shared(selected, repository)):
+        return []
+    return [[str(node), str(selected)] if selected.suffix.casefold() == '.js' else [str(selected)]]
 
 
 def resolve_npm(repository: Path, node: Path, required: str, requested: str) -> tuple[list[str] | None, str | None]:
-    actual: str | None = None
-    environment = os.environ.copy()
-    environment["PATH"] = str(node.parent) + os.pathsep + environment.get("PATH", "")
-    for command in npm_candidates(node, requested, repository, required):
-        actual = version(command, repository, environment)
-        if actual == required:
-            return command, actual
-    return None, actual
+    candidates = npm_candidates(node, requested, repository, required)
+    command = candidates[0] if candidates else None
+    actual = version(command, repository) if command else None
+    return (command if actual == required else None), actual
 
 
 def require_writable_cache(cache: Path) -> Path:
@@ -240,8 +140,13 @@ def trust_environment(
 
 
 def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str, str]]:
+    device.require_python(repository)
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     required = evidence.get("required", {})
+    for name, filename in (('node', '.nvmrc'), ('npm', '.npm-version')):
+        pin = repository / filename
+        if pin.is_file() and pin.read_text(encoding='utf-8').strip().removeprefix('v') != required.get(name):
+            raise ValueError('PKT016 toolchain evidence differs from authoritative pin: ' + str(pin))
     resolved = evidence.get("resolved", {})
     commands = evidence.get("commands", {})
     npm = commands.get("npm") if isinstance(commands, dict) else None
@@ -265,18 +170,12 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
     node_command = commands.get("node") if isinstance(commands, dict) else None
     if not isinstance(node_command, list) or len(node_command) != 1 or not Path(node_command[0]).is_file():
         raise ValueError("PKT016 recorded Node command is invalid or missing.")
-    validation_environment = os.environ.copy()
-    validation_environment["PATH"] = (
-        str(Path(node_command[0]).parent) + os.pathsep + validation_environment.get("PATH", "")
-    )
-    actual_node = version(list(node_command), repository, validation_environment)
-    actual_npm = version(list(npm), repository, validation_environment)
-    if actual_node != required.get("node") or actual_npm != required.get("npm"):
-        raise ValueError(
-            "PKT017 pinned JavaScript runtime cannot be used: "
-            f"node required={required.get('node')} executable={commands.get('node')} actual={actual_node or 'missing'}; "
-            f"npm required={required.get('npm')} executable={npm} actual={actual_npm or 'missing'}."
-        )
+    active_node, actual_node = resolve_node(repository, required.get('node'), 'node', 'auto')
+    active_npm, actual_npm = resolve_npm(repository, active_node, required.get('npm'), '') if active_node else (None, None)
+    if active_node is None or [str(active_node)] != node_command or active_npm != npm:
+        raise ValueError('PKT017 device selection changed or PATH is stale; re-run eng/toolchain.py. ' + device.REFRESH)
+    if actual_node != required.get('node') or actual_npm != required.get('npm'):
+        raise ValueError('PKT017 exact active device Node/npm versions no longer match evidence. ' + device.REFRESH)
     recorded_environment = evidence.get("environment", {})
     cache_value = recorded_environment.get("npmCache") if isinstance(recorded_environment, dict) else None
     if not isinstance(cache_value, str) or not cache_value:
@@ -289,7 +188,6 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
         str(recorded_environment.get("trustMode", "")),
         str(recorded_environment.get("extraCaCertificates", "")),
     )
-    environment["PATH"] = str(Path(node_command[0]).parent) + os.pathsep + environment.get("PATH", "")
     return list(npm), environment
 
 

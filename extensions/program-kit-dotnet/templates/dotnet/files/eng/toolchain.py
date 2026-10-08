@@ -70,34 +70,38 @@ def resolve(
     oasdiff_command: str,
 ) -> tuple[dict[str, str | None], dict[str, list[str]]]:
     dotnet = js_toolchain.executable(dotnet_command)
+    if dotnet_command != 'dotnet' and dotnet != js_toolchain.executable('dotnet'):
+        dotnet = js_toolchain.executable('dotnet')
+    if dotnet and not js_toolchain.device.shared(dotnet, repository):
+        dotnet = None
     dotnet_version = run_version([str(dotnet)], repository) if dotnet else None
-    if dotnet_command == 'dotnet':
-        for name in ('dotnet.exe', 'dotnet'):
-            local = repository / 'artifacts/tools/dotnet' / required['dotnet'] / name
-            if local.is_file() and run_version([str(local.resolve())], repository) == required['dotnet']:
-                dotnet, dotnet_version = local.resolve(), required['dotnet']
-                break
     node, node_version = js_toolchain.resolve_node(repository, required["node"], node_command, manager)
     npm: list[str] | None = None
     npm_version: str | None = None
     if node:
         npm, npm_version = js_toolchain.resolve_npm(repository, node, required["npm"], npm_command)
+    else:
+        detected_npm = js_toolchain.device.executable('npm.cmd' if os.name == 'nt' else 'npm', repository)
+        if detected_npm:
+            npm_version = run_version([str(detected_npm)], repository)
     commands: dict[str, list[str]] = {}
     if dotnet:
         commands["dotnet"] = [str(dotnet)]
     if node:
         commands["node"] = [str(node)]
     else:
-        requested_node = js_toolchain.executable(node_command)
-        if requested_node:
+        requested_node = js_toolchain.executable('node')
+        if requested_node and js_toolchain.device.shared(requested_node, repository):
             commands["node"] = [str(requested_node)]
             node_version = run_version(commands["node"], repository)
     if npm:
         commands["npm"] = npm
     elif node:
-        candidates = js_toolchain.npm_candidates(node, npm_command)
+        candidates = js_toolchain.npm_candidates(node, npm_command, repository)
         if candidates:
             commands["npm"] = candidates[0]
+    elif detected_npm:
+        commands['npm'] = [str(detected_npm)]
     installed: dict[str, str | None] = {
         "dotnet": dotnet_version,
         "node": node_version,
@@ -128,6 +132,13 @@ def evidence_value(
             "strictSsl": True,
         },
         "satisfied": satisfied,
+        "devicePolicy": {
+            "installation": "user-terminal-only",
+            "diagnostics": [js_toolchain.device.diagnostic(name, expected,
+                str(repository / {'dotnet': 'global.json sdk.version', 'node': '.nvmrc', 'npm': '.npm-version'}[name]),
+                installed.get(name), (commands.get(name) or [None])[0], repository)
+                for name, expected in required.items() if name in {'dotnet', 'node', 'npm'} and installed.get(name) != expected],
+        },
     }
 
 
@@ -182,69 +193,6 @@ def mismatch(required: dict[str, str], installed: dict[str, str | None]) -> list
     return [name for name, expected in required.items() if installed.get(name) != expected]
 
 
-def install_dotnet(version: str, installer: str, repository: Path | None = None) -> None:
-    if not installer:
-        raise ValueError(
-            "PKT004 no approved .NET installer is available. Obtain Microsoft's dotnet-install script, "
-            "review it, and pass --dotnet-installer; Program Kit will use side-by-side installation."
-        )
-    path = Path(installer).resolve()
-    if not path.is_file():
-        raise ValueError(f"PKT005 .NET installer is unavailable: {path}")
-    command = ["powershell", "-NoProfile", "-File", str(path), "-Version", version] if path.suffix.lower() == ".ps1" else [str(path), "--version", version]
-    if repository is not None:
-        directory = str(repository / 'artifacts/tools/dotnet' / version)
-        command += ['-InstallDir', directory, '-NoPath'] if path.suffix.lower() == '.ps1' else ['--install-dir', directory, '--no-path']
-    if subprocess.run(command, check=False).returncode != 0:
-        raise ValueError("PKT006 approved .NET side-by-side installation failed (offline or installer error).")
-
-
-def node_manager(selected: str) -> tuple[str, str] | None:
-    names = [selected] if selected != "auto" else ["fnm", "nvm", "volta"]
-    for name in names:
-        command = js_toolchain.executable(name)
-        if command:
-            return name, str(command)
-    return None
-
-
-def install_node(version: str, selected: str) -> None:
-    resolved_manager = node_manager(selected)
-    if resolved_manager is None:
-        raise ValueError(
-            "PKT007 no selected Node version manager is available. Install or select fnm, nvm, or volta; "
-            "Program Kit does not replace the user's manager. On Windows prefer an official per-user "
-            "fnm route (winget, Scoop, or the release binary); do not fall back to an elevation-bound "
-            "Chocolatey install from a non-administrator shell."
-        )
-    manager, command = resolved_manager
-    arguments = [command, "install", version if manager != "volta" else f"node@{version}"]
-    if subprocess.run(arguments, check=False).returncode != 0:
-        raise ValueError("PKT008 approved Node installation failed (offline or manager error).")
-
-
-def install_npm(repository: Path, node: Path, required: str, requested: str) -> None:
-    candidates = js_toolchain.npm_candidates(node, requested)
-    cache = js_toolchain.cache_directory(repository)
-    environment, _, _ = js_toolchain.trust_environment(repository, cache)
-    environment["PATH"] = str(node.parent) + os.pathsep + environment.get("PATH", "")
-    current = next(
-        (command for command in candidates if js_toolchain.version(command, repository, environment)),
-        None,
-    )
-    if current is None:
-        raise ValueError("PKT018 pinned Node is installed but has no usable npm CLI for approved remediation.")
-    result = subprocess.run(
-        current + ["--strict-ssl=true", "install", "--prefix", str(repository / 'artifacts/tools/npm' / required), f"npm@{required}"],
-        cwd=repository,
-        env=environment,
-        check=False,
-        timeout=300,
-    )
-    if result.returncode != 0:
-        raise ValueError("PKT019 approved npm installation failed; inspect the visible TLS/cache diagnostic.")
-
-
 def install_oasdiff(repository: Path, version: str, binary: str) -> None:
     if not binary:
         raise ValueError(
@@ -267,11 +215,11 @@ def install_oasdiff(repository: Path, version: str, binary: str) -> None:
 
 def main() -> int:
     configure_utf8()
-    parser = argparse.ArgumentParser(description="Resolve and approval-gate the exact Program Kit toolchain.")
+    parser = argparse.ArgumentParser(description="Verify shared device tools; print user-terminal instructions on mismatch.")
     parser.add_argument("--repository", default=".")
     parser.add_argument("--evidence", default="artifacts/program-kit/toolchain.json")
     parser.add_argument("--remediate", action="store_true")
-    parser.add_argument("--approve", action="store_true", help="Explicit non-interactive approval for system/network changes")
+    parser.add_argument("--approve", action="store_true", help="Legacy flag; cannot authorize device installation")
     parser.add_argument("--decline", action="store_true")
     parser.add_argument("--dotnet-installer", default="")
     parser.add_argument("--node-manager", choices=("auto", "fnm", "nvm", "volta"), default="auto")
@@ -284,6 +232,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         repository = Path(args.repository).resolve()
+        js_toolchain.device.require_python(repository)
         evidence = Path(args.evidence)
         if not evidence.is_absolute():
             evidence = repository / evidence
@@ -307,47 +256,33 @@ def main() -> int:
         )
         print(
             "PKT011 Program Kit managed pins remain authoritative. Install or upgrade to the exact "
-            "required versions; do not rewrite them to match PATH without an explicit managed-toolchain-version override.",
+            "required versions in the user's terminal; do not rewrite them to match PATH.",
             file=sys.stderr,
         )
         write_evidence(evidence, repository, required, installed, commands, False)
-        if not args.remediate:
-            print("Repository writes: evidence/cache only. System changes and downloads require approval.", file=sys.stderr)
-            return 2
-        if args.decline:
-            print("PKT003 remediation declined; no installer was run.", file=sys.stderr)
-            return 3
-        approved = args.approve or input(
-            "Install the exact missing SDK/Node/npm tools and/or stage the reviewed oasdiff binary? [y/N] "
-        ).strip().lower() == "y"
-        if not approved:
-            print("PKT003 remediation declined; no installer was run.", file=sys.stderr)
-            return 3
-        if "dotnet" in missing:
-            install_dotnet(required["dotnet"], args.dotnet_installer, repository)
-        if "node" in missing:
-            install_node(required["node"], args.node_manager)
-        if "oasdiff" in missing:
-            install_oasdiff(repository, required["oasdiff"], args.oasdiff_binary)
-        interim, interim_commands = resolve(
-            repository, required, args.dotnet_command, args.node_command, args.npm_command,
-            args.node_manager, args.oasdiff_command
-        )
-        if "npm" in mismatch(required, interim):
-            node_values = interim_commands.get("node")
-            if not node_values:
-                raise ValueError("PKT009 installation completed, but the pinned Node executable cannot be resolved.")
-            install_npm(repository, Path(node_values[0]), required["npm"], args.npm_command)
-        resolved, resolved_commands = resolve(
-            repository, required, args.dotnet_command, args.node_command, args.npm_command,
-            args.node_manager, args.oasdiff_command
-        )
-        remaining = mismatch(required, resolved)
-        write_evidence(evidence, repository, required, resolved, resolved_commands, not remaining)
-        if remaining:
-            raise ValueError("PKT009 installation completed, but exact command checks still fail: " + ", ".join(remaining))
-        print("PKT010 approved toolchain remediation completed and exact commands were re-verified")
-        return 0
+        diagnostics = []
+        authorities = {'dotnet': 'global.json sdk.version', 'node': '.nvmrc', 'npm': '.npm-version'}
+        for name in missing:
+            if name in authorities:
+                command = commands.get(name, [])
+                diagnostics.append(js_toolchain.device.diagnostic(name, required[name],
+                    str(repository / authorities[name]), installed[name], command[0] if command else None, repository))
+        for diagnostic in diagnostics:
+            print(js_toolchain.device.render(diagnostic), file=sys.stderr)
+        if diagnostics:
+            # No flag, approval, supplied installer, or prompt authorizes device mutation.
+            return 3 if args.decline else 2
+        # oasdiff is a reviewed project analysis binary, not an SDK/runtime. Retain its
+        # explicit staging path after all device requirements have passed.
+        if args.remediate and not args.decline and args.approve and missing == ['oasdiff']:
+            install_oasdiff(repository, required['oasdiff'], args.oasdiff_binary)
+            installed, commands = resolve(repository, required, args.dotnet_command, args.node_command,
+                args.npm_command, args.node_manager, args.oasdiff_command)
+            write_evidence(evidence, repository, required, installed, commands, not mismatch(required, installed))
+            if not mismatch(required, installed):
+                print('PKT010 reviewed project oasdiff binary staged and verified')
+                return 0
+        return 3 if args.decline else 2
     except (OSError, ValueError, json.JSONDecodeError, subprocess.TimeoutExpired) as error:
         print(str(error), file=sys.stderr)
         return 4

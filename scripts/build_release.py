@@ -33,6 +33,7 @@ BUNDLE_SOURCE_PREFIXES = (
     "workflows/program-kit-bootstrap/",
 )
 BUNDLE_RUNTIME_SCRIPTS = {
+    "scripts/initialize_device.py",
     "scripts/record_local_bundle.py",
     "scripts/consumer_upgrade_workspace.py",
     "scripts/invoke_specify.py",
@@ -310,6 +311,13 @@ def main() -> int:
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[1]
+    # Local packaging cannot use a temporary tool environment as device readiness.
+    import importlib.util
+    source = root / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'
+    specification = importlib.util.spec_from_file_location('package_device_policy', source)
+    policy = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(policy)
+    policy.contributor(root)
     output = (root / args.output).resolve()
     try:
         output.relative_to(root)

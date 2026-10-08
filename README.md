@@ -196,9 +196,24 @@ assets remain useful for inspecting or installing one component deliberately.
 ### Spec Kit CLI baseline
 
 Program Kit targets the unmodified public Spec Kit 1.1.1 release, matching the current stable CLI.
-Upgrade an older installed tool with `uv tool install specify-cli==1.1.1 --force`, then verify
+In your own terminal, upgrade an older shared user tool with
+`uv tool install specify-cli==1.1.1 --force --no-python-downloads`, then verify
 `specify version`. Component manifests require at least 1.1.1; CI and build examples use the exact
 tested version. Historical 1.0.1 patch proposals and archived evidence retain their original baseline.
+
+### Device toolchain readiness
+
+Agents pause dependent work when device tools differ from authoritative pins and provide
+officially verified commands for your own terminal. Updates must persist across repositories
+and fresh sessions, with supported SDK/runtime versions kept side by side. See the
+[device toolchain policy and missing-manager setup](extensions/program-kit-governance/references/device-toolchain-policy.md),
+including Windows `winget install Schniz.fnm`, persistent Node defaults and fresh-session
+verification. Agents never run device installers or use repository-local tools to mask a mismatch.
+The human-owned initializers run this check before repository setup, using their exact release
+pins. If setup pauses, complete the printed device steps in your own terminal, refresh the session
+and rerun initialization. The check is repeated whenever a later workflow requires different pins.
+Contributor validation uses the exact Spec Kit pin already selected by
+`.github/workflows/ci.yml`, which can be newer than the consumer compatibility minimum above.
 
 ### Upgrade an existing Program Kit installation
 

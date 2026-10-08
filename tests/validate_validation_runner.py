@@ -152,6 +152,7 @@ class SourceGuardTests(unittest.TestCase):
         with patch.object(sys, 'argv', ['run_validation.py', '--suite', 'Release', '--approved', '--receipt']), \
                 patch.dict(runner.os.environ, {}, clear=True), \
                 patch('live.v2.supervisor.run_supervised', side_effect=check) as supervised, \
+                patch.object(runner, 'require_device_toolchain'), \
                 patch.object(runner.subprocess, 'run') as receipt, \
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(1, runner.main())

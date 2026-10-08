@@ -25,6 +25,15 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
+def require_device_toolchain():
+    import importlib.util
+    source = Path(__file__).resolve().parents[1] / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'
+    spec = importlib.util.spec_from_file_location('validation_device_policy', source)
+    policy = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(policy)
+    policy.contributor(ROOT)
+
+
 def selected(suite, system=None):
     system = system or platform.system()
     if system not in ('Windows', 'Linux'):
@@ -227,6 +236,11 @@ def main():
         parser.error(str(error))
     if args.receipt and args.suite != 'Release':
         parser.error('Only Release can create a release receipt')
+    if not args.check:
+        try:
+            require_device_toolchain()
+        except (ValueError, OSError) as error:
+            parser.error(str(error))
     from write_release_receipt import git, sha256
     if args.suite == 'Release' and git(ROOT, 'status', '--porcelain=v1', '--untracked-files=normal'):
         parser.error('Commit the candidate before Release validation')

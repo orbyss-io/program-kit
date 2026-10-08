@@ -25,15 +25,22 @@ def main():
     parser.add_argument('--upgrade',action='store_true')
     parser.add_argument('--engines',default='chromium,webkit' if os.name=='nt' else 'chromium,firefox,webkit')
     args=parser.parse_args()
+    # The same readiness gate runs before locks, profile qualification or tests.
+    import importlib.util
+    source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'
+    spec=importlib.util.spec_from_file_location('maintenance_device_policy',source)
+    policy=importlib.util.module_from_spec(spec); spec.loader.exec_module(policy)
+    policy.contributor(ROOT)
     if not args.development and os.name=='nt':
         parser.error('Complete update validation runs in Linux CI. Use the user-owned Release terminal described in AGENTS.md on Windows.')
     if args.upgrade:
         run('upgrade',[sys.executable,'scripts/dependency_maintenance.py','upgrade'])
+        policy.contributor(ROOT)  # Updated pins may require a new human device selection.
         run('profile',[sys.executable,'scripts/update_dependency_profiles.py','update','--engines='+args.engines])
     for relative in ('extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web',
                      'extensions/program-kit-governance/templates/ui-experience/acceptance'):
         directory=ROOT/relative
-        run('lock-'+directory.name,[os.environ.get('PROGRAMKIT_NPM_EXECUTABLE','npm.cmd' if os.name=='nt' else 'npm'),
+        run('lock-'+directory.name,['npm.cmd' if os.name=='nt' else 'npm',
             'install','--package-lock-only','--ignore-scripts','--no-audit','--no-fund','--prefix',str(directory)])
     run('schema-runtime',[sys.executable,'extensions/program-kit-governance/scripts/schema_runtime.py','setup'])
     arguments=[sys.executable,'scripts/run_validation.py','--suite','Development' if args.development else 'PullRequest',

@@ -16,10 +16,6 @@ def main():
     artifacts.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
     selected_sdk=json.loads((ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json').read_text())['sdk']['version']
-    sdk = ROOT / 'artifacts/tools/dotnet' / selected_sdk
-    if (sdk / ('dotnet.exe' if os.name == 'nt' else 'dotnet')).is_file():
-        env['DOTNET_ROOT'] = str(sdk)
-        env['PATH'] = str(sdk) + os.pathsep + env.get('PATH','')
     env['MSBUILDDISABLENODEREUSE'] = '1'
     env['DOTNET_CLI_USE_MSBUILD_SERVER'] = '0'
     commands = []
@@ -30,8 +26,6 @@ def main():
             path.parent.mkdir(parents=True,exist_ok=True)
             path.write_text(content,encoding='utf-8')
         def run(command, expected=0):
-            if command[0] == 'dotnet' and (sdk / ('dotnet.exe' if os.name == 'nt' else 'dotnet')).is_file():
-                command[0] = str(sdk / ('dotnet.exe' if os.name == 'nt' else 'dotnet'))
             start = time.perf_counter()
             result = subprocess.run(command,cwd=root,env=env,capture_output=True,text=True,
                                     encoding='utf-8',errors='replace',timeout=300)

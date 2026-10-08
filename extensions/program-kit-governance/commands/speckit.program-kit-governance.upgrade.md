@@ -9,6 +9,11 @@ Use `.specify/extensions/program-kit-governance/references/consumer-migration-re
 for versioned reusable recipes. This is an explicit conversational entry, never an
 automatic update, bootstrap restart, coding-worker dispatch or external rollout.
 
+Follow `references/device-toolchain-policy.md` whenever device software is missing/mismatched.
+Pause dependent work, present the authoritative version, detected path/version and official
+user-terminal commands, and wait for completion. Verify actual paths/versions in a fresh session;
+never run SDK/Node/npm/Python/Spec Kit installers or mask the mismatch with local tools or PATH.
+
 Select the exact verified target release and a committed consumer baseline. Stage the
 release outside the consumer and prepare a fresh isolated worktree with the release's
 `scripts/consumer_upgrade_workspace.py prepare`. Inventory source installation, owned

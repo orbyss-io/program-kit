@@ -35,6 +35,7 @@ class PublicCoreTests(unittest.TestCase):
             def which(name):
                 return sys.executable if name == 'python' else python3
             with self.subTest(python3=python3), patch.dict(os.environ, {}, clear=True), \
+                    patch.object(runtime, 'device_preflight'), \
                     patch.object(runtime.shutil, 'which', side_effect=which) as lookup, \
                     patch.object(runtime.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, sys.executable + '\n', '')):
                 self.assertEqual(os.path.abspath(sys.executable), runtime.resolve(self.root))
@@ -70,6 +71,7 @@ class PublicCoreTests(unittest.TestCase):
     def test_missing_native_dependency_and_unsupported_version_preserve_diagnostic(self):
         for diagnostic in ("ModuleNotFoundError: No module named 'yaml'", 'Python >=3.11 is required'):
             with patch.dict(os.environ, {'SPECKIT_PYTHON': sys.executable}, clear=True), \
+                    patch.object(runtime, 'device_preflight'), \
                     patch.object(runtime.subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, '', diagnostic)):
                 with self.assertRaisesRegex(ValueError, 'before agent dispatch') as error:
                     runtime.resolve(self.root)
@@ -79,7 +81,7 @@ class PublicCoreTests(unittest.TestCase):
         environment = self.root / 'no-yaml'
         venv.EnvBuilder(with_pip=False).create(environment)
         executable = environment / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
-        with patch.dict(os.environ, {'SPECKIT_PYTHON': str(executable)}, clear=True):
+        with patch.dict(os.environ, {'SPECKIT_PYTHON': str(executable)}, clear=True), patch.object(runtime, 'device_preflight'):
             with self.assertRaisesRegex(ValueError, "No module named 'yaml'"):
                 runtime.resolve(self.root)
 

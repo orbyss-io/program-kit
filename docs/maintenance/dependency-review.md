@@ -25,6 +25,14 @@ image. Run Foundation's update first when its contracts need upgrading, then rer
 Program Kit after publication.
 
 For local development run `python scripts/update_dependencies.py --development`.
+On human devices, the shared readiness preflight pauses for user-terminal toolchain updates
+before qualification/restoration. After active pins change it checks again. Follow the
+[device toolchain policy](../../extensions/program-kit-governance/references/device-toolchain-policy.md):
+the agent never installs device software or substitutes repository-local SDK/Node/npm/uv tools.
+The unattended CI workflow continues provisioning its own toolchains. Metadata collection and
+pin editing in `dependency_maintenance.py` do not install software; `update_dependencies.py`
+owns the qualification gate. Preserve failed update observations and resume only after actual
+device versions and persistent executable selection pass verification.
 Complete update validation runs in Linux CI, including Firefox. Local Windows
 Release validation retains the contributor instructions in AGENTS.md. Publication
 still uses the tagged Release workflow.

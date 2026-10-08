@@ -290,6 +290,10 @@
     {
       "path": "eng/verify_host_image.py",
       "ownership": "managed"
+    },
+    {
+      "path": "eng/device_toolchain.py",
+      "ownership": "managed"
     }
   ],
   "obsoleteFiles": [

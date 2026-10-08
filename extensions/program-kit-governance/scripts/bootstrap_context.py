@@ -109,6 +109,7 @@ ARTIFACT_TARGET_BYTES = {
 ASSESSMENT_BASE_REFERENCES = (
     ".specify/extensions/program-kit-governance/references/default-adoption.md",
     ".specify/extensions/program-kit-governance/references/capability-index.json",
+    ".specify/extensions/program-kit-governance/references/device-toolchain-policy.md",
 )
 
 ASSESSMENT_OPTIONAL_REFERENCES = (

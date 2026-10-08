@@ -117,12 +117,12 @@ Record that exception in `bootstrap-decisions.json.toolchain` with source `overr
 reason, and an override entry whose ID is `managed-toolchain-version`. Ordinary managed pins use
 source `program-kit-default`, exactly match the selected profile manifests, and need no separate ADR.
 
-When Node remediation is approved but no supported manager is present, stop with an actionable
-manager-install instruction rather than choosing or installing one implicitly. On Windows, prefer
-the official per-user `fnm` routes (WinGet, Scoop, or the release binary); do not send a
-non-administrator shell into an elevation-bound Chocolatey install. After `fnm install`, verify the
-pin in the same process with `fnm exec --using=<version> node --version`; parent-shell PATH or profile
-activation is not valid immediate verification evidence.
+Follow [the device toolchain policy](device-toolchain-policy.md) for every missing/mismatched
+device tool. Give the user official exact-version installation/update commands for their own
+terminal, including a missing-manager route, persistent defaults, privileges, refresh steps and
+verification. The agent must never execute device installers or hide a mismatch with local copies
+or temporary PATH overrides. Verify the actual active shared selection after user completion;
+manager exec/run against an inactive cached version is insufficient readiness evidence.
 
 ## .NET default
 

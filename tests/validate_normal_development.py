@@ -271,7 +271,7 @@ class DevelopmentTests(unittest.TestCase):
         logs = list((self.root/'artifacts/program-kit/runs').glob('*/run.json'))
         self.assertEqual(1,len(logs))
         self.assertEqual('failed',json.loads(logs[0].read_text())['status'])
-        self.assertIn('actual application failure',(logs[0].parent/'stderr.log').read_text())
+        self.assertIn('actual application failure',' '.join((logs[0].parent/'stderr.log').read_text().split()))
 
     def test_history_preview_is_bounded_and_protects_failed_interrupted_and_unowned(self):
         for n in range(9):

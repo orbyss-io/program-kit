@@ -81,9 +81,9 @@ class WindowsShellLaunchTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {'PATH': value, 'SPECKIT_PYTHON': self.python}):
             original = dict(os.environ)
             result = probe.verify_shell_launch(ROOT)
-            with python_runtime.environment(ROOT):
+            with python_runtime.environment(ROOT) as resolved_python:
                 self.assertLessEqual(len(os.environ['PATH']), 8191)
-                self.assertTrue(Path(shutil.which('python')).samefile(self.python))
+                self.assertTrue(Path(shutil.which('python')).samefile(resolved_python))
             self.assertEqual(original, dict(os.environ))
         self.assertEqual(result['exitCode'], 0)
 
@@ -138,7 +138,7 @@ class WindowsShellLaunchTests(unittest.TestCase):
 
     def test_unavailable_python_is_reported_before_dispatch(self):
         with mock.patch.dict(os.environ, {'PATH': 'C:/nonexistent/workflow-tools'}):
-            with self.assertRaisesRegex(probe.ShellPreflightError, 'python is unavailable'):
+            with self.assertRaisesRegex(probe.ShellPreflightError, 'PKT030.*python.*detected=missing'):
                 probe.verify_shell_launch(ROOT)
 
     def test_other_shell_failure_is_not_a_permission_failure(self):
@@ -237,7 +237,7 @@ class ShellContractTests(unittest.TestCase):
             command, kwargs = captured[0]
             self.assertTrue(kwargs['shell'])
             self.assertEqual(self.root, kwargs['cwd'])
-            self.assertEqual(python_runtime.invocation_values(self.python)['PATH'], kwargs['env']['PATH'])
+            self.assertEqual(python_runtime.invocation_values(verified['selectedPython'])['PATH'], kwargs['env']['PATH'])
             with mock.patch.dict(os.environ, kwargs['env'], clear=True):
                 result = ShellStep().execute({'run': command, 'timeout': 30}, StepContext(project_root=str(self.root)))
             self.assertEqual(0, result.output['exit_code'], result.output)

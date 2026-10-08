@@ -60,7 +60,7 @@ if {
 fi
 
 if ! command -v specify >/dev/null 2>&1; then
-  printf 'ERROR: Spec Kit 1.1.1 or a compatible newer 1.x specify command is required.\n' >&2
+  printf 'PKT030: Spec Kit >=1.1.1,<2 required by the bundle; detected=missing executable=missing. In your own terminal: uv tool install specify-cli==1.1.1 --force --no-python-downloads; uv tool update-shell. Refresh and verify command -v specify and specify version. If already installed, repair persistent PATH. For missing uv: https://docs.astral.sh/uv/getting-started/installation/\n' >&2
   exit 2
 fi
 if ! specify_version="$(specify --version)"; then
@@ -91,7 +91,7 @@ if ! git rev-parse --is-inside-work-tree; then
 fi
 if [[ -z "${SPECKIT_PYTHON:-}" ]]; then
   if ! command -v python >/dev/null 2>&1; then
-    printf 'ERROR: Python must be available as python because Program Kit uses the Python Spec Kit runtime.\n' >&2
+    printf 'PKT030: Python >=3.11 required by the Spec Kit runtime; detected=missing executable=missing. In your own terminal: uv python install 3.11 --default; uv python update-shell, or retain your existing device installer. Refresh and verify command -v python and python --version. Missing uv: https://docs.astral.sh/uv/getting-started/installation/\n' >&2
     exit 2
   fi
   if ! SPECKIT_PYTHON="$(python -c 'import sys; print(sys.executable)')"; then
@@ -104,6 +104,17 @@ if ! "$SPECKIT_PYTHON" -c 'import sys; assert sys.version_info >= (3,11)' >/dev/
   printf 'ERROR: The selected Python interpreter must support Python >=3.11.\n' >&2
   exit 2
 fi
+program_kit_stage="read-only shared device readiness"
+"$SPECKIT_PYTHON" -c 'import sys; print(sys.executable); assert sys.version_info >= (3,11), "Python >=3.11 is required; update shared device Python in your own terminal and refresh the session"'
+if [[ -f "$script_dir/scripts/initialize_device.py" ]]; then
+  "$SPECKIT_PYTHON" "$script_dir/scripts/initialize_device.py" --ref "$PROGRAM_KIT_REF" --project-root "$current_root" --release-root "$script_dir"
+else
+  program_kit_device_preflight="$(mktemp "${TMPDIR:-/tmp}/program-kit-device.XXXXXX")"
+  "$SPECKIT_PYTHON" -c 'import sys,urllib.request; urllib.request.urlretrieve(sys.argv[1], sys.argv[2])' \
+    "https://raw.githubusercontent.com/orbyss-io/program-kit/$PROGRAM_KIT_REF/scripts/initialize_device.py" "$program_kit_device_preflight"
+  "$SPECKIT_PYTHON" "$program_kit_device_preflight" --ref "$PROGRAM_KIT_REF" --project-root "$current_root"
+fi
+
 if ! "$SPECKIT_PYTHON" -c 'import yaml' >/dev/null 2>&1; then
   if ! "$SPECKIT_PYTHON" -m pip --version >/dev/null 2>&1; then
     printf 'ERROR: PyYAML is missing and python -m pip is unavailable. Install pip for this Python interpreter, then install PyYAML>=6,<7 and rerun the initializer.\n' >&2

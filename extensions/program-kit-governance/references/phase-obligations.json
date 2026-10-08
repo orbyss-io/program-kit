@@ -1308,6 +1308,24 @@
       }
     },
     {
+      "path": "program-kit-governance/references/device-toolchain-policy.md",
+      "phases": ["bootstrap", "planning", "implementation", "upgrade", "delivery"],
+      "enforcement": "Read-only device preflight pauses dependent execution; user-terminal installation and agent verification preserve exact authority.",
+      "route": {
+        "kind": "setup",
+        "via": [
+          "extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py",
+          "extensions/program-kit-governance/scripts/repository_sync.py",
+          "extensions/program-kit-governance/scripts/python_runtime.py",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.tooling.md",
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md"
+        ],
+        "sections": ["Initialization front door", "No Node manager installed", "npm, SDK, Python and Spec Kit", "Verification and scope"],
+        "requirements": [],
+        "review": "Toolchain readiness only; grants no application, migration, publication or paid-worker authority."
+      }
+    },
+    {
       "path": "program-kit-governance/references/default-adoption.md",
       "phases": [
         "intake",

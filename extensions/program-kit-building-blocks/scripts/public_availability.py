@@ -106,12 +106,13 @@ def npm_user_config(source: dict, directory: Path) -> Path:
 
 
 def npm_executable() -> str:
-    requested = os.environ.get("PROGRAMKIT_NPM_EXECUTABLE", "npm")
+    requested = 'npm.cmd' if os.name == 'nt' else 'npm'
     resolved = shutil.which(requested)
     if not resolved:
         raise AvailabilityError(
             f"PKB614 npm executable is unavailable: {requested}. "
-            "Set PROGRAMKIT_NPM_EXECUTABLE to the approved npm executable."
+            "Pause dependent execution and follow the installed governance device-toolchain-policy.md "
+            "for exact user-terminal commands and persistent selection; do not supply a local executable override."
         )
     return str(Path(resolved).resolve())
 

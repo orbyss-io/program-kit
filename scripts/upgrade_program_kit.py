@@ -1217,6 +1217,12 @@ def main() -> int:
             print(json.dumps(plan, indent=2))
             return 0
         component_versions = building_block_versions(release, target)
+        policy_source = release / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'
+        if policy_source.is_file():
+            # Read-only before any consumer mutation. Keep historical releases and the
+            # existing reviewed CLI bridge/ownership recovery paths intact.
+            policy = load_release_module(policy_source, 'upgrade_device_policy')
+            policy.contributor(target, python_only=True)
         if not (target / ".specify").is_dir():
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)

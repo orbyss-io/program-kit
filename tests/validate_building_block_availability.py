@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -91,8 +92,9 @@ def main() -> int:
     os.environ["PROGRAMKIT_NPM_EXECUTABLE"] = sys.executable
     try:
         def npm_run(args, **_kwargs):
-            if Path(args[0]).resolve() != Path(sys.executable).resolve():
-                raise AssertionError("npm availability ignored its explicit executable")
+            active = module.shutil.which('npm.cmd' if os.name == 'nt' else 'npm')
+            if Path(args[0]).resolve() != Path(active).resolve() or Path(args[0]).resolve() == Path(sys.executable).resolve():
+                raise AssertionError("npm availability bypassed the active device selection with an executable override")
             return subprocess.CompletedProcess(
                 args=[],
                 returncode=0,
@@ -126,13 +128,17 @@ def main() -> int:
 
     os.environ["PROGRAMKIT_NPM_EXECUTABLE"] = str(ROOT / "missing-npm-command")
     try:
-        try:
-            module.npm_executable()
-        except module.AvailabilityError as error:
-            if "PKB614" not in str(error):
-                raise AssertionError(f"Missing npm diagnostic lost its code: {error}") from error
-        else:
-            raise AssertionError("Missing npm executable did not fail closed")
+        active = module.shutil.which('npm.cmd' if os.name == 'nt' else 'npm')
+        if Path(module.npm_executable()) != Path(active).resolve():
+            raise AssertionError('An override replaced the active device npm')
+        with patch.object(module.shutil, 'which', return_value=None):
+            try:
+                module.npm_executable()
+            except module.AvailabilityError as error:
+                if "PKB614" not in str(error):
+                    raise AssertionError(f"Missing npm diagnostic lost its code: {error}") from error
+            else:
+                raise AssertionError("Missing active device npm did not fail closed")
     finally:
         if old_npm is None:
             os.environ.pop("PROGRAMKIT_NPM_EXECUTABLE", None)
