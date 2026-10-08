@@ -271,7 +271,14 @@ class ShellContractTests(unittest.TestCase):
     def test_source_launcher_scopes_old_runtime_without_changing_installation_or_gates(self):
         scripts = self.root / '.specify/extensions/program-kit-governance/scripts'
         scripts.mkdir(parents=True)
-        shutil.copyfile(SCRIPTS / 'python_runtime.py', scripts / 'python_runtime.py')
+        # Released selection API, deliberately without the new PATH module.
+        # The downloaded launcher must work under its documented new filename.
+        (scripts / 'python_runtime.py').write_text(
+            'import os,json,shutil\nfrom pathlib import Path\n'
+            'def selected(root):\n'
+            '    record=root/".specify/python-runtime.json"\n'
+            '    saved=json.loads(record.read_text()) if record.is_file() else {}\n'
+            '    return os.environ.get("SPECKIT_PYTHON") or saved.get("executable") or shutil.which("python")\n')
         child = scripts / 'workflow_lifecycle.py'
         # Simulate an old lifecycle's repeated runtime prefix and native shell.
         # No Spec Kit engine, coding-agent CLI or workflow worker is invoked.
@@ -287,7 +294,8 @@ class ShellContractTests(unittest.TestCase):
                            SPECKIT_PYTHON=sys.executable, CODEX_SESSION_ID='fixture-originator')
         args = ['run', '--input', 'bootstrap_intake=docs/architecture/plan with spaces.json',
                 '--input', 'integration=auto']
-        launcher = SCRIPTS / 'windows_workflow_path.py'
+        launcher = self.root / 'Start-ProgramKitWorkflow.py'
+        shutil.copyfile(SCRIPTS / 'windows_workflow_path.py', launcher)
         for code in (0, 37):
             environment['PROGRAM_KIT_TEST_EXIT'] = str(code)
             result = subprocess.run([sys.executable, str(launcher), *args], cwd=self.root,
