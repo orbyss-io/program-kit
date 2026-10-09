@@ -10,6 +10,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const manifest = JSON.parse(await readFile(resolve(root, 'publication.json'), 'utf8'));
 const resources = new Map(manifest.resources.map(r => [r.route, r]));
 resources.set('/__tailwind.css', { file: 'acceptance/tailwind-compiled.css', contentType: 'text/css; charset=utf-8' });
+resources.set('/__keycloak-brand.css', { file: 'integration/keycloak-brand.css', contentType: 'text/css; charset=utf-8' });
 const archetypes = ['journey', 'product-shell', 'workspace', 'content-hub', 'showcase'];
 for (const name of archetypes) resources.set(`/__gallery/${name}`, { file: `acceptance/archetypes/${name}.html`, contentType: 'text/html; charset=utf-8' });
 const authStates = ['login', 'login-success', 'login-error', 'session-expired', 'logout-confirmation', 'logout-progress', 'logout-success', 'logout-error'];
@@ -276,7 +277,40 @@ async function verifyModern(engine, browser) {
           await page.screenshot({ path: resolve(evidence, `${engine}-auth-${state}-${scheme}.png`), animations: 'disabled' });
         }
       }
-      results.push({ engine, case: 'auth', brandedStates: 'passed', providerFlow: 'consumer acceptance required' });
+      // Cascade fixture: v2's important white header and the scaffold's gradient.
+      // This tests the brand bridge; actual selected-provider flow acceptance remains separate.
+      for (const scheme of ['light', 'dark']) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.setContent(`<!doctype html><html class="login-pf"><head>
+          <style>#kc-header-wrapper { color: white !important; }
+          .pf-v5-c-button.pf-m-primary { background: linear-gradient(#4f46e5, #06b6d4); }
+          </style><link rel="stylesheet" href="${origin}/__keycloak-brand.css"></head><body>
+          <header id="kc-header-wrapper">Brand presentation fixture</header>
+          <main class="pf-v5-c-login__main"><button id="recovery-submit" class="pf-v5-c-button pf-m-primary">Reset password</button></main>
+          </body></html>`, { waitUntil: 'networkidle' });
+        const colors = await page.evaluate(() => {
+          const expected = document.createElement('div');
+          expected.style.color = 'var(--pk-on-surface)';
+          expected.style.backgroundColor = 'var(--pk-raised)';
+          document.body.append(expected);
+          const value = { header: getComputedStyle(document.querySelector('#kc-header-wrapper')).color,
+            expectedHeader: getComputedStyle(expected).color,
+            card: getComputedStyle(document.querySelector('.pf-v5-c-login__main')).backgroundColor,
+            expectedCard: getComputedStyle(expected).backgroundColor };
+          expected.style.color = 'var(--pk-on-primary)';
+          expected.style.backgroundColor = 'var(--pk-primary)';
+          const button = getComputedStyle(document.querySelector('#recovery-submit'));
+          Object.assign(value, { button: button.backgroundColor, expectedButton: getComputedStyle(expected).backgroundColor,
+            buttonText: button.color, expectedButtonText: getComputedStyle(expected).color, buttonImage: button.backgroundImage });
+          expected.remove();
+          return value;
+        });
+        for (const role of ['header', 'card', 'button', 'buttonText']) {
+          assert.equal(colors[role], colors['expected' + role[0].toUpperCase() + role.slice(1)], `${engine}/Keycloak-v2/${scheme}/${role}`);
+        }
+        assert.equal(colors.buttonImage, 'none', `${engine}/Keycloak-v2/${scheme}/scaffold-gradient`);
+      }
+      results.push({ engine, case: 'auth', brandedStates: 'passed', keycloakBrandCascade: 'passed', providerFlow: 'consumer acceptance required' });
     }
   } finally { await context.close(); }
 }

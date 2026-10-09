@@ -174,6 +174,29 @@ class DevelopmentTests(unittest.TestCase):
         self.assertNotIn('http-operation-contracts', ids)
         self.assertNotIn('dotnet-concurrency', ids)
 
+    def test_identity_styling_intent_routes_provider_theme_guidance_before_frontend_source(self):
+        (self.feature / 'spec.md').write_text('Style the Notes sign-in and recovery screens with accessible brand presentation.')
+        before = self.snapshot()
+        for phase in ('planning', 'tasks', 'implementation', 'delivery'):
+            with self.subTest(phase=phase):
+                value = knowledge.project(self.root, self.feature, phase)
+                self.assertIn('browser-experience', {rule['id'] for rule in value['requirements']})
+                rendered = knowledge.render(value, phase)
+                self.assertIn('Keycloak', rendered)
+                self.assertIn('active realm/client theme binding', rendered)
+                self.assertIn('omitted implementation term', rendered)
+                self.assertIn('existing intake, bootstrap decisions and UI inputs', rendered)
+        self.assertEqual(before, self.snapshot())
+
+    def test_identity_backend_and_explicitly_excluded_screens_do_not_invent_ui_scope(self):
+        for prose in ('A command-line login operation returns a token.',
+                      'An API login endpoint validates authentication.',
+                      'Pure domain policy.\n## Non-goals\nSign-in and account recovery screens.'):
+            with self.subTest(prose=prose):
+                (self.feature / 'plan.md').write_text(prose)
+                ids = {rule['id'] for rule in knowledge.project(self.root, self.feature, 'planning')['requirements']}
+                self.assertNotIn('browser-experience', ids)
+
     def test_selected_ef_package_supplies_planning_knowledge_even_without_keywords(self):
         store = self.root/'src/Slots.Store'; store.mkdir(parents=True)
         (store/'Slots.Store.csproj').write_text('<Project><PackageReference Include="Microsoft.EntityFrameworkCore" /></Project>')

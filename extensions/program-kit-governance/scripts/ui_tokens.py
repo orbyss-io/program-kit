@@ -132,12 +132,20 @@ def compile_tokens(profile: dict) -> dict[str, str]:
     tailwind += "\n  --font-sans: var(--pk-font);\n  --radius-brand: var(--pk-radius);\n}\n"
     # Email templates use literal color values: many mail clients do not support custom properties.
     bridge = {"loginStylesheet": "keycloak-brand.css", "fontLicense": profile["brand"]["fontLicense"],
-              "email": colors["light"], "integration": "Import CSS in the consumer theme; apply literal email values in existing templates. Rerun identity-theme acceptance."}
+              "email": colors["light"], "integration": "Carry accepted identity-screen styling into the existing consumer theme; retain its parent/base CSS, append brand CSS and verify active realm/client theme binding. Apply literal email values in existing templates. Rerun identity-theme acceptance."}
     keycloak = css + "\n.login-pf body { font-family: var(--pk-font); background: var(--pk-surface); color: var(--pk-on-surface); }\n#kc-login { background: var(--pk-primary); color: var(--pk-on-primary); border-radius: var(--pk-radius); }\n"
     if profile.get('presentation') == 'modern-product-v1':
         keycloak += '''
 .login-pf body { background: var(--pk-canvas); }
 .login-pf .card-pf { background: var(--pk-raised); border: 1px solid var(--pk-divider); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); }
+.login-pf .pf-v5-c-login__main { background: var(--pk-raised); color: var(--pk-on-surface); border: 1px solid var(--pk-divider); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); }
+.login-pf .pf-v5-c-login__main-body a { color: var(--pk-primary); }
+.login-pf .pf-v5-c-form-control { --pf-v5-c-form-control--Color: var(--pk-on-surface); --pf-v5-c-form-control--before--BackgroundColor: var(--pk-surface); --pf-v5-c-form-control--after--BorderColor: var(--pk-border); }
+.login-pf .pf-v5-c-button.pf-m-primary { --pf-v5-c-button--m-primary--BackgroundColor: var(--pk-primary); --pf-v5-c-button--m-primary--Color: var(--pk-on-primary); background: var(--pk-primary); color: var(--pk-on-primary); border-radius: var(--pk-radius); }
+/* The v2 parent makes header color important; preserve contrast on the brand canvas. */
+.login-pf #kc-header-wrapper { color: var(--pk-on-surface) !important; font-family: var(--pk-font); }
+.login-pf { --keycloak-card-top-color: var(--pk-primary); }
+.login-pf :focus-visible { outline: 3px solid var(--pk-focus); outline-offset: 3px; }
 #kc-header-wrapper, #kc-page-title, #kc-content-wrapper, #kc-info-wrapper { color: var(--pk-on-surface); font-family: var(--pk-font); }
 #kc-form input { color: var(--pk-on-surface); background: var(--pk-surface); border: 1px solid var(--pk-border); border-radius: var(--pk-radius); }
 #kc-form input[aria-invalid="true"], .pf-c-form-control[aria-invalid="true"] { border: 2px solid var(--pk-danger); }
@@ -151,7 +159,7 @@ def compile_tokens(profile: dict) -> dict[str, str]:
             keycloak += '#kc-header-wrapper::before { content: ""; display: block; height: 3rem; margin-bottom: 1rem; background: url("../img/brand-logo.svg") center/contain no-repeat; }\n'
         bridge['authStates'] = ['login', 'login-success', 'login-error', 'session-expired', 'logout-confirmation', 'logout-progress', 'logout-success', 'logout-error']
         bridge['themeScaffold'] = 'auth/keycloak/login'
-        bridge['integration'] = 'Inherit provider templates; copy generated stylesheet/logo into the consumer theme, set realm display name/locale from accepted brand, and bind app-owned state templates. Verify against the selected provider/version; no flow or redirect changes.'
+        bridge['integration'] = 'Carry accepted login/password-reset/recovery styling into the existing consumer login theme. Preserve its provider templates, observed parent and matching base stylesheet; append generated brand CSS/logo, verify realm loginTheme and client overrides, and bind app-owned state templates. Verify actual screens against the selected provider/version; no flow or redirect changes.'
     result = {"tokens.json": json.dumps(tokens, ensure_ascii=False, indent=2) + "\n", "tokens.css": css,
               "keycloak-brand.css": keycloak, "identity-theme.json": json.dumps(bridge, indent=2) + "\n"}
     if profile["css"] == "tailwind":

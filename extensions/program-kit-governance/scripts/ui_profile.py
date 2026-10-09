@@ -129,7 +129,7 @@ def outputs(profile: dict, content: dict) -> dict[str, bytes]:
             generated[f'{OUTPUT}/integration/auth/{state}.html'] = auth_document(profile, state).encode('utf-8')
         generated[f'{OUTPUT}/integration/auth/contract.json'] = encoded(auth_contract())
         generated[f'{OUTPUT}/integration/design-map.json'] = encoded(explain(profile, content))
-        # Inherit all provider templates and behaviors; consumer opts into realm/theme integration.
+        # Inherit provider behavior; the consumer adapter applies accepted screen styling.
         theme = f'{OUTPUT}/integration/auth/keycloak/login'
         generated[f'{theme}/theme.properties'] = b'parent=keycloak\nimport=common/keycloak\nstyles=css/login.css css/program-kit-brand.css\n'
         generated[f'{theme}/resources/css/program-kit-brand.css'] = tokens['keycloak-brand.css'].encode('utf-8')

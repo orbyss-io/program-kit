@@ -71,8 +71,12 @@ def auth_document(profile: dict, state: str) -> str:
 def auth_contract() -> dict:
     return {'version': 'auth-presentation-v1', 'states': list(AUTH_STATES),
             'templatesAre': 'presentation only; consumer adapters bind verified state, localized copy and controls',
-            'providerOwned': ['credentials', 'MFA', 'provider errors', 'provider logout confirmation', 'required actions'],
+            'providerOwned': ['credentials', 'password reset and account recovery', 'MFA', 'provider errors', 'provider logout confirmation', 'required actions'],
             'applicationOwned': ['validated callback success/error', 'session expired', 'local logout', 'post-logout result'],
+            'stylingIntent': 'Carry accepted identity-screen brand/accessibility outcomes across provider and application owners; reconcile existing intent before excluding or deferring provider styling.',
+            'keycloakIntegration': ['merge brand assets into the consumer login theme while preserving inherited templates and base CSS',
+                                    'verify theme packaging/mounting and active realm loginTheme plus client overrides',
+                                    'plan and test actual login, password-reset/recovery and enabled required-action screens against the selected provider/version'],
             'logoutErrorPrecondition': 'local session ended; provider sign-out unconfirmed',
             'completion': 'logout-success only after the selected logout scope has been established',
             'security': ['existing validated redirect targets', 'antiforgery-protected logout where required',

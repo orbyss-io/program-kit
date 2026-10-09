@@ -22,6 +22,11 @@ Plan complete field guidance/error styling, affected page/operation states and s
 the first working journey. Include branded provider/application login success/error, expired session
 and logout confirmation/progress/success/error states where relevant. Inherit identity forms/MFA
 and secure logout/redirect behavior; bind verified state and require actual provider acceptance.
+Carry accepted identity-screen styling to Keycloak-owned login and password-reset/recovery screens
+through the existing login theme. Name application/provider owners, theme integration and actual
+provider checks in the affected plan/tasks. Reconcile existing intent before excluding provider
+styling; absence of the words "custom Keycloak theme" does not narrow an agreed screen outcome.
+Preserve explicit exclusions/assigned deferrals and the observed theme parent/base styles.
 
 For authorized first-code work, use `scripts/ui_profile.py init --target .` only if both source
 files are absent, then edit the consumer-owned `.program-kit/ui/profile.json` and `content.json`.

@@ -97,6 +97,9 @@ class UiExperienceTests(unittest.TestCase):
         output = ui_profile.outputs(self.profile, self.content)
         contract = json.loads(output[f'{ui_profile.OUTPUT}/integration/auth/contract.json'])
         self.assertEqual(8, len(contract['states']))
+        self.assertIn('password reset and account recovery', contract['providerOwned'])
+        self.assertIn('accepted identity-screen', contract['stylingIntent'])
+        self.assertTrue(any('realm loginTheme' in action for action in contract['keycloakIntegration']))
         for state in contract['states']:
             parsed = Html(output[f'{ui_profile.OUTPUT}/integration/auth/{state}.html'].decode())
             self.assertIn('<Acme & Co>', ' '.join(parsed.text))
@@ -108,6 +111,18 @@ class UiExperienceTests(unittest.TestCase):
         theme = output[f'{ui_profile.OUTPUT}/integration/auth/keycloak/login/theme.properties'].decode()
         self.assertIn('parent=keycloak', theme)
         self.assertFalse(any(name.endswith('.ftl') for name in output))
+
+    def test_generated_brand_bridge_covers_the_shipped_keycloak_v2_parent(self):
+        output = ui_profile.outputs(self.profile, self.content)
+        css = output[f'{ui_profile.OUTPUT}/integration/keycloak-brand.css'].decode()
+        self.assertIn('.pf-v5-c-login__main', css)
+        self.assertIn('--pf-v5-c-form-control--before--BackgroundColor: var(--pk-surface)', css)
+        self.assertIn('.login-pf :focus-visible', css)
+        self.assertIn('.login-pf #kc-header-wrapper { color: var(--pk-on-surface)', css)
+        self.assertIn('background: var(--pk-primary); color: var(--pk-on-primary)', css)
+        bridge = json.loads(output[f'{ui_profile.OUTPUT}/integration/identity-theme.json'])
+        self.assertIn('matching base stylesheet', bridge['integration'])
+        self.assertIn('loginTheme', bridge['integration'])
 
     def test_modern_page_composition_and_hint_markup_escape_consumer_text(self):
         from ui_patterns import field

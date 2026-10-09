@@ -28,6 +28,13 @@ is required. Draft retention follows privacy/security and lifetime rules; do not
 private drafts or tokens in persistent browser storage. Cancellation does not prove server rollback.
 Unknown completion requires reconciliation or safe replay; failed retrieval is never an empty result.
 Generated UI callbacks do not establish backend idempotency or actual provider login/logout behavior.
+For sign-in or recovery journeys, carry accepted styling/accessibility intent across application
+and provider-owned screens. When Keycloak owns a screen, implement that intent through its login
+theme, inherited templates and active realm/client theme binding. An omitted implementation term
+such as "custom Keycloak theme" does not exclude an already agreed user-visible outcome. Reconcile
+existing intake, bootstrap decisions and UI inputs before narrowing scope; explicit exclusions
+or deferrals need their established authority and a concrete owning slice. Keep application
+callbacks/session recovery with the frontend and preserve provider credential/MFA/required-action flows.
 <!-- /program-kit:decision-rule -->
 
 ## Complete fields and forms

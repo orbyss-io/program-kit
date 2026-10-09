@@ -57,6 +57,24 @@ at the existing review handoff; contrast/axe passing does not establish visual q
 
 ## Authentication presentation
 
+Accepted identity-screen styling describes the person's complete sign-in/recovery journey,
+including provider-hosted screens when they are in that journey. Trace the requirement from
+project intent/intake and bootstrap decisions into the affected spec, plan, tasks and acceptance.
+Use the consumer UI profile as configured brand inputs; a starter default is not proof of human
+intent. Do not narrow the agreed outcome because the spec omits the implementation name "custom
+Keycloak theme". Resolve actual ambiguity against existing authority; preserve an explicit
+provider-styling exclusion or assign an explicitly deferred requirement to its owning slice.
+
+For selected Keycloak, realize scoped login, password-reset/account-recovery, errors and enabled
+MFA/required-action styling through the consumer-owned login theme. Merge generated brand CSS/logo
+into the existing theme, retain its observed parent and base styles, and verify the active realm
+`loginTheme` plus any client override. Include theme packaging/mounting, the selected provider
+version and actual provider browser/keyboard/recovery tests in the same affected plan/tasks.
+The shipped `keycloak.v2` parent uses `css/styles.css`; the classic `keycloak` parent uses
+`css/login.css`. Append brand CSS after the matching parent stylesheet. Generated integration
+assets and a configured realm alone do not establish that the live screens use the chosen theme.
+See [Keycloak theme customization](https://www.keycloak.org/ui-customization/themes).
+
 Generated `integration/auth/` supplies branded layout templates for login, login-error,
 login-success, session-expired, logout-confirmation, logout-progress, logout-success and logout-error.
 They are inert presentation templates with explicit control slots, not deployed routes or claims

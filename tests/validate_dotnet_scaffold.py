@@ -71,6 +71,9 @@ def assert_profile(repository: Path, expected: str) -> None:
         for relative in theme_paths:
             assert (repository / relative).is_file(), relative
             assert state["files"][relative]["ownership"] == "configuration", relative
+        theme = (repository / theme_paths[0]).read_text(encoding='utf-8')
+        assert 'parent=keycloak.v2' in theme
+        assert 'styles=css/styles.css css/program-kit.css' in theme, 'Custom branding dropped the parent login/recovery styles'
         identity_compose = (repository / "deploy/compose.identity.yml").read_text(encoding="utf-8")
         assert "./keycloak/themes:/opt/keycloak/themes:ro" in identity_compose
     spa_only = (

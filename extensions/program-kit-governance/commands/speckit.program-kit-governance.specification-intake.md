@@ -16,6 +16,10 @@ policies/conditions, journeys and experience choices from the existing project i
 Reuse settled answers; deepen the selected outcome and its material alternatives with the human.
 Carry the stable product and journey references into the brief/specification; do not restart a
 whole-product interview or choose a generic UI layout in place of the agreed experience.
+For sign-in/recovery styling, identify the relevant application and identity-provider screens.
+Carry established brand/accessibility intent across those owners; planning maps Keycloak-owned
+screens to login-theme customization. Do not invent a provider-styling exclusion because the
+feature request omits that implementation name. Preserve explicit exclusions or assigned deferrals.
 
 Clarify actors, user-visible outcomes, story priority, independent acceptance examples and relevant
 failure cases. Quantify material quality constraints and identify assumptions/dependencies. Ask only

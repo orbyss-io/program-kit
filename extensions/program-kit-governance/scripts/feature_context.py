@@ -186,6 +186,12 @@ def context(root, feature, phase, affected_paths=()):
     inherited_tags = inherited['tags'] - ({'dotnet', 'api', 'persistence', 'capabilities'} if frontend_only else set())
     tags = {'all'} | inherited_tags
     tags.update(tag for tag, pattern in CAPABILITIES.items() if re.search(pattern, content))
+    identity = r'\b(?:sign[ -]?in|sign[ -]?out|login|logout|password[ -]reset|account[ -]recovery|credential[ -]recovery)\b'
+    presentation = r'\b(?:screens?|pages?|forms?|styling|accessibility)\b'
+    # User-visible identity screens need UI guidance before frontend source exists.
+    # A backend/CLI login operation alone does not establish a browser surface.
+    if re.search(identity + r'[^\n]{0,100}' + presentation + '|' + presentation + r'[^\n]{0,100}' + identity, prose, re.I):
+        tags.add('web')
     register = root / 'docs/architecture/bootstrap-decisions.json'
     if 'web' in tags and register.is_file() and 'typescript-web' in json.loads(
             register.read_text(encoding='utf-8')).get('selected_profiles', []):

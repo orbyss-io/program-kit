@@ -56,7 +56,7 @@ def main() -> int:
             command.append("--with-deps")
         run(command)
     run([str(node), "--test", "analytics.test.mjs"])
-    run(npm + ["exec", "--no", "--", "tailwindcss", "-i", "tailwind-input.css", "-o", "../tailwind-compiled.css", "--minify"])
+    run([str(node), "node_modules/@tailwindcss/cli/dist/index.mjs", "-i", "tailwind-input.css", "-o", "../tailwind-compiled.css", "--minify"])
     compiled = (package_root.parent / "tailwind-compiled.css").read_text(encoding="utf-8")
     if ".bg-primary" not in compiled or "var(--pk-primary)" not in compiled or ".text-on-primary" not in compiled:
         raise AssertionError("Tailwind did not compile the semantic-token bridge")

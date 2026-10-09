@@ -79,6 +79,10 @@ Include a coherent experience group: relevant brand/design-system references, vi
 theme, information hierarchy, navigation and interaction choices. Derive the layout from the
 journey before proposing UI profile dimensions. Use disclosed provisional preferences when the
 human has none; retain accessibility/security obligations and the single final synthesis review.
+When the first journey includes sign-in/recovery, make application and identity-provider screen
+ownership explicit. Carry confirmed brand/accessibility intent to the provider's supported theme
+customization, including Keycloak login/password-reset screens, or retain the consumer's explicit
+exclusion/deferred owning slice. The implementation name need not appear in the product request.
 
 Keep product suitability separate from executed device/accessibility verification. Confirming a
 browser proposal settles intended use, not empirical fitness of software that does not exist yet.
