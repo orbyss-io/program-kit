@@ -1,7 +1,7 @@
 # Program Kit
 
 <!-- latest-published-release:start -->
-Latest available release: **[v0.12.9](https://github.com/orbyss-io/program-kit/releases/tag/v0.12.9)**. Before installing, follow the [current installation instructions](#install-in-a-repository), including initializer corrections. [Check the latest release](https://github.com/orbyss-io/program-kit/releases/latest) for the kit version.
+Latest available release: **[v0.12.10](https://github.com/orbyss-io/program-kit/releases/tag/v0.12.10)**. Before installing, follow the [current installation instructions](#install-in-a-repository), including initializer corrections. [Check the latest release](https://github.com/orbyss-io/program-kit/releases/latest) for the kit version.
 <!-- latest-published-release:end -->
 
 Program Kit extends Spec Kit's ordinary **specify -> plan -> tasks -> implement -> test** flow
@@ -60,19 +60,11 @@ Run these steps from the repository root.
 
 ### Windows
 
-<!-- initializer-hotfix:start -->
-**Required Windows initializer correction for v0.12.9:** Use the download command below, including
-when you already downloaded `Initialize-ProgramKit.cmd`. It replaces the original launcher, which
-can incorrectly report that Spec Kit is missing. Opening a fresh terminal keeps the downloaded file
-unchanged. This corrected launcher comes from a fixed source commit and installs the published
-v0.12.9 kit. Future releases include this repair.
-<!-- initializer-hotfix:end -->
-
 1. Download the Windows command initializer:
 
    ```powershell
    Invoke-WebRequest `
-     https://raw.githubusercontent.com/orbyss-io/program-kit/63ba307f3f856e826428d452e22e798f9a62ab3e/Initialize-ProgramKit.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.10/Initialize-ProgramKit-0.12.10.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -98,7 +90,7 @@ output and the partial installation for diagnosis.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.12.9/Initialize-ProgramKit-0.12.9.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.10/Initialize-ProgramKit-0.12.10.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -164,30 +156,6 @@ specify bundle install program-kit --integration codex
 Replace `codex` with the integration you use in both initialization and bundle installation. The
 bundle itself is integration-agnostic.
 
-<!-- workflow-path-hotfix:start -->
-### Windows bootstrap PATH correction
-
-The current source automatically prepares an oversized Windows PATH for workflow commands.
-Existing v0.12.9 installations predate this repair. From the installed consumer's normal user-owned
-PowerShell terminal, download this pinned source launcher and use it for bootstrap:
-
-```powershell
-Invoke-WebRequest `
-  https://raw.githubusercontent.com/orbyss-io/program-kit/da44715c563db7eb4d2ffe471ac3120729713c9c/extensions/program-kit-governance/scripts/windows_workflow_path.py `
-  -OutFile Start-ProgramKitWorkflow.py
-python .\Start-ProgramKitWorkflow.py run `
-  --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" `
-  --input "integration=auto"
-```
-
-This launcher prepares the child process PATH automatically and invokes the existing installed
-lifecycle. It keeps usable tool directories, the selected Python and Node runtime, and all existing
-worker permissions and approval gates. It does not replace installed extension files or alter
-persistent environment settings. For an existing run, use `resume --run-id <existing-id>` with the
-same launcher and your normal approved arguments. Future releases include preparation in the normal
-`workflow_lifecycle.py` command.
-<!-- workflow-path-hotfix:end -->
-
 Keep all four catalogs registered. A locally supplied third-party bundle
 archive resolves its extension, preset, and workflow primitives through their catalogs; the bundle
 is the pinned composition record, not a self-contained primitive installer. The standalone ZIP
@@ -233,8 +201,8 @@ consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.12.9\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.12.9 `
+python C:\path\to\program-kit-0.12.10\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.12.10 `
   --target . `
   --integration codex
 ```
@@ -613,8 +581,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.12.9.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.12.9.zip -Algorithm SHA256
+gh attestation verify program-kit-0.12.10.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.12.10.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery
