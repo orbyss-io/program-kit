@@ -335,6 +335,7 @@ class InstalledUpgradeTests(unittest.TestCase):
         from specify_cli.extensions import ExtensionManager
         from build_release import deterministic_zip
         import zipfile
+        version = (ROOT / 'VERSION').read_text().strip()
         with tempfile.TemporaryDirectory(prefix='consumer-upgrade-installed-') as name:
             root = Path(name).resolve()
             source = root/'consumer'
@@ -345,7 +346,7 @@ class InstalledUpgradeTests(unittest.TestCase):
             (source/'.agents/skills').mkdir(parents=True)
             stage = root/'governance'
             shutil.copytree(ROOT/'extensions/program-kit-governance', stage, ignore=shutil.ignore_patterns('__pycache__'))
-            build(ROOT, stage/'references/release-guidance', '0.12.9')
+            build(ROOT, stage/'references/release-guidance', version)
             archive = root/'governance.zip'
             deterministic_zip(stage, archive)
             extracted = root/'extracted'
@@ -360,11 +361,11 @@ class InstalledUpgradeTests(unittest.TestCase):
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
             self.assertFalse(json.loads(result.stdout)['recordPresent'])
             self.assertTrue((installed/'references/consumer-migration-recipes.json').is_file())
-            self.assertTrue((installed/'references/release-guidance/consumer-changes-0.12.9.json').is_file())
+            self.assertTrue((installed/'references/release-guidance'/f'consumer-changes-{version}.json').is_file())
             # Qualification source installation uses the existing synthetic installation metadata fixture;
             # the command payload and skill above were installed by the real public core manager.
             import validate_governance_state as fixture
-            fixture.write_installation(source, '0.12.9')
+            fixture.write_installation(source, version)
             # Retain actual governance payload and version-coherent fixture registries for the other components.
             shutil.copy2(extracted/'extension.yml', installed/'extension.yml')
             write(source, '.specify/integrations/codex.manifest.json', {'files': {
@@ -386,7 +387,7 @@ class InstalledUpgradeTests(unittest.TestCase):
             self.assertTrue((target/'.agents/skills/speckit-program-kit-governance-upgrade/SKILL.md').is_file())
             # Model coherent toolkit convergence separately from actual application checks.
             from release_guidance import completion, plan
-            write(target, '.program-kit/installation/migration.json', completion(plan(extracted/'references/release-guidance', '0.12.9', '0.12.9'), {}))
+            write(target, '.program-kit/installation/migration.json', completion(plan(extracted/'references/release-guidance', version, version), {}))
             checks = [{'id': 'retained-consumer-output', 'command': [sys.executable, '-c',
                        "from pathlib import Path; assert Path('note.txt').read_text() == 'retained output'"]}]
             flow.verify(target, checks)

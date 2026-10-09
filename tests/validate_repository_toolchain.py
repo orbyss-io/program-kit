@@ -108,11 +108,16 @@ class RepositoryToolchainTests(unittest.TestCase):
             self.assertFalse(marker.exists()); self.assertIn('PKT030', result.stderr)
 
     def test_missing_tools_and_persistent_remediation_contract(self):
-        with patch.object(device.shutil, 'which', return_value=None):
+        with patch.dict(os.environ, {'NVM_DIR': ''}), patch.object(device.shutil, 'which', return_value=None):
             value = device.diagnostic('node', '24.20.0', '.nvmrc', None, None, self.repo)
         self.assertEqual('user-terminal-required', value['status'])
         self.assertIn('fnm default 24.20.0', value['remediation']['commands'])
         self.assertTrue(value['remediation']['sources']); self.assertIn('fresh terminal', device.render(value))
+        if os.name != 'nt':
+            with patch.dict(os.environ, {'NVM_DIR': str(self.base / 'shared-nvm')}), patch.object(device.shutil, 'which', return_value=None):
+                existing = device.diagnostic('node', '24.20.0', '.nvmrc', None, None, self.repo)
+            self.assertIn('nvm alias default 24.20.0', existing['remediation']['commands'])
+            self.assertNotIn('fnm default 24.20.0', existing['remediation']['commands'])
         with patch.object(js_toolchain, 'executable', return_value=None):
             actual, _ = toolchain.resolve(self.repo, self.required, 'dotnet', 'node', '', 'auto', '')
             self.assertIsNone(actual['dotnet']); self.assertIsNone(actual['node'])
