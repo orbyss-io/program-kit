@@ -333,6 +333,12 @@ def validate_populated_repository_initializer(root: Path) -> None:
         tool_dir.mkdir()
         command_log = project / ".initializer-commands.log"
         pyyaml_marker = project / ".test-pyyaml-installed"
+        # This fixture tests initializer orchestration with fake executables, not
+        # device readiness. The actual policy is exercised by
+        # validate_repository_toolchain.py using disposable shared installations.
+        preflight = project / "scripts/initialize_device.py"
+        preflight.parent.mkdir()
+        preflight.write_text("raise RuntimeError('Fixture Python must intercept this policy call')\n")
         if suffix == "cmd":
             stub = tool_dir / "specify.cmd"
             stub.write_text(
@@ -347,6 +353,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
             python_stub.write_text(
                 "@echo off\n"
                 "if \"%1\"==\"--version\" exit /b 0\n"
+                "if \"%~nx1\"==\"initialize_device.py\" exit /b 0\n"
                 "if \"%1\"==\"-c\" (\n"
                 "  echo %2 | findstr /c:sys.executable >nul && (echo %~dp0python.cmd & exit /b 0)\n"
                 "  echo %2 | findstr /c:version_info >nul && exit /b 0\n"
@@ -390,6 +397,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
             python_stub.write_text(
                 "#!/usr/bin/env sh\n"
                 "if [ \"${1:-}\" = '--version' ]; then exit 0; fi\n"
+                "case \"${1:-}\" in *initialize_device.py) exit 0;; esac\n"
                 "if [ \"${1:-}\" = '-c' ]; then\n"
                 "  case \"${2:-}\" in *sys.executable*) printf '%s\\n' \"$0\"; exit 0;; *version_info*) exit 0;; esac\n"
                 "  [ -f \"$PROGRAM_KIT_TEST_PYYAML\" ]\n"
