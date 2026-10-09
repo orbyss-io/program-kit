@@ -1,5 +1,6 @@
 """Bounded native checks using the actual consumer recipe renderer and preparation."""
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -45,7 +46,19 @@ def main():
         with (scratch / 'native.stdout').open('wb') as stdout, (scratch / 'native.stderr').open('wb') as stderr:
             try:
                 bootstrap_compatibility.restore(root, scratch, timeout=300, stdout=stdout, stderr=stderr)
-                code = run([sys.executable, str(root / recipe['recipe'])], scratch, stdout, stderr, 600)
+                environment = os.environ.copy()
+                if kind == 'bff-keycloak':
+                    # Browser binaries are disposable test fixtures. This check
+                    # must prepare its own exact package's browser rather than
+                    # depend on another validator populating a shared cache.
+                    toolchain = json.loads((scratch / 'artifacts/program-kit/toolchain.json').read_text())
+                    environment['PLAYWRIGHT_BROWSERS_PATH'] = str(ROOT / 'artifacts/cache/playwright-browsers')
+                    install = [*toolchain['commands']['node'], 'node_modules/playwright/cli.js', 'install']
+                    if os.name != 'nt' and os.environ.get('GITHUB_ACTIONS') == 'true':
+                        install.append('--with-deps')  # CI-owned system prerequisites only.
+                    code = run([*install, 'chromium'], scratch, stdout, stderr, 600, env=environment)
+                    if code: raise ValueError('Chromium test fixture preparation failed with exit ' + str(code))
+                code = run([sys.executable, str(root / recipe['recipe'])], scratch, stdout, stderr, 600, env=environment)
                 if code: raise ValueError('Native recipe failed with exit ' + str(code))
                 from phase_obligations import test_results
                 cases = test_results(scratch / 'compatibility-results.xml', 'junit')
