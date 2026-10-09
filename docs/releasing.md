@@ -19,11 +19,14 @@ produce `PROGRAM_KIT_RELEASE_SOURCE_CHANGED`; preserve the failed journal and lo
 Passing individual checks does not authorize synthesizing a clean receipt for mixed
 source revisions. Never invoke the receipt writer alone to replace a failed suite.
 On this Windows host, `./scripts/Invoke-LocalRelease.ps1 -PrepareOnly` verifies
-cached exact tools without starting validation. In the user's terminal, the same
-helper without `-PrepareOnly` runs the required Release command with a bounded
-process PATH and restores the caller's environment. Windows native command lookup
-requires PATH below 8191 characters; use invocation-scoped tools rather than
-changing machine installations.
+the selected shared device tools without starting validation. In the user's
+terminal, the same helper without `-PrepareOnly` runs the required Release command.
+It does not substitute cached SDK/Node/npm distributions or modify PATH/DOTNET_ROOT.
+Missing or outdated tools require user-terminal remediation and fresh-session
+verification under the device toolchain policy.
+When the user explicitly authorizes this Codex task to run local Release, use
+`./scripts/Invoke-LocalRelease.ps1 -AuthorizedCodexTask`; it retains the normal
+approval gate and records that authorization in the validation journal.
 The helper checks Docker's Linux engine before starting the suite; unavailable container
 infrastructure fails immediately instead of after the remaining validation has run.
 

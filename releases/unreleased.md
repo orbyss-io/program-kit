@@ -1,7 +1,7 @@
 # Unreleased
 
-The proposed Program Kit release is 0.12.9. Changes and migration instructions
-are maintained in [migration-0.12.9.md](migration-0.12.9.md), which generates the
+The proposed Program Kit release is 0.12.10. Changes and migration instructions
+are maintained in [migration-0.12.10.md](migration-0.12.10.md), which generates the
 release body and shipped guidance. It includes the knowledge-application repair and
 the consumer contract, intake, UI and verification work prepared since 0.12.8.
 The separate architecture refresh/evolution investigation is deferred to a later patch.

@@ -114,6 +114,28 @@
       "recovery": [
         "Preserve approved history and failed-attempt evidence; retry the verified updater or resume the existing feature with scoped corrections."
       ]
+    },
+    {
+      "version": "0.12.10",
+      "previous": "0.12.9",
+      "guide": "migration-0.12.10.md",
+      "automatic": [
+        "Install resumable consumer upgrade preparation, activation and recovery helpers.",
+        "Install shared device readiness diagnostics and early initializer checks while preserving exact consumer locks and historical profiles."
+      ],
+      "review": [],
+      "verification": [
+        "Verify installation coherence and retained dependency inputs.",
+        "Verify actual shared executable paths and required versions after user-terminal remediation and session refresh.",
+        "Run affected engineering checks and independently verify changed application behavior."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve failed attempt evidence; complete device remediation in the user terminal and retry the verified resumable updater."
+      ]
     }
   ]
 }

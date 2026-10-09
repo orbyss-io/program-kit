@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-PROGRAM_KIT_REF="v0.12.9"
+PROGRAM_KIT_REF="v0.12.10"
 program_kit_stage="prerequisite checks"
 trap 'status=$?; printf "ERROR: Program Kit initialization stopped during %s with exit code %s. Preserve the output and partial installation for diagnosis.\n" "$program_kit_stage" "$status" >&2; exit "$status"' ERR
 

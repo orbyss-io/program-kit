@@ -584,8 +584,8 @@ Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
 the maintained [release procedure](docs/releasing.md).
 
 ```powershell
-git tag v0.12.9
-git push origin v0.12.9
+git tag v0.12.10
+git push origin v0.12.10
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
