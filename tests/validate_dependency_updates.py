@@ -7,6 +7,9 @@ import subprocess
 import tarfile
 from pathlib import Path
 import tempfile
+import os
+import sys
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -17,6 +20,30 @@ spec.loader.exec_module(m)
 
 
 class UpdateTests(unittest.TestCase):
+    def test_lock_refresh_uses_active_shared_npm_without_shortening_inherited_path(self):
+        spec = importlib.util.spec_from_file_location('update_dependencies', ROOT / 'scripts/update_dependencies.py')
+        update = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(update)
+        npm = self.root / 'shared tools/npm.cmd'
+        npm.parent.mkdir()
+        npm.write_text('fixture launcher')
+        ready, commands = [], []
+        policy = SimpleNamespace(contributor=lambda root: ready.append(root),
+                                 executable=lambda name, root: npm)
+        fake_spec = SimpleNamespace(loader=SimpleNamespace(exec_module=lambda module: None))
+        inherited = os.environ.get('PATH', '') + os.pathsep + 'X' * 8500
+        with patch.dict(os.environ, {'PATH': inherited}), patch.object(sys, 'argv', ['update_dependencies', '--development']), \
+                patch.object(importlib.util, 'spec_from_file_location', return_value=fake_spec), \
+                patch.object(importlib.util, 'module_from_spec', return_value=policy), \
+                patch.object(update, 'run', side_effect=lambda name, args: commands.append((name, args))):
+            update.main()
+            self.assertEqual(inherited, os.environ['PATH'])
+        self.assertEqual([ROOT], ready)
+        locks = [args for name, args in commands if name.startswith('lock-')]
+        self.assertEqual(2, len(locks))
+        self.assertTrue(all(args[0] == str(npm) and '--package-lock-only' in args for args in locks))
+        self.assertTrue(all('--global' not in args for args in locks))
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

@@ -37,10 +37,14 @@ def main():
         run('upgrade',[sys.executable,'scripts/dependency_maintenance.py','upgrade'])
         policy.contributor(ROOT)  # Updated pins may require a new human device selection.
         run('profile',[sys.executable,'scripts/update_dependency_profiles.py','update','--engines='+args.engines])
+    # CMD may discard an inherited PATH longer than 8191 characters. Use the
+    # verified active shared executable's absolute path without changing PATH.
+    npm=policy.executable('npm.cmd' if os.name=='nt' else 'npm',ROOT)
+    if npm is None: raise ValueError('PKT030 active shared npm selection changed; refresh and rerun readiness.')
     for relative in ('extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web',
                      'extensions/program-kit-governance/templates/ui-experience/acceptance'):
         directory=ROOT/relative
-        run('lock-'+directory.name,['npm.cmd' if os.name=='nt' else 'npm',
+        run('lock-'+directory.name,[str(npm),
             'install','--package-lock-only','--ignore-scripts','--no-audit','--no-fund','--prefix',str(directory)])
     run('schema-runtime',[sys.executable,'extensions/program-kit-governance/scripts/schema_runtime.py','setup'])
     arguments=[sys.executable,'scripts/run_validation.py','--suite','Development' if args.development else 'PullRequest',
