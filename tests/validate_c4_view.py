@@ -3,12 +3,19 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import io
 import os
 import socket
 import subprocess
 import sys
 import tempfile
+import threading
+import time
+import urllib.error
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from contextlib import redirect_stdout
 from pathlib import Path, PurePosixPath
+from unittest.mock import patch
 
 
 def load_module(path: Path, name: str):
@@ -194,6 +201,79 @@ def expect_failure(action, text: str) -> None:
     raise AssertionError(f"Expected failure containing {text!r}")
 
 
+def validate_readiness_and_budgets(viewer) -> None:
+    """Exercise real HTTP responses; a home page or an error page is not a diagram."""
+    behavior = {"page_status": 200, "canvas": True, "key": "system-context", "valid_json": True}
+    requests = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            requests.append(self.path)
+            if self.path == "/":
+                status, body = 200, b"Home page"
+            elif self.path == "/workspace/1/diagrams":
+                status = behavior["page_status"]
+                body = b'<div id="diagram"></div>' if behavior["canvas"] else b"Workspace load failed"
+            elif self.path == "/api/workspace/1":
+                status = 200
+                body = json.dumps({"views": {"systemContextViews": [
+                    {"key": behavior["key"], "elements": [{"id": "1"}]}]}}).encode()
+                if not behavior["valid_json"]:
+                    body = b"Workspace parse error"
+            else:
+                status, body = 404, b"Not found"
+            self.send_response(status)
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    url = viewer.diagram_url(server.server_port, "system-context")
+    try:
+        viewer.wait_ready(url, lambda: True, timeout=5, view_key="system-context")
+        assert requests == ["/workspace/1/diagrams", "/api/workspace/1"], requests
+        behavior["page_status"] = 500
+        expect_failure(lambda: viewer.wait_ready(url, lambda: True, timeout=5,
+                                                view_key="system-context"), "HTTP 500")
+        behavior["page_status"] = 200
+        behavior["canvas"] = False
+        expect_failure(lambda: viewer.wait_ready(url, lambda: True, timeout=5,
+                                                view_key="system-context"), "no diagram canvas")
+        behavior["canvas"] = True
+        behavior["key"] = "wrong-view"
+        expect_failure(lambda: viewer.wait_ready(url, lambda: True, timeout=5,
+                                                view_key="system-context"), "requested diagram")
+        behavior["key"] = "system-context"
+        behavior["valid_json"] = False
+        expect_failure(lambda: viewer.wait_ready(url, lambda: True, timeout=5,
+                                                view_key="system-context"), "invalid workspace JSON")
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+    with patch.object(viewer.urllib.request, "build_opener") as opener:
+        opener.return_value.open.side_effect = urllib.error.URLError(PermissionError("sandbox denied"))
+        expect_failure(lambda: viewer.wait_ready(url, lambda: True, timeout=5,
+                                                view_key="system-context"), "Localhost access is denied")
+        assert opener.return_value.open.call_count == 1
+    with viewer.operation_budget(0):
+        expect_failure(lambda: viewer.run_capture((sys.executable, "-V")), "time limit reached")
+    begin = time.monotonic()
+    with viewer.operation_budget(0.1):
+        expired = viewer.run_capture((sys.executable, "-c", "import time; time.sleep(10)"))
+    assert expired.returncode == 127 and time.monotonic() - begin < 3
+    with patch.object(viewer.subprocess, "run", side_effect=subprocess.TimeoutExpired("browser", 5)) as run:
+        assert viewer.open_browser_url(url) is False
+        assert run.call_args.kwargs["timeout"] == 5
+        assert run.call_args.kwargs["stdout"] == subprocess.DEVNULL
+        assert run.call_args.kwargs["stderr"] == subprocess.DEVNULL
+
+
 def main() -> int:
     repository = Path(__file__).resolve().parents[1]
     scripts = repository / "extensions/program-kit-governance/scripts"
@@ -244,6 +324,7 @@ def main() -> int:
         raise AssertionError("Java runtime parsing did not recognize legacy Java 8")
     if not viewer.process_alive(os.getpid()):
         raise AssertionError("C4 viewer did not recognize its current process as active")
+    validate_readiness_and_budgets(viewer)
 
     with tempfile.TemporaryDirectory(prefix="Program Kit C4 tests ") as directory:
         tests_root = Path(directory)
@@ -301,7 +382,7 @@ def main() -> int:
         original_discovery = viewer.discover_runtimes
         original_capture = viewer.run_capture
         original_wait = viewer.wait_ready
-        original_open = viewer.webbrowser.open
+        original_open = viewer.open_browser_url
 
         def fake_capture(arguments, timeout=10):
             command = list(arguments)
@@ -309,29 +390,101 @@ def main() -> int:
                 return subprocess.CompletedProcess(command, 0, "true\n", "")
             if command[1:4] == ["container", "rm", "--force"]:
                 return subprocess.CompletedProcess(command, 0, "", "")
+            if command[1] == "logs":
+                return subprocess.CompletedProcess(command, 0, "Specific DSL parser diagnosis\n", "")
             if command[1] == "run":
                 return subprocess.CompletedProcess(command, 0, "draft-viewer-container\n", "")
             return subprocess.CompletedProcess(command, 1, "", "unexpected command")
 
         viewer.discover_runtimes = lambda profile, war=None: fake_runtimes
         viewer.run_capture = fake_capture
-        viewer.wait_ready = lambda url, active, timeout=45: None
-        viewer.webbrowser.open = lambda url: opened.append(url) or True
+        viewer.wait_ready = lambda url, active, timeout=45, **kwargs: None
+        viewer.open_browser_url = lambda url: opened.append(url) or True
         draft_before_start = snapshot(project)
         try:
             started = viewer.start_session(project, "auto", None, None, True, True)
             if started["review_mode"] != "draft-intake-review" or not opened:
                 raise AssertionError("Current draft intake did not open in read-only review mode")
+            assert started["diagram_available"] and started["browser_opened"]
+            assert started["visual_review_performed"] is False
+            assert started["health_url"] == started["url"]
             staged_workspace = Path(started["data_directory"]) / "workspace.json"
             write(staged_workspace, '{"layout":"viewer-only"}\n')
             if (project / "workspace.json").exists():
                 raise AssertionError("Viewer workspace.json escaped into the consumer repository")
             viewer.stop_session(project, fake_runtimes)
+
+            output = io.StringIO()
+            with patch.object(viewer, "session_active", side_effect=KeyboardInterrupt), redirect_stdout(output):
+                foreground = viewer.start_session(project, "auto", None, None, False, False)
+            assert foreground["stopped"] and foreground["url"] in output.getvalue()
+            assert str(project) in output.getvalue() and "--project-root" in output.getvalue()
+            assert not viewer.session_directory(project).exists()
+            viewer.open_browser_url = lambda url: False
+            unavailable_browser = viewer.start_session(project, "auto", None, None, True, True)
+            assert unavailable_browser["browser_opened"] is False
+            assert viewer.load_state(project) is not None  # Manual URL remains usable.
+            viewer.stop_session(project, fake_runtimes)
+
+            def startup_failure(url, active, timeout=45, **kwargs):
+                write(viewer.session_directory(project) / "structurizr.stderr.log", "Java fixture diagnosis\n")
+                raise viewer.C4ViewError("Fixture startup failure")
+
+            viewer.wait_ready = startup_failure
+            expect_failure(lambda: viewer.start_session(project, "auto", None, None, False, True),
+                           "diagnostics preserved at")
+            failures = list((viewer.state_root() / "failures").glob("*/failure.json"))
+            assert len(failures) == 1
+            evidence = failures[0].parent
+            assert "Specific DSL parser diagnosis" in (evidence / "structurizr.docker.log").read_text()
+            assert "Java fixture diagnosis" in (evidence / "structurizr.stderr.log").read_text()
+            assert not viewer.session_directory(project).exists()
+            with patch.object(viewer, "stop_session", side_effect=viewer.C4ViewError("Cannot stop fixture")):
+                expect_failure(lambda: viewer.start_session(project, "auto", None, None, False, True),
+                               "cleanup failed and session state was preserved")
+            assert viewer.load_state(project) is not None
+            viewer.stop_session(project, fake_runtimes)
+
+            java_runtimes = {
+                "docker": {"daemon_available": False, "image_local": False},
+                "java": {"path": sys.executable, "supported": True, "war_local": True,
+                         "war": "fixture.war"},
+            }
+            viewer.discover_runtimes = lambda profile, war=None: java_runtimes
+
+            def java_startup_failure(url, active, timeout=45, **kwargs):
+                deadline = time.monotonic() + 3
+                log = viewer.session_directory(project) / "structurizr.stderr.log"
+                while "Java stream diagnosis" not in log.read_text(encoding="utf-8"):
+                    assert time.monotonic() < deadline, "Fixture child did not write its diagnostic"
+                    time.sleep(0.02)
+                raise viewer.C4ViewError("Java fixture failed to load workspace")
+
+            viewer.wait_ready = java_startup_failure
+            # Windows venv python.exe is a forwarding launcher; use the real interpreter
+            # so this Java stand-in owns its own PID and log handles like java.exe.
+            command = [getattr(sys, "_base_executable", sys.executable), "-c", "import sys,time; "
+                       "print('Java stream diagnosis', file=sys.stderr, flush=True); time.sleep(30)"]
+            with patch.object(viewer, "build_java_command", return_value=command):
+                try:
+                    viewer.start_session(project, "java", None, None, False, True)
+                except viewer.C4ViewError as error:
+                    java_error = str(error)
+                else:
+                    raise AssertionError("Java fixture startup should fail")
+                assert "diagnostics preserved at" in java_error, java_error
+                assert "cleanup failed" not in java_error, java_error
+                assert "capture incomplete" not in java_error, java_error
+            java_evidence = [path.parent for path in (viewer.state_root() / "failures").glob("*/failure.json")
+                             if json.loads(path.read_text())["runtime"] == "java"]
+            assert len(java_evidence) == 1
+            assert "Java stream diagnosis" in (java_evidence[0] / "structurizr.stderr.log").read_text()
+            assert not viewer.session_directory(project).exists(), java_error
         finally:
             viewer.discover_runtimes = original_discovery
             viewer.run_capture = original_capture
             viewer.wait_ready = original_wait
-            viewer.webbrowser.open = original_open
+            viewer.open_browser_url = original_open
             if viewer.session_directory(project).exists():
                 viewer.cleanup_directory(project)
         if snapshot(project) != draft_before_start:
@@ -404,7 +557,14 @@ def main() -> int:
         active_inspection = viewer.inspection(project)
         if active_inspection["port"] != 8081 or not active_inspection["active_session"]:
             raise AssertionError("Inspection did not report the recorded active viewer and its port")
-        repeated = viewer.start_session(project, "auto", None, None, False, True)
+        with patch.object(viewer, "wait_ready") as ready:
+            repeated = viewer.start_session(project, "auto", None, None, False, True)
+            assert ready.call_args.kwargs["view_key"] == "system-context"
+            assert ready.call_args.kwargs["timeout"] == 5
+        with patch.object(viewer, "wait_ready", side_effect=viewer.C4ViewError("Recorded viewer unreachable")):
+            expect_failure(lambda: viewer.start_session(project, "auto", None, None, False, True),
+                           "Recorded viewer unreachable")
+            assert viewer.load_state(project) is not None  # Never kill an unverified PID.
         if not repeated.get("reused") or repeated["pid"] != os.getpid():
             raise AssertionError("Repeated invocation did not reuse the collision-safe active session")
         viewer.cleanup_directory(project)
@@ -446,6 +606,7 @@ def main() -> int:
             "docker.exe", profile["selected"]["docker_image"], windows_data, "program-kit-c4-abc", 8081
         )
         expected_mount = f"{os.fspath(windows_data)}:/usr/local/structurizr"
+        assert "--pull=never" in docker_command and "--rm" not in docker_command
         if docker_command[-3] != expected_mount:
             raise AssertionError("Windows path with spaces was split or lost in Docker command construction")
         rendered_windows = viewer.render_command(docker_command, "nt")

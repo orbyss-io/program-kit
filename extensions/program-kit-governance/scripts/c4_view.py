@@ -14,11 +14,13 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.request
-import webbrowser
+from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Callable, Sequence
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 
 # Dynamic architecture-map loading must not create __pycache__ in the consumer repository.
@@ -33,10 +35,33 @@ PROFILE = Path(__file__).resolve().parents[1] / "references/c4-viewer-tool.json"
 STATE_ENVIRONMENT = "PROGRAM_KIT_C4_STATE_ROOT"
 WAR_ENVIRONMENT = "PROGRAM_KIT_STRUCTURIZR_WAR"
 DIRECTIVE = re.compile(r'^\s*!(docs|adrs)\s+("(?:[^"\\]|\\.)+")\s*$', re.MULTILINE)
+OPERATION_DEADLINE: ContextVar[float | None] = ContextVar("c4_operation_deadline", default=None)
+START_TIMEOUT = 120
+INSPECT_TIMEOUT = 30
+MAX_RESPONSE_BYTES = 8 * 1024 * 1024
 
 
 class C4ViewError(RuntimeError):
     pass
+
+
+@contextmanager
+def operation_budget(seconds: float):
+    deadline = time.monotonic() + seconds
+    outer = OPERATION_DEADLINE.get()
+    token = OPERATION_DEADLINE.set(min(deadline, outer) if outer is not None else deadline)
+    try:
+        yield
+    finally:
+        OPERATION_DEADLINE.reset(token)
+
+
+def remaining_timeout(maximum: float) -> float:
+    deadline = OPERATION_DEADLINE.get()
+    remaining = maximum if deadline is None else min(maximum, deadline - time.monotonic())
+    if remaining <= 0:
+        raise C4ViewError("C4 viewing time limit reached; stop and report this blocker without retrying")
+    return remaining
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -250,7 +275,7 @@ def run_capture(arguments: Sequence[str], timeout: float = 10) -> subprocess.Com
             text=True,
             encoding="utf-8",
             errors="replace",
-            timeout=timeout,
+            timeout=remaining_timeout(timeout),
             check=False,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
@@ -406,7 +431,7 @@ def build_docker_command(
         docker,
         "run",
         "--detach",
-        "--rm",
+        "--pull=never",
         "--name",
         name,
         "--label",
@@ -456,18 +481,21 @@ def _directive_paths(project_root: Path, text: str) -> list[tuple[Path, Path]]:
 
 
 def stage_projection(project_root: Path, target: Path) -> None:
+    remaining_timeout(START_TIMEOUT)
     target = _safe_session_path(target)
     target.mkdir(parents=True, exist_ok=False)
     dsl = project_root / WORKSPACE_DSL
     shutil.copy2(dsl, target / "workspace.dsl")
     text = dsl.read_text(encoding="utf-8")
     for source, relative in _directive_paths(project_root, text):
+        remaining_timeout(START_TIMEOUT)
         destination = target / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         if source.is_dir():
             shutil.copytree(source, destination, dirs_exist_ok=True)
         else:
             shutil.copy2(source, destination)
+    remaining_timeout(START_TIMEOUT)
 
 
 def _state_file(project_root: Path) -> Path:
@@ -549,10 +577,11 @@ def cleanup_directory(project_root: Path) -> None:
         shutil.rmtree(directory)
 
 
-def stop_session(project_root: Path, runtimes: dict | None = None) -> bool:
+def stop_session(project_root: Path, runtimes: dict | None = None, *, cleanup: bool = True) -> bool:
     state = load_state(project_root)
     if state is None:
-        cleanup_directory(project_root)
+        if cleanup:
+            cleanup_directory(project_root)
         return False
     if state.get("runtime") == "docker":
         docker = (runtimes or {}).get("docker", {})
@@ -564,7 +593,7 @@ def stop_session(project_root: Path, runtimes: dict | None = None) -> bool:
         result = run_capture(
             (executable, "container", "rm", "--force", state.get("container", "")), timeout=20
         )
-        if result.returncode != 0:
+        if result.returncode != 0 and "No such container" not in result.stderr:
             raise C4ViewError(
                 "Docker did not remove the recorded C4 viewer; temporary state was preserved: "
                 + (result.stderr.strip() or result.stdout.strip())
@@ -576,25 +605,121 @@ def stop_session(project_root: Path, runtimes: dict | None = None) -> bool:
             raise C4ViewError(
                 "Could not stop the recorded Java C4 viewer; temporary state was preserved"
             ) from exc
-    cleanup_directory(project_root)
+        if os.name == "nt":
+            # Windows retains open log handles until termination completes. POSIX may
+            # retain a zombie PID until the original Popen owner reaps it instead.
+            deadline = time.monotonic() + remaining_timeout(5)
+            while process_alive(state["pid"]):
+                if time.monotonic() >= deadline:
+                    raise C4ViewError("Java C4 viewer did not stop; temporary state was preserved")
+                time.sleep(0.05)
+    if cleanup:
+        cleanup_directory(project_root)
     return True
 
 
-def wait_ready(url: str, active: Callable[[], bool], timeout: float = 45) -> None:
+def read_response(response, deadline: float) -> bytes:
+    chunks = []
+    size = 0
+    while True:
+        remaining_timeout(deadline - time.monotonic())
+        # read1 avoids waiting to fill a large buffer while a server trickles bytes.
+        chunk = response.read1(min(65536, MAX_RESPONSE_BYTES + 1 - size))
+        if not chunk:
+            return b"".join(chunks)
+        chunks.append(chunk)
+        size += len(chunk)
+        if size > MAX_RESPONSE_BYTES:
+            raise C4ViewError("Structurizr response exceeds the bounded viewer response size")
+
+
+def wait_ready(
+    url: str, active: Callable[[], bool], timeout: float = 45, *, view_key: str | None = None
+) -> None:
+    """Check the actual diagrams page and parsed workspace, never only the home page."""
+    with operation_budget(timeout):
+        _wait_ready(url, active, timeout, view_key=view_key)
+
+
+def _wait_ready(
+    url: str, active: Callable[[], bool], timeout: float, *, view_key: str | None
+) -> None:
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-    deadline = time.monotonic() + timeout
+    deadline = time.monotonic() + remaining_timeout(timeout)
     last_error = "no response"
     while time.monotonic() < deadline:
+        remaining_timeout(timeout)
         if not active():
             raise C4ViewError("Structurizr stopped before the localhost viewer became ready")
         try:
-            with opener.open(url, timeout=1) as response:
-                if 200 <= response.status < 500:
-                    return
+            with opener.open(url, timeout=remaining_timeout(min(1, deadline - time.monotonic()))) as response:
+                if response.status != 200:
+                    raise C4ViewError(f"Diagram page returned HTTP {response.status}: {url}")
+                if view_key is not None:
+                    page = read_response(response, deadline)
+                    if not re.search(rb'id=[\"\']diagram[\"\']', page):
+                        raise C4ViewError(f"Structurizr returned no diagram canvas at {url}")
+            if view_key is not None:
+                address = urlsplit(url)
+                workspace_url = f"{address.scheme}://{address.netloc}/api/workspace/1"
+                with opener.open(workspace_url, timeout=remaining_timeout(min(1, deadline - time.monotonic()))) as response:
+                    raw = read_response(response, deadline)
+                    if response.status != 200:
+                        raise C4ViewError("Structurizr workspace response is unavailable or too large")
+                try:
+                    workspace = json.loads(raw)
+                except (ValueError, UnicodeError) as exc:
+                    raise C4ViewError("Structurizr returned invalid workspace JSON") from exc
+                views = workspace.get("views") if isinstance(workspace, dict) else None
+                candidates = [view for group in (views or {}).values() if isinstance(group, list)
+                              for view in group if isinstance(view, dict)] if isinstance(views, dict) else []
+                if not any(view.get("key") == view_key for view in candidates):
+                    raise C4ViewError(f"Structurizr did not load the requested diagram: {view_key}")
+            return
+        except urllib.error.HTTPError as exc:
+            raise C4ViewError(f"Structurizr diagram/workspace request failed: HTTP {exc.code} at {exc.url}") from exc
+        except C4ViewError:
+            raise
         except Exception as exc:  # localhost readiness has platform-specific failure types
+            reason = getattr(exc, "reason", exc)
+            if isinstance(reason, PermissionError) or getattr(reason, "winerror", None) in {5, 10013}:
+                raise C4ViewError(
+                    "Localhost access is denied by this execution environment; use an authorized "
+                    "local terminal or supported permission mechanism, then stop if access remains blocked"
+                ) from exc
             last_error = str(exc)
-        time.sleep(0.25)
+        time.sleep(min(0.25, max(0, deadline - time.monotonic())))
     raise C4ViewError(f"Structurizr did not become ready at {url}: {last_error}")
+
+
+def open_browser_url(url: str) -> bool:
+    # A browser handler can hang. Isolate it in a bounded non-agent child process.
+    try:
+        result = subprocess.run(
+            # Avoid a Windows venv forwarding launcher whose child would outlive its PID.
+            (getattr(sys, "_base_executable", sys.executable), "-c", "import sys, webbrowser; "
+             "sys.exit(0 if webbrowser.open(sys.argv[1]) else 1)", url),
+            # A launched GUI may inherit pipes and keep communicate() blocked after exit.
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            timeout=remaining_timeout(5), check=False,
+        )
+        return result.returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def preserve_failure(project_root: Path, error: BaseException, state: dict | None) -> Path:
+    directory = _safe_session_path(session_directory(project_root))
+    evidence = _safe_session_path(state_root() / "failures" /
+                                 f"{session_identifier(project_root)}-{time.time_ns()}")
+    evidence.mkdir(parents=True)
+    for log in directory.glob("*.log"):
+        shutil.copy2(log, evidence / log.name)
+    (evidence / "failure.json").write_text(json.dumps({
+        "error": str(error), "runtime": (state or {}).get("runtime"),
+        "url": (state or {}).get("url"), "visual_review_performed": False,
+    }, indent=2) + "\n", encoding="utf-8")
+    return evidence
 
 
 def choose_runtime(runtimes: dict, requested: str) -> str:
@@ -621,8 +746,11 @@ def reuse_session(state: dict, validation: dict, open_browser: bool) -> dict:
     state["review_mode"] = validation["review_mode"]
     state["confirmation_performed"] = False
     state["architecture_acceptance_performed"] = False
-    if open_browser:
-        webbrowser.open(state["url"])
+    wait_ready(state["url"], lambda: session_active(state), timeout=5,
+               view_key=validation["primary_view_key"])
+    state["diagram_available"] = True
+    state["visual_review_performed"] = False
+    state["browser_opened"] = open_browser_url(state["url"]) if open_browser else False
     return state
 
 
@@ -633,9 +761,21 @@ def start_session(
     war: str | None,
     open_browser: bool,
     detach: bool,
+    *, timeout: float = START_TIMEOUT,
+) -> dict:
+    if not 0 < timeout <= START_TIMEOUT:
+        raise C4ViewError(f"Startup timeout must be greater than zero and at most {START_TIMEOUT} seconds")
+    with operation_budget(timeout):
+        return _start_session(project_root, requested_runtime, requested_port, war, open_browser, detach)
+
+
+def _start_session(
+    project_root: Path, requested_runtime: str, requested_port: int | None,
+    war: str | None, open_browser: bool, detach: bool,
 ) -> dict:
     profile = load_profile()
     validation = validate_projection(project_root)
+    remaining_timeout(START_TIMEOUT)
     existing = load_state(project_root)
     if existing and existing.get("runtime") == "java" and session_active(existing):
         return reuse_session(existing, validation, open_browser)
@@ -661,10 +801,10 @@ def start_session(
     directory = _safe_session_path(session_directory(project_root))
     directory.mkdir(parents=True, exist_ok=False)
     data_directory = directory / "data"
+    state = None
     try:
         stage_projection(project_root, data_directory)
         identifier = session_identifier(project_root)
-        health_url = f"http://localhost:{port}/"
         url = diagram_url(port, validation["primary_view_key"])
         state = {
             "schema_version": "1.0",
@@ -672,7 +812,7 @@ def start_session(
             "runtime": runtime,
             "port": port,
             "url": url,
-            "health_url": health_url,
+            "health_url": url,
             "primary_view_key": validation["primary_view_key"],
             "projection_sha256": validation["projection_sha256"],
             "intake_status": validation["intake_status"],
@@ -684,11 +824,16 @@ def start_session(
         }
         if runtime == "docker":
             docker = runtimes["docker"]["path"]
-            name = f"program-kit-c4-{identifier}"
+            # A failed launch must never clean up an unrelated container with the same name.
+            name = f"program-kit-c4-{identifier}-{time.time_ns()}"
             command = build_docker_command(
                 docker, profile["selected"]["docker_image"], data_directory, name, port
             )
+            state.update({"container": name, "command": command})
+            write_state(project_root, state)
             result = run_capture(command, timeout=45)
+            (directory / "structurizr.stdout.log").write_text(result.stdout, encoding="utf-8")
+            (directory / "structurizr.stderr.log").write_text(result.stderr, encoding="utf-8")
             if result.returncode != 0:
                 raise C4ViewError(f"Structurizr Docker startup failed: {result.stderr.strip() or result.stdout.strip()}")
             state.update({"container": name, "container_id": result.stdout.strip(), "command": command})
@@ -704,38 +849,82 @@ def start_session(
             stderr.close()
             state.update({"pid": process.pid, "command": command})
         write_state(project_root, state)
-        wait_ready(health_url, lambda: session_active(state, runtimes))
-        if open_browser:
-            webbrowser.open(url)
+        wait_ready(url, lambda: session_active(state, runtimes), view_key=validation["primary_view_key"])
+        state["diagram_available"] = True
+        state["visual_review_performed"] = False
+        state["browser_opened"] = open_browser_url(url) if open_browser else False
+        write_state(project_root, state)
         if not detach:
+            announce_session(state)
+            # Foreground mode belongs to a human terminal; only startup is bounded.
+            token = OPERATION_DEADLINE.set(None)
             try:
                 while session_active(state, runtimes):
                     time.sleep(1)
             except KeyboardInterrupt:
                 pass
             finally:
-                stop_session(project_root, runtimes)
+                try:
+                    stop_session(project_root, runtimes)
+                finally:
+                    OPERATION_DEADLINE.reset(token)
             state["stopped"] = True
         return state
     except BaseException as startup_error:
+        # Leave time for bounded diagnostics and cleanup after the startup budget expires.
+        token = OPERATION_DEADLINE.set(None)
+        cleanup_error = None
+        evidence_error = None
+        evidence = directory
         try:
-            stop_session(project_root, runtimes)
-        except C4ViewError as cleanup_error:
-            raise C4ViewError(
-                f"{startup_error}; cleanup also failed and temporary state was preserved: {cleanup_error}"
-            ) from cleanup_error
-        if directory.exists():
-            cleanup_directory(project_root)
-        raise
+            with operation_budget(30):
+                try:
+                    if state and state.get("runtime") == "docker":
+                        logs = run_capture((runtimes["docker"]["path"], "logs", "--tail", "200",
+                                            state["container"]), timeout=5)
+                        (directory / "structurizr.docker.log").write_text(
+                            logs.stdout + "\n" + logs.stderr, encoding="utf-8")
+                except (C4ViewError, OSError) as exc:
+                    evidence_error = exc
+                try:
+                    stop_session(project_root, runtimes, cleanup=False)
+                except (C4ViewError, OSError) as exc:
+                    cleanup_error = exc
+                try:
+                    evidence = preserve_failure(project_root, startup_error, state)
+                except (C4ViewError, OSError) as exc:
+                    evidence_error = exc
+                if cleanup_error is None and evidence_error is None:
+                    try:
+                        cleanup_directory(project_root)
+                    except (C4ViewError, OSError) as exc:
+                        cleanup_error = exc
+        finally:
+            OPERATION_DEADLINE.reset(token)
+        if isinstance(startup_error, (KeyboardInterrupt, SystemExit)):
+            raise
+        message = f"{startup_error}; diagnostics preserved at {evidence}"
+        if cleanup_error is not None:
+            message += f"; cleanup failed and session state was preserved: {cleanup_error}"
+        if evidence_error is not None:
+            message += f"; diagnostic capture incomplete and original session files retained: {evidence_error}"
+        raise C4ViewError(message) from startup_error
 
 
 def inspection(project_root: Path, war: str | None = None, preferred_port: int | None = None) -> dict:
+    with operation_budget(INSPECT_TIMEOUT):
+        return _inspection(project_root, war, preferred_port)
+
+
+def _inspection(project_root: Path, war: str | None, preferred_port: int | None) -> dict:
     profile = load_profile()
     result = validate_projection(project_root)
+    remaining_timeout(INSPECT_TIMEOUT)
     runtimes = discover_runtimes(profile, war)
     existing = load_state(project_root)
     active = existing if existing and session_active(existing, runtimes) else None
     port = active["port"] if active else select_port(preferred_port or profile["selected"]["default_port"])
+    remaining_timeout(INSPECT_TIMEOUT)
     result.update(
         {
             "profile": profile["profile_id"],
@@ -750,9 +939,27 @@ def inspection(project_root: Path, war: str | None = None, preferred_port: int |
             "external_network_calls": False,
             "confirmation_performed": False,
             "architecture_acceptance_performed": False,
+            "startup_timeout_seconds": START_TIMEOUT,
+            "visual_review_performed": False,
         }
     )
     return result
+
+
+def announce_session(payload: dict) -> None:
+    print(f"Structurizr Local diagram is available at {payload['url']}", flush=True)
+    if not payload.get("browser_opened"):
+        print("Browser was not opened automatically. Open the URL above in your local browser.", flush=True)
+    print(f"Read-only review mode: {payload['review_mode']}")
+    print("Viewing did not confirm the intake or accept the architecture.")
+    print("Diagram availability was checked; visual review still requires opening it in a browser.")
+    print("The first diagram opens directly; use the left thumbnail rail to switch views.")
+    print("A magnifier on an element opens a linked detail view; no magnifier means the "
+          "architecture map defines no deeper C4 view. Use +/- to zoom the canvas.")
+    print("Stop and remove temporary viewer state with:")
+    command = render_command((sys.executable, str(Path(__file__).resolve()), "stop",
+                              "--project-root", payload["project_root"]))
+    print(("& " if os.name == "nt" else "") + command)
 
 
 def main() -> int:
@@ -774,6 +981,8 @@ def main() -> int:
     start_parser.add_argument("--runtime", choices=("auto", "docker", "java"), default="auto")
     start_parser.add_argument("--open", action="store_true")
     start_parser.add_argument("--detach", action="store_true")
+    start_parser.add_argument("--timeout", type=int, default=START_TIMEOUT,
+                              help="Startup budget in seconds (1-120); excludes bounded failure cleanup")
     args = parser.parse_args()
     try:
         root = canonical_project_root(args.project_root)
@@ -787,21 +996,17 @@ def main() -> int:
                 print("Viewing does not confirm the intake or accept the architecture.")
                 print(f"Managed Structurizr version: {payload['structurizr_version']}")
                 print(f"Viewer ready: {str(payload['viewer_ready']).lower()}; selected port: {payload['port']}")
+                if not payload["viewer_ready"]:
+                    for runtime in payload["runtimes"].values():
+                        print(runtime["diagnostic"])
         elif args.command == "start":
-            payload = start_session(root, args.runtime, args.port, args.war, args.open, args.detach)
+            print("Checking the C4 projection and local viewer prerequisites...", file=sys.stderr, flush=True)
+            payload = start_session(root, args.runtime, args.port, args.war, args.open, args.detach,
+                                    timeout=args.timeout)
             if payload.get("stopped"):
                 print("Structurizr Local stopped and temporary viewer state removed.")
             else:
-                print(f"Structurizr Local is available at {payload['url']}")
-                print(f"Read-only review mode: {payload['review_mode']}")
-                print("Viewing did not confirm the intake or accept the architecture.")
-                print("The first diagram opens directly; use the left thumbnail rail to switch views.")
-                print(
-                    "A magnifier on an element opens a linked detail view; no magnifier means the "
-                    "architecture map defines no deeper C4 view. Use +/- to zoom the canvas."
-                )
-                print("Stop and remove temporary viewer state with:")
-                print("python .specify/extensions/program-kit-governance/scripts/c4_view.py stop --project-root .")
+                announce_session(payload)
         else:
             stopped = stop_session(root, discover_runtimes(load_profile()))
             print("Structurizr Local stopped and temporary viewer state removed." if stopped else "No active C4 viewer session was recorded.")
