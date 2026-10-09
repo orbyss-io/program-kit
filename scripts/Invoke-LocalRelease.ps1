@@ -5,18 +5,39 @@ $ErrorActionPreference = 'Stop'
 $releaseRoot = Split-Path -Parent $PSScriptRoot
 $savedLocation = Get-Location
 $savedEnvironment = @{}
-foreach ($environmentName in @('PROGRAM_KIT_NPM_TOKEN','NODE_OPTIONS')) {
+foreach ($environmentName in @('PATH','PROGRAM_KIT_NPM_TOKEN','NODE_OPTIONS')) {
     $savedEnvironment[$environmentName] = [Environment]::GetEnvironmentVariable($environmentName,'Process')
 }
 try {
     Set-Location -LiteralPath $releaseRoot
     # Verify the shared device selection. Cached SDK/Node/npm distributions cannot
-    # establish readiness and this wrapper never modifies PATH or DOTNET_ROOT.
+    # establish readiness. Verify the original selection before any CMD-size repair.
     $uv = Get-Command uv -ErrorAction Stop
     $toolRoot = (& $uv.Source tool dir).Trim()
     $python = Join-Path $toolRoot 'specify-cli/Scripts/python.exe'
     & $python (Join-Path $releaseRoot 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py') --contributor $releaseRoot
     if ($LASTEXITCODE -ne 0) { throw 'Device readiness failed; complete the printed user-terminal update and refresh the session before retrying.' }
+    if ($env:PATH.Length -gt 7000) {
+        # npm exec adds project bin folders to PATH. CMD discards overlong PATH
+        # values; retain the same active shared executables in a shorter owned
+        # process environment. Never select a cached/local replacement.
+        $selectedCommands = @{}
+        foreach ($name in @('node','npm.cmd','dotnet','python','specify','uv','git','docker','gh','codex','pwsh','powershell')) {
+            $command = Get-Command $name -ErrorAction SilentlyContinue
+            if ($command -and $command.Source) { $selectedCommands[$name] = $command.Source }
+        }
+        $directories = @($selectedCommands.Values | ForEach-Object { Split-Path -Parent $_ })
+        $directories += @((Join-Path $env:SystemRoot 'System32'), $env:SystemRoot, $PSHOME)
+        $env:PATH = ($directories | Select-Object -Unique) -join ';'
+        foreach ($name in $selectedCommands.Keys) {
+            if ((Get-Command $name -ErrorAction Stop).Source -ne $selectedCommands[$name]) {
+                throw "Active executable selection changed while bounding CMD PATH: $name"
+            }
+        }
+        & $python (Join-Path $releaseRoot 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py') --contributor $releaseRoot
+        if ($LASTEXITCODE -ne 0) { throw 'Shared device selection failed verification after bounding CMD PATH.' }
+        Write-Host 'Bounded CMD PATH with identical active executable selections; no outdated tool was masked.'
+    }
     if ('--use-system-ca' -notin ($env:NODE_OPTIONS -split '\s+')) {
         $env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim()
     }

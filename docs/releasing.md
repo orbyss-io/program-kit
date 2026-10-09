@@ -21,7 +21,11 @@ source revisions. Never invoke the receipt writer alone to replace a failed suit
 On this Windows host, `./scripts/Invoke-LocalRelease.ps1 -PrepareOnly` verifies
 the selected shared device tools without starting validation. In the user's
 terminal, the same helper without `-PrepareOnly` runs the required Release command.
-It does not substitute cached SDK/Node/npm distributions or modify PATH/DOTNET_ROOT.
+It does not substitute cached SDK/Node/npm distributions or modify DOTNET_ROOT.
+If an inherited PATH is too long for CMD/npm exec, it verifies readiness first,
+retains exactly the same active executable selections in a bounded process PATH,
+then verifies those selections and pins again. It restores the caller's PATH
+on completion; this cannot hide an outdated device selection.
 Missing or outdated tools require user-terminal remediation and fresh-session
 verification under the device toolchain policy.
 When the user explicitly authorizes this Codex task to run local Release, use
