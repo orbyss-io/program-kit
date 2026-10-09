@@ -91,7 +91,14 @@ def resolve(blocks, repository, catalog_path=None):
         if entry.get('knowledge'):
             knowledge = blocks.load_json(directory / entry['knowledge']['path'])
             entry_sources(knowledge)
-    abi = blocks.load_json(bind(directory / 'engineering-contracts.json'))['releases'].get(catalog['families']['foundation']['releaseVersion'].split('-')[0])
+    abi_path = directory / 'engineering-contracts.json'
+    # Pre-installation adapters run from the verified target release. Older
+    # registries can lack supplemental ABI metadata while retaining valid exact
+    # profiles and qualification evidence. Borrow only the absent metadata;
+    # existing consumer files (including corrupt ones) remain authoritative.
+    if not abi_path.exists() and directory.resolve() != blocks.profile_registry().resolve():
+        abi_path = blocks.profile_registry() / 'engineering-contracts.json'
+    abi = blocks.load_json(bind(abi_path))['releases'].get(catalog['families']['foundation']['releaseVersion'].split('-')[0])
     if abi is None: blocks.fail('PKB611', 'selected Foundation has no reviewed shared ABI; repair that exact profile')
     if knowledge and abi['sourceCommit'] != knowledge['sourceCommit']:
         blocks.fail('PKB611', 'publisher knowledge and engineering-contracts.json bind different source commits; repair the selected profile')

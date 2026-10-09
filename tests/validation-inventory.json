@@ -3084,7 +3084,8 @@
         "LICENSE",
         "THIRD-PARTY-NOTICES.md",
         ".github/**",
-        "tests/validate_local_upgrade.py"
+        "tests/validate_local_upgrade.py",
+        "tests/upgrade_selection_cases.py"
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_local_upgrade"

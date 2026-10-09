@@ -41,6 +41,39 @@ Unchanged product confirmation and accepted bootstrap history carry forward.
 After executed correction use disposition `corrected` with resolutionMigrations naming
 the current completed migrations covering that finding. Planning cannot discharge it.
 
+Offer an optional software update review once during the upgrade: keep current versions,
+review qualified dependency profiles, or review all repository software. Honor the
+consumer's existing choice. Declining or deferring this review leaves installation and
+retained dependency authority intact; the offer creates no additional upgrade gate.
+The standalone updater also prints this invitation and includes it in `--plan`.
+
+For a profile review, run the installed building-block `dependency_profiles.py list` and
+compare the captured exact profile with available qualified profiles. Show current and
+proposed package/tool/image versions, qualification scope, limitations, affected activation
+closures and consumer migration work. The release's qualified default is an available
+candidate; verify its applicability to this consumer before recommending adoption.
+Report newer publisher versions outside the registry as requiring qualification;
+preserve historical qualified profiles and identify the next action to obtain a qualified candidate.
+Use the existing `draft --profile <id> --target .` and reviewed `accept` transition when
+the consumer chooses a profile. Preserve originals and renew only affected contracts,
+engineering pins, native locks and compatibility checks through their maintained owners.
+
+For the broader review, inventory the actual repository's package manifests and locks,
+SDK/runtime and toolchain pins, CI actions and container images, including software outside
+the Program Kit profile. After the consumer opts in, verify newer stable versions against
+official registries and publisher release guidance. Include current/proposed versions,
+source links, support/security status, breaking changes, peer/engine constraints and the
+required tests in a grouped proposal. Identify unpinned inputs and failed lookups honestly;
+never describe unavailable metadata as up to date. Prereleases need an explicit choice.
+Assess related packages as compatible groups; the newest individual versions may require
+a coordinated migration. Profile software uses the qualified transition above; other
+software uses its native manifests, lockfiles and existing consumer review authority.
+Choose updates before changing pins or locks, then perform affected restore/build/test and
+security checks. Shared device installations follow device-toolchain-policy.md and remain
+human-owned. This consumer review does not invoke Program Kit's publisher-maintenance
+workflow or start a paid worker. Keep historical accepted pins and evidence until the
+selected transition is reviewed and verified.
+
 `brief --input <brief.json>` records only bounded work: stable id, origin, reason/evidence,
 scope (`owners`, `contracts`, `paths`, `features`, `shared`), outcome/invariants, trigger,
 duePhase, dependencies, maintained method, uncertainties and nextAction. Status is

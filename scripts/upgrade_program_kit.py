@@ -811,6 +811,19 @@ def building_block_versions(release: Path, target: Path) -> dict[str, str]:
     return versions
 
 
+def software_update_offer() -> dict:
+    """A read-only invitation; dependency adoption keeps its existing authority."""
+    return {
+        'optional': True,
+        'choices': ['Keep current versions', 'Review qualified dependency profiles', 'Review all repository software'],
+        'profileListCommand': 'python .specify/extensions/program-kit-building-blocks/scripts/dependency_profiles.py list',
+        'reviewCommand': 'speckit.program-kit-governance.upgrade',
+        'reviewRequest': 'Review repository software versions, including dependency profiles, packages, toolchains, CI actions and container images.',
+        'nextAction': 'Compare current and proposed stable versions, compatibility, security and migration work; choose what to adopt before changing pins or native locks.',
+        'networkLookupPerformed': False,
+    }
+
+
 def building_block_upgrade_state(target: Path, release: Path, exporter_transition: dict | None = None) -> str | None:
     """Validate authority and distinguish an accepted plan from applied dependencies.
 
@@ -1214,6 +1227,7 @@ def main() -> int:
                 plan['engineeringPlan'] = json.loads(result.stdout)
             plan['applicationChecksPerformed'] = False
             plan['releaseReadinessEstablished'] = False
+            plan['optionalSoftwareReview'] = software_update_offer()
             print(json.dumps(plan, indent=2))
             return 0
         component_versions = building_block_versions(release, target)
@@ -1413,6 +1427,12 @@ def main() -> int:
             print('PKU132 installation is coherent; migration verification remains pending: '
                   + ', '.join(migration['pendingChecks']) + '. Preserve migration-completion.json and renew the named evidence before retry.', file=sys.stderr)
             renewal_required = True
+        offer = software_update_offer()
+        print('Optional software update review: keep current versions, review qualified dependency profiles, '
+              'or review all repository software (packages, toolchains, CI actions and container images).')
+        print('List qualified profiles: ' + offer['profileListCommand'])
+        print('To opt in, use ' + offer['reviewCommand'] + ' and request: "' + offer['reviewRequest'] + '"')
+        print('Review current and proposed versions and required checks before choosing which updates to adopt.')
         if renewal_required:
             attempt.update(status='completed', outcome='offline-coherent-package-verification-pending')
             seal_attempt(attempt_path, attempt)

@@ -32,6 +32,13 @@ unsupported retention. Mechanical setup and context regeneration need no new app
 Use existing architecture/constitution review and dependency_profiles.py draft/accept
 for their substantive choices. Never fabricate reviewer/approval provenance.
 
+Always offer an optional software update review during this upgrade, even when the
+consumer already uses the release's default dependency profile. Group the choice:
+keep current versions, review qualified dependency profiles, or review all repository
+software. Honor an already stated choice and continue installation when the consumer
+declines or defers this review. Use the software review method in consumer-upgrade.md.
+An upgrade request alone does not select newer dependency versions.
+
 Record decisions and concise planned/conditional/deferred migrations in the single
 coordination record via decide/brief. Group shared contracts once across owners and
 dependency closure. Record evidence, outcome/invariants, trigger/due phase, dependencies,

@@ -787,6 +787,10 @@ def main() -> int:
         preview = run(*command, '--plan', cwd=project)
         require_success(preview, 'unfinished migration read-only plan')
         preview_plan = json.loads(preview.stdout)
+        offer = preview_plan['optionalSoftwareReview']
+        if (offer['optional'] is not True or offer['networkLookupPerformed'] is not False
+                or offer['choices'] != ['Keep current versions', 'Review qualified dependency profiles', 'Review all repository software']):
+            raise AssertionError('Upgrade preview did not offer an optional software review without lookups')
         if preview_plan['fromVersion'] != old or preview_plan['toVersion'] != expected or not preview_plan['migrations']:
             raise AssertionError('Installed files caused the unfinished migration origin to disappear')
         if before_plan != {path.relative_to(project).as_posix(): sha256(path) for path in project.rglob('*') if path.is_file()}:

@@ -246,6 +246,14 @@ consumer compatibility and Delivery acceptance remain separate. Installing a
 Program Kit upgrade preserves existing accepted and scaffold-captured profiles.
 Adopting different dependencies still requires the reviewed dependency transition.
 
+Every upgrade offers an optional software update review: keep current versions, review
+qualified dependency profiles, or review all repository software, including packages,
+toolchains, CI actions and container images. The conversational upgrade honors your choice;
+the standalone updater prints the invitation and includes it in `--plan`. Opting into a
+review produces a comparison of current and proposed stable versions, compatibility,
+security and migration work. Choose which updates to adopt before changing pins or locks.
+Keeping or deferring your current versions does not block the Program Kit installation.
+
 Dependency changes use `dependency_profiles.py list`, then `draft --profile <id> --target .`.
 Review the exact profile, preserved originals and proposed producer-contract/planning changes;
 record an Accepted decision naming the profile and review SHA-256, then use `accept` with that

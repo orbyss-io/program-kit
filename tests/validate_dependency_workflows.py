@@ -3,6 +3,7 @@ import importlib.util
 import contextlib
 import json
 import io
+import re
 from pathlib import Path
 import shlex
 import sys
@@ -35,7 +36,9 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotIn('initializer-hotfix:', updater.update_text(text + hotfix, '0.13.1'))
         self.assertNotIn('workflow-path-hotfix:', updated)
         self.assertNotIn('/63ba307f3f856e826428d452e22e798f9a62ab3e/Initialize-ProgramKit.cmd', updated)
-        self.assertEqual(text, updater.update_text(text, '0.12.9'))
+        published = re.search(r'Latest available release: \*\*\[v(\d+\.\d+\.\d+)\]', text)
+        self.assertIsNotNone(published)
+        self.assertEqual(text, updater.update_text(text, published.group(1)))
         self.assertIn('[current installation instructions](#install-in-a-repository)', updated)
         self.assertNotIn('use its assets rather than', updated)
         for guide in (ROOT / 'docs/codex-desktop-windows.md',

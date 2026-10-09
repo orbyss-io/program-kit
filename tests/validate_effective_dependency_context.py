@@ -132,6 +132,74 @@ class EffectiveContextTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'PKB111'):
             providers.project(self.root, self.decisions)
 
+    def upgrade_context_fixture(self):
+        identity = 'foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
+        catalog = self.selected(identity)
+        registry = self.blocks.profile_registry()
+        index = self.blocks.load_json(registry / 'index.json')
+        entry = index['profiles'][identity]
+        record_path = self.root / '.program-kit/dependency-profile.json'
+        record = self.blocks.load_json(record_path)
+        record['newProjectQualification'] = {'profile': identity, 'entrySha256': self.blocks.canonical_sha256(entry)}
+        write_json(record_path, record)
+        (registry / 'engineering-contracts.json').unlink()
+        return load_module(RESOLVER), registry, entry, record, catalog
+
+    def test_release_adapter_supplies_only_missing_supplemental_abi(self):
+        release, registry, entry, record, catalog = self.upgrade_context_fixture()
+        before = {path: path.read_bytes() for path in self.root.rglob('*')
+                  if path.is_file() and '__pycache__' not in path.parts}
+        effective = release.effective_dependency_context(self.root)
+        self.assertEqual(catalog, effective['catalog'])
+        self.assertEqual('captured-draft', effective['authority'])
+        self.assertEqual(record['newProjectQualification'], effective['qualification'])
+        self.assertEqual(self.blocks.canonical_sha256(entry), effective['profileEntrySha256'])
+        self.assertIn(str((registry / 'index.json').resolve()), effective['sources'])
+        supplied = release.profile_registry() / 'engineering-contracts.json'
+        self.assertEqual(release.raw_sha256(supplied), effective['sources'][str(supplied.resolve())])
+        self.assertEqual(before, {path: path.read_bytes() for path in self.root.rglob('*')
+                                 if path.is_file() and '__pycache__' not in path.parts})
+        # The installed resolver cannot repair itself using unrelated metadata.
+        with self.assertRaisesRegex(ValueError, 'PKB111.*engineering-contracts'):
+            self.blocks.effective_dependency_context(self.root)
+
+    def test_release_adapter_does_not_replace_missing_or_corrupt_consumer_authority(self):
+        release, registry, entry, record, _ = self.upgrade_context_fixture()
+        paths = [registry / 'index.json', registry / entry['path'], registry / entry['evidence']['path'],
+                 self.root / record['catalogPath'], self.root / record['profilePath'],
+                 self.root / '.program-kit/dependency-profile.json']
+        for path in paths:
+            original = path.read_bytes()
+            for corrupt in (None, b'{}'):
+                with self.subTest(path=path.name, corrupt=corrupt):
+                    if corrupt is None: path.unlink()
+                    else: path.write_bytes(corrupt)
+                    try:
+                        with self.assertRaises((ValueError, OSError, KeyError)):
+                            release.effective_dependency_context(self.root)
+                    finally:
+                        path.write_bytes(original)
+
+    def test_release_adapter_respects_existing_abi_and_rejects_conflicts(self):
+        release, registry, _, _, catalog = self.upgrade_context_fixture()
+        abi_path = registry / 'engineering-contracts.json'
+        abi = release.load_json(release.profile_registry() / abi_path.name)
+        write_json(abi_path, abi)
+        effective = release.effective_dependency_context(self.root)
+        self.assertIn(str(abi_path.resolve()), effective['sources'])
+        self.assertNotIn(str((release.profile_registry() / abi_path.name).resolve()), effective['sources'])
+        for value in (b'{broken', None, 'conflicting-commit'):
+            with self.subTest(value=value):
+                if isinstance(value, bytes): abi_path.write_bytes(value)
+                else:
+                    changed = copy.deepcopy(abi)
+                    version = catalog['families']['foundation']['releaseVersion']
+                    if value is None: changed['releases'].pop(version)
+                    else: changed['releases'][version]['sourceCommit'] = 'a' * 40
+                    write_json(abi_path, changed)
+                with self.assertRaises(ValueError):
+                    release.effective_dependency_context(self.root)
+
     def test_qualification_and_shared_abi_conflicts_are_not_other_profiles(self):
         self.selected()
         record_path = self.root / '.program-kit/dependency-profile.json'
