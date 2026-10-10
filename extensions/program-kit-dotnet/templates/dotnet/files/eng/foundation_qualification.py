@@ -40,7 +40,7 @@ def setup_contract(configuration):
     if configuration['compositionId'].endswith('-postgresql'):
         capabilities.append('postgresql')
     prefix = ['python', 'eng/foundation_qualification.py', '--repository', '.', '--run-directory', '{runDirectory}']
-    return {'setup': {'environmentInputs': ['PROGRAMKIT_BROWSER_ENGINES', 'PLAYWRIGHT_BROWSERS_PATH','PROGRAMKIT_IDENTITY_AUTHORITY','PROGRAMKIT_QUALIFY_PRODUCT'],
+    return {'setup': {'environmentInputs': ['PROGRAMKIT_BROWSER_ENGINES', 'PLAYWRIGHT_BROWSERS_PATH','PROGRAMKIT_IDENTITY_AUTHORITY','PROGRAMKIT_QUALIFY_PRODUCT','GITHUB_ACTIONS'],
                       'steps': [{'id': 'foundation-'+kind, 'stage': kind, 'command': [*prefix, '--stage', kind],
                                  'cwd': '.', 'timeoutSeconds': 1200} for kind in ('restore', 'build', 'services')]},
             'tests': {'capabilities': capabilities,
@@ -232,7 +232,10 @@ def stage(root, selected, kind, directory):
             command.run(['docker', 'pull', image], timeout=300)
         engines = os.environ.get('PROGRAMKIT_BROWSER_ENGINES', 'chromium,webkit').split(',')
         require(engines and set(engines) <= {'chromium', 'webkit', 'firefox'}, 'PKF101 invalid browser engine selection')
-        command.run(playwright_command(root,['install', *engines]), cwd=root/'eng/web', timeout=600)
+        install = ['install']
+        if os.name != 'nt' and os.environ.get('GITHUB_ACTIONS') == 'true':
+            install.append('--with-deps')  # System prerequisites belong to the CI-owned runner.
+        command.run(playwright_command(root,[*install, *engines]), cwd=root/'eng/web', timeout=600)
     write(directory/(kind+'-timings.json'),{**timings,'elapsedSeconds':round(time.monotonic()-stage_started,3)})
 
 

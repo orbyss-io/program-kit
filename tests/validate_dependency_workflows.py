@@ -68,6 +68,40 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual(2,rejected.returncode)
             self.assertIn('cannot claim Release coverage',rejected.stderr)
 
+    def test_suite_boundary_rejects_missing_duplicate_and_erased_ci_inventory_routes(self):
+        import copy
+        import yaml
+        import validate_test_suites as suites
+        workflow=yaml.safe_load((ROOT/'.github/workflows/ci.yml').read_text())
+        steps=workflow['jobs']['validate']['steps']
+        invocation=suites.shared_inventory_invocation(steps,'CI')
+        suites.validate_ci_selection(invocation)
+        for altered in ([step for step in steps if step is not invocation],steps+[copy.deepcopy(invocation)]):
+            with self.assertRaisesRegex(AssertionError,'exactly once'):
+                suites.shared_inventory_invocation(altered,'CI')
+        for before,after in (("'scripts/run_validation.py'","'scripts/other_runner.py'"),
+                ("['--suite', 'PullRequest']","['--check', 'qualify_reusable_foundations']"),
+                ("['--suite', 'Development']","['--check', 'qualify_reusable_foundations']"),
+                ("'--changed-from', os.environ['BASE_SHA']","'--check', 'qualify_reusable_foundations'"),
+                ("'--workers', '4'","'--workers', '1'"),
+                ('check=True','check=False'),
+                ("SystemExit('Unknown manual CI validation selection')",'SystemExit(0)'),
+                ("['--suite', 'PullRequest']","['--suite', 'Release', '--receipt']")):
+            altered=copy.deepcopy(invocation)
+            self.assertIn(before,altered['run'])
+            altered['run']=altered['run'].replace(before,after)
+            with self.subTest(mutation=before),self.assertRaises(AssertionError):
+                suites.validate_ci_selection(altered)
+        altered=copy.deepcopy(invocation)
+        altered['env']['VALIDATION_SELECTION']='untrusted inline interpolation'
+        with self.assertRaisesRegex(AssertionError,'environment data'): suites.validate_ci_selection(altered)
+        release=yaml.safe_load((ROOT/'.github/workflows/release.yml').read_text())
+        release_steps=next(iter(release['jobs'].values()))['steps']
+        tagged=suites.shared_inventory_invocation(release_steps,'Release workflow')
+        self.assertIn('--receipt',tagged['run'])
+        self.assertLess(release_steps.index(tagged),next(index for index,step in enumerate(release_steps)
+            if step.get('name')=='Publish GitHub release'))
+
     def test_readme_updates_only_successfully_published_stable_release_examples(self):
         spec = importlib.util.spec_from_file_location('published_readme', ROOT / '.github/scripts/update_published_readme.py')
         updater = importlib.util.module_from_spec(spec)

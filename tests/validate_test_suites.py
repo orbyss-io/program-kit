@@ -18,6 +18,55 @@ def require(label: str, text: str, phrases: tuple[str, ...]) -> None:
         raise AssertionError(f"{label} is missing required test policy: {missing}")
 
 
+def shared_inventory_invocation(steps: list[dict], label: str) -> dict:
+    marker='scripts/run_validation.py --suite' if label=='Release workflow' else 'scripts/run_validation.py'
+    invocations=[step for step in steps if marker in step.get('run','')]
+    if len(invocations)!=1:
+        raise AssertionError(label+' must run the shared inventory exactly once')
+    return invocations[0]
+
+
+def validate_ci_selection(step: dict) -> None:
+    """Verify the executable fixed-argv CI route, preserving default and automatic coverage."""
+    import os
+    import subprocess
+    from unittest.mock import patch
+    environment=step.get('env',{})
+    for name,expected in (('EVENT_NAME','${{ github.event_name }}'),
+                          ('BASE_SHA','${{ github.event.pull_request.base.sha }}'),
+                          ('VALIDATION_SELECTION','${{ inputs.validation }}')):
+        if environment.get(name)!=expected:
+            raise AssertionError('CI selection must obtain '+name+' as environment data')
+    lines=step.get('run','').splitlines()
+    if not lines or lines[0]!="python - <<'PY'" or lines[-1]!='PY':
+        raise AssertionError('CI selection must use the reviewed Python argument-array route')
+    routing='\n'.join(lines[1:-1])
+    command=['python','scripts/run_validation.py']
+    common=['--workers','4','--engines=chromium,firefox,webkit']
+    routes=[('workflow_dispatch',None,['--suite','PullRequest']),
+            ('workflow_dispatch','',['--suite','PullRequest']),
+            ('workflow_dispatch','full',['--suite','PullRequest']),
+            ('workflow_dispatch','qualify_reusable_foundations',['--check','qualify_reusable_foundations']),
+            ('pull_request','qualify_reusable_foundations',['--suite','PullRequest','--changed-from','base-commit']),
+            ('push','qualify_reusable_foundations',['--suite','Development']),
+            ('push','unknown',['--suite','Development'])]
+    for event,selection,arguments in routes:
+        values={'EVENT_NAME':event,'BASE_SHA':'base-commit'}
+        if selection is not None: values['VALIDATION_SELECTION']=selection
+        with patch.dict(os.environ,values,clear=True),patch.object(subprocess,'run') as run:
+            exec(routing,{})
+            if run.call_count!=1 or run.call_args.args!=(command+arguments+common,) or run.call_args.kwargs!={'check':True}:
+                raise AssertionError('CI selection changed shared coverage or execution for '+event)
+    for selection in ('unknown','qualify_reusable_foundations; echo injected','--suite Release --receipt'):
+        with patch.dict(os.environ,{'EVENT_NAME':'workflow_dispatch','VALIDATION_SELECTION':selection},clear=True), \
+                patch.object(subprocess,'run') as run:
+            try: exec(routing,{})
+            except SystemExit as error:
+                if error.code in (None,0): raise AssertionError('CI selection must fail unknown manual values')
+            else: raise AssertionError('CI selection must reject unknown manual values')
+            if run.called: raise AssertionError('CI selection executed an unknown manual value')
+
+
 def main() -> int:
     aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
@@ -142,23 +191,19 @@ def main() -> int:
     for workflow, label in ((ci, "CI"), (release, "Release workflow")):
         definition = yaml.safe_load(workflow)
         steps = next(iter(definition['jobs'].values()))['steps']
-        invocations = [s for s in steps if 'scripts/run_validation.py --suite' in s.get('run', '')]
-        if len(invocations) != 1:
-            raise AssertionError(label + ' must run the shared inventory exactly once')
+        invocation = shared_inventory_invocation(steps, label)
         if 'global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json' not in workflow:
             raise AssertionError(label + ' lacks the pinned SDK')
         if not any(s.get('if') == 'always()' and 'upload-artifact@' in s.get('uses', '') for s in steps):
             raise AssertionError(label + ' must preserve failed validation evidence')
         if label == 'Release workflow':
-            if '--receipt' not in invocations[0]['run']:
+            if '--receipt' not in invocation['run']:
                 raise AssertionError('Tagged Release requires an executed-check receipt')
             publish = next(i for i, s in enumerate(steps) if s.get('name') == 'Publish GitHub release')
-            if steps.index(invocations[0]) >= publish:
+            if steps.index(invocation) >= publish:
                 raise AssertionError('Validation must precede publication')
         else:
-            require('CI selection', invocations[0]['run'], ('--suite PullRequest', '--changed-from', '--suite Development', '--workers 4'))
-            if '--suite Release' in invocations[0]['run']:
-                raise AssertionError('Ordinary CI must not duplicate tagged Release execution')
+            validate_ci_selection(invocation)
 
     require(
         "release evidence reuse",

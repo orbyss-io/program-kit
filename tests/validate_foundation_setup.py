@@ -227,6 +227,23 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
         os.environ[unrelated] = 'unrelated'
         self.assertEqual(previous, setup.inputs(self.root, selected))
 
+    def test_declared_ci_browser_ownership_invalidates_readiness_fingerprint(self):
+        selected=self.composition()
+        declared=qualification.setup_contract({'compositionId':'foundation-bff-keycloak'})['setup']['environmentInputs']
+        self.assertIn('GITHUB_ACTIONS',declared)
+        selected['setup']['environmentInputs']=declared
+        fingerprints={}
+        with patch.dict(os.environ,{},clear=False):
+            for name,value in (('absent',None),('ordinary','false'),('ci-owned','true')):
+                if value is None: os.environ.pop('GITHUB_ACTIONS',None)
+                else: os.environ['GITHUB_ACTIONS']=value
+                fingerprints[name]=setup.inputs(self.root,selected)
+                self.assertEqual(fingerprints[name],setup.inputs(self.root,selected))
+                self.assertRegex(fingerprints[name],r'^[0-9a-f]{64}$')
+        self.assertEqual(3,len(set(fingerprints.values())))
+        (self.root/'fingerprint-observations.json').write_text(json.dumps({'declaredEnvironmentInput':'GITHUB_ACTIONS',
+            'fingerprints':fingerprints,'scope':'Real maintained input fingerprints using the helper-declared names and owned command fixture; environment values do not enter fingerprint evidence.'},indent=2)+'\n',encoding='utf-8')
+
     def test_later_failure_interruption_and_mutable_services_block_reuse(self):
         selected = self.composition()
         result = setup.execute(self.root, selected)
@@ -340,7 +357,7 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             return original(child, cwd, directory, **keywords)
         with patch.dict(sys.modules, {'openapi_pipeline': SimpleNamespace(repository_nuget_environment=lambda root: dict(os.environ))}), \
              patch.object(fixture, 'captured', controlled_child), \
-             patch.dict(os.environ, {'PROGRAMKIT_BROWSER_ENGINES':'chromium,webkit'}):
+             patch.dict(os.environ, {'PROGRAMKIT_BROWSER_ENGINES':'chromium,webkit','GITHUB_ACTIONS':'false'}):
             for label, host in (('object', {'reference':images[0]}), ('string', images[0])):
                 calls.clear(); selected['hostImage'] = host
                 destination = self.root/('acquisition-success-'+label)
@@ -355,6 +372,63 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             self.assertEqual([(['docker','pull',image],300) for image in images], calls)
             self.assertFalse((self.root/'acquisition-failed/services-timings.json').exists())
             self.assertFalse(any(token in ('run','create','start') for command,_ in calls for token in command))
+
+    def test_service_browser_system_dependencies_are_ci_owned_and_failures_remain_visible(self):
+        images=['ghcr.io/orbyss-io/foundation-host@sha256:'+'a'*64,
+                'quay.io/keycloak/keycloak@sha256:'+'b'*64,
+                'postgres@sha256:'+'c'*64]
+        selected={'hostImage':images[0],'serviceImages':{'keycloak':images[1],'postgresql':images[2]}}
+        web=self.root/'eng/web'; web.mkdir()
+        browser_cache=self.root/'artifacts/cache/profile/local/ms-playwright'
+        original=fixture.captured
+        calls=[]; observations=[]; browser_exit=0
+        def controlled_child(command,cwd,directory,**keywords):
+            # Replace registry/browser installation boundaries only; the real
+            # maintained supervisor records child failure, cleanup and both streams.
+            calls.append({'command':command,'cwd':cwd,'timeout':keywords['timeout'],
+                          'browserCache':keywords['environment'].get('PLAYWRIGHT_BROWSERS_PATH')})
+            code=browser_exit if command[:1]==['node'] else 0
+            actual=[sys.executable,'-c','import sys; print("owned browser preparation boundary"); '
+                    'print("owned diagnostic",file=sys.stderr); sys.exit(int(sys.argv[1]))',str(code)]
+            return original(actual,cwd,directory,**keywords)
+        cases=[('windows-ci','nt','true',False),('linux-ci','posix','true',True),
+               ('ordinary-linux','posix','false',False),('empty-linux','posix','',False),
+               ('case-sensitive-linux','posix','TRUE',False)]
+        with patch.dict(sys.modules,{'openapi_pipeline':SimpleNamespace(repository_nuget_environment=lambda root:dict(os.environ))}), \
+             patch.object(fixture,'captured',controlled_child), \
+             patch.dict(os.environ,{'PROGRAMKIT_BROWSER_ENGINES':'chromium,webkit,firefox',
+                                    'PLAYWRIGHT_BROWSERS_PATH':str(browser_cache)}):
+            for label,platform,github,with_deps in cases:
+                calls.clear()
+                with self.subTest(boundary=label),patch.dict(os.environ,{'GITHUB_ACTIONS':github}), \
+                     patch.object(qualification,'os',SimpleNamespace(name=platform,environ=os.environ)):
+                    destination=self.root/label
+                    qualification.stage(self.root,selected,'services',destination)
+                    self.assertEqual([['docker','pull',image] for image in images],[row['command'] for row in calls[:3]])
+                    expected=['install',*(['--with-deps'] if with_deps else []),'chromium','webkit','firefox']
+                    self.assertEqual(qualification.playwright_command(self.root,expected),calls[-1]['command'])
+                    self.assertEqual(web,calls[-1]['cwd']); self.assertEqual(600,calls[-1]['timeout'])
+                    self.assertEqual([300,300,300],[row['timeout'] for row in calls[:3]])
+                    self.assertEqual(4,len(calls)); self.assertTrue((destination/'services-timings.json').is_file())
+                    self.assertTrue(all(row['browserCache']==str(browser_cache) for row in calls))
+                    observations.append({'boundary':label,'platform':platform,'githubActions':github,
+                        'commands':[{**row,'cwd':str(row['cwd'])} for row in calls]})
+            calls.clear(); browser_exit=23
+            with patch.dict(os.environ,{'GITHUB_ACTIONS':'true'}), \
+                 patch.object(qualification,'os',SimpleNamespace(name='posix',environ=os.environ)), \
+                 self.assertRaisesRegex(ValueError,'PKF102 maintained command failed'):
+                qualification.stage(self.root,selected,'services',self.root/'linux-ci-failed')
+            self.assertEqual(4,len(calls)); self.assertIn('--with-deps',calls[-1]['command'])
+            self.assertFalse((self.root/'linux-ci-failed/services-timings.json').exists())
+            processes=[json.loads(path.read_text()) for path in (self.root/'linux-ci-failed').glob('process-*/process.json')]
+            failed=[row for row in processes if row['exitCode']==23]
+            self.assertEqual(1,len(failed)); self.assertTrue(failed[0]['cleanupComplete'] and failed[0]['logsDrained'])
+            self.assertEqual({'stdout.log','stderr.log'},set(failed[0]['streams']))
+            self.assertFalse(any(token in ('run','create','start') for row in calls for token in row['command']))
+            observations.append({'boundary':'linux-ci-failed','actualChildExit':23,
+                'commands':[{**row,'cwd':str(row['cwd'])} for row in calls]})
+            (self.root/'command-capture.json').write_text(json.dumps({'scope':'Controlled external installation boundaries; actual maintained child supervision and drain, no runtime acceptance.',
+                'observations':observations},indent=2)+'\n',encoding='utf-8')
 
     def test_mutable_or_malformed_service_image_is_rejected_before_any_acquisition(self):
         for invalid in ('quay.io/keycloak/keycloak:latest', 'postgres@sha256:'+'z'*64,
