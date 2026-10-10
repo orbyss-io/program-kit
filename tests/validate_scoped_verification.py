@@ -514,13 +514,15 @@ class SelectionTests(unittest.TestCase):
             if 'build' in command:
                 generated.parent.mkdir(exist_ok=True); generated.write_text('generated compiler input')
             return subprocess.CompletedProcess(command, 0)
-        with patch.object(verification.subprocess, 'run', side_effect=generate):
-            verification.execute(self.root, self.focused(), [])
-        self.assertEqual([], self.current_plan()['needed'])
-        with patch.dict(os.environ, {'CI': 'true'}):
-            self.assertTrue(self.current_plan()['needed'])
-        with patch.dict(os.environ, {'NOTES_COMPILER_POLICY': 'changed'}):
-            self.assertTrue(self.current_plan()['needed'])
+        with patch.dict(os.environ, {'CI': 'false'}):
+            with patch.object(verification.subprocess, 'run', side_effect=generate):
+                verification.execute(self.root, self.focused(), [])
+            self.assertEqual([], self.current_plan()['needed'])
+            with patch.dict(os.environ, {'CI': 'true'}):
+                self.assertTrue(self.current_plan()['needed'])
+            self.assertEqual([], self.current_plan()['needed'])
+            with patch.dict(os.environ, {'NOTES_COMPILER_POLICY': 'changed'}):
+                self.assertTrue(self.current_plan()['needed'])
         other = self.root / 'src/Other/Other.csproj'
         other.write_text(other.read_text().replace('</Project>', '<PropertyGroup><Other>$(OTHER_POLICY)</Other></PropertyGroup></Project>'))
         self.successful_run()

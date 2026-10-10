@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "profile": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/profile.json",
+    "sha256": "a3ea3c7f17e0c12a33b5851eca44f47cfc19631db3db098c939d7d423a9fa1b1"
+  },
+  "catalog": {
+    "path": "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/catalog.json",
+    "sha256": "b6b1fab9a1f524ce97227ed0b36a70e2149793c2f53995bf4165698f538c3eac"
+  },
+  "snapshot": {
+    "path": "catalogs/candidate-600fc430/target-b6b1fab9a1f524ce97227ed0b36a70e2149793c2f53995bf4165698f538c3eac.json",
+    "sha256": "b6b1fab9a1f524ce97227ed0b36a70e2149793c2f53995bf4165698f538c3eac",
+    "base": {
+      "path": "catalogs/candidate-600fc430/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+      "sha256": "105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8"
+    }
+  },
+  "identity": "foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2",
+  "status": "prepared",
+  "publisherRelease": {
+    "commit": "8e3576d0b8dc25b820e56f4013d92137e410a440",
+    "workflow": "https://github.com/orbyss-io/dotnet-foundation/actions/runs/38067350551"
+  }
+}

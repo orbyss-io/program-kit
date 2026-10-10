@@ -56,6 +56,89 @@ def setup(root):
     (root / g.READINESS_REPORT).write_text('**Status**: READY\n\nCurrent reviewed evidence agrees.\n', encoding='utf-8')
 
 
+
+def legacy_checkpoint_cases(root):
+    """Use the current native engine to qualify its supported legacy adapter."""
+    from specify_cli.workflows._execution import new_execution, validate_execution
+
+    for mode in ('without-tree', 'later-offset', 'initial-aliases'):
+        marker = root / ('legacy-corrected-' + mode)
+        proof_count = root / ('legacy-proof-count-' + mode)
+        child = definition([agent('legacy-completed-worker'), shell('legacy-completed-proof',
+            'python -c "from pathlib import Path; p=Path(\'' + proof_count.name +
+            '\'); p.write_text(p.read_text()+\'1\' if p.exists() else \'1\'); print(1)"')])
+        child.data['workflow']['id'] = 'legacy-completed-child'
+        child.data['inputs']['accepted'] = {'type': 'string', 'default': 'original'}
+        child_path = root / '.specify/workflows/legacy-completed-child/workflow.yml'
+        child_path.parent.mkdir(parents=True, exist_ok=True)
+        child_path.write_text(yaml.safe_dump(child.data), encoding='utf-8')
+        registry_path = root / '.specify/workflows/workflow-registry.json'
+        registry = life.load(registry_path)
+        registry['workflows']['legacy-completed-child'] = {'enabled': True}
+        life.write(registry_path, registry)
+        current_definition = definition([
+            {'id': 'accepted-prefix', 'type': 'workflow', 'workflow': 'legacy-completed-child',
+             'input': {'accepted': 'reviewed-legacy-input'}},
+            shell('prepare-architecture-context', 'python -c "print(1)"'),
+            agent('architecture-dispatch'),
+            shell('validate-architecture-output',
+                'python -c "from pathlib import Path; print(1); raise SystemExit(0 if Path(\'' +
+                marker.name + '\').exists() else 2)"'),
+            {'id': 'review-bootstrap', 'type': 'gate', 'message': 'Review corrected legacy producer',
+             'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'},
+        ])
+        calls = []
+        def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
+            calls.append(args)
+            if args == 'architecture-dispatch' and calls.count(args) == 2:
+                marker.write_text('corrected producer output', encoding='utf-8')
+            return {'exit_code': 0, 'stdout': 'fictional legacy producer', 'stderr': ''}
+        with patch.object(CommandStep, '_try_dispatch', dispatch):
+            failed = WorkflowEngine(root).execute(current_definition, run_id='legacy-' + mode)
+            assert failed.status == RunStatus.FAILED and failed.current_step_id == 'validate-architecture-output'
+            prefix = copy.deepcopy(failed.step_results['accepted-prefix'])
+            state_path = workflow.run_directory(root, failed.run_id) / 'state.json'
+            if mode == 'without-tree':
+                # Exact indices/results representation accepted by RunState.load;
+                # no old device engine is installed or claimed to have run.
+                record = life.load(state_path)
+                record.pop('execution')
+                life.write(state_path, record)
+                assert RunState.load(failed.run_id, root).execution is None
+            else:
+                # Native construction and resume recreate the engine's adapter
+                # checkpoint with real results of the already executed prefix.
+                offset = 3 if mode == 'later-offset' else 1
+                prior_nodes = copy.deepcopy(failed.execution['sequence']['nodes'][offset:])
+                failed.execution = new_execution(current_definition.steps[offset:], offset, failed.step_results)
+                failed.execution['sequence']['nodes'] = prior_nodes
+                validate_execution(failed.execution, workflow_steps=current_definition.steps,
+                                   current_step_index=failed.current_step_index)
+                failed.save()
+                failed = WorkflowEngine(root).resume(failed.run_id)
+                assert failed.status == RunStatus.FAILED and failed.current_step_id == 'validate-architecture-output', (mode, failed.current_step_id, failed.error)
+                assert failed.execution['offset'] == offset
+                assert failed.execution['initial']['accepted-prefix'] == prefix
+                assert 'architecture-dispatch' in failed.execution['initial']
+            archived_state = state_path.read_bytes()
+            child.data['steps'][0]['input']['args'] = 'invalid-replayed-prefix'
+            child.data['inputs']['accepted']['default'] = 'invalid-rebound-default'
+            child_path.write_text(yaml.safe_dump(child.data), encoding='utf-8')
+            repaired = workflow.resume(root, failed.run_id)
+            assert repaired.status == RunStatus.PAUSED and repaired.current_step_id == 'review-bootstrap', repaired.error
+            assert repaired.execution['offset'] == 1
+            assert repaired.execution['initial'] == {'accepted-prefix': prefix}
+            assert repaired.step_results['accepted-prefix'] == prefix
+            assert calls.count('legacy-completed-worker') == 1 and calls.count('architecture-dispatch') == 2
+            assert 'invalid-replayed-prefix' not in calls
+            assert proof_count.read_text(encoding='utf-8') == '1'
+            histories = (root / '.specify/workflows/resumption-history' / failed.run_id).glob('*/state.json')
+            assert any(path.read_bytes() == archived_state for path in histories)
+            validate_execution(repaired.execution, workflow_steps=current_definition.steps,
+                               current_step_index=repaired.current_step_index)
+    print('Native legacy no-tree/offset/initial-alias checkpoint recovery preserved prefix work and fresh review.')
+
+
 def main():
     original_shell = ShellStep.execute
     def execute(self, config, context):
@@ -83,7 +166,23 @@ def main():
                         else:
                             architecture.write_bytes(good_architecture)
                     return {'exit_code': 0, 'stdout': 'producer finished', 'stderr': ''}
-                steps = [shell('accepted-prefix', 'python -c "print(1)"'),
+                # A completed native child workflow binds its typed input and
+                # owns nested producer/proof occurrences. Stage retry must keep
+                # that entire occurrence, even if its installed source changes.
+                child = definition([
+                    agent('completed-child-worker'),
+                    shell('completed-child-proof', 'python -c "print(1)"')])
+                child.data['workflow']['id'] = 'completed-child'
+                child.data['inputs']['accepted'] = {'type': 'string', 'default': 'original'}
+                child_path = root / '.specify/workflows/completed-child/workflow.yml'
+                child_path.parent.mkdir(parents=True)
+                child_path.write_text(yaml.safe_dump(child.data), encoding='utf-8')
+                registry_path = root / '.specify/workflows/workflow-registry.json'
+                registry = life.load(registry_path) if registry_path.is_file() else {'schema_version': '1.0', 'workflows': {}}
+                registry['workflows']['completed-child'] = {'enabled': True}
+                life.write(registry_path, registry)
+                steps = [{'id': 'accepted-prefix', 'type': 'workflow', 'workflow': 'completed-child',
+                          'input': {'accepted': 'reviewed-input'}},
                          shell('prepare-architecture-context', 'python -c "print(1)"'),
                          agent('architecture-dispatch'),
                          shell('validate-architecture-output', 'python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-output --stage architecture --json'),
@@ -95,10 +194,39 @@ def main():
                     first = WorkflowEngine(root).execute(definition(steps), run_id='architecture-retry')
                     assert first.status == RunStatus.FAILED and first.current_step_id == 'validate-architecture-output'
                     prefix = copy.deepcopy(first.step_results['accepted-prefix'])
+                    native_prefix = copy.deepcopy(first.execution['sequence']['nodes'][0])
+                    failed_tree = copy.deepcopy(first.execution)
+                    state_path = workflow.run_directory(root, first.run_id) / 'state.json'
+                    authentic_state = state_path.read_bytes()
+                    tampered = life.load(state_path)
+                    false_steps = yaml.safe_load(tampered['execution']['sequence']['source'])
+                    false_steps[1]['run'] = 'python -c "print(999)"'
+                    tampered['execution']['sequence']['source'] = yaml.safe_dump(false_steps)
+                    life.write(state_path, tampered)
+                    before_rejection = state_path.read_bytes()
+                    try:
+                        workflow.resume(root, first.run_id)
+                    except ValueError as error:
+                        assert 'root sequence differs' in str(error), str(error)
+                    else:
+                        raise AssertionError('Stale native execution source was accepted')
+                    assert state_path.read_bytes() == before_rejection
+                    assert calls.count('architecture-dispatch') == 1
+                    state_path.write_bytes(authentic_state)
+                    assert native_prefix['binding']['inputs']['accepted'] == 'reviewed-input'
+                    assert native_prefix['children'][0]['nodes'][0]['phase'] == 'done'
+                    child.data['inputs']['accepted']['default'] = 'changed-upstream'
+                    child.data['steps'][0]['input']['args'] = 'must-not-rebind-completed-worker'
+                    child_path.write_text(yaml.safe_dump(child.data), encoding='utf-8')
                     second = workflow.resume(root, first.run_id)
                     assert second.status == RunStatus.PAUSED and second.current_step_id == 'review-bootstrap'
                     assert second.step_results['accepted-prefix'] == prefix
                     assert calls.count('architecture-dispatch') == 2
+                    assert second.execution['sequence']['nodes'][0] == native_prefix
+                    assert calls.count('completed-child-worker') == 1
+                    assert 'must-not-rebind-completed-worker' not in calls
+                    archived_states = (root / '.specify/workflows/resumption-history' / first.run_id).glob('*/state.json')
+                    assert any(life.load(path)['execution'] == failed_tree for path in archived_states)
                     assert not (root / g.BOOTSTRAP_COMPLETION).exists()
                     third = workflow.resume(root, first.run_id, {'bootstrap_verdict': 'approve'})
                     assert third.status == RunStatus.COMPLETED, (third.current_step_id, third.step_results.get(third.current_step_id), third.error)
@@ -120,6 +248,7 @@ def main():
                 saved.status = RunStatus.COMPLETED
                 saved.save()
                 (root / g.BOOTSTRAP_COMPLETION).unlink()
+                legacy_checkpoint_cases(root)
 
                 dispatch_count = 0
                 def readiness_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):

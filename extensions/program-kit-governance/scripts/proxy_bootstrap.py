@@ -233,13 +233,19 @@ def rehearsal_engine(root):
             return self.original.execute(adapted, context)
 
     class RehearsalEngine(WorkflowEngine):
-        def _execute_steps(self, steps, context, state, registry, *, step_offset=0):
+        def _execute_steps(self, steps, context, state, registry, *, step_offset=0, rebind=False):
             adapted = dict(registry)
             adapted['command'] = Handoff('command')
             adapted['gate'] = Handoff('gate')
             if not isinstance(adapted['shell'], RehearsalShell):
                 adapted['shell'] = RehearsalShell(adapted['shell'])
-            return super()._execute_steps(steps, context, state, adapted, step_offset=step_offset)
+            # Spec Kit 1.1.3 uses rebind to refresh persisted child-workflow
+            # inputs on resume. Its false default needs no keyword, retaining
+            # compatibility with the supported earlier engine signature.
+            options = {'step_offset': step_offset}
+            if rebind:
+                options['rebind'] = rebind
+            return super()._execute_steps(steps, context, state, adapted, **options)
 
     return RehearsalEngine(root)
 

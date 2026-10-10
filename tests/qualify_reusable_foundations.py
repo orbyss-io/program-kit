@@ -81,6 +81,24 @@ def contract_tests():
     try: assert adapter.request('http://127.0.0.1:'+str(server.server_port),'/')[0]==200
     finally: server.shutdown(); server.server_close(); thread.join()
     checks.append('native-http-readiness-client-works-and-closes')
+    cache_home=evidence/'cache-inventory-fixture'
+    for platform,expected in (('win32',cache_home/'AppData/Local/ms-playwright'),
+                              ('linux',cache_home/'.cache/ms-playwright'),
+                              ('darwin',cache_home/'Library/Caches/ms-playwright')):
+        observed=browser_cache_inventory(environment={},platform=platform,home=cache_home)
+        assert observed['cachePath']==str(expected) and not observed['directoryExists']
+        assert observed['observedDirectories']==[] and observed['browserReadinessEstablished'] is False
+    explicit=cache_home/'explicit'; (explicit/'chromium-fixture').mkdir(parents=True)
+    (explicit/'marker.txt').write_text('a file is not an installed browser')
+    observed=browser_cache_inventory(environment={'PLAYWRIGHT_BROWSERS_PATH':str(explicit)},platform='linux',home=cache_home)
+    assert observed['cacheSource']=='PLAYWRIGHT_BROWSERS_PATH' and observed['observedDirectories']==['chromium-fixture']
+    assert observed['browserReadinessEstablished'] is False
+    for platform,key in (('win32','LOCALAPPDATA'),('linux','XDG_CACHE_HOME')):
+        observed=browser_cache_inventory(environment={key:str(cache_home/'override')},platform=platform,home=cache_home)
+        assert observed['cachePath']==str(cache_home/'override/ms-playwright')
+    observed=browser_cache_inventory(environment={'PLAYWRIGHT_BROWSERS_PATH':'0'},platform='linux',home=cache_home)
+    assert observed['cachePath'] is None and not observed['directoryExists'] and not observed['browserReadinessEstablished']
+    checks.append('portable-preexisting-browser-cache-inventory-never-claims-readiness')
     write(evidence/'qualification.json',{'status':'passed','checks':checks,'runtimeAcceptanceEstablished':False})
     print('Maintained qualification failure contracts passed: '+str(evidence))
     return 0
@@ -89,6 +107,35 @@ def contract_tests():
 def write(path, value):
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8')
+
+
+def browser_cache_inventory(*, environment=None, platform=None, home=None):
+    """Observe cache directories portably; this never establishes browser readiness."""
+    environment = os.environ if environment is None else environment
+    platform = sys.platform if platform is None else platform
+    home = Path.home() if home is None else Path(home)
+    declared = environment.get('PLAYWRIGHT_BROWSERS_PATH')
+    if declared == '0':
+        cache = None  # Package-local caches depend on the installed Playwright module.
+        source = 'package-local; no shared cache selected'
+    elif declared:
+        cache = Path(declared).expanduser().resolve()
+        source = 'PLAYWRIGHT_BROWSERS_PATH'
+    elif platform == 'win32':
+        cache = Path(environment.get('LOCALAPPDATA') or home/'AppData/Local')/'ms-playwright'
+        source = 'Windows ambient cache'
+    elif platform == 'darwin':
+        cache = home/'Library/Caches/ms-playwright'
+        source = 'macOS ambient cache'
+    else:
+        cache = Path(environment.get('XDG_CACHE_HOME') or home/'.cache')/'ms-playwright'
+        source = 'Linux ambient cache'
+    exists = cache is not None and cache.is_dir()
+    directories = sorted(path.name for path in cache.iterdir() if path.is_dir()) if exists else []
+    return {'platform':platform, 'cacheSource':source, 'cachePath':str(cache) if cache is not None else None,
+            'directoryExists':exists, 'observedDirectories':directories,
+            'browserReadinessEstablished':False,
+            'scope':'Pre-setup directory inventory only; installed executables and usability require actual browser checks.'}
 
 
 def command(args, root, evidence, *, timeout=1800):
@@ -437,8 +484,9 @@ foundation_fixture.captured = _observed
     results=[]
     try:
         # Inventory is measured before setup, not retroactively classified.
-        for name,args_inventory in [('images',['docker','image','ls','--digests']),('sdk',['dotnet','--list-sdks']),('browser-cache',['cmd','/c','echo',os.environ.get('PLAYWRIGHT_BROWSERS_PATH','ambient Playwright cache')])]:
+        for name,args_inventory in [('images',['docker','image','ls','--digests']),('sdk',['dotnet','--list-sdks'])]:
             command(args_inventory,ROOT,artifact/('preexisting-'+name),timeout=30)
+        write(artifact/'preexisting-browser-cache/inventory.json',browser_cache_inventory())
         for shape in (('base','notes','sport') if args.shape=='all' else (args.shape,)):
             root=artifact/shape/'consumer'
             start=time.monotonic()
