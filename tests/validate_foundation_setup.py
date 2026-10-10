@@ -649,6 +649,54 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             observed.append({'step':failure, 'writtenBeforeFailure':True, 'cleanupComplete':True})
         (self.root/'checkpoint-boundaries.json').write_text(json.dumps({'scope':'Actual maintained integration with controlled external boundaries; no Docker/Host acceptance.', 'observations':observed},indent=2)+'\n')
 
+    def test_postgresql_readiness_waits_for_final_tcp_server_handoff(self):
+        database = fixture.PostgreSqlFixture('postgres@sha256:'+'a'*64, self.root/'tcp-handoff')
+        observations = []
+        phases = iter((('bootstrap-socket-ready', 2), ('bootstrap-stopping', 2), ('final-tcp-ready', 0)))
+        def command(arguments, *, allowed=(0,), timeout=60):
+            if arguments == ['port', database.name, '5432/tcp']:
+                return 0, '127.0.0.1:15432'
+            phase, code = next(phases)
+            self.assertEqual(['exec', database.name, 'pg_isready', '-h', '127.0.0.1',
+                              '-U', 'fixture', '-d', 'foundation_fixture'], arguments)
+            self.assertEqual((0, 1, 2), allowed)
+            self.assertEqual(5, timeout)
+            observations.append({'phase': phase, 'exitCode': code})
+            return code, ''
+        actual_poll = fixture.poll
+        def bounded(probe, **options):
+            self.assertEqual({}, options)  # Preserve the maintained 45-second default.
+            return actual_poll(probe, timeout=1, interval=.001)
+        with patch.object(database, 'command', side_effect=command), patch.object(fixture, 'poll', side_effect=bounded):
+            database.wait_ready()
+        self.assertEqual(15432, database.port)
+        self.assertEqual(3, len(observations))
+        (self.root/'tcp-handoff.json').write_text(json.dumps({'scope': 'Actual maintained readiness predicate/poll with controlled Docker boundary; no real provider acceptance.',
+            'productionReadinessBudgetSeconds': 45, 'commandTimeoutSeconds': 5, 'observations': observations}, indent=2)+'\n')
+
+    def test_postgresql_tcp_never_ready_and_unexpected_command_failure_are_rejected(self):
+        database = fixture.PostgreSqlFixture('postgres@sha256:'+'a'*64, self.root/'tcp-never-ready')
+        actual_poll = fixture.poll
+        calls = []
+        def command(arguments, *, allowed=(0,), timeout=60):
+            if arguments[0] == 'port': return 0, '127.0.0.1:15432'
+            self.assertIn('-h', arguments)
+            self.assertEqual('127.0.0.1', arguments[arguments.index('-h')+1])
+            calls.append(arguments)
+            return 2, ''
+        def bounded(probe, **options):
+            self.assertEqual({}, options)
+            return actual_poll(probe, timeout=.01, interval=.001)
+        with patch.object(database, 'command', side_effect=command), patch.object(fixture, 'poll', side_effect=bounded), self.assertRaisesRegex(ValueError, 'budget expired'):
+            database.wait_ready()
+        self.assertGreater(len(calls), 1)
+        def captured_failure(command, cwd, directory, **options):
+            directory.mkdir(parents=True)
+            (directory/'stdout.log').write_text('')
+            return {'exitCode': 3, 'cleanupComplete': True, 'logsDrained': True}
+        with patch.object(fixture, 'captured', side_effect=captured_failure), self.assertRaisesRegex(ValueError, 'Owned PostgreSQL command failed'):
+            database.command(['exec', database.name, 'pg_isready', '-h', '127.0.0.1'], allowed=(0,1,2), timeout=5)
+
     def test_provider_identity_is_immutable_and_poll_is_bounded(self):
         with self.assertRaisesRegex(ValueError, 'immutable'):
             fixture.PostgreSqlFixture('postgres:16', self.root / 'provider')
@@ -687,7 +735,8 @@ def qualify_provider(image):
     directory = ROOT / 'artifacts/foundation-setup-provider' / os.urandom(8).hex()
     database = fixture.PostgreSqlFixture(image, directory)
     with database:
-        database.command(['exec', database.name, 'psql', '-U', 'fixture', '-d', 'foundation_fixture', '-v', 'ON_ERROR_STOP=1',
+        database.command(['exec', database.name, 'sh', '-c', 'PGPASSWORD="$POSTGRES_PASSWORD" exec psql "$@"',
+                          'psql', '-h', '127.0.0.1', '-U', 'fixture', '-d', 'foundation_fixture', '-v', 'ON_ERROR_STOP=1',
                           '-c', "CREATE TABLE owned_probe(value text); INSERT INTO owned_probe VALUES ('retained');"])
         original = database.connection()
         database.stop()
@@ -695,11 +744,12 @@ def qualify_provider(image):
             connection.settimeout(1)
             if connection.connect_ex(('127.0.0.1', database.port)) == 0:
                 raise ValueError('Owned provider socket remained reachable after stop')
-        code, _ = database.command(['exec', database.name, 'pg_isready', '-U', 'fixture'], allowed=(0, 1))
+        code, _ = database.command(['exec', database.name, 'pg_isready', '-h', '127.0.0.1', '-U', 'fixture'], allowed=(0, 1))
         if code != 1:
             raise ValueError('Expected owned connection outage was not observed')
         database.restart()
-        _, value = database.command(['exec', database.name, 'psql', '-U', 'fixture', '-d', 'foundation_fixture', '-At',
+        _, value = database.command(['exec', database.name, 'sh', '-c', 'PGPASSWORD="$POSTGRES_PASSWORD" exec psql "$@"',
+                                    'psql', '-h', '127.0.0.1', '-U', 'fixture', '-d', 'foundation_fixture', '-At',
                                     '-c', 'SELECT value FROM owned_probe'])
         if value != 'retained' or not database.connection() or not original:
             raise ValueError('Owned PostgreSQL restart did not preserve synthetic data')

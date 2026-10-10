@@ -204,7 +204,9 @@ class PostgreSqlFixture:
         match = re.fullmatch(r'127\.0\.0\.1:(\d+)', address)
         require(match is not None, 'Owned PostgreSQL must expose exactly one loopback binding')
         self.port = int(match[1])
-        return poll(lambda: self.command(['exec', self.name, 'pg_isready', '-U', 'fixture',
+        # The image bootstrap server accepts Unix sockets before initialization finishes.
+        # TCP readiness admits only the final server used by the application provider.
+        return poll(lambda: self.command(['exec', self.name, 'pg_isready', '-h', '127.0.0.1', '-U', 'fixture',
                     '-d', 'foundation_fixture'], allowed=(0, 1, 2), timeout=5)[0] == 0)
 
     def connection(self):
