@@ -276,6 +276,29 @@ def ready(origin, path):
         return False
 
 
+
+def identity_ready(origin, path):
+    """Discovery can return transient boot errors; the existing poll owns its budget."""
+    try:
+        return request(origin, path)[0] == 200
+    except (OSError, TimeoutError):
+        return False
+
+
+def identity_discovery(origin, path, expected_issuer, result):
+    from foundation_fixture import poll
+    result['preIssuerStep'] = 'discovery-poll'
+    result['timings']['identityReadinessSeconds'] = poll(lambda: identity_ready(origin, path), timeout=150)
+    result['preIssuerStep'] = 'discovery-read'
+    status, data = request(origin, path)
+    require(status == 200, 'PKF103 public discovery response was not ready')
+    discovery = json.loads(data)
+    result['preIssuerStep'] = 'issuer-validate'
+    require(discovery['issuer'] == expected_issuer, 'PKF103 public issuer was reconstructed from private transport')
+    result['cases'][CASES['keycloak'][0]] = True
+    result['preIssuerStep'] = 'completed'
+
+
 def product_outcome(result, action, phase='first-operation-and-native-tests'):
     """Record opted application proving independently from the maintained platform cases."""
     result['productPhase']={'phase':phase,'status':'running'}
@@ -383,20 +406,25 @@ def integration(root, selected, directory, migration_script=None, product_enable
     result = {'schemaVersion':1, 'status':'running', 'bundleInputs':baseline, 'cases':{}, 'timings':{'testSupportPreparationSeconds':probe_preparation},
               'productionProbeSelected':False, 'productAcceptance':False}
     try:
+        result['preIssuerStep'] = 'network-create'
         command.run(['docker','network','create',network]); created.append(('network',network))
         if postgres:
             database_started=time.monotonic()
             database = PostgreSqlFixture(selected['serviceImages']['postgresql'], directory/'postgresql')
+            result['preIssuerStep'] = 'postgresql-start'
             database.start()
             command.secrets=(database.password,)
+            result['preIssuerStep'] = 'postgresql-network'
             database.command(['network','connect','--alias','foundation-postgresql',network,database.name])
             schema=root/'tests/foundation-product/schema.sql'
             if product_enabled and schema.is_file():
+                result['preIssuerStep'] = 'product-schema'
                 # Explicit application-owned disposable deployment migration,
                 # outside production Prepare and generic provider readiness.
                 database.command(['cp',str(schema),database.name+':/tmp/product-schema.sql'])
                 database.command(['exec',database.name,'psql','-U','fixture','-d','foundation_fixture','-v','ON_ERROR_STOP=1','-f','/tmp/product-schema.sql'])
             result['timings']['providerReadinessAndProductSchemaSeconds']=round(time.monotonic()-database_started,3)
+        result['preIssuerStep'] = 'identity-configure'
         realm = read(root/'deploy/keycloak/program-kit-realm.json')
         require(realm['attributes']['programKitFixture'] == 'local-non-production-only', 'PKF101 non-synthetic realm cannot be provisioned')
         interactive=next(client for client in realm['clients'] if client['clientId']==config['identity']['clientId'])
@@ -415,14 +443,17 @@ def integration(root, selected, directory, migration_script=None, product_enable
                 'PKF101 fixture private backchannel must use its owned Docker alias port 8080')
         # Keycloak directory/startup imports require <realm-name>-realm.json.
         # The retained realm payload remains separate from the named import snapshot.
+        result['preIssuerStep'] = 'identity-create'
         command.run(['docker','create','--name',identity,'--pull=never','--network',network,'--network-alias',private.hostname,
                      '-p','127.0.0.1:'+str(public_identity.port)+':8080','-e','KC_HOSTNAME='+config['identity']['publicOrigin'],
                      '-e','KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true',
                      '--mount','type=bind,source='+str(root/'deploy/keycloak/themes')+',target=/opt/keycloak/themes,readonly',
                      selected['serviceImages']['keycloak'],'start-dev','--import-realm']); created.append(('container',identity))
+        result['preIssuerStep'] = 'identity-import'
         command.run(['docker','cp',str(import_directory),identity+':/opt/keycloak/data/import'])
         # Verify the stopped container received the exact fixture bytes, without
         # emitting credentials or depending on an image-specific checksum tool.
+        result['preIssuerStep'] = 'identity-copy-verify'
         observed_import = directory/'identity-import-observed'
         command.run(['docker','cp',identity+':/opt/keycloak/data/import',str(observed_import)])
         source_hash = hashlib.sha256(import_file.read_bytes()).hexdigest()
@@ -431,12 +462,10 @@ def integration(root, selected, directory, migration_script=None, product_enable
         result['identityImport'] = {'sourceSha256':source_hash, 'containerCopySha256':observed_hash,
             'byteIdentityVerified':True, 'containerFilename':import_file.name,
             'transport':'Exact owned synthetic directory copied into the stopped owned container; native startup import follows'}
+        result['preIssuerStep'] = 'identity-start'
         command.run(['docker','start',identity])
         discovery_path = '/realms/'+config['identity']['realm']+'/.well-known/openid-configuration'
-        result['timings']['identityReadinessSeconds'] = poll(lambda:ready(config['identity']['publicOrigin'],discovery_path),timeout=150)
-        discovery = json.loads(request(config['identity']['publicOrigin'],discovery_path)[1])
-        require(discovery['issuer'] == selected['targets']['publicAuthority'], 'PKF103 public issuer was reconstructed from private transport')
-        result['cases'][CASES['keycloak'][0]] = True
+        identity_discovery(config['identity']['publicOrigin'], discovery_path, selected['targets']['publicAuthority'], result)
         shells = read(runtime/'shells.json')
         shell = shells['CShells']['Shells']['default']
         shell['Features']['ProgramKit.Qualification.Probe'] = {}

@@ -258,6 +258,105 @@ def contract_tests():
     assert captured['exitCode']==29 and captured['cleanupComplete'] and captured['logsDrained']
     assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=29'+' authentication=absent'
     checks.append('actual-maintained-failed-child-capture-produces-only-bounded-diagnostics')
+    # New current helper markers refine only the finite pre-issuer boundary.
+    import ast
+    helper_steps={node.value for node in ast.walk(ast.parse((ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_qualification.py').read_text()))
+                  if isinstance(node,ast.Constant) and isinstance(node.value,str) and node.value in PRE_ISSUER_STEPS}
+    assert helper_steps==set(PRE_ISSUER_STEPS)
+    original_observed=json.loads(json.dumps(observed))
+    early={'schemaVersion':1,'status':'failed','cases':{},'timings':{},'runtimeTransport':[]}
+    for phase in PRE_ISSUER_STEPS:
+        value={**early,'preIssuerStep':phase,
+               'cases':{'Foundation.public_issuer_private_backchannel':True} if phase=='completed' else {}}
+        write(integration,value)
+        expected='identity-ready' if phase=='completed' else 'before-issuer-check'
+        assert readiness_failure(child,set())==prefix+'checkpoint='+expected+' childExit=29 preIssuerStep='+phase+' authentication=absent'
+    checks.append('actual-helper-finite-pre-issuer-vocabulary-and-completion-consistency')
+    for phase in (secret,None,True,[],{},'identity-ready'):
+        write(integration,{**early,'preIssuerStep':phase})
+        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown authentication=absent'
+    for value in ({**early,'preIssuerStep':'completed'},
+                  {**early,'preIssuerStep':'discovery-poll','cases':{'Foundation.public_issuer_private_backchannel':True}}):
+        write(integration,value)
+        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown authentication=absent'
+    checks.append('invalid-injected-and-contradictory-pre-issuer-markers-fail-closed')
+    write(integration,{**early,'preIssuerStep':'postgresql-start'})
+    provider=receipt.parent/'postgresql'; provider.mkdir()
+    nested=provider/'command-001'
+    native=fixture.captured([sys.executable,'-c','import sys; print('+repr(secret)+'); sys.exit(23)'],child,nested,timeout=30)
+    assert native['exitCode']==23 and native['cleanupComplete'] and native['logsDrained']
+    write(provider/'command-002/process.json',{'status':'completed','exitCode':1,'command':[secret]})
+    write(provider/'command-003/process.json',{'status':'completed','exitCode':2,'environment':{'TOKEN':secret}})
+    label=readiness_failure(child,set())
+    assert label==prefix+'checkpoint=before-issuer-check childExit=29 preIssuerStep=postgresql-start postgresExits=1,2,23 authentication=absent'
+    assert secret not in label
+    checks.append('actual-maintained-nested-child-numeric-exits-kept-separate-from-pending-provider-exits')
+    expected_unknown=prefix+'checkpoint=unknown childExit=unknown authentication=absent'
+    assert readiness_failure(child,set(),{nested/'process.json'})==expected_unknown
+    original_nested=(nested/'process.json').read_bytes()
+    attacks=([], {'status':'running','exitCode':23}, {'status':secret,'exitCode':23},
+             {'status':'failed','exitCode':True}, {'status':'failed','exitCode':secret},
+             {'status':'failed','exitCode':4294967296}, {'status':'failed','exitCode':-2147483649})
+    for value in attacks:
+        write(nested/'process.json',value)
+        assert readiness_failure(child,set())==expected_unknown
+    for raw in ('{malformed '+secret, ' '+secret*4000):
+        (nested/'process.json').write_text(raw)
+        assert readiness_failure(child,set())==expected_unknown
+    (nested/'process.json').write_bytes(original_nested)
+    invalid_name=provider/('command-001-'+secret)/'process.json'; write(invalid_name,{'status':'completed','exitCode':0})
+    assert readiness_failure(child,set())==expected_unknown
+    invalid_name.unlink(); invalid_name.parent.rmdir()
+    checks.append('nested-stale-name-status-numeric-size-malformed-and-secret-controls')
+    # Alias/confinement is checked before stat/read, including a provider parent alias.
+    from unittest.mock import patch
+    original_resolve=Path.resolve
+    outside=evidence/'outside-process.json'; write(outside,{'status':'completed','exitCode':99})
+    def escaping_nested(path,*args,**keywords):
+        return outside if path==nested/'process.json' else original_resolve(path,*args,**keywords)
+    with patch.object(Path,'resolve',escaping_nested):
+        assert readiness_failure(child,set())==expected_unknown
+    def escaping_provider(path,*args,**keywords):
+        return outside.parent if path==provider else original_resolve(path,*args,**keywords)
+    with patch.object(Path,'resolve',escaping_provider):
+        assert readiness_failure(child,set())==expected_unknown
+    checks.append('nested-process-and-provider-parent-aliases-fail-before-read')
+    crowded=[]
+    for number in range(4,258):
+        path=provider/('command-'+format(number,'03d'))/'process.json'
+        write(path,{'status':'completed','exitCode':0}); crowded.append(path)
+    assert readiness_failure(child,set())==expected_unknown
+    for path in crowded: path.unlink(); path.parent.rmdir()
+    large=[]
+    for number in range(4,13):
+        path=provider/('command-'+format(number,'03d'))/'process.json'
+        write(path,{'status':'completed','exitCode':0,'ignored':secret+'x'*120000}); large.append(path)
+    assert readiness_failure(child,set())==expected_unknown
+    for path in large: path.unlink(); path.parent.rmdir()
+    checks.append('nested-count-and-shared-one-megabyte-budget-fail-closed')
+    for path in provider.glob('command-*/process.json'): write(path,{'status':'completed','exitCode':0})
+    assert 'postgresExits=none' in readiness_failure(child,set())
+    shutil.rmtree(provider)
+    write(integration,original_observed)
+    stale_child=evidence/'stale-provider-entrypoint-child'; stale_child.mkdir()
+    old_directory=stale_child/'artifacts/tests/runs/foundation-existing'
+    old_process=old_directory/'postgresql/command-001'
+    stale_native=fixture.captured([sys.executable,'-c','import sys; sys.exit(23)'],stale_child,old_process,timeout=30)
+    assert stale_native['exitCode']==23 and stale_native['cleanupComplete'] and stale_native['logsDrained']
+    stale_receipt={**original,'steps':[{'stage':'host-activation','exitCode':2}],'failure':'PKF003 '+secret}
+    stale_integration={**early,'preIssuerStep':'postgresql-start'}
+    script=stale_child/'fail_current.py'
+    script.write_text('import json,sys\nfrom pathlib import Path\n'
+        +'directory=Path("artifacts/tests/runs/foundation-existing")\n'
+        +'(directory/"result.json").write_text('+repr(json.dumps(stale_receipt))+')\n'
+        +'(directory/"integration.json").write_text('+repr(json.dumps(stale_integration))+')\n'
+        +'print('+repr(secret)+'); sys.exit(2)\n',encoding='utf-8')
+    try: command([sys.executable,str(script)],stale_child,evidence/'stale-provider-entrypoint-command',timeout=30,readiness=True)
+    except ValueError as error:
+        label=str(error)
+        assert 'checkpoint=unknown childExit=unknown authentication=absent outerExit=2;' in label and secret not in label
+    else: raise AssertionError('Actual stale PostgreSQL metadata admitted through entrypoint')
+    checks.append('actual-command-snapshots-nested-provider-metadata-before-supervised-child')
     check_child=evidence/'failed-check-readiness-child'; check_child.mkdir()
     shutil.copy2(child/'foundation_process.py',check_child/'foundation_process.py')
     shutil.copy2(child/'fail_setup.py',check_child/'fail_setup.py')
@@ -627,12 +726,18 @@ def readiness_failure(root, previous, previous_children=frozenset()):
         return unknown
 
 
+PRE_ISSUER_STEPS = ('network-create','postgresql-start','postgresql-network','product-schema',
+    'identity-configure','identity-create','identity-import','identity-copy-verify','identity-start',
+    'discovery-poll','discovery-read','issuer-validate','completed')
+
+
 def integration_failure(directory, read_owned, previous):
     """Known checkpoints and bounded numeric exits only; never export child content."""
     unknown='checkpoint=unknown childExit=unknown'
     try:
         artifact=directory/'integration.json'
         checkpoint='integration-absent'
+        pre_issuer_step=None
         if artifact.exists() or artifact.is_symlink():
             if artifact in previous: return unknown
             value=read_owned(artifact)
@@ -653,6 +758,9 @@ def integration_failure(directory, read_owned, previous):
             provider='Foundation.provider_connectivity_restart' in passed
             if (activated and not identity) or (authenticated and not activated) or (provider and not authenticated): return unknown
             checkpoint='before-issuer-check'
+            if 'preIssuerStep' in value:
+                pre_issuer_step=value['preIssuerStep']
+                if pre_issuer_step not in PRE_ISSUER_STEPS or (pre_issuer_step=='completed') != identity: return unknown
             if identity: checkpoint='identity-ready'
             transport=value.get('runtimeTransport',[])
             if not isinstance(transport,list) or len(transport)>2: return unknown
@@ -674,18 +782,31 @@ def integration_failure(directory, read_owned, previous):
                 if not authenticated or value.get('cleanupComplete') is not True: return unknown
                 checkpoint='integration-completed'
         paths=list(directory.glob('process-*/process.json'))
-        if len(paths)>128 or sum(path.stat().st_size for path in paths)>1048576: return unknown
-        exits=set()
-        for path in paths:
-            if path in previous or not re.fullmatch(r'process-[0-9a-f]{32}',path.parent.name): return unknown
+        provider=directory/'postgresql'
+        has_provider=provider.exists() or provider.is_symlink()
+        if has_provider and (provider.resolve()!=provider.absolute() or not provider.is_dir()): return unknown
+        postgres_paths=list(provider.glob('command-*/process.json')) if has_provider else []
+        if len(paths)>128 or len(postgres_paths)>256: return unknown
+        exits=set(); postgres_exits=set(); size=0
+        for path,provider_owned in [(path,False) for path in paths]+[(path,True) for path in postgres_paths]:
+            pattern=r'command-[0-9]{3}' if provider_owned else r'process-[0-9a-f]{32}'
+            if path in previous or not re.fullmatch(pattern,path.parent.name): return unknown
+            # Check aliases/confinement before even obtaining size, not only on read.
+            if path.resolve()!=path.absolute() or not path.resolve().is_relative_to(directory.resolve()): return unknown
+            size+=path.stat().st_size
+            if size>1048576: return unknown
             value=read_owned(path)
             observed=value.get('exitCode')
             if value.get('status') not in ('completed','failed','interrupted'): return unknown
             if observed is None: continue
             if type(observed) is not int or not -2147483648<=observed<=4294967295: return unknown
-            if observed: exits.add(observed)
+            if observed: (postgres_exits if provider_owned else exits).add(observed)
         child_exit=str(next(iter(exits))) if len(exits)==1 else 'unknown'
-        return 'checkpoint='+checkpoint+' childExit='+child_exit
+        label='checkpoint='+checkpoint+' childExit='+child_exit
+        if pre_issuer_step is not None: label+=' preIssuerStep='+pre_issuer_step
+        # These are observed exits, not failure attribution: pg_isready 1/2 are pending.
+        if has_provider: label+=' postgresExits='+(','.join(str(code) for code in sorted(postgres_exits)) or 'none')
+        return label
     except (OSError,ValueError,TypeError,RecursionError):
         return unknown
 
@@ -826,6 +947,7 @@ def command(args, root, evidence, *, timeout=1800, readiness=False):
     previous=set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/result.json')) if readiness else set()
     previous_children=(set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/integration.json'))
         | set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/process-*/process.json'))
+        | set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/postgresql/command-*/process.json'))
         | set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/authentication.xml'))) if readiness else set()
     evidence.mkdir(parents=True)
     with consumer_cache_environment(root) as caches:

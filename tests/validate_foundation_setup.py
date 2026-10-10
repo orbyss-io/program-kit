@@ -527,6 +527,128 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
                 with self.assertRaisesRegex(ValueError,'deployed runtime snapshot inputs changed'):
                     qualification.verify_runtime_snapshot(runtime,name,self.root/(name+'-after'),command,before['sourceInputs'])
 
+    def test_identity_discovery_retries_boot_errors_but_preserves_host_fail_fast_and_issuer(self):
+        calls = []
+        responses = [503, 503, 200, 200]
+        issuer = 'http://localhost:owned-public/realms/fixture'
+        class Discovery(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                calls.append(self.path)
+                status = responses.pop(0) if responses else 200
+                self.send_response(status); self.end_headers()
+                self.wfile.write(json.dumps({'issuer': issuer, 'status': 'failed', 'owner': 'owned'}).encode())
+            def log_message(self, *_): pass
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Discovery)
+        thread = threading.Thread(target=server.serve_forever); thread.start()
+        origin = 'http://127.0.0.1:' + str(server.server_port)
+        path = '/realms/fixture/.well-known/openid-configuration'
+        actual_poll = fixture.poll
+        budgets = []
+        test_budget = 1
+        def bounded(probe, *, timeout):
+            budgets.append(timeout)
+            return actual_poll(probe, timeout=test_budget, interval=.005)
+        try:
+            # The former shared predicate fails on the same actual transient response.
+            with self.assertRaisesRegex(ValueError, 'activated host returned HTTP 503'):
+                qualification.ready(origin, path)
+            responses[:] = [503, 503, 200, 200]
+            result = {'cases': {}, 'timings': {}}
+            with patch.object(fixture, 'poll', side_effect=bounded):
+                qualification.identity_discovery(origin, path, issuer, result)
+            self.assertEqual(result['preIssuerStep'], 'completed')
+            self.assertTrue(result['cases']['Foundation.public_issuer_private_backchannel'])
+            self.assertEqual([150], budgets)
+            self.assertEqual(5, calls.count(path))
+            responses[:] = [200, 200]
+            wrong = {'cases': {}, 'timings': {}}
+            with patch.object(fixture, 'poll', side_effect=bounded), self.assertRaisesRegex(ValueError, 'public issuer'):
+                qualification.identity_discovery(origin, path, 'http://private-transport:8080/realms/fixture', wrong)
+            self.assertEqual(wrong['preIssuerStep'], 'issuer-validate'); self.assertEqual({}, wrong['cases'])
+            responses[:] = [200, 503]
+            withdrawn = {'cases': {}, 'timings': {}}
+            with patch.object(fixture, 'poll', side_effect=bounded), self.assertRaisesRegex(ValueError, 'discovery response was not ready'):
+                qualification.identity_discovery(origin, path, issuer, withdrawn)
+            self.assertEqual(withdrawn['preIssuerStep'], 'discovery-read'); self.assertEqual({}, withdrawn['cases'])
+            test_budget = .2
+            responses[:] = [503] * 1000
+            pending = {'cases': {}, 'timings': {}}
+            with patch.object(fixture, 'poll', side_effect=bounded), self.assertRaisesRegex(ValueError, 'budget expired'):
+                qualification.identity_discovery(origin, path, issuer, pending)
+            self.assertEqual(pending['preIssuerStep'], 'discovery-poll'); self.assertEqual({}, pending['cases'])
+            for host_path in ('/__foundation/settings', '/bff/user'):
+                responses[:] = [503]
+                with self.assertRaisesRegex(ValueError, 'PKF103 activated'):
+                    qualification.ready(origin, host_path)
+            self.assertEqual([150, 150, 150, 150], budgets)
+            (self.root/'http-readiness-contract.json').write_text(json.dumps({
+                'scope': 'Actual loopback HTTP client/poll; bounded test budget, no Keycloak or Host acceptance.',
+                'productionPollBudgets': budgets, 'transientThenReady': True,
+                'wrongPublicIssuerRejected': True, 'nonreadyDiscoveryWithCorrectIssuerRejected': True, 'neverReadyExpired': True, 'host5xxFailFastRetained': True}, indent=2)+'\n')
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
+
+    def test_pre_issuer_checkpoints_are_written_before_owned_external_boundaries(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('foundation_composition', ROOT/'extensions/program-kit-dotnet/scripts/foundation_composition.py')
+        composition = importlib.util.module_from_spec(spec); spec.loader.exec_module(composition)
+        failures = ('network-create', 'postgresql-start', 'postgresql-network', 'product-schema',
+                    'identity-configure', 'identity-create', 'identity-import', 'identity-copy-verify', 'identity-start', 'completed')
+        observed = []
+        for failure in failures:
+            root = self.root/failure; root.mkdir(); (root/'eng/foundation-qualification-support').mkdir(parents=True)
+            (root/'eng/foundation-qualification-support/QualificationFeature.cs').write_text('__DEPENDENCIES__')
+            (root/'runtime/packages').mkdir(parents=True)
+            (root/'runtime/shells.json').write_text(json.dumps({'CShells': {'Shells': {'default': {'Features': {}, 'Configuration': {'Foundation': {'Web': {}}}}}}}))
+            (root/'deploy/keycloak').mkdir(parents=True)
+            (root/'deploy/keycloak/program-kit-realm.json').write_text(json.dumps({'attributes': {'programKitFixture': 'local-non-production-only'},
+                'clients': [{'clientId': 'owned', 'secret': '' if failure=='identity-configure' else 'synthetic'}]}))
+            (root/'tests/foundation-product').mkdir(parents=True); (root/'tests/foundation-product/schema.sql').write_text('owned schema boundary')
+            pins = ('CShells.Abstractions','CShells.AspNetCore.Abstractions','Orbyss.Foundation.Authentication','Orbyss.Foundation.Analyzers','Orbyss.Foundation.Build')
+            (root/'Directory.Packages.props').write_text('<Project><ItemGroup>'+''.join('<PackageVersion Include="'+name+'" Version="0.0.1" />' for name in pins)+'</ItemGroup></Project>')
+            directory = root/'evidence'; directory.mkdir()
+            class Boundary:
+                def __init__(self, *args): self.secrets = ()
+                def run(self, command, **kwargs):
+                    stage = None
+                    if command[:3]==['docker','network','create']: stage='network-create'
+                    elif command[:2]==['docker','create']:
+                        stage='identity-create' if 'pk-foundation-identity-' in command[3] else 'completed'
+                    elif command[:2]==['docker','cp']:
+                        if command[2].endswith('identity-import'): stage='identity-import'
+                        elif ':/opt/keycloak/data/import' in command[2]:
+                            stage='identity-copy-verify'
+                            shutil.copytree(directory/'identity-import', Path(command[3]))
+                    elif command[:2]==['docker','start']: stage='identity-start'
+                    if stage==failure: raise ValueError('controlled owned boundary')
+            class Database:
+                def __init__(self, *args): self.password='synthetic'; self.name='owned-postgres'; self.port=5432
+                def start(self):
+                    if failure=='postgresql-start': raise ValueError('controlled owned boundary')
+                def command(self, arguments):
+                    stage='postgresql-network' if arguments[0]=='network' else 'product-schema'
+                    if stage==failure: raise ValueError('controlled owned boundary')
+                def connection(self): return 'Host=127.0.0.1;Port=5432'
+                def close(self): pass
+            config = {'application': {'publicOrigin': 'http://localhost:5215'}, 'identity': {'publicOrigin': 'http://localhost:5216',
+                'backchannelOrigin': 'http://owned-identity:8080', 'realm': 'fixture', 'clientId': 'owned'}}
+            selected = {'compositionId': 'foundation-bff-keycloak-postgresql','runtimeStage':'runtime', 'projects': [],
+                'serviceImages': {'keycloak': 'owned-image', 'postgresql': 'owned-image'}, 'targets': {'publicAuthority': 'owned-public'}, 'hostImage':'owned-host'}
+            metadata = {'contracts': []}
+            with patch.dict(sys.modules, {'foundation_composition': composition}), \
+                 patch.object(composition, 'load_configuration', return_value=config), patch.object(composition, 'read', return_value=metadata), \
+                 patch.object(composition, 'rows', return_value=[('Orbyss.Foundation.Authentication', None, {'path':'Foundation:Web:Owned'})]), \
+                 patch.object(qualification, 'bundle_hashes', return_value={'owned':'same'}), patch.object(qualification, 'Commands', Boundary), \
+                 patch.object(fixture, 'PostgreSqlFixture', Database), patch.object(qualification, 'request', return_value=(200,b'{"issuer":"owned-public"}')), \
+                 self.assertRaises(ValueError):
+                qualification.integration(root, selected, directory, product_enabled=True)
+            receipt = json.loads((directory/'integration.json').read_text())
+            self.assertEqual(failure, receipt['preIssuerStep'])
+            self.assertEqual('failed', receipt['status']); self.assertTrue(receipt['cleanupComplete'])
+            self.assertEqual(failure=='completed', receipt['cases'].get('Foundation.public_issuer_private_backchannel',False))
+            observed.append({'step':failure, 'writtenBeforeFailure':True, 'cleanupComplete':True})
+        (self.root/'checkpoint-boundaries.json').write_text(json.dumps({'scope':'Actual maintained integration with controlled external boundaries; no Docker/Host acceptance.', 'observations':observed},indent=2)+'\n')
+
     def test_provider_identity_is_immutable_and_poll_is_bounded(self):
         with self.assertRaisesRegex(ValueError, 'immutable'):
             fixture.PostgreSqlFixture('postgres:16', self.root / 'provider')

@@ -14,7 +14,7 @@ Notes and De Sportomgeving remain read-only; no live services or data were chang
 | 2. Foundation contracts | Foundation owners; independent runtime/release reviewers | Typed crawler policy, mandatory private floor, response-local admitted nonce, denial/isolation and late-denial cache correction; maintained provider/deadline contracts. [Release 38067350551](https://github.com/orbyss-io/dotnet-foundation/actions/runs/38067350551) succeeded; root verified 30 public runtime packages and immutable dual-platform Host, both scans zero High/Critical. | None for Foundation publication. |
 | 3. Compositions/configuration | Composition and identity owners; contract reviewers | BFF/Keycloak and EF/PostgreSQL descriptors, authoritative defaults, relational validation, precedence/lifecycle and theme envelope. Public issuer remains distinct from private transport/administration. Sixty-two sync checks include 48 invalid-alias rejections without writes. Actual discovery passes both disposable shapes. | Final-source qualification. Production TLS/proxy/provisioning needs deployment-specific checks. |
 | 4. Materialization | Sync and retirement owners; reviewers | Existing preview/digest/apply mechanism; minimal feature-owned API/provider seams, root/nested runtime paths, safe rerun/customization/conflict/removal. Customized independent Sport Feed survives and builds outside selected runtime roots; test probes stay outside production selection. | Final archive/install checks. |
-| 5. Maintained verification | Setup/readiness and native-runner owners | Shared authentication/provider fixtures, bounded supervised processes and input-sensitive reuse. **22 setup tests and 43 qualifier contracts pass**. Actual Notes HTTP ownership/conflict/restart checks and Sport xUnit/MTP 4.0.2 pass; skipped native case is rejected. Application transaction, replay and recovery contracts remain application-owned. | Actual Firefox candidate and full gates. |
+| 5. Maintained verification | Setup/readiness and native-runner owners | Shared authentication/provider fixtures, bounded supervised processes and input-sensitive reuse. **24 setup tests and 50 qualifier contracts pass**. Actual Notes HTTP ownership/conflict/restart checks and Sport xUnit/MTP 4.0.2 pass; skipped native case is rejected. Application transaction, replay and recovery contracts remain application-owned. | Actual Firefox candidate and full gates. |
 | 6. Architectural views | Configuration/view owners; orchestrator | Templates, source reference/Mermaid, validated browser allowlist, redacted configured attribution and actual owner-options/DLL provenance. Flattened shell-provider observations and unobserved owners are labeled accurately. | Inspect final generated views. |
 | 7. Readiness/product workflow | Readiness, installed-workflow and upgrade owners | Generation, platform readiness and product acceptance remain separate. No implicit services during drafting/hooks. Native tasks/implement replacement plus analyzer append remove the upstream blanket barrier while retaining due security/provider/authority obligations. Nineteen task checks, 29 upgrade contracts, actual 512-entry installation and failed-activation/recovery/retry pass. | Rebuild and inspect final Release archives. |
 | 8. Migration/performance | Disposable qualification owners; fresh reviewers | Notes and nested Sport migrations preserve synthetic data, locks, accepted history/custom settings and independent features. Both author zero generic harness lines and retain zero generic setup tasks. | Final-source cold/prepared measurements and publication. Live adoption remains a separate consumer action. |
@@ -41,7 +41,7 @@ Current evidence and gates:
   [Targeted CI 38085908238](https://github.com/orbyss-io/program-kit/actions/runs/38085908238) confirms
   cross-site denial passed; session logout and provider-navigation-failure still failed assertions.
   All 21 cases were observed without skips; Linux 2/3, Windows 5/5. Root verified all eight hashes.
-  The next bounded correction verifies the actual signed-out navigation URL, HTTP200, JSON content
+  The next bounded correction verifies the actual signed-out navigation URL, HTTP 200, JSON content
   type and typed `{signedOut:true}` response rather than literal display formatting. Session/provider
   assertions remain intact. Source-extracted negative controls and genuine locked-type compilation
   pass fresh review. The actual disposable Notes integration at `296d7c5` passed all 14 Chromium/WebKit
@@ -59,6 +59,13 @@ Current evidence and gates:
   verified canonical/forward-slash/relative/distinct-8.3 cases, actual old-helper failure and fresh PrepareOnly
   with 12 identical executable sources, exact environment restoration and 15 retained Codex metadata entries.
   Remote acceptance remains pending. PrepareOnly starts no Release suite.
+- Startup correction: actual loopback HTTP proves the prior discovery predicate aborted on transient 503.
+  The dedicated identity predicate retains the existing 150s budget; the actual discovery response must
+  be HTTP 200 with the exact public issuer. Host settings 5xx remain fail-fast. Fixed pre-issuer stages
+  and confined nested PostgreSQL numeric-exit observations preserve bounded diagnostics and stale-input
+  rejection. Root reviewed source and supervised evidence; fresh review independently passed 24 setup
+  tests, 50 contracts and 10 additional boundaries. The cause of the original CI failure remains unproven
+  until real qualification. This follows the Notes `296d7c5` functional proof and requires final-source checks.
 - Mandatory complete dependency maintenance (including Firefox and both image scans), full CI,
   final local Release through `Invoke-LocalRelease.ps1 -AuthorizedCodexTask`, and tagged Release/public
   install/upgrade remain required. Earlier full maintenance/CI failures remain failures.
