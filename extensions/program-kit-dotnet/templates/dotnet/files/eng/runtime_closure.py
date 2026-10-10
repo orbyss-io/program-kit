@@ -6,6 +6,7 @@ import json
 import os
 import tempfile
 import zipfile
+import subprocess
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -89,7 +90,46 @@ def mark_in_progress(repository: Path, staged: Path, evidence: Path) -> None:
     )
 
 
-def write_success(repository: Path, staged: Path, evidence: Path, version: str) -> dict:
+def pack_toolchain(repository: Path) -> str:
+    result = subprocess.run(['dotnet', '--version'], cwd=repository, capture_output=True, text=True, timeout=30)
+    if result.returncode:
+        raise ValueError('PKR023 cannot observe pack SDK')
+    return result.stdout.strip()
+
+
+def prepare_pack(repository: Path, packages: Path) -> None:
+    relative(repository, packages, 'pack inventory')
+    packages.mkdir(parents=True, exist_ok=True)
+    if list(packages.glob('*.nupkg')) or (packages / 'program-kit-pack.json').exists():
+        raise ValueError('PKR023 prepare-pack requires a fresh owned pack directory')
+    atomic_write(packages / 'program-kit-pack.json', {'schemaVersion':1, 'state':'prepared',
+        'sourceInputs':source_inputs(repository), 'sdk':pack_toolchain(repository)})
+
+
+def seal_pack(repository: Path, packages: Path) -> None:
+    path = packages / 'program-kit-pack.json'
+    value = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(value,dict) or value.get('state') != 'prepared' or value.get('sourceInputs') != source_inputs(repository) or value.get('sdk') != pack_toolchain(repository):
+        raise ValueError('PKR023 build/pack source inputs or SDK changed; rebuild in a fresh pack run')
+    value['state'] = 'sealed'
+    value['packages'] = {package.name:sha256(package) for package in sorted(packages.glob('*.nupkg'))}
+    atomic_write(path, value)
+
+
+def validate_pack(repository: Path, packages: Path, inventory: Path) -> dict:
+    relative(repository, inventory, 'pack inventory')
+    if inventory.resolve() != (packages / 'program-kit-pack.json').resolve():
+        raise ValueError('PKR023 pack inventory must belong to the supplied pack run')
+    value = json.loads(inventory.read_text(encoding='utf-8'))
+    actual = {package.name:sha256(package) for package in sorted(packages.glob('*.nupkg'))}
+    if (not isinstance(value,dict) or value.get('schemaVersion') != 1 or value.get('state') != 'sealed'
+            or value.get('sourceInputs') != source_inputs(repository) or value.get('sdk') != pack_toolchain(repository)
+            or value.get('packages') != actual):
+        raise ValueError('PKR023 sealed pack inventory is stale, incomplete or tampered; rebuild/restage')
+    return {'established':True, 'inventory':relative(repository, inventory, 'pack inventory'), 'sha256':sha256(inventory)}
+
+
+def write_success(repository: Path, staged: Path, evidence: Path, version: str, pack_freshness: dict | None = None) -> dict:
     relative(repository, evidence, "runtime closure evidence")
     packages_root = staged / "packages"
     packages = []
@@ -121,6 +161,7 @@ def write_success(repository: Path, staged: Path, evidence: Path, version: str) 
         "sourceInputs": source_inputs(repository),
         "closureDigest": canonical_digest(version, packages, configuration),
         "packageHashesAreRunScoped": True,
+        "packSourceFreshness": pack_freshness or {'established':False},
         "satisfied": True,
     }
     atomic_write(evidence, value)
@@ -147,6 +188,11 @@ def validate(repository: Path, staged: Path, evidence: Path, version: str) -> di
             raise ValueError(f"PKR022 runtime-closure evidence does not match staged {key}")
     if "sourceInputs" in value and value["sourceInputs"] != expected["sourceInputs"]:
         raise ValueError("PKR022 runtime-closure sourceInputs changed; rebuild/restage")
+    freshness = value.get('packSourceFreshness', {'established':False})
+    if freshness.get('established') is True:
+        path = repository / freshness['inventory']
+        if validate_pack(repository, path.parent, path) != freshness:
+            raise ValueError('PKR023 runtime closure pack inventory binding changed')
     return value
 
 

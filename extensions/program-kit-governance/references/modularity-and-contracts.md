@@ -59,6 +59,32 @@ Core owns stable contracts and pure policies, never persistence-calling orchestr
 Role names, namespaces, one package or deployment do not waive separation. Declare actual responsibilities
 and complete capability bindings; a graph pass establishes structural consistency, not semantic correctness.
 Empty repositories and pure Core utilities need no invented runtime projects.
+Features register their own services and lifecycle contributions. A provider contributes its schema
+preparation through the selected existing lifecycle interface; the application owns policy/signing
+admission and managed workers. Deployment configuration selects implementations. When the affected
+design includes initialization, admission or managed workers, inspect the captured consumer's
+versioned publisher knowledge before choosing the mechanism with `publisher_knowledge.py
+--target .` and focused CShells/Foundation Tasks facts. Missing historical knowledge calls for repair of
+that exact profile, never adoption of today's default.
+For the reviewed Foundation Tasks 0.3.1 / CShells 0.0.30-preview.159 baseline, the provider
+registers `AddShellInitializer<PrepareSchema>(LifecyclePhase.Prepare)` and owns its provider scope;
+application policy/signing admission uses an explicitly ordered `Default` initializer. Foundation's
+manager contributes in `Start`, awaits scoped `IStartupTask` work, then starts shell-singleton workers.
+Use fresh application-owned scopes per worker iteration. Read `CShells.Abstractions --fact README.md`
+and Foundation Tasks' `FoundationTasksFeature.cs` / `ShellTaskManager.cs` through the exact selected
+publisher route before adapting this example to another baseline. Required preparation/admission
+exceptions prevent activation; lifecycle subscribers swallow failures and cannot provide that gate.
+Use explicit lifecycle phases for required ordering and failure admission, preserving scoped startup,
+fresh worker scopes and bounded cancellation/drain. DI/discovery order, constructors, root
+BackgroundService behavior and lifecycle notifications cannot establish required admission. Awaited
+business events support independent reactions to immutable facts; subscriber order and zero-subscriber
+delivery do not establish an ordered mandatory workflow. Where lifecycle contributions remove a
+cross-feature call, add no new interface; otherwise define the cohesive provider-neutral capability at
+its semantic boundary, keeping schema/ORM details private to the provider.
+Composition is an optional reusable selection preset, not a default layer or an owner for foreign
+tasks/provider initialization. Record its concrete responsibility and rationale in existing planned
+responsibilities, and review its source ownership. Packaging collects selected runtime closures
+directly; an aggregate library is not needed to gather dependencies.
 <!-- /program-kit:decision-rule -->
 
 Composition selects implementations; it does not contain the domain or provider implementations it selects.

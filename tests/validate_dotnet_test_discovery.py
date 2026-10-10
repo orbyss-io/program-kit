@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 import shlex
@@ -14,6 +15,33 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1"
 RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1"
+
+
+PACK_ENGINE_FILES = ('release_bundle.py', 'central_packages.py', 'handoff_contract.py',
+                     'shell_composition.py', 'runtime_closure.py', 'program_kit_version.py')
+
+
+def materialize_pack_engine(managed: Path) -> None:
+    # Exercise actual maintained prepare/seal input capture, while this fixture's
+    # fake SDK remains limited to wrapper routing and native project discovery.
+    for name in PACK_ENGINE_FILES:
+        shutil.copyfile(BUILD.parent / name, managed / name)
+    shutil.copyfile(BUILD.parent / 'legacy-feature-bridge.json', managed / 'legacy-feature-bridge.json')
+    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/extension.yml', managed.parent / 'extension.yml')
+
+
+def assert_pack_capture(repository: Path) -> None:
+    inventories = list((repository / 'artifacts/packages').glob('*/*/program-kit-pack.json'))
+    if len(inventories) != 1:
+        raise AssertionError('Build must produce one fresh maintained pack inventory')
+    value = json.loads(inventories[0].read_text(encoding='utf-8'))
+    if value['state'] != 'sealed' or value['packages'] != {}:
+        raise AssertionError('Wrapper fixture must seal actual inputs without claiming compiled packages')
+    import hashlib
+    for name in PACK_ENGINE_FILES:
+        path = repository / 'eng' / name
+        if value['sourceInputs'].get('eng/' + name) != hashlib.sha256(path.read_bytes()).hexdigest():
+            raise AssertionError('Maintained pack engine input was not captured: ' + name)
 
 
 def write_fake_dotnet(tools: Path) -> None:
@@ -134,6 +162,7 @@ def create_repository(value: str, solution_name: str, test_flags: tuple[bool, ..
     managed.mkdir(parents=True)
     shutil.copyfile(BUILD, managed / "Build.ps1")
     shutil.copyfile(RESTORE, managed / "Restore.ps1")
+    materialize_pack_engine(managed)
     (repository / "VERSION").write_text("1.0.0\n", encoding="utf-8")
     (repository / "NuGet.config").write_text("<configuration />\n", encoding="utf-8")
     projects = []
@@ -187,6 +216,7 @@ def validate_topologies(shell: str) -> None:
             result, entries = run_build(shell, repository, tools)
             if result.returncode != 0:
                 raise AssertionError(f"managed Build.ps1 failed for {name}: {result.stdout}{result.stderr}")
+            assert_pack_capture(repository)
             probes = [line for line in entries if line.startswith("msbuild ")]
             if len(probes) != len(flags):
                 raise AssertionError(f"{name} evaluated {len(probes)} projects instead of {len(flags)}: {entries}")

@@ -17,6 +17,35 @@ python eng/openapi_pipeline.py --repository .
 Restore uses the pinned SDK and repository NuGet routes. Verification runs the consumer's
 eng/verify.ps1 when supplied, then compiled architecture checks; otherwise it runs the standard
 build/tests. Build also stages the application release bundle for the selected published host.
+Packing writes a fresh run inventory under artifacts/packages/<version>/<run-id>.
+Bundle roots are currently activated feature packages and accepted publisher selections;
+each root contributes its exact restored project/package runtime closure. Core/helpers and
+legitimate selection presets can appear as transitive dependencies without a catch-all
+Composition project. Removed or unselected packages in older pack output are excluded.
+For independently delivered pure libraries without feature descriptors, select current-source
+package identities explicitly: `./eng/Build.ps1 -LockedMode -RootPackage 'Example.Core'`.
+Manual staging accepts repeatable `--root-package Example.Core` with the exact fresh pack-run
+directory and its `--inventory <run-directory>/program-kit-pack.json`. Each explicit root must
+resolve to one packable current source project and its evaluated exact package version.
+Handoff component labels and historical pack output never select roots implicitly.
+MSBuild supplies imported/evaluated PackageId and PackageVersion. Conflicting restored
+versions or same-identity package bytes fail staging; nuspec ranges validate the restored
+choice and never choose a newer version. Private build-only references stay out of runtime.
+Restore/build/pack selected current roots before staging. Build captures source/restore
+inputs and SDK before its fresh build, seals the
+pack inventory only when those inputs remain unchanged, and validates package hashes at
+staging and release description. A manual stage without `--inventory` stays compatible
+but records that pack-source freshness is not established; its caller owns the fresh
+restore/build/pack obligation. Never use an old same-version package to claim new source
+was compiled. External roots with unresolved dependencies use a temporary nonpackable
+native NuGet restore input; configured feeds/mappings and exact selected pins remain
+authoritative. Its graph is preserved as engineering evidence and its temporary files
+are cleaned. It creates no application library or change to consumer locks.
+Staging owns only its artifacts
+directory; private configuration, accounts and databases stay in their existing deployment
+locations. The published host image is unchanged. Replacing shells/package configuration
+uses the current feature selection, removing obsolete managed flags while preserving those
+private locations; do not merge old feature flags back into the replacement.
 Contract generation runs registered contracts and compares their baselines. A deliberately accepted
 contract change can update its baseline explicitly; never bypass an unexpected compatibility failure.
 
@@ -37,8 +66,10 @@ Development uses explicit scopes rather than the acceptance pipeline at every ch
 ./eng/Invoke-RepositoryVerification.ps1 -Scope Affected -ChangedFrom <implementation-base>
 ```
 
-Focused builds named test projects and runs their native MTP tests; `-TestArguments` accepts the
-selected framework's filters as an argument array. Each selected module must execute at least one
+Focused builds named test projects and runs their selected native tests; `-TestArguments` accepts the
+selected framework's filters as an argument array. An unfiltered Focused selection with multiple
+projects requires `-Reason 'Shared contract changed: ...'`, explaining its dependency scope. This
+is a scope explanation, not a test-count cap. Each selected module must execute at least one
 test. Discovery/help, suppressed exits, hidden response files and zero-test overrides cannot turn
 this into an empty green run. It does not pack, stage, start services or execute unrelated browser
 tests. Use `-Restore` only for changed locks/packages or missing restore assets. Default compilation
@@ -50,8 +81,54 @@ current worktree, including committed, staged, unstaged, untracked, deleted and 
 tests for shared build inputs, and explicitly owned non-source inputs. A feature directory is context,
 not evidence that other callers are unaffected. New and previously failing cases remain part of
 the required development work. Inspect `-Plan` without executing tests; unknown ownership blocks
-narrowing rather than silently invoking all tests. Reuse unchanged successful results honestly;
-relevant external/runtime/environment changes can invalidate them independently of Git.
+narrowing rather than silently invoking all tests. The retained baseline remains the coverage
+authority; successful per-project results are reused only for exact matching test arguments,
+configuration and current inputs. `-Plan` lists `needed`, `reusable` (with retained run references)
+and `unresolved` checks and their reasons. Actual executions retain per-project outcomes and
+hashed build/test evidence under artifacts/tests/runs; an earlier project success survives a later
+project failure. A filtered pass clears only that same filtered failure; it cannot erase a full
+regression failure or a different filtered failure. Interrupted, incomplete, failed or tampered
+evidence cannot become reusable. An entirely reused selection creates no new run receipt.
+When a failing test project is removed or renamed, retain its run history and declare
+`testOwnershipReplacements` in eng/verification.json, for example
+`[{"predecessor":"tests/Old.Tests/Old.Tests.csproj","successors":["tests/Notes.Tests/Notes.Tests.csproj"]}]`.
+The predecessor must be retired from the architecture graph; successors must resolve to current
+test projects. Splits list every successor. Cycles, duplicate predecessors and invalid owners fail.
+Affected selection maps removed inputs and unresolved failures to these successors. Each successor
+must execute a fresh unfiltered regression, even if its current pass could otherwise be reused;
+the mapping itself requires this execution even when the predecessor has no retained failure.
+filtered runs cannot establish equivalent renamed coverage. Successful execution records bind the
+original failure, current mapping and hashed evidence without rewriting any old result. A split
+remains unresolved until all successors pass; a later mapping change requires fresh coverage.
+Plan prepares the same managed environment/cache directories as execution, but invokes no
+restore/build/tests.
+
+Freshness observes transitive project directories including dirty/untracked/deleted/renamed
+sources, literal file items and inherited build imports, shared engineering scripts/configuration,
+mapped test inputs, locks, restore assets, restored package bytes, generated C# inputs, selected
+SDK/runtime, configuration, test arguments and relevant controlled environment. Shared file and
+package hashes are computed once per observation and refreshed for subsequent observations.
+Implicit environment properties used by the selected projects and their inherited/imported build
+policy, including CI, are observed without importing unrelated future-project property names.
+Source/configuration/toolchain must match before and after build; restore precedes that comparison.
+Only restore/compiler-generated obj outputs may change during build. Tests bind the resulting
+generated inputs and reject input/toolchain changes during execution.
+Only literal `Exists('same-import-path')` optional imports may be absent; their later appearance
+invalidates freshness. Dynamic item/import graphs and custom build tasks require an evaluated
+consumer adapter; incomplete ownership fails closed. Build once for the selected targets and run
+tests without rebuilding; multiple selected targets share one MSBuild traversal.
+
+Declare additional **non-secret** test environment names in `environmentInputs` in
+eng/verification.json. Values are not recorded; only the combined fingerprint is retained.
+Credentials must never be declared as freshness inputs or written to test evidence. `--settings`
+or `-s` runsettings paths must be contained repository files; their bytes are freshness inputs.
+Unknown native argument forms execute normally but disable reuse, because identical strings
+cannot prove that hidden file/runtime inputs are unchanged. Dynamic
+external startup hooks, shared stores or custom MSBuild paths disable reuse. Mutable external
+provider/runtime state has no automatic identity: declare its testGroup `externalState: true`
+or `reuse: false` so it always executes. `-Force` also requests fresh execution when appropriate.
+Native test adapters must not claim cached offline evidence as a new
+execution. Full Acceptance and Release remain fresh complete gates and never consume scoped reuse.
 Ordinary Spec Kit design/checklist Markdown and constitution text are context rather than native
 build inputs: checking off tasks does not select unrelated tests. Explicit test-group mappings
 still take precedence. A context-only delta requests reuse/design review and executes no tests;
@@ -59,18 +136,38 @@ it never claims an empty test run passed. Delivered contracts and application gu
 actual engineering mapping; arbitrary Markdown is not automatically excluded.
 
 Ordinary literal project graphs need complete projectReferences in eng/architecture.json, checked
-against project source. Dynamic/imported graphs, browser journeys, custom executable oracles and
-provider provisioning can use an optional consumer-owned **eng/verify-scoped.ps1**, accepting Scope,
+against project source. MTP is selected by global.json; an ordinary VSTest consumer works without
+switching runners. VSTest execution must retain TRX with positive execution, no failures/errors
+and no skipped selected tests. Optional eng/verification.json `runner` is `auto` (default), `mtp`,
+`vstest` or `adapter`. Custom offline/provider test execution should use the fixed contained regular
+**eng/verification-runner.py**, leaving selection, builds, freshness and failure retention with the
+maintained orchestrator. It receives `--request <managed-json-path> --result <managed-json-path>`.
+The schemaVersion 1 request contains repository, project, configuration, testArguments,
+outputDirectory and restoreRequested. Execute the actual selected native tests; return
+`{"schemaVersion":1,"status":"completed","executedTests":1,"evidence":["artifacts/tests/runs/<run>/native-result.json"]}`
+with the actual positive execution count and actual native result files inside the managed run.
+Exit zero alone cannot pass. Exceptions, missing evidence, zero execution and source/toolchain
+changes during tests fail the run. Adapters own their native oracle, including distinguishing
+execution from discovery/skips; they must retain failures and never log credentials.
+Custom runners default to no reuse. Set `runnerReuse: true` only for deterministic offline checks
+whose complete source, test harness, configuration, fixture and controlled environment inputs
+are covered by the normal project/testGroup/environment mappings. Checks with mutable external
+state remain nonreusable even when other adapter checks qualify.
+
+Dynamic/imported graphs and other orchestration that cannot use this runner contract can retain
+the existing optional consumer-owned **eng/verify-scoped.ps1**, accepting Scope,
 Projects, TestArguments, ChangedPaths, ChangedFrom, FeatureDirectory, Configuration, Restore and Plan.
+Reason and Force are forwarded when supplied. This legacy evaluated orchestration path cannot
+produce managed freshness reuse; prefer the maintained runner contract where possible.
 That adapter must compute current evaluated dependencies, require actual selected tests, retain
 failed results and preserve relevant contracts/provider/security checks. A scoped adapter never
 replaces eng/verify.ps1 at full acceptance. Both are fixed contained regular file paths.
 
-Only non-source mappings need optional eng/verification.json; it is ordinary test configuration,
+Non-source and retired test-owner mappings use optional eng/verification.json; it is ordinary test configuration,
 not a feature proof or approval dossier. For example:
 
 ```json
-{"schemaVersion":1,"testGroups":[{"id":"notes-wire","projects":["tests/Notes.Tests/Notes.Tests.csproj"],"inputs":["contracts/notes/**"]}]}
+{"schemaVersion":1,"runner":"auto","environmentInputs":["NOTES_PROVIDER_MODE"],"testGroups":[{"id":"notes-wire","projects":["tests/Notes.Tests/Notes.Tests.csproj"],"inputs":["contracts/notes/**"]}]}
 ```
 
 Progress saves, task batches, story checkpoints and resumes earn focused/affected checks, not full
@@ -223,3 +320,31 @@ Settings admission is bounded: 2 MiB metadata, 32 publisher contracts, 512 sourc
 text, 16 KiB constraints and 16 Ki-character string defaults. Oversized inputs fail rather
 than becoming ready handoffs. Compiler-conditioned and skipped/design-time publisher
 exports need supported owning semantics; the current source candidate explicitly rejects them.
+
+## Explicit reusable foundation setup
+
+An accepted `eng/foundation-composition.json` selects the finite BFF/Keycloak baseline
+or its EF/PostgreSQL variant. Normal sync preview/apply owns managed contracts/views and
+preserves application-owned feature scaffolds. See
+`docs/architecture/foundation-configuration.md` for the source-backed ownership/flow
+reference and `python eng/foundation_composition.py --repository . --effective` for the
+redacted source projection. Runtime test support captures the actual activated typed
+options and native provider provenance separately; a source projection is not an
+observation of a running host.
+
+`python eng/foundation_setup.py --repository .` only inspects preparation. Explicit
+`--execute` authorizes its maintained restore/build/service/setup commands and retains
+named results in `artifacts/tests/runs/`. Drafting, intake and ordinary hooks never start
+these services. File generation, foundation readiness and product acceptance remain
+separate. Reuse maintained setup checks; application tests own resource authorization,
+transactions, conflicts, replay and recovery. Native executable and xUnit/MTP adapters
+preserve their runners. Unchanged public profiles and historical locks remain available;
+an explicit local development candidate does not claim public publication.
+
+Selected-root staging resolves full portable NuGet package dependencies through an
+isolated native restore with package pruning disabled, without rewriting consumer locks.
+Restored NuGet content hashes are computed from actual archives by the selected SDK's
+`NuGet.Packaging` reader. Signed content identity excludes the signature envelope; exact
+archive SHA256 still binds the staged bytes. The small `eng/package_hash` adapter is a
+maintained development tool using SDK assemblies, with build logs under `artifacts/tools/`.
+No archive metadata or claimed signature digest substitutes for hashing actual content.

@@ -577,6 +577,63 @@ def cleanup_directory(project_root: Path) -> None:
         shutil.rmtree(directory)
 
 
+def _stop_windows_process(pid: int) -> None:
+    """Wait for the recorded process handle, including final log-handle teardown."""
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.WaitForSingleObject.argtypes = (wintypes.HANDLE, wintypes.DWORD)
+    kernel32.WaitForSingleObject.restype = wintypes.DWORD
+    kernel32.TerminateProcess.argtypes = (wintypes.HANDLE, wintypes.UINT)
+    kernel32.TerminateProcess.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+    kernel32.CloseHandle.restype = wintypes.BOOL
+
+    # SYNCHRONIZE, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_TERMINATE.
+    handle = kernel32.OpenProcess(0x00101001, False, pid)
+    if not handle:
+        if ctypes.get_last_error() == 87:  # ERROR_INVALID_PARAMETER: PID already gone.
+            return
+        raise C4ViewError("Cannot open the recorded Java C4 viewer; temporary state was preserved")
+    try:
+        result = kernel32.WaitForSingleObject(handle, 0)
+        if result == 0:  # WAIT_OBJECT_0: already fully terminated.
+            return
+        if result != 258:  # WAIT_TIMEOUT: still running.
+            raise C4ViewError("Cannot wait for the recorded Java C4 viewer; temporary state was preserved")
+        if not kernel32.TerminateProcess(handle, int(signal.SIGTERM)):
+            # The process may have exited between the initial wait and termination.
+            if kernel32.WaitForSingleObject(handle, 0) == 0:
+                return
+            raise C4ViewError("Could not stop the recorded Java C4 viewer; temporary state was preserved")
+        result = kernel32.WaitForSingleObject(handle, max(1, int(remaining_timeout(5) * 1000)))
+        if result == 258:
+            raise C4ViewError("Java C4 viewer did not stop; temporary state was preserved")
+        if result != 0:
+            raise C4ViewError("Cannot wait for the recorded Java C4 viewer; temporary state was preserved")
+    finally:
+        kernel32.CloseHandle(handle)
+
+
+def stop_java_process(pid: int) -> None:
+    if type(pid) is not int or pid < 1:
+        raise C4ViewError("Recorded Java C4 viewer has no valid PID; temporary state was preserved")
+    if os.name == "nt":
+        # GetExitCodeProcess is a liveness query, not a completion wait. Windows
+        # TerminateProcess is asynchronous; only the signaled handle admits cleanup.
+        _stop_windows_process(pid)
+    elif process_alive(pid):
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError as exc:
+            raise C4ViewError(
+                "Could not stop the recorded Java C4 viewer; temporary state was preserved"
+            ) from exc
+
+
 def stop_session(project_root: Path, runtimes: dict | None = None, *, cleanup: bool = True) -> bool:
     state = load_state(project_root)
     if state is None:
@@ -598,21 +655,8 @@ def stop_session(project_root: Path, runtimes: dict | None = None, *, cleanup: b
                 "Docker did not remove the recorded C4 viewer; temporary state was preserved: "
                 + (result.stderr.strip() or result.stdout.strip())
             )
-    elif state.get("runtime") == "java" and process_alive(state.get("pid")):
-        try:
-            os.kill(state["pid"], signal.SIGTERM)
-        except OSError as exc:
-            raise C4ViewError(
-                "Could not stop the recorded Java C4 viewer; temporary state was preserved"
-            ) from exc
-        if os.name == "nt":
-            # Windows retains open log handles until termination completes. POSIX may
-            # retain a zombie PID until the original Popen owner reaps it instead.
-            deadline = time.monotonic() + remaining_timeout(5)
-            while process_alive(state["pid"]):
-                if time.monotonic() >= deadline:
-                    raise C4ViewError("Java C4 viewer did not stop; temporary state was preserved")
-                time.sleep(0.05)
+    elif state.get("runtime") == "java":
+        stop_java_process(state.get("pid"))
     if cleanup:
         cleanup_directory(project_root)
     return True
@@ -802,6 +846,7 @@ def _start_session(
     directory.mkdir(parents=True, exist_ok=False)
     data_directory = directory / "data"
     state = None
+    process = None
     try:
         stage_projection(project_root, data_directory)
         identifier = session_identifier(project_root)
@@ -841,12 +886,10 @@ def _start_session(
             java = runtimes["java"]["path"]
             war_path = Path(runtimes["java"]["war"])
             command = build_java_command(java, war_path, data_directory, port)
-            stdout = (directory / "structurizr.stdout.log").open("w", encoding="utf-8")
-            stderr = (directory / "structurizr.stderr.log").open("w", encoding="utf-8")
             flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
-            process = subprocess.Popen(command, stdout=stdout, stderr=stderr, creationflags=flags)
-            stdout.close()
-            stderr.close()
+            with (directory / "structurizr.stdout.log").open("w", encoding="utf-8") as stdout, \
+                    (directory / "structurizr.stderr.log").open("w", encoding="utf-8") as stderr:
+                process = subprocess.Popen(command, stdout=stdout, stderr=stderr, creationflags=flags)
             state.update({"pid": process.pid, "command": command})
         write_state(project_root, state)
         wait_ready(url, lambda: session_active(state, runtimes), view_key=validation["primary_view_key"])
@@ -865,7 +908,10 @@ def _start_session(
                 pass
             finally:
                 try:
-                    stop_session(project_root, runtimes)
+                    stop_session(project_root, runtimes, cleanup=False)
+                    if process is not None:
+                        process.wait(timeout=remaining_timeout(5))
+                    cleanup_directory(project_root)
                 finally:
                     OPERATION_DEADLINE.reset(token)
             state["stopped"] = True
@@ -887,8 +933,18 @@ def _start_session(
                 except (C4ViewError, OSError) as exc:
                     evidence_error = exc
                 try:
+                    if process is not None:
+                        # Persisting state can fail after launch. The Popen handle still
+                        # owns this child and does not depend on a readable state file.
+                        if os.name == "nt":
+                            # CPython can cache an exit code after TerminateProcess is
+                            # denied. Its wait() then skips the native completion wait.
+                            stop_java_process(process.pid)
+                        elif process.poll() is None:
+                            process.terminate()
+                        process.wait(timeout=remaining_timeout(5))
                     stop_session(project_root, runtimes, cleanup=False)
-                except (C4ViewError, OSError) as exc:
+                except (C4ViewError, OSError, subprocess.TimeoutExpired) as exc:
                     cleanup_error = exc
                 try:
                     evidence = preserve_failure(project_root, startup_error, state)

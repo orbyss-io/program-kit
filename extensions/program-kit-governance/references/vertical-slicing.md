@@ -52,6 +52,20 @@ Platform, migration, security, observability, and other horizontal work is allow
 Plans must not use controllers, services, repositories, database, frontend, or infrastructure as
 the primary delivery phases for feature behavior.
 
+Tie each enabling dependency to the first operation that proves it. A policy create/list operation
+may need authorization, owned durable storage and its migration; it must not wait for later upload,
+OCR or processing-worker infrastructure. Upload admission still needs its real storage/security
+gates, and evidence processing still needs its provider, lease and recovery prerequisites. Shared
+work can enable several operations without making all future infrastructure a blanket barrier.
+
+Distinguish task-level enabling dependencies from retained roadmap-feature authority gates. An
+approved bootstrap prerequisite due before implementation still blocks that feature's preflight,
+even when an operation is otherwise independent. Expose that retained scope during planning/tasks;
+never change its trigger, affected slices or evidence requirement through operation declarations.
+If its approved scope prevents the desired operation order, resolve that architecture/authority
+choice through normal reviewed design before claiming the operation is ready. A delivery-due proof
+remains mandatory at delivery without becoming an invented global implementation dependency.
+
 ## Proportional exceptions
 
 Pure libraries, generated code, trivial adapters, presentation-only changes, migrations, and
@@ -65,3 +79,19 @@ Trace each slice through design evidence, architecture decisions, specification,
 implementation, and verification. When a slice exposes a new architecture choice, stop at the
 decision boundary, propose the ADR, obtain human acceptance, and update the architecture before
 implementation depends on it.
+
+For an existing approved plan with coarse layer tasks, preserve its task IDs, checked states,
+requirements and accepted architecture. Add operation substeps mapped to those parent IDs, then
+identify the smallest usable operation and the actual dependencies needed to prove it. Leave each
+parent task open until all its obligations are complete. Review any proposed prerequisite changes
+against security, data integrity, provider and authority constraints before updating the approved
+graph; neither an upgrade nor a resume may silently rewrite it. Preserve unfinished work and real
+failures, and do not turn simulated or scoped verification into feature acceptance.
+
+At a consumer checkpoint, first save the working tree and the original implementation baseline,
+current behavior, next operation and unresolved failure artifact references. Upgrade the maintained
+commands/templates and verification wrapper through the normal reviewed consumer upgrade path,
+preserving consumer-owned customizations and its accepted runner/toolchain. Map a custom VSTest or
+offline/provider runner to the supported adapter contract before relying on scoped result reuse.
+Replan only the affected coarse tasks using the substeps above, inspect needed/reusable/unresolved
+verification, and run the checks invalidated by the repair before continuing that operation.

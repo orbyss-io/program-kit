@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps><ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
+    <NuGetAudit>false</NuGetAudit><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CShells.AspNetCore" Version="[0.0.30-preview.159]" />
+    <PackageReference Include="Orbyss.Foundation.Tasks" Version="[0.3.1]" />
+    <PackageReference Include="Orbyss.Foundation.DomainEvents" Version="[0.3.1]" />
+  </ItemGroup>
+</Project>

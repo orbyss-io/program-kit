@@ -8,7 +8,7 @@
     "npm": "12.2.0"
   },
   "scripts": {
-    "test": "node --test analytics.test.mjs && tailwindcss -i tailwind-input.css -o ../tailwind-compiled.css --minify && node browser.mjs"
+    "test": "node --test analytics.test.mjs durability.test.mjs && tailwindcss -i tailwind-input.css -o ../tailwind-compiled.css --minify && node browser.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",

@@ -151,7 +151,7 @@ def outputs(profile: dict, content: dict) -> dict[str, bytes]:
         example["archetype"] = archetype
         generated[f"{OUTPUT}/acceptance/archetypes/{archetype}.html"] = gallery(example).encode("utf-8")
     for source in sorted((TEMPLATES / "acceptance").iterdir()):
-        if source.is_file() and source.name in {"package.json", "package-lock.json", ".npmrc", "analytics.test.mjs", "browser.mjs"}:
+        if source.is_file() and source.name in {"package.json", "package-lock.json", ".npmrc", "analytics.test.mjs", "browser.mjs", "durability.mjs", "durability.test.mjs"}:
             generated[f"{OUTPUT}/acceptance/tests/{source.name}"] = source.read_bytes()
     tailwind_profile = {**profile, "css": "tailwind"}
     generated[f"{OUTPUT}/acceptance/tests/tailwind-theme.css"] = compile_tokens(tailwind_profile)["tailwind.css"].encode("utf-8")

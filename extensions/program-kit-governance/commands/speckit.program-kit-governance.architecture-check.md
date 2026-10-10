@@ -12,6 +12,11 @@ each declared project's `responsibilities`. Correct confirmed structural violati
 For example, a persistence-calling NotesService is runtime even when its project was called Core.
 Reconcile its responsibility and capability inventory with the plan and relevant ADRs; do not merely
 repeat role labels. A passing declared graph is structural evidence and never a semantic PASS.
+Address material `lifecycleFindings` with their concrete owner/source evidence. Review whether a
+composition project owns real reusable selection or merely registers foreign tasks/calls provider
+preparation. Apply the selected publisher lifecycle mechanisms and retain legitimate presets and
+independent business-event reactions. Record corrections in the current plan/tasks and ordinary review,
+preserving approved history; the findings create no new proof or approval dossier.
 Before a feature directory exists, review the request and existing constitutional/architectural
 context directly; do not require a feature-dependent command or create a feature on the hook's behalf.
 When a consumer upgrade record exists, run the lightweight compatibility scan with a

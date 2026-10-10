@@ -327,6 +327,21 @@ class UiExperienceTests(unittest.TestCase):
         for requirement in ("chromium", "firefox", "webkit", "phone-portrait", "phone-landscape", "tablet-portrait", "tablet-landscape", "hasTouch: true"):
             self.assertIn(requirement, browser)
 
+    def test_durable_journey_uses_shipped_checkpoints_and_missing_contract_fails(self):
+        output = ui_profile.outputs(self.profile, self.content)
+        prefix = f'{ui_profile.OUTPUT}/acceptance/tests/'
+        self.assertIn(prefix + 'durability.mjs', output)
+        self.assertIn(prefix + 'durability.test.mjs', output)
+        browser = output[prefix + 'browser.mjs'].decode()
+        self.assertIn("import { recordDurabilityCase } from './durability.mjs'", browser)
+        self.assertIn('durability requires a consumer-owned real server contract', browser)
+        self.assertIn('await recordDurabilityCase(durabilityAdapter.createContract, { browser, engine: name }, results)', browser)
+        helper = output[prefix + 'durability.mjs'].decode()
+        self.assertIn('await contract.close()', helper)
+        self.assertIn("status: 'failed', code: failure.code", helper)
+        package = json.loads(output[prefix + 'package.json'])
+        self.assertIn('durability.test.mjs', package['scripts']['test'])
+
     def test_isolated_ui_toolchain_has_hash_bound_bootstrap_authority(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

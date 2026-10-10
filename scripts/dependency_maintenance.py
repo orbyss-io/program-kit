@@ -46,6 +46,26 @@ def safe_path(root, relative):
     return path
 
 
+def pointer_location(document, pointer):
+    """Resolve a declared RFC 6901 leaf without creating or guessing fields."""
+    if not isinstance(pointer, str) or not pointer.startswith('/'):
+        raise ValueError('Additional pin requires a non-root JSON pointer')
+    keys = pointer[1:].split('/')
+    for index, key in enumerate(keys):
+        if re.search(r'~(?![01])', key):
+            raise ValueError('Invalid additional-pin JSON pointer escape')
+        keys[index] = key.replace('~1', '/').replace('~0', '~')
+    def key_for(container, key):
+        if isinstance(container, dict) and key in container:
+            return key
+        if isinstance(container, list) and re.fullmatch(r'0|[1-9]\d*', key) and int(key) < len(container):
+            return int(key)
+        raise ValueError('Additional-pin JSON pointer does not select an existing field')
+    for key in keys[:-1]:
+        document = document[key_for(document, key)]
+    return document, key_for(document, keys[-1])
+
+
 def inventory(root, policy):
     files = set()
     for pattern in policy["inputs"]:
@@ -126,9 +146,8 @@ def inventory(root, policy):
         path = safe_path(root, extra["path"])
         if path not in files:
             raise ValueError("Additional pin must be a hashed input")
-        value = read_json(path)
-        for key in extra["pointer"].strip("/").split("/"):
-            value = value[key]
+        container, key = pointer_location(read_json(path), extra["pointer"])
+        value = container[key]
         if extra["kind"] == "profile":
             for family, details in value.items():
                 name = policy["families"][family]
@@ -281,6 +300,8 @@ def upgrade(root, policy, observations):
             if latest == current:
                 continue
             for relative in pin["paths"]:
+                if relative not in before:
+                    raise ValueError('Maintenance pin path is not a hashed input: ' + relative)
                 if "/dependency-profiles/" in relative or relative in policy.get('immutableInputs',[]):
                     continue  # Never rewrite an immutable accepted profile.
                 path = safe_path(root, relative)
@@ -289,7 +310,7 @@ def upgrade(root, policy, observations):
                 if path.name == "global.json" and kind == "dotnet-sdk":
                     value = json.loads(text); value["sdk"]["version"] = latest
                     changed = json.dumps(value, indent=2) + "\n"
-                elif path.name == "package.json":
+                elif path.name == "package.json" and kind != "nuget":
                     value = json.loads(text)
                     for section in ("dependencies", "devDependencies", "engines"):
                         if value.get(section, {}).get(name) == current:
@@ -300,6 +321,19 @@ def upgrade(root, policy, observations):
                     for identity, tool in value["tools"].items():
                         if identity.casefold() == name.casefold():
                             tool["version"] = latest
+                    changed = json.dumps(value, indent=2) + "\n"
+                elif kind == "nuget" and path.suffix == ".json":
+                    declared = [extra for extra in policy.get('additionalPins', [])
+                                if extra['kind'] == 'nuget' and extra['name'].casefold() == name.casefold()
+                                and safe_path(root, extra['path']) == path]
+                    if not declared:
+                        raise ValueError('NuGet JSON input has no declared additional pin: ' + relative)
+                    value = json.loads(text)
+                    for extra in declared:
+                        container, key = pointer_location(value, extra['pointer'])
+                        if container[key] != current:
+                            raise ValueError('Additional pin does not match observed current version: ' + relative)
+                        container[key] = latest
                     changed = json.dumps(value, indent=2) + "\n"
                 elif kind == "nuget" and path.suffix in {".props", ".csproj"}:
                     pattern = r'(<Package(?:Version|Reference)\b[^>]*Include="' + re.escape(name) + r'"[^>]*Version=")' + re.escape(current) + r'(")'
@@ -380,46 +414,159 @@ def default_host(root, policy):
     return image
 
 
+def registry_manifest(root, output, reference, name):
+    """Read immutable registry bytes, never the daemon's cached image."""
+    if not re.fullmatch(r'[^\s]+@sha256:[a-f0-9]{64}', reference):
+        raise ValueError('Security scan requires an immutable registry reference')
+    result = subprocess.run(['docker', 'buildx', 'imagetools', 'inspect', '--raw', reference],
+                            cwd=root, stdout=subprocess.PIPE, timeout=90, check=False)
+    payload = result.stdout
+    if not isinstance(payload, bytes) or len(payload) > 32 * 1024 * 1024:
+        raise ValueError('Registry manifest exceeds bounded input size')
+    # Retain exact publisher bytes, including on digest/JSON errors. Tool stderr
+    # stays in the owning workflow's captured log; no credential prose is exported.
+    (output / name).write_bytes(payload)
+    if result.returncode != 0:
+        raise ValueError('Registry manifest lookup failed; inspect retained tool errors')
+    if 'sha256:' + hashlib.sha256(payload).hexdigest() != reference.rsplit('@', 1)[1]:
+        raise ValueError('Registry manifest digest mismatch')
+    value = json.loads(payload)
+    if not isinstance(value, dict):
+        raise ValueError('Registry manifest must be an object')
+    return value
+
+
+def scan_report(path, platform, config_digest, scanned_image):
+    """Exit zero is insufficient: bind the actual image config and findings."""
+    errors = []
+    image_id = None
+    reported_platform = None
+    if not path.is_file():
+        return ['missing-report'], image_id, reported_platform
+    if path.stat().st_size > 64 * 1024 * 1024:
+        return ['oversized-report'], image_id, reported_platform
+    try:
+        report = read_json(path)
+        metadata = report['Metadata']
+        configuration = metadata['ImageConfig']
+        image_id = metadata['ImageID']
+        reported_platform = configuration['os'] + '/' + configuration['architecture']
+        if report['ArtifactType'] != 'container_image':
+            errors.append('wrong-artifact-type')
+        if reported_platform != platform:
+            errors.append('wrong-platform')
+        if image_id != config_digest:
+            errors.append('wrong-image-config')
+        if scanned_image is not None:
+            repo_digests = metadata['RepoDigests']
+            if not isinstance(repo_digests, list) or not all(isinstance(item, str) for item in repo_digests):
+                raise ValueError('Invalid scanner repository digests')
+            if report['ArtifactName'] != scanned_image or scanned_image not in repo_digests:
+                errors.append('wrong-registry-manifest')
+        results = report['Results']
+        if not isinstance(results, list):
+            raise ValueError('Invalid scanner results')
+        for result in results:
+            vulnerabilities = result.get('Vulnerabilities', [])
+            if not isinstance(vulnerabilities, list):
+                raise ValueError('Invalid scanner findings')
+            if any(item['Severity'].upper() in {'HIGH', 'CRITICAL'} for item in vulnerabilities):
+                errors.append('high-critical-findings')
+                break
+    except (KeyError, TypeError, ValueError, AttributeError):
+        errors.append('invalid-report')
+    return errors, image_id, reported_platform
+
+
 def scan(root, image):
-    """Both platforms must pass; findings and scanner failures remain reviewable."""
+    """Both actual platforms must pass; findings/tool errors remain reviewable."""
     output = root / "artifacts/dependency-security"
     output.mkdir(parents=True, exist_ok=True)
+    # A failed/no-output scanner must never consume a previous passing report.
+    if any(output.glob('*.json')):
+        raise ValueError('Preserve prior security evidence; use a fresh scan root')
     results = []
-    with tempfile.TemporaryDirectory(prefix='oci-scan-',dir=output) as temporary:
-        layout=Path(temporary)
-        archived=Path(image).is_file()
-        if archived:
-            with tarfile.open(image) as archive:
-                archive.extractall(layout,filter='data')
-            index=read_json(layout/'index.json')
-            def leaves(value):
-                found=[]
-                for descriptor in value['manifests']:
-                    blob=layout/'blobs'/descriptor['digest'].replace(':','/')
-                    if digest(blob)!=descriptor['digest'].split(':')[1]:
-                        raise ValueError('OCI manifest digest mismatch')
-                    document=read_json(blob)
-                    found.extend(leaves(document) if 'manifests' in document else [descriptor])
-                return found
-            manifests=leaves(index)
-        for platform in ("linux/amd64", "linux/arm64"):
-            path = output / (platform.replace("/", "-") + ".json")
+    try:
+        with tempfile.TemporaryDirectory(prefix='oci-scan-', dir=output) as temporary:
+            layout = Path(temporary)
+            archived = Path(image).is_file()
+            repository = None if archived else image.rsplit('@', 1)[0]
             if archived:
-                system,architecture=platform.split('/')
-                selected=[item for item in manifests if item.get('platform',{}).get('os')==system
-                          and item.get('platform',{}).get('architecture')==architecture]
-                if len(selected)!=1: raise ValueError('OCI archive must contain exactly one image for '+platform)
-                write_json(layout/'index.json',{'schemaVersion':2,'manifests':selected})
-            # OCI input uses ':' for a tag; a Windows drive letter is not a tag.
-            target = ["--input", layout.relative_to(root).as_posix()] if archived else [image]
-            result = subprocess.run(["trivy", "image", "--platform", platform, "--scanners", "vuln",
-                "--format", "json", "--output", str(path), "--exit-code", "1", "--severity", "HIGH,CRITICAL",
-                "--timeout", "15m", *target], cwd=root, timeout=960, check=False)
-            results.append({"image":image, "platform":platform, "exitCode":result.returncode,
-                            "manifestDigest":selected[0]['digest'] if archived else None,
-                            "report":path.relative_to(root).as_posix(), "sha256":digest(path) if path.exists() else None})
-    write_json(output / "result.json", {"observedAt":datetime.now(timezone.utc).isoformat(), "scans":results})
-    if any(r["exitCode"] != 0 or r["sha256"] is None for r in results):
+                with tarfile.open(image) as archive:
+                    archive.extractall(layout, filter='data')
+                index = read_json(layout / 'index.json')
+            else:
+                index = registry_manifest(root, output, image, 'registry-index.json')
+            manifest_documents = {}
+            descriptor_count = 0
+            def leaves(value, depth=0):
+                nonlocal descriptor_count
+                if depth > 4:
+                    raise ValueError('Image manifest index exceeds bounded nesting/count')
+                descriptors = value['manifests']
+                if not isinstance(descriptors, list) or len(descriptors) > 64:
+                    raise ValueError('Image manifest index exceeds bounded descriptor count')
+                found = []
+                for descriptor in descriptors:
+                    descriptor_count += 1
+                    if descriptor_count > 64:
+                        raise ValueError('Image manifest index exceeds bounded descriptor count')
+                    manifest_digest = descriptor['digest']
+                    if not re.fullmatch(r'sha256:[a-f0-9]{64}', manifest_digest):
+                        raise ValueError('Invalid image manifest digest')
+                    # Attestations are not runnable platform images.
+                    declared = descriptor.get('platform', {})
+                    if not archived and declared and declared.get('os') == 'unknown':
+                        continue
+                    if manifest_digest in manifest_documents:
+                        document = manifest_documents[manifest_digest]
+                    elif archived:
+                        blob = layout / 'blobs' / manifest_digest.replace(':', '/')
+                        if digest(blob) != manifest_digest.split(':')[1]:
+                            raise ValueError('OCI manifest digest mismatch')
+                        document = read_json(blob)
+                    else:
+                        document = registry_manifest(root, output, repository + '@' + manifest_digest,
+                                                     'manifest-' + manifest_digest.split(':')[1] + '.json')
+                    manifest_documents[manifest_digest] = document
+                    found.extend(leaves(document, depth + 1) if 'manifests' in document else [descriptor])
+                return found
+            manifests = leaves(index)
+            for platform in ("linux/amd64", "linux/arm64"):
+                path = output / (platform.replace("/", "-") + ".json")
+                system, architecture = platform.split('/')
+                selected = [item for item in manifests if item.get('platform', {}).get('os') == system
+                            and item.get('platform', {}).get('architecture') == architecture]
+                if len(selected) != 1:
+                    raise ValueError('Image must contain exactly one runnable manifest for ' + platform)
+                manifest_digest = selected[0]['digest']
+                config_digest = manifest_documents[manifest_digest]['config']['digest']
+                if not re.fullmatch(r'sha256:[a-f0-9]{64}', config_digest):
+                    raise ValueError('Invalid image config digest')
+                scanned_image = None if archived else repository + '@' + manifest_digest
+                if archived:
+                    write_json(layout / 'index.json', {'schemaVersion': 2, 'manifests': selected})
+                # Remote-only lookup avoids local daemon cache ignoring --platform.
+                # OCI input uses ':' for a tag; a Windows drive letter is not a tag.
+                target = ["--input", layout.relative_to(root).as_posix()] if archived else [
+                    '--image-src', 'remote', scanned_image]
+                result = subprocess.run(["trivy", "image", "--platform", platform, "--scanners", "vuln",
+                    "--format", "json", "--output", str(path), "--exit-code", "1", "--severity", "HIGH,CRITICAL",
+                    "--timeout", "15m", *target], cwd=root, timeout=960, check=False)
+                errors, image_id, reported_platform = scan_report(path, platform, config_digest, scanned_image)
+                if image_id is not None and any(row['imageID'] == image_id for row in results):
+                    errors.append('repeated-image-config')
+                results.append({"image": image, "platform": platform, "exitCode": result.returncode,
+                    "manifestDigest": manifest_digest, 'configDigest': config_digest,
+                    'scannedImage': scanned_image, 'imageID': image_id, 'reportedPlatform': reported_platform,
+                    'validationErrors': errors, "report": path.relative_to(root).as_posix(),
+                    "sha256": digest(path) if path.is_file() else None})
+    except Exception as error:
+        write_json(output / 'result.json', {'observedAt': datetime.now(timezone.utc).isoformat(),
+                                           'scans': results, 'error': type(error).__name__})
+        raise
+    write_json(output / "result.json", {"observedAt": datetime.now(timezone.utc).isoformat(), "scans": results})
+    if any(r["exitCode"] != 0 or r['validationErrors'] for r in results):
         raise ValueError("Image security gate failed; inspect retained findings/tool errors")
 
 

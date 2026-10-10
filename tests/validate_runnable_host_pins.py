@@ -158,6 +158,11 @@ class CentralPinsTests(unittest.TestCase):
     def test_transitive_dependency_cannot_upgrade_builtin_pin(self):
         self.package(self.packages / 'application.nupkg', 'Fixture.Application', '1.0.0',
                      '<dependencies><dependency id="Orbyss.Foundation.Web.OpenApi" version="0.2.0" /></dependencies>')
+        with zipfile.ZipFile(self.packages / 'application.nupkg', 'a') as archive:
+            archive.writestr('orbyss-foundation/feature.json', json.dumps({'schemaVersion':1, 'packageId':'Fixture.Application',
+                'identity':'Fixture', 'featureDependencies':[], 'runtimeDependencies':[], 'routes':[]}))
+        self.features['Fixture'] = {}
+        (self.repository / 'shells.json').write_text(json.dumps({'CShells': {'Shells': {'default': {'Features': self.features}}}}), encoding='utf-8')
         with self.assertRaisesRegex(ValueError, "PKR019 dependency requires"):
             self.stage()
         self.assertFalse(self.evidence()['satisfied'])

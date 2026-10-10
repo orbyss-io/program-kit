@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "version": "0.0.30-preview.174",
+  "packages": [
+    {
+      "id": "CShells.Abstractions",
+      "version": "0.0.30-preview.174",
+      "path": "lifecycle-knowledge/0.0.30-preview.174/CShells.Abstractions.json",
+      "sha256": "873416b05f811c0254233140b7da345dcce7776ab023f2e4e8846a578924aff8"
+    }
+  ]
+}

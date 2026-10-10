@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -26,6 +27,58 @@ def inside(root, relative):
 
 def read(path):
     return json.loads(path.read_text(encoding='utf-8'))
+
+
+def lifecycle_findings(root, manifest, affected=None):
+    """Concrete source/owner prompts for normal review, never semantic certification.
+
+    A bounded source observation cannot resolve all C# aliases/generated bodies.
+    Findings name their evidence; absence does not waive the required code review.
+    """
+    projects = manifest.get('runtimeComposition', {}).get('projects', [])
+    selected = {project['path'] for project in projects} if affected is None else set(affected)
+    owners = set(selected)
+    for project in projects:
+        if project['path'] in selected:
+            owners.update(project.get('projectReferences', []))
+    sources, contributors, findings = {}, [], []
+    for project in projects:
+        path = project['path']
+        if path not in owners: continue
+        rows = []
+        for file in inside(root, path).parent.rglob('*.cs'):
+            if {'obj', 'bin'} & set(file.parts): continue
+            content = file.read_text(encoding='utf-8-sig')
+            # Do not turn comments/string literals into ownership allegations.
+            content = re.sub(r'/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\])*"', ' ', content, flags=re.S)
+            relative = file.relative_to(root).as_posix()
+            rows.append((relative, content))
+            for match in re.finditer(r'\bclass\s+(\w+)(?:\s*\([^;{}]*\))?\s*:\s*([^{}]+)\{', content):
+                contracts = set(re.findall(r'\b(?:IShellInitializer|IStartupTask|IBackgroundTask|IRecurringTask)\b', match[2]))
+                if contracts:
+                    contributors.append((path, relative, match[1], contracts))
+        sources[path] = rows
+    for project in projects:
+        path = project['path']
+        if project['role'] != 'composition' or path not in selected: continue
+        responsibilities = project.get('responsibilities', [])
+        if not any(row.get('kind') == 'composition' and str(row.get('rationale', '')).strip() for row in responsibilities):
+            findings.append({'id': 'composition-selection-responsibility', 'project': path,
+                             'message': 'Name the concrete reusable selection responsibility and rationale in the existing composition responsibility. Task registration/provider preparation alone does not justify a project.'})
+        for owner, owner_source, symbol, contracts in contributors:
+            if owner == path:
+                findings.append({'id': 'composition-runtime-lifecycle', 'project': path, 'source': owner_source,
+                                 'message': 'Review ' + symbol + ' implementing ' + ', '.join(sorted(contracts)) +
+                                            ' inside the selection preset. Required admission/workers belong to the application; provider preparation belongs to the provider. A selection rationale does not justify owning runtime orchestration.'})
+        for owner, owner_source, symbol, contracts in contributors:
+            if owner == path: continue
+            for relative, content in sources[path]:
+                if re.search(r'\b' + re.escape(symbol) + r'\b', content):
+                    findings.append({'id': 'foreign-lifecycle-ownership', 'project': path,
+                                     'source': relative, 'ownerProject': owner, 'ownerSource': owner_source,
+                                     'message': 'Review reference to ' + symbol + ' (' + ', '.join(sorted(contracts)) +
+                                                ') owned by another feature. That feature registers its own contribution; a selection preset does not own its tasks or invoke its preparation.'})
+    return findings
 
 
 def validate_responsibilities(projects, bindings, required=False):

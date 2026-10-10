@@ -216,6 +216,16 @@ class SettingsAuthorities(HandoffTests):
             self.write('contracts/'+scope+'.json',{'schemaVersion':2,'kind':'foundation-host-image','scope':scope,'evidencePath':'contracts/oci/evidence.json','evidenceSha256':handoff.digest(self.root/'contracts/oci/evidence.json')})
         # Remove the intentionally extraneous non-native archive from this selected closure.
         (self.packages/'Native.Options.4.5.6.nupkg').unlink()
+        # The selected runtime declares the native authority it needs. An unrelated
+        # archive beside pack output is not a package-selection mechanism.
+        runtime_package = self.packages/'Example.App.1.2.3.nupkg'
+        with zipfile.ZipFile(runtime_package) as archive:
+            members = {name:archive.read(name) for name in archive.namelist()}
+        members['Example.App.nuspec'] = members['Example.App.nuspec'].replace(
+            b'</metadata>', b'<dependencies><dependency id="CShells.Options" version="[4.5.6]"/></dependencies></metadata>')
+        with zipfile.ZipFile(runtime_package,'w') as archive:
+            for name,payload in members.items(): archive.writestr(name,payload)
+        self.write('NuGet.config', '<configuration><packageSources><clear/><add key="fixture" value="'+self.packages.as_posix()+'"/></packageSources></configuration>')
         self.produce()
         bundle.describe(self.root,self.stage,'ghcr.io/orbyss-io/foundation-host','v9.8.7','sha256:'+host.rsplit(':',1)[-1],self.root/'artifacts/application-bundle.json')
         index=handoff.assemble(self.root)

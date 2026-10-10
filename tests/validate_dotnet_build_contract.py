@@ -14,6 +14,33 @@ BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.p
 RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1"
 
 
+PACK_ENGINE_FILES = ('release_bundle.py', 'central_packages.py', 'handoff_contract.py',
+                     'shell_composition.py', 'runtime_closure.py', 'program_kit_version.py')
+
+
+def materialize_pack_engine(managed: Path) -> None:
+    # Exercise actual maintained prepare/seal input capture, while this fixture's
+    # fake SDK remains limited to wrapper routing and native project discovery.
+    for name in PACK_ENGINE_FILES:
+        shutil.copyfile(BUILD.parent / name, managed / name)
+    shutil.copyfile(BUILD.parent / 'legacy-feature-bridge.json', managed / 'legacy-feature-bridge.json')
+    shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/extension.yml', managed.parent / 'extension.yml')
+
+
+def assert_pack_capture(repository: Path) -> None:
+    inventories = list((repository / 'artifacts/packages').glob('*/*/program-kit-pack.json'))
+    if len(inventories) != 1:
+        raise AssertionError('Build must produce one fresh maintained pack inventory')
+    value = json.loads(inventories[0].read_text(encoding='utf-8'))
+    if value['state'] != 'sealed' or value['packages'] != {}:
+        raise AssertionError('Wrapper fixture must seal actual inputs without claiming compiled packages')
+    import hashlib
+    for name in PACK_ENGINE_FILES:
+        path = repository / 'eng' / name
+        if value['sourceInputs'].get('eng/' + name) != hashlib.sha256(path.read_bytes()).hexdigest():
+            raise AssertionError('Maintained pack engine input was not captured: ' + name)
+
+
 def assert_outside_subject_rejected(result: subprocess.CompletedProcess[str]) -> None:
     # PowerShell Core decorates and wraps exception prose differently from Windows
     # PowerShell. Bind to the stable diagnostic code, not a rendered sentence.
@@ -64,6 +91,7 @@ def main() -> int:
         managed.mkdir(parents=True)
         shutil.copyfile(BUILD, managed / "Build.ps1")
         shutil.copyfile(RESTORE, managed / "Restore.ps1")
+        materialize_pack_engine(managed)
         (repository / "VERSION").write_text("1.0.0\n", encoding="utf-8")
         (repository / "Consumer.slnx").write_text(
             '<Solution><Project Path="Consumer.csproj" /></Solution>\n', encoding="utf-8"
@@ -133,6 +161,7 @@ def main() -> int:
         )
         if result.returncode != 0:
             raise AssertionError(f"managed Build.ps1 failed in restricted-profile fixture: {result.stdout}{result.stderr}")
+        assert_pack_capture(repository)
         outside_subject = workspace / "Outside.csproj"
         outside_subject.write_text("<Project Sdk=\"Microsoft.NET.Sdk\" />\n", encoding="utf-8")
         before_rejection = log.read_bytes()

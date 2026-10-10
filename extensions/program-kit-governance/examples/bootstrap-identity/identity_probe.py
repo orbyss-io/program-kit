@@ -136,7 +136,7 @@ def main():
         command(['docker', 'create', '--name', identity, '--pull=never', '--network', network, '--network-alias', 'identity',
                  '-p', f'127.0.0.1:{identity_port}:8080', '-e', f'KC_HOSTNAME=http://localhost:{identity_port}',
                  '-e', 'KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true',
-                 '--mount', f'type=bind,source={root / "realm.json"},target=/opt/keycloak/data/import/realm.json,readonly',
+                 '--mount', f'type=bind,source={root / "realm.json"},target=/opt/keycloak/data/import/program-kit-realm.json,readonly',
                  '--mount', f'type=bind,source={root / "themes"},target=/opt/keycloak/themes,readonly',
                  inputs['identityImage'], 'start-dev', '--import-realm']); created.append(('container', identity))
         command(['docker', 'start', identity])

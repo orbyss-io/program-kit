@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium, firefox, webkit } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { recordDurabilityCase } from './durability.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const manifest = JSON.parse(await readFile(resolve(root, 'publication.json'), 'utf8'));
@@ -19,8 +20,17 @@ if (modern) for (const state of authStates) resources.set(`/__auth/${state}`, { 
 const supportedCases = ['gallery', 'forms', 'motion', 'auth'];
 const caseArgument = process.argv.find(value => value.startsWith('--cases='));
 const selectedCases = new Set((caseArgument?.slice('--cases='.length) || supportedCases.join(',')).split(',').filter(Boolean));
-assert(selectedCases.size && [...selectedCases].every(value => supportedCases.includes(value)), 'Unsupported or empty browser case selection');
-if (!modern && [...selectedCases].some(value => value !== 'gallery') && caseArgument) throw new Error('Modern cases require modern-product-v1');
+const durabilityArgument = process.argv.find(value => value.startsWith('--durability-contract='));
+if (durabilityArgument) selectedCases.add('durability');
+assert(selectedCases.size && [...selectedCases].every(value => [...supportedCases, 'durability'].includes(value)), 'Unsupported or empty browser case selection');
+if (selectedCases.has('durability') && !durabilityArgument) throw new Error('PKB001 durability requires a consumer-owned real server contract');
+let durabilityAdapter = null;
+if (durabilityArgument) {
+  try { durabilityAdapter = await import(pathToFileURL(resolve(durabilityArgument.slice('--durability-contract='.length))).href); }
+  catch { throw new Error('PKB001 real server durability adapter could not be loaded'); }
+}
+if (durabilityAdapter && typeof durabilityAdapter.createContract !== 'function') throw new Error('PKB001 durability adapter must export createContract');
+if (!modern && [...selectedCases].some(value => !['gallery', 'durability'].includes(value)) && caseArgument) throw new Error('Modern cases require modern-product-v1');
 const server = createServer(async (request, response) => {
   const route = new URL(request.url, 'http://127.0.0.1').pathname;
   const resource = resources.get(route);
@@ -326,6 +336,9 @@ try {
         }
       }
       if (modern) await verifyModern(name, browser);
+      if (selectedCases.has('durability')) {
+        await recordDurabilityCase(durabilityAdapter.createContract, { browser, engine: name }, results);
+      }
     } finally {
       await browser.close();
     }
@@ -335,7 +348,7 @@ try {
   await new Promise(resolve => server.close(resolve));
   await writeFile(resolve(evidence, 'report.json'), JSON.stringify({ results, errors,
     engines: requestedEngineNames,
-    cases: modern ? [...selectedCases] : ['gallery'],
+    cases: modern ? [...selectedCases] : [...selectedCases].filter(c => c === 'gallery' || c === 'durability'),
     scope: 'Selected desktop engines plus their emulated touch phone/tablet fixture checks; not full WCAG certification, physical-device/virtual-keyboard proof, actual browser zoom, assistive-technology task acceptance, or production field performance.' }, null, 2));
 }
 console.log(`UI browser acceptance passed: ${results.length} recorded scenario groups.`);

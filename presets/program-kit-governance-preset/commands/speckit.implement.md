@@ -48,6 +48,11 @@ do not invoke its commands again independently.
 
 Execute the dependency order in tasks.md, preserving completed tasks, IDs and consumer edits.
 Work in complete vertical outcomes. Do not reinterpret story phases as technical-layer phases.
+Choose one current operation and its observable success/material failure outcomes. Identify its
+exact enabling dependencies and completion checks before editing. Finish that outcome before
+expanding another operation or future infrastructure. Group related invariants into one coherent
+behavior batch; TDD does not require a separate shell invocation or progress narration for every
+small assertion. A newly exposed shared-contract failure can justify expanding the batch.
 
 - For each new or changed behavior, write its smallest meaningful test, observe the intended
   missing behavior, implement, then refactor with nearby regression tests passing. A missing tool,
@@ -55,6 +60,9 @@ Work in complete vertical outcomes. Do not reinterpret story phases as technical
 - Use `eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects <test-project>` and the
   framework's supported filter, or the documented equivalent. Build affected targets with their
   analyzers; do not repeatedly restore unchanged dependencies or package the application.
+  Use the maintained wrapper's supported runner adapter for accepted VSTest or offline/provider
+  consumers; retain managed selection, freshness, failure tracking and logs rather than replacing
+  orchestration. An unfiltered multi-project Focused run needs an explicit scope reason in its plan.
 - Expand tests through reverse dependencies when public Core/API contracts, persistence,
   registration/lifetimes, security, generators or shared build inputs change. Use `-Scope Affected`
   with `-ChangedFrom <implementation-baseline>` to include committed, staged, unstaged and untracked work.
@@ -66,12 +74,36 @@ Work in complete vertical outcomes. Do not reinterpret story phases as technical
 - Reuse successful checks only while their source, generated/configuration/toolchain inputs and
   relevant environment remain unchanged. Keep new and previously failing tests in scope. Never
   reuse a failure/interruption or present reused output as newly executed tests.
+  Inspect the wrapper's needed/reusable/unresolved plan with its prior run references. Preserve the
+  original implementation baseline for coverage; do not advance it to hide earlier work. Unknown
+  dynamic inputs need a supported adapter or a deliberate broader boundary. Complete acceptance
+  and Release always execute their full current gate.
 - Apply rules to changed responsibilities: dependency direction, typed boundaries, actual production
   callers, cancellation, lifetimes, faults, constants and selected Foundation mechanisms. A pure
   helper needs neither an unused interface nor another SOLID report. Keep decisions in plan/ADRs,
   tests and normal review; add no proof/approval dossier.
 - Mark a task `[X]` only after its behavior and relevant checks are satisfied. Preserve failures
   and dependencies, save progress, and state remaining work when stopping early.
+  Existing approved coarse tasks may have operation substeps mapped to their stable parent IDs.
+  Report satisfied substeps truthfully while leaving the parent open until all its obligations pass.
+  Do not silently regenerate or weaken an approved graph; repair guidance is in the installed
+  `vertical-slicing.md` reference.
+
+## Current checkpoint
+
+Keep one compact replacement-style checkpoint inside tasks.md. Prepare a small JSON input in
+existing ignored artifacts with `baseline`, `outcome`, `next`, and applicable `taskIds`, `checks`,
+`decisions`, `failures`; invoke `.specify/extensions/program-kit-governance/scripts/task_draft.py
+checkpoint --feature-dir <feature> --content-file <ignored-json>`. Use `current --feature-dir <feature>`
+for read-only resume context. Add `resolvedFailures` only for failures resolved with actual evidence.
+It records the original baseline, current outcome, delivered substeps, next
+action, unresolved failures with existing artifact references, and retained decisions. Replace the
+current checkpoint on save/resume; do not append an execution journal or create a governance
+dossier. Keep task IDs, checkboxes, approved dependencies and decisions outside the checkpoint
+unchanged. Detailed commands, streams and failure history belong in existing ignored artifacts.
+Read this checkpoint and the affected task group on resume; reread broader inputs only if changed
+or needed for an unresolved choice. Never drop an unresolved failure merely to keep notes small;
+resolve it with actual evidence, or keep its concise reference in the checkpoint.
 
 ## Delivery boundary
 

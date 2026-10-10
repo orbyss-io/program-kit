@@ -92,7 +92,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Domain behavior failed' }
             shutil.rmtree(path)
         run(['dotnet','restore','App.slnx','--configfile','NuGet.config','--force-evaluate','--verbosity','quiet'])
         run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','eng/Invoke-RepositoryVerification.ps1'])
-        assert list((root/'artifacts/packages').rglob('Slots.Core.*.nupkg'))
+        previous_pack_inventories = set((root/'artifacts/packages').rglob('program-kit-pack.json'))
+        assert len(previous_pack_inventories) == 1
+        assert list(next(iter(previous_pack_inventories)).parent.glob('Slots.Core.*.nupkg'))
         assert (root/'artifacts/tests/domain.xml').is_file()
         assert (root/'artifacts/tests/architecture.xml').is_file()
         # Native contract/package/receiver production also works after toolkit removal.
@@ -119,8 +121,18 @@ if ($LASTEXITCODE -ne 0) { throw 'Domain behavior failed' }
             'complete':True,'sources':{'src/Slots.Core/Slots.cs':hashlib.sha256((root/'src/Slots.Core/Slots.cs').read_bytes()).hexdigest()},
             'settings':[],'semanticConstraints':['This pure library accepts method parameters and has no runtime configuration.']}))
         run([sys.executable,'eng/openapi_pipeline.py','--repository','.'])
+        # The opaque verification hook is followed by an independent architecture
+        # build, which can change restore inputs. Produce a fresh pack after that
+        # verification rather than claim its earlier same-version output is current.
+        run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','eng/Build.ps1',
+             '-LockedMode','-SkipTests','-RootPackage','Slots.Core'])
+        new_pack_inventories = set((root/'artifacts/packages').rglob('program-kit-pack.json')) - previous_pack_inventories
+        assert len(new_pack_inventories) == 1, 'Expected exactly one fresh build/pack inventory'
+        pack_inventory = new_pack_inventories.pop()
+        package_output = pack_inventory.parent
         run([sys.executable,'eng/release_bundle.py','stage','--repository','.',
-             '--packages','artifacts/packages/'+(root/'VERSION').read_text().strip(),'--output','artifacts/release-bundle'])
+             '--packages',str(package_output),'--inventory',str(pack_inventory),
+             '--root-package','Slots.Core','--output','artifacts/release-bundle'])
         env['GITHUB_SHA']='a'*40
         run([sys.executable,'eng/release_bundle.py','describe','--repository','.',
             '--staged','artifacts/release-bundle','--image','ghcr.io/orbyss-io/foundation-host',
@@ -128,6 +140,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Domain behavior failed' }
         run([sys.executable,'eng/application_handoff.py','--repository','.','--draft'])
         run([sys.executable,'eng/verify_handoff.py','artifacts/handoff/application-handoff.zip','--allow-draft'])
         index=json.loads((root/'artifacts/handoff/index.json').read_text())
+        assert set(index['packages']) == {'Slots.Core'}, 'Native handoff must retain its selected pure library package'
         assert index['status']=='incomplete' and any('foundation/' in x for x in index['missing'])
         assert not (root/'.specify').exists() and not (root/'.program-kit').exists()
         # Current wrong code, not a receipt, must prevent acceptance.

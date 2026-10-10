@@ -20,6 +20,7 @@ def bounded_pages(text, limit=12000):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--profile')
+    parser.add_argument('--target', default='.', help='Consumer repository whose captured profile is authoritative')
     parser.add_argument('--package')
     parser.add_argument('--fact',help='Exact schema, descriptor, README or XML fact path within the package')
     parser.add_argument('--symbol',help='Exact XML documentation member name, such as T:Namespace.Interface')
@@ -30,12 +31,25 @@ def main():
     if args.symbol and not args.fact: parser.error('--symbol requires the exact XML --fact')
     if args.package and args.document: parser.error('Select a package or a publisher document')
     registry=blocks.profile_registry(); index=blocks.load_json(registry/'index.json')
-    identity=args.profile or index['default']; entry=index['profiles'][identity]
+    if args.profile:
+        identity=args.profile
+    else:
+        from dependency_context import resolve
+        selected=resolve(blocks,Path(args.target))
+        identity=selected['profile']
+        if identity is None: parser.error('Captured consumer profile has no versioned knowledge; repair that exact profile')
+        registry=Path(selected['registryPath'])
+        index=blocks.load_json(registry/'index.json')
+    entry=index['profiles'][identity]
     blocks.qualified_dependency_profile(registry,identity,blocks.load_json(blocks.default_catalog(Path(blocks.__file__))))
+    if not entry.get('knowledge'): parser.error('Captured profile lacks versioned publisher knowledge; repair this exact profile instead of selecting a newer default')
     manifest=blocks.load_json(registry/entry['knowledge']['path'])
+    from lifecycle_knowledge import selected as selected_lifecycle
+    lifecycle=selected_lifecycle(blocks,registry,identity)
+    packages=manifest['packages']+(lifecycle['packages'] if lifecycle else [])
     if args.package:
-        row=next((p for p in manifest['packages'] if p['id']==args.package),None)
-        if row is None: parser.error('Select a package listed by this exact profile')
+        row=next((p for p in packages if p['id']==args.package),None)
+        if row is None: parser.error('Select a package listed by this exact profile; absent lifecycle knowledge requires repair of this selected profile, never a newer default')
         package=blocks.publisher_package_fact(registry,row)
         if args.fact:
             if args.fact not in package['facts']: parser.error('Select an available package fact')
@@ -52,7 +66,7 @@ def main():
         text=blocks.publisher_document_bytes(registry,row).decode('utf-8')
     else:
         text=json.dumps({'profile':identity,'releaseVersion':manifest['releaseVersion'],
-            'packages':[p['id'] for p in manifest['packages']],
+            'packages':[p['id'] for p in packages],
             'documents':[p['publisherPath'] for p in manifest['documents']]},indent=2)
     pages=bounded_pages(text)
     if args.page<1 or args.page>len(pages): parser.error('Select an available knowledge page')
