@@ -141,7 +141,7 @@ def contract_tests():
                                ('bff-cookie','check'),('keycloak','check'),('postgresql','check')):
         value={**original,'steps':[{'stage':raw_stage,'exitCode':19}], 'failure':'PKF004 '+secret}
         write(receipt,value)
-        assert readiness_failure(child,set())=='stage='+expected+' stepExit=19 code=PKF004'+(' checkpoint=integration-absent childExit=unknown' if expected=='check' else '')
+        assert readiness_failure(child,set())=='stage='+expected+' stepExit=19 code=PKF004'+(' checkpoint=integration-absent childExit=unknown authentication=absent' if expected=='check' else '')
     checks.append('only-known-stage-enums-and-known-error-code-prefixes-projected')
     attacks=[None, [], {'schemaVersion':True}, {**original,'status':secret},
              {**original,'steps':secret}, {**original,'steps':[secret]},
@@ -177,7 +177,7 @@ def contract_tests():
     integration=receipt.parent/'integration.json'
     child_process=receipt.parent/('process-'+'a'*32)/'process.json'
     write(child_process,{'status':'failed','exitCode':29,'command':[secret],'environment':{'TOKEN':secret}})
-    assert readiness_failure(child,set())==prefix+'checkpoint=integration-absent childExit=29'
+    assert readiness_failure(child,set())==prefix+'checkpoint=integration-absent childExit=29'+' authentication=absent'
     cases={}
     observed={'schemaVersion':1,'status':'failed','cases':cases,'failure':secret,'timings':{},'runtimeTransport':[]}
     for name,add in [('before-issuer-check',()),('identity-ready',('Foundation.public_issuer_private_backchannel',)),
@@ -185,16 +185,16 @@ def contract_tests():
                      ('authenticated',('Foundation.maintained_bff_cookie',)),('provider-restarted',('Foundation.provider_connectivity_restart',))]:
         cases.update({case:True for case in add}); write(integration,observed)
         label=readiness_failure(child,set())
-        assert label==prefix+'checkpoint='+name+' childExit=29' and secret not in label
+        assert label==prefix+'checkpoint='+name+' childExit=29 authentication=absent' and secret not in label
     observed['cases']={'Foundation.public_issuer_private_backchannel':True}
     observed['runtimeTransport']=[{'phase':'initial','before':{'byteIdentityVerified':True,'sourceInputs':{secret:secret}}}]
     write(integration,observed)
-    assert readiness_failure(child,set())==prefix+'checkpoint=host-copied childExit=29'
+    assert readiness_failure(child,set())==prefix+'checkpoint=host-copied childExit=29'+' authentication=absent'
     observed['timings']={'hostReadinessSeconds':1.234}; write(integration,observed)
-    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=29'
+    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=29'+' authentication=absent'
     checks.append('only-fixed-integration-checkpoints-and-numeric-child-exits-projected')
-    assert readiness_failure(child,set(),{integration})==prefix+'checkpoint=unknown childExit=unknown'
-    assert readiness_failure(child,set(),{child_process})==prefix+'checkpoint=unknown childExit=unknown'
+    assert readiness_failure(child,set(),{integration})==prefix+'checkpoint=unknown childExit=unknown'+' authentication=absent'
+    assert readiness_failure(child,set(),{child_process})==prefix+'checkpoint=unknown childExit=unknown'+' authentication=absent'
     checks.append('previous-child-metadata-cannot-classify-new-readiness')
     for invalid in ([],{**observed,'schemaVersion':True},{**observed,'cases':{secret:True}},
                     {**observed,'cases':{'Foundation.maintained_bff_cookie':True}},
@@ -202,24 +202,24 @@ def contract_tests():
                     {**observed,'timings':{'hostReadinessSeconds':secret}},
                     {**observed,'cases':{'Foundation.public_issuer_private_backchannel':secret}}):
         write(integration,invalid)
-        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'+' authentication=absent'
     for raw in ('{malformed '+secret,' '+secret*4000):
         integration.write_text(raw,encoding='utf-8')
-        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'+' authentication=absent'
     write(integration,observed)
     for code in (True,secret,4294967296,-2147483649):
         write(child_process,{'status':'failed','exitCode':code,'failure':secret})
-        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'+' authentication=absent'
     write(child_process,{'status':'failed','exitCode':29})
     other=receipt.parent/('process-'+'b'*32)/'process.json'; write(other,{'status':'failed','exitCode':31})
-    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=unknown'
+    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=unknown'+' authentication=absent'
     other.unlink()
     checks.append('malformed-oversized-injected-and-conflicting-child-metadata-fail-closed')
     crowded=[]
     for number in range(129):
         path=receipt.parent/('process-'+format(number,'032x'))/'process.json'
         write(path,{'status':'completed','exitCode':0}); crowded.append(path)
-    assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+    assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'+' authentication=absent'
     for path in crowded:
         path.unlink(); path.parent.rmdir()
     checks.append('child-metadata-count-budget-fails-closed')
@@ -238,7 +238,7 @@ def contract_tests():
         def escaping_resolve(path,*args,**keywords):
             return outside if path==integration else original_resolve(path,*args,**keywords)
         with patch.object(Path,'resolve',escaping_resolve):
-            assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+            assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'+' authentication=absent'
     else:
         assert integration_failure(receipt.parent,confined,set())=='checkpoint=unknown childExit=unknown'
         integration.unlink(); write(integration,observed)
@@ -256,7 +256,7 @@ def contract_tests():
     actual=receipt.parent/('process-'+uuid.uuid4().hex)
     captured=fixture.captured([sys.executable,'-c','import sys; print('+repr(secret)+'); sys.exit(29)'],child,actual,timeout=30)
     assert captured['exitCode']==29 and captured['cleanupComplete'] and captured['logsDrained']
-    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=29'
+    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=29'+' authentication=absent'
     checks.append('actual-maintained-failed-child-capture-produces-only-bounded-diagnostics')
     check_child=evidence/'failed-check-readiness-child'; check_child.mkdir()
     shutil.copy2(child/'foundation_process.py',check_child/'foundation_process.py')
@@ -278,7 +278,7 @@ def contract_tests():
     try: command([sys.executable,str(check_child/'fail_setup.py')],check_child,evidence/'failed-check-readiness-command',timeout=30,readiness=True)
     except ValueError as error:
         label=str(error)
-        assert 'readiness stage=check stepExit=2 code=PKF003 checkpoint=identity-ready childExit=29 outerExit=2;' in label
+        assert 'readiness stage=check stepExit=2 code=PKF003 checkpoint=identity-ready childExit=29 authentication=absent outerExit=2;' in label
         assert secret not in label
     else: raise AssertionError('Actual maintained check failure was concealed')
     checks.append('actual-maintained-check-failure-prints-checkpoint-without-child-prose-or-streams')
@@ -373,9 +373,132 @@ def contract_tests():
         'prepared-consumer-reuses-owned-acquisition-cache',
         'repository-inventory-preserves-ambient-cache-selection-without-writing-it',
         'actual-failed-cache-children-restore-present-empty-and-absent-parent-values'))
+    authentication_contracts(evidence,checks,child,child_selected,secret)
     write(evidence/'qualification.json',{'status':'passed','checks':checks,'runtimeAcceptanceEstablished':False})
     print('Maintained qualification failure contracts passed: '+str(evidence))
     return 0
+
+
+def authentication_contracts(evidence, checks, original_child, original_selected, secret):
+    """Real report shapes and supervised failure; establishes no browser readiness."""
+    import copy
+    import xml.etree.ElementTree as ET
+    source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts'
+    assert set(re.findall(r"^test\('([^']+)'",source.read_text(),re.MULTILINE))==set(AUTHENTICATION_CASES)
+    directory=evidence/'authentication-report-fixtures'; directory.mkdir()
+    path=directory/'authentication.xml'
+    def report(rows):
+        document=ET.Element('testsuites')
+        suites={}
+        for engine,title,outcome,message in rows:
+            if engine not in suites: suites[engine]=ET.SubElement(document,'testsuite',name='authentication.spec.ts')
+            node=ET.SubElement(suites[engine],'testcase',classname='authentication.spec.ts',name='['+engine+'] '+title)
+            properties=ET.SubElement(node,'properties')
+            ET.SubElement(properties,'property',name='skip' if outcome=='skipped' else secret,value=secret)
+            if outcome: ET.SubElement(node,outcome,message=message).text=message
+            ET.SubElement(node,'system-out').text=secret
+        return ET.tostring(document,encoding='utf-8')
+    titles=list(AUTHENTICATION_CASES)
+    passing=[(engine,title,None,'') for engine in AUTHENTICATION_ENGINES for title in titles]
+    path.write_bytes(report(passing))
+    label=authentication_failure(directory,set())
+    assert label=='authentication=no-failure authCases=21 authCompleteness=observed-complete authFailed=none authSkipped=none authenticationFailure=unknown'
+    assert secret not in label
+    checks.append('exact-maintained-authentication-titles-and-engines-project-only-bounded-ids')
+    failed=list(passing); failed[0]=('chromium',titles[0],'failure','Error: browserType.launch: '+secret)
+    failed[8]=('firefox',titles[1],'error','browserType.launch: '+secret)
+    failed[-1]=('webkit',titles[-1],'skipped',secret)
+    path.write_bytes(report(failed)); launch_report=path.read_bytes()
+    label=authentication_failure(directory,set())
+    assert label=='authentication=failed authCases=21 authCompleteness=observed-complete authFailed=chromium:anonymous-session,firefox:governed-headers authSkipped=webkit:permission-boundary authenticationFailure=browser-launch'
+    assert secret not in label
+    checks.append('current-junit-failed-skipped-cases-and-secret-annotations-never-export-prose')
+    for marker,category in (('Test timeout of 30000ms exceeded. '+secret,'test-timeout'),
+                            ('Error: expect(received).toEqual(expected) '+secret,'assertion'),
+                            ('prefix browserType.launch: '+secret,'unknown')):
+        path.write_bytes(report([('chromium',titles[0],'failure',marker)]))
+        label=authentication_failure(directory,set())
+        assert label.endswith('authenticationFailure='+category) and secret not in label
+    checks.append('exact-maintained-timeout-and-assertion-prefixes-project-only-fixed-diagnostic-categories')
+    path.write_bytes(report([('chromium',titles[0],'failure',secret)]))
+    label=authentication_failure(directory,set())
+    assert 'authentication=failed authCases=1 authCompleteness=partial' in label
+    assert label.endswith('authenticationFailure=unknown') and secret not in label
+    path.write_bytes(report([('chromium',titles[0],None,'')]))
+    assert 'authentication=no-failure authCases=1 authCompleteness=partial' in authentication_failure(directory,set())
+    path.write_bytes(report([('chromium',titles[0],'skipped',secret)]))
+    assert authentication_failure(directory,set()).startswith('authentication=skipped authCases=1 authCompleteness=partial')
+    path.write_bytes(report([]))
+    assert authentication_failure(directory,set())=='authentication=empty authCases=0 authCompleteness=empty authFailed=none authSkipped=none authenticationFailure=unknown'
+    path.unlink(); assert authentication_failure(directory,set())=='authentication=absent'
+    checks.append('partial-skipped-empty-and-missing-reports-do-not-infer-browser-launch-or-acceptance')
+    for data in (report(passing+[passing[0]]),report([('other',titles[0],'failure',secret)]),
+                 report([('chromium',secret,'failure',secret)]),b'<testsuites><testcase/></testsuites>',
+                 b'<testsuites><testsuite name="other"/></testsuites>',b'not-xml '+secret.encode(),
+                 launch_report.replace(b'classname="authentication.spec.ts"',b'classname="injected"',1),
+                 launch_report.replace(b'<failure ',b'<skipped/><failure ',1),
+                 b'<testsuites><testsuite name="authentication.spec.ts"><testcase classname="authentication.spec.ts" name="[chromium] '+titles[0].encode()+b'"><failure><testcase/></failure></testcase></testsuite></testsuites>'):
+        path.write_bytes(data); assert authentication_failure(directory,set())=='authentication=unknown'
+    checks.append('unknown-duplicate-contradictory-or-malformed-authentication-cases-fail-closed')
+    for data in (b'<!DOCTYPE testsuites [<!ENTITY secret "'+secret.encode()+b'">]>'+launch_report,
+                 (b'<!DOCTYPE testsuites [<!ENTITY secret "'+secret.encode()+b'">]>'+launch_report).decode().encode('utf-16'),
+                 launch_report.decode().encode('utf-16-le'),b'\xef\xbb\xbf'+launch_report,
+                 b'<?xml version="1.0" encoding="iso-8859-1"?>'+launch_report,b'\xff'+launch_report,
+                 b' '*1048577):
+        path.write_bytes(data); assert authentication_failure(directory,set())=='authentication=unknown'
+    path.write_bytes(launch_report)
+    assert authentication_failure(directory,{path})=='authentication=unknown'
+    checks.append('stale-oversized-dtd-entity-and-non-utf8-authentication-report-refused')
+    from unittest.mock import patch
+    original_resolve=Path.resolve
+    def escaped(item,*args,**keywords):
+        return evidence/'outside-authentication.xml' if item==path else original_resolve(item,*args,**keywords)
+    with patch.object(Path,'resolve',escaped): assert authentication_failure(directory,set())=='authentication=unknown'
+    class OversizedStream:
+        def __enter__(self): return self
+        def __exit__(self,*_): pass
+        def read(self,size): assert size==1048577; return b' '*size
+    with patch.object(Path,'open',return_value=OversizedStream()):
+        assert authentication_failure(directory,set())=='authentication=unknown'
+    checks.append('authentication-report-confinement-and-bounded-read-enforced-before-projection')
+    # Actual maintained setup and supervisor execute only no-op Python stages and
+    # this controlled native reporter child, which fails before native report admission.
+    child=evidence/'authentication-failed-readiness-child'; child.mkdir()
+    for filename in ('foundation_process.py','fail_setup.py'): shutil.copy2(original_child/filename,child/filename)
+    script=child/'fail_authentication.py'
+    script.write_text('import sys\nfrom pathlib import Path\n'
+        +'directory=Path(sys.argv[1]); (directory/"authentication.xml").write_bytes('+repr(launch_report)+')\n'
+        +'print('+repr(secret)+',file=sys.stderr); sys.exit(13)\n',encoding='utf-8')
+    selected=copy.deepcopy(original_selected)
+    for row in selected['setup']['steps']: row['command']=[sys.executable,'-c','pass']
+    selected['tests']['commands'][0]['command']=[sys.executable,str(script),'{runDirectory}']
+    write(child/'selected.json',selected)
+    try: command([sys.executable,str(child/'fail_setup.py')],child,evidence/'authentication-failed-readiness-command',timeout=30,readiness=True)
+    except ValueError as error:
+        label=str(error)
+        assert 'stage=check stepExit=13 code=PKF003 checkpoint=integration-absent childExit=unknown authentication=failed authCases=21' in label
+        assert 'authFailed=chromium:anonymous-session,firefox:governed-headers' in label
+        assert 'authenticationFailure=browser-launch outerExit=2;' in label and secret not in label
+    else: raise AssertionError('Actual failed authentication reporter child concealed')
+    checks.append('actual-maintained-readiness-child-classifies-authentication-without-secret-or-stream-export')
+    # An actual command overwrites an existing report, but its pre-command
+    # snapshot must prevent that stale path from establishing new classification.
+    stale=evidence/'authentication-stale-readiness-child'; stale.mkdir()
+    run_directory=stale/'artifacts/tests/runs/foundation-fixture'; run_directory.mkdir(parents=True)
+    (run_directory/'authentication.xml').write_bytes(launch_report)
+    receipt={'schemaVersion':1,'kind':'foundation-readiness','status':'failed','steps':[{'stage':'host-activation','exitCode':13}],
+             'failure':'PKF003 fixture'}
+    script=stale/'overwrite_authentication.py'
+    script.write_text('import json,sys\nfrom pathlib import Path\n'
+        +'directory=Path("artifacts/tests/runs/foundation-fixture")\n'
+        +'(directory/"result.json").write_text('+repr(json.dumps(receipt))+',encoding="utf-8")\n'
+        +'(directory/"authentication.xml").write_bytes('+repr(launch_report)+')\n'
+        +'sys.exit(2)\n',encoding='utf-8')
+    try: command([sys.executable,str(script)],stale,evidence/'authentication-stale-readiness-command',timeout=30,readiness=True)
+    except ValueError as error:
+        assert 'authentication=unknown outerExit=2;' in str(error) and secret not in str(error)
+    else: raise AssertionError('Stale native reporter child failure concealed')
+    checks.append('actual-precommand-snapshot-rejects-overwritten-stale-authentication-report')
 
 
 def write(path, value):
@@ -454,6 +577,7 @@ def readiness_failure(root, previous, previous_children=frozenset()):
         classification='stage='+stage+' stepExit='+step_exit+' code='+code
         if stage=='check':
             classification+=' '+integration_failure(path.parent,read_owned,previous_children)
+            classification+=' '+authentication_failure(path.parent,previous_children)
         return classification
     except (OSError,ValueError,TypeError,RecursionError):
         return unknown
@@ -522,6 +646,86 @@ def integration_failure(directory, read_owned, previous):
         return unknown
 
 
+AUTHENTICATION_CASES = {
+    'anonymous browser has no BFF session':'anonymous-session',
+    'WEB-V3 same-origin BFF response has the governed browser headers':'governed-headers',
+    'real browser form logout clears local state and completes provider navigation':'session-logout',
+    'missing or invalid browser antiforgery logout does not clear the session':'antiforgery-denial',
+    'cross-site top-level logout form fails before session mutation':'cross-site-denial',
+    'provider navigation failure cannot restore local access or displace the signed-out page':'provider-navigation-failure',
+    'configured permission endpoint distinguishes authorized and unauthorized users':'permission-boundary',
+}
+AUTHENTICATION_ENGINES = ('chromium','firefox','webkit')
+
+
+def authentication_failure(directory, previous):
+    """Only exact maintained case IDs and finite outcomes from this invocation's JUnit."""
+    import xml.etree.ElementTree as ET
+    unknown='authentication=unknown'
+    try:
+        directory=Path(directory)
+        owned=(ROOT/'artifacts/tests/reusable-foundations').resolve()
+        if directory.resolve()!=directory.absolute() or not directory.resolve().is_relative_to(owned): return unknown
+        path=directory/'authentication.xml'
+        if path in previous: return unknown
+        if path.is_symlink() or path.resolve()!=path.absolute() or not path.resolve().is_relative_to(directory): return unknown
+        if not path.exists(): return 'authentication=absent'
+        if not path.is_file() or path.stat().st_size>1048576: return unknown
+        with path.open('rb') as stream: raw=stream.read(1048577)
+        if len(raw)>1048576 or raw.startswith(b'\xef\xbb\xbf'): return unknown
+        text=raw.decode('utf-8',errors='strict')
+        if '\x00' in text or '<!DOCTYPE' in text.upper() or '<!ENTITY' in text.upper(): return unknown
+        encoding=re.match(r"^\s*<\?xml\b[^?]*encoding\s*=\s*['\"]([^'\"]+)['\"]",text,re.IGNORECASE)
+        if encoding and encoding.group(1).lower()!='utf-8': return unknown
+        document=ET.fromstring(text)
+        if document.tag!='testsuites' or any(suite.tag!='testsuite' or suite.get('name')!='authentication.spec.ts' for suite in document): return unknown
+        cases=[]
+        for suite in document:
+            for node in suite:
+                if node.tag=='testcase': cases.append(node)
+                elif node.tag in ('system-out','system-err'):
+                    if list(node): return unknown
+                elif node.tag=='properties':
+                    if any(item.tag!='property' or list(item) for item in node): return unknown
+                else: return unknown
+        if len(cases)>21 or len(cases)!=sum(1 for node in document.iter() if node.tag=='testcase'): return unknown
+        identities=set(); failed=[]; skipped=[]; categories=[]
+        for node in cases:
+            if node.get('classname')!='authentication.spec.ts': return unknown
+            match=re.fullmatch(r'\[(chromium|firefox|webkit)\] (.+)',node.get('name',''))
+            if not match or match.group(2) not in AUTHENTICATION_CASES: return unknown
+            identity=match.group(1)+':'+AUTHENTICATION_CASES[match.group(2)]
+            if identity in identities: return unknown
+            identities.add(identity)
+            for child in node:
+                if child.tag=='properties':
+                    if any(item.tag!='property' or list(item) for item in child): return unknown
+                elif child.tag not in ('failure','error','skipped','system-out','system-err') or list(child): return unknown
+            outcomes=[child for child in node if child.tag in ('failure','error','skipped')]
+            if len(outcomes)>1: return unknown
+            if outcomes and outcomes[0].tag=='skipped': skipped.append(identity)
+            elif outcomes:
+                failed.append(identity)
+                failure=outcomes[0]
+                recognized=set()
+                for value in (failure.get('message',''),failure.text or ''):
+                    value=value.lstrip()
+                    if value.startswith(('Error: browserType.launch:','browserType.launch:')): recognized.add('browser-launch')
+                    elif re.match(r'^(?:Error: )?Test timeout of [1-9][0-9]{0,8}ms exceeded(?:[. \n]|$)',value): recognized.add('test-timeout')
+                    elif value.startswith(('Error: expect(','expect(')): recognized.add('assertion')
+                categories.append(next(iter(recognized)) if len(recognized)==1 else 'unknown')
+        engines={identity.split(':',1)[0] for identity in identities}
+        complete=bool(cases) and len(cases)==len(engines)*len(AUTHENTICATION_CASES)
+        status='failed' if failed else 'skipped' if skipped else 'no-failure' if cases else 'empty'
+        completeness='observed-complete' if complete else 'partial' if cases else 'empty'
+        category=categories[0] if categories and len(set(categories))==1 else 'unknown'
+        return ('authentication='+status+' authCases='+str(len(cases))+' authCompleteness='+completeness
+            +' authFailed='+(','.join(sorted(failed)) or 'none')+' authSkipped='+(','.join(sorted(skipped)) or 'none')
+            +' authenticationFailure='+category)
+    except (OSError,ValueError,TypeError,RecursionError,ET.ParseError):
+        return unknown
+
+
 @contextmanager
 def consumer_cache_environment(root):
     """Scope acquisition only for owned disposable consumers; restore the caller exactly."""
@@ -560,7 +764,8 @@ def require_cold_cache(root):
 def command(args, root, evidence, *, timeout=1800, readiness=False):
     previous=set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/result.json')) if readiness else set()
     previous_children=(set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/integration.json'))
-        | set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/process-*/process.json'))) if readiness else set()
+        | set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/process-*/process.json'))
+        | set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/authentication.xml'))) if readiness else set()
     evidence.mkdir(parents=True)
     with consumer_cache_environment(root) as caches:
         with (evidence/'stdout.log').open('wb') as out,(evidence/'stderr.log').open('wb') as err:
