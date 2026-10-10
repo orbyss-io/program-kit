@@ -28,19 +28,23 @@ are selected. Historical profiles/evidence, native locks and personal skills are
 Current evidence and gates:
 
 - Foundation publication: [public 0.3.2](https://github.com/orbyss-io/dotnet-foundation/releases/tag/v0.3.2).
-- Bounded Development: clean `320735f` passed 87/87. Latest completed `7f98b21`
-  [journal](../artifacts/validation-runs/20261010T200853Z-4c0b313c/journal.json) remains **86/87**:
-  its sole obsolete component-command assertion was repaired and passed complete component validation
-  plus 20 native/mutation controls. A fresh integrated Development run remains required.
+- Bounded Development: clean `09f3a1d`, tree `6ed02eec9caaeb47fc1bb312e98faebba1509fb3`,
+  [journal](../artifacts/validation-runs/20261010T210254Z-153eb7a9/journal.json) passed **87/87** in **656s**;
+  root verified all 87 log hashes and clean source before/after. This precedes the final signed-out
+  assertion correction. Earlier `7f98b21` remains 86/87 on its obsolete component assertion; the
+  repaired full component validator and 20 native/mutation controls pass. Failed evidence is preserved.
 - Latest completed targeted [CI 38084938760](https://github.com/orbyss-io/program-kit/actions/runs/38084938760)
   at `862c747`: Linux 2/3, Windows 5/5. All 21 authentication cases were observed with no skips;
   Firefox cross-site denial alone failed after exact POST/Origin/HTTP400 verification because the
   selected driver had no captured response body. Original failures and all eight log hashes are preserved.
-- Candidate `c509c2c` changes only the maintained Firefox test renderer to handle
-  `application/problem+json`; real endpoint, request, JSON-code and session assertions are unchanged.
-  Source-backed review, 22 setup tests, 43 contracts, actual selected-CLI configuration loading and
-  genuine locked-type compilation pass. [Targeted CI 38085908238](https://github.com/orbyss-io/program-kit/actions/runs/38085908238)
-  is pending; no browser repair is claimed yet. Initial compiler-resolution failure remains preserved.
+- The maintained Firefox renderer correction at `c509c2c` handles `application/problem+json`.
+  [Targeted CI 38085908238](https://github.com/orbyss-io/program-kit/actions/runs/38085908238) confirms
+  cross-site denial passed; session logout and provider-navigation-failure still failed assertions.
+  All 21 cases were observed without skips; Linux 2/3, Windows 5/5. Root verified all eight hashes.
+  The next bounded correction verifies the actual signed-out navigation URL, HTTP200, JSON content
+  type and typed `{signedOut:true}` response rather than literal display formatting. Session/provider
+  assertions remain intact. Source-extracted negative controls and genuine locked-type compilation
+  pass fresh review; actual browser integration remains required. Initial failures are preserved.
 - Local Release preflight PATH repair preserves original command precedence and exact executable
   selection, plus absent/empty/populated environment restoration. Actual PrepareOnly and negative
   controls pass independently; orchestrator and fresh review are clear. It starts no Release suite.
