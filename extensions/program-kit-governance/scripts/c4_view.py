@@ -936,7 +936,11 @@ def _start_session(
                     if process is not None:
                         # Persisting state can fail after launch. The Popen handle still
                         # owns this child and does not depend on a readable state file.
-                        if process.poll() is None:
+                        if os.name == "nt":
+                            # CPython can cache an exit code after TerminateProcess is
+                            # denied. Its wait() then skips the native completion wait.
+                            stop_java_process(process.pid)
+                        elif process.poll() is None:
                             process.terminate()
                         process.wait(timeout=remaining_timeout(5))
                     stop_session(project_root, runtimes, cleanup=False)

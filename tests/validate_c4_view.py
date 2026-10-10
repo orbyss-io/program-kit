@@ -612,6 +612,65 @@ def main() -> int:
             assert any(json.loads(path.read_text())["error"] == "Fixture state persistence failed"
                        for path in (viewer.state_root() / "failures").glob("*/failure.json"))
 
+            if os.name == "nt":
+                # Exercise the installed CPython cached-returncode wait semantics.
+                # No real PID is used: the native helper's exact handle is controlled.
+                import ctypes
+                for outcome in ("signaled", "timeout"):
+                    cached = object.__new__(subprocess.Popen)
+                    cached._child_created = False
+                    cached._handle = 123
+                    cached.pid = 54321
+                    cached.args = ["cached-returncode-fixture"]
+                    cached.returncode = 15
+                    api = Mock()
+                    api.OpenProcess.return_value = 321
+                    api.TerminateProcess.return_value = True
+                    api.CloseHandle.return_value = True
+                    waits = [258, 0 if outcome == "signaled" else 258]
+                    events = []
+                    def native_wait(handle, milliseconds):
+                        events.append(("native-wait", handle, milliseconds))
+                        return waits.pop(0)
+                    api.WaitForSingleObject.side_effect = native_wait
+                    original_cached_wait = cached.wait
+                    def cached_wait(*args, **kwargs):
+                        events.append(("popen-wait",))
+                        return original_cached_wait(*args, **kwargs)
+                    def cached_launch(*args, **kwargs):
+                        kwargs["stderr"].write("Cached returncode diagnostic\n")
+                        return cached
+                    with patch.object(ctypes, "WinDLL", return_value=api), \
+                            patch.object(viewer.subprocess, "Popen", side_effect=cached_launch), \
+                            patch.object(cached, "wait", side_effect=cached_wait) as wait, \
+                            patch.object(viewer.subprocess._winapi, "WaitForSingleObject") as cpython_wait, \
+                            patch.object(viewer, "write_state", side_effect=OSError("Cached state persistence failed")):
+                        try:
+                            viewer.start_session(project, "java", None, None, False, True)
+                        except viewer.C4ViewError as error:
+                            cached_error = str(error)
+                        else:
+                            raise AssertionError("Cached-state fixture must fail startup")
+                        assert "diagnostics preserved at" in cached_error
+                        cpython_wait.assert_not_called()  # Actual wait() takes its cached branch.
+                        if outcome == "signaled":
+                            assert "cleanup failed" not in cached_error, cached_error
+                            assert not viewer.session_directory(project).exists()
+                            wait.assert_called_once()
+                            assert [event[0] for event in events] == ["native-wait", "native-wait", "popen-wait"], (
+                                "Cached returncode cleanup bypassed native handle completion", events)
+                        else:
+                            assert "cleanup failed" in cached_error and "did not stop" in cached_error
+                            wait.assert_not_called()
+                            log = viewer.session_directory(project) / "structurizr.stderr.log"
+                            assert "Cached returncode diagnostic" in log.read_text()
+                            assert [event[0] for event in events] == ["native-wait", "native-wait"]
+                    assert not waits
+                    api.CloseHandle.assert_called_once_with(321)
+                    api.TerminateProcess.assert_called_once_with(321, int(viewer.signal.SIGTERM))
+                    viewer.cleanup_directory(project)
+                print("Windows cached-returncode: signaled native handle required; timeout diagnostics retained.")
+
             # Actual detached Java stand-ins must release inherited logs before cleanup.
             def java_ready(url, active, timeout=45, **kwargs):
                 assert active()
