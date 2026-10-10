@@ -1,4 +1,4 @@
-import { expect, type Browser, type BrowserContext, type Page, test } from '@playwright/test';
+import { expect, type Browser, type BrowserContext, type Download, type Page, test } from '@playwright/test';
 import { personas } from '../persona-fixture.js';
 
 const identityAuthority = process.env.PROGRAMKIT_IDENTITY_AUTHORITY ?? 'http://localhost:8080/realms/program-kit';
@@ -122,6 +122,7 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
   const applicationOrigin = new URL(baseURL).origin;
   const attackerUrl = new URL('/__program-kit-cross-site-logout-fixture', identityOrigin);
   attackerUrl.hostname = new URL(baseURL).hostname === 'localhost' ? '127.0.0.1' : 'localhost';
+  let stopObservingDownload: (() => void) | undefined;
   try {
     // A normal HTML document models the attacker. Firefox's privileged JSON
     // viewer cannot model an ordinary web origin; only this input page is fulfilled.
@@ -143,6 +144,12 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
     expect(attackerUrl.hostname).not.toBe(new URL(baseURL).hostname);
     expect(attackerUrl.origin).not.toBe(applicationOrigin);
     phase.description = 'source-validated';
+    let rejectionDownloadObserved = false;
+    const observeDownload = (download: Download) => {
+      if (download.url() === `${applicationOrigin}/bff/logout`) rejectionDownloadObserved = true;
+    };
+    attacker.on('download', observeDownload);
+    stopObservingDownload = () => attacker.off('download', observeDownload);
     const rejectedResponse = attacker.waitForResponse(response =>
       response.url() === `${applicationOrigin}/bff/logout` && response.request().method() === 'POST');
     await attacker.evaluate(origin => {
@@ -164,13 +171,24 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
     phase.description = 'request-validated';
     expect(rejected.status()).toBe(400);
     phase.description = 'status-validated';
-    expect(await rejected.json()).toMatchObject({ code: 'invalid_antiforgery_token' });
+    let rejectionText: string;
+    try {
+      rejectionText = await rejected.text();
+    } catch (error) {
+      if (rejectionDownloadObserved) phase.description = 'rejection-download-observed';
+      throw error;
+    }
+    phase.description = 'rejection-body-read';
+    const rejectionBody: unknown = JSON.parse(rejectionText);
+    phase.description = 'rejection-body-parsed';
+    expect(rejectionBody).toMatchObject({ code: 'invalid_antiforgery_token' });
     phase.description = 'rejection-validated';
     await attacker.waitForURL(`${applicationOrigin}/bff/logout`);
     phase.description = 'navigation-completed';
     expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
     phase.description = 'session-retained';
   } finally {
+    stopObservingDownload?.();
     try { await context.unroute(attackerUrl.href); }
     finally { await context.close(); }
   }

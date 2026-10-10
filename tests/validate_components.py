@@ -187,9 +187,22 @@ def main() -> int:
     preset_entries = preset["provides"]["templates"]
     preset_templates = [entry for entry in preset_entries if entry['type'] == 'template']
     commands = [entry for entry in preset_entries if entry['type'] == 'command']
-    if {command['name'] for command in commands} != {'speckit.tasks', 'speckit.implement'} or any(
-            command['strategy'] != 'replace' for command in commands):
-        raise AssertionError('Governance must replace tasks and implement commands with consistent operation delivery and hook dispatch')
+    expected_commands = {
+        'speckit.tasks': {'name': 'speckit.tasks', 'file': 'commands/speckit.tasks.md',
+                          'strategy': 'replace', 'replaces': 'speckit.tasks'},
+        'speckit.implement': {'name': 'speckit.implement', 'file': 'commands/speckit.implement.md',
+                              'strategy': 'replace', 'replaces': 'speckit.implement'},
+        'speckit.analyze': {'name': 'speckit.analyze', 'file': 'commands/speckit.analyze.md',
+                            'strategy': 'append'},
+    }
+    if (len(commands) != len(expected_commands)
+            or {command.get('name') for command in commands} != set(expected_commands)
+            or any({key: value for key, value in command.items()
+                    if key in {'name', 'file', 'strategy', 'replaces'}}
+                   != expected_commands.get(command.get('name')) for command in commands)):
+        raise AssertionError('Governance must replace tasks and implement and append operation dependency analysis through their exact native command sources')
+    if any(not (preset_path.parent / command['file']).is_file() for command in commands):
+        raise AssertionError('A native governance command source is missing')
     if {template["name"] for template in preset_templates} != {
         "constitution-template",
         "spec-template",

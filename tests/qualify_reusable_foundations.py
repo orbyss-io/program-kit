@@ -704,7 +704,8 @@ CROSS_SITE_PHASE_PROPERTY = 'program-kit-cross-site-phase'
 CROSS_SITE_PHASES = ('registered','authenticated','source-registered','source-loaded',
     'source-content-validated','source-url-validated','source-principal-validated','source-validated',
     'submitted','response-received','navigation-request-validated','request-target-validated',
-    'request-validated','status-validated','rejection-validated','navigation-completed','session-retained')
+    'request-validated','status-validated','rejection-download-observed','rejection-body-read',
+    'rejection-body-parsed','rejection-validated','navigation-completed','session-retained')
 
 
 def authentication_failure(directory, previous):
