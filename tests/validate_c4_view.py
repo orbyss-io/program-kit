@@ -15,7 +15,7 @@ import urllib.error
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from contextlib import redirect_stdout
 from pathlib import Path, PurePosixPath
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 
 def load_module(path: Path, name: str):
@@ -264,14 +264,82 @@ def validate_readiness_and_budgets(viewer) -> None:
     with viewer.operation_budget(0):
         expect_failure(lambda: viewer.run_capture((sys.executable, "-V")), "time limit reached")
     begin = time.monotonic()
-    with viewer.operation_budget(0.1):
-        expired = viewer.run_capture((sys.executable, "-c", "import time; time.sleep(10)"))
+    timeout_processes = []
+    real_popen = viewer.subprocess.Popen
+    def capture_timeout_process(*args, **kwargs):
+        process = real_popen(*args, **kwargs)
+        timeout_processes.append(process)
+        return process
+    with patch.object(viewer.subprocess, "Popen", side_effect=capture_timeout_process), \
+            viewer.operation_budget(0.1):
+        expired = viewer.run_capture((getattr(sys, "_base_executable", sys.executable),
+                                      "-c", "import time; time.sleep(10)"))
     assert expired.returncode == 127 and time.monotonic() - begin < 3
+    assert len(timeout_processes) == 1 and timeout_processes[0].returncode is not None
     with patch.object(viewer.subprocess, "run", side_effect=subprocess.TimeoutExpired("browser", 5)) as run:
         assert viewer.open_browser_url(url) is False
         assert run.call_args.kwargs["timeout"] == 5
         assert run.call_args.kwargs["stdout"] == subprocess.DEVNULL
         assert run.call_args.kwargs["stderr"] == subprocess.DEVNULL
+
+
+def validate_windows_stop_contract(viewer) -> None:
+    """The completion handle, not an exit-code probe, admits Windows cleanup."""
+    import ctypes
+
+    cases = (
+        ("already-exited", 123, [0], True, 0, None),
+        ("terminated", 123, [258, 0], True, 0, None),
+        ("exit-raced-termination", 123, [258, 0], False, 5, None),
+        ("timeout", 123, [258, 258], True, 0, "did not stop"),
+        ("initial-wait-failed", 123, [0xFFFFFFFF], True, 0, "Cannot wait"),
+        ("final-wait-failed", 123, [258, 0xFFFFFFFF], True, 0, "Cannot wait"),
+        ("terminate-denied", 123, [258, 258], False, 5, "Could not stop"),
+        ("open-denied", 0, [], True, 5, "Cannot open"),
+        ("already-gone", 0, [], True, 87, None),
+    )
+    for name, handle, waits, terminate, error, failure in cases:
+        api = Mock()
+        api.OpenProcess.return_value = handle
+        api.WaitForSingleObject.side_effect = waits
+        api.TerminateProcess.return_value = terminate
+        api.CloseHandle.return_value = True
+        with patch.object(ctypes, "WinDLL", return_value=api, create=True), \
+                patch.object(ctypes, "get_last_error", return_value=error, create=True), \
+                patch.object(viewer.os, "kill", side_effect=AssertionError("No control signals")), \
+                viewer.operation_budget(0.15):
+            if failure:
+                expect_failure(lambda: viewer._stop_windows_process(54321), failure)
+            else:
+                viewer._stop_windows_process(54321)
+        api.OpenProcess.assert_called_once_with(0x00101001, False, 54321)
+        assert api.CloseHandle.call_count == (1 if handle else 0), name
+        if handle:
+            api.CloseHandle.assert_called_once_with(handle)
+        if name == "already-exited":
+            api.TerminateProcess.assert_not_called()
+        if name == "terminated":
+            api.TerminateProcess.assert_called_once_with(handle, int(viewer.signal.SIGTERM))
+            assert api.WaitForSingleObject.call_args_list[0].args == (handle, 0)
+            assert 0 < api.WaitForSingleObject.call_args_list[1].args[1] <= 150
+        if failure:
+            with tempfile.TemporaryDirectory(prefix="Program Kit C4 incomplete stop ") as directory:
+                project = Path(directory) / "consumer"
+                project.mkdir()
+                with patch.dict(os.environ, {viewer.STATE_ENVIRONMENT: str(Path(directory) / "state")}):
+                    viewer.write_state(project, {"runtime": "java", "pid": 54321})
+                    log = viewer.session_directory(project) / "structurizr.stderr.log"
+                    write(log, "Retained diagnostic\n")
+                    before = snapshot(viewer.session_directory(project))
+                    with patch.object(viewer, "stop_java_process", side_effect=viewer.C4ViewError(failure)):
+                        expect_failure(lambda: viewer.stop_session(project), failure)
+                    assert snapshot(viewer.session_directory(project)) == before, name
+    with patch.object(viewer, "_stop_windows_process") as stop, \
+            patch.object(viewer.os, "kill", side_effect=AssertionError("Invalid PID must not signal")):
+        for value in (None, True, False, 0, -1, "54321", 1.5):
+            expect_failure(lambda: viewer.stop_java_process(value), "no valid PID")
+        stop.assert_not_called()
+    print("Windows Java stop: 9 handle outcomes, 7 invalid PID controls passed.")
 
 
 def main() -> int:
@@ -325,6 +393,7 @@ def main() -> int:
     if not viewer.process_alive(os.getpid()):
         raise AssertionError("C4 viewer did not recognize its current process as active")
     validate_readiness_and_budgets(viewer)
+    validate_windows_stop_contract(viewer)
 
     with tempfile.TemporaryDirectory(prefix="Program Kit C4 tests ") as directory:
         tests_root = Path(directory)
@@ -452,6 +521,32 @@ def main() -> int:
             }
             viewer.discover_runtimes = lambda profile, war=None: java_runtimes
 
+            # A failed Popen must close the parent's logs before preserving evidence.
+            launch_streams = []
+            def launch_failure(*args, **kwargs):
+                launch_streams.extend((kwargs["stdout"], kwargs["stderr"]))
+                kwargs["stderr"].write("Launch failure diagnostic\n")
+                raise OSError("Java fixture could not launch")
+
+            with patch.object(viewer.subprocess, "Popen", side_effect=launch_failure), \
+                    patch.object(viewer, "stop_java_process") as stop:
+                try:
+                    viewer.start_session(project, "java", None, None, False, True)
+                except viewer.C4ViewError as error:
+                    launch_error = str(error)
+                else:
+                    raise AssertionError("Java fixture launch should fail")
+                assert "diagnostics preserved at" in launch_error
+                assert "cleanup failed" not in launch_error, launch_error
+                assert "capture incomplete" not in launch_error, launch_error
+                stop.assert_not_called()
+            assert len(launch_streams) == 2 and all(stream.closed for stream in launch_streams)
+            assert not viewer.session_directory(project).exists()
+            launch_evidence = [path.parent for path in (viewer.state_root() / "failures").glob("*/failure.json")
+                               if json.loads(path.read_text())["error"] == "Java fixture could not launch"]
+            assert len(launch_evidence) == 1
+            assert "Launch failure diagnostic" in (launch_evidence[0] / "structurizr.stderr.log").read_text()
+
             def java_startup_failure(url, active, timeout=45, **kwargs):
                 deadline = time.monotonic() + 3
                 log = viewer.session_directory(project) / "structurizr.stderr.log"
@@ -465,7 +560,20 @@ def main() -> int:
             # so this Java stand-in owns its own PID and log handles like java.exe.
             command = [getattr(sys, "_base_executable", sys.executable), "-c", "import sys,time; "
                        "print('Java stream diagnosis', file=sys.stderr, flush=True); time.sleep(30)"]
-            with patch.object(viewer, "build_java_command", return_value=command):
+            owned_processes = []
+            original_popen = viewer.subprocess.Popen
+            original_preserve = viewer.preserve_failure
+            def observe_popen(*args, **kwargs):
+                process = original_popen(*args, **kwargs)
+                owned_processes.append(process)
+                return process
+            def preserve_reaped(*args, **kwargs):
+                assert owned_processes and all(process.returncode is not None for process in owned_processes)
+                return original_preserve(*args, **kwargs)
+
+            with patch.object(viewer, "build_java_command", return_value=command), \
+                    patch.object(viewer.subprocess, "Popen", side_effect=observe_popen), \
+                    patch.object(viewer, "preserve_failure", side_effect=preserve_reaped):
                 try:
                     viewer.start_session(project, "java", None, None, False, True)
                 except viewer.C4ViewError as error:
@@ -477,9 +585,64 @@ def main() -> int:
                 assert "capture incomplete" not in java_error, java_error
             java_evidence = [path.parent for path in (viewer.state_root() / "failures").glob("*/failure.json")
                              if json.loads(path.read_text())["runtime"] == "java"]
+            assert len(java_evidence) == 2  # Launch failure and the actual child failure.
+            java_evidence = [path for path in java_evidence
+                             if json.loads((path / "failure.json").read_text())["error"] ==
+                             "Java fixture failed to load workspace"]
             assert len(java_evidence) == 1
             assert "Java stream diagnosis" in (java_evidence[0] / "structurizr.stderr.log").read_text()
             assert not viewer.session_directory(project).exists(), java_error
+
+            # A launched child remains owned even if persisting its PID fails.
+            with patch.object(viewer, "build_java_command", return_value=command), \
+                    patch.object(viewer.subprocess, "Popen", side_effect=observe_popen), \
+                    patch.object(viewer, "write_state", side_effect=OSError("Fixture state persistence failed")), \
+                    patch.object(viewer, "preserve_failure", side_effect=preserve_reaped):
+                try:
+                    viewer.start_session(project, "java", None, None, False, True)
+                except viewer.C4ViewError as error:
+                    state_error = str(error)
+                else:
+                    raise AssertionError("Java fixture state persistence should fail")
+                assert "diagnostics preserved at" in state_error
+                assert "cleanup failed" not in state_error, state_error
+                assert "capture incomplete" not in state_error, state_error
+            assert owned_processes[-1].returncode is not None
+            assert not viewer.session_directory(project).exists()
+            assert any(json.loads(path.read_text())["error"] == "Fixture state persistence failed"
+                       for path in (viewer.state_root() / "failures").glob("*/failure.json"))
+
+            # Actual detached Java stand-ins must release inherited logs before cleanup.
+            def java_ready(url, active, timeout=45, **kwargs):
+                assert active()
+                deadline = time.monotonic() + 3
+                log = viewer.session_directory(project) / "structurizr.stderr.log"
+                while "Java stream diagnosis" not in log.read_text(encoding="utf-8"):
+                    assert time.monotonic() < deadline, "Fixture child did not start"
+                    time.sleep(0.02)
+            viewer.wait_ready = java_ready
+            with patch.object(viewer, "build_java_command", return_value=command), \
+                    patch.object(viewer.subprocess, "Popen", side_effect=observe_popen):
+                for _ in range(3):
+                    started = viewer.start_session(project, "java", None, None, False, True)
+                    process = owned_processes[-1]
+                    assert started["pid"] == process.pid and viewer.session_active(started)
+                    assert viewer.stop_session(project)
+                    process.wait(timeout=5)
+                    assert not viewer.session_directory(project).exists()
+
+            # An already-exited process still has a handle: stop waits without signalling.
+            log_directory = viewer.session_directory(project)
+            log_directory.mkdir()
+            with (log_directory / "structurizr.stdout.log").open("w") as stdout, \
+                    (log_directory / "structurizr.stderr.log").open("w") as stderr:
+                exited = original_popen([command[0], "-c", "print('Already exited')"],
+                                        stdout=stdout, stderr=stderr)
+                assert exited.wait(timeout=5) == 0
+            viewer.write_state(project, {"runtime": "java", "pid": exited.pid})
+            assert viewer.stop_session(project)
+            assert not viewer.session_directory(project).exists()
+            print("Java lifecycle: launch failure, reaped startup/state failure, 3 detached stops, exited stop passed.")
         finally:
             viewer.discover_runtimes = original_discovery
             viewer.run_capture = original_capture
