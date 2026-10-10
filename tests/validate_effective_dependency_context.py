@@ -38,7 +38,9 @@ class EffectiveContextTests(unittest.TestCase):
         self.selection.unlink()
         blocks = load_module(self.root / '.specify/extensions/program-kit-building-blocks/scripts/building_blocks.py')
         fresh = blocks.effective_dependency_context(self.root)
-        self.assertEqual('0.3.1', fresh['catalog']['packages'][HOST]['version'])
+        expected = load_module(RESOLVER).new_project_catalog()
+        self.assertEqual(expected, fresh['catalog'])
+        self.assertEqual(expected['families']['foundation']['releaseVersion'], fresh['catalog']['packages'][HOST]['version'])
         self.assertEqual('qualified-default', fresh['authority'])
         identity = 'foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
         catalog = blocks.new_project_catalog(identity)
@@ -84,7 +86,7 @@ class EffectiveContextTests(unittest.TestCase):
         shutil.copytree(ROOT / 'extensions/program-kit-dotnet', dotnet, dirs_exist_ok=True)
         intake = {'routing': {'capabilities': ['dotnet-host-runtime']}}
         projected = bootstrap_context.runtime_release_projection(self.root, intake)
-        self.assertEqual('0.3.1', projected['managed_host']['version'])
+        self.assertEqual(catalog['packages'][HOST]['version'], projected['managed_host']['version'])
         self.selection, architecture = accepted_fixture(self.blocks, self.root, catalog, 'api_baseline')
         selection = json.loads(self.selection.read_text())
         selection['targets'].append({'id': 'repository', 'kind': 'repository', 'path': 'Directory.Build.props', 'role': 'repository', 'scope': 'application'})
@@ -100,17 +102,18 @@ class EffectiveContextTests(unittest.TestCase):
                 errors = dependency_audit.planned_selection_errors(self.root, [{'path': 'src/Unbound/Unbound.csproj', 'packageReferences': [identity]}])
             self.assertTrue(any('PKA016' in error for error in errors), identity)
             path = self.root / 'src/Unbound/Unbound.csproj'; path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text('<Project><ItemGroup><PackageReference Include="' + identity + '" Version="0.3.1" /></ItemGroup></Project>')
+            version = catalog['packages'][key]['version']
+            path.write_text('<Project><ItemGroup><PackageReference Include="' + identity + '" Version="' + version + '" /></ItemGroup></Project>')
             with self.assertRaisesRegex(ValueError, 'PKB405'):
                 self.blocks.check_materialization(self.root, {'managedOutputs': []})
 
     def test_stale_summary_has_scoped_repair_and_context_sources_bind_retained_profile(self):
-        self.selected()
+        catalog = self.selected()
         effective = self.blocks.effective_dependency_context(self.root)
         summary = bootstrap_context.dependency_summary(self.root, effective)
-        self.assertEqual('0.3.1', summary['hostVersion'])
+        self.assertEqual(catalog['packages'][HOST]['version'], summary['hostVersion'])
         radar = self.root / 'docs/architecture/technology-radar.md'
-        radar.write_text('Foundation family 0.3.1 and the supplied host catalog 0.2.2/v0.2.2 have independent identities.')
+        radar.write_text('Foundation family ' + catalog['families']['foundation']['releaseVersion'] + ' and the supplied host catalog 0.2.2/v0.2.2 have independent identities.')
         before = self.selection.read_bytes()
         with self.assertRaisesRegex(bootstrap_context.ContextError, 'scoped tooling review'):
             bootstrap_context.dependency_summary(self.root, effective)
@@ -201,7 +204,7 @@ class EffectiveContextTests(unittest.TestCase):
                     release.effective_dependency_context(self.root)
 
     def test_qualification_and_shared_abi_conflicts_are_not_other_profiles(self):
-        self.selected()
+        catalog = self.selected()
         record_path = self.root / '.program-kit/dependency-profile.json'
         record = json.loads(record_path.read_text())
         identity = 'foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
@@ -212,7 +215,8 @@ class EffectiveContextTests(unittest.TestCase):
             self.blocks.effective_dependency_context(self.root)
         record.pop('newProjectQualification'); write_json(record_path, record)
         abi_path = self.blocks.profile_registry() / 'engineering-contracts.json'
-        abi = self.blocks.load_json(abi_path); abi['releases']['0.3.1']['sourceCommit'] = 'a' * 40
+        abi = self.blocks.load_json(abi_path)
+        abi['releases'][catalog['families']['foundation']['releaseVersion']]['sourceCommit'] = 'a' * 40
         write_json(abi_path, abi)
         with self.assertRaisesRegex(ValueError, 'different source commits'):
             self.blocks.effective_dependency_context(self.root)
@@ -260,7 +264,7 @@ class EffectiveContextTests(unittest.TestCase):
                 inputs, plan = bootstrap_compatibility.prepare(self.root, scratch, contract)
             self.assertTrue(plan)
             pins = json.loads((scratch / 'runtime-inputs.json').read_text())
-            self.assertEqual('0.3.1', pins['foundationRelease'])
+            self.assertEqual(catalog['families']['foundation']['releaseVersion'], pins['foundationRelease'])
             for project in scratch.rglob('*.csproj'):
                 for ref in ET.parse(project).iter('PackageReference'):
                     identity = ref.get('Include')

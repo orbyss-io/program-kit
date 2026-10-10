@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import ipaddress
 import json
 import re
 import sys
@@ -128,6 +129,62 @@ def validate_configuration(value):
         require(isinstance(item, int) and not isinstance(item, bool) and 1 <= item <= 86400, key + ' must be a positive bounded integer')
     require(isinstance(value['setup'], dict) and isinstance(value['tests'], dict), 'setup/tests must be objects')
     return value
+
+
+def private_dns_alias(hostname):
+    """A transport must resolve through the owned Docker DNS alias, never an IP."""
+    if not isinstance(hostname, str) or len(hostname) > 253:
+        return False
+    try:
+        ipaddress.ip_address(hostname)
+    except ValueError:
+        pass
+    else:
+        return False
+    # Also reject legacy numeric/hex address forms recognized by some URI clients.
+    if re.fullmatch(r'(?:0[xX][0-9a-fA-F]+|[0-9]+)(?:\.(?:0[xX][0-9a-fA-F]+|[0-9]+)){0,3}', hostname):
+        return False
+    return all(re.fullmatch(r'[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?', label)
+               for label in hostname.split('.'))
+
+
+def identity_projection(configuration):
+    """Project only the supported synthetic local envelope into a runnable service."""
+    identity = configuration['identity']
+    public = urlsplit(identity['publicOrigin'])
+    local = configuration['application']['localDevelopment'] and public.scheme == 'http' and public.hostname in {'localhost', '127.0.0.1', '::1'}
+    if not local:
+        return {'scope':'external-deployment-required', 'runnable':False,
+                'reason':'TLS/proxy and existing-realm provisioning belong to the deployment identity owner.'}
+    require(public.port is not None, 'local identity public origin requires an explicit published port')
+    aliases = []
+    for name in ('administrationOrigin', 'backchannelOrigin'):
+        private = urlsplit(identity[name])
+        require(private.scheme == 'http' and private.port == 8080 and private.hostname != 'localhost' and private_dns_alias(private.hostname),
+                'local identity.'+name+' must use an owned private Docker DNS alias on HTTP port 8080')
+        if private.hostname not in aliases: aliases.append(private.hostname)
+    return {'scope':'synthetic-local-only', 'runnable':True, 'publicOrigin':identity['publicOrigin'],
+            'publicBinding':('::1' if public.hostname == '::1' else '127.0.0.1'),
+            'publicPort':public.port, 'privateAliases':aliases,
+            'realmImportTarget':'/opt/keycloak/data/import/'+identity['realm']+'-realm.json'}
+
+
+def render_identity_compose(source, configuration):
+    projection = identity_projection(configuration)
+    if not projection['runnable']:
+        return ('# External identity deployment required. This file deliberately starts no synthetic service.\n'
+                '# Reconcile client registrations, TLS and proxy routing through the identity owner.\n'
+                'name: program-kit-identity\nservices: {}\n').encode('utf-8')
+    text = source.decode('utf-8').replace('\r\n', '\n')
+    replacements = [
+        (r'(?m)^      KC_HOSTNAME: .+$', '      KC_HOSTNAME: '+json.dumps(projection['publicOrigin'])),
+        (r'(?m)^    ports:\n(?:      - .+\n)+', '    ports:\n      - '+json.dumps(('['+projection['publicBinding']+']' if ':' in projection['publicBinding'] else projection['publicBinding'])+':'+str(projection['publicPort'])+':8080')+'\n'),
+        (r'(?m)^      - \./keycloak/program-kit-realm\.json:.+$', '      - '+json.dumps('./keycloak/program-kit-realm.json:'+projection['realmImportTarget']+':ro')),
+        (r'(?m)^        aliases:\n(?:          - .+\n)+', '        aliases:\n'+''.join('          - '+json.dumps(alias)+'\n' for alias in projection['privateAliases']))]
+    for pattern, replacement in replacements:
+        text, count = re.subn(pattern, lambda match:replacement, text)
+        require(count == 1, 'maintained identity composition no longer exposes its supported projection field')
+    return ('# Synthetic local fixture only; production TLS/proxy and existing realms are deployment-owned.\n'+text).encode('utf-8')
 
 
 def load_configuration(repository):
@@ -292,6 +349,7 @@ def resolve(repository, configuration=None, contract=None, setup_adapter=None):
             'runner': configuration['runner'], 'profile': contract['profile'], 'hostImage': contract['hostImage'],
             'toolchains': contract.get('toolchains', {}),
             'serviceImages': contract.get('serviceImages', {}),
+            'identityProjection': contract['identityProjection'],
             'developmentCandidate': contract.get('developmentCandidate'),
             'activations': contract['activations'] + [p['featureIdentity'] for p in configuration['projects']],
             'packages': {k:v for k,v in contract['packages'].items() if k != 'Orbyss.Foundation.PostgreSql' or configuration['compositionId'].endswith('-postgresql')},
@@ -479,7 +537,10 @@ def materialize(repository, configuration, template_root):
     identity_pin = re.search(r'^\s*image:\s*(\S+@sha256:[a-f0-9]{64})\s*$',identity_source.read_text(encoding='utf-8'),re.M)
     require(identity_pin is not None,'maintained identity composition lacks an immutable image')
     contract['serviceImages'] = {'keycloak':identity_pin[1]}
-    contract['serviceImageSources'] = {'keycloak':{'path':'deploy/compose.identity.yml','sha256':digest(identity_source.read_bytes())}}
+    identity_compose = render_identity_compose(identity_source.read_bytes(), configuration)
+    contract['identityProjection'] = identity_projection(configuration)
+    contract['serviceImageSources'] = {'keycloak':{'path':'deploy/compose.identity.yml','sha256':digest(identity_compose),
+        'templateSha256':digest(identity_source.read_bytes())}}
     theme_root = template_root/'web-profiles/common/deploy/keycloak/themes/program-kit'
     contract['themeArtifacts'] = {}
     for file in theme_root.rglob('*'):
@@ -506,7 +567,8 @@ def materialize(repository, configuration, template_root):
     for name, version in resolved['packages'].items():
         ET.SubElement(group, 'PackageVersion', Include=name, Version=version)
     ET.indent(props, space='  ')
-    outputs = {CONTRACT: (encoded(contract), 'managed'), RESOLVED: (encoded(resolved), 'managed'),
+    outputs = {'deploy/compose.identity.yml': (identity_compose, 'managed'),
+               CONTRACT: (encoded(contract), 'managed'), RESOLVED: (encoded(resolved), 'managed'),
                'eng/web-profile.shells.json': (encoded(shell), 'managed'),
                'eng/ProgramKit.BuildingBlocks.props': (ET.tostring(props) + b'\n', 'managed')}
     web_contract = read(template_root/'web-profiles/bff-cookie/eng/web/web-contract.json')
@@ -569,6 +631,7 @@ def reference(configuration, contract):
             json.dumps(setting['constraints']).replace('|','\\|'), setting['binding'].replace('|','\\|')+' Change owned input and recompose the shell.', setting['reload']]) + ' |')
     lines += ['', 'Operational budgets are tunable within the runtime validators. OIDC identities/callbacks and cookie protection are protocol configuration. Product schema versions, transaction contents, replay identities and retention transitions remain owned product contracts.', '',
               'Only application origin and admitted display branding are public browser exports; secrets and server administration addresses are excluded.', '',
+              'Identity deployment projection: `'+contract['identityProjection']['scope']+'`. The generated identity Compose file derives the local public loopback port, private aliases and selected realm import filename from these inputs. External TLS/nonlocal inputs generate an inert file with no services and require actual deployment qualification.', '',
               'The local realm is a synthetic fixture. A realm import does not update an existing production realm. Adoption must reconcile its exact confidential client/redirect registrations through the identity owner, configure TLS and trusted proxy forwarding, and supply secrets through deployment references.', '',
               'Custom provider templates, JavaScript, authentication flows or changed maintained theme bytes invalidate inherited theme assurance and require targeted qualification.', '',
               'Run `python eng/foundation_composition.py --repository . --effective` for a redacted source/provenance view. Supply deployment overrides explicitly with `--overrides <json>`; the command does not read or log process secrets. Runtime readiness remains the maintained setup check.', '']
@@ -622,6 +685,11 @@ def verify_outputs(repository):
     expected = resolve(repository, configuration)
     require(read(repository / RESOLVED) == expected, 'resolved composition is stale; preview and sync its declared inputs')
     contract = read(repository/CONTRACT)
+    require(contract['identityProjection'] == identity_projection(configuration), 'identity deployment projection is stale')
+    identity_source = contract['serviceImageSources']['keycloak']
+    require((repository/identity_source['path']).is_file() and
+            digest((repository/identity_source['path']).read_bytes()) == identity_source['sha256'],
+            'identity deployment bytes differ from the admitted composition; preview and synchronize managed configuration')
     validate_materialized(repository,configuration,contract,(repository/'eng/web-profile.shells.json').read_bytes(),
                           (repository/'deploy/keycloak/program-kit-realm.json').read_bytes())
     for path,sha in contract['themeArtifacts'].items():

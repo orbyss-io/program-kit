@@ -16,6 +16,15 @@ loopback HTTP Development origins and an owned private Docker alias on port 8080
 It never provisions a production realm or deployment. Materialization also admits
 validated TLS/deployment inputs; production TLS, trusted proxy routing and existing
 identity/provider provisioning require targeted checks of that actual environment.
+The generated `deploy/compose.identity.yml` is a synthetic local fixture projection.
+For a local HTTP loopback identity origin it binds only that loopback interface and
+selected public port, imports the selected `<realm>-realm.json`, and assigns the
+independently declared administration/backchannel DNS aliases on container port
+8080. Their immutable image and generated file hash are recorded in the settings
+contract. Unsupported local private transport relationships fail before writes.
+TLS/nonlocal identity inputs produce an inert Compose file with no services and an
+`external-deployment-required` projection in the resolved view. They require actual
+deployment qualification; the file supplies no production identity provisioning.
 Reuse the maintained authentication/provider tests for those checks.
 An unsupported profile or effective callback/origin conflict fails before any
 managed transaction writes. Existing customized scaffolds are preserved and

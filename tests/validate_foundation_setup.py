@@ -10,10 +10,13 @@ import json
 import os
 from pathlib import Path
 import socket
+import shutil
 import sys
 import time
 import threading
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
@@ -32,6 +35,7 @@ load('foundation_process', ROOT / 'extensions/program-kit-governance/scripts/com
 fixture = load('foundation_fixture', ENG / 'foundation_fixture.py')
 load('test_results', ENG / 'test_results.py')
 setup = load('foundation_setup', ENG / 'foundation_setup.py')
+qualification = load('foundation_qualification', ENG / 'foundation_qualification.py')
 
 
 class Readiness(unittest.TestCase):
@@ -227,6 +231,113 @@ class Readiness(unittest.TestCase):
         self.assertEqual('Actual latest failed prerequisite', observed['failure'])
         (self.root/'src/product.cs').write_text('Changed application binding')
         self.assertFalse(setup.status(self.root, selected)['configurationEvidenceCurrent'])
+
+    def test_service_acquisition_uses_exact_selected_images_and_failure_stops_preparation(self):
+        images = ['ghcr.io/orbyss-io/foundation-host@sha256:'+'a'*64,
+                  'quay.io/keycloak/keycloak:26.8.0@sha256:'+'b'*64]
+        selected = {'hostImage': {'reference': images[0]}, 'serviceImages': {'keycloak': images[1]}}
+        (self.root/'eng/web').mkdir()
+        original = fixture.captured
+        calls = []
+        marker = 'bounded image acquisition test child'
+        failed_image = None
+        def controlled_child(command, cwd, directory, **keywords):
+            # Stub only the external image registry boundary. Real bounded child
+            # execution, failure/cleanup and redaction remain the maintained path.
+            calls.append((command, keywords['timeout']))
+            exit_code = 7 if command == ['docker', 'pull', failed_image] else 0
+            child = [sys.executable, '-c', 'import sys; print(sys.argv[1]); sys.exit(int(sys.argv[2]))', marker, str(exit_code)]
+            return original(child, cwd, directory, **keywords)
+        with patch.dict(sys.modules, {'openapi_pipeline': SimpleNamespace(repository_nuget_environment=lambda root: dict(os.environ))}), \
+             patch.object(fixture, 'captured', controlled_child), \
+             patch.dict(os.environ, {'PROGRAMKIT_BROWSER_ENGINES':'chromium,webkit'}):
+            for label, host in (('object', {'reference':images[0]}), ('string', images[0])):
+                calls.clear(); selected['hostImage'] = host
+                destination = self.root/('acquisition-success-'+label)
+                qualification.stage(self.root, selected, 'services', destination)
+                self.assertEqual([(['docker','pull',image],300) for image in images], calls[:2])
+                self.assertEqual(['install','chromium','webkit'], calls[2][0][-3:])
+                self.assertEqual(3, len(calls))
+                self.assertTrue((destination/'services-timings.json').is_file())
+            calls.clear(); failed_image = images[1]
+            with self.assertRaisesRegex(ValueError, 'PKF102 maintained command failed'):
+                qualification.stage(self.root, selected, 'services', self.root/'acquisition-failed')
+            self.assertEqual([(['docker','pull',image],300) for image in images], calls)
+            self.assertFalse((self.root/'acquisition-failed/services-timings.json').exists())
+            self.assertFalse(any(token in ('run','create','start') for command,_ in calls for token in command))
+
+    def test_mutable_or_malformed_service_image_is_rejected_before_any_acquisition(self):
+        for invalid in ('quay.io/keycloak/keycloak:latest', 'postgres@sha256:'+'z'*64,
+                        'https://registry.example/image@sha256:'+'a'*64):
+            selected = {'hostImage': 'ghcr.io/orbyss-io/foundation-host@sha256:'+'a'*64,
+                        'serviceImages': {'keycloak':invalid}}
+            with self.subTest(image=invalid), \
+                 patch.dict(sys.modules, {'openapi_pipeline': SimpleNamespace(repository_nuget_environment=lambda root: dict(os.environ))}), \
+                 patch.object(fixture, 'captured') as captured, \
+                 self.assertRaisesRegex(ValueError, 'exact immutable selected image references'):
+                qualification.stage(self.root, selected, 'services', self.root/'invalid-acquisition')
+            captured.assert_not_called()
+
+    def snapshot_fixture(self):
+        # Only the Docker copy boundary is simulated. Actual file hashing and
+        # snapshot rejection are exercised; this establishes no Host acceptance.
+        runtime = self.root/'snapshot'
+        runtime.mkdir(); (runtime/'packages').mkdir()
+        for name in qualification.RUNTIME_SNAPSHOT_INPUTS[:3]:
+            (runtime/name).write_text('snapshot-'+name)
+        (runtime/'packages/selected.nupkg').write_bytes(b'owned selected package fixture')
+        containers = self.root/'copy-boundary'; containers.mkdir()
+        class CopyBoundary:
+            def __init__(self): self.calls = []
+            def run(self, command):
+                self.calls.append(command)
+                assert command[:2] == ['docker','cp']
+                source, destination = command[2:]
+                if ':/app/' in source:
+                    host, name = source.split(':/app/',1)
+                    source = containers/host/name
+                    destination = Path(destination)
+                else:
+                    source = Path(source)
+                    host = destination.removesuffix(':/app')
+                    destination = containers/host/source.name
+                    destination.parent.mkdir(exist_ok=True)
+                if source.is_dir(): shutil.copytree(source,destination)
+                else: shutil.copy2(source,destination)
+        return runtime, containers, CopyBoundary()
+
+    def test_initial_and_recreated_snapshot_transfer_validate_before_and_after_operations(self):
+        runtime, containers, command = self.snapshot_fixture()
+        for phase in ('initial','migration'):
+            host = 'owned-'+phase
+            if phase == 'migration':
+                (runtime/'packages/selected.nupkg').write_bytes(b'reviewed successor package fixture')
+            before = qualification.copy_runtime_snapshot(runtime,host,self.root/(phase+'-before'),command)
+            installed = containers/host/'packages/.installed'; installed.mkdir()
+            (installed/'mutable-cache').write_text('runtime installation cache is permitted')
+            after = qualification.verify_runtime_snapshot(runtime,host,self.root/(phase+'-after'),command,before['sourceInputs'])
+            self.assertEqual(before['sourceInputs'],after['containerCopyInputs'])
+            self.assertTrue(after['byteIdentityVerified'])
+            self.assertFalse(any('.installed' in path for path in after['containerCopyInputs']))
+        self.assertEqual(24,len(command.calls))
+
+    def test_changed_added_or_deleted_actual_copied_inputs_are_rejected(self):
+        runtime, containers, command = self.snapshot_fixture()
+        mutations = {
+            'config-changed':lambda directory:(directory/'shells.json').write_text('changed deployed configuration'),
+            'feed-changed':lambda directory:(directory/'packages/selected.nupkg').write_bytes(b'changed selected archive'),
+            'feed-added':lambda directory:(directory/'packages/unselected.nupkg').write_bytes(b'unselected archive'),
+            'feed-deleted':lambda directory:(directory/'packages/selected.nupkg').unlink()}
+        def hidden_unselected(directory):
+            hidden = directory/'packages/other/.installed'; hidden.mkdir(parents=True)
+            (hidden/'unselected.nupkg').write_bytes(b'not the owned installation cache')
+        mutations['nested-installed-extra'] = hidden_unselected
+        for name, mutate in mutations.items():
+            with self.subTest(mutation=name):
+                before = qualification.copy_runtime_snapshot(runtime,name,self.root/(name+'-before'),command)
+                mutate(containers/name)
+                with self.assertRaisesRegex(ValueError,'deployed runtime snapshot inputs changed'):
+                    qualification.verify_runtime_snapshot(runtime,name,self.root/(name+'-after'),command,before['sourceInputs'])
 
     def test_provider_identity_is_immutable_and_poll_is_bounded(self):
         with self.assertRaisesRegex(ValueError, 'immutable'):

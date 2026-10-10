@@ -90,11 +90,58 @@ class LifecycleDesignTests(unittest.TestCase):
             self.assertIn('publisher_knowledge.py', brief)
 
     def test_versioned_route_supports_selected_cshells(self):
-        command = [sys.executable, str(ROOT/'extensions/program-kit-building-blocks/scripts/publisher_knowledge.py')]
-        result = subprocess.run(command+['--target', str(ROOT), '--package', 'CShells.Abstractions', '--fact', 'README.md'], capture_output=True, text=True)
+        from validate_building_blocks import load_module, RESOLVER
+        blocks = load_module(RESOLVER)
+        selected = blocks.effective_dependency_context(ROOT)
+        registry = Path(selected['registryPath'])
+        index = blocks.load_json(registry/'index.json')
+        self.assertEqual(index['default'], selected['profile'])
+        runtime_version = selected['catalog']['families']['foundation']['releaseVersion']
+        self.assertEqual(runtime_version, selected['publisherKnowledge']['releaseVersion'])
+        command = [sys.executable, str(ROOT/'extensions/program-kit-building-blocks/scripts/publisher_knowledge.py'), '--target', str(ROOT)]
+        header = 'Publisher knowledge page 1/1; exact selected profile ' + selected['profile']
+
+        # Runtime package metadata must follow runtime authority, even when an
+        # independently versioned tool contributes another version to the profile ID.
+        runtime_id = 'Orbyss.Foundation.Authentication'
+        runtime_row = next(row for row in selected['publisherKnowledge']['packages'] if row['id'] == runtime_id)
+        runtime_fact = blocks.publisher_package_fact(registry, runtime_row)
+        result = subprocess.run(command+['--package', runtime_id], capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn('AddShellInitializer<T>()', result.stdout)
-        self.assertIn('0.3.1', result.stdout)
+        actual_header, payload = result.stdout.split('\n', 1)
+        self.assertEqual(header, actual_header)
+        metadata = json.loads(payload)
+        self.assertEqual(runtime_version, metadata['version'])
+        self.assertEqual(selected['publisherKnowledge']['sourceCommit'], metadata['repository']['commit'])
+        self.assertEqual({key: runtime_fact[key] for key in ('id', 'version', 'license', 'repository')}
+                         | {'facts': sorted(runtime_fact['facts'])}, metadata)
+
+        # CShells lifecycle facts are selected by the qualified native lock,
+        # rather than the Foundation runtime version or today's external pin.
+        recipe = blocks.load_json(registry/index['profiles'][selected['profile']]['qualificationRecipe']['path'])
+        lock_path = ROOT/recipe['nativeLock']['path']
+        lock = blocks.load_json(lock_path)
+        versions = {row['resolved'] for target in lock['dependencies'].values()
+                    for name, row in target.items() if name == 'CShells.Abstractions'}
+        self.assertEqual({selected['lifecycleKnowledge']['version']}, versions)
+        lifecycle_row = next(row for row in selected['lifecycleKnowledge']['packages'] if row['id'] == 'CShells.Abstractions')
+        lifecycle_fact = blocks.publisher_package_fact(registry, lifecycle_row)
+        for source in (lock_path, registry/lifecycle_row['path']):
+            self.assertEqual(blocks.raw_sha256(source), selected['sources'][str(source.resolve())])
+        result = subprocess.run(command+['--package', 'CShells.Abstractions'], capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        actual_header, payload = result.stdout.split('\n', 1)
+        self.assertEqual(header, actual_header)
+        metadata = json.loads(payload)
+        self.assertEqual(versions, {metadata['version']})
+        self.assertEqual({key: lifecycle_fact[key] for key in ('id', 'version', 'license', 'repository')}
+                         | {'facts': sorted(lifecycle_fact['facts'])}, metadata)
+        result = subprocess.run(command+['--package', 'CShells.Abstractions', '--fact', 'README.md'], capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        actual_header, payload = result.stdout.split('\n', 1)
+        self.assertEqual(header, actual_header)
+        self.assertEqual(lifecycle_fact['facts']['README.md'], payload)
+        self.assertIn('AddShellInitializer<T>()', payload)
         historical = 'foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
         result = subprocess.run(command+['--profile', historical, '--package', 'CShells.Abstractions'], capture_output=True, text=True)
         self.assertNotEqual(0, result.returncode)

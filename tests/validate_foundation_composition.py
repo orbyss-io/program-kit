@@ -10,6 +10,9 @@ import sys
 import tempfile
 import time
 import shutil
+import socket
+import urllib.request
+import yaml
 
 ARTIFACT = None
 COMMAND_NUMBER = 0
@@ -166,9 +169,109 @@ def _retirement_checks(root, value):
     sync(root, True)
 
 
+def identity_projection_checks(value, services=False):
+    """Use the real managed transaction for custom Notes and nested Sport shapes."""
+    for shape in ('notes', 'sport'):
+        configured = copy.deepcopy(value)
+        with socket.socket() as allocated:
+            allocated.bind(('127.0.0.1', 0)); port = allocated.getsockname()[1]
+        configured['identity'].update(publicOrigin='http://127.0.0.1:'+str(port),
+            administrationOrigin='http://'+shape+'-admin:8080', backchannelOrigin='http://'+shape+'-metadata:8080',
+            realm=shape+'-qualification', clientId=shape+'-bff', audience=shape+'-api')
+        if shape == 'sport': configured['runtime']['directory'] = 'Persoonlijk/runtime'
+        with tempfile.TemporaryDirectory(prefix='program-kit-identity-projection-') as temporary:
+            root = Path(temporary); (root/'eng').mkdir()
+            (root/composition.INPUT).write_bytes(composition.encoded(configured))
+            sync(root, True, 1); assert not (root/'deploy').exists()
+            sync(root); composition.verify_outputs(root)
+            actual = root/'deploy/compose.identity.yml'
+            generated = actual.read_bytes()
+            contract = composition.read(root/composition.CONTRACT)
+            projection = contract['identityProjection']
+            assert projection['runnable'] and projection['privateAliases'] == [shape+'-admin', shape+'-metadata']
+            assert contract['serviceImageSources']['keycloak']['sha256'] == composition.digest(generated)
+            config = yaml.safe_load(generated)
+            service = config['services']['keycloak']
+            assert service['image'] == contract['serviceImages']['keycloak']
+            assert service['environment']['KC_HOSTNAME'] == configured['identity']['publicOrigin']
+            assert service['ports'] == ['127.0.0.1:'+str(port)+':8080']
+            assert service['networks']['program-kit-local']['aliases'] == projection['privateAliases']
+            imports = [mount for mount in service['volumes'] if ':/opt/keycloak/data/import/' in mount]
+            assert imports == ['./keycloak/program-kit-realm.json:/opt/keycloak/data/import/'+configured['identity']['realm']+'-realm.json:ro']
+            sync(root, True); sync(root); assert actual.read_bytes() == generated
+            actual.write_bytes(generated+b'\n# consumer edit\n')
+            before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            conflicts = sync(root, True, 2)
+            assert 'deploy/compose.identity.yml' in {conflict['path'] for conflict in conflicts['conflicts']}
+            assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            sync(root, False, 2)
+            assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            try: composition.verify_outputs(root)
+            except ValueError: pass
+            else: raise AssertionError('Modified identity deployment retained inherited assurance')
+            actual.write_bytes(generated)
+            rejected_private = ['http://unsupported-private:9999', 'http://192.0.2.1:8080',
+                'http://127.0.0.2:8080', 'http://[2001:db8::1]:8080', 'http://127.000.000.002:8080',
+                'http://0x7f000002:8080', 'http://-invalid:8080', 'http://invalid-:8080',
+                'http://invalid..label:8080', 'http://invalid_label:8080',
+                'http://'+('a'*64)+':8080', 'http://'+'.'.join(['a'*63]*4)+':8080']
+            for target in ('administrationOrigin','backchannelOrigin'):
+                for unsupported in rejected_private:
+                    bad = copy.deepcopy(configured); bad['identity'][target] = unsupported
+                    (root/composition.INPUT).write_bytes(composition.encoded(bad))
+                    before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+                    run([sys.executable,str(SCRIPTS/'dotnet_sync.py'),'--target',str(root),'--profile-selected',
+                         '--foundation-host-accepted','--building-block-sources-approved','--web-profile','bff-cookie','--json'],ROOT,1)
+                    assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
+            (root/composition.INPUT).write_bytes(composition.encoded(configured))
+            receipt = {'shape':shape,'scope':projection['scope'],'generatedComposeSha256':composition.digest(generated),
+                       'projection':projection,'actualServiceStarted':services,
+                       'inputSha256':composition.digest((root/composition.INPUT).read_bytes()),
+                       'contractSha256':composition.digest((root/composition.CONTRACT).read_bytes()),
+                       'runtimeDirectory':configured['runtime']['directory']}
+            if services:
+                import uuid
+                name = 'pk-generated-identity-'+uuid.uuid4().hex[:10]
+                # Override only the network name to isolate this disposable execution.
+                override = root/'disposable-network.json'
+                override.write_text(json.dumps({'networks':{'program-kit-local':{'name':name}}}),encoding='utf-8')
+                command = ['docker','compose','--project-name',name,'-f',str(actual),'-f',str(override)]
+                try:
+                    run([*command,'config','--quiet'],root)
+                    run([*command,'up','-d','--wait','--wait-timeout','180'],root,timeout=220)
+                    address = configured['identity']['publicOrigin']+'/realms/'+configured['identity']['realm']+'/.well-known/openid-configuration'
+                    with urllib.request.urlopen(address,timeout=15) as response: discovery=json.load(response)
+                    expected = composition.read(root/composition.RESOLVED)['targets']['publicAuthority']
+                    assert discovery['issuer'] == expected
+                    container = run([*command,'ps','-q','keycloak'],root).stdout.strip()
+                    inspection = json.loads(run(['docker','inspect','--format','{{json .NetworkSettings}}',container],root).stdout)
+                    aliases = inspection['Networks'][name]['Aliases']
+                    assert set(projection['privateAliases']) <= set(aliases)
+                    private_results = {}
+                    for alias in projection['privateAliases']:
+                        script = 'exec 3<>/dev/tcp/$1/8080; printf "GET %s HTTP/1.1\\r\\nHost: %s:8080\\r\\nConnection: close\\r\\n\\r\\n" "$2" "$1" >&3; cat <&3'
+                        response = run(['docker','exec',container,'bash','-c',script,'--',alias,'/realms/'+configured['identity']['realm']+'/.well-known/openid-configuration'],root)
+                        assert 'HTTP/1.1 200' in response.stdout and '"issuer":"'+expected+'"' in response.stdout
+                        private_results[alias] = {'status':200,'publicIssuer':expected}
+                    receipt['privateDiscovery'] = private_results
+                    receipt['discoveredIssuer'] = discovery['issuer']
+                finally:
+                    run([*command,'down','--volumes','--remove-orphans'],root,timeout=90)
+            (ARTIFACT/(shape+'-identity-projection.json')).write_bytes(composition.encoded(receipt))
+            (ARTIFACT/(shape+'-compose.identity.yml')).write_bytes(generated)
+            # Admitted production TLS inputs create no local start-dev service.
+            production = copy.deepcopy(configured); production['application'].update(publicOrigin='https://app.example',localDevelopment=False)
+            production['identity'].update(publicOrigin='https://identity.example', administrationOrigin='https://admin.internal', backchannelOrigin='https://metadata.internal')
+            (root/composition.INPUT).write_bytes(composition.encoded(production)); sync(root); composition.verify_outputs(root)
+            assert composition.read(root/composition.RESOLVED)['identityProjection']['runnable'] is False
+            assert 'services: {}' in actual.read_text() and 'start-dev' not in actual.read_text()
+            assert not yaml.safe_load(actual.read_bytes()).get('services')
+
+
 def main():
     global ARTIFACT
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--identity-services', action='store_true', help='Start generated synthetic identity Compose files in owned disposable networks')
     parser.add_argument('--build', action='store_true', help='restore/build/pack actual selected public dependencies')
     parser.add_argument('--candidate-feed', help='Explicit local feed of response-policy development packages')
     parser.add_argument('--variant', choices=sorted(composition.VARIANTS), help='Bounded qualification of one selected composition')
@@ -179,7 +282,8 @@ def main():
     ARTIFACT = artifact
     (artifact/'status.json').write_text(json.dumps({'status':'running','actualPackageBuild':args.build}),encoding='utf-8')
     (artifact/'source-inputs.json').write_text(json.dumps({str(p.relative_to(ROOT)):composition.digest(p.read_bytes()) for p in [
-        SCRIPTS/'foundation_composition.py', SCRIPTS/'dotnet_sync.py', Path(__file__), ROOT/'extensions/program-kit-dotnet/templates/dotnet/managed-files.json']}),encoding='utf-8')
+        SCRIPTS/'foundation_composition.py', SCRIPTS/'dotnet_sync.py', Path(__file__), ROOT/'extensions/program-kit-dotnet/templates/dotnet/managed-files.json',
+        ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml']}),encoding='utf-8')
     observations = []
     for variant in [args.variant] if args.variant else sorted(composition.VARIANTS):
         source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions' / (variant+'.json')
@@ -361,8 +465,9 @@ def main():
                     assert removed['packageId'] not in composition.read(root/composition.RESOLVED)['rootPackages']
                     assert removed['path'] not in {p['path'] for p in composition.read(root/'eng/architecture.json')['runtimeComposition']['projects']}
             observations.append(measurements)
-    (artifact/'qualification.json').write_bytes(composition.encoded({'schemaVersion':1,'checks':['invalid-inputs','metadata-bounds-and-session-relationships','actual-sync-preview-apply','rerun','consumer-customization','managed-drift','callback-regeneration','distinct-identity-addresses','beforewrite-overlay-conflicts','beforewrite-maintained-setup-envelope','installed-realm-security','installed-theme-integrity','redacted-provenance','customized-source-retirement-and-release','untouched-scaffold-retirement','managed-configuration-and-engineering-retirement-conflicts','deselected-orphan-exclusion'] + (['actual-build-pack-selected-root-stage','installed-program-kit-version','provider-removal'] if args.build else []), 'actualPackageBuild':args.build, 'measurements':observations,
-        'limitations':['No service/runtime acceptance or first product operation timing is established by this validator.']}))
+    identity_projection_checks(composition.read(ROOT/'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json'), args.identity_services)
+    (artifact/'qualification.json').write_bytes(composition.encoded({'schemaVersion':1,'checks':['invalid-inputs','metadata-bounds-and-session-relationships','actual-sync-preview-apply','rerun','consumer-customization','managed-drift','callback-regeneration','distinct-identity-addresses','generated-custom-identity-compose','generated-identity-managed-conflict','beforewrite-unsupported-local-identity-transport','beforewrite-private-ip-and-malformed-dns-rejection','inert-external-identity-projection','beforewrite-overlay-conflicts','beforewrite-maintained-setup-envelope','installed-realm-security','installed-theme-integrity','redacted-provenance','customized-source-retirement-and-release','untouched-scaffold-retirement','managed-configuration-and-engineering-retirement-conflicts','deselected-orphan-exclusion'] + (['actual-build-pack-selected-root-stage','installed-program-kit-version','provider-removal'] if args.build else []), 'actualPackageBuild':args.build, 'actualIdentityServices':args.identity_services, 'measurements':observations,
+        'limitations':['No selected-host/product runtime acceptance or first product operation timing is established by this validator.']}))
     (artifact/'status.json').write_text(json.dumps({'status':'passed','actualPackageBuild':args.build}),encoding='utf-8')
     print('Foundation composition selected contracts, synchronization and package checks passed')
     return 0

@@ -3,6 +3,8 @@ from pathlib import Path
 import json
 import re
 
+import hashlib
+
 
 def selected(blocks, directory, identity, sources=None):
     index = blocks.load_json(directory / 'index.json')
@@ -21,7 +23,9 @@ def selected(blocks, directory, identity, sources=None):
     prefix = 'extensions/program-kit-building-blocks/references/dependency-profiles/'
     relative = lock_ref['path'].removeprefix(prefix)
     lock_path = blocks.repository_path(directory, relative)
-    if blocks.raw_sha256(lock_path) != lock_ref['sha256']:
+    # Native qualification recipes bind the maintained LF-normalized lock digest.
+    # NuGet writes CRLF on Windows; content changes still invalidate this binding.
+    if hashlib.sha256(lock_path.read_bytes().replace(b'\r\n', b'\n')).hexdigest() != lock_ref['sha256']:
         blocks.fail('PKB611', 'selected lifecycle dependency lock changed')
     lock = blocks.load_json(lock_path)
     versions = {row['resolved'] for target in lock['dependencies'].values()

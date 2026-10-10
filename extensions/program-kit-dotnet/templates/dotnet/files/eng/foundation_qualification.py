@@ -12,6 +12,7 @@ import hashlib
 import http.client
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -192,11 +193,15 @@ def stage(root, selected, kind, directory):
         release_bundle.stage(root, packages, root/selected['runtimeStage'], inventory=packages/'program-kit-pack.json',
                              root_packages=selected['rootPackages'])
     else:
-        # Availability does not start services. The actual integration check owns
-        # its own disposable service lifetimes and always disposes them together.
-        for image in [selected['hostImage']['reference'] if isinstance(selected['hostImage'], dict) else selected['hostImage'],
-                      *selected['serviceImages'].values()]:
-            command.run(['docker', 'image', 'inspect', image], timeout=60)
+        # Explicit setup acquires the exact selected immutable images. This
+        # starts no service; integration owns disposable lifetimes and retains
+        # --pull=never so it activates only these prepared artifact identities.
+        images = [selected['hostImage']['reference'] if isinstance(selected['hostImage'], dict) else selected['hostImage'],
+                  *selected['serviceImages'].values()]
+        require(all(isinstance(image, str) and '://' not in image and re.fullmatch(r'[a-z0-9][a-z0-9._/:+-]*@sha256:[a-f0-9]{64}', image)
+                    for image in images), 'PKF101 service preparation requires exact immutable selected image references')
+        for image in images:
+            command.run(['docker', 'pull', image], timeout=300)
         engines = os.environ.get('PROGRAMKIT_BROWSER_ENGINES', 'chromium,webkit').split(',')
         require(engines and set(engines) <= {'chromium', 'webkit', 'firefox'}, 'PKF101 invalid browser engine selection')
         command.run(playwright_command(root,['install', *engines]), cwd=root/'eng/web', timeout=600)
@@ -236,6 +241,39 @@ def product_outcome(result, action, phase='first-operation-and-native-tests'):
         result['productPhase']={'phase':phase,'status':'failed','failure':'application-proving-failed','errorType':type(error).__name__,
             'diagnostic':'Application proving failed; inspect owned product/native command streams. Platform cases remain independently recorded.'}
     result.setdefault('productPhases',[]).append(result['productPhase'])
+
+
+RUNTIME_SNAPSHOT_INPUTS = ('shells.json','hostsettings.json','nuplane.settings.json','packages')
+
+
+def runtime_snapshot_inputs(base):
+    """Hash only deployed config/feed inputs; .installed is owned mutable cache."""
+    return {path.relative_to(base).as_posix():hashlib.sha256(path.read_bytes()).hexdigest()
+            for name in RUNTIME_SNAPSHOT_INPUTS
+            for path in ([base/name] if (base/name).is_file() else (base/name).rglob('*'))
+            if path.is_file() and path.relative_to(base).parts[:2] != ('packages','.installed')}
+
+
+def verify_runtime_snapshot(runtime, host, directory, command, expected):
+    """Reverse-copy actual deployed inputs before startup and after operations."""
+    directory.mkdir()
+    for name in RUNTIME_SNAPSHOT_INPUTS:
+        command.run(['docker','cp',host+':/app/'+name,str(directory/name)])
+    observed = runtime_snapshot_inputs(directory)
+    require(expected and observed == expected and runtime_snapshot_inputs(runtime) == expected,
+            'PKF101 deployed runtime snapshot inputs changed')
+    return {'byteIdentityVerified':True, 'sourceInputs':expected, 'containerCopyInputs':observed,
+            'observationDirectory':directory.name, 'excludedMutableCache':'packages/.installed only'}
+
+
+def copy_runtime_snapshot(runtime, host, directory, command):
+    """Install and verify the owned selected snapshot in a stopped immutable Host."""
+    expected = runtime_snapshot_inputs(runtime)
+    require(all((runtime/name).exists() for name in RUNTIME_SNAPSHOT_INPUTS) and expected,
+            'PKF101 selected runtime snapshot inputs missing')
+    for name in RUNTIME_SNAPSHOT_INPUTS:
+        command.run(['docker','cp',str(runtime/name),host+':/app'])
+    return verify_runtime_snapshot(runtime, host, directory, command, expected)
 
 
 def integration(root, selected, directory, migration_script=None, product_enabled=False):
@@ -318,14 +356,34 @@ def integration(root, selected, directory, migration_script=None, product_enable
         require(isinstance(interactive.get('secret'),str) and interactive['secret'],'PKF101 synthetic confidential client has no local fixture secret')
         command.secrets=(*command.secrets,interactive['secret'])
         write(directory/'realm.json',realm)
+        # Copy the owned synthetic fixture into the stopped container. This
+        # creates Keycloak's absent import directory and avoids host file-bind
+        # transport failures; startup still owns the actual native realm import.
+        import_directory = directory/'identity-import'
+        import_directory.mkdir()
+        import_file = import_directory/(config['identity']['realm']+'-realm.json')
+        shutil.copy2(directory/'realm.json', import_file)
         private = urlsplit(config['identity']['backchannelOrigin'])
         require(private.scheme == 'http' and private.port == 8080 and private.hostname,
                 'PKF101 fixture private backchannel must use its owned Docker alias port 8080')
+        # Keycloak directory/startup imports require <realm-name>-realm.json.
+        # The retained realm payload remains separate from the named import snapshot.
         command.run(['docker','create','--name',identity,'--pull=never','--network',network,'--network-alias',private.hostname,
                      '-p','127.0.0.1:'+str(public_identity.port)+':8080','-e','KC_HOSTNAME='+config['identity']['publicOrigin'],
-                     '-e','KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true','--mount','type=bind,source='+str(directory/'realm.json')+',target=/opt/keycloak/data/import/realm.json,readonly',
+                     '-e','KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true',
                      '--mount','type=bind,source='+str(root/'deploy/keycloak/themes')+',target=/opt/keycloak/themes,readonly',
                      selected['serviceImages']['keycloak'],'start-dev','--import-realm']); created.append(('container',identity))
+        command.run(['docker','cp',str(import_directory),identity+':/opt/keycloak/data/import'])
+        # Verify the stopped container received the exact fixture bytes, without
+        # emitting credentials or depending on an image-specific checksum tool.
+        observed_import = directory/'identity-import-observed'
+        command.run(['docker','cp',identity+':/opt/keycloak/data/import',str(observed_import)])
+        source_hash = hashlib.sha256(import_file.read_bytes()).hexdigest()
+        observed_hash = hashlib.sha256((observed_import/import_file.name).read_bytes()).hexdigest()
+        require(source_hash == observed_hash, 'PKF101 synthetic identity import copy changed')
+        result['identityImport'] = {'sourceSha256':source_hash, 'containerCopySha256':observed_hash,
+            'byteIdentityVerified':True, 'containerFilename':import_file.name,
+            'transport':'Exact owned synthetic directory copied into the stopped owned container; native startup import follows'}
         command.run(['docker','start',identity])
         discovery_path = '/realms/'+config['identity']['realm']+'/.well-known/openid-configuration'
         result['timings']['identityReadinessSeconds'] = poll(lambda:ready(config['identity']['publicOrigin'],discovery_path),timeout=150)
@@ -340,8 +398,6 @@ def integration(root, selected, directory, migration_script=None, product_enable
         args = ['docker','create','--name',host,'--pull=never','--network',network,
                 '-e','ASPNETCORE_ENVIRONMENT=Development','-p','127.0.0.1:'+str(app.port)+':8080',
                 '--tmpfs','/app/packages/.installed:rw,mode=1777']
-        for name in ('shells.json','hostsettings.json','nuplane.settings.json','packages'):
-            args += ['--mount','type=bind,source='+str(runtime/name)+',target=/app/'+name+',readonly']
         image = selected['hostImage']['reference'] if isinstance(selected['hostImage'],dict) else selected['hostImage']
         bff_key='CShells__Shells__default__Configuration__Foundation__Web__ClientSecret'
         args.extend(['--env',bff_key])
@@ -351,6 +407,10 @@ def integration(root, selected, directory, migration_script=None, product_enable
             args.extend(['--env',key])
             host_environment[key]=database.connection().replace('Host=127.0.0.1','Host=foundation-postgresql').replace('Port='+str(database.port),'Port=5432')
         command.run([*args,image],environment=host_environment); created.append(('container',host))
+        # Portable owned copies preserve exact activation across host filesystem
+        # transports. The same transfer is reused for a recreated migration Host.
+        transport = {'phase':'initial', 'before':copy_runtime_snapshot(runtime,host,directory/'runtime-initial-before',command)}
+        result['runtimeTransport'] = [transport]
         command.run(['docker','start',host])
         result['timings']['hostReadinessSeconds'] = poll(lambda:ready(config['application']['publicOrigin'],'/bff/user'),timeout=150)
         ready(config['application']['publicOrigin'],'/__foundation/settings')
@@ -462,6 +522,7 @@ def integration(root, selected, directory, migration_script=None, product_enable
                 write(root/foundation_composition.INPUT,changed)
                 command.run(sync_command)
             selected=foundation_composition.resolve(root)
+            transport['after'] = verify_runtime_snapshot(runtime,host,directory/'runtime-initial-after',command,transport['before']['sourceInputs'])
             command.run(['docker','rm','--force','--volumes',host]); created.remove(('container',host))
             migration_build=directory/'migration-build'; migration_build.mkdir()
             command.run(['python','eng/foundation_qualification.py','--repository','.',
@@ -492,6 +553,8 @@ def integration(root, selected, directory, migration_script=None, product_enable
             changed_shells['CShells']['Shells']['default']['Configuration']['Foundation']['Web']['RolePermissions']={'admin':['foundation.probe']}
             write(runtime/'shells.json',changed_shells)
             command.run([*args,image],environment=host_environment); created.append(('container',host))
+            transport = {'phase':'migration', 'before':copy_runtime_snapshot(runtime,host,directory/'runtime-migration-before',command)}
+            result['runtimeTransport'].append(transport)
             command.run(['docker','start',host])
             poll(lambda:ready(config['application']['publicOrigin'],'/bff/user'),timeout=150)
             ready(config['application']['publicOrigin'],'/__foundation/settings')
@@ -526,6 +589,7 @@ def integration(root, selected, directory, migration_script=None, product_enable
                     if migration_script: result['migration']['retainedProductAfterUpgrade']=True
                 product_outcome(result,retained_product,phase='retained-product-after-provider-and-host-restart')
                 if migration_script and not result['productAcceptance']: result['migration']['status']='failed'
+        transport['after'] = verify_runtime_snapshot(runtime,host,directory/('runtime-'+transport['phase']+'-after'),command,transport['before']['sourceInputs'])
         require(bundle_hashes(root,selected)==baseline,'PKF105 test-only qualification modified production runtime bytes')
         result['status']='passed'
     except BaseException:
