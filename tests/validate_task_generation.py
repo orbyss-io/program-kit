@@ -27,6 +27,33 @@ def validate_sections(catalog):
                 raise ValueError('Missing focused heading: ' + source)
 
 
+
+def validate_analyzer_instructions(analyze):
+    """Check the actual composed command, including retained upstream boundaries."""
+    heading = '## Program Kit operation dependency analysis'
+    if analyze.count(heading) != 1:
+        raise AssertionError('Installed analyze needs one operation dependency alignment')
+    base, alignment = analyze.split(heading)
+    for marker in ('STRICTLY READ-ONLY', 'complete `tasks.md`', 'Constitution Authority',
+                   'automatically CRITICAL', 'hooks.before_analyze', 'hooks.after_analyze',
+                   'MUST actually invoke the hook', 'Coverage Summary Table',
+                   'Duplication Detection', 'Ambiguity Detection', 'Underspecification',
+                   'Constitution Alignment', 'Coverage Gaps', 'Inconsistency',
+                   'Severity Assignment', 'Offer Remediation', 'Do NOT apply them automatically'):
+        if marker not in base:
+            raise AssertionError('Installed analyze lost upstream analysis: ' + marker)
+    for marker in ('takes precedence over task-ordering examples', 'changes\nonly that ordering interpretation',
+                   'Operation dependency map', 'Task dependency map',
+                   'independent\nfirst operation', 'unrelated future foundation work',
+                   'missing named prerequisites', 'authorization', 'security', 'ownership',
+                   'storage/migration', 'real-provider tests', 'TDD', 'authority/approval gates',
+                   'unknown task IDs', 'dependency cycles', 'map cannot waive a mandated gate',
+                   'legacy tasks without maps', 'STRICTLY READ-ONLY', 'complete `tasks.md`',
+                   'never establish full product acceptance'):
+        if marker not in alignment:
+            raise AssertionError('Installed analyze lost scoped ordering: ' + marker)
+
+
 def validate_installed_workflow(project):
     """Called by the real archive-install validator, using its disposable consumer."""
     import yaml
@@ -56,8 +83,7 @@ def validate_installed_workflow(project):
                      'Foundational tasks (blocking prerequisites for all user stories)'):
         if obsolete in tasks:
             raise AssertionError('Installed tasks retained conflicting layer-first instructions')
-    if 'STRICTLY READ-ONLY' not in analyze or 'complete `tasks.md`' not in analyze:
-        raise AssertionError('Installed analyze must wait for complete tasks and remain read-only')
+    validate_analyzer_instructions(analyze)
     implement = (skills / 'speckit-implement/SKILL.md').read_text(encoding='utf-8')
     for marker in ('hooks.before_implement', 'hooks.after_implement', 'MUST actually invoke the hook',
                    '-Scope Focused', '-Scope Affected', 'finish --handoff', 'reuse', 'not full acceptance'):
@@ -185,6 +211,31 @@ def operation_fixture():
 
 
 class TaskTests(unittest.TestCase):
+    def test_native_analyzer_append_preserves_core_and_rejects_missing_alignment_or_gates(self):
+        import shutil
+        from specify_cli.presets import PresetRegistry, PresetResolver
+        presets = self.root / '.specify/presets'
+        selected = ROOT / 'presets/program-kit-governance-preset'
+        shutil.copytree(selected, presets / selected.name)
+        PresetRegistry(presets).add(selected.name, {'version': '0.12.11', 'priority': 10})
+        core = PresetResolver(self.root).resolve_content('speckit.analyze', 'command')
+        self.assertIsNotNone(core)
+        validate_analyzer_instructions(core)
+        # The native append strategy retains the complete upstream body, not a hand-copied subset.
+        bare = self.root / 'without-preset'
+        bare.mkdir()
+        upstream = PresetResolver(bare).resolve_content('speckit.analyze', 'command')
+        self.assertIn(upstream.split('---', 2)[2].strip(), core)
+        with self.assertRaisesRegex(AssertionError, 'operation dependency alignment'):
+            validate_analyzer_instructions(upstream)
+        for marker in ('takes precedence over task-ordering examples', 'unrelated future foundation work',
+                       'missing named prerequisites', 'authority/approval gates', 'real-provider tests',
+                       'unknown task IDs', 'dependency cycles', 'map cannot waive a mandated gate',
+                       'never establish full product acceptance', 'hooks.before_analyze',
+                       'hooks.after_analyze', 'Coverage Summary Table', 'STRICTLY READ-ONLY'):
+            with self.subTest(marker=marker), self.assertRaises(AssertionError):
+                validate_analyzer_instructions(core.replace(marker, 'REMOVED'))
+
     def test_draft_inputs_track_latest_actual_foundation_outcome_without_execution(self):
         runs = self.root/'artifacts/tests/runs'
         ready=runs/'foundation-z/result.json'; ready.parent.mkdir(parents=True)
@@ -228,6 +279,19 @@ class TaskTests(unittest.TestCase):
             with self.subTest(dependency=dependency), self.assertRaisesRegex(ValueError, 'cross-operation|Cyclic'):
                 draft.validate_operation_graph(body.replace('| T002 | create | T001 |',
                                                            f'| T002 | create | T001, {dependency} |'))
+        # Explicit security, authority and TDD gates use the same real map validator;
+        # independent later infrastructure is allowed, but a named due gate is not.
+        for gate in ('security', 'authority', 'tdd'):
+            scoped = body.replace('| none | authorization, ownership |',
+                                  f'| none | authorization, ownership, {gate} |')
+            scoped = scoped.replace('| T002 | create | T001 | authorization, ownership |',
+                                    f'| T002 | create | T001 | authorization, ownership, {gate} |')
+            with self.subTest(gate=gate):
+                self.assertTrue(draft.validate_operation_graph(scoped))
+                missing = scoped.replace(f'| none | authorization, ownership, {gate} |',
+                                         '| none | authorization, ownership |')
+                with self.assertRaisesRegex(ValueError, 'Missing prerequisite gates'):
+                    draft.validate_operation_graph(missing)
         for gate in ('authorization', 'ownership', 'storage', 'real-provider', 'ocr-admission'):
             # Removing its establishing task declaration cannot unblock its consumers.
             lines = body.splitlines()

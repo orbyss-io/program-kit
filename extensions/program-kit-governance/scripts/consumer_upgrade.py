@@ -166,39 +166,112 @@ def current(root, hashes):
 
 
 def preset_baseline(root, relative, agent):
-    """Read-only native rendering of an active replacement preset's core skill.
+    """Read-only native rendering of an active preset's core skill.
 
-    Core's initial integration hash predates preset overrides. Redirect only the
-    native renderer's output and suppress registry writes; never install/reconcile
-    into this consumer while inspecting it. Unsupported rendering stays unresolved.
+    Core's initial integration hash predates preset overrides. Recompose from
+    current declared sources, never the installed .composed cache, and redirect
+    only native rendering output. Unsupported or ambiguous inputs stay unresolved.
     """
-    path = inside(root, relative)
-    if path.name != 'SKILL.md' or not path.parent.name.startswith('speckit-'):
+    try:
+        from specify_cli.presets import PresetManager, PresetManifest, PresetResolver, PresetValidationError
+    except ImportError:
         return None
     try:
+        path = inside(root, relative)
+        if path.name != 'SKILL.md' or not path.parent.name.startswith('speckit-'):
+            return None
+        import copy
         import tempfile
+        from pathlib import PureWindowsPath
         from unittest.mock import patch
-        from specify_cli.presets import PresetManager, PresetManifest, PresetResolver
         command = 'speckit.' + path.parent.name[len('speckit-'):].replace('-', '.')
-        layers = PresetResolver(root).collect_all_layers(command, 'command')
-        if not layers or layers[0].get('strategy') != 'replace':
+        resolver = PresetResolver(root)
+        presets = inside(root, '.specify/presets')
+        layers = resolver.collect_all_layers(command, 'command')
+        # Native resolution skips declared-but-missing sources. Such a broken
+        # higher layer cannot establish an installation baseline through fallback.
+        for pack_id, _metadata in resolver._get_all_presets_by_priority():
+            directory = inside(root, '.specify/presets/' + pack_id)
+            declared = PresetManifest(inside(root, '.specify/presets/' + pack_id + '/preset.yml'))
+            entries = [t for t in declared.templates if t.get('type') == 'command' and t.get('name') == command]
+            if len(entries) > 1:
+                return None
+            if entries:
+                entry = entries[0]
+                filename = entry.get('file')
+                if (not isinstance(filename, str) or not filename or Path(filename).is_absolute()
+                        or PureWindowsPath(filename).drive or PureWindowsPath(filename).root
+                        or '..' in Path(filename.replace('\\', '/')).parts):
+                    return None
+                source = inside(root, (directory / filename).relative_to(root).as_posix())
+                if not source.is_relative_to(directory):
+                    return None
+                if not source.is_file() or entry.get('strategy', 'replace') not in ('replace', 'append'):
+                    return None
+                # A winning replace cuts off lower layers under native precedence.
+                # Use the actual layer strategy, including legacy frontmatter.
+                effective = next((layer for layer in layers if Path(layer['path']) == source), None)
+                if effective is None:
+                    return None
+                if effective.get('strategy') == 'replace':
+                    break
+        if not layers or layers[0].get('strategy') not in ('replace', 'append'):
             return None
         source = Path(layers[0]['path'])
-        presets = inside(root, '.specify/presets')
         if not source.is_relative_to(presets):
             return None
         preset = presets / source.relative_to(presets).parts[0]
-        inside(root, source.relative_to(root).as_posix())
-        manifest = PresetManifest(preset / 'preset.yml')
+        manifest = PresetManifest(inside(root, (preset / 'preset.yml').relative_to(root).as_posix()))
+        entries = [t for t in manifest.templates if t.get('type') == 'command' and t.get('name') == command]
+        if len(entries) != 1 or preset / entries[0]['file'] != source:
+            return None
+        base = next((i for i, layer in enumerate(layers) if layer.get('strategy') == 'replace'), None)
+        if base is None:
+            return None
+        sources = set()
+        for layer in layers[:base + 1]:
+            candidate = Path(layer['path'])
+            if layer.get('strategy') not in ('replace', 'append') or candidate in sources:
+                return None
+            sources.add(candidate)
+            if candidate.is_relative_to(root):
+                inside(root, candidate.relative_to(root).as_posix())
+            elif layer.get('source') == 'core (bundled)':
+                # The only external input is the exact maintained native fallback.
+                if candidate != resolver._find_bundled_core(command, 'command', '.md'):
+                    return None
+                if any(p.is_symlink() or getattr(p, 'is_junction', lambda: False)()
+                       for p in (candidate, *candidate.parents)):
+                    return None
+            else:
+                return None
+            if not candidate.is_file():
+                return None
+        content = resolver.resolve_content(command, 'command')
+        if not isinstance(content, str) or not content:
+            return None
         manager = PresetManager(root)
+        # A single-command manifest avoids unrelated renderers and command-name
+        # collisions while retaining the native preset metadata/provenance.
+        rendered_manifest = copy.copy(manifest)
+        rendered_manifest.data = copy.deepcopy(manifest.data)
+        rendered_manifest.data['provides']['templates'] = [copy.deepcopy(entries[0])]
         with tempfile.TemporaryDirectory(prefix='consumer-upgrade-preset-view-') as name:
-            output = Path(name)
-            (output / path.parent.name).mkdir()
+            view = Path(name)
+            output = view / 'skills'
+            (output / path.parent.name).mkdir(parents=True)
+            temporary_preset = view / 'preset'
+            temporary_source = inside(view, 'preset/' + entries[0]['file'].replace('\\', '/'))
+            temporary_source.parent.mkdir(parents=True)
+            temporary_source.write_bytes(source.read_bytes())
+            if layers[0]['strategy'] == 'append':
+                composed = temporary_preset / '.composed' / (command + '.md')
+                composed.parent.mkdir()
+                composed.write_text(content, encoding='utf-8', newline='\n')
             with patch.object(manager, '_merge_pack_registered_skills'):
-                manager._register_skills(manifest, preset, target_dir=output, target_agent=agent)
-            rendered = output / path.parent.name / 'SKILL.md'
-            return sha(rendered)
-    except (ImportError, AttributeError, TypeError, ValueError, OSError):
+                manager._register_skills(rendered_manifest, temporary_preset, target_dir=output, target_agent=agent)
+            return sha(output / path.parent.name / 'SKILL.md')
+    except (ImportError, AttributeError, KeyError, TypeError, ValueError, OSError, PresetValidationError):
         return None
 
 
