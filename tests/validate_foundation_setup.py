@@ -430,6 +430,30 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             (self.root/'command-capture.json').write_text(json.dumps({'scope':'Controlled external installation boundaries; actual maintained child supervision and drain, no runtime acceptance.',
                 'observations':observations},indent=2)+'\n',encoding='utf-8')
 
+    def test_authentication_configuration_changes_only_firefox_json_document_renderer(self):
+        configuration = {'application': {'publicOrigin': 'http://localhost:5215'}}
+        observed = []
+        for engines in (['chromium', 'webkit'], ['firefox'], ['chromium', 'firefox', 'webkit'], ['webkit', 'chromium']):
+            destination = self.root / ('browsers-' + '-'.join(engines))
+            destination.mkdir()
+            path = qualification.authentication_browser_configuration(self.root, configuration, destination, engines)
+            source = path.read_text()
+            declared = json.loads(source.split('projects:', 1)[1].rsplit('});', 1)[0])
+            self.assertEqual(engines, [project['name'] for project in declared])
+            for project in declared:
+                expected = {'browserName': project['name']}
+                if project['name'] == 'firefox':
+                    expected['launchOptions'] = {'firefoxUserPrefs': {'devtools.jsonview.enabled': True}}
+                self.assertEqual(expected, project['use'])
+            self.assertEqual(1 if 'firefox' in engines else 0, source.count('devtools.jsonview.enabled'))
+            self.assertIn("forbidOnly:true,retries:0", source)
+            self.assertIn("includeProjectInTestName:true", source)
+            self.assertIn("trace:'off',video:'off',screenshot:'off'", source)
+            observed.append({'engines': engines, 'projects': declared})
+        (self.root / 'configuration-selection.json').write_text(json.dumps({
+            'scope': 'Actual maintained configuration generator; no browser launch or authentication acceptance.',
+            'observations': observed}, indent=2) + '\n', encoding='utf-8')
+
     def test_mutable_or_malformed_service_image_is_rejected_before_any_acquisition(self):
         for invalid in ('quay.io/keycloak/keycloak:latest', 'postgres@sha256:'+'z'*64,
                         'https://registry.example/image@sha256:'+'a'*64):

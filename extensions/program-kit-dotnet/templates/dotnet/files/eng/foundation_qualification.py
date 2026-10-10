@@ -54,6 +54,22 @@ def read(path):
     return json.loads(Path(path).read_text(encoding='utf-8'))
 
 
+def authentication_browser_configuration(root, configuration, directory, engines):
+    # Restore Firefox's JSON document renderer, disabled by Playwright's Juggler
+    # profile. An unhandled application/problem+json error document can fail
+    # before network-body capture; real browser qualification remains required.
+    # https://github.com/microsoft/playwright/blob/v1.64.0/browser_patches/firefox/preferences/playwright.cfg
+    # https://github.com/mozilla-firefox/firefox/blob/main/devtools/client/jsonview/Sniffer.sys.mjs
+    # https://github.com/mozilla-firefox/firefox/blob/main/uriloader/base/nsURILoader.cpp
+    projects = [{'name': engine, 'use': {'browserName': engine}} for engine in engines]
+    for project in projects:
+        if project['name'] == 'firefox':
+            project['use']['launchOptions'] = {'firefoxUserPrefs': {'devtools.jsonview.enabled': True}}
+    browser_configuration = directory/'playwright.config.ts'
+    browser_configuration.write_text("import { defineConfig } from '"+str(root/'eng/web/node_modules/@playwright/test').replace('\\','/')+"';\nexport default defineConfig({testDir:'"+str(root/'eng/web/tests').replace('\\','/')+"',outputDir:'"+str(directory/'playwright-results').replace('\\','/')+"',forbidOnly:true,retries:0,reporter:[['junit',{includeProjectInTestName:true,outputFile:'"+str(directory/'authentication.xml').replace('\\','/')+"'}]],use:{baseURL:'"+configuration['application']['publicOrigin']+"',trace:'off',video:'off',screenshot:'off'},projects:"+json.dumps(projects)+"});\n",encoding='utf-8')
+    return browser_configuration
+
+
 def crawler_following_support(root, selected):
     """Capability comes from the exact selected owner, independent of policy permission."""
     path = root/'eng/foundation-settings.contract.json'
@@ -462,8 +478,7 @@ def integration(root, selected, directory, migration_script=None, product_enable
                     'PKF104 consumer operational override has no actual winning configured provider provenance')
         result['cases'].update({case:True for case in CASES['host-activation']})
         engines = os.environ.get('PROGRAMKIT_BROWSER_ENGINES','chromium,webkit').split(',')
-        browser_configuration = directory/'playwright.config.ts'
-        browser_configuration.write_text("import { defineConfig } from '"+str(root/'eng/web/node_modules/@playwright/test').replace('\\','/')+"';\nexport default defineConfig({testDir:'"+str(root/'eng/web/tests').replace('\\','/')+"',outputDir:'"+str(directory/'playwright-results').replace('\\','/')+"',forbidOnly:true,retries:0,reporter:[['junit',{includeProjectInTestName:true,outputFile:'"+str(directory/'authentication.xml').replace('\\','/')+"'}]],use:{baseURL:'"+config['application']['publicOrigin']+"',trace:'off',video:'off',screenshot:'off'},projects:"+json.dumps([{'name':e,'use':{'browserName':e}} for e in engines])+"});\n",encoding='utf-8')
+        browser_configuration = authentication_browser_configuration(root, config, directory, engines)
         environment = dict(os.environ, PROGRAMKIT_BASE_URL=config['application']['publicOrigin'],PROGRAMKIT_PERMISSION_PROBE_PATH='/api/permission-probe',
                            PROGRAMKIT_IDENTITY_AUTHORITY=selected['targets']['publicAuthority'])
         authentication_started=time.monotonic()
