@@ -34,6 +34,7 @@ def load(name, path):
 load('foundation_process', ROOT / 'extensions/program-kit-governance/scripts/compatibility_process.py')
 fixture = load('foundation_fixture', ENG / 'foundation_fixture.py')
 load('test_results', ENG / 'test_results.py')
+js_toolchain = load('js_toolchain', ENG / 'js_toolchain.py')
 setup = load('foundation_setup', ENG / 'foundation_setup.py')
 qualification = load('foundation_qualification', ENG / 'foundation_qualification.py')
 
@@ -64,6 +65,95 @@ class Readiness(unittest.TestCase):
                 'result': {'path': path, 'format': 'junit', 'cases': ['Setup.' + capability]}})
         return {'compositionId': 'test-adapter-boundary', 'runtimeDirectory': 'artifacts/runtime/nested' if nested else 'artifacts/runtime',
                 'tests': {'capabilities': capabilities, 'commands': commands}, 'setup': {'steps': steps}}
+
+    def test_actual_shared_npm_uses_authoritative_evidence_and_rejects_stale_pins(self):
+        for name in ('global.json','.nvmrc','.npm-version'):
+            shutil.copy2(ENG.parent/name,self.root/name)
+        generated=fixture.captured([sys.executable,str(ENG/'toolchain.py'),'--repository',str(self.root)],self.root,self.root/'toolchain-observation')
+        self.assertEqual(generated['exitCode'],0)
+        command,environment=qualification.npm_command(self.root,['--version'])
+        evidence_path=self.root/'artifacts/program-kit/toolchain.json'
+        evidence=json.loads(evidence_path.read_text())
+        evidence_path.with_name('toolchain.satisfied.json').write_bytes(evidence_path.read_bytes())
+        self.assertEqual(command,evidence['commands']['npm']+['--version'])
+        self.assertEqual(environment['NPM_CONFIG_STRICT_SSL'],'true')
+        self.assertEqual(Path(environment['NPM_CONFIG_CACHE']),self.root/'artifacts/cache/npm')
+        actual=fixture.captured(command,self.root,self.root/'actual-npm',environment=environment)
+        self.assertEqual(actual['exitCode'],0)
+        self.assertEqual((self.root/'actual-npm/stdout.log').read_text().strip(),(self.root/'.npm-version').read_text().strip())
+        (self.root/'.npm-version').write_text('0.0.0')
+        with self.assertRaisesRegex(ValueError,'authoritative pin'): qualification.npm_command(self.root,['ci'])
+        (self.root/'.npm-version').write_text(evidence['required']['npm'])
+        evidence['satisfied']=False; evidence_path.write_text(json.dumps(evidence))
+        with self.assertRaisesRegex(ValueError,'missing or stale'): qualification.npm_command(self.root,['ci'])
+
+    def test_linux_bin_lib_recorded_npm_layout_and_stale_selection(self):
+        # Layout contract only: synthetic paths; no claim to execute Linux on Windows.
+        node=self.root/'linux/bin/node'; cli=self.root/'linux/lib/node_modules/npm/bin/npm-cli.js'
+        for path in (node,cli): path.parent.mkdir(parents=True,exist_ok=True); path.write_text('owned layout contract')
+        required={'node':'26.11.1','npm':'12.2.0'}
+        evidence={'satisfied':True,'required':required,'resolved':required,
+            'commands':{'node':[str(node)],'npm':[str(node),str(cli)]},
+            'environment':{'npmCache':str(self.root/'artifacts/cache/npm'),'trustMode':'bundled','extraCaCertificates':''}}
+        path=self.root/'artifacts/program-kit/toolchain.json'; path.parent.mkdir(parents=True); path.write_text(json.dumps(evidence))
+        with patch.object(js_toolchain,'resolve_node',return_value=(node,required['node'])),patch.object(js_toolchain,'resolve_npm',return_value=([str(node),str(cli)],required['npm'])):
+            command,environment=qualification.npm_command(self.root,['ci'])
+            self.assertEqual(command,[str(node),str(cli),'ci'])
+            self.assertEqual(environment['NPM_CONFIG_STRICT_SSL'],'true')
+            self.assertFalse((node.parent/'node_modules/npm/bin/npm-cli.js').exists())
+        with patch.object(js_toolchain,'resolve_node',return_value=(node,required['node'])),patch.object(js_toolchain,'resolve_npm',return_value=(['different-active-npm'],required['npm'])):
+            with self.assertRaisesRegex(ValueError,'selection changed'): qualification.npm_command(self.root,['ci'])
+        cli.unlink()
+        with self.assertRaisesRegex(ValueError,'path is missing'): qualification.npm_command(self.root,['ci'])
+
+    def selected_response_contract(self, version):
+        import hashlib
+        registry=ROOT/'extensions/program-kit-building-blocks/references/dependency-profiles'
+        identity='foundation-'+version+'-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2'
+        index=json.loads((registry/'candidates'/identity/'knowledge/index.json').read_text())
+        row=next(row for row in index['packages'] if row['id']=='Orbyss.Foundation.WebDefaults')
+        packed=(registry/row['path']).read_bytes()[row['byteOffset']:row['byteOffset']+row['byteLength']]
+        self.assertEqual(hashlib.sha256(packed).hexdigest(),row['sha256'])
+        metadata=json.loads(json.loads(packed)['facts']['orbyss-foundation/settings.json'])
+        contract={'contracts':[{'packageId':row['id'],'version':row['version'],'metadata':metadata}]}
+        path=self.root/'eng/foundation-settings.contract.json'
+        path.write_text(json.dumps(contract),encoding='utf-8')
+        return {'contractSha256':hashlib.sha256(path.read_bytes()).hexdigest(),'packages':{row['id']:row['version']}},contract
+
+    def test_exact_selected_following_capability_not_candidate_or_permission(self):
+        import hashlib
+        selected,contract=self.selected_response_contract('0.3.2')
+        self.assertTrue(qualification.crawler_following_support(self.root,selected)['supported'])
+        # Policy denial is meaningful configuration, never a reason to omit a private-resource assertion.
+        for default in (False,True):
+            for owner in contract['contracts'][0]['metadata']['contracts']:
+                for setting in owner['settings']:
+                    if setting['path'].endswith(':AllowFollowing'): setting['default']=default
+            path=self.root/'eng/foundation-settings.contract.json'; path.write_text(json.dumps(contract))
+            selected['contractSha256']=hashlib.sha256(path.read_bytes()).hexdigest()
+            self.assertTrue(qualification.crawler_following_support(self.root,selected)['supported'])
+        selected['packages']['Orbyss.Foundation.WebDefaults']='0.3.1'
+        with self.assertRaisesRegex(ValueError,'exact selected package'): qualification.crawler_following_support(self.root,selected)
+        selected,contract=self.selected_response_contract('0.3.1')
+        selected['developmentCandidate']={'status':'development-candidate'}
+        self.assertFalse(qualification.crawler_following_support(self.root,selected)['supported'])
+        (self.root/'eng/foundation-settings.contract.json').write_text(json.dumps(contract)+' ')
+        with self.assertRaisesRegex(ValueError,'contract bytes changed'): qualification.crawler_following_support(self.root,selected)
+
+    def test_private_resource_adapter_rejects_missing_headers_on_retained_read(self):
+        adapter=(ROOT/'tests/fixtures/reusable-foundations/qualification.mjs').as_uri()
+        program="""import {qualify} from ADAPTER;
+const supported=process.argv[1], robots=process.argv[2];
+process.env.PROGRAMKIT_RETAINED_RESOURCE_ID='owned';
+process.env.PROGRAMKIT_CRAWLER_FOLLOWING_QUALIFIED=supported;
+const response={status:()=>200,json:async()=>({id:'owned'}),headers:()=>({'cache-control':'no-store','x-robots-tag':robots})};
+try { const result=await qualify({user:{request:{get:async()=>response}},admin:{request:{get:async()=>({status:()=>404})}}});
+console.log(JSON.stringify(result)); } catch(error) { console.error(error.message); process.exitCode=2; }
+""".replace('ADAPTER',json.dumps(adapter))
+        for index,(supported,robots,code) in enumerate((('true','noindex, nofollow',0),('true','noindex',2),('false','noindex',0),('false','nofollow',2))):
+            result=fixture.captured(['node','--input-type=module','-e',program,supported,robots],ROOT,self.root/('adapter-'+str(index)))
+            self.assertEqual(result['exitCode'],code)
+            self.assertTrue(result['cleanupComplete'] and result['logsDrained'])
 
     def test_root_and_nested_real_process_reporting_rerun(self):
         for nested in (False, True):

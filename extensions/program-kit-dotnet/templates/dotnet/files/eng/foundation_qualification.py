@@ -54,6 +54,30 @@ def read(path):
     return json.loads(Path(path).read_text(encoding='utf-8'))
 
 
+def crawler_following_support(root, selected):
+    """Capability comes from the exact selected owner, independent of policy permission."""
+    path = root/'eng/foundation-settings.contract.json'
+    raw = path.read_bytes()
+    require(hashlib.sha256(raw).hexdigest() == selected['contractSha256'],
+            'PKF105 selected settings contract bytes changed')
+    owner = 'Orbyss.Foundation.WebDefaults'
+    rows = [row for row in json.loads(raw)['contracts'] if row['packageId'] == owner]
+    require(len(rows) == 1, 'PKF105 selected response-policy owner contract absent or ambiguous')
+    row = rows[0]; metadata = row['metadata']
+    version = selected['packages'][owner]
+    require(row['version'] == version and metadata['packageId'] == owner and metadata['packageVersion'] == version,
+            'PKF105 response-policy capability differs from exact selected package')
+    setting_path = 'Foundation:Web:ResponsePolicies:Policies:{policyName}:AllowFollowing'
+    settings = [setting for contract in metadata['contracts'] if contract['owner'] == owner
+                and contract['scope'] == 'web-response-policy' and contract.get('complete') is True
+                for setting in contract['settings'] if setting['path'] == setting_path]
+    require(len(settings) <= 1 and all(setting['type'] == 'boolean' for setting in settings),
+            'PKF105 selected crawler following capability is invalid or ambiguous')
+    return {'supported': bool(settings), 'owner': owner, 'version': version,
+            'contractSha256': selected['contractSha256'], 'settingPath': setting_path,
+            'meaning': 'Selected typed capability; false policy permission does not disable private-resource denial assertions.'}
+
+
 def activated_settings(root,selected,configuration,bound):
     """Require actual selected owners, private transport and exact executed archive bytes."""
     owners=bound.get('owners',[])
@@ -147,12 +171,12 @@ def solution(root):
     return solutions[0].name
 
 
-def npm_command(arguments):
-    executable=shutil.which('node')
-    require(executable is not None,'PKF101 selected Node executable is unavailable')
-    npm=Path(executable).parent/'node_modules/npm/bin/npm-cli.js'
-    require(npm.is_file(),'PKF101 selected Node installation has no maintained npm CLI')
-    return [executable,str(npm),*arguments]
+def npm_command(root, arguments):
+    # The maintained selector owns portable active commands, exact versions,
+    # repository cache and TLS trust. Never infer npm's installation layout.
+    from js_toolchain import context
+    command, environment = context(root, root/'artifacts/program-kit/toolchain.json')
+    return [*command, *arguments], environment
 
 
 def playwright_command(root, arguments):
@@ -164,10 +188,14 @@ def stage(root, selected, kind, directory):
     stage_started=time.monotonic(); timings={}
     if kind == 'restore':
         before=time.monotonic()
+        command.run(['python', 'eng/toolchain.py', '--repository', '.', '--evidence', 'artifacts/program-kit/toolchain.json'], timeout=120)
+        timings['toolchainVerificationSeconds']=round(time.monotonic()-before,3)
+        before=time.monotonic()
         command.run(['pwsh', '-NoProfile', '-File', 'eng/Restore.ps1', '-Subject', solution(root)], timeout=900)
         timings['nugetAcquisitionRestoreSeconds']=round(time.monotonic()-before,3)
         before=time.monotonic()
-        command.run(npm_command(['ci', '--cache', str(root/'artifacts/cache/npm')]), cwd=root/'eng/web', timeout=600)
+        npm, environment = npm_command(root, ['ci'])
+        command.run(npm, cwd=root/'eng/web', timeout=600, environment=environment)
         timings['npmAcquisitionRestoreSeconds']=round(time.monotonic()-before,3)
     elif kind == 'build':
         version = (root/'VERSION').read_text(encoding='utf-8').strip()
@@ -452,7 +480,8 @@ def integration(root, selected, directory, migration_script=None, product_enable
                 # fixtures, lifecycle and reporting remain maintained dependencies.
                 environment['PROGRAMKIT_QUALIFICATION_OUTPUT'] = str(directory/'product-operation.json')
                 environment['PROGRAMKIT_PRODUCT_ADAPTER'] = str(product)
-                environment['PROGRAMKIT_CRAWLER_FOLLOWING_QUALIFIED']='true' if selected.get('developmentCandidate') else 'false'
+                result['crawlerFollowingQualification'] = crawler_following_support(root, selected)
+                environment['PROGRAMKIT_CRAWLER_FOLLOWING_QUALIFIED'] = 'true' if result['crawlerFollowingQualification']['supported'] else 'false'
                 product_started=time.monotonic()
                 command.run(['node',str(root/'eng/foundation-qualification-support/product_driver.mjs')],cwd=root/'eng/web',timeout=120,environment=environment)
                 result['timings']['firstProductOperationWithSessionsSeconds']=round(time.monotonic()-product_started,3)

@@ -6,9 +6,11 @@ never described as a cold machine. Prepared runs reuse the consumer's caches.
 """
 from __future__ import annotations
 import argparse
+from contextlib import contextmanager
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -99,6 +101,166 @@ def contract_tests():
     observed=browser_cache_inventory(environment={'PLAYWRIGHT_BROWSERS_PATH':'0'},platform='linux',home=cache_home)
     assert observed['cachePath'] is None and not observed['directoryExists'] and not observed['browserReadinessEstablished']
     checks.append('portable-preexisting-browser-cache-inventory-never-claims-readiness')
+    # Exercise the actual maintained setup supervisor, with restore deliberately
+    # failing before build/services; neither Docker nor a package manager runs.
+    child=evidence/'failed-readiness-child'; child.mkdir()
+    setup=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_setup.py'
+    secret='qualification-diagnostic-secret-must-never-appear'
+    untouched=child/'services-must-not-run'
+    child_selected={'compositionId':'foundation-bff-keycloak','runtimeDirectory':'.',
+        'setup':{'steps':[
+            {'stage':'restore','command':[sys.executable,'-c','import sys; sys.exit(17)']},
+            {'stage':'build','command':[sys.executable,'-c','raise AssertionError("build must not run")']},
+            {'stage':'services','command':[sys.executable,'-c','from pathlib import Path; Path('+repr(str(untouched))+').touch()']} ]},
+        'tests':{'capabilities':['host-activation','bff-cookie','keycloak'],'commands':[
+            {'id':capability,'capability':capability,'command':[sys.executable,'-c','raise AssertionError("check must not run")'],
+             'result':{'path':'artifacts/'+capability+'.xml','format':'junit','cases':['not-executed']}}
+            for capability in ('host-activation','bff-cookie','keycloak')]}}
+    shutil.copy2(ROOT/'extensions/program-kit-governance/scripts/compatibility_process.py',child/'foundation_process.py')
+    write(child/'selected.json',child_selected)
+    script=child/'fail_setup.py'
+    script.write_text('import importlib.util,json,sys\nfrom pathlib import Path\n'
+        +'sys.path.insert(0,'+repr(str(setup.parent))+')\n'
+        +'spec=importlib.util.spec_from_file_location("actual_setup",'+repr(str(setup))+')\n'
+        +'module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module)\n'
+        +'print('+repr(secret)+',file=sys.stderr)\n'
+        +'try: module.execute(Path.cwd(),json.loads(Path("selected.json").read_text()))\n'
+        +'except ValueError: sys.exit(2)\n',encoding='utf-8')
+    try: command([sys.executable,str(script)],child,evidence/'failed-readiness-command',timeout=30,readiness=True)
+    except ValueError as error:
+        actual=str(error)
+        assert 'readiness stage=restore stepExit=17 code=PKF003 outerExit=2;' in actual
+        assert secret not in actual and not untouched.exists()
+    else: raise AssertionError('Actual failed setup child was concealed')
+    checks.append('actual-maintained-restore-failure-classified-without-service-start-or-stream-export')
+    receipt=next((child/'artifacts/tests/runs').glob('foundation-*/result.json'))
+    original=json.loads(receipt.read_text())
+    assert readiness_failure(child,{receipt})=='stage=unknown stepExit=unknown code=unknown'
+    checks.append('older-readiness-receipt-cannot-classify-this-command')
+    for raw_stage,expected in (('build','build'),('services','services'),('host-activation','check'),
+                               ('bff-cookie','check'),('keycloak','check'),('postgresql','check')):
+        value={**original,'steps':[{'stage':raw_stage,'exitCode':19}], 'failure':'PKF004 '+secret}
+        write(receipt,value)
+        assert readiness_failure(child,set())=='stage='+expected+' stepExit=19 code=PKF004'
+    checks.append('only-known-stage-enums-and-known-error-code-prefixes-projected')
+    attacks=[None, [], {'schemaVersion':True}, {**original,'status':secret},
+             {**original,'steps':secret}, {**original,'steps':[secret]},
+             {**original,'steps':[{'stage':secret,'exitCode':secret}],'failure':secret},
+             {**original,'steps':[{'stage':secret,'exitCode':True}],'failure':'PKF003-'+secret},
+             {**original,'steps':[{'stage':secret,'exitCode':4294967296}],'failure':'PKF999 '+secret},
+             {**original,'steps':[{'stage':secret,'exitCode':-2147483649}],'failure':'prefix PKF003 '+secret}]
+    for value in attacks:
+        write(receipt,value)
+        assert readiness_failure(child,set())=='stage=unknown stepExit=unknown code=unknown'
+    receipt.write_text(' '+secret*4000,encoding='utf-8')
+    assert readiness_failure(child,set())=='stage=unknown stepExit=unknown code=unknown'
+    receipt.write_text('{malformed '+secret,encoding='utf-8')
+    assert readiness_failure(child,set())=='stage=unknown stepExit=unknown code=unknown'
+    write(receipt,original)
+    process=receipt.parent/'command-01/process.json'
+    value={**original,'steps':[{'stage':'restore','status':'running'}]}
+    write(receipt,value)
+    assert readiness_failure(child,set())=='stage=restore stepExit=17 code=PKF003'
+    write(process,{'exitCode':secret})
+    assert readiness_failure(child,set())=='stage=restore stepExit=unknown code=PKF003'
+    write(process,[])
+    assert readiness_failure(child,set())=='stage=unknown stepExit=unknown code=unknown'
+    checks.append('malformed-and-injected-metadata-never-forwards-secret-values')
+    write(receipt,original)
+    extra=receipt.parent.parent/'foundation-ambiguous/result.json'; write(extra,original)
+    assert readiness_failure(child,set())=='stage=unknown stepExit=unknown code=unknown'
+    checks.append('ambiguous-current-readiness-receipts-fail-closed')
+    injected=evidence/'injected-readiness-child'; injected.mkdir()
+    injection={'schemaVersion':1,'kind':'foundation-readiness','status':'failed',
+        'steps':[{'stage':secret,'exitCode':secret}],'failure':'PKF003-'+secret,
+        'command':[secret],'environment':{'TOKEN':secret}}
+    script=injected/'inject_metadata.py'
+    script.write_text('import json,sys\nfrom pathlib import Path\n'
+        +'path=Path("artifacts/tests/runs/foundation-injected/result.json"); path.parent.mkdir(parents=True)\n'
+        +'path.write_text('+repr(json.dumps(injection))+',encoding="utf-8")\n'
+        +'print('+repr(secret)+'); print('+repr(secret)+',file=sys.stderr); sys.exit(23)\n',encoding='utf-8')
+    try: command([sys.executable,str(script)],injected,evidence/'injected-readiness-command',timeout=30,readiness=True)
+    except ValueError as error:
+        actual=str(error)
+        assert 'readiness stage=unknown stepExit=unknown code=unknown outerExit=23;' in actual
+        assert secret not in actual
+    else: raise AssertionError('Injected failed child was concealed')
+    checks.append('actual-child-streams-and-injected-metadata-cannot-enter-outer-failure-labels')
+    # Controlled native children observe and write markers, without invoking npm
+    # or a browser. Ambient acquisition folders must remain entirely untouched.
+    cache_names=('PROGRAMKIT_NPM_CACHE','NPM_CONFIG_CACHE','PLAYWRIGHT_BROWSERS_PATH')
+    parent={name:os.environ.get(name) for name in cache_names}
+    sentinel_name='PROGRAMKIT_CACHE_CONTRACT_SENTINEL'
+    sentinel_parent=os.environ.get(sentinel_name)
+    ambient={name:str(evidence/'ambient-unrelated'/name) for name in cache_names}
+    for value in ambient.values():
+        destination=Path(value); destination.mkdir(parents=True)
+        (destination/'cache-contract-marker.txt').write_text('untouched ambient marker',encoding='utf-8')
+    script=evidence/'cache_child.py'
+    script.write_text('import json,os,sys\nfrom pathlib import Path\n'
+        +'names='+repr(cache_names)+'\n'
+        +'paths={name:os.environ.get(name) for name in names}\n'
+        +'seen={name:(Path(value)/"cache-contract-marker.txt").exists() if value else False for name,value in paths.items()}\n'
+        +'if sys.argv[1]=="write":\n'
+        +' for value in set(paths.values()):\n'
+        +'  destination=Path(value); destination.mkdir(parents=True,exist_ok=True)\n'
+        +'  (destination/"cache-contract-marker.txt").write_text("owned child acquisition marker",encoding="utf-8")\n'
+        +'print(json.dumps({"paths":paths,"markersBefore":seen,"sentinel":os.environ.get('+repr(sentinel_name)+')}))\n'
+        +'sys.exit(int(sys.argv[2]))\n',encoding='utf-8')
+    consumers=[evidence/'cache-consumer-a',evidence/'cache-consumer-b']
+    try:
+        os.environ.update(ambient); os.environ[sentinel_name]='unchanged unrelated environment'
+        for index,consumer in enumerate(consumers):
+            consumer.mkdir()
+            require_cold_cache(consumer)
+            directory=evidence/('cache-cold-'+str(index))
+            command([sys.executable,str(script),'write','0'],consumer,directory,timeout=30)
+            observed=json.loads((directory/'stdout.log').read_text())
+            expected={'PROGRAMKIT_NPM_CACHE':str(consumer/'artifacts/cache/npm'),
+                'NPM_CONFIG_CACHE':str(consumer/'artifacts/cache/npm'),
+                'PLAYWRIGHT_BROWSERS_PATH':str(consumer/'artifacts/cache/profile/local/ms-playwright')}
+            assert observed['paths']==expected and not any(observed['markersBefore'].values())
+            assert observed['sentinel']=='unchanged unrelated environment'
+            assert json.loads((directory/'result.json').read_text())['consumerAcquisitionCaches']==expected
+            assert {name:os.environ.get(name) for name in cache_names}==ambient
+            rejected('cold-consumer-'+str(index)+'-refuses-acquired-owned-cache',lambda:require_cold_cache(consumer))
+        prepared=evidence/'cache-prepared'
+        command([sys.executable,str(script),'write','0'],consumers[0],prepared,timeout=30)
+        observed=json.loads((prepared/'stdout.log').read_text())
+        assert all(observed['markersBefore'].values())
+        assert observed['paths']==json.loads((evidence/'cache-cold-0/stdout.log').read_text())['paths']
+        failed=evidence/'cache-failed'
+        try: command([sys.executable,str(script),'write','7'],consumers[0],failed,timeout=30)
+        except ValueError: pass
+        else: raise AssertionError('Actual cache child failure concealed')
+        assert json.loads((failed/'result.json').read_text())['exitCode']==7
+        assert {name:os.environ.get(name) for name in cache_names}==ambient
+        inventory=evidence/'cache-repository-inventory'
+        command([sys.executable,str(script),'observe','0'],ROOT,inventory,timeout=30)
+        assert json.loads((inventory/'stdout.log').read_text())['paths']==ambient
+        assert json.loads((inventory/'result.json').read_text())['consumerAcquisitionCaches']=={}
+        for value in ambient.values():
+            assert list(Path(value).iterdir())==[Path(value)/'cache-contract-marker.txt']
+            assert (Path(value)/'cache-contract-marker.txt').read_text()=='untouched ambient marker'
+        os.environ.pop('PROGRAMKIT_NPM_CACHE'); os.environ['NPM_CONFIG_CACHE']=''; os.environ.pop('PLAYWRIGHT_BROWSERS_PATH')
+        sparse={name:os.environ.get(name) for name in cache_names}
+        failed=evidence/'cache-sparse-parent-failed'
+        try: command([sys.executable,str(script),'write','9'],consumers[0],failed,timeout=30)
+        except ValueError: pass
+        else: raise AssertionError('Actual sparse-parent child failure concealed')
+        assert {name:os.environ.get(name) for name in cache_names}==sparse
+        try:
+            with consumer_cache_environment(consumers[0]): raise OSError('Expected supervisor exception')
+        except OSError: pass
+        assert {name:os.environ.get(name) for name in cache_names}==sparse
+    finally:
+        for name,value in {**parent,sentinel_name:sentinel_parent}.items():
+            if value is None: os.environ.pop(name,None)
+            else: os.environ[name]=value
+    checks.extend(('distinct-cold-consumers-use-only-owned-npm-and-browser-cache-paths',
+        'prepared-consumer-reuses-owned-acquisition-cache',
+        'repository-inventory-preserves-ambient-cache-selection-without-writing-it',
+        'actual-failed-cache-children-restore-present-empty-and-absent-parent-values'))
     write(evidence/'qualification.json',{'status':'passed','checks':checks,'runtimeAcceptanceEstablished':False})
     print('Maintained qualification failure contracts passed: '+str(evidence))
     return 0
@@ -138,13 +300,95 @@ def browser_cache_inventory(*, environment=None, platform=None, home=None):
             'scope':'Pre-setup directory inventory only; installed executables and usability require actual browser checks.'}
 
 
-def command(args, root, evidence, *, timeout=1800):
+def readiness_failure(root, previous):
+    """Project only finite failure labels from this invocation's owned metadata.
+
+    Never forward streams, exception prose, command arguments or receipt paths.
+    Ambiguous, stale, malformed and escaping receipts establish no classification.
+    """
+    unknown='stage=unknown stepExit=unknown code=unknown'
+    try:
+        directory=(root/'artifacts/tests/runs').resolve()
+        if not directory.is_relative_to(root.resolve()): return unknown
+        added=set(directory.glob('foundation-*/result.json'))-previous
+        if len(added)!=1: return unknown
+        path=added.pop()
+        def read_owned(path):
+            if path.resolve()!=path.absolute() or not path.resolve().is_relative_to(directory) or path.stat().st_size>131072:
+                raise ValueError('Invalid diagnostic metadata')
+            value=json.loads(path.read_text(encoding='utf-8'))
+            if not isinstance(value,dict): raise ValueError('Invalid diagnostic metadata')
+            return value
+        value=read_owned(path)
+        if (type(value.get('schemaVersion')) is not int or value.get('schemaVersion')!=1 or value.get('kind')!='foundation-readiness'
+                or value.get('status') not in ('failed','interrupted','running')): return unknown
+        steps=value.get('steps')
+        if not isinstance(steps,list) or not all(isinstance(row,dict) for row in steps): return unknown
+        stage='unknown'; step_exit='unknown'
+        if steps:
+            final=steps[-1]
+            raw_stage=final.get('stage')
+            if raw_stage in ('restore','build','services'): stage=raw_stage
+            elif raw_stage in ('host-activation','bff-cookie','keycloak','postgresql'): stage='check'
+            observed=final
+            process=path.parent/('command-'+format(len(steps),'02d'))/'process.json'
+            if 'exitCode' not in observed and process.is_file(): observed=read_owned(process)
+            exit_code=observed.get('exitCode')
+            if type(exit_code) is int and -2147483648<=exit_code<=4294967295:
+                step_exit=str(exit_code)
+        failure=value.get('failure')
+        matched=re.match(r'^(PKF00[1-5])(?:[ \t]|$)',failure) if isinstance(failure,str) else None
+        code=matched.group(1) if matched else 'unknown'
+        return 'stage='+stage+' stepExit='+step_exit+' code='+code
+    except (OSError,ValueError,TypeError,RecursionError):
+        return unknown
+
+
+@contextmanager
+def consumer_cache_environment(root):
+    """Scope acquisition only for owned disposable consumers; restore the caller exactly."""
+    root=root.resolve()
+    owned=(ROOT/'artifacts/tests/reusable-foundations').resolve()
+    if root==owned or not root.is_relative_to(owned):
+        yield {}
+        return
+    cache=root/'artifacts/cache'
+    paths={'PROGRAMKIT_NPM_CACHE':cache/'npm', 'NPM_CONFIG_CACHE':cache/'npm',
+           'PLAYWRIGHT_BROWSERS_PATH':cache/'profile/local/ms-playwright'}
+    if any(not path.resolve().is_relative_to(root) for path in paths.values()):
+        raise ValueError('Owned acquisition cache escaped the disposable consumer')
+    selected={name:str(path) for name,path in paths.items()}
+    previous={name:os.environ.get(name) for name in selected}
+    try:
+        os.environ.update(selected)
+        yield selected
+    finally:
+        for name,value in previous.items():
+            if value is None: os.environ.pop(name,None)
+            else: os.environ[name]=value
+
+
+def require_cold_cache(root):
+    cache=root/'artifacts/cache'
+    if not cache.resolve().is_relative_to(root.resolve()):
+        raise ValueError('Owned acquisition cache escaped the disposable consumer')
+    for path in cache.rglob('*'):
+        if not path.resolve().is_relative_to(root.resolve()):
+            raise ValueError('Owned acquisition cache escaped the disposable consumer')
+        if path.is_file() and path.name!='.gitignore':
+            raise ValueError('Cold qualification requires a new consumer and acquisition cache')
+
+
+def command(args, root, evidence, *, timeout=1800, readiness=False):
+    previous=set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/result.json')) if readiness else set()
     evidence.mkdir(parents=True)
-    with (evidence/'stdout.log').open('wb') as out,(evidence/'stderr.log').open('wb') as err:
-        code=run(args,root,out,err,timeout)
-    write(evidence/'result.json',{'exitCode':code,'command':args})
+    with consumer_cache_environment(root) as caches:
+        with (evidence/'stdout.log').open('wb') as out,(evidence/'stderr.log').open('wb') as err:
+            code=run(args,root,out,err,timeout)
+    write(evidence/'result.json',{'exitCode':code,'command':args,'consumerAcquisitionCaches':caches})
     if code:
-        raise ValueError('Qualification command failed; inspect '+str(evidence))
+        classification=('; readiness '+readiness_failure(root,previous)+' outerExit='+str(code)) if readiness else ''
+        raise ValueError('Qualification command failed'+classification+'; inspect '+str(evidence))
 
 
 def candidate(root, feed):
@@ -288,10 +532,9 @@ public sealed class ProductBoundaryTests
 
 def qualify(root, shape, phase, evidence, generation):
     os.environ['PROGRAMKIT_QUALIFY_PRODUCT']='0' if shape=='base' else '1'
-    if phase=='cold' and any(path.is_file() and path.name!='.gitignore' for path in (root/'artifacts/cache').rglob('*')):
-        raise ValueError('Cold qualification requires a new consumer and acquisition cache')
+    if phase=='cold': require_cold_cache(root)
     started=time.monotonic()
-    command([sys.executable,'eng/foundation_setup.py','--repository','.','--execute'],root,evidence/'readiness')
+    command([sys.executable,'eng/foundation_setup.py','--repository','.','--execute'],root,evidence/'readiness',readiness=True)
     runs=sorted((root/'artifacts/tests/runs').glob('foundation-*/result.json'),key=lambda p:p.stat().st_mtime)
     native=json.loads(runs[-1].read_text())
     if native['status']!='ready': raise ValueError('Generated composition failed actual readiness')
@@ -413,7 +656,7 @@ foundation_fixture.captured = _observed
             os.environ['PYTHONPATH']=os.pathsep.join((str(observer),str(root/'eng'),previous['PYTHONPATH'] or ''))
             os.environ['PROGRAMKIT_COMMAND_AUDIT']=str(audit)
             try:
-                command([sys.executable,'eng/foundation_setup.py','--repository','.', '--execute'],root,artifact/'default-setup')
+                command([sys.executable,'eng/foundation_setup.py','--repository','.', '--execute'],root,artifact/'default-setup',readiness=True)
             finally:
                 for name,value in previous.items():
                     if value is None: os.environ.pop(name,None)
