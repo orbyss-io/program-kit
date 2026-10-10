@@ -384,7 +384,12 @@ def authentication_contracts(evidence, checks, original_child, original_selected
     import copy
     import xml.etree.ElementTree as ET
     source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts'
-    assert set(re.findall(r"^test\('([^']+)'",source.read_text(),re.MULTILINE))==set(AUTHENTICATION_CASES)
+    source_text=source.read_text()
+    assert set(re.findall(r"^test\('([^']+)'",source_text,re.MULTILINE))==set(AUTHENTICATION_CASES)
+    phase_declaration=re.search(r"type: 'program-kit-cross-site-phase', description: '([^']+)'",source_text)
+    assert phase_declaration is not None
+    declared_phases={phase_declaration.group(1),*re.findall(r"phase\.description = '([^']+)'",source_text)}
+    assert declared_phases==set(CROSS_SITE_PHASES)
     directory=evidence/'authentication-report-fixtures'; directory.mkdir()
     path=directory/'authentication.xml'
     def report(rows):
@@ -499,6 +504,45 @@ def authentication_contracts(evidence, checks, original_child, original_selected
         assert 'authentication=unknown outerExit=2;' in str(error) and secret not in str(error)
     else: raise AssertionError('Stale native reporter child failure concealed')
     checks.append('actual-precommand-snapshot-rejects-overwritten-stale-authentication-report')
+    cross_title=next(title for title,identity in AUTHENTICATION_CASES.items() if identity=='cross-site-denial')
+    def phase_report(phase, *, engine='firefox', title=cross_title, duplicate=None, suite_level=False):
+        document=ET.fromstring(report([(engine,title,'failure',secret)]))
+        node=document.find('testsuite/testcase')
+        properties=document.find('testsuite') if suite_level else node.find('properties')
+        if suite_level: properties=ET.SubElement(properties,'properties')
+        ET.SubElement(properties,'property',name=CROSS_SITE_PHASE_PROPERTY,value=phase)
+        if duplicate is not None: ET.SubElement(properties,'property',name=CROSS_SITE_PHASE_PROPERTY,value=duplicate)
+        return ET.tostring(document,encoding='utf-8')
+    for phase in CROSS_SITE_PHASES:
+        for engine in AUTHENTICATION_ENGINES:
+            path.write_bytes(phase_report(phase,engine=engine))
+            label=authentication_failure(directory,set())
+            assert label.endswith('crossSitePhase='+engine+':'+phase) and secret not in label
+    phase_bytes=phase_report('request-validated')
+    checks.append('exact-cross-site-case-engines-and-finite-phase-property-project-only-fixed-checkpoints')
+    for data in (phase_report(secret),phase_report('request-validated',duplicate='request-validated'),
+                 phase_report('request-validated',duplicate='submitted'),
+                 phase_report('request-validated',title=titles[0]),
+                 phase_report('request-validated',suite_level=True)):
+        path.write_bytes(data); assert authentication_failure(directory,set())=='authentication=unknown'
+    path.write_bytes(phase_bytes)
+    assert authentication_failure(directory,{path})=='authentication=unknown'
+    checks.append('duplicate-conflicting-injected-stale-or-unexpected-case-phase-properties-fail-closed')
+    path.write_bytes(report([('firefox',cross_title,'failure',secret)]))
+    assert authentication_failure(directory,set()).endswith('crossSitePhase=firefox:unknown')
+    # The existing maintained setup/supervisor now executes a fresh controlled
+    # cross-site reporter child; its phase remains diagnostic only.
+    script=child/'fail_authentication.py'
+    script.write_text('import sys\nfrom pathlib import Path\n'
+        +'directory=Path(sys.argv[1]); (directory/"authentication.xml").write_bytes('+repr(phase_bytes)+')\n'
+        +'print('+repr(secret)+',file=sys.stderr); sys.exit(13)\n',encoding='utf-8')
+    try: command([sys.executable,str(child/'fail_setup.py')],child,evidence/'cross-site-phase-failed-readiness-command',timeout=30,readiness=True)
+    except ValueError as error:
+        label=str(error)
+        assert 'authFailed=firefox:cross-site-denial' in label
+        assert 'crossSitePhase=firefox:request-validated outerExit=2;' in label and secret not in label
+    else: raise AssertionError('Actual failed phase reporter child concealed')
+    checks.append('actual-maintained-supervisor-failure-projects-current-cross-site-phase-without-prose')
 
 
 def write(path, value):
@@ -656,6 +700,11 @@ AUTHENTICATION_CASES = {
     'configured permission endpoint distinguishes authorized and unauthorized users':'permission-boundary',
 }
 AUTHENTICATION_ENGINES = ('chromium','firefox','webkit')
+CROSS_SITE_PHASE_PROPERTY = 'program-kit-cross-site-phase'
+CROSS_SITE_PHASES = ('registered','authenticated','source-registered','source-loaded',
+    'source-content-validated','source-url-validated','source-principal-validated','source-validated',
+    'submitted','response-received','navigation-request-validated','request-target-validated',
+    'request-validated','status-validated','rejection-validated','navigation-completed','session-retained')
 
 
 def authentication_failure(directory, previous):
@@ -686,10 +735,10 @@ def authentication_failure(directory, previous):
                 elif node.tag in ('system-out','system-err'):
                     if list(node): return unknown
                 elif node.tag=='properties':
-                    if any(item.tag!='property' or list(item) for item in node): return unknown
+                    if any(item.tag!='property' or list(item) or item.get('name')==CROSS_SITE_PHASE_PROPERTY for item in node): return unknown
                 else: return unknown
         if len(cases)>21 or len(cases)!=sum(1 for node in document.iter() if node.tag=='testcase'): return unknown
-        identities=set(); failed=[]; skipped=[]; categories=[]
+        identities=set(); failed=[]; skipped=[]; categories=[]; phases={}
         for node in cases:
             if node.get('classname')!='authentication.spec.ts': return unknown
             match=re.fullmatch(r'\[(chromium|firefox|webkit)\] (.+)',node.get('name',''))
@@ -697,10 +746,16 @@ def authentication_failure(directory, previous):
             identity=match.group(1)+':'+AUTHENTICATION_CASES[match.group(2)]
             if identity in identities: return unknown
             identities.add(identity)
+            declared_phases=[]
             for child in node:
                 if child.tag=='properties':
                     if any(item.tag!='property' or list(item) for item in child): return unknown
+                    declared_phases.extend(item.get('value') for item in child if item.get('name')==CROSS_SITE_PHASE_PROPERTY)
                 elif child.tag not in ('failure','error','skipped','system-out','system-err') or list(child): return unknown
+            if declared_phases:
+                if (not identity.endswith(':cross-site-denial') or len(declared_phases)!=1
+                        or declared_phases[0] not in CROSS_SITE_PHASES): return unknown
+                phases[identity]=declared_phases[0]
             outcomes=[child for child in node if child.tag in ('failure','error','skipped')]
             if len(outcomes)>1: return unknown
             if outcomes and outcomes[0].tag=='skipped': skipped.append(identity)
@@ -719,9 +774,13 @@ def authentication_failure(directory, previous):
         status='failed' if failed else 'skipped' if skipped else 'no-failure' if cases else 'empty'
         completeness='observed-complete' if complete else 'partial' if cases else 'empty'
         category=categories[0] if categories and len(set(categories))==1 else 'unknown'
-        return ('authentication='+status+' authCases='+str(len(cases))+' authCompleteness='+completeness
+        classification=('authentication='+status+' authCases='+str(len(cases))+' authCompleteness='+completeness
             +' authFailed='+(','.join(sorted(failed)) or 'none')+' authSkipped='+(','.join(sorted(skipped)) or 'none')
             +' authenticationFailure='+category)
+        cross_site_failed=[identity for identity in sorted(failed) if identity.endswith(':cross-site-denial')]
+        if cross_site_failed:
+            classification+=' crossSitePhase='+','.join(identity.split(':',1)[0]+':'+phases.get(identity,'unknown') for identity in cross_site_failed)
+        return classification
     except (OSError,ValueError,TypeError,RecursionError,ET.ParseError):
         return unknown
 

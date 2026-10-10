@@ -114,8 +114,11 @@ test('missing or invalid browser antiforgery logout does not clear the session',
 });
 
 test('cross-site top-level logout form fails before session mutation', async ({ browser, baseURL }) => {
+  const phase = { type: 'program-kit-cross-site-phase', description: 'registered' };
+  test.info().annotations.push(phase);
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
+  phase.description = 'authenticated';
   const applicationOrigin = new URL(baseURL).origin;
   const attackerUrl = new URL('/__program-kit-cross-site-logout-fixture', identityOrigin);
   attackerUrl.hostname = new URL(baseURL).hostname === 'localhost' ? '127.0.0.1' : 'localhost';
@@ -127,13 +130,19 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
       contentType: 'text/html',
       body: '<!doctype html><html><body>Owned cross-site form fixture</body></html>',
     }));
+    phase.description = 'source-registered';
     const attacker = await context.newPage();
     const source = await attacker.goto(attackerUrl.href);
+    phase.description = 'source-loaded';
     expect(source?.headers()['content-type']).toContain('text/html');
+    phase.description = 'source-content-validated';
     expect(new URL(attacker.url()).origin).toBe(attackerUrl.origin);
+    phase.description = 'source-url-validated';
     expect(await attacker.evaluate(() => window.origin)).toBe(attackerUrl.origin);
+    phase.description = 'source-principal-validated';
     expect(attackerUrl.hostname).not.toBe(new URL(baseURL).hostname);
     expect(attackerUrl.origin).not.toBe(applicationOrigin);
+    phase.description = 'source-validated';
     const rejectedResponse = attacker.waitForResponse(response =>
       response.url() === `${applicationOrigin}/bff/logout` && response.request().method() === 'POST');
     await attacker.evaluate(origin => {
@@ -143,15 +152,24 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
       document.body.append(form);
       form.submit();
     }, applicationOrigin);
+    phase.description = 'submitted';
     const rejected = await rejectedResponse;
+    phase.description = 'response-received';
     expect(rejected.request().isNavigationRequest()).toBeTruthy();
+    phase.description = 'navigation-request-validated';
     expect(rejected.request().method()).toBe('POST');
     expect(rejected.request().url()).toBe(`${applicationOrigin}/bff/logout`);
+    phase.description = 'request-target-validated';
     expect((await rejected.request().allHeaders())['origin']).toBe(attackerUrl.origin);
+    phase.description = 'request-validated';
     expect(rejected.status()).toBe(400);
+    phase.description = 'status-validated';
     expect(await rejected.json()).toMatchObject({ code: 'invalid_antiforgery_token' });
+    phase.description = 'rejection-validated';
     await attacker.waitForURL(`${applicationOrigin}/bff/logout`);
+    phase.description = 'navigation-completed';
     expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
+    phase.description = 'session-retained';
   } finally {
     try { await context.unroute(attackerUrl.href); }
     finally { await context.close(); }
