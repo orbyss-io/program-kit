@@ -116,19 +116,46 @@ test('missing or invalid browser antiforgery logout does not clear the session',
 test('cross-site top-level logout form fails before session mutation', async ({ browser, baseURL }) => {
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
-  const attacker = await context.newPage();
-  await attacker.goto(`${identityAuthority}/.well-known/openid-configuration`);
-  await attacker.evaluate(applicationOrigin => {
-    const form = document.createElement('form');
-    form.method = 'post';
-    form.action = `${applicationOrigin}/bff/logout`;
-    document.body.append(form);
-    form.submit();
-  }, baseURL);
-  await attacker.waitForURL(`${baseURL}/bff/logout`);
-  expect(await attacker.locator('body').innerText()).toContain('invalid_antiforgery_token');
-  expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
-  await context.close();
+  const applicationOrigin = new URL(baseURL).origin;
+  const attackerUrl = new URL('/__program-kit-cross-site-logout-fixture', identityOrigin);
+  attackerUrl.hostname = new URL(baseURL).hostname === 'localhost' ? '127.0.0.1' : 'localhost';
+  try {
+    // A normal HTML document models the attacker. Firefox's privileged JSON
+    // viewer cannot model an ordinary web origin; only this input page is fulfilled.
+    await context.route(attackerUrl.href, route => route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<!doctype html><html><body>Owned cross-site form fixture</body></html>',
+    }));
+    const attacker = await context.newPage();
+    const source = await attacker.goto(attackerUrl.href);
+    expect(source?.headers()['content-type']).toContain('text/html');
+    expect(new URL(attacker.url()).origin).toBe(attackerUrl.origin);
+    expect(await attacker.evaluate(() => window.origin)).toBe(attackerUrl.origin);
+    expect(attackerUrl.hostname).not.toBe(new URL(baseURL).hostname);
+    expect(attackerUrl.origin).not.toBe(applicationOrigin);
+    const rejectedResponse = attacker.waitForResponse(response =>
+      response.url() === `${applicationOrigin}/bff/logout` && response.request().method() === 'POST');
+    await attacker.evaluate(origin => {
+      const form = document.createElement('form');
+      form.method = 'post';
+      form.action = `${origin}/bff/logout`;
+      document.body.append(form);
+      form.submit();
+    }, applicationOrigin);
+    const rejected = await rejectedResponse;
+    expect(rejected.request().isNavigationRequest()).toBeTruthy();
+    expect(rejected.request().method()).toBe('POST');
+    expect(rejected.request().url()).toBe(`${applicationOrigin}/bff/logout`);
+    expect((await rejected.request().allHeaders())['origin']).toBe(attackerUrl.origin);
+    expect(rejected.status()).toBe(400);
+    expect(await rejected.json()).toMatchObject({ code: 'invalid_antiforgery_token' });
+    await attacker.waitForURL(`${applicationOrigin}/bff/logout`);
+    expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
+  } finally {
+    try { await context.unroute(attackerUrl.href); }
+    finally { await context.close(); }
+  }
 });
 
 test('provider navigation failure cannot restore local access or displace the signed-out page', async ({ browser, baseURL }) => {
