@@ -28,8 +28,10 @@ Historical profiles/evidence, existing consumer locks and personal skills remain
 
 Current checks and repairs:
 
-- Clean bounded Development at 09f3a1d passed **87/87** in **656s**,
-  [journal](../artifacts/validation-runs/20261010T210254Z-153eb7a9/journal.json). It precedes later shipping corrections.
+- Clean bounded Development at f20d7e7, tree cb131bc20a2b84baa0cec497f8915d1d2993a657,
+  passed **87/87** in **646.914s**; root verified all hashes and unchanged source before/after:
+  [journal](../artifacts/validation-runs/20261010T223738Z-4ee333a6/journal.json). It precedes the final C4 cached-exit correction.
+  Earlier 09f3a1d 87/87 in 656s remains historical evidence.
 - Authorized local Release at bc322c3, tree e40048cab74fdc1e4a6a6f6a6af5a3d6347c9ff8,
   passed **120/121**; sole failure was Windows C4 cleanup with a locked diagnostic log.
   Root verified all 121 hashes: [journal](../artifacts/validation-runs/20261010T214305Z-7ae14a00/journal.json).
@@ -51,8 +53,13 @@ Current checks and repairs:
   child cleanup when state writing fails. Three actual repeats and an independent 10.578s validator pass;
   exact old source reproduces open streams/WinError32. Nine handle outcomes, seven invalid PIDs, launch/state
   failure and detached/exited child checks pass. [Fresh evidence](../artifacts/tests/c4-view/fresh-cleanup-review-f4f2a570d93a40ca/review.json).
+  A subsequent audit found CPython can cache an exit code and bypass Popen.wait completion. The final
+  Windows fallback now always uses the native helper before Popen.wait; controlled success/timeout cases
+  reject the exact f20 old source. Two actual repeats and [fresh 10.568s validation](../artifacts/tests/c4-view/fresh-cached-review-641b10434dea4464/review.json)
+  pass with unchanged hashes. Root inspected source, actual CPython methods and all six retained control streams.
   Forced-cleanup flags remain recorded; minimal controls show that flag alone cannot prove a viewer leak.
-- Complete maintenance still must pass tests and both image scans. Initial CShells preview176 proposals
+- Complete CI 38092114773 and maintenance 38092113058 started from f20d7e7; Windows CI passed 5/5.
+  Final shipping correction requires latest-source gates. Complete maintenance still must pass tests and both image scans. Initial CShells preview176 proposals
   are restored to the published Foundation ABI by profile synchronization; inspect the actual successful
   commit rather than treating the proposal report as its final diff. Python 3.15.0 device update is pending
   under the [user-terminal policy](../extensions/program-kit-governance/references/device-toolchain-policy.md).
