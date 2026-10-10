@@ -176,6 +176,29 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
       rejectionText = await rejected.text();
     } catch (error) {
       if (rejectionDownloadObserved) phase.description = 'rejection-download-observed';
+      if (error instanceof Error) {
+        const missingCapturedBody = /^response\.text: Protocol error \(Network\.getResponseBody\): Request "[0-9]{1,20}(?:-redirect[0-9]{1,6})?" is not found(?:\nResponse body is not available for a response that was navigated away from\. Read response\.body\(\) before triggering any navigation\.)?$(?![\s\S])/;
+        if (missingCapturedBody.test(error.message)) phase.description = 'rejection-capture-request-missing';
+        else if (error.message === `response.text: Response body for POST ${applicationOrigin}/bff/logout was evicted!`)
+          phase.description = 'rejection-capture-evicted';
+      }
+      try {
+        await attacker.waitForURL(`${applicationOrigin}/bff/logout`, { timeout: 1000, waitUntil: 'domcontentloaded' });
+        if (attacker.url() === `${applicationOrigin}/bff/logout`) {
+          const documentText = await attacker.locator('body').evaluate(element => {
+            const text = 'innerText' in element ? element.innerText : null;
+            return typeof text === 'string' && text.length <= 65536 ? text : null;
+          }, undefined, { timeout: 1000 });
+          if (attacker.url() === `${applicationOrigin}/bff/logout` && documentText !== null) {
+            const documentBody: unknown = JSON.parse(documentText);
+            if (typeof documentBody === 'object' && documentBody !== null &&
+                'code' in documentBody && documentBody.code === 'invalid_antiforgery_token')
+              phase.description = 'rejection-document-validated';
+          }
+        }
+      } catch {
+        // Inspection is diagnostic only; retain and rethrow the original SDK failure.
+      }
       throw error;
     }
     phase.description = 'rejection-body-read';
