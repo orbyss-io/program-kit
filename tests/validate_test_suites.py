@@ -67,7 +67,106 @@ def validate_ci_selection(step: dict) -> None:
             if run.called: raise AssertionError('CI selection executed an unknown manual value')
 
 
+
+def validate_bounded_command_path() -> None:
+    """Exercise the actual helper with overlapping Windows command shims."""
+    import os
+    import shutil
+    import subprocess
+    import tempfile
+
+    helper = ROOT / 'scripts/Invoke-LocalRelease.ps1'
+    source = helper.read_text(encoding='utf-8')
+    require('bounded active PATH', source,
+            ('Get-BoundedCommandPath -SelectedCommands $selectedCommands -OriginalPath $env:PATH',
+             'Active executable selection changed while bounding CMD PATH: $name',
+             "[Environment]::SetEnvironmentVariable($environmentName,$savedEnvironment[$environmentName],'Process')"))
+    if os.name != 'nt':
+        return  # CMD command resolution is specific to the supported Windows helper.
+    shell = shutil.which('pwsh') or shutil.which('powershell')
+    if not shell:
+        raise AssertionError('Windows PATH acceptance requires the active PowerShell executable')
+    script = r'''param([string]$Helper, [string]$Fixture)
+$ErrorActionPreference = 'Stop'
+$tokens = $null; $parseErrors = $null
+$ast = [System.Management.Automation.Language.Parser]::ParseFile($Helper, [ref]$tokens, [ref]$parseErrors)
+if ($parseErrors.Count) { throw 'Release helper did not parse' }
+$functions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Get-BoundedCommandPath' }, $true))
+$guards = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.ForEachStatementAst] -and $node.Condition.Extent.Text -eq '$selectedCommands.Keys' }, $true))
+$restores = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.ForEachStatementAst] -and $node.Condition.Extent.Text -eq '$savedEnvironment.Keys' }, $true))
+if ($functions.Count -ne 1 -or $guards.Count -ne 1 -or $restores.Count -ne 1) { throw 'Expected the actual PATH selector, unchanged executable guard and environment restoration' }
+. ([scriptblock]::Create($functions[0].Extent.Text))
+$guard = [scriptblock]::Create($guards[0].Extent.Text)
+$restore = [scriptblock]::Create($restores[0].Extent.Text)
+$early = Join-Path $Fixture 'early'; $late = Join-Path $Fixture 'late'
+$unused = Join-Path $Fixture 'unused'; $outside = Join-Path $Fixture 'outside'
+foreach ($directory in @($early, $late, $unused, $outside)) { [void](New-Item -ItemType Directory -Path $directory) }
+Set-Content -LiteralPath (Join-Path $early 'program-kit-fixture-a.cmd') -Value '@echo early'
+Set-Content -LiteralPath (Join-Path $late 'program-kit-fixture-a.cmd') -Value '@echo shadow'
+Set-Content -LiteralPath (Join-Path $late 'program-kit-fixture-b.cmd') -Value '@echo late'
+$savedPath = $env:PATH
+$originalEnvironment = @{}
+foreach ($environmentName in @('PATH', 'NODE_OPTIONS', 'PROGRAM_KIT_NPM_TOKEN')) {
+    $originalEnvironment[$environmentName] = [Environment]::GetEnvironmentVariable($environmentName, 'Process')
+}
+try {
+    $originalPath = @($early, $unused, $late, $early.ToUpperInvariant(), $PSHOME) -join ';'
+    $env:PATH = $originalPath
+    # Reverse dictionary insertion relative to PATH. Both parents offer command a.
+    $selectedCommands = [ordered]@{
+        'program-kit-fixture-b.cmd' = (Get-Command program-kit-fixture-b.cmd).Source
+        'program-kit-fixture-a.cmd' = (Get-Command program-kit-fixture-a.cmd).Source
+    }
+    $env:PATH = Get-BoundedCommandPath $selectedCommands $originalPath @($PSHOME)
+    if ($env:PATH -ne (@($early, $late, $PSHOME) -join ';')) { throw 'Selected parent order or deduplication changed' }
+    . $guard
+    if ((& program-kit-fixture-a.cmd) -ne 'early' -or (& program-kit-fixture-b.cmd) -ne 'late') { throw 'Wrong executable behavior after bounding PATH' }
+    # A selected command outside PATH must retain its parent after original entries.
+    $selectedCommands['program-kit-fixture-outside.cmd'] = Join-Path $outside 'program-kit-fixture-outside.cmd'
+    Set-Content -LiteralPath $selectedCommands['program-kit-fixture-outside.cmd'] -Value '@echo outside'
+    $env:PATH = Get-BoundedCommandPath $selectedCommands $originalPath @($PSHOME)
+    if ($env:PATH -ne (@($early, $late, $outside, $PSHOME) -join ';')) { throw 'Missing selected parent was reordered or lost' }
+    . $guard
+    # Contradictory selections must still fail the actual helper guard.
+    $selectedCommands['program-kit-fixture-a.cmd'] = Join-Path $late 'program-kit-fixture-a.cmd'
+    $selectedCommands['program-kit-fixture-b.cmd'] = Join-Path $early 'program-kit-fixture-b.cmd'
+    Set-Content -LiteralPath $selectedCommands['program-kit-fixture-b.cmd'] -Value '@echo contradictory'
+    $env:PATH = Get-BoundedCommandPath $selectedCommands $originalPath @($PSHOME)
+    $rejected = $false
+    try { . $guard } catch {
+        if ($_.Exception.Message -ne 'Active executable selection changed while bounding CMD PATH: program-kit-fixture-a.cmd') { throw }
+        $rejected = $true
+    }
+    if (-not $rejected) { throw 'Unsatisfiable executable selection bypassed the guard' }
+    foreach ($value in @($null, '', 'fixture-value')) {
+        $savedEnvironment = @{'NODE_OPTIONS' = $value; 'PROGRAM_KIT_NPM_TOKEN' = $value}
+        foreach ($environmentName in $savedEnvironment.Keys) {
+            [Environment]::SetEnvironmentVariable($environmentName, 'changed-fixture-value', 'Process')
+        }
+        . $restore
+        foreach ($environmentName in $savedEnvironment.Keys) {
+            if ([Environment]::GetEnvironmentVariable($environmentName, 'Process') -cne $value) {
+                throw 'Actual helper failed absent, empty or populated environment restoration'
+            }
+        }
+    }
+} finally { $savedEnvironment = $originalEnvironment; . $restore }
+if ($env:PATH -ne $savedPath) { throw 'Fixture environment was not restored' }
+Write-Output 'Actual bounded PATH ordering, duplicate parents, missing parent, conflicting selection and absent/empty/populated restoration passed.'
+'''
+    with tempfile.TemporaryDirectory(prefix='program-kit-cmd-path-') as temporary:
+        fixture = Path(temporary)
+        script_path = fixture / 'acceptance.ps1'
+        script_path.write_text(script, encoding='utf-8')
+        result = subprocess.run([shell, '-NoProfile', '-File', str(script_path), str(helper), str(fixture)],
+                                text=True, encoding='utf-8', capture_output=True, timeout=30)
+        if result.returncode:
+            raise AssertionError('Actual Windows bounded PATH acceptance failed:\n' + result.stdout + result.stderr)
+        print(result.stdout.strip())
+
+
 def main() -> int:
+    validate_bounded_command_path()
     aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
