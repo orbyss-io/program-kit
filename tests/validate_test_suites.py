@@ -154,15 +154,43 @@ try {
 if ($env:PATH -ne $savedPath) { throw 'Fixture environment was not restored' }
 Write-Output 'Actual bounded PATH ordering, duplicate parents, missing parent, conflicting selection and absent/empty/populated restoration passed.'
 '''
-    with tempfile.TemporaryDirectory(prefix='program-kit-cmd-path-') as temporary:
+    import ctypes
+    from ctypes import wintypes
+
+    get_short_path = ctypes.windll.kernel32.GetShortPathNameW
+    get_short_path.argtypes = [wintypes.LPCWSTR, wintypes.LPWSTR, wintypes.DWORD]
+    get_short_path.restype = wintypes.DWORD
+    artifact_parent = ROOT / 'artifacts/tests/test-suites'
+    artifact_parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='program-kit-cmd-path-', dir=artifact_parent) as temporary:
         fixture = Path(temporary)
         script_path = fixture / 'acceptance.ps1'
         script_path.write_text(script, encoding='utf-8')
-        result = subprocess.run([shell, '-NoProfile', '-File', str(script_path), str(helper), str(fixture)],
-                                text=True, encoding='utf-8', capture_output=True, timeout=30)
-        if result.returncode:
-            raise AssertionError('Actual Windows bounded PATH acceptance failed:\n' + result.stdout + result.stderr)
-        print(result.stdout.strip())
+        cases = []
+        for label in ('canonical', 'forward-slash', 'relative', 'short-alias'):
+            directory = fixture / label
+            directory.mkdir()
+            argument = str(directory)
+            if label == 'forward-slash':
+                argument = argument.replace('\\', '/')
+            elif label == 'relative':
+                argument = os.path.relpath(directory, ROOT)
+            elif label == 'short-alias':
+                short_path = ctypes.create_unicode_buffer(32768)
+                length = get_short_path(str(directory), short_path, len(short_path))
+                if not length or length >= len(short_path):
+                    raise AssertionError('Owned short-path lookup failed')
+                if short_path.value.casefold() == str(directory).casefold():
+                    print('Owned fixture volume has no distinct 8.3 alias; other path forms remain required.')
+                    continue
+                argument = short_path.value
+            cases.append((label, argument))
+        for label, argument in cases:
+            result = subprocess.run([shell, '-NoProfile', '-File', str(script_path), str(helper), argument],
+                                    cwd=ROOT, text=True, encoding='utf-8', capture_output=True, timeout=30)
+            if result.returncode:
+                raise AssertionError('Actual Windows bounded PATH acceptance failed (' + label + '):\n' + result.stdout + result.stderr)
+            print(label + ': ' + result.stdout.strip())
 
 
 def main() -> int:

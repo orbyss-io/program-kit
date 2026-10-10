@@ -17,14 +17,16 @@ function Get-BoundedCommandPath {
         if (-not $entry.Trim()) { continue }
         $directory = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($entry.Trim().Trim('"'))).TrimEnd('\', '/')
         if ($selectedDirectories.Contains($directory) -and $includedDirectories.Add($directory)) {
-            $directories.Add($directory)
+            # Get-Command preserves relative/8.3 source spelling. Normalize only
+            # for matching; changing the emitted spelling would change Source.
+            $directories.Add($entry.Trim().Trim('"'))
         }
     }
     # PowerShell can also discover commands outside PATH. Retain their exact
     # selected parents and the Windows shell/system directories after PATH entries.
     foreach ($directory in (@($SelectedCommands.Values | ForEach-Object { Split-Path -Parent $_ }) + $RequiredDirectories)) {
-        $directory = [IO.Path]::GetFullPath($directory).TrimEnd('\', '/')
-        if ($includedDirectories.Add($directory)) { $directories.Add($directory) }
+        $normalizedDirectory = [IO.Path]::GetFullPath($directory).TrimEnd('\', '/')
+        if ($includedDirectories.Add($normalizedDirectory)) { $directories.Add($directory) }
     }
     return $directories -join [IO.Path]::PathSeparator
 }
