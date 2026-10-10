@@ -44,10 +44,21 @@ Current evidence and gates:
   The next bounded correction verifies the actual signed-out navigation URL, HTTP200, JSON content
   type and typed `{signedOut:true}` response rather than literal display formatting. Session/provider
   assertions remain intact. Source-extracted negative controls and genuine locked-type compilation
-  pass fresh review; actual browser integration remains required. Initial failures are preserved.
+  pass fresh review. The actual disposable Notes integration at `296d7c5` passed all 14 Chromium/WebKit
+  cases and all five platform checks; owned create/read/isolation/conflict and the same retained resource
+  after restart passed. Root verified 104 physical runtime-copy hashes, 44 supervised processes/88 streams
+  and 17 unchanged consumer inputs. This functional run establishes no new cold timing or readiness receipt.
+  [Targeted CI 38087148676](https://github.com/orbyss-io/program-kit/actions/runs/38087148676) advanced
+  to Notes cold readiness but failed before the issuer check; authentication evidence was absent.
+  Linux 2/3 and Windows 3/5 remain failures, with all eight journal hashes verified. Initial failures are preserved.
 - Local Release preflight PATH repair preserves original command precedence and exact executable
   selection, plus absent/empty/populated environment restoration. Actual PrepareOnly and negative
-  controls pass independently; orchestrator and fresh review are clear. It starts no Release suite.
+  controls pass independently. The latest Windows fixture exposed a source-spelling defect: canonicalizing
+  relative/8.3 PATH entries changed PowerShell Get-Command Source. The correction emits original spelling
+  while normalizing only matching/deduplication; exact executable guards remain. Root and fresh review
+  verified canonical/forward-slash/relative/distinct-8.3 cases, actual old-helper failure and fresh PrepareOnly
+  with 12 identical executable sources, exact environment restoration and 15 retained Codex metadata entries.
+  Remote acceptance remains pending. PrepareOnly starts no Release suite.
 - Mandatory complete dependency maintenance (including Firefox and both image scans), full CI,
   final local Release through `Invoke-LocalRelease.ps1 -AuthorizedCodexTask`, and tagged Release/public
   install/upgrade remain required. Earlier full maintenance/CI failures remain failures.
@@ -69,7 +80,7 @@ The conservative first-operation bound retains wrapper overhead:
 The prototype-derived target is 180s cold / 120s prepared under the stated preinstalled conditions;
 final measurements are assessed independently, not as a CI wall-clock gate.
 
-Reviewed functional evidence: [Notes](../artifacts/tests/reusable-foundations/functional-acf12e094d864441/qualification.json),
+Reviewed functional evidence: [Notes](../artifacts/tests/reusable-foundations/functional-9006e07f9cc74504/qualification.json),
 [Sport/MTP](../artifacts/tests/reusable-foundations/functional-9fb120eb71754b9e/qualification.json).
 These reruns establish no new cold timing/readiness receipt.
 Reviewed migrations: [Notes](../artifacts/tests/reusable-foundations/727cbb21ee984382/notes/migration/result.json),
