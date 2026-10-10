@@ -1,6 +1,9 @@
 import { expect, type Browser, type BrowserContext, type Page, test } from '@playwright/test';
 import { personas } from '../persona-fixture.js';
 
+const identityAuthority = process.env.PROGRAMKIT_IDENTITY_AUTHORITY ?? 'http://localhost:8080/realms/program-kit';
+const identityOrigin = new URL(identityAuthority).origin;
+
 async function authenticatedContext(
   browser: Browser,
   baseURL: string,
@@ -72,6 +75,7 @@ test('real browser form logout clears local state and completes provider navigat
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
   const page = await context.newPage();
+  await page.goto('/');
   await page.reload();
   expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
 
@@ -88,6 +92,7 @@ test('missing or invalid browser antiforgery logout does not clear the session',
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
   const page = await context.newPage();
+  await page.goto('/');
   const outcomes = await page.evaluate(async () => {
     const missing = await fetch('/bff/logout', { method: 'POST', redirect: 'error' });
     const invalid = await fetch('/bff/logout', {
@@ -112,7 +117,7 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
   const attacker = await context.newPage();
-  await attacker.goto('http://localhost:8080/realms/program-kit/.well-known/openid-configuration');
+  await attacker.goto(`${identityAuthority}/.well-known/openid-configuration`);
   await attacker.evaluate(applicationOrigin => {
     const form = document.createElement('form');
     form.method = 'post';
@@ -129,8 +134,9 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
 test('provider navigation failure cannot restore local access or displace the signed-out page', async ({ browser, baseURL }) => {
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
-  await context.route('http://localhost:8080/**', route => route.abort());
+  await context.route(`${identityOrigin}/**`, route => route.abort());
   const page = await context.newPage();
+  await page.goto('/');
   const providerWindow = await submitLogoutForm(page);
   await expect.poll(async () => await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
   await page.goto('/bff/signed-out?remote=unavailable');

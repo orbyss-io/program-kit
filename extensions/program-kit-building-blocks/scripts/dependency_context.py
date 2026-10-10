@@ -102,8 +102,14 @@ def resolve(blocks, repository, catalog_path=None):
     if abi is None: blocks.fail('PKB611', 'selected Foundation has no reviewed shared ABI; repair that exact profile')
     if knowledge and abi['sourceCommit'] != knowledge['sourceCommit']:
         blocks.fail('PKB611', 'publisher knowledge and engineering-contracts.json bind different source commits; repair the selected profile')
+    import importlib.util
+    lifecycle_spec = importlib.util.spec_from_file_location('program_kit_lifecycle_knowledge', Path(__file__).with_name('lifecycle_knowledge.py'))
+    lifecycle_module = importlib.util.module_from_spec(lifecycle_spec)
+    lifecycle_spec.loader.exec_module(lifecycle_module)
+    lifecycle = lifecycle_module.selected(blocks, directory, identity, sources) if identity else None
     return {'catalog': catalog, 'catalogPath': str(catalog_path), 'authority': authority,
             'authorityPath': str(directory / index['profiles'][identity]['path']) if authority in {'recorded-scaffold', 'qualified-default'} else str(catalog_path),
             'profile': identity, 'qualification': qualification, 'resolutionSha256': resolution,
             'profileEntrySha256': blocks.canonical_sha256(index['profiles'][identity]) if identity else None,
-            'sharedAbi': abi, 'publisherKnowledge': knowledge, 'sources': sources}
+            'sharedAbi': abi, 'publisherKnowledge': knowledge, 'lifecycleKnowledge': lifecycle,
+            'registryPath': str(directory), 'sources': sources}

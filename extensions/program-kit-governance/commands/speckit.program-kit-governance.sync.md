@@ -19,3 +19,13 @@ per-feature success attestations, recovery dossiers or duplicate package declara
 Routine upgrades use the release-owned upgrade_program_kit.py command; it performs deterministic
 setup and dependency verification in one operation. It does not run bootstrap or a coding agent.
 An offline upgrade reports any dependency verification still pending separately.
+
+For an explicitly selected supported foundation composition, synchronization materializes
+configuration and feature-owned registration/provider seams through the same preview/apply
+ownership flow. Link `docs/architecture/foundation-configuration.md` and the redacted settings
+view. Materialization alone establishes neither runtime readiness nor product acceptance.
+Run maintained `eng/foundation_setup.py` only through explicit service/setup authorization;
+inspect its selected inputs, restore/build, actual activation and applicable setup test outcomes.
+Do not start it from task drafting, intake or an ordinary hook. Use its named repair for failure
+instead of scheduling a generic compatibility-research phase. Preserve captured profiles and
+consumer-owned configuration; apply updates through the existing reviewed upgrade mechanism.

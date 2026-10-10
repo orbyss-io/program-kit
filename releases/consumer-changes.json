@@ -75,6 +75,155 @@
       "duePhase": "implementation",
       "supersedes": ["retained-dependency-profile"], "dependencies": [],
       "review": {"basis": "migration-0.12.9.md and qualified dependency profile catalog", "route": "Existing exact dependency transition; no repeated choice for intermediate defaults"}
+    },
+    {
+      "id": "feature-lifecycle-selected-roots",
+      "introduced": "0.12.11",
+      "kind": "constraint",
+      "summary": "Feature-owned lifecycle contributions and current selected package roots replace unnecessary initialization aggregates.",
+      "constraint": "Provider preparation, application policy admission and managed workers retain their real owners and ordering; packaging includes only the selected runtime closure.",
+      "selectors": {
+        "paths": [
+          "eng/architecture.json",
+          "eng/verification.json",
+          "**/*.csproj",
+          "src/**",
+          "specs/*/plan.md"
+        ]
+      },
+      "supportedRetention": [
+        "Valid feature-owned lifecycle graphs and legitimate selection presets remain supported without regeneration.",
+        "Retain customized deselected scaffold projects and consumer-owned configuration while removing their selected roots/activations."
+      ],
+      "alternatives": [
+        "Retain valid existing owners and selected roots",
+        "Repair affected lifecycle owners and selected-root packaging in place"
+      ],
+      "verification": [
+        "Exercise actual startup admission, scoped lifetime/cancellation and worker behavior",
+        "Inspect fresh packed roots and runtime closure; reject stale/unselected/test/engineering packages"
+      ],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "implementation",
+      "supersedes": [],
+      "dependencies": [
+        "declared-responsibilities"
+      ],
+      "review": {
+        "basis": "migration-0.12.11.md and maintained lifecycle/packaging negative controls",
+        "route": "Existing affected architecture/code review; exact dependency transition only if pins change"
+      }
+    },
+    {
+      "id": "maintained-scoped-verification",
+      "introduced": "0.12.11",
+      "kind": "contract",
+      "summary": "Scoped checks preserve original failures and require fresh native successor results for retired test ownership.",
+      "constraint": "Reuse binds unchanged relevant inputs; newer failures, interruptions, empty/duplicate/skipped native results and missing successor regressions prevent acceptance.",
+      "selectors": {
+        "paths": [
+          "eng/verification.json",
+          "tests/**",
+          "**/*Tests.csproj",
+          "specs/*/tasks.md"
+        ]
+      },
+      "supportedRetention": [
+        "Existing valid native test runners and application-specific ownership/transaction/conflict/replay/recovery tests remain supported."
+      ],
+      "alternatives": [
+        "Retain valid native test ownership",
+        "Declare testOwnershipReplacements and run fresh unfiltered successor regressions",
+        "Use the maintained xUnit/MTP adapter without authoring generic harness infrastructure"
+      ],
+      "verification": [
+        "Inspect actual named native results and input/evidence freshness",
+        "Verify predecessor failures remain recorded and changed successor/provider/application cases execute"
+      ],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "implementation",
+      "supersedes": [],
+      "dependencies": [],
+      "review": {
+        "basis": "migration-0.12.11.md and scoped/native verification failure controls",
+        "route": "Normal affected test ownership, task and code review"
+      }
+    },
+    {
+      "id": "browser-durability-observation",
+      "introduced": "0.12.11",
+      "kind": "constraint",
+      "summary": "Browser restart durability verifies the exact persisted server draft and authenticated recovery.",
+      "constraint": "Before restart establish draft identity/version/content; after restart establish authenticated readiness and inspect recovery without payload diagnostics.",
+      "selectors": {
+        "paths": [
+          "eng/web/**",
+          "specs/*/spec.md",
+          "specs/*/plan.md",
+          "specs/*/tasks.md"
+        ]
+      },
+      "supportedRetention": [
+        "Keep existing valid application recovery contracts, browser personas, data and historical evidence."
+      ],
+      "alternatives": [
+        "Retain already verified exact draft/recovery behavior",
+        "Repair affected browser/provider readiness and restart observations"
+      ],
+      "verification": [
+        "Exercise the changed draft through server persistence and restart",
+        "Reject changed draft identity/content and unauthenticated recovery; inspect redacted diagnostics"
+      ],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "implementation",
+      "supersedes": [],
+      "dependencies": [],
+      "review": {
+        "basis": "migration-0.12.11.md and maintained browser durability controls",
+        "route": "Existing application outcome/security and test review"
+      }
+    },
+    {
+      "id": "reusable-foundation-compositions",
+      "introduced": "0.12.11",
+      "kind": "guidance",
+      "summary": "Both finite BFF/Keycloak and EF/PostgreSQL compositions reuse maintained setup/tests and schedule prerequisites beside product operations.",
+      "constraint": "Materialization, platform readiness and application acceptance remain separate; typed settings and redacted observations do not replace application ownership or silently adopt a dependency default.",
+      "selectors": {
+        "paths": [
+          "eng/foundation-composition.json",
+          "eng/foundation-setup.json",
+          "docs/architecture/foundation-configuration.md",
+          "docs/architecture/building-block-selection.json",
+          "specs/*/plan.md",
+          "specs/*/tasks.md"
+        ],
+        "selectedDependencies": true
+      },
+      "supportedRetention": [
+        "Retain supported exact selected/captured dependency profiles, native locks, accepted history and customized configuration.",
+        "Existing valid operation-sized tasks remain editable without a blanket foundation barrier."
+      ],
+      "alternatives": [
+        "Retain an existing supported selection and repair only affected tasks/configuration",
+        "Select a supported composition with actual feature roots/runtime paths",
+        "Adopt a qualified exact profile through the existing dependency transition before composition qualification"
+      ],
+      "verification": [
+        "Inspect source-backed configuration/Mermaid and paired redacted configured/activated values and owners",
+        "Exercise applicable maintained authentication/provider cases and changed application-owned product/recovery cases separately",
+        "Verify actual installed tasks and implementation instructions preserve scoped prerequisites"
+      ],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "tasks",
+      "supersedes": [],
+      "dependencies": [
+        "incremental-task-guidance"
+      ],
+      "review": {
+        "basis": "migration-0.12.11.md and both disposable composition qualification shapes",
+        "route": "Existing affected plan/tasks review; dependency-transition-v1 for changed exact pins, separate application-owned live rollout"
+      }
     }
   ]
 }

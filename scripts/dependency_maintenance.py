@@ -46,6 +46,26 @@ def safe_path(root, relative):
     return path
 
 
+def pointer_location(document, pointer):
+    """Resolve a declared RFC 6901 leaf without creating or guessing fields."""
+    if not isinstance(pointer, str) or not pointer.startswith('/'):
+        raise ValueError('Additional pin requires a non-root JSON pointer')
+    keys = pointer[1:].split('/')
+    for index, key in enumerate(keys):
+        if re.search(r'~(?![01])', key):
+            raise ValueError('Invalid additional-pin JSON pointer escape')
+        keys[index] = key.replace('~1', '/').replace('~0', '~')
+    def key_for(container, key):
+        if isinstance(container, dict) and key in container:
+            return key
+        if isinstance(container, list) and re.fullmatch(r'0|[1-9]\d*', key) and int(key) < len(container):
+            return int(key)
+        raise ValueError('Additional-pin JSON pointer does not select an existing field')
+    for key in keys[:-1]:
+        document = document[key_for(document, key)]
+    return document, key_for(document, keys[-1])
+
+
 def inventory(root, policy):
     files = set()
     for pattern in policy["inputs"]:
@@ -126,9 +146,8 @@ def inventory(root, policy):
         path = safe_path(root, extra["path"])
         if path not in files:
             raise ValueError("Additional pin must be a hashed input")
-        value = read_json(path)
-        for key in extra["pointer"].strip("/").split("/"):
-            value = value[key]
+        container, key = pointer_location(read_json(path), extra["pointer"])
+        value = container[key]
         if extra["kind"] == "profile":
             for family, details in value.items():
                 name = policy["families"][family]
@@ -281,6 +300,8 @@ def upgrade(root, policy, observations):
             if latest == current:
                 continue
             for relative in pin["paths"]:
+                if relative not in before:
+                    raise ValueError('Maintenance pin path is not a hashed input: ' + relative)
                 if "/dependency-profiles/" in relative or relative in policy.get('immutableInputs',[]):
                     continue  # Never rewrite an immutable accepted profile.
                 path = safe_path(root, relative)
@@ -289,7 +310,7 @@ def upgrade(root, policy, observations):
                 if path.name == "global.json" and kind == "dotnet-sdk":
                     value = json.loads(text); value["sdk"]["version"] = latest
                     changed = json.dumps(value, indent=2) + "\n"
-                elif path.name == "package.json":
+                elif path.name == "package.json" and kind != "nuget":
                     value = json.loads(text)
                     for section in ("dependencies", "devDependencies", "engines"):
                         if value.get(section, {}).get(name) == current:
@@ -300,6 +321,19 @@ def upgrade(root, policy, observations):
                     for identity, tool in value["tools"].items():
                         if identity.casefold() == name.casefold():
                             tool["version"] = latest
+                    changed = json.dumps(value, indent=2) + "\n"
+                elif kind == "nuget" and path.suffix == ".json":
+                    declared = [extra for extra in policy.get('additionalPins', [])
+                                if extra['kind'] == 'nuget' and extra['name'].casefold() == name.casefold()
+                                and safe_path(root, extra['path']) == path]
+                    if not declared:
+                        raise ValueError('NuGet JSON input has no declared additional pin: ' + relative)
+                    value = json.loads(text)
+                    for extra in declared:
+                        container, key = pointer_location(value, extra['pointer'])
+                        if container[key] != current:
+                            raise ValueError('Additional pin does not match observed current version: ' + relative)
+                        container[key] = latest
                     changed = json.dumps(value, indent=2) + "\n"
                 elif kind == "nuget" and path.suffix in {".props", ".csproj"}:
                     pattern = r'(<Package(?:Version|Reference)\b[^>]*Include="' + re.escape(name) + r'"[^>]*Version=")' + re.escape(current) + r'(")'

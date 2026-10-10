@@ -35,7 +35,7 @@ assets, not a platform product.
 
 Prerequisites:
 
-- Spec Kit `1.1.1` or a compatible newer `1.x` release. CI and release builds pin `specify-cli==1.1.2`.
+- Spec Kit `1.1.1` or a compatible newer `1.x` release. CI and release builds pin `specify-cli==1.1.3`.
 - The coding-agent tooling required by the selected Spec Kit integration; `specify init` validates
   it (for example, `codex` for Codex or `claude` for Claude).
 - Git, available as the `git` command.
@@ -163,9 +163,10 @@ assets remain useful for inspecting or installing one component deliberately.
 
 ### Spec Kit CLI baseline
 
-Program Kit targets the unmodified public Spec Kit 1.1.1 release, matching the current stable CLI.
+Program Kit supports the unmodified public Spec Kit 1.1.1 baseline and compatible newer 1.x releases.
+The current release qualification pins Spec Kit 1.1.3.
 In your own terminal, upgrade an older shared user tool with
-`uv tool install specify-cli==1.1.1 --force --no-python-downloads`, then verify
+`uv tool install specify-cli==1.1.3 --force --no-python-downloads`, then verify
 `specify version`. Component manifests require at least 1.1.1; CI and build examples use the exact
 tested version. Historical 1.0.1 patch proposals and archived evidence retain their original baseline.
 
@@ -391,7 +392,8 @@ orchestrating setup itself.
 - `program-kit-governance` extension: supplies reusable bootstrap, ratification, and lifecycle-validation commands.
 - `program-kit-dotnet` extension: supplies the default .NET runtime baseline and its separately
   invoked, reviewable repository sync command.
-- `program-kit-governance-preset`: appends governance traceability to Spec Kit's feature, plan, and task templates.
+- `program-kit-governance-preset`: adds governance traceability to feature and plan templates, and
+  replaces task generation and implementation with consistent operation-sized delivery guidance.
 - Mandatory hooks before and after `speckit.specify`, after `speckit.plan`, before
   `speckit.implement`, after `speckit.tasks`, and before and after constitution drafting to prevent
   unauthorized specification, regenerate the current ratification packet, and detect architecture drift.
@@ -413,8 +415,13 @@ Bootstrap grilling supplies context but does not replace feature confirmation. A
 the draft, but approval is never fabricated during upgrade. See the
 [feature-intake contract](extensions/program-kit-governance/references/specification-intake.md).
 
-The preset deliberately uses the Spec Kit `append` strategy, so it augments rather than replaces
-the core templates. If a consumer needs a durable project-specific template, use the project's
+The preset appends governance to constitution, specification and plan templates. It replaces
+`speckit.tasks`, `tasks-template` and `speckit.implement` together so task generation and execution
+agree on operation-sized outcomes, exact prerequisites, focused verification and compact resume
+checkpoints. New task drafts validate their dependency maps; existing approved plans retain their
+IDs, checked states and authority until a reviewed repair. Scoped verification exposes needed,
+reusable and unresolved checks without weakening full acceptance or Release gates.
+If a consumer needs a durable project-specific template, use the project's
 `.specify/templates/overrides/` layer; it has higher precedence and is not managed by Program Kit
 updates. Workflow overlays remain the appropriate mechanism for changing a workflow's steps locally.
 
@@ -466,6 +473,22 @@ their ADR is accepted.
 `speckit.program-kit-governance.sync` is an explicit setup tool for project/package/composition
 changes. Ordinary planning and coding do not depend on a sync receipt. The maintained upgrader
 coordinates routine maintenance directly; actual dependency checks remain required.
+
+For existing applications with misplaced startup responsibilities or an unnecessary composition
+library, follow the [scoped lifecycle repair guide](docs/maintenance/application-lifecycle-repair.md).
+
+The reusable BFF/Keycloak composition and its EF/PostgreSQL variant build on these feature-owned
+contributions. Declare actual feature projects, package roots and runtime paths in
+`eng/foundation-composition.json`; use the existing sync mechanism and maintained
+authentication/provider checks. The generated configuration reference and Mermaid diagram,
+redacted configured-source view and actual activated-settings inspector distinguish operational
+settings from owner-defined protocol behavior. Materialization, platform readiness and product
+acceptance have separate outcomes; task guidance places enabling work beside its dependent product
+operation. Application ownership, transaction, conflict, replay and recovery tests remain required.
+See the [composition reference](extensions/program-kit-dotnet/references/foundation-compositions.md),
+[adoption instructions](docs/maintenance/reusable-foundation-adoption.md) and
+[0.12.11 migration guide](releases/migration-0.12.11.md). Existing consumer locks, accepted history,
+custom configuration and live data remain preserved through toolkit upgrades.
 
 Selecting the .NET profile adopts `Orbyss.Foundation.Host` by default. The coordinator's internal
 engineering adapter scaffolds central build/package management, safe managed-file synchronization,
@@ -553,15 +576,15 @@ combined `Test-LiveBootstrap.ps1 -Approved` entry point is retired.
 Build all release artifacts:
 
 ```powershell
-uv run --with "specify-cli==1.1.1" python ./scripts/build_release.py
+uv run --with "specify-cli==1.1.3" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
 the maintained [release procedure](docs/releasing.md).
 
 ```powershell
-git tag v0.12.10
-git push origin v0.12.10
+git tag v0.12.11
+git push origin v0.12.11
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.

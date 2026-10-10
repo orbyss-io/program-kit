@@ -13,6 +13,7 @@ import identity_fixture
 import spa_profile
 import persistence_selection
 import dependency_profile
+import foundation_composition
 
 _architecture_engine = Path(__file__).resolve().parents[1] / 'templates/dotnet/files/eng'
 sys.path.insert(0, str(_architecture_engine))
@@ -450,6 +451,13 @@ def main() -> int:
         target, template_root / "files" / "global.json"
     )
     web_profile = selected_web_profile(target, args.web_profile)
+    foundation_configuration = None
+    foundation_outputs = {}
+    if (target / foundation_composition.INPUT).is_file():
+        foundation_configuration = foundation_composition.load_configuration(target)
+        if web_profile != 'bff-cookie':
+            raise ValueError('PKF001 Foundation composition requires the accepted BFF-cookie profile')
+        foundation_outputs = foundation_composition.materialize(target, foundation_configuration, template_root)
     spa_configuration: dict | None = None
     if web_profile == "spa-pkce":
         configuration_source = target / spa_profile.CONFIGURATION_PATH
@@ -484,6 +492,47 @@ def main() -> int:
     if not isinstance(old_files, dict):
         raise ValueError(f"Invalid managed-file state in {state_path}")
     previous_profile = state.get("webProfile")
+    retained_foundation_sources: set[str] = set()
+    retained_foundation_projects: set[str] = set()
+    def foundation_source(path: str, entry: object) -> bool:
+        return (isinstance(entry, dict) and entry.get('ownership') == 'scaffold'
+                and entry.get('contribution') == 'foundation'
+                and entry.get('sourceIdentity') == '../../scripts/foundation_composition.py'
+                and Path(path).suffix in {'.cs', '.csproj'})
+    if foundation_configuration is not None:
+        for path, previous in old_files.items():
+            if (path in foundation_outputs or Path(path).suffix != '.csproj'
+                    or not foundation_source(path, previous)):
+                continue
+            folder = Path(path).parent
+            members = {source for source, entry in old_files.items()
+                       if source not in foundation_outputs and Path(source).parent == folder
+                       and foundation_source(source, entry)}
+            customized = any((target/source).is_file()
+                             and sha256_bytes((target/source).read_bytes()) != old_files[source].get(
+                                 'baselineHash', old_files[source].get('templateHash'))
+                             for source in members)
+            # New application files also make the project container consumer-owned.
+            extra_source = any(source.relative_to(target).as_posix() not in members
+                               for source in (target/folder).rglob('*.cs')
+                               if not {'bin', 'obj'} & set(source.relative_to(target/folder).parts))
+            if customized or extra_source:
+                retained_foundation_sources.update(members)
+                retained_foundation_projects.add(path)
+        if (target/'eng/architecture.json').is_file():
+            prior_graph = load_json(target/'eng/architecture.json', {})
+            architecture = json.loads(foundation_outputs['eng/architecture.json'][0])
+            # Source-role classification remains accepted even after runtime roots
+            # and feature activations stop selecting this consumer-owned project.
+            architecture['runtimeComposition']['projects'].extend(
+                project for project in prior_graph.get('runtimeComposition', {}).get('projects', [])
+                if isinstance(project, dict) and isinstance(project.get('path'), str)
+                and project['path'] not in {p['path'] for p in foundation_configuration['projects']}
+                and (target/project['path']).is_file()
+                and (project['path'] in retained_foundation_projects
+                     or not foundation_source(project['path'], old_files.get(project['path']))))
+            foundation_outputs['eng/architecture.json'] = (
+                foundation_composition.encoded(architecture), 'scaffold')
     previous_profile_paths = profile_paths(template_root, previous_profile)
     migration_catalog = load_json(
         template_root / "migrations.json", {"schemaVersion": 1, "migrations": []}
@@ -509,6 +558,12 @@ def main() -> int:
             applied_migrations.append(migration_id)
 
     desired_by_path: dict[str, dict] = {}
+    # Dynamic feature scaffolds participate in the same preview/apply transaction and
+    # managed-file ownership as every other contribution; no second generator writes.
+    present = {entry['path'] for entry in entries}
+    entries.extend({'path':path, 'ownership':ownership, 'contribution':'foundation',
+                    'sourceRoot':'../../scripts', 'source':'foundation_composition.py'}
+                   for path, (_, ownership) in foundation_outputs.items() if path not in present)
     for entry in entries:
         relative = entry["path"]
         if relative in desired_by_path:
@@ -530,6 +585,18 @@ def main() -> int:
         content = desired_content(
             source, relative, dotnet_sdk, web_profile, spa_configuration, template_root
         )
+        if relative == 'eng/program_kit_version.py':
+            content = ('# Rendered from the installed Program Kit .NET extension version.\nPROGRAM_KIT_VERSION = '
+                       + repr(extension_version(extension_root)) + '\n').encode('utf-8')
+            rendered = True
+        if relative in foundation_outputs:
+            content, entry['ownership'] = foundation_outputs[relative]
+            entry['contribution'] = 'foundation'
+            rendered = True
+        if foundation_configuration is not None and relative == identity_fixture.REALM_PATH:
+            content = foundation_composition.render_realm(content, foundation_configuration,
+                json.loads(foundation_outputs[foundation_composition.CONTRACT][0]))
+            rendered = True
         if relative == persistence_selection.AGGREGATE:
             content = persistence_selection.render(persistence, template_root / 'files')
             rendered = True
@@ -551,6 +618,12 @@ def main() -> int:
             "content": content,
             "hash": sha256_bytes(content),
         }
+
+    if foundation_configuration is not None:
+        foundation_composition.validate_materialized(target, foundation_configuration,
+            json.loads(foundation_outputs[foundation_composition.CONTRACT][0]),
+            desired_by_path['eng/web-profile.shells.json']['content'],
+            desired_by_path[identity_fixture.REALM_PATH]['content'])
 
     relocated_sources: dict[str, str] = {}
     created: list[str] = []
@@ -688,6 +761,13 @@ def main() -> int:
                 updated.append(relative)
                 actions.append({'kind': 'update', 'path': relative, 'content': desired})
                 final_hash = final_baseline = final_written = desired_hash
+            elif (foundation_configuration is not None and relative == 'eng/architecture.json'
+                  and isinstance(previous,dict) and current_hash == last_written_hash == baseline_hash):
+                # An explicit composition input changes only an authenticated untouched
+                # generated graph. A consumer's edited responsibilities remain preserved.
+                updated.append(relative)
+                actions.append({'kind':'update','path':relative,'content':desired})
+                final_hash = final_baseline = final_written = desired_hash
             elif (
                 isinstance(previous, dict)
                 and current_hash == last_written_hash
@@ -773,9 +853,18 @@ def main() -> int:
                 safe_hashes.add(value)
         if isinstance(migration, dict):
             safe_hashes.update(value for value in migration["expectedHashes"] if isinstance(value, str))
-        if current_hash in safe_hashes:
+        if relative in retained_foundation_sources:
+            preserved.append(relative)
+        elif current_hash in safe_hashes:
             removed.append(relative)
             actions.append({"kind": "remove", "path": relative, "content": None})
+        elif foundation_source(relative, previous):
+            # The Foundation generator's application source belongs to the consumer
+            # after scaffolding. Deselecting a feature releases its contribution,
+            # while preserving customized source as an orphan outside selected roots.
+            # Engineering/configuration outputs and other scaffold producers retain
+            # the authenticated-retirement guard below.
+            preserved.append(relative)
         else:
             conflicts.append(relative)
             conflict_details[relative] = (
@@ -895,7 +984,8 @@ def main() -> int:
         realm = desired_by_path.get(identity_fixture.REALM_PATH)
         if realm is None:
             raise ValueError(f"{web_profile} desired state is missing {identity_fixture.REALM_PATH}")
-        identity_fixture.validate_realm(realm["content"], web_profile, spa_configuration)
+        if foundation_configuration is None:
+            identity_fixture.validate_realm(realm["content"], web_profile, spa_configuration)
     target.mkdir(parents=True, exist_ok=True)
     try:
         transaction_id = reconciliation.apply_plan(target, actions, next_state)
@@ -906,7 +996,10 @@ def main() -> int:
     for relative in prune_retired_program_kit_directories(target):
         print(f"removed empty retired Program Kit directory: {relative}")
     if web_profile in {"bff-cookie", "spa-pkce"}:
-        identity_fixture.verify_repository(target, web_profile, spa_configuration)
+        if foundation_configuration is None:
+            identity_fixture.verify_repository(target, web_profile, spa_configuration)
+        else:
+            foundation_composition.verify_outputs(target)
     if web_profile == "spa-pkce" and spa_configuration is not None:
         spa_profile.verify_outputs(target, spa_configuration)
     return 0

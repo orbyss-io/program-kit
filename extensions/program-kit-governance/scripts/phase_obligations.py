@@ -17,7 +17,7 @@ from decision_knowledge import constraints
 _engineering = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/eng'
 sys.path.insert(0, str(_engineering))
 from test_results import test_results, require, text
-from repository_architecture import validate_planned
+from repository_architecture import validate_planned, lifecycle_findings
 
 def inside(root, relative):
     path = (root / relative).resolve()
@@ -91,7 +91,15 @@ def model(root, feature, phase='planning', affected_paths=()):
     from feature_plan_decisions import project as decisions
     from consumer_upgrade import scan, request_scope
     compatibility = scan(root, request_scope(root, feature=feature), {'after-plan': 'planning', 'after-tasks': 'tasks'}.get(phase, phase))
+    manifest = read(root / 'eng/architecture.json')
+    scoped = {p for row in inherited['sources'] for p in row.get('targetPaths', [])}
+    declarations = '\n'.join((feature/name).read_text(encoding='utf-8') for name in ('spec.md', 'plan.md', 'research.md', 'tasks.md') if (feature/name).is_file())
+    if manifest:
+        scoped.update(p['path'] for p in manifest.get('runtimeComposition', {}).get('projects', [])
+                      if p['path'] in declarations or Path(p['path']).parent.as_posix() in declarations
+                      or any(str(path).replace('\\', '/').startswith(Path(p['path']).parent.as_posix()+'/') for path in affected_paths))
     return {'schemaVersion': 1, 'feature': feature.relative_to(root).as_posix(), 'upgradeCompatibility': compatibility,
+            'lifecycleFindings': lifecycle_findings(root, manifest, scoped) if manifest and 'dotnet' in tags else [],
             'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
             'decisions': decisions(root, feature),
             'prerequisites': retained_proofs(root, feature, phase),
@@ -136,6 +144,10 @@ def render(value, phase, detailed=False):
             lines += ['Compatibility scope: ' + limitation, '']
     for diagnostic in value.get('context', {}).get('diagnostics', []):
         lines += ['Context finding: ' + diagnostic, '']
+    for finding in value.get('lifecycleFindings', []):
+        lines += ['Semantic review finding ' + finding['id'] + ': ' + finding['project'],
+                  finding['message'], 'Evidence: ' + finding.get('source', 'eng/architecture.json')
+                  + ('; owner ' + finding['ownerSource'] if finding.get('ownerSource') else ''), '']
     for source in value.get('context', {}).get('sources', []):
         lines += ['Scoped context: ' + source['path'], '']
     for decision in value.get('decisions', []):
@@ -143,7 +155,8 @@ def render(value, phase, detailed=False):
                   decision['task'], decision['diagnostic'], '']
     for proof in value.get('prerequisites', []):
         lines += [f"Retained prerequisite {proof['id']}: {proof['status']} (due {proof['due']}; {proof['owner']})",
-                  proof['task'], 'A reviewed plan cannot substitute for its required proof or governing authority.', '']
+                  proof['task'], 'Gate scope: retained roadmap-feature prerequisite; operation dependency declarations cannot defer or waive it.',
+                  'A reviewed plan cannot substitute for its required proof or governing authority.', '']
     for rule in value['requirements']:
         guidance = rule['requirement'] if detailed else rule.get('guidance', {}).get(phase, rule['requirement'])
         lines += [f"## {rule['id']}", guidance,
@@ -167,6 +180,10 @@ def check(root, feature, phase, affected_paths=()):
         raise ValueError('Affected upgrade work is due: ' + ', '.join(compatibility['blockers']) + '; use migration pickup/local recovery. Unaffected work remains available.')
     if phase in ('after-plan', 'after-tasks', 'implementation'):
         graph_checked = validate_planned_architecture(root, feature)
+    if phase in ('after-tasks', 'implementation') and (feature / 'tasks.md').is_file():
+        from task_draft import validate_operation_graph, load
+        task_content, task_state = load(feature / 'tasks.md')
+        validate_operation_graph(task_content, required=bool(task_state and task_state.get('format') == 'operation-plan'))
     if phase in ('implementation', 'delivery'):
         from feature_plan_decisions import require_resolved
         require_resolved(root, feature)
@@ -256,14 +273,15 @@ def finish(root, feature, handoff=False):
     """A task checkpoint is progress; only actual closure/handoff runs acceptance."""
     tasks = feature / 'tasks.md'
     require(tasks.is_file(), 'Locate tasks.md before claiming feature closure')
-    from task_draft import load
+    from task_draft import load, current
     content, draft_state = load(tasks)
     pending = len(re.findall(r'^\s*-\s+\[ \]\s+', content, re.M))
     draft = '> Draft:' in content or bool(draft_state and draft_state.get('status') != 'complete')
     if not handoff and (pending or draft):
         return {'status': 'in-progress', 'pendingTasks': pending, 'draft': draft,
                 'applicationChecksPassed': False, 'acceptanceEstablished': False,
-                'instruction': 'Save progress. Run only affected tests for changed code; resume the remaining tasks. No full acceptance at this checkpoint.'}
+                'currentCheckpoint': current(feature),
+                'instruction': 'Replace the compact current checkpoint in tasks.md with task_draft.py checkpoint; preserve unresolved failures and the implementation baseline. Run only checks required by changed inputs. No full acceptance at this checkpoint.'}
     require(handoff or bool(re.search(r'^\s*-\s+\[[xX]\]\s+', content, re.M)),
             'Feature closure requires completed tasks or an explicit formal handoff')
     return execute(root, feature)

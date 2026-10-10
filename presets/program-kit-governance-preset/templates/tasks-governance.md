@@ -1,3 +1,71 @@
+# Tasks: [FEATURE NAME]
+
+**Inputs**: spec.md, plan.md and constitution; optional design sections only as needed.
+**Format**: `- [ ] T001 [P] [US1] Description with concrete file path`.
+`[P]` means independent writes and satisfied prerequisites. IDs and checked boxes survive resume.
+
+## Outcome order and coverage
+
+[List prioritized stories, independent operations and requirement/acceptance-scenario mappings.
+Each operation provides a demonstrable user outcome; split a broad story into several operations.
+No technical-layer phase or blanket foundation barrier. Put only minimal enabling prerequisites
+beside the first operation that proves them; each prerequisite names its actual consumers.]
+
+## [US1] [operation-id]: [independent user outcome]
+
+**Independent test**: [observable behavior including ownership/security and failure scenarios].
+**Prerequisites**: [exact task IDs and why each is required; none when independent].
+**Verification**: [test level, projects/filter/command and required shared-boundary tests].
+
+- [ ] T001 [US1] [One owned prerequisite needed by this operation, concrete path]
+- [ ] T002 [US1] [Test the operation's intended missing behavior, concrete test path]
+- [ ] T003 [US1] [Implement that behavior end-to-end, concrete paths]
+- [ ] T004 [US1] [Refactor and verify the operation's affected boundaries, concrete paths]
+
+[Repeat an operation group for each independently testable outcome; test and implementation pairs
+stay together. Security, storage/provider and admission prerequisites precede their consumers.
+Do not complete future OCR/worker infrastructure before an independent create/list operation.]
+
+## Closure
+
+[Story regression tasks at story closure, then full application acceptance and required delivery
+guidance/settings at feature closure. Shared contracts/generators retain their necessary checks.]
+
+## Operation dependency map
+
+| Operation | Depends on operations |
+|-----------|-----------------------|
+| [operation-id] | none |
+
+Declare only necessary cross-operation dependencies. Use `none` for independent outcomes.
+Minimal enabling tasks share their first proving operation; a reusable prerequisite can have its
+own operation only when actual consumers explicitly depend on it. Closure depends on delivered
+operations. These declarations are reviewed against spec/plan, never inferred from layer names.
+
+## Task dependency map
+
+| Task | Operation | Depends on tasks | Requires | Provides |
+|------|-----------|------------------|----------|----------|
+| T001 | [operation-id] | none | none | [prerequisite-kind] |
+| T002 | [operation-id] | T001 | [prerequisite-kind] | none |
+| T003 | [operation-id] | T002 | [prerequisite-kind] | none |
+| T004 | [operation-id] | T003 | none | none |
+
+Use exact IDs and comma-separated items or `none`. Every task has one row. `Requires` names
+the obligations that must already be established by an ancestor task's `Provides`, such as
+`authorization`, `ownership`, `storage`, `real-provider`, `ocr-admission`. These are planned
+dependencies, not evidence that a task has passed. Do not claim a prerequisite for unrelated
+operations; a missing required gate or unexplained cross-operation dependency blocks finalization.
+Semantic review verifies that the declarations include every actual gate from governing inputs.
+Retained roadmap-feature prerequisites due before implementation still gate feature preflight.
+Operation dependency rows cannot defer or waive approved ledger gates, authority, approvals or pins;
+distinguish them from ordinary scoped enabling-task prerequisites.
+
+## Parallel examples
+
+[Name only independent tasks with disjoint writes and satisfied dependencies. Complete one current
+outcome before spreading work across future operations; parallel flags grant no extra authority.]
+
 ## Incremental task generation
 
 Follow the before_tasks phase-context draft/resume procedure. Persist tasks.md immediately
@@ -44,3 +112,7 @@ owners; do not schedule every category after each small task. Preserve required 
 Update the user-owned roadmap when the outcome changes. Do not create extra review receipts,
 proof attestations, metadata-repair notes or nonapplicability dossiers. Test output belongs in
 ignored artifacts/ or retained CI artifacts; substantive decisions stay in the plan or ADRs.
+During implementation use `task_draft.py checkpoint` to replace one compact current checkpoint
+in tasks.md. Retain the original baseline, current outcome/task IDs, relevant check references,
+decision references, unresolved failures and next action. Do not append a progress journal.
+Use `task_draft.py current` on resume; it supplies current state without rereading the whole plan.

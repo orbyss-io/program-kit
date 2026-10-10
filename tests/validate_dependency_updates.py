@@ -64,6 +64,117 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual('26.0.0', m.read_json(self.root / 'package.json')['engines']['node'])
         self.assertEqual('10.0.401', m.read_json(self.root / 'global.json')['sdk']['version'])
 
+    def additional_nuget(self, document=None, pointer='/xunit.v3.mtp-v2', path='eng/packages.json'):
+        m.write_json(self.root / path, document or {'xunit.v3.mtp-v2': '4.0.1', 'consumerField': 'preserve'})
+        self.policy['inputs'].append(path)
+        self.policy['additionalPins'].append({'kind': 'nuget', 'name': 'xunit.v3.mtp-v2',
+                                             'path': path, 'pointer': pointer})
+        observations = self.observations()
+        pin = next(pin for pin in observations['pins'] if pin['name'] == 'xunit.v3.mtp-v2')
+        pin['latest'] = '4.0.2'
+        return observations, pin
+
+    def test_declared_nuget_json_pointer_is_discovered_and_actually_upgraded(self):
+        observations, pin = self.additional_nuget()
+        self.assertEqual(['eng/packages.json'], pin['paths'])
+        self.assertEqual(m.digest(self.root / 'eng/packages.json'), observations['inputs']['eng/packages.json'])
+        changes = m.upgrade(self.root, self.policy, observations)
+        self.assertIn({'path': 'eng/packages.json', 'dependency': pin['id'], 'to': '4.0.2'}, changes)
+        self.assertEqual({'xunit.v3.mtp-v2': '4.0.2', 'consumerField': 'preserve'},
+                         m.read_json(self.root / 'eng/packages.json'))
+        self.assertTrue(any(p['current'] == '4.0.2' for p in m.inventory(self.root, self.policy)['pins']
+                            if p['name'] == 'xunit.v3.mtp-v2'))
+
+    def test_declared_nuget_pointer_handles_nested_arrays_and_escaped_keys(self):
+        observations, _ = self.additional_nuget({'packages': [{'test/runner~name': '4.0.1'}], 'unrelated': ['keep']},
+                                               '/packages/0/test~1runner~0name', 'package.json')
+        m.upgrade(self.root, self.policy, observations)
+        self.assertEqual({'packages': [{'test/runner~name': '4.0.2'}], 'unrelated': ['keep']},
+                         m.read_json(self.root / 'package.json'))
+
+    def test_declared_pointer_old_value_mismatch_rolls_back_preceding_upgrades(self):
+        observations, pin = self.additional_nuget()
+        before = {path: m.safe_path(self.root, path).read_bytes() for path in observations['inputs']}
+        pin['current'] = '4.0.0'
+        with self.assertRaisesRegex(ValueError, 'observed current version'):
+            m.upgrade(self.root, self.policy, observations)
+        self.assertEqual(before, {path: m.safe_path(self.root, path).read_bytes() for path in before})
+
+    def test_stale_additional_input_is_rejected_without_overwriting_local_changes(self):
+        observations, _ = self.additional_nuget()
+        m.write_json(self.root / 'eng/packages.json', {'xunit.v3.mtp-v2': '4.0.0'})
+        before = {path: m.safe_path(self.root, path).read_bytes() for path in observations['inputs']}
+        with self.assertRaisesRegex(ValueError, 'collect again'):
+            m.upgrade(self.root, self.policy, observations)
+        self.assertEqual(before, {path: m.safe_path(self.root, path).read_bytes() for path in before})
+
+    def test_undeclared_nuget_json_pin_blocks_and_rolls_back(self):
+        observations, _ = self.additional_nuget()
+        self.policy['additionalPins'] = []
+        before = {path: m.safe_path(self.root, path).read_bytes() for path in observations['inputs']}
+        with self.assertRaisesRegex(ValueError, 'no declared additional pin'):
+            m.upgrade(self.root, self.policy, observations)
+        self.assertEqual(before, {path: m.safe_path(self.root, path).read_bytes() for path in before})
+
+    def test_pointer_errors_and_path_escape_roll_back_without_creating_fields(self):
+        for pointer in ('/missing', '/xunit~2v3', ''):
+            with self.subTest(pointer=pointer):
+                self.policy['additionalPins'] = []
+                observations, _ = self.additional_nuget()
+                self.policy['additionalPins'][-1]['pointer'] = pointer
+                # Keep one declaration so duplicate fixtures cannot obscure the selected failure.
+                self.policy['additionalPins'] = self.policy['additionalPins'][-1:]
+                before = {path: m.safe_path(self.root, path).read_bytes() for path in observations['inputs']}
+                with self.assertRaisesRegex(ValueError, 'JSON pointer'):
+                    m.upgrade(self.root, self.policy, observations)
+                self.assertEqual(before, {path: m.safe_path(self.root, path).read_bytes() for path in before})
+        self.policy['additionalPins'] = []
+        observations, _ = self.additional_nuget()
+        self.policy['additionalPins'][0]['path'] = '../outside.json'
+        before = {path: m.safe_path(self.root, path).read_bytes() for path in observations['inputs']}
+        with self.assertRaisesRegex(ValueError, 'escapes repository'):
+            m.upgrade(self.root, self.policy, observations)
+        self.assertEqual(before, {path: m.safe_path(self.root, path).read_bytes() for path in before})
+
+    def test_unhashed_observed_path_cannot_be_written(self):
+        observations, pin = self.additional_nuget()
+        del observations['inputs']['eng/packages.json']
+        before = (self.root / 'eng/packages.json').read_bytes()
+        with self.assertRaisesRegex(ValueError, 'not a hashed input'):
+            m.upgrade(self.root, self.policy, observations)
+        self.assertEqual(before, (self.root / 'eng/packages.json').read_bytes())
+
+    def test_declared_immutable_nuget_input_is_preserved(self):
+        observations, _ = self.additional_nuget()
+        self.policy['immutableInputs'] = ['eng/packages.json']
+        before = (self.root / 'eng/packages.json').read_bytes()
+        changes = m.upgrade(self.root, self.policy, observations)
+        self.assertEqual(before, (self.root / 'eng/packages.json').read_bytes())
+        self.assertFalse(any(change['path'] == 'eng/packages.json' for change in changes))
+
+    def test_structurizr_keeps_specialized_semantic_and_image_update(self):
+        path = self.root / 'c4-viewer-tool.json'
+        m.write_json(path, {'selected': {'version': '2026.01.01', 'docker_image': 'structurizr/structurizr:2026.01.01',
+                                       'docker_digest': 'sha256:' + 'a' * 64,
+                                       'java_war': 'structurizr-2026.01.01.war',
+                                       'java_war_url': 'https://publisher/2026.01.01/structurizr.war'},
+                            'sources': [{'url': 'https://github.com/structurizr/structurizr/releases/tag/v2026.01.01'}],
+                            'tested': {'status': 'passed'}})
+        self.policy['inputs'].append(path.name)
+        self.policy['additionalPins'].append({'kind': 'github', 'name': 'structurizr/structurizr',
+                                             'path': path.name, 'pointer': '/selected/version'})
+        observations = self.observations()
+        next(p for p in observations['pins'] if p['name'] == 'structurizr/structurizr')['latest'] = '2026.02.01'
+        with patch.object(m, 'observe', return_value={'latest': 'sha256:' + 'b' * 64}) as observe:
+            m.upgrade(self.root, self.policy, observations)
+        updated = m.read_json(path)
+        self.assertEqual('2026.02.01', updated['selected']['version'])
+        self.assertEqual('structurizr/structurizr:2026.02.01', updated['selected']['docker_image'])
+        self.assertEqual('sha256:' + 'b' * 64, updated['selected']['docker_digest'])
+        self.assertEqual('structurizr-2026.02.01.war', updated['selected']['java_war'])
+        self.assertEqual('pending-update-validation', updated['tested']['status'])
+        observe.assert_called_once_with({'kind': 'image', 'name': 'structurizr/structurizr:2026.02.01'}, {})
+
     def test_failed_upstream_lookup_does_not_partially_upgrade(self):
         before = (self.root / 'package.json').read_bytes()
         observations = self.observations()

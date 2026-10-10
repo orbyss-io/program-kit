@@ -1,4 +1,6 @@
-# Knowledge and engineering checks
+# Engineering and foundation evidence
+
+## Knowledge and engineering checks
 
 `phase_obligations.py project` prints concise guidance before planning and tasks. The single
 implementation preflight prints implementation guidance while validating planned architecture.
@@ -30,6 +32,15 @@ or `-Scope Affected` while coding. Retain the complete implementation baseline a
 with `-Plan`; do not select by the last edited file alone. Progress saves and resumes earn only
 checks invalidated by changes. `phase_obligations.py finish` returns progress for open tasks/drafts;
 closed features or an explicit `--handoff` run complete acceptance once.
+The scoped plan distinguishes needed checks, reusable successful coverage and unresolved failures,
+including prior run references and reasons. Reuse requires matching transitive source, build,
+configuration, generated, toolchain and controlled environment inputs; filtered coverage cannot
+clear a broader failing regression. Keep successful partial project outcomes if a later project
+fails. An unfiltered multi-project Focused selection states its reason and selected scope. Use the
+maintained wrapper and supported runner adapter for accepted consumer test systems, preserving
+these safeguards. Unknown evaluated inputs must be explicitly owned before narrowing verification.
+Keep one compact current checkpoint in tasks.md rather than an append-only command journal; logs
+and detailed failure history stay in existing ignored artifacts, with unresolved references retained.
 Run `eng/Invoke-RepositoryVerification.ps1` for complete engineering acceptance; it has no dependency on
 installed extensions or governance history. Analyzer errors,
 architecture violations and failed relevant tests prevent completion. Normal code review assesses
@@ -44,3 +55,28 @@ or API-proof attestation is mandatory. Historical evidence can be inspected thro
 `historical_phase_evidence.py`; it grants no new approval and is not a development prerequisite.
 Keep scoped exceptions and their reasons in engineering policy/ADRs and normal review.
 Never manufacture passing history or change old hashes to imply current execution.
+
+## Reusable foundation proof and operation prerequisites
+
+A supported foundation composition inherits exhaustive component tests from its exact
+qualified packages. Maintained setup checks verify the consumer's selected configuration,
+binding, activation, authentication and applicable provider integration. Successful file
+generation does not establish that readiness. Reuse is bound to exact package/template bytes,
+captured profile, configuration, admitted theme changes, service/setup inputs and environment;
+a newer failed/interrupted run or an empty selection establishes no acceptance.
+
+The first-code, web and persistence obligations still require their applicable coverage.
+They do not require consumers to reconstruct generic reporting, provisioning, readiness,
+restart or fault-injection infrastructure. Use maintained setup tooling and the accepted
+native runner adapter. Add application tests for real authorization/owner predicates,
+transaction contents, conflict outcomes, uncertain commit, replay and recovery. Generic
+connectivity or race tests cannot prove those application contracts. Put enabling work
+beside the first operation that consumes it; preserve due security/provider/authority
+gates. Future independent operations do not wait for a universal foundation phase.
+
+Configuration decisions link `docs/architecture/foundation-configuration.md` and the
+redacted settings view. Identify the value's owner, provenance, constraints and lifecycle,
+including whether activation-effective binding was actually observed. Product compatibility
+policy and protocol identities retain their controlled change procedure. Keep secrets out
+of prose, diagrams, logs and public browser settings. Normal artifacts and compact task
+progress provide evidence; no additional checkpoint receipt or approval dossier is required.

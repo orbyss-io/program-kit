@@ -187,8 +187,9 @@ def main() -> int:
     preset_entries = preset["provides"]["templates"]
     preset_templates = [entry for entry in preset_entries if entry['type'] == 'template']
     commands = [entry for entry in preset_entries if entry['type'] == 'command']
-    if len(commands) != 1 or commands[0]['name'] != 'speckit.implement' or commands[0]['strategy'] != 'replace':
-        raise AssertionError('Governance must supply one concise implement command with its own hook dispatch')
+    if {command['name'] for command in commands} != {'speckit.tasks', 'speckit.implement'} or any(
+            command['strategy'] != 'replace' for command in commands):
+        raise AssertionError('Governance must replace tasks and implement commands with consistent operation delivery and hook dispatch')
     if {template["name"] for template in preset_templates} != {
         "constitution-template",
         "spec-template",
@@ -196,8 +197,9 @@ def main() -> int:
         "tasks-template",
     }:
         raise AssertionError("The governance preset must augment constitution and core lifecycle templates")
-    if any(template.get("strategy") != "append" for template in preset_templates):
-        raise AssertionError("Governance template augmentation must compose through append")
+    if any(template.get('strategy') != ('replace' if template['name'] == 'tasks-template' else 'append')
+           for template in preset_templates):
+        raise AssertionError('Tasks generation must replace the layer-first template; other governance templates append')
     bundle = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))
     provided_extensions = {entry["id"] for entry in bundle["provides"]["extensions"]}
     if provided_extensions != {"program-kit-governance", "program-kit-building-blocks", "program-kit-dotnet"}:

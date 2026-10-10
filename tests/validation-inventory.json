@@ -2,6 +2,45 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "qualify_reusable_foundations_contracts",
+      "command": ["{python}", "tests/qualify_reusable_foundations.py", "--contract-tests"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Bounded setup failure-contract checks; no container, package restore or runtime acceptance claim.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/**", "tests/qualify_reusable_foundations.py"],
+      "outputs": ["artifacts/tests/reusable-foundations"], "resources": [],
+      "isolation": "Unique retained adapter artifacts and owned loopback listener."
+    },
+    {
+      "id": "validate_foundation_composition",
+      "command": ["{python}", "tests/validate_foundation_composition.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Finite composition configuration, source-backed views and actual sync preview/apply/rerun/conflicts. Actual package/runtime qualification is separately executed.",
+      "owner": "program-kit",
+      "inputs": ["extensions/program-kit-dotnet/**", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_foundation_composition.py"],
+      "outputs": ["artifacts/foundation-composition"], "resources": [],
+      "isolation": "Unique disposable generated consumers; preserve captured profiles and native locks."
+    },
+    {
+      "id": "validate_foundation_setup",
+      "command": ["{python}", "tests/validate_foundation_setup.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Maintained readiness adapter rejection, source/configuration evidence invalidation, redaction and actual bounded child cleanup; no synthetic result establishes Host/provider acceptance.",
+      "owner": "program-kit",
+      "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation*", "extensions/program-kit-governance/scripts/compatibility_process.py", "tests/validate_foundation_setup.py"],
+      "outputs": ["artifacts/tests/foundation-setup-validator"], "resources": [],
+      "isolation": "Unique retained test-artifact directories; optional real-provider run is explicitly selected."
+    },
+    {
+      "id": "qualify_reusable_foundations",
+      "command": ["{python}", "tests/qualify_reusable_foundations.py", "--shape", "all", "--prepared", "--engines={engines}"],
+      "group": "release", "needs": ["validate_foundation_composition", "validate_foundation_setup"],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Actual selected public composition activation, maintained authentication/provider checks, disposable product ownership, migration and fresh/prepared acquisition measurements; no coding agent.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/**", "tests/qualify_reusable_foundations.py", "tests/fixtures/reusable-foundations/**"],
+      "outputs": ["artifacts/tests/reusable-foundations"], "resources": ["docker", "browser"],
+      "isolation": "Unique disposable consumers and owned containers; reference repositories and live data remain untouched."
+    },
+    {
       "id": "validate_consumer_upgrade",
       "command": ["{python}", "tests/validate_consumer_upgrade.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
@@ -61,6 +100,32 @@
       "resources": [
         "docker"
       ]
+    },
+    {
+      "id": "validate_lifecycle_design",
+      "command": ["{python}", "tests/validate_lifecycle_design.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Exact selected lifecycle knowledge and concrete composition ownership review findings.",
+      "owner": "program-kit",
+      "inputs": ["extensions/**", "scripts/capture_lifecycle_knowledge.py", "scripts/update_dependency_profiles.py", "tests/validate_lifecycle_design.py"],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Disposable source fixtures; historical qualifications and consumer decisions remain unchanged."
+    },
+    {
+      "id": "validate_application_lifecycle",
+      "command": ["{python}", "tests/validate_application_lifecycle.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Real selected CShells and Foundation startup admission, scopes and cancellation/drain without a composition project.",
+      "owner": "program-kit",
+      "inputs": ["extensions/**", "tests/validate_application_lifecycle.py", "tests/fixtures/application-lifecycle/**"],
+      "outputs": ["artifacts/application-lifecycle"],
+      "resources": ["dotnet"],
+      "isolation": "Disposable native runtime fixture; no coding agents or consumer state changes."
     },
     {
       "id": "validate_knowledge_application",

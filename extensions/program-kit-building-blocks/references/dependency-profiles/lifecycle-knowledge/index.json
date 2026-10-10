@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "versions": {
+    "0.0.30-preview.159": {
+      "path": "lifecycle-knowledge/0.0.30-preview.159/index.json",
+      "sha256": "8e967780177fe88c26ec47c5f086f9fc57f494b8098b50b483e6be96d0171cef"
+    }
+  }
+}
