@@ -1,7 +1,7 @@
 <Project>
   <ItemGroup>
     <!-- Private engineering packages have independent pins; the builder is referenced only by feature projects. -->
-    <PackageVersion Include="Orbyss.Foundation.Analyzers" Version="0.3.1" />
+    <PackageVersion Include="Orbyss.Foundation.Analyzers" Version="0.3.2" />
     <PackageVersion Include="Orbyss.Foundation.Build" Version="0.3.1" />
     <PackageVersion Include="CShells.Abstractions" Version="0.0.30-preview.174" />
     <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="0.0.30-preview.174" />

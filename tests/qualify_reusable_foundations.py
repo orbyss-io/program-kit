@@ -141,7 +141,7 @@ def contract_tests():
                                ('bff-cookie','check'),('keycloak','check'),('postgresql','check')):
         value={**original,'steps':[{'stage':raw_stage,'exitCode':19}], 'failure':'PKF004 '+secret}
         write(receipt,value)
-        assert readiness_failure(child,set())=='stage='+expected+' stepExit=19 code=PKF004'
+        assert readiness_failure(child,set())=='stage='+expected+' stepExit=19 code=PKF004'+(' checkpoint=integration-absent childExit=unknown' if expected=='check' else '')
     checks.append('only-known-stage-enums-and-known-error-code-prefixes-projected')
     attacks=[None, [], {'schemaVersion':True}, {**original,'status':secret},
              {**original,'steps':secret}, {**original,'steps':[secret]},
@@ -170,6 +170,118 @@ def contract_tests():
     extra=receipt.parent.parent/'foundation-ambiguous/result.json'; write(extra,original)
     assert readiness_failure(child,set())=='stage=unknown stepExit=unknown code=unknown'
     checks.append('ambiguous-current-readiness-receipts-fail-closed')
+    extra.unlink()
+    value={**original,'steps':[{'stage':'host-activation','exitCode':2}],'failure':'PKF003 '+secret}
+    write(receipt,value)
+    prefix='stage=check stepExit=2 code=PKF003 '
+    integration=receipt.parent/'integration.json'
+    child_process=receipt.parent/('process-'+'a'*32)/'process.json'
+    write(child_process,{'status':'failed','exitCode':29,'command':[secret],'environment':{'TOKEN':secret}})
+    assert readiness_failure(child,set())==prefix+'checkpoint=integration-absent childExit=29'
+    cases={}
+    observed={'schemaVersion':1,'status':'failed','cases':cases,'failure':secret,'timings':{},'runtimeTransport':[]}
+    for name,add in [('before-issuer-check',()),('identity-ready',('Foundation.public_issuer_private_backchannel',)),
+                     ('activated',('Foundation.actual_selected_feature_activation','Foundation.actual_bound_effective_settings')),
+                     ('authenticated',('Foundation.maintained_bff_cookie',)),('provider-restarted',('Foundation.provider_connectivity_restart',))]:
+        cases.update({case:True for case in add}); write(integration,observed)
+        label=readiness_failure(child,set())
+        assert label==prefix+'checkpoint='+name+' childExit=29' and secret not in label
+    observed['cases']={'Foundation.public_issuer_private_backchannel':True}
+    observed['runtimeTransport']=[{'phase':'initial','before':{'byteIdentityVerified':True,'sourceInputs':{secret:secret}}}]
+    write(integration,observed)
+    assert readiness_failure(child,set())==prefix+'checkpoint=host-copied childExit=29'
+    observed['timings']={'hostReadinessSeconds':1.234}; write(integration,observed)
+    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=29'
+    checks.append('only-fixed-integration-checkpoints-and-numeric-child-exits-projected')
+    assert readiness_failure(child,set(),{integration})==prefix+'checkpoint=unknown childExit=unknown'
+    assert readiness_failure(child,set(),{child_process})==prefix+'checkpoint=unknown childExit=unknown'
+    checks.append('previous-child-metadata-cannot-classify-new-readiness')
+    for invalid in ([],{**observed,'schemaVersion':True},{**observed,'cases':{secret:True}},
+                    {**observed,'cases':{'Foundation.maintained_bff_cookie':True}},
+                    {**observed,'runtimeTransport':[{'phase':secret}]},
+                    {**observed,'timings':{'hostReadinessSeconds':secret}},
+                    {**observed,'cases':{'Foundation.public_issuer_private_backchannel':secret}}):
+        write(integration,invalid)
+        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+    for raw in ('{malformed '+secret,' '+secret*4000):
+        integration.write_text(raw,encoding='utf-8')
+        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+    write(integration,observed)
+    for code in (True,secret,4294967296,-2147483649):
+        write(child_process,{'status':'failed','exitCode':code,'failure':secret})
+        assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+    write(child_process,{'status':'failed','exitCode':29})
+    other=receipt.parent/('process-'+'b'*32)/'process.json'; write(other,{'status':'failed','exitCode':31})
+    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=unknown'
+    other.unlink()
+    checks.append('malformed-oversized-injected-and-conflicting-child-metadata-fail-closed')
+    crowded=[]
+    for number in range(129):
+        path=receipt.parent/('process-'+format(number,'032x'))/'process.json'
+        write(path,{'status':'completed','exitCode':0}); crowded.append(path)
+    assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+    for path in crowded:
+        path.unlink(); path.parent.rmdir()
+    checks.append('child-metadata-count-budget-fails-closed')
+    # Parent directory traversal and symlink escapes are checked before any read.
+    def confined(path):
+        if path.resolve()!=path.absolute() or not path.resolve().is_relative_to(receipt.parent):
+            raise ValueError('Invalid diagnostic metadata')
+        return json.loads(path.read_text())
+    outside=evidence/'outside-integration.json'; write(outside,observed)
+    try:
+        integration.unlink(); integration.symlink_to(outside)
+    except OSError:
+        from unittest.mock import patch
+        write(integration,observed)
+        original_resolve=Path.resolve
+        def escaping_resolve(path,*args,**keywords):
+            return outside if path==integration else original_resolve(path,*args,**keywords)
+        with patch.object(Path,'resolve',escaping_resolve):
+            assert readiness_failure(child,set())==prefix+'checkpoint=unknown childExit=unknown'
+    else:
+        assert integration_failure(receipt.parent,confined,set())=='checkpoint=unknown childExit=unknown'
+        integration.unlink(); write(integration,observed)
+    checks.append('escaping-integration-metadata-never-enters-labels')
+    # Real maintained child capture writes the same process metadata consumed above.
+    fixture_path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_fixture.py'
+    capture_spec=importlib.util.spec_from_file_location('integration_failure_capture',fixture_path)
+    fixture=importlib.util.module_from_spec(capture_spec)
+    prior_module=sys.modules.get('foundation_process')
+    sys.modules['foundation_process']=sys.modules['compatibility_process']
+    try: capture_spec.loader.exec_module(fixture)
+    finally:
+        if prior_module is None: sys.modules.pop('foundation_process')
+        else: sys.modules['foundation_process']=prior_module
+    actual=receipt.parent/('process-'+uuid.uuid4().hex)
+    captured=fixture.captured([sys.executable,'-c','import sys; print('+repr(secret)+'); sys.exit(29)'],child,actual,timeout=30)
+    assert captured['exitCode']==29 and captured['cleanupComplete'] and captured['logsDrained']
+    assert readiness_failure(child,set())==prefix+'checkpoint=host-ready childExit=29'
+    checks.append('actual-maintained-failed-child-capture-produces-only-bounded-diagnostics')
+    check_child=evidence/'failed-check-readiness-child'; check_child.mkdir()
+    shutil.copy2(child/'foundation_process.py',check_child/'foundation_process.py')
+    shutil.copy2(child/'fail_setup.py',check_child/'fail_setup.py')
+    check_script=check_child/'fail_check.py'
+    check_script.write_text('import importlib.util,json,sys,uuid\nfrom pathlib import Path\n'
+        +'spec=importlib.util.spec_from_file_location("actual_fixture",'+repr(str(fixture_path))+')\n'
+        +'module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module)\n'
+        +'directory=Path(sys.argv[1]); process=directory/("process-"+uuid.uuid4().hex)\n'
+        +'module.captured([sys.executable,"-c",'+repr('import sys; print('+repr(secret)+'); sys.exit(29)')+'],Path.cwd(),process,timeout=30)\n'
+        +'(directory/"integration.json").write_text('+repr(json.dumps({'schemaVersion':1,'status':'failed',
+              'cases':{'Foundation.public_issuer_private_backchannel':True},'failure':secret,
+              'command':[secret],'environment':{'TOKEN':secret}}))+',encoding="utf-8")\n'
+        +'print('+repr(secret)+',file=sys.stderr); sys.exit(2)\n',encoding='utf-8')
+    selected_check=json.loads(json.dumps(child_selected))
+    for row in selected_check['setup']['steps']: row['command']=[sys.executable,'-c','pass']
+    selected_check['tests']['commands'][0]['command']=[sys.executable,str(check_script),'{runDirectory}']
+    write(check_child/'selected.json',selected_check)
+    try: command([sys.executable,str(check_child/'fail_setup.py')],check_child,evidence/'failed-check-readiness-command',timeout=30,readiness=True)
+    except ValueError as error:
+        label=str(error)
+        assert 'readiness stage=check stepExit=2 code=PKF003 checkpoint=identity-ready childExit=29 outerExit=2;' in label
+        assert secret not in label
+    else: raise AssertionError('Actual maintained check failure was concealed')
+    checks.append('actual-maintained-check-failure-prints-checkpoint-without-child-prose-or-streams')
     injected=evidence/'injected-readiness-child'; injected.mkdir()
     injection={'schemaVersion':1,'kind':'foundation-readiness','status':'failed',
         'steps':[{'stage':secret,'exitCode':secret}],'failure':'PKF003-'+secret,
@@ -300,7 +412,7 @@ def browser_cache_inventory(*, environment=None, platform=None, home=None):
             'scope':'Pre-setup directory inventory only; installed executables and usability require actual browser checks.'}
 
 
-def readiness_failure(root, previous):
+def readiness_failure(root, previous, previous_children=frozenset()):
     """Project only finite failure labels from this invocation's owned metadata.
 
     Never forward streams, exception prose, command arguments or receipt paths.
@@ -339,7 +451,73 @@ def readiness_failure(root, previous):
         failure=value.get('failure')
         matched=re.match(r'^(PKF00[1-5])(?:[ \t]|$)',failure) if isinstance(failure,str) else None
         code=matched.group(1) if matched else 'unknown'
-        return 'stage='+stage+' stepExit='+step_exit+' code='+code
+        classification='stage='+stage+' stepExit='+step_exit+' code='+code
+        if stage=='check':
+            classification+=' '+integration_failure(path.parent,read_owned,previous_children)
+        return classification
+    except (OSError,ValueError,TypeError,RecursionError):
+        return unknown
+
+
+def integration_failure(directory, read_owned, previous):
+    """Known checkpoints and bounded numeric exits only; never export child content."""
+    unknown='checkpoint=unknown childExit=unknown'
+    try:
+        artifact=directory/'integration.json'
+        checkpoint='integration-absent'
+        if artifact.exists() or artifact.is_symlink():
+            if artifact in previous: return unknown
+            value=read_owned(artifact)
+            if (type(value.get('schemaVersion')) is not int or value.get('schemaVersion')!=1
+                    or value.get('status') not in ('running','failed','passed')): return unknown
+            cases=value.get('cases')
+            known={'Foundation.public_issuer_private_backchannel','Foundation.actual_selected_feature_activation',
+                   'Foundation.actual_bound_effective_settings','Foundation.maintained_bff_cookie',
+                   'Foundation.provider_connectivity_restart'}
+            if (not isinstance(cases,dict) or not set(cases)<=known
+                    or not all(type(item) is bool for item in cases.values())): return unknown
+            passed={case for case,item in cases.items() if item}
+            host={'Foundation.actual_selected_feature_activation','Foundation.actual_bound_effective_settings'}
+            if passed & host and not host<=passed: return unknown
+            identity='Foundation.public_issuer_private_backchannel' in passed
+            activated=host<=passed
+            authenticated='Foundation.maintained_bff_cookie' in passed
+            provider='Foundation.provider_connectivity_restart' in passed
+            if (activated and not identity) or (authenticated and not activated) or (provider and not authenticated): return unknown
+            checkpoint='before-issuer-check'
+            if identity: checkpoint='identity-ready'
+            transport=value.get('runtimeTransport',[])
+            if not isinstance(transport,list) or len(transport)>2: return unknown
+            if transport:
+                if not all(isinstance(row,dict) and row.get('phase') in ('initial','migration')
+                           and isinstance(row.get('before'),dict) and row['before'].get('byteIdentityVerified') is True
+                           for row in transport): return unknown
+                if identity: checkpoint='host-copied'
+            timings=value.get('timings',{})
+            if not isinstance(timings,dict): return unknown
+            if 'hostReadinessSeconds' in timings:
+                duration=timings['hostReadinessSeconds']
+                if type(duration) not in (int,float) or not 0<=duration<=1800 or not identity: return unknown
+                checkpoint='host-ready'
+            if activated: checkpoint='activated'
+            if authenticated: checkpoint='authenticated'
+            if provider: checkpoint='provider-restarted'
+            if value['status']=='passed':
+                if not authenticated or value.get('cleanupComplete') is not True: return unknown
+                checkpoint='integration-completed'
+        paths=list(directory.glob('process-*/process.json'))
+        if len(paths)>128 or sum(path.stat().st_size for path in paths)>1048576: return unknown
+        exits=set()
+        for path in paths:
+            if path in previous or not re.fullmatch(r'process-[0-9a-f]{32}',path.parent.name): return unknown
+            value=read_owned(path)
+            observed=value.get('exitCode')
+            if value.get('status') not in ('completed','failed','interrupted'): return unknown
+            if observed is None: continue
+            if type(observed) is not int or not -2147483648<=observed<=4294967295: return unknown
+            if observed: exits.add(observed)
+        child_exit=str(next(iter(exits))) if len(exits)==1 else 'unknown'
+        return 'checkpoint='+checkpoint+' childExit='+child_exit
     except (OSError,ValueError,TypeError,RecursionError):
         return unknown
 
@@ -381,13 +559,15 @@ def require_cold_cache(root):
 
 def command(args, root, evidence, *, timeout=1800, readiness=False):
     previous=set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/result.json')) if readiness else set()
+    previous_children=(set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/integration.json'))
+        | set((root.resolve()/'artifacts/tests/runs').glob('foundation-*/process-*/process.json'))) if readiness else set()
     evidence.mkdir(parents=True)
     with consumer_cache_environment(root) as caches:
         with (evidence/'stdout.log').open('wb') as out,(evidence/'stderr.log').open('wb') as err:
             code=run(args,root,out,err,timeout)
     write(evidence/'result.json',{'exitCode':code,'command':args,'consumerAcquisitionCaches':caches})
     if code:
-        classification=('; readiness '+readiness_failure(root,previous)+' outerExit='+str(code)) if readiness else ''
+        classification=('; readiness '+readiness_failure(root,previous,previous_children)+' outerExit='+str(code)) if readiness else ''
         raise ValueError('Qualification command failed'+classification+'; inspect '+str(evidence))
 
 

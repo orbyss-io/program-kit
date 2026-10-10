@@ -20,6 +20,54 @@ import dependency_maintenance as maintenance
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_ci_manual_targeting_preserves_automatic_and_default_full_routes(self):
+        import os
+        import subprocess
+        import yaml
+        workflow=yaml.safe_load((ROOT/'.github/workflows/ci.yml').read_text())
+        triggers=workflow.get('on',workflow.get(True))
+        selection=triggers['workflow_dispatch']['inputs']['validation']
+        self.assertEqual({'description':'Validation selection (targeted checks do not qualify publication)',
+            'required':False,'default':'full','type':'choice','options':['full','qualify_reusable_foundations']},selection)
+        step=next(row for row in workflow['jobs']['validate']['steps']
+                  if row.get('name')=='Run shared deterministic validation inventory')
+        self.assertEqual('${{ inputs.validation }}',step['env']['VALIDATION_SELECTION'])
+        lines=step['run'].splitlines()
+        self.assertEqual("python - <<'PY'",lines[0]); self.assertEqual('PY',lines[-1])
+        routing='\n'.join(lines[1:-1])
+        base=['python','scripts/run_validation.py']; common=['--workers','4','--engines=chromium,firefox,webkit']
+        routes=[('workflow_dispatch',None,['--suite','PullRequest']),
+                ('workflow_dispatch','',['--suite','PullRequest']),
+                ('workflow_dispatch','full',['--suite','PullRequest']),
+                ('workflow_dispatch','qualify_reusable_foundations',['--check','qualify_reusable_foundations']),
+                ('pull_request','qualify_reusable_foundations',['--suite','PullRequest','--changed-from','base-commit']),
+                ('push','qualify_reusable_foundations',['--suite','Development']),
+                ('push','unknown',['--suite','Development'])]
+        for event,value,expected in routes:
+            environment={'EVENT_NAME':event,'BASE_SHA':'base-commit'}
+            if value is not None: environment['VALIDATION_SELECTION']=value
+            with self.subTest(event=event,selection=value),patch.dict(os.environ,environment,clear=True), \
+                    patch.object(subprocess,'run') as observed:
+                exec(routing,{})
+                observed.assert_called_once_with(base+expected+common,check=True)
+                self.assertNotIn('--receipt',observed.call_args.args[0])
+                self.assertNotIn('Release',observed.call_args.args[0])
+        for value in ('unknown','qualify_reusable_foundations; echo injected','--suite Release --receipt'):
+            with self.subTest(invalid=value),patch.dict(os.environ,{'EVENT_NAME':'workflow_dispatch',
+                    'VALIDATION_SELECTION':value},clear=True),patch.object(subprocess,'run') as observed:
+                with self.assertRaisesRegex(SystemExit,'Unknown manual CI validation selection'): exec(routing,{})
+                observed.assert_not_called()
+        # Exercise the real runner's selection and refusal contracts without
+        # executing runtime checks. --list exits before credentials or services.
+        runner=[sys.executable,str(ROOT/'scripts/run_validation.py'),'--check','qualify_reusable_foundations','--list']
+        listed=subprocess.run(runner,cwd=ROOT,capture_output=True,text=True,check=True)
+        self.assertEqual(['validate_foundation_composition','validate_foundation_setup','qualify_reusable_foundations'],
+                         [line.split(':',1)[0] for line in listed.stdout.splitlines()])
+        for forbidden in (['--receipt'],['--suite','Release']):
+            rejected=subprocess.run(runner+forbidden,cwd=ROOT,capture_output=True,text=True)
+            self.assertEqual(2,rejected.returncode)
+            self.assertIn('cannot claim Release coverage',rejected.stderr)
+
     def test_readme_updates_only_successfully_published_stable_release_examples(self):
         spec = importlib.util.spec_from_file_location('published_readme', ROOT / '.github/scripts/update_published_readme.py')
         updater = importlib.util.module_from_spec(spec)
