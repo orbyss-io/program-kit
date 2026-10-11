@@ -59,9 +59,32 @@ abandon old spec/plan/tasks/code/tests as active progress; rerun specify, clarif
 tasks, analysis and implement. Reuse unchanged confirmed intent/bootstrap, architecture,
 foundations/tooling, locks and delivered features. Real resets need their own consumer-session authority.
 
-Publication gates: version selection and versioned consumer-change/release registration; dependency
-update with active pins/locks and profile/knowledge qualification together; frozen clean candidate,
-fresh successful local Release evidence, green CI (including Firefox), complete tagged Release and
-public install/upgrade. This changes shipped content: predecessor evidence cannot replace these gates.
+Release preparation: the user authorized publication as **0.13.0** on 2026-10-11.
+
+- [x] Register version, initializer/catalog pins, versioned adoption guide and structured consumer change.
+- [x] Retain every indexed guide and its checksums within the 512-file bundle limit: omit only duplicate
+  aggregate summaries from the composite bundle; governance/public assets retain them. Bundle: 511 entries.
+- [x] Release guidance: 8/8; shared-device Release preparation passed; native locks remain unchanged.
+- [x] Bounded maintenance Development: 88/88 on clean `3a1e817b5680b3a45141fb713d720b26a7516e1e`,
+  11:48:34–12:00:14 UTC; [journal](../artifacts/validation-runs/20261011T114834Z-61c1e810/journal.json).
+  Every exit code/log hash verified. This is Development evidence, not a Release receipt.
+- [ ] Complete repaired dependency maintenance and candidate CI, then freeze the candidate.
+- [ ] Obtain fresh successful human-terminal local Release evidence and inspect receipt/assets/logs.
+- [ ] Merge/tag and complete tagged Release, public installation/upgrade and publication verification.
+
+Failed [candidate CI](https://github.com/orbyss-io/program-kit/actions/runs/38136895716) and
+[maintenance](https://github.com/orbyss-io/program-kit/actions/runs/38136883783) evidence is preserved.
+CI passed 119/121 checks, including installed reset/recovery, packaging and all three browser engines.
+Two test-only repairs retain the same rejection/preservation controls: avoid shadowing the updater
+command with the implementation-entry probe, and normalize terminal whitespace before checking the
+unsafe-order diagnostic. Pin/profile/knowledge lookup succeeded; the failure prevented security scanning
+and completion, so the workflow must pass after repair. No release tag or assets were published.
+Both repaired targeted upgrade checks passed with their maintained prerequisites:
+[local upgrade, 5/5](../artifacts/validation-runs/20261011T121424Z-7db4453a/journal.json) and
+[candidate upgrade, 6/6](../artifacts/validation-runs/20261011T121453Z-915c8db6/journal.json).
+Maintenance discovered CShells 0.0.30; normal publisher-engineering synchronization then retained
+the selected published Foundation's exact preview ABI pins. Profile and versioned knowledge are
+already current, so the maintained updater creates no duplicate qualification or lasting pin/lock diff.
+The shipping change requires fresh Release evidence; predecessor evidence cannot replace it.
 Local complete Release remains human-terminal work unless separately authorized through the existing
-opt-in. No publication, paid workers or real consumer reset is authorized by this implementation.
+opt-in. Paid workers and real consumer resets retain their separate authorization gates.

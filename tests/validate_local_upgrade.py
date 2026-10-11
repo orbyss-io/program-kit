@@ -752,9 +752,9 @@ def main() -> int:
             "post-reconciliation artifact ownership",
         )
         preflight = project / ".specify/extensions/program-kit-governance/scripts/implementation_preflight.py"
-        for command in ([sys.executable, str(preflight), '--repository', str(project), '--feature-dir', str(feature)],
-                        [sys.executable, str(preflight.with_name('phase_obligations.py')), 'check', '--repository', str(project), '--feature-dir', str(feature), '--phase', 'implementation']):
-            blocked = run(*command, cwd=project)
+        for implementation_command in ([sys.executable, str(preflight), '--repository', str(project), '--feature-dir', str(feature)],
+                                       [sys.executable, str(preflight.with_name('phase_obligations.py')), 'check', '--repository', str(project), '--feature-dir', str(feature), '--phase', 'implementation']):
+            blocked = run(*implementation_command, cwd=project)
             if blocked.returncode != 2 or 'old progress grants no authority' not in blocked.stdout:
                 raise AssertionError('Old partial upgrade fixture continued without fresh adoption: ' + blocked.stdout + blocked.stderr)
         if lifecycle_path.read_bytes() != lifecycle_before:
