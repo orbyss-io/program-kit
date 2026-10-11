@@ -1103,6 +1103,18 @@
       }
     },
     {
+      "path": "program-kit-dotnet/references/foundation-compositions.md",
+      "phases": ["architecture", "planning", "setup", "implementation", "delivery"],
+      "enforcement": "Finite supported composition inputs, exact selected metadata, managed materialization and explicit maintained readiness; product schema and outcomes remain application-owned.",
+      "route": {
+        "kind": "setup",
+        "via": ["extensions/program-kit-dotnet/scripts/foundation_composition.py", "extensions/program-kit-dotnet/scripts/dotnet_sync.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_setup.py"],
+        "sections": ["Supported Foundation composition inputs"],
+        "requirements": [],
+        "review": "Inspect generated settings/reference, actual selected package roots and named maintained setup evidence. Generation alone proves neither readiness nor product acceptance."
+      }
+    },
+    {
       "path": "program-kit-dotnet/references/persistence-profiles.md",
       "phases": [
         "architecture",
@@ -1564,7 +1576,8 @@
           "extensions/program-kit-governance/scripts/phase_obligations.py"
         ],
         "sections": [
-          "Knowledge and engineering checks"
+          "Knowledge and engineering checks",
+          "Reusable foundation proof and operation prerequisites"
         ],
         "requirements": [],
         "review": "Scoped engineering execution plus normal semantic review; historical evidence is read-only."

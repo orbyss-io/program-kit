@@ -136,6 +136,33 @@
       "recovery": [
         "Preserve failed attempt evidence; complete device remediation in the user terminal and retry the verified resumable updater."
       ]
+    },
+    {
+      "version": "0.12.11",
+      "previous": "0.12.10",
+      "guide": "migration-0.12.11.md",
+      "automatic": [
+        "Install feature-owned lifecycle, current selected-root packaging and maintained scoped verification helpers.",
+        "Install both finite Foundation composition templates, configuration views and maintained setup/native test adapters.",
+        "Update actual tasks and implementation instructions together to schedule prerequisites beside dependent product operations."
+      ],
+      "review": [
+        "Repair only affected application owners, project roots and test ownership mappings; retain valid accepted decisions and completed tasks.",
+        "Adopt changed exact Foundation dependencies only through the existing reviewed dependency transition; live identity/data rollout remains separately scoped."
+      ],
+      "verification": [
+        "Verify installation coherence and exact retained profiles and native locks.",
+        "Run affected lifecycle, selected-root packaging and scoped native tests, retaining original failures and fresh successor regressions.",
+        "Exercise maintained authentication/provider readiness and application-owned operations, conflict/recovery cases and browser durability separately."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve custom source/configuration, accepted history, native locks and failed evidence; retry the same verified resumable updater.",
+        "A toolkit update or Git rollback cannot undo external database or identity state; use the application owner's explicit migration and recovery policy."
+      ]
     }
   ]
 }

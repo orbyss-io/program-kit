@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -40,6 +41,51 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+_package_hash_tools: dict[tuple[str, str], Path] = {}
+
+
+def nuget_content_hash(repository: Path, package: Path) -> str:
+    """Compute restored NuGet identity, excluding only its signature envelope.
+
+    NuGet assets use contentHash, not the SHA512 of the signed archive. The native
+    selected SDK reader computes that identity from actual bytes; cache metadata
+    and signature claims are never trusted as substitutes. Raw SHA256 remains the
+    independent exact archive identity throughout pack/stage evidence.
+    """
+    with zipfile.ZipFile(package) as archive:
+        if '.signature.p7s' not in archive.namelist():
+            return base64.b64encode(hashlib.sha512(package.read_bytes()).digest()).decode('ascii')
+    project = Path(__file__).with_name('package_hash') / 'PackageHash.csproj'
+    if not project.is_file():
+        raise ValueError('PKR014 managed NuGet content-hash adapter is missing; synchronize engineering tools')
+    sdk = subprocess.run(['dotnet', '--version'], cwd=repository, capture_output=True, text=True, timeout=30)
+    if sdk.returncode:
+        raise ValueError('PKR014 cannot observe selected SDK for signed package content identity')
+    sdk_version = sdk.stdout.strip()
+    source_hash = hashlib.sha256(project.read_bytes() + project.with_name('Program.cs').read_bytes()).hexdigest()
+    key = (str(repository.resolve()), sdk_version + source_hash)
+    if key not in _package_hash_tools:
+        directory = repository / 'artifacts/tools/nuget-content-hash' / source_hash / sdk_version
+        directory.mkdir(parents=True, exist_ok=True)
+        command = ['dotnet', 'build', str(project), '-c', 'Release', '--nologo', '--verbosity', 'quiet',
+                   '-p:ImportDirectoryBuildProps=false', '-p:ImportDirectoryBuildTargets=false',
+                   '-p:RestorePackagesWithLockFile=false',
+                   '-p:BaseIntermediateOutputPath=' + str(directory / 'obj') + os.sep,
+                   '-p:OutputPath=' + str(directory / 'bin') + os.sep]
+        built = subprocess.run(command, cwd=repository, capture_output=True, text=True, timeout=120)
+        (directory / 'build.stdout.log').write_text(built.stdout, encoding='utf-8')
+        (directory / 'build.stderr.log').write_text(built.stderr, encoding='utf-8')
+        if built.returncode:
+            raise ValueError('PKR014 signed package identity adapter build failed; inspect ' + str(directory))
+        _package_hash_tools[key] = directory / 'bin/PackageHash.dll'
+    result = subprocess.run(['dotnet', str(_package_hash_tools[key]), str(package.resolve())],
+                            cwd=repository, capture_output=True, text=True, timeout=30)
+    value = result.stdout.strip()
+    if result.returncode or not re.fullmatch(r'[A-Za-z0-9+/]{86}==', value):
+        raise ValueError('PKR014 cannot compute actual signed NuGet content identity: ' + package.name)
+    return value
 
 
 def source_commit(repository: Path) -> str:
@@ -133,7 +179,7 @@ def package_dependencies(path: Path) -> set[tuple[str, str]]:
             continue
         package_id = dependency.attrib.get("id", "").strip()
         raw_version = dependency.attrib.get("version", "").strip()
-        version = raw_version.strip("[]() ").split(",", 1)[0].strip()
+        version = raw_version
         if package_id and version:
             result.add((package_id, version))
     descriptor = package_feature(path)
@@ -146,10 +192,33 @@ def package_dependencies(path: Path) -> set[tuple[str, str]]:
     return result
 
 
-def nuget_version_key(value: str) -> tuple[tuple[int, ...], int, str]:
+def nuget_version_key(value: str) -> tuple:
     """Order the concrete versions emitted by the governed dependency graph."""
-    release, separator, prerelease = value.partition("-")
-    return tuple(int(part) for part in release.split(".")), 1 if not separator else 0, prerelease.casefold()
+    release, separator, prerelease = value.split('+', 1)[0].partition("-")
+    numbers = tuple(int(part) for part in release.split("."))
+    numbers += (0,) * max(0, 4-len(numbers))
+    labels = tuple((0, int(part)) if part.isdigit() else (1, part.casefold()) for part in prerelease.split('.'))
+    return numbers, 1 if not separator else 0, labels
+
+
+def satisfies_version(version: str, constraint: str) -> bool:
+    """Validate a restored exact version; a nuspec range never chooses a version."""
+    constraint = constraint.strip()
+    if not constraint:
+        return True
+    if constraint.startswith(('(', '[')):
+        if not constraint.endswith((')', ']')):
+            raise ValueError('PKR014 invalid NuGet dependency range: ' + constraint)
+        bounds = constraint[1:-1].split(',')
+        if len(bounds) == 1:
+            return constraint.startswith('[') and constraint.endswith(']') and nuget_version_key(version) == nuget_version_key(bounds[0].strip())
+        if len(bounds) != 2:
+            raise ValueError('PKR014 invalid NuGet dependency range: ' + constraint)
+        lower, upper = (item.strip() for item in bounds)
+        key = nuget_version_key(version)
+        return ((not lower or key > nuget_version_key(lower) or constraint[0] == '[' and key == nuget_version_key(lower))
+                and (not upper or key < nuget_version_key(upper) or constraint[-1] == ']' and key == nuget_version_key(upper)))
+    return nuget_version_key(version) >= nuget_version_key(constraint)
 
 
 def is_runtime_package(path: Path) -> bool:
@@ -291,7 +360,8 @@ def descriptor_routes(descriptor: dict, settings_path: Path) -> list[str]:
 def register_package(identities: dict[tuple[str, str], Path], path: Path) -> None:
     identity = package_identity(path)
     conflicting = next(
-        (existing for existing in identities if existing[0].casefold() == identity[0].casefold() and existing != identity),
+        (existing for existing in identities if existing[0].casefold() == identity[0].casefold()
+         and existing[1].casefold() != identity[1].casefold()),
         None,
     )
     if conflicting:
@@ -299,57 +369,129 @@ def register_package(identities: dict[tuple[str, str], Path], path: Path) -> Non
             f"PKR014 runtime image contains multiple versions of {identity[0]}: "
             f"{conflicting[1]} and {identity[1]}."
         )
+    same = next((existing for existing in identities if tuple(x.casefold() for x in existing) == tuple(x.casefold() for x in identity)), None)
+    if same is not None:
+        if sha256(identities[same]) != sha256(path):
+            raise ValueError(f'PKR014 runtime package {identity[0]} {identity[1]} has conflicting bytes.')
+        return
     identities[identity] = path
 
 
-def runtime_dependencies(repository: Path, application_package_ids: set[str]) -> set[tuple[str, str]]:
-    result: set[tuple[str, str]] = set()
-    for assets_path in repository.rglob("project.assets.json"):
-        if "obj" not in assets_path.parts:
+def current_project_assets(repository: Path) -> dict[Path, tuple[str, dict]]:
+    """Evaluate current source projects, never discover roots through stale obj output."""
+    result = {}
+    version = (repository / 'VERSION').read_text(encoding='utf-8').strip() if (repository / 'VERSION').is_file() else None
+    for project in sorted((repository / 'src').rglob('*.*proj')):
+        if project.suffix not in {'.csproj', '.fsproj', '.vbproj'} or {'bin', 'obj'}.intersection(project.relative_to(repository).parts):
             continue
-        assets = json.loads(assets_path.read_text(encoding="utf-8"))
-        restore = assets.get("project", {}).get("restore", {})
-        project_path_value = restore.get("projectPath") or restore.get("projectUniqueName")
-        if not project_path_value:
+        command = ['dotnet', 'msbuild', str(project), '-nologo', '-verbosity:quiet', '-p:Configuration=Release',
+                   '-getProperty:PackageId,PackageVersion,Version,IsPackable,IsTestProject,ProjectAssetsFile',
+                   '-getItem:ProjectReference']
+        if version:
+            command.append('-p:Version=' + version)
+        completed = subprocess.run(command, cwd=repository, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=60)
+        if completed.returncode:
+            raise ValueError('PKR014 cannot evaluate selected package graph; restore/build current source first: ' + str(project))
+        try:
+            evaluated = json.loads(completed.stdout)
+            properties = evaluated['Properties']
+        except (ValueError, KeyError, TypeError) as error:
+            raise ValueError('PKR014 MSBuild did not provide package identity/restore assets: ' + str(project)) from error
+        if properties.get('IsTestProject', '').casefold() == 'true':
             continue
-        project_path = Path(project_path_value)
-        if not project_path.is_absolute():
-            project_path = repository / project_path
-        package_id = restore.get("projectName") or project_path.stem
-        if project_path.is_file():
-            root = ElementTree.parse(project_path).getroot()
-            package_id = next(
-                (element.text for element in root.iter() if element.tag.endswith("PackageId") and element.text),
-                package_id,
-            )
-        if package_id.casefold() not in application_package_ids:
+        assets_path = Path(properties['ProjectAssetsFile'])
+        if not assets_path.is_absolute():
+            assets_path = project.parent / assets_path
+        if not assets_path.resolve().is_relative_to(repository.resolve()):
+            raise ValueError('PKR014 restored project graph must stay inside the repository')
+        assets = json.loads(assets_path.read_text(encoding='utf-8')) if assets_path.is_file() else {}
+        if assets:
+            assets['_programKitPackageVersion'] = properties.get('PackageVersion') or properties.get('Version')
+            assets['_programKitProjectReferences'] = evaluated.get('Items', {}).get('ProjectReference', [])
+        package_id = properties.get('PackageId') if properties.get('IsPackable', '').casefold() != 'false' else ''
+        result[project.resolve()] = (package_id, assets)
+    return result
+
+
+def restored_runtime_dependencies(repository: Path, roots: set[str], projects: dict, participating: set | None = None, selected_versions: dict | None = None) -> set[tuple[str, str]]:
+    """Union exact selected-root restore closures, rejecting disagreement instead of upgrading."""
+    result = {}
+    participating = participating if participating is not None else set()
+    selected_versions = selected_versions or {}
+    def include(identity):
+        package_id, version = identity
+        key = package_id.casefold()
+        previous = result.get(key)
+        if previous and previous[1].casefold() != version.casefold():
+            raise ValueError(f'PKR014 selected roots restore conflicting versions of {package_id}: {previous[1]} and {version}.')
+        result[key] = identity
+    pending_projects = [path for path, (identity, _) in projects.items() if identity.casefold() in roots]
+    visited_projects = set()
+    # External selected features can be resolved in any current project's restore graph.
+    external_roots = roots - {identity.casefold() for identity, _ in projects.values()}
+    graphs = [(path, True) for path in pending_projects] + [(path, False) for path in projects if external_roots]
+    while graphs:
+        project, own_root = graphs.pop()
+        if (project, own_root) in visited_projects:
             continue
-        libraries = assets.get("libraries", {})
-        direct: set[str] = set()
-        for framework in assets.get("project", {}).get("frameworks", {}).values():
-            for dependency_id, dependency in framework.get("dependencies", {}).items():
-                if str(dependency.get("suppressParent", "")).casefold() != "all":
-                    direct.add(dependency_id.casefold())
-        for target in assets.get("targets", {}).values():
-            keys = {
-                key.rsplit("/", 1)[0].casefold(): key
-                for key in target
-                if "/" in key and libraries.get(key, {}).get("type") == "package"
-            }
-            pending, visited = list(direct), set()
+        visited_projects.add((project, own_root))
+        package_id, assets = projects[project]
+        if own_root and not assets:
+            raise ValueError('PKR014 selected feature has no restored graph; restore before packaging: ' + str(project))
+        direct = set(external_roots)
+        if own_root:
+            for framework in assets.get('project', {}).get('frameworks', {}).values():
+                direct.update(identity.casefold() for identity, value in framework.get('dependencies', {}).items()
+                              if str(value.get('suppressParent', '')).casefold() != 'all')
+            for framework in assets.get('project', {}).get('restore', {}).get('frameworks', {}).values():
+                for name, reference in framework.get('projectReferences', {}).items():
+                    path = Path(reference.get('projectPath') or name)
+                    if not path.is_absolute():
+                        path = project.parent / path
+                    path = path.resolve()
+                    metadata = next((item for item in assets.get('_programKitProjectReferences', [])
+                                     if Path(item.get('FullPath') or project.parent / item['Identity']).resolve() == path), {})
+                    if (str(metadata.get('ReferenceOutputAssembly', '')).casefold() == 'false'
+                            or str(metadata.get('OutputItemType', '')).casefold() == 'analyzer'):
+                        continue
+                    if path not in projects:
+                        raise ValueError('PKR014 selected runtime project reference is missing from current source: ' + str(path))
+                    identity, reference_assets = projects[path]
+                    if not identity:
+                        raise ValueError('PKR014 selected runtime project reference is not packable: ' + str(path))
+                    version = reference_assets.get('_programKitPackageVersion')
+                    if not version:
+                        raise ValueError('PKR014 selected runtime reference has no exact restored/evaluated version: ' + str(path))
+                    include((identity, version))
+                    graphs.append((path, True))
+        for target in assets.get('targets', {}).values():
+            keys = {key.rsplit('/', 1)[0].casefold(): key for key in target if '/' in key}
+            eligible = {identity for identity in external_roots if identity in keys and
+                        (identity not in selected_versions or keys[identity].rsplit('/',1)[1] == selected_versions[identity])}
+            if not own_root and not eligible:
+                continue
+            participating.add(project)
+            pending, visited = list(direct if own_root else eligible), set()
             while pending:
-                dependency_id = pending.pop()
-                if dependency_id in visited:
+                identity = pending.pop()
+                if identity in visited:
                     continue
-                visited.add(dependency_id)
-                key = keys.get(dependency_id)
+                visited.add(identity)
+                key = keys.get(identity)
                 if key is None:
                     continue
                 value = target[key]
-                if value.get("runtime") or value.get("runtimeTargets"):
-                    result.add(tuple(key.rsplit("/", 1)))
-                pending.extend(str(item).casefold() for item in value.get("dependencies", {}))
-    return result
+                if assets.get('libraries', {}).get(key, {}).get('type') == 'package' and any(
+                        value.get(kind) for kind in ('runtime', 'runtimeTargets', 'native', 'resource', 'contentFiles', 'compile', 'dependencies')):
+                    include(tuple(key.rsplit('/', 1)))
+                pending.extend(name.casefold() for name in value.get('dependencies', {}))
+    return set(result.values())
+
+
+def runtime_dependencies(repository: Path, application_package_ids: set[str], projects: dict | None = None, participating: set | None = None,
+                         selected_versions: dict | None = None) -> set[tuple[str, str]]:
+    return restored_runtime_dependencies(repository, application_package_ids, current_project_assets(repository) if projects is None else projects,
+                                         participating, selected_versions)
 
 
 def package_sources(repository: Path) -> list[str]:
@@ -417,30 +559,181 @@ def download_package(package_id: str, version: str, bases: list[str], destinatio
     raise FileNotFoundError(f"Could not download {package_id} {version} from configured NuGet sources.")
 
 
-def stage(repository: Path, package_output: Path, output: Path, evidence: Path | None = None) -> None:
+def complete_external_closure(repository: Path, staging: Path, identities: dict, pins: dict) -> None:
+    """Use NuGet, not a nuspec lower-bound heuristic, for unresolved external roots."""
+    missing = {(identity, constraint) for path in identities.values() for identity, constraint in package_dependencies(path)
+               if not any(existing[0].casefold() == identity.casefold() for existing in identities)}
+    if not missing:
+        return
+    artifacts = repository / 'artifacts'
+    evidence = artifacts / 'program-kit/selected-root-restore.json'
+    exact = {identity:version for identity, version in identities}
+    host_required = set()
+    for path in identities.values():
+        for item in (package_feature(path) or {}).get('hostProvidedDependencies', []):
+            host_required.add((item['packageId'], item['minimumVersion']))
+    with tempfile.TemporaryDirectory(prefix='program-kit-selected-roots-', dir=artifacts) as temp_value:
+        temporary = Path(temp_value)
+        # Host declarations are lower bounds, not exact direct pins. A direct
+        # PackageReference would make NuGet's direct-dependency-wins rule choose
+        # an older minimum over a stronger real transitive requirement. Keep
+        # these constraints transitive in a restore-only envelope. It contains
+        # no runtime code and never enters the production closure.
+        constraint_id = 'ProgramKit.Internal.HostRequirements'
+        if constraint_id.casefold() in {identity.casefold() for identity in exact}:
+            raise ValueError('PKR014 reserved selected-root requirements identity is already present')
+        constraint_feed = temporary / 'host-requirements'
+        constraint_feed.mkdir()
+        spec = ElementTree.Element('package')
+        metadata = ElementTree.SubElement(spec, 'metadata')
+        for key, value in {'id':constraint_id, 'version':'1.0.0', 'authors':'Program Kit',
+                           'description':'Temporary native restore constraints; no shipped runtime.'}.items():
+            ElementTree.SubElement(metadata, key).text = value
+        dependencies = ElementTree.SubElement(metadata, 'dependencies')
+        group = ElementTree.SubElement(dependencies, 'group', {'targetFramework':'net10.0'})
+        # Intersect declared lower bounds without choosing a concrete version.
+        # NuGet still selects the version against the complete native graph.
+        host_minima = {}
+        for identity, minimum in host_required:
+            previous = host_minima.get(identity.casefold())
+            if previous is None or nuget_version_key(minimum) > nuget_version_key(previous[1]):
+                host_minima[identity.casefold()] = (identity, minimum)
+        for identity, minimum in sorted(host_minima.values()):
+            ElementTree.SubElement(group, 'dependency', {'id':identity, 'version':minimum})
+        constraint_archive = constraint_feed / (constraint_id + '.1.0.0.nupkg')
+        with zipfile.ZipFile(constraint_archive, 'w') as archive:
+            archive.writestr(constraint_id + '.nuspec', ElementTree.tostring(spec, encoding='utf-8'))
+        configuration = ElementTree.parse(repository / 'NuGet.config')
+        config_root = configuration.getroot()
+        sources = config_root.find('packageSources')
+        if sources is None:
+            sources = ElementTree.SubElement(config_root, 'packageSources')
+        for item in sources.findall('add'):
+            value = item.attrib.get('value', '')
+            if value and not urllib.parse.urlsplit(value).scheme and not Path(value).is_absolute():
+                item.set('value', str((repository / value).resolve()))
+        source_name = 'ProgramKitOwnedSelectedRoots'
+        if any(item.attrib.get('key') == source_name for item in sources):
+            raise ValueError('PKR014 reserved temporary selected-root feed name is already configured')
+        ElementTree.SubElement(sources, 'add', {'key':source_name, 'value':str((staging / 'packages').resolve())})
+        ElementTree.SubElement(sources, 'add', {'key':'ProgramKitOwnedHostRequirements', 'value':str(constraint_feed)})
+        mappings = config_root.find('packageSourceMapping')
+        if mappings is not None:
+            owned = ElementTree.SubElement(mappings, 'packageSource', {'key':source_name})
+            for identity in exact:
+                ElementTree.SubElement(owned, 'package', {'pattern':identity})
+            host_source = ElementTree.SubElement(mappings, 'packageSource', {'key':'ProgramKitOwnedHostRequirements'})
+            ElementTree.SubElement(host_source, 'package', {'pattern':constraint_id})
+        config_path = temporary / 'NuGet.config'; configuration.write(config_path, encoding='utf-8')
+        project = ElementTree.Element('Project', {'Sdk':'Microsoft.NET.Sdk'})
+        properties = ElementTree.SubElement(project, 'PropertyGroup')
+        for key,value in {'TargetFramework':'net10.0', 'IsPackable':'false', 'ImportDirectoryBuildProps':'false',
+                          'ImportDirectoryBuildTargets':'false', 'ManagePackageVersionsCentrally':'true',
+                          'CentralPackageTransitivePinningEnabled':'true',
+                          'RestoreEnablePackagePruning':'false',
+                          'WarningsAsErrors':'NU1605;NU1801;NU1900;NU1901;NU1902;NU1903;NU1904',
+                          'RestorePackagesWithLockFile':'false', 'NuGetAudit':'false'}.items():
+            ElementTree.SubElement(properties,key).text=value
+        central = ElementTree.Element('Project')
+        central_items = ElementTree.SubElement(central,'ItemGroup')
+        selected_versions = dict(pins)
+        for identity, version in exact.items():
+            if identity.casefold() in selected_versions and selected_versions[identity.casefold()] != version:
+                raise ValueError(f'PKR019 selected root {identity} {version} conflicts with central pin {selected_versions[identity.casefold()]}.')
+            selected_versions[identity.casefold()] = version
+        for identity, version in selected_versions.items():
+            constraint = '['+version+']' if identity in pins or identity in {name.casefold() for name in exact} else version
+            ElementTree.SubElement(central_items,'PackageVersion', {'Include':identity,'Version':constraint})
+        ElementTree.ElementTree(central).write(temporary/'Directory.Packages.props',encoding='utf-8')
+        references = ElementTree.SubElement(project, 'ItemGroup')
+        for identity, version in exact.items():
+            ElementTree.SubElement(references,'PackageReference', {'Include':identity})
+        ElementTree.SubElement(central_items, 'PackageVersion', {'Include':constraint_id, 'Version':'[1.0.0]'})
+        ElementTree.SubElement(references, 'PackageReference', {'Include':constraint_id})
+        ElementTree.ElementTree(central).write(temporary/'Directory.Packages.props',encoding='utf-8')
+        project_path = temporary/'SelectedRoots.csproj'; ElementTree.ElementTree(project).write(project_path,encoding='utf-8')
+        result = subprocess.run(['dotnet','restore',str(project_path),'--configfile',str(config_path),'--packages',str(temporary/'packages'),
+                                 '-p:ImportDirectoryBuildProps=false','-p:ImportDirectoryBuildTargets=false','-p:ManagePackageVersionsCentrally=true',
+                                 '-p:RestoreEnablePackagePruning=false'],
+                                cwd=repository,capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=180)
+        codes = sorted(set(re.findall(r'\bNU\d{4}\b', result.stdout+result.stderr)))
+        # NU1603 can legitimately choose an available version inside an unpinned
+        # transitive range. Preserve it; the final graph still must satisfy every
+        # constraint. Exact roots/pins cannot use this fallback. Downgrades,
+        # failed lookups and security diagnostics remain failures.
+        failure_codes = [code for code in codes if code != 'NU1603']
+        evidence.parent.mkdir(parents=True, exist_ok=True)
+        stdout_path = evidence.with_suffix('.stdout.log')
+        stderr_path = evidence.with_suffix('.stderr.log')
+        stdout_path.write_text(result.stdout, encoding='utf-8')
+        stderr_path.write_text(result.stderr, encoding='utf-8')
+        record = {'schemaVersion':1, 'roots':exact, 'exitCode':result.returncode, 'diagnosticCodes':codes,
+                  'stdoutSha256':hashlib.sha256(result.stdout.encode()).hexdigest(),
+                  'stderrSha256':hashlib.sha256(result.stderr.encode()).hexdigest(),
+                  'stdoutPath':str(stdout_path.relative_to(repository)), 'stderrPath':str(stderr_path.relative_to(repository)),
+                  'temporaryInput':True, 'consumerLocksChanged':False, 'publishedHostChanged':False,
+                  'satisfied':result.returncode == 0 and not failure_codes}
+        record['packagePruningEnabled'] = False
+        record['hostMinimumRequirements'] = sorted(host_required)
+        if result.returncode or failure_codes:
+            runtime_closure.atomic_write(evidence, record)
+            raise ValueError('PKR014 native selected-root restore failed ('+','.join(codes)+'); inspect artifacts/program-kit/selected-root-restore.json')
+        assets = json.loads((temporary/'obj/project.assets.json').read_text(encoding='utf-8'))
+        record.update({'targets':assets['targets'], 'libraries':assets['libraries']})
+        runtime_closure.atomic_write(evidence, record)
+        for identity, entry in assets['libraries'].items():
+            if entry.get('type') != 'package':
+                continue
+            package_id, version = identity.rsplit('/',1)
+            if package_id == constraint_id:
+                continue
+            cached = temporary/'packages'/entry['path']/(package_id.lower()+'.'+version.lower()+'.nupkg')
+            if not is_runtime_package(cached):
+                continue
+            existing = next((item for item in identities if item[0].casefold() == package_id.casefold()), None)
+            if existing:
+                # Byte identity remains mandatory even if NuGet used a configured feed/cache.
+                register_package(identities,cached)
+                continue
+            destination = staging/'packages'/f'{package_id}.{version}.nupkg'
+            shutil.copyfile(cached,destination)
+            register_package(identities,destination)
+
+
+def stage(repository: Path, package_output: Path, output: Path, evidence: Path | None = None, inventory: Path | None = None,
+          root_packages: list[str] | None = None) -> None:
+    artifacts = (repository / 'artifacts').resolve()
+    if not output.resolve().is_relative_to(artifacts) or output.resolve() == artifacts:
+        raise ValueError('PKR014 bundle output must be an owned directory under repository artifacts')
     evidence = evidence or repository / runtime_closure.EVIDENCE
     runtime_closure.mark_in_progress(repository, output, evidence)
+    pack_freshness = runtime_closure.validate_pack(repository, package_output, inventory) if inventory else {'established':False}
     active = set().union(*shell_composition.activated_features(repository).values())
     inactive_built_in_packages = {
         package_id.casefold()
         for identity, package_id in BUILT_IN_FEATURE_PACKAGES.items()
         if identity not in active
     }
-    with tempfile.TemporaryDirectory(prefix="program-kit-release-bundle-") as temp_value:
+    artifacts.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="program-kit-release-bundle-", dir=artifacts) as temp_value:
         staging = Path(temp_value) / "release-bundle"
         staged_packages = staging / "packages"
         staged_packages.mkdir(parents=True)
         identities: dict[tuple[str, str], Path] = {}
+        candidates: dict[tuple[str, str], list[Path]] = {}
+        root_ids = set()
         for package in sorted(package_output.glob("*.nupkg")):
             if not is_runtime_package(package):
                 continue
-            package_id, _ = package_identity(package)
+            package_id, version = package_identity(package)
             if package_id.casefold() in inactive_built_in_packages:
                 continue
-            destination = staged_packages / package.name
-            shutil.copyfile(package, destination)
-            register_package(identities, destination)
-        required = runtime_dependencies(repository, {item[0].casefold() for item in identities})
+            # Output is an inventory, never a synthetic aggregate root. Only currently
+            # activated feature descriptors seed local roots; dependency graphs add peers.
+            if any(item['identity'] in active for item in package_features(package)):
+                root_ids.add(package_id.casefold())
+            candidates.setdefault((package_id, version), []).append(package)
+        required = set()
         bases: list[str] = []
         built_ins = [identity for identity in sorted(active) if identity in BUILT_IN_FEATURE_PACKAGES]
         selected_features = {}
@@ -465,50 +758,83 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
                 required.add((package_id, version))
             if version in LEGACY_FEATURE_BRIDGE['packageVersions']:
                 required.update(BUILT_IN_FEATURE_RUNTIME_PACKAGES.get(identity, set()))
-        for package_id, version in required | set(identities):
+        root_ids.update(pinned_built_ins)
+        explicit_roots = {identity.casefold() for identity in (root_packages or [])}
+        if any(not re.fullmatch(r'[A-Za-z0-9_.-]+', identity) for identity in explicit_roots):
+            raise ValueError('PKR014 explicit library roots must be NuGet package identities')
+        local_projects = current_project_assets(repository) if root_ids or explicit_roots else {}
+        for identity in explicit_roots:
+            matches = [(package_id, assets) for package_id, assets in local_projects.values() if package_id.casefold() == identity]
+            if len(matches) != 1:
+                raise ValueError(f'PKR014 explicit library root {identity} must identify exactly one packable current source project.')
+            package_id, assets = matches[0]
+            version = assets.get('_programKitPackageVersion')
+            if not version or not any(package.casefold() == identity and candidate_version == version for package, candidate_version in candidates):
+                raise ValueError(f'PKR014 explicit library root {package_id} {version or "unknown"} has no fresh packed output.')
+            required.add((package_id, version))
+        root_ids.update(explicit_roots)
+        participating = set()
+        required.update(runtime_dependencies(repository, root_ids, local_projects, participating, pinned_built_ins))
+        local_ids = {identity.casefold(): path for path, (identity, _) in local_projects.items() if identity}
+        for identity, version in candidates:
+            if identity.casefold() not in root_ids:
+                continue
+            if identity.casefold() in local_ids:
+                current_version = local_projects[local_ids[identity.casefold()]][1].get('_programKitPackageVersion')
+                if version != current_version:
+                    raise ValueError(f'PKR014 selected local feature {identity} output is stale; rebuild current version {current_version}.')
+            required.add((identity, version))
+        for package_id, version in required:
             pinned = pinned_built_ins.get(package_id.casefold())
             if pinned is not None and version != pinned:
                 raise ValueError(f"PKR019 runtime package '{package_id}' {version} conflicts with central pin {pinned}.")
-        missing = sorted(required - set(identities), key=lambda item: (item[0].casefold(), item[1]))
-        if missing:
-            bases = package_base_addresses(package_sources(repository))
-            for package_id, version in missing:
-                destination = staged_packages / f"{package_id}.{version}.nupkg"
+        reconciled = {}
+        for identity in required:
+            key = identity[0].casefold()
+            if key in reconciled and reconciled[key][1].casefold() != identity[1].casefold():
+                raise ValueError(f'PKR014 selected roots require conflicting versions of {identity[0]}: {reconciled[key][1]} and {identity[1]}.')
+            reconciled[key] = identity
+        required = set(reconciled.values())
+        restored_hashes = {}
+        for project in participating:
+            _, assets = local_projects[project]
+            for identity, value in assets.get('libraries', {}).items():
+                if value.get('type') != 'package' or '/' not in identity or not value.get('sha512'):
+                    continue
+                key = tuple(x.casefold() for x in identity.rsplit('/', 1))
+                if key[0] not in reconciled or key[1] != reconciled[key[0]][1].casefold():
+                    continue
+                if key in restored_hashes and restored_hashes[key] != value['sha512']:
+                    raise ValueError(f'PKR014 selected restore graphs contain conflicting bytes for {identity}.')
+                restored_hashes[key] = value['sha512']
+        for package_id, version in sorted(required, key=lambda item: (item[0].casefold(), item[1])):
+            destination = staged_packages / f'{package_id}.{version}.nupkg'
+            matching = [path for identity, paths in candidates.items() for path in paths if tuple(x.casefold() for x in identity) == (package_id.casefold(), version.casefold())]
+            if matching:
+                if any(sha256(path) != sha256(matching[0]) for path in matching[1:]):
+                    raise ValueError(f'PKR014 runtime package {package_id} {version} has conflicting bytes.')
+                shutil.copyfile(matching[0], destination)
+            else:
+                if package_id.casefold() in local_ids:
+                    raise ValueError(f'PKR014 selected local dependency {package_id} {version} has no fresh packed output.')
+                if not bases:
+                    bases = package_base_addresses(package_sources(repository))
                 download_package(package_id, version, bases, destination)
-                register_package(identities, destination)
-        while True:
-            required_by_dependencies: dict[str, tuple[str, str]] = {}
-            for package_path in identities.values():
-                for package_id, version in package_dependencies(package_path):
-                    key = package_id.casefold()
-                    previous = required_by_dependencies.get(key)
-                    if previous is None or nuget_version_key(version) > nuget_version_key(previous[1]):
-                        required_by_dependencies[key] = (package_id, version)
-            present = {package_id.casefold(): (package_id, version) for package_id, version in identities}
-            missing_dependencies = sorted(
-                (
-                    dependency
-                    for key, dependency in required_by_dependencies.items()
-                    if key not in present
-                    or nuget_version_key(dependency[1]) > nuget_version_key(present[key][1])
-                ),
-                key=lambda item: (item[0].casefold(), item[1]),
-            )
-            if not missing_dependencies:
-                break
-            if not bases:
-                bases = package_base_addresses(package_sources(repository))
-            for package_id, version in missing_dependencies:
-                pinned = pinned_built_ins.get(package_id.casefold())
-                if pinned is not None and version != pinned:
-                    raise ValueError(f"PKR019 dependency requires '{package_id}' {version}, conflicting with central pin {pinned}.")
-                conflicting = present.get(package_id.casefold())
-                if conflicting:
-                    old_path = identities.pop(conflicting)
-                    old_path.unlink()
-                destination = staged_packages / f"{package_id}.{version}.nupkg"
-                download_package(package_id, version, bases, destination)
-                register_package(identities, destination)
+            expected_hash = restored_hashes.get((package_id.casefold(), version.casefold()))
+            if expected_hash and nuget_content_hash(repository, destination) != expected_hash:
+                raise ValueError(f'PKR014 runtime package {package_id} {version} bytes differ from its restored graph.')
+            register_package(identities, destination)
+        # NuGet restore owns version selection (including ranges); nuspecs are a
+        # consistency check. Never substitute the largest lower bound or upgrade pins.
+        complete_external_closure(repository, staging, identities, central_versions)
+        present = {package_id.casefold(): version for package_id, version in identities}
+        for path in identities.values():
+            for package_id, constraint in package_dependencies(path):
+                actual = present.get(package_id.casefold())
+                if actual is None or not satisfies_version(actual, constraint):
+                    pinned = pinned_built_ins.get(package_id.casefold())
+                    code = 'PKR019 dependency requires' if pinned else 'PKR014 selected restore closure does not satisfy'
+                    raise ValueError(f"{code} '{package_id}' {constraint}; restored/staged version is {actual or 'missing'}. Restore the selected roots before packaging.")
         hostsettings = json.loads((repository / "hostsettings.json").read_text(encoding="utf-8"))
         nuplane = json.loads((repository / "nuplane.settings.json").read_text(encoding="utf-8"))
         if not isinstance(hostsettings, dict) or not isinstance(nuplane, dict) or set(nuplane) != {"Nuplane"} or not isinstance(nuplane["Nuplane"], dict):
@@ -536,7 +862,10 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
             shutil.rmtree(output)
         output.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(staging, output)
-    runtime_closure.write_success(repository, output, evidence, PROGRAM_KIT_VERSION)
+    if inventory:
+        # Fetch/compose work cannot silently make an earlier pack current.
+        runtime_closure.validate_pack(repository, package_output, inventory)
+    runtime_closure.write_success(repository, output, evidence, PROGRAM_KIT_VERSION, pack_freshness)
     print(f"staged application release bundle in {output}")
 
 
@@ -653,6 +982,13 @@ def main() -> int:
     stage_parser.add_argument("--packages", required=True)
     stage_parser.add_argument("--output", required=True)
     stage_parser.add_argument("--evidence", default=str(runtime_closure.EVIDENCE))
+    stage_parser.add_argument("--inventory")
+    stage_parser.add_argument('--root-package', action='append', default=[],
+                              help='Explicit current-source library package root; repeat for independent selected libraries.')
+    for name in ('prepare-pack', 'seal-pack'):
+        pack_parser = subparsers.add_parser(name)
+        pack_parser.add_argument('--repository', default='.')
+        pack_parser.add_argument('--packages', required=True)
     describe_parser = subparsers.add_parser("describe")
     describe_parser.add_argument("--repository", default=".")
     describe_parser.add_argument("--staged", required=True)
@@ -668,7 +1004,12 @@ def main() -> int:
             evidence = Path(args.evidence)
             if not evidence.is_absolute():
                 evidence = repository / evidence
-            stage(repository, Path(args.packages).resolve(), Path(args.output).resolve(), evidence.resolve())
+            stage(repository, Path(args.packages).resolve(), Path(args.output).resolve(), evidence.resolve(),
+                  Path(args.inventory).resolve() if args.inventory else None, args.root_package)
+        elif args.command == 'prepare-pack':
+            runtime_closure.prepare_pack(repository, Path(args.packages).resolve())
+        elif args.command == 'seal-pack':
+            runtime_closure.seal_pack(repository, Path(args.packages).resolve())
         else:
             closure_evidence = Path(args.closure_evidence)
             if not closure_evidence.is_absolute():

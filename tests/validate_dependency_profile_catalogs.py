@@ -1,6 +1,6 @@
 """Profile-bound additive catalogs retain historical rules and exact qualification guards.
 
-All new registry entries in this validator are isolated synthetic unit fixtures. They
+New registry entries in this validator are isolated synthetic unit fixtures. They
 establish no package availability, published profile or public default authority.
 """
 from __future__ import annotations
@@ -26,6 +26,7 @@ sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import building_blocks as blocks
 import dependency_profiles as profiles
 import profile_catalogs as catalogs
+import lifecycle_knowledge
 import validate_building_blocks as fixtures
 import json_schema
 
@@ -970,6 +971,66 @@ class CatalogProfileTests(unittest.TestCase):
             self.save_index()
             with self.assertRaisesRegex(blocks.ResolverError, 'named qualification recipe differs'):
                 self.qualified()
+
+
+class LifecycleLockTests(unittest.TestCase):
+    """Copied real registry checks preserve current and historical qualification authority."""
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='lifecycle-lock-')
+        self.addCleanup(self.temp.cleanup)
+        self.registry = Path(self.temp.name)/'dependency-profiles'
+        shutil.copytree(blocks.profile_registry(), self.registry)
+        self.index = blocks.load_json(self.registry/'index.json')
+        self.identity = self.index['default']
+        entry = self.index['profiles'][self.identity]
+        recipe = blocks.load_json(self.registry/entry['qualificationRecipe']['path'])
+        prefix = 'extensions/program-kit-building-blocks/references/dependency-profiles/'
+        self.lock = self.registry/recipe['nativeLock']['path'].removeprefix(prefix)
+        self.lf = self.lock.read_bytes().replace(b'\r\n', b'\n')
+
+    def test_lf_and_crlf_selected_lock_use_the_same_qualified_lifecycle_facts(self):
+        observed = []
+        for ending in (b'\n', b'\r\n'):
+            self.lock.write_bytes(self.lf.replace(b'\n', ending))
+            sources = {}
+            manifest = lifecycle_knowledge.selected(blocks, self.registry, self.identity, sources)
+            self.assertIsNotNone(manifest)
+            self.assertEqual(blocks.raw_sha256(self.lock), sources[str(self.lock)])
+            observed.append(manifest)
+        self.assertEqual(observed[0], observed[1])
+
+    def test_anchored_standalone_loader_needs_no_building_block_script_path(self):
+        self.lock.write_bytes(self.lf.replace(b'\n', b'\r\n'))
+        source = ROOT/'extensions/program-kit-building-blocks/scripts'
+        code = """import importlib.util, json, pathlib, sys
+source, registry, identity = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
+assert str(source) not in sys.path
+spec = importlib.util.spec_from_file_location('standalone_lifecycle_blocks', source/'building_blocks.py')
+blocks = importlib.util.module_from_spec(spec); sys.modules[spec.name] = blocks; spec.loader.exec_module(blocks)
+spec = importlib.util.spec_from_file_location('standalone_lifecycle_facts', source/'lifecycle_knowledge.py')
+lifecycle = importlib.util.module_from_spec(spec); spec.loader.exec_module(lifecycle)
+print(json.dumps(lifecycle.selected(blocks, registry, identity)))
+"""
+        result = subprocess.run([sys.executable, '-c', code, str(source), str(self.registry), self.identity],
+                                cwd=self.temp.name, capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(lifecycle_knowledge.selected(blocks, self.registry, self.identity), json.loads(result.stdout))
+
+    def test_lock_content_changes_fail_before_lifecycle_facts_are_admitted(self):
+        for ending in (b'\n', b'\r\n'):
+            lock = self.lf.replace(b'\n', ending)
+            self.assertIn(b'CShells.Abstractions', lock)
+            self.lock.write_bytes(lock.replace(b'CShells.Abstractions', b'CShells.Changed', 1))
+            with self.assertRaisesRegex(blocks.ResolverError, 'selected lifecycle dependency lock changed'):
+                lifecycle_knowledge.selected(blocks, self.registry, self.identity)
+
+    def test_recorded_historical_lock_keeps_its_own_lifecycle_version(self):
+        historical = 'foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2'
+        self.assertIn(historical, self.index['profiles'])
+        manifest = lifecycle_knowledge.selected(blocks, self.registry, historical)
+        self.assertEqual('0.0.30-preview.159', manifest['version'])
+        self.assertEqual(self.identity, blocks.load_json(self.registry/'index.json')['default'])
+
 
 
 if __name__ == '__main__':

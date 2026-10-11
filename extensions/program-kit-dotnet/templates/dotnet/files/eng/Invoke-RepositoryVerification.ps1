@@ -10,6 +10,8 @@ param(
     [string]$ChangedFrom = '',
     [string]$FeatureDirectory = '',
     [string]$Configuration = 'Debug',
+    [string]$Reason = '',
+    [switch]$Force,
     [switch]$Restore,
     [switch]$Plan
 )
@@ -63,9 +65,12 @@ if ($Scope -ne 'Acceptance') {
     $scopedPath = Join-Path $repository 'eng\verify-scoped.ps1'
     if (Test-Path -LiteralPath $scopedPath) {
         $resolved = Resolve-ConsumerVerification $scopedPath
+        $additional = @{}
+        if ($Reason) { $additional.Reason = $Reason }
+        if ($Force) { $additional.Force = $true }
         & $resolved -Scope $Scope -Projects $Projects -TestArguments $TestArguments `
             -ChangedPaths $ChangedPaths -ChangedFrom $ChangedFrom -FeatureDirectory $FeatureDirectory `
-            -Configuration $Configuration -Restore:$Restore -Plan:$Plan
+            -Configuration $Configuration -Restore:$Restore -Plan:$Plan @additional
         if (-not $?) { throw 'Scoped consumer verification failed.' }
     }
     else {
@@ -76,19 +81,19 @@ if ($Scope -ne 'Acceptance') {
         foreach ($argument in $TestArguments) { $arguments += "--test-argument=$argument" }
         if ($ChangedFrom) { $arguments += @('--changed-from', $ChangedFrom) }
         if ($FeatureDirectory) { $arguments += @('--feature-dir', $FeatureDirectory) }
+        if ($Reason) { $arguments += @('--reason', $Reason) }
+        if ($Force) { $arguments += '--force' }
         if ($Restore) { $arguments += '--restore' }
         if ($Plan) { $arguments += '--plan' }
-        if (-not $Plan) {
-            & (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly
-            if (-not $?) { throw 'Could not prepare the native development environment.' }
-        }
+        & (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly
+        if (-not $?) { throw 'Could not prepare the native development environment.' }
         & python @arguments
         if ($LASTEXITCODE -ne 0) { throw 'Scoped native checks failed. No full-suite fallback was executed.' }
     }
     Write-Host "Scoped $Scope checks completed; full application acceptance is not established."
     return
 }
-if ($Projects.Count -or $TestArguments.Count -or $ChangedPaths.Count -or $ChangedFrom -or $Plan -or $Restore) {
+if ($Projects.Count -or $TestArguments.Count -or $ChangedPaths.Count -or $ChangedFrom -or $Plan -or $Restore -or $Reason -or $Force) {
     throw 'PKV002 Acceptance cannot be narrowed by development selection parameters.'
 }
 

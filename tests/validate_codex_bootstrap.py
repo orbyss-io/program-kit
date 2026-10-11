@@ -9,6 +9,7 @@ import sys
 import subprocess
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import yaml
 
@@ -118,9 +119,18 @@ def validate_python_consumer(module) -> None:
             encoding="utf-8",
             errors="replace",
         )
-        result = module.evaluate_preflight(
-            "codex", project, environ={}, platform_name="nt"
-        )
+        # Native init keeps upstream commands unchanged. This fixture selects
+        # maintained Spec Kit libraries while device readiness still uses PATH.
+        inherited = dict(os.environ)
+        native_files = {path: path.read_bytes() for path in (resolver, skill)}
+        with patch.dict(os.environ, {"SPECKIT_PYTHON": sys.executable}):
+            result = module.evaluate_preflight(
+                "codex", project, environ={}, platform_name="nt"
+            )
+        if inherited != dict(os.environ):
+            raise AssertionError("Native resolver probe did not restore the inherited environment")
+        if any(path.read_bytes() != content for path, content in native_files.items()):
+            raise AssertionError("Native resolver probe changed generated constitution or resolver bytes")
         if result != {"action": "continue", "script_flavor": "py"}:
             raise AssertionError(f"Usable Python resolver was unexpectedly rejected: {result}")
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import json
 import shutil
 import subprocess
 import tempfile
@@ -105,17 +106,21 @@ def main() -> int:
         # acceptance path, forward filters literally and preserve its failure.
         (managed / 'repository_verification.py').write_text(
             "import json,os,sys\nfrom pathlib import Path\n"
+            "root=Path(sys.argv[sys.argv.index('--repository')+1]).resolve()\n"
+            "assert Path(os.environ['NUGET_PACKAGES']).resolve()==root/'artifacts/cache/nuget/packages'\n"
             "Path(os.environ['PROGRAMKIT_TEST_VERIFICATION_MARKER']).write_text(json.dumps(sys.argv[1:]))\n"
             "sys.exit(int(os.environ.get('PROGRAMKIT_TEST_EXIT','0')))\n", encoding='utf-8')
         scoped = run(shell, wrapper, environment, '-Scope', 'Focused', '-Projects',
-                     'tests/Notes.Tests/Notes.Tests.csproj', '-TestArguments', '--filter-uid=one', '-Plan')
-        if scoped.returncode or '--test-argument=--filter-uid=one' not in marker.read_text():
+                     'tests/Notes.Tests/Notes.Tests.csproj', '-TestArguments', '--filter-uid=one',
+                     '-Reason', 'Shared storage dependency changed', '-Force', '-Plan')
+        forwarded = json.loads(marker.read_text()) if scoped.returncode == 0 else []
+        if scoped.returncode or '--test-argument=--filter-uid=one' not in forwarded or '--force' not in forwarded or 'Shared storage dependency changed' not in forwarded:
             raise AssertionError('Scoped selection/filter forwarding failed: ' + scoped.stdout + scoped.stderr)
         environment['PROGRAMKIT_TEST_EXIT'] = '9'
         failed = run(shell, wrapper, environment, '-Scope', 'Affected', '-ChangedFrom', 'initial-commit')
         if failed.returncode == 0 or 'No full-suite fallback' not in failed.stdout + failed.stderr:
             raise AssertionError('Scoped native failure did not propagate without acceptance fallback')
-        for arguments in (('-Projects', 'tests/Notes.Tests/Notes.Tests.csproj'), ('-Plan',)):
+        for arguments in (('-Projects', 'tests/Notes.Tests/Notes.Tests.csproj'), ('-Plan',), ('-Force',), ('-Reason', 'rerun')):
             narrowed = run(shell, wrapper, environment, *arguments)
             if narrowed.returncode == 0 or 'Acceptance cannot be narrowed' not in narrowed.stdout + narrowed.stderr:
                 raise AssertionError('Acceptance accepted a scoped parameter')

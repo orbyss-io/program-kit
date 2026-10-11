@@ -18,7 +18,183 @@ def require(label: str, text: str, phrases: tuple[str, ...]) -> None:
         raise AssertionError(f"{label} is missing required test policy: {missing}")
 
 
+def shared_inventory_invocation(steps: list[dict], label: str) -> dict:
+    marker='scripts/run_validation.py --suite' if label=='Release workflow' else 'scripts/run_validation.py'
+    invocations=[step for step in steps if marker in step.get('run','')]
+    if len(invocations)!=1:
+        raise AssertionError(label+' must run the shared inventory exactly once')
+    return invocations[0]
+
+
+def validate_ci_selection(step: dict) -> None:
+    """Verify the executable fixed-argv CI route, preserving default and automatic coverage."""
+    import os
+    import subprocess
+    from unittest.mock import patch
+    environment=step.get('env',{})
+    for name,expected in (('EVENT_NAME','${{ github.event_name }}'),
+                          ('BASE_SHA','${{ github.event.pull_request.base.sha }}'),
+                          ('VALIDATION_SELECTION','${{ inputs.validation }}')):
+        if environment.get(name)!=expected:
+            raise AssertionError('CI selection must obtain '+name+' as environment data')
+    lines=step.get('run','').splitlines()
+    if not lines or lines[0]!="python - <<'PY'" or lines[-1]!='PY':
+        raise AssertionError('CI selection must use the reviewed Python argument-array route')
+    routing='\n'.join(lines[1:-1])
+    command=['python','scripts/run_validation.py']
+    common=['--workers','4','--engines=chromium,firefox,webkit']
+    routes=[('workflow_dispatch',None,['--suite','PullRequest']),
+            ('workflow_dispatch','',['--suite','PullRequest']),
+            ('workflow_dispatch','full',['--suite','PullRequest']),
+            ('workflow_dispatch','qualify_reusable_foundations',['--check','qualify_reusable_foundations']),
+            ('pull_request','qualify_reusable_foundations',['--suite','PullRequest','--changed-from','base-commit']),
+            ('push','qualify_reusable_foundations',['--suite','Development']),
+            ('push','unknown',['--suite','Development'])]
+    for event,selection,arguments in routes:
+        values={'EVENT_NAME':event,'BASE_SHA':'base-commit'}
+        if selection is not None: values['VALIDATION_SELECTION']=selection
+        with patch.dict(os.environ,values,clear=True),patch.object(subprocess,'run') as run:
+            exec(routing,{})
+            if run.call_count!=1 or run.call_args.args!=(command+arguments+common,) or run.call_args.kwargs!={'check':True}:
+                raise AssertionError('CI selection changed shared coverage or execution for '+event)
+    for selection in ('unknown','qualify_reusable_foundations; echo injected','--suite Release --receipt'):
+        with patch.dict(os.environ,{'EVENT_NAME':'workflow_dispatch','VALIDATION_SELECTION':selection},clear=True), \
+                patch.object(subprocess,'run') as run:
+            try: exec(routing,{})
+            except SystemExit as error:
+                if error.code in (None,0): raise AssertionError('CI selection must fail unknown manual values')
+            else: raise AssertionError('CI selection must reject unknown manual values')
+            if run.called: raise AssertionError('CI selection executed an unknown manual value')
+
+
+
+def validate_bounded_command_path() -> None:
+    """Exercise the actual helper with overlapping Windows command shims."""
+    import os
+    import shutil
+    import subprocess
+    import tempfile
+
+    helper = ROOT / 'scripts/Invoke-LocalRelease.ps1'
+    source = helper.read_text(encoding='utf-8')
+    require('bounded active PATH', source,
+            ('Get-BoundedCommandPath -SelectedCommands $selectedCommands -OriginalPath $env:PATH',
+             'Active executable selection changed while bounding CMD PATH: $name',
+             "[Environment]::SetEnvironmentVariable($environmentName,$savedEnvironment[$environmentName],'Process')"))
+    if os.name != 'nt':
+        return  # CMD command resolution is specific to the supported Windows helper.
+    shell = shutil.which('pwsh') or shutil.which('powershell')
+    if not shell:
+        raise AssertionError('Windows PATH acceptance requires the active PowerShell executable')
+    script = r'''param([string]$Helper, [string]$Fixture)
+$ErrorActionPreference = 'Stop'
+$tokens = $null; $parseErrors = $null
+$ast = [System.Management.Automation.Language.Parser]::ParseFile($Helper, [ref]$tokens, [ref]$parseErrors)
+if ($parseErrors.Count) { throw 'Release helper did not parse' }
+$functions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Get-BoundedCommandPath' }, $true))
+$guards = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.ForEachStatementAst] -and $node.Condition.Extent.Text -eq '$selectedCommands.Keys' }, $true))
+$restores = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.ForEachStatementAst] -and $node.Condition.Extent.Text -eq '$savedEnvironment.Keys' }, $true))
+if ($functions.Count -ne 1 -or $guards.Count -ne 1 -or $restores.Count -ne 1) { throw 'Expected the actual PATH selector, unchanged executable guard and environment restoration' }
+. ([scriptblock]::Create($functions[0].Extent.Text))
+$guard = [scriptblock]::Create($guards[0].Extent.Text)
+$restore = [scriptblock]::Create($restores[0].Extent.Text)
+$early = Join-Path $Fixture 'early'; $late = Join-Path $Fixture 'late'
+$unused = Join-Path $Fixture 'unused'; $outside = Join-Path $Fixture 'outside'
+foreach ($directory in @($early, $late, $unused, $outside)) { [void](New-Item -ItemType Directory -Path $directory) }
+Set-Content -LiteralPath (Join-Path $early 'program-kit-fixture-a.cmd') -Value '@echo early'
+Set-Content -LiteralPath (Join-Path $late 'program-kit-fixture-a.cmd') -Value '@echo shadow'
+Set-Content -LiteralPath (Join-Path $late 'program-kit-fixture-b.cmd') -Value '@echo late'
+$savedPath = $env:PATH
+$originalEnvironment = @{}
+foreach ($environmentName in @('PATH', 'NODE_OPTIONS', 'PROGRAM_KIT_NPM_TOKEN')) {
+    $originalEnvironment[$environmentName] = [Environment]::GetEnvironmentVariable($environmentName, 'Process')
+}
+try {
+    $originalPath = @($early, $unused, $late, $early.ToUpperInvariant(), $PSHOME) -join ';'
+    $env:PATH = $originalPath
+    # Reverse dictionary insertion relative to PATH. Both parents offer command a.
+    $selectedCommands = [ordered]@{
+        'program-kit-fixture-b.cmd' = (Get-Command program-kit-fixture-b.cmd).Source
+        'program-kit-fixture-a.cmd' = (Get-Command program-kit-fixture-a.cmd).Source
+    }
+    $env:PATH = Get-BoundedCommandPath $selectedCommands $originalPath @($PSHOME)
+    if ($env:PATH -ne (@($early, $late, $PSHOME) -join ';')) { throw 'Selected parent order or deduplication changed' }
+    . $guard
+    if ((& program-kit-fixture-a.cmd) -ne 'early' -or (& program-kit-fixture-b.cmd) -ne 'late') { throw 'Wrong executable behavior after bounding PATH' }
+    # A selected command outside PATH must retain its parent after original entries.
+    $selectedCommands['program-kit-fixture-outside.cmd'] = Join-Path $outside 'program-kit-fixture-outside.cmd'
+    Set-Content -LiteralPath $selectedCommands['program-kit-fixture-outside.cmd'] -Value '@echo outside'
+    $env:PATH = Get-BoundedCommandPath $selectedCommands $originalPath @($PSHOME)
+    if ($env:PATH -ne (@($early, $late, $outside, $PSHOME) -join ';')) { throw 'Missing selected parent was reordered or lost' }
+    . $guard
+    # Contradictory selections must still fail the actual helper guard.
+    $selectedCommands['program-kit-fixture-a.cmd'] = Join-Path $late 'program-kit-fixture-a.cmd'
+    $selectedCommands['program-kit-fixture-b.cmd'] = Join-Path $early 'program-kit-fixture-b.cmd'
+    Set-Content -LiteralPath $selectedCommands['program-kit-fixture-b.cmd'] -Value '@echo contradictory'
+    $env:PATH = Get-BoundedCommandPath $selectedCommands $originalPath @($PSHOME)
+    $rejected = $false
+    try { . $guard } catch {
+        if ($_.Exception.Message -ne 'Active executable selection changed while bounding CMD PATH: program-kit-fixture-a.cmd') { throw }
+        $rejected = $true
+    }
+    if (-not $rejected) { throw 'Unsatisfiable executable selection bypassed the guard' }
+    foreach ($value in @($null, '', 'fixture-value')) {
+        $savedEnvironment = @{'NODE_OPTIONS' = $value; 'PROGRAM_KIT_NPM_TOKEN' = $value}
+        foreach ($environmentName in $savedEnvironment.Keys) {
+            [Environment]::SetEnvironmentVariable($environmentName, 'changed-fixture-value', 'Process')
+        }
+        . $restore
+        foreach ($environmentName in $savedEnvironment.Keys) {
+            if ([Environment]::GetEnvironmentVariable($environmentName, 'Process') -cne $value) {
+                throw 'Actual helper failed absent, empty or populated environment restoration'
+            }
+        }
+    }
+} finally { $savedEnvironment = $originalEnvironment; . $restore }
+if ($env:PATH -ne $savedPath) { throw 'Fixture environment was not restored' }
+Write-Output 'Actual bounded PATH ordering, duplicate parents, missing parent, conflicting selection and absent/empty/populated restoration passed.'
+'''
+    import ctypes
+    from ctypes import wintypes
+
+    get_short_path = ctypes.windll.kernel32.GetShortPathNameW
+    get_short_path.argtypes = [wintypes.LPCWSTR, wintypes.LPWSTR, wintypes.DWORD]
+    get_short_path.restype = wintypes.DWORD
+    artifact_parent = ROOT / 'artifacts/tests/test-suites'
+    artifact_parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='program-kit-cmd-path-', dir=artifact_parent) as temporary:
+        fixture = Path(temporary)
+        script_path = fixture / 'acceptance.ps1'
+        script_path.write_text(script, encoding='utf-8')
+        cases = []
+        for label in ('canonical', 'forward-slash', 'relative', 'short-alias'):
+            directory = fixture / label
+            directory.mkdir()
+            argument = str(directory)
+            if label == 'forward-slash':
+                argument = argument.replace('\\', '/')
+            elif label == 'relative':
+                argument = os.path.relpath(directory, ROOT)
+            elif label == 'short-alias':
+                short_path = ctypes.create_unicode_buffer(32768)
+                length = get_short_path(str(directory), short_path, len(short_path))
+                if not length or length >= len(short_path):
+                    raise AssertionError('Owned short-path lookup failed')
+                if short_path.value.casefold() == str(directory).casefold():
+                    print('Owned fixture volume has no distinct 8.3 alias; other path forms remain required.')
+                    continue
+                argument = short_path.value
+            cases.append((label, argument))
+        for label, argument in cases:
+            result = subprocess.run([shell, '-NoProfile', '-File', str(script_path), str(helper), argument],
+                                    cwd=ROOT, text=True, encoding='utf-8', capture_output=True, timeout=30)
+            if result.returncode:
+                raise AssertionError('Actual Windows bounded PATH acceptance failed (' + label + '):\n' + result.stdout + result.stderr)
+            print(label + ': ' + result.stdout.strip())
+
+
 def main() -> int:
+    validate_bounded_command_path()
     aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -142,23 +318,19 @@ def main() -> int:
     for workflow, label in ((ci, "CI"), (release, "Release workflow")):
         definition = yaml.safe_load(workflow)
         steps = next(iter(definition['jobs'].values()))['steps']
-        invocations = [s for s in steps if 'scripts/run_validation.py --suite' in s.get('run', '')]
-        if len(invocations) != 1:
-            raise AssertionError(label + ' must run the shared inventory exactly once')
+        invocation = shared_inventory_invocation(steps, label)
         if 'global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json' not in workflow:
             raise AssertionError(label + ' lacks the pinned SDK')
         if not any(s.get('if') == 'always()' and 'upload-artifact@' in s.get('uses', '') for s in steps):
             raise AssertionError(label + ' must preserve failed validation evidence')
         if label == 'Release workflow':
-            if '--receipt' not in invocations[0]['run']:
+            if '--receipt' not in invocation['run']:
                 raise AssertionError('Tagged Release requires an executed-check receipt')
             publish = next(i for i, s in enumerate(steps) if s.get('name') == 'Publish GitHub release')
-            if steps.index(invocations[0]) >= publish:
+            if steps.index(invocation) >= publish:
                 raise AssertionError('Validation must precede publication')
         else:
-            require('CI selection', invocations[0]['run'], ('--suite PullRequest', '--changed-from', '--suite Development', '--workers 4'))
-            if '--suite Release' in invocations[0]['run']:
-                raise AssertionError('Ordinary CI must not duplicate tagged Release execution')
+            validate_ci_selection(invocation)
 
     require(
         "release evidence reuse",

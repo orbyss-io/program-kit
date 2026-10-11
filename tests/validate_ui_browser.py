@@ -20,7 +20,8 @@ def main() -> int:
     parser.add_argument("--install-browser", action="store_true", help="Provision pinned Chromium, Firefox, WebKit and Linux system dependencies")
     parser.add_argument("--engines", default="chromium,firefox,webkit")
     parser.add_argument("--presentation", choices=('classic-v1', 'modern-product-v1'), default='modern-product-v1')
-    parser.add_argument('--cases', help='Affected browser groups: gallery,forms,motion,auth; omission runs baseline acceptance')
+    parser.add_argument('--cases', help='Affected browser groups: gallery,forms,motion,auth,durability; omission runs fixture baseline')
+    parser.add_argument('--durability-contract', type=Path, help='Consumer-owned real server durability adapter; required for durability')
     args = parser.parse_args()
     fixture = ROOT / "artifacts/ui-browser"
     fixture.mkdir(parents=True, exist_ok=True)
@@ -46,7 +47,7 @@ def main() -> int:
     def run(command: list[str], timeout: int = 300) -> None:
         result = subprocess.run(command, cwd=package_root, env=environment, capture_output=True, text=True, timeout=timeout)
         if result.returncode:
-            raise AssertionError(result.stdout + "\n" + result.stderr)
+            raise AssertionError(f'Browser command exited {result.returncode}\n' + (result.stdout or '') + "\n" + (result.stderr or ''))
         print(result.stdout.strip())
     if args.install:
         run(npm + ["ci", "--ignore-scripts", "--no-audit", "--no-fund", "--strict-ssl=true", "--fetch-retries=0", "--fetch-timeout=30000"])
@@ -56,12 +57,15 @@ def main() -> int:
             command.append("--with-deps")
         run(command)
     run([str(node), "--test", "analytics.test.mjs"])
+    run([str(node), "--test", "durability.test.mjs"])
     run([str(node), "node_modules/@tailwindcss/cli/dist/index.mjs", "-i", "tailwind-input.css", "-o", "../tailwind-compiled.css", "--minify"])
     compiled = (package_root.parent / "tailwind-compiled.css").read_text(encoding="utf-8")
     if ".bg-primary" not in compiled or "var(--pk-primary)" not in compiled or ".text-on-primary" not in compiled:
         raise AssertionError("Tailwind did not compile the semantic-token bridge")
     print("Pinned Tailwind semantic-token compilation passed.")
     case_arguments = [f'--cases={args.cases}'] if args.cases is not None else []
+    if args.durability_contract is not None:
+        case_arguments.append('--durability-contract=' + str(args.durability_contract.resolve()))
     run([str(node), "browser.mjs", f"--engines={args.engines}", *case_arguments])
     (fixture / "toolchain-evidence.json").write_text(json.dumps({"node": package["engines"]["node"], "npm": package["engines"]["npm"],
         "trust": trust, "scriptsEnabled": False, "lockSha256": ui_profile.digest((package_root / "package-lock.json").read_bytes())}, indent=2))

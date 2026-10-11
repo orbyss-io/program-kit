@@ -1,6 +1,8 @@
 """Disposable consumer behavior/recovery checks; no agents, registries or real consumers."""
 from __future__ import annotations
 import copy
+import hashlib
+import uuid
 import json
 import os
 import shutil
@@ -443,6 +445,203 @@ class InstalledUpgradeTests(unittest.TestCase):
                 '--repository', str(source), '--output', 'artifacts/local-maintenance.json'], capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
             self.assertFalse(flow.read(exported)['provenance']['rawLogsIncluded'])
+
+
+class NativePresetBaselineTests(unittest.TestCase):
+    """Actual maintained native install/resolution, not a mocked rendered baseline."""
+    def setUp(self):
+        from specify_cli.presets import PresetManager
+        self.run = ROOT / 'artifacts/tests/consumer-upgrade-native' / uuid.uuid4().hex
+        self.root = self.run / 'consumer'
+        self.root.mkdir(parents=True)
+        flow.git(self.root, 'init')
+        write(self.root, '.gitignore', '.specify/\n.agents/\nartifacts/\n')
+        write(self.root, '.specify/init-options.json', {'ai': 'codex', 'script': 'py', 'ai_skills': True})
+        self.relative = '.agents/skills/speckit-analyze/SKILL.md'
+        write(self.root, self.relative, 'Initial core integration content')
+        self.initial = flow.sha(self.root / self.relative)
+        write(self.root, '.specify/integrations/codex.manifest.json', {'files': {self.relative: self.initial}})
+        # Native installation creates its own rendered skill and composed cache.
+        self.manager = PresetManager(self.root)
+        self.manager.install_from_directory(ROOT / 'presets/program-kit-governance-preset', '1.1.3')
+        self.preset = self.root / '.specify/presets/program-kit-governance-preset'
+        self.cache = self.preset / '.composed/speckit.analyze.md'
+        self.assertTrue(self.cache.is_file())
+        self.skill = self.root / self.relative
+        self.assertIn('Program Kit operation dependency analysis', self.skill.read_text(encoding='utf-8'))
+        commit(self.root)
+
+    def snapshot(self):
+        return {p.relative_to(self.root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                for p in self.root.rglob('*') if p.is_file() and '.git' not in p.relative_to(self.root).parts}
+
+    def inspect(self, customized=False):
+        before = self.snapshot()
+        observed = flow.inventory(self.root)
+        after = self.snapshot()
+        self.assertEqual(before, after, 'Native baseline inspection changed the consumer')
+        self.assertEqual(customized, self.relative in observed['customizations'])
+        flow.atomic(self.run / 'result.json', {'case': self.id(), 'before': before, 'after': after,
+            'customizations': observed['customizations'], 'ownedInstallation': observed['ownedInstallation']})
+        return observed
+
+    def test_actual_append_install_is_baseline_and_preserves_every_consumer_file(self):
+        observed = self.inspect()
+        item = observed['ownedInstallation'][self.relative]
+        self.assertEqual('active-native-preset', item['baselineOwner'])
+        self.assertEqual(flow.sha(self.skill), item['baselineSha256'])
+        self.assertNotEqual(self.initial, item['baselineSha256'])
+
+    def test_edited_skill_and_matching_tampered_cache_remain_customization(self):
+        pristine = self.skill.read_bytes()
+        self.skill.write_bytes(pristine + b'\nConsumer-owned manual instruction\n')
+        self.inspect(customized=True)
+        # Generate a real native matching skill from a tampered installed cache.
+        self.cache.write_text(self.cache.read_text(encoding='utf-8') + '\nConsumer-owned manual instruction\n', encoding='utf-8')
+        from specify_cli.presets import PresetManifest
+        self.manager._register_skills(PresetManifest(self.preset / 'preset.yml'), self.preset)
+        self.assertIn('Consumer-owned manual instruction', self.skill.read_text(encoding='utf-8'))
+        self.inspect(customized=True)
+
+    def test_stale_cache_is_ignored_but_stale_skill_is_customization(self):
+        self.cache.write_text('stale or malicious cache content', encoding='utf-8')
+        self.inspect()
+        self.skill.write_text('stale skill content', encoding='utf-8')
+        self.inspect(customized=True)
+
+    def test_replace_baseline_ignores_cache_and_preserves_real_edits(self):
+        self.relative = '.agents/skills/speckit-tasks/SKILL.md'
+        self.skill = self.root / self.relative
+        write(self.root, '.specify/integrations/codex.manifest.json', {'files': {self.relative: self.initial}})
+        write(self.preset, '.composed/speckit.tasks.md', 'tampered replace cache')
+        self.inspect()
+        self.skill.write_bytes(self.skill.read_bytes() + b'\nReal consumer task instruction\n')
+        self.inspect(customized=True)
+
+    def test_missing_unsupported_escaping_and_colliding_declarations_stay_unresolved(self):
+        import yaml
+        manifest = self.preset / 'preset.yml'
+        original = manifest.read_bytes()
+        for change in ('missing', 'unsupported', 'escaping', 'collision'):
+            with self.subTest(change=change):
+                data = yaml.safe_load(original)
+                entry = next(t for t in data['provides']['templates'] if t['name'] == 'speckit.analyze')
+                if change == 'missing':
+                    entry['file'] = 'commands/missing.md'
+                elif change == 'unsupported':
+                    entry['strategy'] = 'prepend'
+                elif change == 'escaping':
+                    entry['file'] = '../../templates/commands/analyze.md'
+                else:
+                    data['provides']['templates'].append(copy.deepcopy(entry))
+                manifest.write_text(yaml.safe_dump(data), encoding='utf-8')
+                self.assertIsNone(flow.preset_baseline(self.root, self.relative, 'codex'))
+                self.inspect(customized=True)
+                manifest.write_bytes(original)
+
+    def test_winning_replace_does_not_validate_irrelevant_lower_declarations(self):
+        from specify_cli.presets import PresetManifest, PresetRegistry, PresetResolver
+        import yaml
+        top = self.root / '.specify/presets/top-replacement'
+        top.mkdir()
+        data = yaml.safe_load((self.preset / 'preset.yml').read_text(encoding='utf-8'))
+        data['preset']['id'] = 'top-replacement'
+        entry = next(t for t in data['provides']['templates'] if t['name'] == 'speckit.analyze')
+        entry['strategy'] = 'replace'
+        data['provides']['templates'] = [entry]
+        write(top, 'preset.yml', yaml.safe_dump(data))
+        write(top, entry['file'], '---\ndescription: Upper replacement\n---\nIndependent winning source\n')
+        PresetRegistry(self.root / '.specify/presets').add('top-replacement', {'priority': 1, 'version': '0.12.11'})
+        self.manager._register_skills(PresetManifest(top / 'preset.yml'), top)
+        self.assertIn('Independent winning source', self.skill.read_text(encoding='utf-8'))
+        manifest = self.preset / 'preset.yml'
+        original = manifest.read_bytes()
+        for problem in ('missing', 'unsupported', 'escaping'):
+            with self.subTest(problem=problem):
+                lower = yaml.safe_load(original)
+                ignored = next(t for t in lower['provides']['templates'] if t['name'] == 'speckit.analyze')
+                if problem == 'missing':
+                    ignored['file'] = 'commands/missing.md'
+                elif problem == 'unsupported':
+                    ignored['strategy'] = 'prepend'
+                else:
+                    ignored['file'] = '../../escaped-source.md'
+                manifest.write_text(yaml.safe_dump(lower), encoding='utf-8')
+                observed = self.inspect()
+                self.assertEqual(flow.sha(self.skill), observed['ownedInstallation'][self.relative]['baselineSha256'])
+                manifest.write_bytes(original)
+
+    def test_absolute_drive_unc_and_parent_sources_cannot_write_through_live_paths(self):
+        import yaml
+        manifest = self.preset / 'preset.yml'
+        original = manifest.read_bytes()
+        real_write = Path.write_bytes
+        for unsafe in (str(self.preset / 'commands/speckit.analyze.md'),
+                       '../program-kit-governance-preset/commands/speckit.analyze.md',
+                       'C:/consumer-escape.md', '//server/share/consumer-escape.md',
+                       'commands/../../consumer-escape.md'):
+            with self.subTest(unsafe=unsafe):
+                data = yaml.safe_load(original)
+                entry = next(t for t in data['provides']['templates'] if t['name'] == 'speckit.analyze')
+                entry['file'] = unsafe
+                manifest.write_text(yaml.safe_dump(data), encoding='utf-8')
+                before = self.snapshot()
+                times = {p.relative_to(self.root).as_posix(): p.stat().st_mtime_ns
+                         for p in self.root.rglob('*') if p.is_file() and '.git' not in p.relative_to(self.root).parts}
+                def forbid_consumer_write(destination, payload):
+                    self.assertFalse(destination.is_relative_to(self.root), 'Baseline rewrote a live consumer source')
+                    return real_write(destination, payload)
+                with patch.object(Path, 'write_bytes', forbid_consumer_write):
+                    self.assertIsNone(flow.preset_baseline(self.root, self.relative, 'codex'))
+                self.assertEqual(before, self.snapshot())
+                self.assertEqual(times, {p.relative_to(self.root).as_posix(): p.stat().st_mtime_ns
+                         for p in self.root.rglob('*') if p.is_file() and '.git' not in p.relative_to(self.root).parts})
+                self.inspect(customized=True)
+                manifest.write_bytes(original)
+
+    def test_missing_composition_base_and_changed_core_stay_unresolved_or_customized(self):
+        from specify_cli.presets import PresetResolver
+        import yaml
+        manifest = self.preset / 'preset.yml'
+        original = manifest.read_bytes()
+        data = yaml.safe_load(original)
+        entry = next(t for t in data['provides']['templates'] if t['name'] == 'speckit.analyze')
+        entry['name'] = 'speckit.unavailable-base'
+        manifest.write_text(yaml.safe_dump(data), encoding='utf-8')
+        absent = '.agents/skills/speckit-unavailable-base/SKILL.md'
+        write(self.root, absent, 'Consumer fragment with no base')
+        before = self.snapshot()
+        self.assertIsNone(flow.preset_baseline(self.root, absent, 'codex'))
+        self.assertEqual(before, self.snapshot())
+        manifest.write_bytes(original)
+        # Fresh native core resolution must notice current source changes rather
+        # than treating an older installed cache as authority for stale skills.
+        upstream = PresetResolver(self.run).resolve_content('speckit.analyze', 'command')
+        write(self.root, '.specify/templates/commands/analyze.md', upstream + '\nFresh maintained core source\n')
+        observed = self.inspect(customized=True)
+        self.assertNotEqual(flow.sha(self.skill), observed['ownedInstallation'][self.relative]['baselineSha256'])
+
+    def test_linked_contributing_source_is_rejected_without_consumer_mutation(self):
+        # Windows directory junctions need no administrator symlink privilege.
+        source = self.preset / 'commands'
+        target = self.run / 'linked-command-sources'
+        shutil.copytree(source, target)
+        backup = self.preset / 'original-commands'
+        source.rename(backup)
+        if os.name == 'nt':
+            result = subprocess.run(['cmd', '/d', '/c', 'mklink', '/J', str(source), str(target)],
+                                    capture_output=True, text=True, check=True)
+        else:
+            source.symlink_to(target, target_is_directory=True)
+        self.assertTrue(source.is_symlink() or getattr(source, 'is_junction', lambda: False)())
+        before = self.snapshot()
+        self.assertIsNone(flow.preset_baseline(self.root, self.relative, 'codex'))
+        self.assertEqual(before, self.snapshot())
+        # Inventory is fail-closed; it cannot silently grant preset ownership.
+        observed = flow.inventory(self.root)
+        self.assertIn(self.relative, observed['customizations'])
+        flow.atomic(self.run / 'result.json', {'case': self.id(), 'before': before, 'after': self.snapshot(),
+                                             'customizations': observed['customizations']})
 
 
 if __name__ == '__main__':

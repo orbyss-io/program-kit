@@ -333,6 +333,7 @@ class PostBootstrapTests(unittest.TestCase):
             self.assertEqual(approval, (self.root / g.BOOTSTRAP_APPROVAL).read_bytes())
             child_dir = workflow.run_directory(self.root, failed.run_id)
             failed_state = (child_dir / 'state.json').read_bytes()
+            native_prefix = copy.deepcopy(failed.execution['sequence']['nodes'][0])
             saved_definition = (child_dir / 'workflow.yml').read_bytes()
             with self.assertRaisesRegex(ValueError, 'only at the actual paused review gate'):
                 workflow.resume(self.root, failed.run_id, {'recovery_verdict': 'approve'})
@@ -341,6 +342,7 @@ class PostBootstrapTests(unittest.TestCase):
             self.assertEqual(fixture.RunStatus.PAUSED, repaired.status, repaired.error)
             self.assertEqual('review-recovery', repaired.current_step_id)
             self.assertEqual(2, len(calls))
+            self.assertEqual(native_prefix, repaired.execution['sequence']['nodes'][0])
             self.assertEqual(1 if not historical else 2, len(proof_steps))
             self.assertEqual(original, architecture.read_bytes())
             self.assertEqual(saved_definition, (child_dir / 'workflow.yml').read_bytes())

@@ -186,6 +186,85 @@ class ProxyTests(unittest.TestCase):
         self.assertFalse((self.root / '.specify/governance/bootstrap-completion.json').exists())
         self.assertEqual('draft', json.loads((self.root / proxy.INTAKE).read_text())['status'])
 
+    @unittest.skipUnless(importlib.util.find_spec('specify_cli'), 'Requires installed Spec Kit interpreter')
+    def test_native_resume_rebinds_child_inputs_and_preserves_completed_validation(self):
+        import inspect
+        import proxy_bootstrap as bootstrap
+        from specify_cli.workflows.engine import WorkflowDefinition, WorkflowEngine
+        from specify_cli.workflows.step.command import CommandStep
+        if 'inputs' not in inspect.signature(WorkflowEngine.resume).parameters:
+            self.skipTest('Typed resume input rebinding requires Spec Kit 1.1.3')
+        self.full_draft()
+        marker = (self.root / proxy.MARKER).read_bytes()
+        data = copy.deepcopy(WorkflowDefinition.from_yaml(ROOT / 'workflows/program-kit-bootstrap/workflow.yml').data)
+        data['inputs']['rehearsal_label'] = {'type': 'string', 'default': 'before'}
+        data['inputs']['enabling_flag'] = {'type': 'boolean', 'default': False}
+        data['steps'] = [
+            {'id': 'completed-validator', 'type': 'shell', 'run': f'"{sys.executable}" check.py'},
+            {'id': 'child-handoff', 'type': 'workflow', 'workflow': 'proxy-child-fixture',
+             'input': {'label': '{{ inputs.rehearsal_label }}'}}]
+        definition = WorkflowDefinition(data)
+        child = WorkflowDefinition({
+            'schema_version': '1.0',
+            'workflow': {'id': 'proxy-child-fixture', 'version': '1.0.0'},
+            'inputs': {'label': {'type': 'string', 'required': True}},
+            'steps': [{'id': 'assessment', 'type': 'command',
+                       'command': 'speckit.program-kit-governance.assessment',
+                       'input': {'label': '{{ inputs.label }}'}}]})
+        (self.root / 'check.py').write_text(
+            "from pathlib import Path\np=Path('validator-count')\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\n",
+            encoding='utf-8')
+        # Resolve one bounded fixture target; execution, persisted binding and
+        # typed native resume remain the actual upstream implementation.
+        with patch.object(WorkflowEngine, 'load_workflow', return_value=definition), \
+                patch('schema_runtime.setup'), \
+                patch('specify_cli.workflows._execution.resolve_target', return_value=child), \
+                patch.object(CommandStep, '_try_dispatch', side_effect=AssertionError('No coding-agent dispatch permitted')):
+            prepared = bootstrap.prepare(self.root)
+            engine = bootstrap.rehearsal_engine(self.root)
+            with bootstrap.invocation(self.root):
+                state = engine.execute(definition, inputs={'bootstrap_intake': proxy.INTAKE.as_posix(),
+                    'integration': 'codex', 'auto_approve_and_ratify': False}, run_id=prepared['runId'])
+                self.assertEqual('paused', state.status.value)
+                request = bootstrap.load(self.root / bootstrap.DIRECTORY / 'pending.json')
+                self.assertEqual('before', request['input']['label'])
+                state_path = self.root / '.specify/workflows/runs' / state.run_id / 'state.json'
+                before = state_path.read_bytes()
+                with self.assertRaises(ValueError):
+                    engine.resume(state.run_id, inputs={'enabling_flag': 'not-a-boolean'})
+                self.assertEqual(before, state_path.read_bytes())
+                state = engine.resume(state.run_id, inputs={'rehearsal_label': 'after', 'enabling_flag': True})
+                self.assertEqual('paused', state.status.value)
+                request = bootstrap.load(self.root / bootstrap.DIRECTORY / 'pending.json')
+                self.assertEqual('after', request['input']['label'])
+                self.assertEqual('none', request['authority'])
+                self.assertFalse(request['independentLiveWorker'])
+                self.assertTrue(state.inputs['enabling_flag'])
+                self.assertEqual(proxy.INTAKE.as_posix(), state.inputs['bootstrap_intake'])
+                self.assertEqual('after', state.execution['sequence']['nodes'][1]['binding']['inputs']['label'])
+                state = engine.resume(state.run_id, inputs={})
+                self.assertEqual('paused', state.status.value)
+                self.assertEqual('after', bootstrap.load(self.root / bootstrap.DIRECTORY / 'pending.json')['input']['label'])
+        self.assertEqual('1', (self.root / 'validator-count').read_text())
+        self.assertEqual(marker, (self.root / proxy.MARKER).read_bytes())
+        self.assertEqual('draft', bootstrap.load(self.root / proxy.INTAKE)['status'])
+        self.assertFalse((self.root / '.specify/governance/bootstrap-completion.json').exists())
+        self.assertNotIn(bootstrap.ENVIRONMENT, os.environ)
+
+    @unittest.skipUnless(importlib.util.find_spec('specify_cli'), 'Requires installed Spec Kit interpreter')
+    def test_proxy_adapter_retains_earlier_default_execute_signature(self):
+        import proxy_bootstrap as bootstrap
+        from specify_cli.workflows.engine import WorkflowEngine
+        calls = []
+        def legacy_execute(engine, steps, context, state, registry, *, step_offset=0):
+            calls.append((registry, step_offset))
+        with patch.object(WorkflowEngine, '_execute_steps', legacy_execute):
+            bootstrap.rehearsal_engine(self.root)._execute_steps([], None, None, {'shell': object()}, step_offset=2)
+        self.assertEqual(2, calls[0][1])
+        self.assertIn('command', calls[0][0])
+        self.assertIn('gate', calls[0][0])
+        self.assertEqual('RehearsalShell', type(calls[0][0]['shell']).__name__)
+
     def test_private_installer_cache_restores_callers_environment(self):
         import proxy_bootstrap as bootstrap
         for original in (None, 'original-cache'):

@@ -187,8 +187,22 @@ def main() -> int:
     preset_entries = preset["provides"]["templates"]
     preset_templates = [entry for entry in preset_entries if entry['type'] == 'template']
     commands = [entry for entry in preset_entries if entry['type'] == 'command']
-    if len(commands) != 1 or commands[0]['name'] != 'speckit.implement' or commands[0]['strategy'] != 'replace':
-        raise AssertionError('Governance must supply one concise implement command with its own hook dispatch')
+    expected_commands = {
+        'speckit.tasks': {'name': 'speckit.tasks', 'file': 'commands/speckit.tasks.md',
+                          'strategy': 'replace', 'replaces': 'speckit.tasks'},
+        'speckit.implement': {'name': 'speckit.implement', 'file': 'commands/speckit.implement.md',
+                              'strategy': 'replace', 'replaces': 'speckit.implement'},
+        'speckit.analyze': {'name': 'speckit.analyze', 'file': 'commands/speckit.analyze.md',
+                            'strategy': 'append'},
+    }
+    if (len(commands) != len(expected_commands)
+            or {command.get('name') for command in commands} != set(expected_commands)
+            or any({key: value for key, value in command.items()
+                    if key in {'name', 'file', 'strategy', 'replaces'}}
+                   != expected_commands.get(command.get('name')) for command in commands)):
+        raise AssertionError('Governance must replace tasks and implement and append operation dependency analysis through their exact native command sources')
+    if any(not (preset_path.parent / command['file']).is_file() for command in commands):
+        raise AssertionError('A native governance command source is missing')
     if {template["name"] for template in preset_templates} != {
         "constitution-template",
         "spec-template",
@@ -196,8 +210,9 @@ def main() -> int:
         "tasks-template",
     }:
         raise AssertionError("The governance preset must augment constitution and core lifecycle templates")
-    if any(template.get("strategy") != "append" for template in preset_templates):
-        raise AssertionError("Governance template augmentation must compose through append")
+    if any(template.get('strategy') != ('replace' if template['name'] == 'tasks-template' else 'append')
+           for template in preset_templates):
+        raise AssertionError('Tasks generation must replace the layer-first template; other governance templates append')
     bundle = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))
     provided_extensions = {entry["id"] for entry in bundle["provides"]["extensions"]}
     if provided_extensions != {"program-kit-governance", "program-kit-building-blocks", "program-kit-dotnet"}:

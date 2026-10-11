@@ -11,6 +11,7 @@
     "extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version",
     "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
     "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/*.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/packages.json",
     "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json",
     "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json",
     "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml",
@@ -29,6 +30,12 @@
     "localization": "Orbyss.Localization.Abstractions"
   },
   "additionalPins": [
+    {
+      "kind": "nuget",
+      "name": "xunit.v3.mtp-v2",
+      "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/packages.json",
+      "pointer": "/xunit.v3.mtp-v2"
+    },
     {
       "kind": "github",
       "name": "structurizr/structurizr",

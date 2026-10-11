@@ -16,7 +16,23 @@ dependent implementation. Preserve approved bootstrap history; a plan cannot clo
 or delivery execution. Missing responsibility metadata needs review of the selected projects.
 The declared graph checks supplied labels; inspect actual Core/runtime/provider ownership and
 canonical-permission versus resource/state/effect authorization in the changed code.
-Use native dependency locks and supported composition defaults. Run compiler/analyzer checks and
+Resolve material `lifecycleFindings` against their named owner/source in normal scoped review:
+a composition rationale cannot justify foreign task registration or concrete provider preparation.
+Consult the exact captured publisher lifecycle route before choosing contributions/order, and carry
+the resulting admission, scope and drain regressions into the existing operation tasks. Findings are
+review prompts; preserve approved history and correct confirmed ownership defects through its scoped repair.
+Use native dependency locks and supported composition defaults.
+For selected foundation compositions, link `docs/architecture/foundation-configuration.md`
+and the redacted `eng/foundation_composition.py --repository . --effective` view when
+configuration affects the operation. Report effective-source overrides and whether actual
+activation was observed. Reuse maintained generic setup tests for unchanged exact inputs;
+author application ownership, transaction, conflict, replay and recovery tests where relevant.
+File materialization, foundation readiness and product acceptance are separate outcomes.
+An old successful setup result cannot hide changed deployment inputs or a newer failure.
+Preserve due authority/security/provider gates beside their dependent operation; no universal
+foundation phase is introduced. Drafting and ordinary hooks never start services.
+
+Run compiler/analyzer checks and
 targeted tests as code changes. Write and run the relevant failing case before its implementation,
 then nearby regressions for refactoring. Expand through changed contracts and reverse dependencies.
 Progress saves, task batches and resumes do not trigger full acceptance. Restore only for changed

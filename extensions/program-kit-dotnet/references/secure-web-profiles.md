@@ -133,6 +133,17 @@ container `localhost` is forbidden because it changes loopback semantics for eve
 
 ### Authentication verification tiers
 
+Supported foundation compositions reuse these maintained tests and exact component evidence.
+Consumers run the maintained configuration/binding and small browser login/provider setup
+checks against their actual selected inputs. They own product permission/owner predicates,
+customized UI behavior and applicable session/recovery outcomes. An inherited protocol test
+does not prove an application's authorization query. Deployments renew affected setup checks
+when origins, issuer/backchannel, secrets, callback paths or tested theme artifacts change.
+The public identity issuer remains separate from private administration/transport addresses.
+Link generated `docs/architecture/foundation-configuration.md` and the redacted settings
+view when describing materially configured behavior; distinguish configured projections
+from observed activation-effective options. Preserve the mandatory assurance gates below.
+
 Core CI continuously proves the portable contract: configuration validation, issuer/audience/key/lifetime
 validation, claims and permission normalization, BFF and SPA-PKCE journeys, machine identity, token
 exchange, downstream routing, refresh-token replay rejection, DPoP request binding, and deterministic

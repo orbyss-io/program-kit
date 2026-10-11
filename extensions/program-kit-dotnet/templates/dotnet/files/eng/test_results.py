@@ -9,7 +9,10 @@ def text(value):
 
 def test_results(path, format_name):
     """Read actual test cases, not aggregate exit codes or a claimed count."""
-    tree = ET.parse(path)
+    try:
+        tree = ET.parse(path)
+    except ET.ParseError:
+        raise ValueError('Malformed native test report; no execution acceptance established') from None
     results = {}
     for node in tree.iter():
         tag = node.tag.rsplit('}', 1)[-1]

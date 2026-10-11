@@ -112,6 +112,17 @@
         "additionalProperties": false
       }
     },
+    "packSourceFreshness": {
+      "type": "object",
+      "properties": {
+        "established": { "type": "boolean" },
+        "inventory": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "required": ["established"],
+      "additionalProperties": false,
+      "allOf": [{"if": {"properties": {"established": {"const": true}}}, "then": {"required": ["inventory", "sha256"]}}]
+    },
     "sourceInputs": {
       "type": "object",
       "additionalProperties": {

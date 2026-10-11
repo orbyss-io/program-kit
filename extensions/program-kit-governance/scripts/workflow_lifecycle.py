@@ -287,6 +287,55 @@ def migrate_suffix(root: Path, state: RunState, saved: WorkflowDefinition, resta
     return result
 
 
+
+
+def validate_execution_checkpoint(state: RunState, definition: WorkflowDefinition) -> None:
+    tree = getattr(state, 'execution', None)
+    if tree is not None:
+        from specify_cli.workflows._execution import validate_execution
+        validate_execution(tree, workflow_steps=definition.steps,
+                           current_step_index=state.current_step_index)
+
+
+def reset_execution_suffix(state: RunState, definition: WorkflowDefinition, index: int) -> None:
+    """Reopen only the snapshotted stage suffix in Spec Kit's native checkpoint.
+
+    Since Spec Kit 1.1.3, step_results/indices are views of an authoritative
+    occurrence tree. Keep completed prefix occurrences and their child bindings
+    intact; clearing the flat views alone would silently reuse old producers.
+    Ordinary gate resumes do not call this adapter. The caller snapshots the
+    previous tree before revoking any suffix progress.
+    """
+    tree = getattr(state, 'execution', None)
+    if tree is None:
+        return  # Legacy engine/state adapts from the existing index and results.
+    from specify_cli.workflows._execution import (
+        new_execution, sequence, steps_of, validate_execution,
+    )
+    validate_execution(tree)
+    offset = tree.get('offset', 0)
+    if index < offset:
+        # A legacy checkpoint began after the requested producer. Its earlier
+        # prefix exists only as aliases; preserve that representation rather
+        # than inventing completed occurrences or retaining invalid aliases.
+        replacement = new_execution(definition.steps[index:], index, state.step_results)
+    else:
+        prefix_length = index - offset
+        previous_steps = steps_of(tree['sequence'])
+        prefix = tree['sequence']['nodes'][:prefix_length]
+        if (previous_steps[:prefix_length] != definition.steps[offset:index]
+                or len(prefix) != prefix_length
+                or any(node['phase'] != 'done' for node in prefix)):
+            raise WorkflowLifecycleError('Native execution prefix differs from the preserved workflow; maintenance required')
+        replacement = copy.deepcopy(tree)
+        replacement['initial'] = {key: value for key, value in replacement.get('initial', {}).items()
+                                  if key not in all_step_ids(definition.steps[index:])}
+        replacement['sequence'] = sequence(definition.steps[offset:])
+        replacement['sequence']['nodes'][:prefix_length] = copy.deepcopy(prefix)
+    validate_execution(replacement, workflow_steps=definition.steps, current_step_index=index)
+    state.execution = replacement
+
+
 def all_step_ids(steps):
     return {step['id'] for step in walk_steps(steps) if isinstance(step.get('id'), str)}
 
@@ -476,6 +525,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
     state = RunState.load(run_id, root)
     require_enabled(root, state)
     definition = definition_for(root, run_id)
+    validate_execution_checkpoint(state, definition)
     if post_bootstrap:
         if inputs or reuse_proven_closure or state.status != RunStatus.COMPLETED:
             raise WorkflowLifecycleError('Post-bootstrap continuation requires a completed source and cannot preapprove a future review')
@@ -535,6 +585,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
             definition = migrate_suffix(root, state, definition, restart)
             invalidated = previous_ids | all_step_ids(definition.steps[state.current_step_index:])
             state.step_results = {key: value for key, value in state.step_results.items() if key not in invalidated}
+            reset_execution_suffix(state, definition, state.current_step_index)
             state.inputs = WorkflowEngine(root)._resolve_inputs(definition, state.inputs)
             state.append_log({'event': 'paused_workflow_migration', 'snapshot': str(archived),
                               'invalidated_steps': sorted(invalidated), 'restart_step': restart})
@@ -588,6 +639,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
         state.step_results = {key: value for key, value in state.step_results.items() if key not in invalidated}
         state.current_step_index = index
         state.current_step_id = definition.steps[index]['id']
+        reset_execution_suffix(state, definition, index)
         for name in ('assessment_verdict', 'constitution_verdict', 'bootstrap_verdict', 'recovery_verdict'):
             if name in state.inputs:
                 state.inputs[name] = ''
@@ -633,6 +685,7 @@ def reopen(root: Path, run_id: str, stage: str) -> dict:
         if state.status not in {RunStatus.FAILED, RunStatus.PAUSED, RunStatus.COMPLETED} or state.inputs.get('source_run'):
             raise WorkflowLifecycleError('Reopen requires a stopped primary bootstrap run')
         definition = WorkflowDefinition.from_yaml(run_directory(root, run_id) / 'workflow.yml')
+        validate_execution_checkpoint(state, definition)
         restart = 'require-research-handoff' if stage == 'research' else STAGES[stage]['restart']
         matches = [i for i, step in enumerate(definition.steps) if step['id'] == restart]
         if not matches:
@@ -646,6 +699,7 @@ def reopen(root: Path, run_id: str, stage: str) -> dict:
         invalidated = all_step_ids(definition.steps[index:])
         state.step_results = {k: v for k, v in state.step_results.items() if k not in invalidated}
         state.current_step_index, state.current_step_id = index, restart
+        reset_execution_suffix(state, definition, index)
         state.status, state.error = RunStatus.FAILED, 'Operator reopened ' + stage + ' decisions'
         for name in ('assessment_verdict', 'constitution_verdict', 'bootstrap_verdict'):
             state.inputs[name] = ''

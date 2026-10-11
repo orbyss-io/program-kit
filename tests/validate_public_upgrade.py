@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import http.server
+import hashlib
 import json
 import os
 import re
@@ -411,6 +412,21 @@ def installed_versions(project: Path) -> dict[str, str]:
     return versions
 
 
+def installed_component_bytes(project: Path) -> dict[str, str]:
+    """Bind rejection to installed/native bytes, excluding transient catalog caches."""
+    files = set()
+    for name in ('.specify/extensions', '.specify/presets', '.specify/workflows',
+                 '.specify/templates', '.specify/scripts', '.codex', 'eng', 'src'):
+        files.update(path for path in (project / name).rglob('*') if path.is_file()
+                     and '__pycache__' not in path.parts)
+    # Spec Kit 1.1.3 keeps hooks/installed extension configuration and agent
+    # integration state beside bundle ownership at the .specify root. Hidden
+    # extension/preset .registry files and the workflow registry are in the trees above.
+    files.update(path for path in (project / '.specify').iterdir() if path.is_file())
+    return {path.relative_to(project).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(files)}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate upgrading the previous stable Program Kit release to the current one."
@@ -489,6 +505,21 @@ def main() -> int:
             "--id", "program-kit", "--policy", "install-allowed", cwd=project,
         )
 
+        native_owned = {
+            'eng/consumer-owned-verification.txt': 'Consumer-owned verification policy; preserve on rejected update.\n',
+            'src/Product/Ownership.cs': '// Consumer-owned product ownership fixture; preserve exact bytes.\n',
+        }
+        for name, content in native_owned.items():
+            path = project / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding='utf-8')
+        before_rejection = installed_component_bytes(project)
+        before_versions = installed_versions(project)
+        authoritative_metadata = {'.specify/extensions/.registry', '.specify/presets/.registry',
+                                  '.specify/workflows/workflow-registry.json', '.specify/extensions.yml',
+                                  '.specify/integration.json', '.specify/bundle-records.json'}
+        if not authoritative_metadata.issubset(before_rejection):
+            raise AssertionError('Unsafe-update fixture omitted actual installed ownership/registration metadata')
         # Spec Kit 1.1.1 rejects the unsafe bundle-first order when an older
         # separately owned workflow remains installed.
         try:
@@ -504,10 +535,16 @@ def main() -> int:
             )
         except subprocess.CalledProcessError as error:
             diagnostic=(error.stdout or '')+(error.stderr or '')
-            if 'pins workflow' not in diagnostic or 'unchanged' not in diagnostic:
+            if 'pins workflow' not in diagnostic or 'independently installed' not in diagnostic or 'cannot be replaced' not in diagnostic:
                 raise AssertionError('Unsafe update failed for an unintended reason: '+diagnostic) from error
         else:
             raise AssertionError('Bundle-first update did not reject the separately owned old workflow')
+        if installed_versions(project) != before_versions or installed_component_bytes(project) != before_rejection:
+            raise AssertionError('Rejected bundle-first update changed installed components or native bytes')
+        if not set(native_owned).issubset(before_rejection):
+            raise AssertionError('Unsafe-update preservation fixture did not capture native consumer files')
+        print(f'Rejected bundle-first update preserved {len(before_rejection)} installed/native file hashes and all component versions.')
+        print('Preserved ownership/registration metadata: ' + ', '.join(sorted(authoritative_metadata)))
         # Reproduce the still-relevant partial installation through a real
         # independent component update, then require the kit coherence guard.
         run('specify','extension','update','program-kit-governance',cwd=project,input_text='y\n')

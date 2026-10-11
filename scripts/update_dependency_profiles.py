@@ -137,6 +137,8 @@ def new_result(parent,before,filename):
 def publisher_knowledge(directory,native,profile,host):
     """Copy exact public package facts and frozen source docs, with per-file hashes."""
     destination=directory/'knowledge'; destination.mkdir(exist_ok=False)
+    from capture_lifecycle_knowledge import capture as capture_lifecycle
+    capture_lifecycle(REGISTRY, native/'cache', blocks.load_json(directory/'packages.lock.json'))
     packages=[]; commits=set(); package_sources={}; package_pack=destination/'package.pack'
     archives=[]
     for key,version in profile['artifacts'].items():

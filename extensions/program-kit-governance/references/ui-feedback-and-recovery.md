@@ -102,3 +102,23 @@ duplicate local submits, actual backend error mapping, conflict, uncertain compl
 callbacks where applicable. Use controlled adapter responses for UI transitions and existing real
 operation tests for backend guarantees. Template fixtures and screenshots do not prove actual
 provider/consumer outcomes. Human visual/assistive review stays in the existing acceptance handoff.
+
+When server draft durability is promised, use the generated acceptance/tests/durability.mjs
+checkpoint in the real consumer browser journey. Confirm the exact server draft identity, version
+and content before fixture-owned restart; a pending save or local input value is not acknowledgement.
+After restart, establish authenticated server readiness before reading recovered data or inspecting
+the UI. Distinguish readiness/HTTP timeouts from an exact recovered-data mismatch. Status diagnostics
+contain only stage, attempt, HTTP status and outcome, never URLs, response bodies, drafts, accounts,
+credentials or exception/source text. Keep server data and private configuration through restart.
+Invoke the maintained browser entrypoint with `--cases=durability --durability-contract=<adapter.mjs>`;
+selecting durability without its real-server contract fails rather than reporting fixture success.
+The adapter exports `createContract({browser, engine})`, runs the actual authenticated save journey,
+and returns the Playwright request context, `expectedDraft: {id, version, content}`, `draftPath`,
+`authenticatedReadinessPath` (a real authenticated endpoint), fixture-owned `restart`,
+`authenticate`, UI `inspect` and owned-fixture `close` functions. Optional `draftFromResponse` projects
+the existing server response into that draft shape; it must retain exact identity/version/content.
+Optional `isAuthenticatedResponse` tests the selected publisher's actual response shape; the default
+checks `authenticated: true`. Both HTTP 200 and an affirmative authenticated response are required;
+an unconditional predicate or a generic unauthenticated health endpoint cannot establish readiness.
+Use the existing isolated consumer fixture and actual host lifecycle; the generated static gallery
+and helper sequencing tests do not establish consumer durability or authentication acceptance.

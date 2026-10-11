@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -54,15 +55,21 @@ def snapshot(root: Path) -> dict[str, str]:
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
+    parser = argparse.ArgumentParser(description='Qualify actual locally packaged component installation.')
+    parser.add_argument('--assets-dir', default='artifacts', help='Repository-relative packaged candidate directory.')
+    args = parser.parse_args()
+    assets = (root / args.assets_dir).resolve()
+    if not assets.is_relative_to(root):
+        raise ValueError('Packaged candidate assets must remain inside the repository')
     version = (root / "VERSION").read_text(encoding="utf-8").strip()
-    extension_zip = root / "artifacts" / f"program-kit-governance-{version}.zip"
-    building_blocks_zip = root / "artifacts" / f"program-kit-building-blocks-{version}.zip"
-    dotnet_zip = root / "artifacts" / f"program-kit-dotnet-{version}.zip"
-    preset_zip = root / "artifacts" / f"program-kit-governance-preset-{version}.zip"
-    workflow_zip = root / "artifacts" / f"program-kit-bootstrap-{version}.zip"
-    bundle_zip = root / "artifacts" / f"program-kit-{version}.zip"
+    extension_zip = assets / f"program-kit-governance-{version}.zip"
+    building_blocks_zip = assets / f"program-kit-building-blocks-{version}.zip"
+    dotnet_zip = assets / f"program-kit-dotnet-{version}.zip"
+    preset_zip = assets / f"program-kit-governance-preset-{version}.zip"
+    workflow_zip = assets / f"program-kit-bootstrap-{version}.zip"
+    bundle_zip = assets / f"program-kit-{version}.zip"
     initializers = {
-        suffix: root / "artifacts" / f"Initialize-ProgramKit-{version}.{suffix}"
+        suffix: assets / f"Initialize-ProgramKit-{version}.{suffix}"
         for suffix in ("cmd", "sh")
     }
     if not all(
@@ -79,9 +86,9 @@ def main() -> int:
     ):
         raise FileNotFoundError("Build release assets before running the install test")
     for suffix, initializer in initializers.items():
-        expected_bytes = (root / f"Initialize-ProgramKit.{suffix}").read_text(encoding="utf-8").encode("utf-8")
+        expected_bytes = (root / f"Initialize-ProgramKit.{suffix}").read_bytes()
         if suffix == "cmd":
-            expected_bytes = expected_bytes.replace(b"\n", b"\r\n")
+            expected_bytes = expected_bytes.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
         if initializer.read_bytes() != expected_bytes:
             raise AssertionError(
                 f"Versioned {suffix} consumer initializer differs from the root template"
@@ -243,6 +250,7 @@ def main() -> int:
             "templates/spec-governance.md",
             "templates/plan-governance.md",
             "templates/tasks-governance.md",
+            "commands/speckit.tasks.md",
             "commands/speckit.implement.md",
         ):
             if not (extracted_preset / path).is_file():
@@ -527,7 +535,7 @@ def main() -> int:
             'spec-template': ('## User Scenarios & Testing', '**Independent Test**',
                               '**Given**', '**When**', '**Then**',
                               'Explicitly request automated behavioral tests'),
-            'tasks-template': ('### Implementation for User Story 1',
+            'tasks-template': ('## Operation dependency map', '## Task dependency map',
                                'Map test tasks to each user story',
                                'Observe the intended failing behavior'),
         }

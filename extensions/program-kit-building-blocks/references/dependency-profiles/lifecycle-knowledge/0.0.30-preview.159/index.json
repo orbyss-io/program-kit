@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.0.30-preview.159",
+  "packages": [
+    {
+      "id": "CShells.Abstractions",
+      "version": "0.0.30-preview.159",
+      "path": "lifecycle-knowledge/0.0.30-preview.159/CShells.Abstractions.json",
+      "sha256": "87be77c1f2eda99edf384bdea97ff5a31fd044666e73fe38bf3ca8990a3478db"
+    },
+    {
+      "id": "CShells",
+      "version": "0.0.30-preview.159",
+      "path": "lifecycle-knowledge/0.0.30-preview.159/CShells.json",
+      "sha256": "a0391d01d5b910f91b73c5fe22e6cb778f5b96e64c90d85f09ee97d15a6d908c"
+    }
+  ]
+}

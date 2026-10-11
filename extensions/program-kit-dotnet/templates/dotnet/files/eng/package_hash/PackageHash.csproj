@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Reference Include="$(MSBuildBinPath)/NuGet.Packaging.dll" />
+    <Reference Include="$(MSBuildBinPath)/NuGet.Common.dll" />
+    <Reference Include="$(MSBuildBinPath)/NuGet.Configuration.dll" />
+    <Reference Include="$(MSBuildBinPath)/NuGet.Frameworks.dll" />
+    <Reference Include="$(MSBuildBinPath)/NuGet.Versioning.dll" />
+    <Reference Include="$(MSBuildBinPath)/Newtonsoft.Json.dll" />
+    <Reference Include="$(MSBuildBinPath)/System.Security.Cryptography.Pkcs.dll" />
+  </ItemGroup>
+</Project>

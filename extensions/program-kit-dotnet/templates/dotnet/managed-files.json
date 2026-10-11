@@ -1,6 +1,13 @@
 {
   "schemaVersion": 1,
   "files": [
+    { "path": "eng/foundation_qualification.py", "ownership": "managed" },
+    { "path": "eng/foundation-qualification-support/QualificationFeature.cs", "ownership": "managed" },
+    { "path": "eng/foundation-qualification-support/RuntimeOptionsObservation.cs", "ownership": "managed" },
+    { "path": "eng/foundation-qualification-support/product_driver.mjs", "ownership": "managed" },
+    { "path": "eng/foundation-test-support/packages.json", "ownership": "managed" },
+    { "path": "eng/identity_fixture.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "identity_fixture.py" },
+    { "path": "eng/spa_profile.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "spa_profile.py" },
     {
       "path": "eng/repository_verification.py",
       "ownership": "managed"
@@ -293,6 +300,54 @@
     },
     {
       "path": "eng/device_toolchain.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/package_hash/PackageHash.csproj",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/package_hash/Program.cs",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/foundation_composition.py",
+      "ownership": "managed",
+      "sourceRoot": "../../scripts",
+      "source": "foundation_composition.py"
+    },
+    {
+      "path": "eng/foundation_setup.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/foundation_fixture.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/foundation_process.py",
+      "ownership": "managed",
+      "sourceRoot": "../../../program-kit-governance",
+      "source": "scripts/compatibility_process.py"
+    },
+    {
+      "path": "eng/foundation-test-support/EffectiveSettings.cs",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/foundation-test-support/CaseSuite.cs",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/foundation-test-support/SettingObservation.cs",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/foundation-test-support/SettingSource.cs",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/foundation-test-support/IntegrationCase.cs",
       "ownership": "managed"
     }
   ],

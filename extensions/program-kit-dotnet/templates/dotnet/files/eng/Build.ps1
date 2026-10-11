@@ -6,7 +6,8 @@ param(
     [switch]$LockedMode,
     [switch]$InitializeOpenApiBaseline,
     [switch]$UpdateOpenApiArtifact,
-    [switch]$VerifyArchitecture
+    [switch]$VerifyArchitecture,
+    [string[]]$RootPackage = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -123,7 +124,10 @@ function Get-TestProjectCount {
 }
 
 $artifacts = Join-Path $root 'artifacts'
-$packages = Join-Path (Join-Path $artifacts 'packages') $version
+$packageVersionRoot = Join-Path (Join-Path $artifacts 'packages') $version
+# A pack invocation owns its inventory. Earlier outputs (including packages from
+# removed projects) remain historical evidence and cannot enter the new bundle.
+$packages = Join-Path $packageVersionRoot ([Guid]::NewGuid().ToString('N'))
 $openApiRegistry = Join-Path $root 'eng/openapi-contracts.json'
 $openApiEnabled = $false
 if (Test-Path -LiteralPath $openApiRegistry) {
@@ -142,6 +146,8 @@ else {
     & (Join-Path $PSScriptRoot 'Restore.ps1') -Subject $solutions[0].FullName
 }
 if (-not $?) { throw 'Managed repository-isolated restore failed.' }
+python (Join-Path $PSScriptRoot 'release_bundle.py') prepare-pack --repository $root --packages $packages
+if ($LASTEXITCODE -ne 0) { throw 'Fresh build/pack input capture failed.' }
 if ($VerifyArchitecture) {
     python (Join-Path $PSScriptRoot 'repository_architecture.py') --repository $root `
         --manifest eng/architecture.json --configuration Release --build-subject $solutions[0].FullName `
@@ -166,10 +172,14 @@ if (-not $SkipTests) {
 
 dotnet pack $solutions[0].FullName -c Release --no-build -p:Version=$version -p:PackageOutputPath=$packages
 if ($LASTEXITCODE -ne 0) { throw 'dotnet pack failed.' }
+python (Join-Path $PSScriptRoot 'release_bundle.py') seal-pack --repository $root --packages $packages
+if ($LASTEXITCODE -ne 0) { throw 'Build/pack input or output integrity check failed.' }
 
 if (-not $SkipReleaseBundle -or $openApiEnabled) {
-    python (Join-Path $PSScriptRoot 'release_bundle.py') stage --repository $root --packages $packages `
-        --output (Join-Path $artifacts 'release-bundle')
+    $stageArguments = @('stage', '--repository', $root, '--packages', $packages,
+        '--output', (Join-Path $artifacts 'release-bundle'), '--inventory', (Join-Path $packages 'program-kit-pack.json'))
+    foreach ($packageId in $RootPackage) { $stageArguments += @('--root-package', $packageId) }
+    python (Join-Path $PSScriptRoot 'release_bundle.py') @stageArguments
     if ($LASTEXITCODE -ne 0) { throw 'Release-bundle staging failed.' }
 }
 

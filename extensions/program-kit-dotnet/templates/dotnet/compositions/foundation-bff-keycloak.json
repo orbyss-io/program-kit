@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "compositionId": "foundation-bff-keycloak",
+  "application": { "publicOrigin": "http://localhost:5000", "callbackPath": "/signin-oidc", "signedOutCallbackPath": "/signout-callback-oidc", "localDevelopment": true },
+  "identity": { "publicOrigin": "http://localhost:8080", "administrationOrigin": "http://program-kit-identity:8080", "backchannelOrigin": "http://program-kit-identity:8080", "realm": "program-kit", "clientId": "program-kit-bff", "audience": "program-kit-api" },
+  "runtime": { "directory": ".", "rootPackages": ["Application.Api"] },
+  "projects": [{ "path": "src/Application.Api/Application.Api.csproj", "packageId": "Application.Api", "featureIdentity": "Application.Api", "role": "implementation" }],
+  "runner": "executable",
+  "theme": { "selection": "program-kit", "branding": {} },
+  "settings": {},
+  "setup": {},
+  "tests": { "capabilities": ["host-activation", "bff-cookie", "keycloak"], "commands": [] }
+}

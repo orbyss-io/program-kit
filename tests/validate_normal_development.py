@@ -286,6 +286,58 @@ class DevelopmentTests(unittest.TestCase):
             self.assertTrue(knowledge.finish(self.root, self.feature)['acceptanceEstablished'])
             execute.assert_called_once_with(self.root, self.feature)
 
+    def test_coarse_parent_with_delivered_operation_substep_is_still_progress(self):
+        (self.feature/'tasks.md').write_text(
+            '- [ ] T040 Deliver policy operations\n'
+            '  - [X] T040.create Create owned policy; auth/storage regressions passed\n'
+            '  - [ ] T040.process Process uploaded evidence; OCR lease gate pending\n')
+        with patch.object(knowledge, 'execute') as execute:
+            result = knowledge.finish(self.root, self.feature)
+            self.assertEqual('in-progress', result['status'])
+            self.assertEqual(2, result['pendingTasks'])
+            execute.assert_not_called()
+
+    def test_operation_graph_never_defers_retained_feature_authority_gate(self):
+        (self.feature/'spec.md').write_text(
+            '- **Specification roadmap entry**: RM-01\nCreate owned policy then process evidence.\n')
+        ledger = self.root/'docs/architecture/bootstrap-prerequisites.json'
+        ledger.parent.mkdir(parents=True)
+        items = [{'id': 'OCR-PROOF', 'owner': 'Evidence', 'task': 'Prove selected OCR admission',
+                  'affected_slices': ['RM-01'], 'status': 'open', 'disposition': 'feature',
+                  'verification': 'compatibility', 'trigger': 'before-implementation'}]
+        ledger.write_text(json.dumps({'prerequisites': items}))
+        # Task-level independence cannot change previously approved feature-scope authority.
+        with patch('bootstrap_lifecycle.current_compatibility_evidence', return_value=None):
+            proofs = knowledge.retained_proofs(self.root, self.feature, 'implementation')
+            self.assertTrue(proofs[0]['requiredNow'])
+            with self.assertRaisesRegex(ValueError, 'OCR-PROOF'):
+                knowledge.require_due_proofs(self.root, self.feature, 'implementation')
+            items[0]['trigger'] = 'delivery'
+            ledger.write_text(json.dumps({'prerequisites': items}))
+            knowledge.require_due_proofs(self.root, self.feature, 'implementation')
+            with self.assertRaisesRegex(ValueError, 'OCR-PROOF'):
+                knowledge.require_due_proofs(self.root, self.feature, 'delivery')
+        self.assertEqual('delivery', json.loads(ledger.read_text())['prerequisites'][0]['trigger'])
+
+    def test_closure_does_not_reuse_prior_scoped_pass_as_acceptance(self):
+        eng = self.root/'eng'; eng.mkdir()
+        (eng/'Invoke-RepositoryVerification.ps1').write_text('exit 0')
+        prior = self.root/'artifacts/tests/runs/old'; prior.mkdir(parents=True)
+        scoped = {'schemaVersion': 1, 'scope': 'Focused', 'status': 'completed',
+                  'projects': ['tests/Policies.Tests/Policies.Tests.csproj'],
+                  'testArguments': ['--filter', 'CreateOwnedPolicy']}
+        (prior/'result.json').write_text(json.dumps(scoped))
+        (self.feature/'tasks.md').write_text('- [X] T001 Delivered operation\n')
+        with patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as run:
+            result = knowledge.finish(self.root, self.feature)
+        run.assert_called_once()
+        command = run.call_args.args[0]
+        self.assertNotIn('-Scope', command)
+        self.assertNotIn('-Plan', command)
+        self.assertTrue(result['engineeringAcceptanceEstablished'])
+        self.assertEqual(scoped, json.loads((prior/'result.json').read_text()))
+        self.assertEqual(1, len(list((self.root/'artifacts/program-kit/runs').glob('*/run.json'))))
+
     def test_failed_engineering_remains_failed_and_preserves_diagnostics(self):
         eng = self.root/'eng';eng.mkdir()
         (eng/'Invoke-RepositoryVerification.ps1').write_text('Write-Error "actual application failure"; exit 7')

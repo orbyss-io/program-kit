@@ -15,6 +15,14 @@ Resolve reported associations/conflicts; repository-wide adoption does not selec
 Use focused section lookup for a concrete unresolved choice, not a checklist to reread every source. Use `--only <id>`
 for a focused follow-up. Apply their conditions to concrete design/code choices;
 record decisions, exceptions and actual required tests in the existing plan and tasks.
+When a selected foundation composition affects configuration, link its existing
+`docs/architecture/foundation-configuration.md` ownership/flow reference and the redacted
+`eng/foundation_composition.py --repository . --effective` view. State whether the view
+projects configured sources or observes activated options. Report relevant overrides,
+their owner and change procedure; distinguish tunable operational values from protocol
+constants, fixed admission constraints and compatibility-sensitive product policies.
+Regenerate managed views through normal sync when their source contracts/composition change.
+Never put secret values into responses, design documents, diagrams or browser exports.
 Use the project's analyzers and targeted tests during implementation. Do not create phase-context,
 obligation-design/review, semantic-contract or proof-attestation files. No renewed human approval
 is needed for generated context, changed toolkit bytes or test execution.
@@ -40,9 +48,18 @@ Run the ordinary setup_tasks script once to resolve the feature and composed tas
 reuse its result in the same turn. For a new draft, read spec.md, plan.md and the constitution,
 then immediately persist a draft before optional
 documents, detailed reference lookup or whole-plan validation. Use the installed
-`python .specify/extensions/program-kit-governance/scripts/task_draft.py prepare --feature-dir <feature> --phases setup foundation US1 ... polish dependencies`
-with the actual story phase identifiers from the specification. All progress stays in tasks.md;
+`python .specify/extensions/program-kit-governance/scripts/task_draft.py prepare --feature-dir <feature> --phases US1_create US1_list US2_process ... closure dependencies`
+with actual operation group identifiers derived from the specification. A retained legacy draft keeps
+its existing phase identifiers. Minimal enabling tasks belong to their first proving operation;
+there is no all-story foundation barrier. All progress stays in tasks.md;
 the inline checkpoint records drafting progress, not acceptance, approval or test evidence.
+For a materialized foundation selection, inspect
+`python eng/foundation_setup.py --repository . --status` once. This read-only view
+names the latest real setup results, changed-input state and required live service checks.
+Carry existing maintained infrastructure into the operation plan instead of authoring it again.
+An unchanged recorded check is component/integration evidence; a removed or changed service still
+needs its applicable setup check before the dependent operation. A newer failed/incomplete result
+remains unresolved. Drafting never invokes `--execute`, restores packages or starts services.
 
 On resume, run `prepare` before repeating design preparation. It returns completed/remaining phases and changedInputs without replacing
 the draft. Reuse saved phases and preparation when inputs are unchanged; do not reload every
@@ -53,7 +70,7 @@ inspect and fill only gaps directly rather than starting over.
 
 Write each completed phase to an ignored temporary content file, then persist it with
 `task_draft.py save-phase --feature-dir <feature> --phase <id> --content-file <file>`.
-Continue unique task IDs from the saved draft. Save Setup, Foundation and each story as soon
+Continue unique task IDs from the saved draft. Save each operation group as soon
 as it is ready; dependencies/parallel examples and the final coverage pass come last.
 This incremental persistence replaces any instruction to hold all phases in memory before
 writing tasks.md. Include constitution-required tests before their implementation tasks,

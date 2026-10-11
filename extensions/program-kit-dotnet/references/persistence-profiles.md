@@ -35,6 +35,16 @@ contract for it; selecting it requires an Accepted ADR and an explicit profile e
 
 ## Ordinary development decisions
 
+For the supported Foundation BFF/Keycloak plus EF/PostgreSQL composition, reuse the
+maintained provider setup/runner adapters and feature-owned lifecycle scaffolds. Before
+application schema exists, readiness proves connectivity and selected generic behavior;
+it establishes no application migration, transaction, ownership, conflict or replay outcome.
+Synthetic provider probes are test-only and never a production feature selection. A change
+to deployment/provider settings renews affected setup checks; application semantic changes
+renew their owned real-provider checks. Preserve all ten application admission topics below.
+There is no requirement to author generic provisioning/reporting infrastructure again or
+to finish unrelated future storage work before an independent product operation.
+
 For ordinary feature planning and task generation, record affected data owners, the retained
 exact provider/profile, capability and project ownership, and the ten topics below in plan.md
 or an existing ADR. Map the required behavior to concrete test and implementation tasks.

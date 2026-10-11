@@ -2,6 +2,35 @@
 param([switch]$PrepareOnly, [switch]$AuthorizedCodexTask)
 
 $ErrorActionPreference = 'Stop'
+function Get-BoundedCommandPath {
+    param([System.Collections.IDictionary]$SelectedCommands, [string]$OriginalPath, [string[]]$RequiredDirectories)
+
+    $selectedDirectories = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($source in $SelectedCommands.Values) {
+        [void]$selectedDirectories.Add([IO.Path]::GetFullPath((Split-Path -Parent $source)).TrimEnd('\', '/'))
+    }
+    $includedDirectories = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $directories = [System.Collections.Generic.List[string]]::new()
+    # Command parents can contain competing shims. Preserve their original PATH
+    # precedence rather than enumerating an unordered command/source dictionary.
+    foreach ($entry in ($OriginalPath -split [regex]::Escape([IO.Path]::PathSeparator))) {
+        if (-not $entry.Trim()) { continue }
+        $directory = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($entry.Trim().Trim('"'))).TrimEnd('\', '/')
+        if ($selectedDirectories.Contains($directory) -and $includedDirectories.Add($directory)) {
+            # Get-Command preserves relative/8.3 source spelling. Normalize only
+            # for matching; changing the emitted spelling would change Source.
+            $directories.Add($entry.Trim().Trim('"'))
+        }
+    }
+    # PowerShell can also discover commands outside PATH. Retain their exact
+    # selected parents and the Windows shell/system directories after PATH entries.
+    foreach ($directory in (@($SelectedCommands.Values | ForEach-Object { Split-Path -Parent $_ }) + $RequiredDirectories)) {
+        $normalizedDirectory = [IO.Path]::GetFullPath($directory).TrimEnd('\', '/')
+        if ($includedDirectories.Add($normalizedDirectory)) { $directories.Add($directory) }
+    }
+    return $directories -join [IO.Path]::PathSeparator
+}
+
 $releaseRoot = Split-Path -Parent $PSScriptRoot
 $savedLocation = Get-Location
 $savedEnvironment = @{}
@@ -21,14 +50,13 @@ try {
         # npm exec adds project bin folders to PATH. CMD discards overlong PATH
         # values; retain the same active shared executables in a shorter owned
         # process environment. Never select a cached/local replacement.
-        $selectedCommands = @{}
+        $selectedCommands = [ordered]@{}
         foreach ($name in @('node','npm.cmd','dotnet','python','specify','uv','git','docker','gh','codex','pwsh','powershell')) {
             $command = Get-Command $name -ErrorAction SilentlyContinue
             if ($command -and $command.Source) { $selectedCommands[$name] = $command.Source }
         }
-        $directories = @($selectedCommands.Values | ForEach-Object { Split-Path -Parent $_ })
-        $directories += @((Join-Path $env:SystemRoot 'System32'), $env:SystemRoot, $PSHOME)
-        $env:PATH = ($directories | Select-Object -Unique) -join ';'
+        $env:PATH = Get-BoundedCommandPath -SelectedCommands $selectedCommands -OriginalPath $env:PATH `
+            -RequiredDirectories @((Join-Path $env:SystemRoot 'System32'), $env:SystemRoot, $PSHOME)
         foreach ($name in $selectedCommands.Keys) {
             if ((Get-Command $name -ErrorAction Stop).Source -ne $selectedCommands[$name]) {
                 throw "Active executable selection changed while bounding CMD PATH: $name"
@@ -58,7 +86,13 @@ try {
 }
 finally {
     foreach ($environmentName in $savedEnvironment.Keys) {
-        [Environment]::SetEnvironmentVariable($environmentName,$savedEnvironment[$environmentName],'Process')
+        if ($null -eq $savedEnvironment[$environmentName]) {
+            # PowerShell string conversion can turn null into an empty value.
+            # Preserve absence explicitly on runtimes that retain empty variables.
+            Remove-Item -LiteralPath ('Env:' + $environmentName) -ErrorAction SilentlyContinue
+        } else {
+            [Environment]::SetEnvironmentVariable($environmentName,$savedEnvironment[$environmentName],'Process')
+        }
     }
     Set-Location -LiteralPath $savedLocation.Path
 }
