@@ -78,13 +78,26 @@ class WindowsShellLaunchTests(unittest.TestCase):
     def test_duplicate_usable_directories_are_removed_without_changing_tool_selection(self):
         import python_runtime
         value = ';'.join([self.short_path] * 200)
-        with mock.patch.dict(os.environ, {'PATH': value, 'SPECKIT_PYTHON': self.python}):
-            original = dict(os.environ)
-            result = probe.verify_shell_launch(ROOT)
-            with python_runtime.environment(ROOT) as resolved_python:
-                self.assertLessEqual(len(os.environ['PATH']), 8191)
-                self.assertTrue(Path(shutil.which('python')).samefile(resolved_python))
-            self.assertEqual(original, dict(os.environ))
+        # Device readiness still uses the inherited device Python. This synthetic
+        # consumer records the maintained Spec Kit interpreter for its libraries.
+        inherited = dict(os.environ)
+        with tempfile.TemporaryDirectory(prefix='program-kit-deduplicated-runtime-') as directory:
+            root = Path(directory)
+            record = root / '.specify/python-runtime.json'
+            record.parent.mkdir()
+            record.write_text(json.dumps({'contractVersion': 1, 'executable': sys.executable}))
+            recorded = record.read_bytes()
+            with mock.patch.dict(os.environ, {'PATH': value, 'SPECKIT_PYTHON': ''}):
+                original = dict(os.environ)
+                result = probe.verify_shell_launch(root)
+                self.assertTrue(Path(result['selectedPython']).samefile(sys.executable))
+                with python_runtime.environment(root) as resolved_python:
+                    self.assertLessEqual(len(os.environ['PATH']), 8191)
+                    self.assertTrue(Path(resolved_python).samefile(sys.executable))
+                    self.assertTrue(Path(shutil.which('python')).samefile(resolved_python))
+                self.assertEqual(original, dict(os.environ))
+            self.assertEqual(recorded, record.read_bytes())
+        self.assertEqual(inherited, dict(os.environ))
         self.assertEqual(result['exitCode'], 0)
 
     def test_npm_style_codex_launcher_retains_its_node_fallback_without_starting_an_agent(self):
@@ -188,11 +201,19 @@ class WindowsShellLaunchTests(unittest.TestCase):
     def test_repaired_path_reaches_worker_policy_and_is_restored_on_failure(self):
         with tempfile.TemporaryDirectory(prefix='program-kit-prepared-dispatch-') as directory:
             root = Path(directory)
+            record = root / '.specify/python-runtime.json'
+            record.parent.mkdir()
+            record.write_text(json.dumps({'contractVersion': 1, 'executable': sys.executable}))
+            recorded = record.read_bytes()
+            inventory = set(root.rglob('*'))
+            inherited = dict(os.environ)
             def stop_at_worker(*args):
                 self.assertLessEqual(len(os.environ['PATH']), 8191)
+                self.assertTrue(Path(shutil.which('python')).samefile(sys.executable))
+                self.assertTrue(Path(os.environ['SPECKIT_PYTHON']).samefile(sys.executable))
                 self.assertEqual('fixture-originator', os.environ['CODEX_SESSION_ID'])
                 raise ValueError('fixture stop before worker dispatch')
-            with mock.patch.dict(os.environ, {'PATH': self.long_path, 'SPECKIT_PYTHON': self.python,
+            with mock.patch.dict(os.environ, {'PATH': self.long_path, 'SPECKIT_PYTHON': '',
                                               'CODEX_SESSION_ID': 'fixture-originator'}), \
                  mock.patch.object(sys, 'argv', ['workflow_lifecycle.py', 'run']), \
                  mock.patch.object(candidate.Path, 'cwd', return_value=root), \
@@ -206,7 +227,9 @@ class WindowsShellLaunchTests(unittest.TestCase):
                 worker.assert_called_once()
                 engine.assert_not_called()
                 self.assertEqual(original, dict(os.environ))
-            self.assertEqual([], list(root.iterdir()))
+            self.assertEqual(inherited, dict(os.environ))
+            self.assertEqual(recorded, record.read_bytes())
+            self.assertEqual(inventory, set(root.rglob('*')))
 
 
 class ShellContractTests(unittest.TestCase):
@@ -254,6 +277,43 @@ class ShellContractTests(unittest.TestCase):
             self.assertEqual(sys.executable, result['selectedPython'])
             self.assertTrue(Path(result['python']).samefile(sys.executable))
             self.assertEqual(original, dict(os.environ))
+
+    def test_recorded_runtime_without_pyyaml_stops_before_worker_or_history(self):
+        runtime = self.root / 'library-free-runtime'
+        subprocess.run([sys.executable, '-m', 'venv', '--without-pip', str(runtime)],
+                       capture_output=True, text=True, timeout=30, check=True)
+        executable = runtime / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+        record = self.root / '.specify/python-runtime.json'
+        record.parent.mkdir()
+        record.write_text(json.dumps({'contractVersion': 1, 'executable': str(executable)}))
+        recorded = record.read_bytes()
+        inventory = set(self.root.rglob('*'))
+        inherited = dict(os.environ)
+        with mock.patch.dict(os.environ, {'PATH': self.path, 'SPECKIT_PYTHON': '',
+                                          'PYTHONPATH': '', 'PYTHONNOUSERSITE': '1'}), \
+             mock.patch.object(sys, 'argv', ['workflow_lifecycle.py', 'run']), \
+             mock.patch.object(candidate.Path, 'cwd', return_value=self.root), \
+             mock.patch('codex_worker_policy.worker_environment') as worker, \
+             mock.patch.object(candidate, 'prepare_schema_runtimes') as schemas, \
+             mock.patch.object(candidate, 'execution_lock') as lock, \
+             mock.patch.object(candidate, 'WorkflowEngine') as engine, \
+             contextlib.redirect_stderr(io.StringIO()) as errors:
+            original = dict(os.environ)
+            verified = probe.verify_shell_launch(self.root)
+            self.assertEqual(0, verified['exitCode'])
+            self.assertFalse(verified['codingAgentStarted'])
+            self.assertTrue(Path(verified['selectedPython']).samefile(executable))
+            self.assertEqual(1, candidate.main())
+            self.assertIn('WORKFLOW_RUNTIME_PREFLIGHT:', errors.getvalue())
+            self.assertIn("No module named 'yaml'", errors.getvalue())
+            worker.assert_not_called()
+            schemas.assert_not_called()
+            lock.assert_not_called()
+            engine.assert_not_called()
+            self.assertEqual(original, dict(os.environ))
+        self.assertEqual(inherited, dict(os.environ))
+        self.assertEqual(recorded, record.read_bytes())
+        self.assertEqual(inventory, set(self.root.rglob('*')))
 
     def test_exit_zero_without_the_structured_marker_is_rejected(self):
         for output in ('', 'not json', '{}', json.dumps({'marker': 'wrong', 'python': self.python})):
