@@ -44,7 +44,7 @@ The final targeted `validate_consumer_upgrade_install` run passed with all five 
 [consumer summary](../artifacts/consumer-upgrade-install.json). Both journals' exit codes and every log hash
 were verified: zero errors. The bundle contains 512 entries; local development archive SHA256 is
 `c90a73fcdfb770c399d4cc4bd8a884cb1eb5edb0e80f5d82bd490f3666d2b3a9`
-([checksums](../artifacts/SHA256SUMS)). Archives retain the predecessor build label 0.12.11 only for local
+([retained development archive](../artifacts/program-kit-0.12.11.zip)). Archives retain the predecessor build label 0.12.11 only for local
 development qualification; they are not its published assets or a newly published version.
 The first Development journal `artifacts/validation-runs/20261011T105444Z-e1589ca1/journal.json`
 is retained as failed: concurrent shipped-source edits tripped exact updater freshness; new rule
@@ -68,23 +68,51 @@ Release preparation: the user authorized publication as **0.13.0** on 2026-10-11
 - [x] Bounded maintenance Development: 88/88 on clean `3a1e817b5680b3a45141fb713d720b26a7516e1e`,
   11:48:34–12:00:14 UTC; [journal](../artifacts/validation-runs/20261011T114834Z-61c1e810/journal.json).
   Every exit code/log hash verified. This is Development evidence, not a Release receipt.
-- [ ] Complete repaired dependency maintenance and candidate CI, then freeze the candidate.
-- [ ] Obtain fresh successful human-terminal local Release evidence and inspect receipt/assets/logs.
-- [ ] Merge/tag and complete tagged Release, public installation/upgrade and publication verification.
+- [x] Complete repaired dependency maintenance and candidate CI, then freeze the candidate.
+- [x] Obtain fresh successful local Release evidence under explicit Codex-task authorization;
+  inspect the complete journal, receipt, asset sizes and hashes.
+- [x] Merge/tag and complete tagged Release, public installation/upgrade and publication verification.
 
 Failed [candidate CI](https://github.com/orbyss-io/program-kit/actions/runs/38136895716) and
 [maintenance](https://github.com/orbyss-io/program-kit/actions/runs/38136883783) evidence is preserved.
 CI passed 119/121 checks, including installed reset/recovery, packaging and all three browser engines.
 Two test-only repairs retain the same rejection/preservation controls: avoid shadowing the updater
 command with the implementation-entry probe, and normalize terminal whitespace before checking the
-unsafe-order diagnostic. Pin/profile/knowledge lookup succeeded; the failure prevented security scanning
-and completion, so the workflow must pass after repair. No release tag or assets were published.
+unsafe-order diagnostic. Pin/profile/knowledge lookup succeeded; those failures prevented security scanning
+and completion. No release tag or assets were published from either failed preparation run.
 Both repaired targeted upgrade checks passed with their maintained prerequisites:
 [local upgrade, 5/5](../artifacts/validation-runs/20261011T121424Z-7db4453a/journal.json) and
 [candidate upgrade, 6/6](../artifacts/validation-runs/20261011T121453Z-915c8db6/journal.json).
 Maintenance discovered CShells 0.0.30; normal publisher-engineering synchronization then retained
 the selected published Foundation's exact preview ABI pins. Profile and versioned knowledge are
 already current, so the maintained updater creates no duplicate qualification or lasting pin/lock diff.
-The shipping change requires fresh Release evidence; predecessor evidence cannot replace it.
-Local complete Release remains human-terminal work unless separately authorized through the existing
-opt-in. Paid workers and real consumer resets retain their separate authorization gates.
+Publication completed: [v0.13.0](https://github.com/orbyss-io/program-kit/releases/tag/v0.13.0),
+source `ebe04405d3f6a85af90ca60fc223084d1df605c2`, tree `beeff319a524cdbd60237b85912a602cdcebe32e`.
+
+- [Maintenance](https://github.com/orbyss-io/program-kit/actions/runs/38138778648) and
+  [candidate CI](https://github.com/orbyss-io/program-kit/actions/runs/38138781071): **121/121 Linux checks**
+  each; every preserved log hash verified. Windows CI passed. Actual Host AMD64/ARM64 scans passed.
+- Fresh local Release: **122/122 Windows checks**, 12:52:18–13:38:55 UTC. The user explicitly authorized
+  `Invoke-LocalRelease.ps1 -AuthorizedCodexTask`; the journal records it. Preserved under
+  `C:\Users\tech_\Code\program-kit\artifacts\r13\artifacts\validation-runs\20261011T125218Z-7b3508a8`.
+  All logs, 32 assets and receipt fields verified; local receipt SHA256
+  `3f50919cf2a15d809bb5f670cf2a02c7cba2a1e9874788ea239c325a0a413a4f`.
+- The first local run is retained as failed: **121/122**, journal `20261011T122225Z-07eb9609` in the
+  original implementation checkout. Its sole failure was a 264-character Chromium executable path:
+  normal Node launch returned ENOENT; extended-path launch succeeded. An identical clean short checkout
+  reduces that path to 240 characters; complete composition and Release qualification then passed.
+  Product code and browser coverage were unchanged. The failed run created no receipt.
+- [Complete tagged Release](https://github.com/orbyss-io/program-kit/actions/runs/38144160052):
+  **121/121 Linux checks**, Chromium/Firefox/WebKit, exact-source receipt, attestation, publication and
+  public installation/upgrade all passed. Published at 13:58:49 UTC. All public receipt/asset checksums
+  verified and the bundle's signed GitHub attestation verified. Public bundle SHA256
+  `6fa44e894007109fc700586aa7e5285e8a5da295ad0aa967f739691815d06dd1`;
+  [public receipt](https://github.com/orbyss-io/program-kit/releases/download/v0.13.0/release-receipt-0.13.0.json)
+  SHA256 `b2ab7bc725265b5fbb18d812ef4eac650dfba7c5b87940d1fd3ac6982dda5710`.
+- PR #39 merged at `9e3c94272804bf7089cfbdd32ae27f706649262a`, with the same source tree. Merged-main CI
+  and the publication-owned README update passed. The tag remains at the exact qualified commit.
+
+No publication gates remain. Published assets and original receipts remain unchanged; this reporting
+update does not relabel evidence to a later source commit. Follow the [0.13.0 adoption guide](../releases/migration-0.13.0.md).
+Paid workers and real consumer resets retain their separate authorization gates. Primary unrelated
+skill files and uncommitted handoff documents remain untouched.
