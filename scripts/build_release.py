@@ -190,7 +190,7 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
         build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
-                       (root / 'VERSION').read_text().strip())
+                       (root / 'VERSION').read_text().strip(), aggregates=False)
         specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
         specify_command = ["specify"]
         if specify_site_packages:
