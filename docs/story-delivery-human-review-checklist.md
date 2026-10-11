@@ -8,7 +8,7 @@ Accepted requirements: [plan](story-delivery-and-human-review-plan-2026-10-11.md
 - [x] Extend compact tasks checkpoint: story decisions, roles, freshness, progression/resume/closure/handoff and active clocks.
 - [x] Validate optional GitHub identity and explicitly supplied scoped decisions using authenticated reads; deterministic simulations only.
 - [x] Fresh-feature adoption guidance and one reset exercise in the existing installed-consumer fixture.
-- [ ] Targeted checks, review/repairs and bounded Development qualification; record actual results.
+- [x] Targeted checks, review/repairs and bounded Development qualification; record actual results.
 
 Verification: source/template changes use coherent edits and maintained resolution checks. Authority/state changes receive focused behavioral and negative controls, including deterministic clocks and authenticated-response shapes. No dependency, publisher, real-consumer or live-worker changes are planned. Release dependency maintenance, fresh local Release evidence, CI and complete tagged/public qualification remain future publication gates.
 
@@ -32,14 +32,26 @@ Requirement results:
 | Fresh-feature adoption | Owned file inventory preview/explicit selection/archive; constitution amendment and normal ratification; old partial work cannot authorize continuation; all fresh phase contracts consume installed policy. Bootstrap/shared/delivered/lock inputs preserved. |
 | Concise qualification | 22 focused story controls, existing task/normal-development validators and one reset exercise in the existing packaged consumer. Existing installation, source protection and activation/recovery checks retained. |
 
-Evidence so far: story controls 22/22, task generation 19/19, normal development 24/24,
-intake 15/15, knowledge inventory 7/7, dependency audit 10/10, phase readiness 18/18;
-component registration and local 512-entry packaging pass. The existing packaged consumer
-exercise passed with its reset/installation/recovery summary in `artifacts/consumer-upgrade-install.json`.
+Qualification source: `18835fb3cd25ab4a38acb4ac7e06ed25dc034f84`, clean and frozen during both final runs.
+`./scripts/Test-ProgramKit.ps1 -Suite Development -BrowserEngines 'chromium,webkit'`
+passed **88/88 checks** on 2026-10-11, 11:10:38–11:22:14 UTC. Evidence:
+[Development journal](../artifacts/validation-runs/20261011T111038Z-40586ae3/journal.json).
+This includes story controls 22/22, task generation 19/19, normal development 24/24,
+intake 15/15, knowledge inventory 7/7, dependency audit 10/10 and phase readiness 18/18.
+The final targeted `validate_consumer_upgrade_install` run passed with all five prerequisites:
+[package journal](../artifacts/validation-runs/20261011T111308Z-b69580a4/journal.json),
+[installed reset/recovery log](../artifacts/validation-runs/20261011T111308Z-b69580a4/validate_consumer_upgrade_install.log),
+[consumer summary](../artifacts/consumer-upgrade-install.json). Both journals' exit codes and every log hash
+were verified: zero errors. The bundle contains 512 entries; local development archive SHA256 is
+`c90a73fcdfb770c399d4cc4bd8a884cb1eb5edb0e80f5d82bd490f3666d2b3a9`
+([checksums](../artifacts/SHA256SUMS)). Archives retain the predecessor build label 0.12.11 only for local
+development qualification; they are not its published assets or a newly published version.
 The first Development journal `artifacts/validation-runs/20261011T105444Z-e1589ca1/journal.json`
 is retained as failed: concurrent shipped-source edits tripped exact updater freshness; new rule
 ordering/registrations and fresh-state fixtures exposed four repairable validator failures.
-All identified targeted repairs pass. Final frozen-source Development qualification remains pending.
+All identified repairs passed the final frozen-source Development run. Only this non-shipped checklist
+is updated after qualification; shipped payload/build inputs remain at the qualified implementation commit.
+The primary checkout's unrelated skill files and uncommitted handoff documents remain untouched.
 
 Adoption after publication: archive the unfinished attempt; update via the normal installer;
 amend/review/ratify the constitution; review/select its exclusively owned reset inventory;
