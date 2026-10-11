@@ -10,6 +10,19 @@ import uuid
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'tests'))
+from live.v2.cli import supervisor_environment
+from live.v2.common import LiveContractError
+from live.v2.supervisor import run_supervised
+
+
+def stage_passed(result, stderr, expected_failure):
+    if result.timedOut or result.operatorCancellationRecorded or not result.cleanupComplete or not result.logsDrained:
+        return False
+    if expected_failure:
+        lines = stderr.splitlines()
+        return result.exitCode == 1 and bool(lines) and lines[0] == 'System.InvalidOperationException: policy ran before provider'
+    return result.exitCode == 0
 
 
 def main():
@@ -20,7 +33,7 @@ def main():
         root = Path(temporary)
         shutil.copytree(ROOT/'tests/fixtures/application-lifecycle', root, dirs_exist_ok=True)
         shutil.copy2(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json', root/'global.json')
-        environment = os.environ.copy()
+        environment = supervisor_environment()
         environment['NUGET_PACKAGES'] = str(root/'cache')
         sources = []
         cached = Path.home()/'.nuget/packages'
@@ -38,20 +51,24 @@ def main():
                      ['dotnet', 'run', '--project', str(root/'Probe.csproj'), '--no-restore', '--no-build', '--', '--break-schema-order'] ]
         for number, command in enumerate(commands):
             try:
-                result = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True, timeout=180)
-            except (OSError, subprocess.SubprocessError) as error:
+                process_evidence = evidence / str(number)
+                result = run_supervised(command, cwd=root, environment=environment,
+                                        evidence_directory=process_evidence, timeout_seconds=180)
+                (process_evidence / 'process.json').write_text(json.dumps(result.as_dict(), indent=2)+'\n', encoding='utf-8')
+                stdout = (process_evidence / result.stdout.path).read_text(encoding='utf-8', errors='replace')
+                stderr = (process_evidence / result.stderr.path).read_text(encoding='utf-8', errors='replace')
+            except (OSError, subprocess.SubprocessError, LiveContractError) as error:
                 result_record.update(outcome='failed', diagnostic=type(error).__name__)
                 (evidence/'result.json').write_text(json.dumps(result_record, indent=2)+'\n', encoding='utf-8')
                 raise
-            (evidence/(str(number)+'-stdout.log')).write_text(result.stdout, encoding='utf-8')
-            (evidence/(str(number)+'-stderr.log')).write_text(result.stderr, encoding='utf-8')
             expected_failure = number == 2
-            passed = result.returncode != 0 and 'policy ran before provider' in result.stderr if expected_failure else result.returncode == 0
-            result_record['checks'].append({'stage': ('restore', 'actual-lifecycle', 'ordering-regression-red')[number], 'exitCode': result.returncode, 'expectedFailure': expected_failure, 'passed': passed})
+            passed = stage_passed(result, stderr, expected_failure)
+            result_record['checks'].append({'stage': ('restore', 'actual-lifecycle', 'ordering-regression-red')[number], 'exitCode': result.exitCode, 'expectedFailure': expected_failure, 'passed': passed, 'timeoutSeconds': 180, 'process': result.as_dict()})
             result_record['outcome'] = 'running' if passed else 'failed'
             (evidence/'result.json').write_text(json.dumps(result_record, indent=2)+'\n', encoding='utf-8')
-            print(result.stdout)
-            if not passed: raise ValueError(result.stderr or result.stdout or 'ordering mutation was not rejected')
+            print(stdout)
+            if not passed:
+                raise ValueError('Lifecycle stage failed or ordering mutation was not rejected; inspect ' + str(process_evidence))
             if number == 0:
                 assets = json.loads((root/'obj/project.assets.json').read_text())
                 for identity, version in result_record['packages'].items():

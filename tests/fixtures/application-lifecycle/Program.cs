@@ -32,6 +32,11 @@ foreach (var failure in new[] { "none", "schema", "signing", "startup" })
     Exception? activationFailure = null;
     try { shell = await registry.GetOrActivateAsync("notes"); }
     catch (Exception error) when (failure != "none") { activationFailure = error; }
+    catch (InvalidOperationException error) when (ProbeState.BreakSchemaOrder && failure == "none" && error.Message == "policy ran before provider")
+    {
+        Console.Error.WriteLine(error);
+        return 1;
+    }
     registrationOrders.Add(string.Join(",", ProbeState.Registrations));
     if (failure != "none")
     {
@@ -65,6 +70,8 @@ foreach (var failure in new[] { "none", "schema", "signing", "startup" })
 }
 Require(registrationOrders.Count == 2, "fixture did not exercise distinct actual feature registration orders");
 Console.WriteLine("Actual CShells 0.0.30-preview.159 / Foundation Tasks 0.3.1 lifecycle: registration permutations, schema/signing/startup admission, provider/startup/worker scopes and cancellation/drain passed.");
+
+return 0;
 
 static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
 static IEnumerable<Exception> Exceptions(Exception error)

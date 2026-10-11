@@ -7,8 +7,30 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
+
+from live.v2.supervisor import run_supervised
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def run_command(command, *, cwd, environment, evidence, expected=0, timeout=300):
+    """Require a completed, drained process before interpreting its exit status."""
+    secrets = [environment[name] for name in ('PROGRAM_KIT_NPM_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN', 'NUGET_AUTH_TOKEN') if environment.get(name)]
+    start = time.perf_counter()
+    process = run_supervised(command, cwd=cwd, environment=environment,
+                             evidence_directory=evidence, timeout_seconds=timeout, secrets=secrets)
+    record = {'command': command, 'exitCode': process.exitCode,
+              'elapsedSeconds': round(time.perf_counter()-start, 3),
+              'process': process.as_dict()}
+    (evidence/'process.json').write_text(json.dumps(record, indent=2)+'\n', encoding='utf-8')
+    stdout = (evidence/process.stdout.path).read_text(encoding='utf-8', errors='replace')
+    stderr = (evidence/process.stderr.path).read_text(encoding='utf-8', errors='replace')
+    if process.timedOut or process.operatorCancellationRecorded or not process.cleanupComplete or not process.logsDrained:
+        raise AssertionError('Command did not complete safely: '+str(record)+'\n'+stdout+stderr)
+    if expected is not None and process.exitCode != expected:
+        raise AssertionError(str(record)+'\n'+stdout+stderr)
+    return subprocess.CompletedProcess(command, process.exitCode, stdout, stderr), record
 
 
 def main():
@@ -26,14 +48,10 @@ def main():
             path.parent.mkdir(parents=True,exist_ok=True)
             path.write_text(content,encoding='utf-8')
         def run(command, expected=0):
-            start = time.perf_counter()
-            result = subprocess.run(command,cwd=root,env=env,capture_output=True,text=True,
-                                    encoding='utf-8',errors='replace',timeout=300)
-            record = {'command':command,'exitCode':result.returncode,'elapsedSeconds':round(time.perf_counter()-start,3)}
+            result, record = run_command(command, cwd=root, environment=env,
+                                         evidence=artifacts/'processes'/uuid.uuid4().hex, expected=expected)
             commands.append(record)
             (artifacts/f'{len(commands):02d}.log').write_text(result.stdout+result.stderr,encoding='utf-8')
-            if expected is not None and result.returncode != expected:
-                raise AssertionError(str(record)+'\n'+result.stdout+result.stderr)
             return result
         run([sys.executable,str(ROOT/'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
              '--target',str(root),'--profile-selected','--foundation-host-accepted',
@@ -60,9 +78,13 @@ public static class Policy
 ''')
         write('tests/Slots.Tests/Slots.Tests.csproj','<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><IsPackable>false</IsPackable></PropertyGroup><ItemGroup><ProjectReference Include="../../src/Slots.Core/Slots.Core.csproj" /></ItemGroup></Project>')
         write('tests/Slots.Tests/Program.cs','''if (!Slots.Policy.Admit(1) || Slots.Policy.Admit(0) || Slots.Policy.Admit(-1))
-    throw new Exception("Domain admission behavior failed");
+{
+    System.Console.Error.WriteLine("Domain admission behavior failed");
+    return 1;
+}
 System.IO.Directory.CreateDirectory("artifacts/tests");
 System.IO.File.WriteAllText("artifacts/tests/domain.xml", "<testsuite><testcase classname='Slots' name='capacity_admission'/></testsuite>");
+return 0;
 ''')
         write('eng/architecture.json',json.dumps({'schemaVersion':1,'runtimeComposition':{'projects':[
             {'path':'src/Slots.Core/Slots.Core.csproj','role':'core'},
@@ -154,6 +176,7 @@ public static class Policy
 ''')
         failed=run([shutil.which('pwsh') or shutil.which('powershell'),'-NoProfile','-File','eng/Invoke-RepositoryVerification.ps1'],expected=None)
         assert failed.returncode != 0, 'Wrong application behavior was accepted'
+        assert 'Domain admission behavior failed' in failed.stderr, 'Expected domain rejection diagnostic was missing'
         result={'governanceDeleted':True,'codingAgentsStarted':False,'commands':commands,
                 'applicationChecksPassedBeforeMutation':True,'wrongBehaviorRejected':True,
                 'nativeHandoffGeneratedAfterToolkitRemoval':True,'handoffStatus':'incomplete',
