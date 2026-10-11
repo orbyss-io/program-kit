@@ -530,14 +530,14 @@ def main() -> int:
             raise AssertionError("repeated Program Kit installation lost or duplicated unrelated hooks")
         # Exercise the installed core resolver, not just the upstream overlay files.
         expected_templates = {
-            'constitution-template': ('## Core Principles', '### Test-first behavior',
+            'constitution-template': ('## Core Principles', '### Verification selected by risk',
                                       'without AI, toolkit extensions or governance history'),
             'spec-template': ('## User Scenarios & Testing', '**Independent Test**',
                               '**Given**', '**When**', '**Then**',
                               'Explicitly request automated behavioral tests'),
             'tasks-template': ('## Operation dependency map', '## Task dependency map',
                                'Map test tasks to each user story',
-                               'Observe the intended failing behavior'),
+                               'choose sequencing by risk', 'Story delivery map'),
         }
         for template, markers in expected_templates.items():
             resolved = subprocess.run([sys.executable, '-X', 'utf8', str(python_resolver), template, '--json'],

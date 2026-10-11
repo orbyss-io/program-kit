@@ -73,7 +73,7 @@ Write each completed phase to an ignored temporary content file, then persist it
 Continue unique task IDs from the saved draft. Save each operation group as soon
 as it is ready; dependencies/parallel examples and the final coverage pass come last.
 This incremental persistence replaces any instruction to hold all phases in memory before
-writing tasks.md. Include constitution-required tests before their implementation tasks,
+writing tasks.md. Include constitution-required tests with risk-selected sequencing,
 security, ownership and real-provider checks. Missing compatibility inputs/admission work
 become owned prerequisite tasks with explicit dependencies; do not run probes, provision
 services, restart bootstrap, alter approvals or change accepted pins while drafting.
@@ -83,3 +83,9 @@ After every planned phase and the final coverage/format review are saved, run
 document, finish that same review directly without requiring helper metadata. Then dispatch mandatory after_tasks hooks,
 including read-only speckit.analyze. Do not invoke analyze on an incomplete draft or after
 each phase write, and do not claim task generation completed while a draft remains.
+
+Use the resolved Story delivery map and story sizing criteria. Keep review per runnable story;
+earlier checkpoints need explicit agreement. Persist delivery/roles/decisions/effort in the same
+current tasks checkpoint using `task_draft.py delivery` and `references/phase-evidence.md`.
+Fresh-feature adoption requires archived abandonment and constitution amendment/ratification,
+then every Spec Kit phase from fresh spec; old implementation checkmarks grant no new authority.

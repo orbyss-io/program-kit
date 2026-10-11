@@ -535,7 +535,9 @@ def main() -> int:
             )
         except subprocess.CalledProcessError as error:
             diagnostic=(error.stdout or '')+(error.stderr or '')
-            if 'pins workflow' not in diagnostic or 'independently installed' not in diagnostic or 'cannot be replaced' not in diagnostic:
+            # Rich wraps this diagnostic according to terminal width/version lengths.
+            diagnostic_words = ' '.join(diagnostic.split())
+            if 'pins workflow' not in diagnostic_words or 'independently installed' not in diagnostic_words or 'cannot be replaced' not in diagnostic_words:
                 raise AssertionError('Unsafe update failed for an unintended reason: '+diagnostic) from error
         else:
             raise AssertionError('Bundle-first update did not reject the separately owned old workflow')

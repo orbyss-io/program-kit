@@ -2,6 +2,25 @@
   "schemaVersion": 1,
   "requirements": [
     {
+      "id": "story-delivery",
+      "when": "all", "due": "delivery", "proof": "behavior",
+      "sources": ["program-kit-governance/references/phase-evidence.md"],
+      "sections": {"program-kit-governance/references/phase-evidence.md": ["Story delivery and human review"]},
+      "requirement": "Deliver small runnable actor stories, verify by risk, and retain explicit assigned human decisions. Required reviews pause product progression; scoped deferrals remain due at feature acceptance. Active effort thresholds warn without blocking solely by time. Existing unfinished features require archived abandonment, constitution amendment/ratification and all phases from fresh specification.",
+      "phases": ["planning", "after-plan", "tasks", "after-tasks", "implementation", "delivery"],
+      "enforcement": {"kind": "behavior-and-review", "coverage": [], "routingCoverage": ["tests/validate_story_delivery.py", "tests/validate_task_generation.py"], "coverageScope": "Deterministic workflow/state and installed disposable reset contracts; simulated humans establish no real acceptance or delivery-speed claim."},
+      "example": "Generate a known scaffold, run maintained checks, add missing owner-specific behavior tests, exercise the integrated journey, then present US1 for explicit review before starting US2.",
+      "guidance": {
+        "planning": "Confirm useful actor outcome/non-goals, independent walkthrough, connected effects and effort to review. Split oversized stories or disclose larger-story rationale; plan human review per story and early gates only by agreement.",
+        "after-plan": "Review risk-selected verification/scaffold checks, real prerequisites and coherent story sizing. Preserve owner/reviewer authority and explicit checkpoint scope.",
+        "tasks": "Populate Story delivery map and risk-selected operation batches. Required human review belongs to runnable stories; ordinary operations need no repeated human pause.",
+        "after-tasks": "Check finalized story ownership/outcome/walkthrough/effort and exact prerequisites. Fresh policy adoption cannot continue old partial code/checkmarks.",
+        "implementation": "Use task_draft.py delivery for start/present/decision/status/wait/resume. Required review pauses product work except active repair/diagnosis or named deferral. Preserve all decisions, freshness and cumulative effort in the compact checkpoint.",
+        "delivery": "Finish and formal handoff consume the same human state, including absent hooks. Required deferred reviews remain due; engineering success alone establishes no human acceptance."
+      },
+      "decisionRules": []
+    },
+    {
       "id": "domain-semantics",
       "when": "all",
       "due": "delivery",
@@ -41,7 +60,7 @@
         "after-plan": "Define owned policies, transitions, effects, admission and failure outcomes.",
         "tasks": "Map required denial, retry, cancellation and acknowledgement cases to test tasks.",
         "after-tasks": "Map required denial, retry, cancellation and acknowledgement cases to test tasks.",
-        "implementation": "Test changed domain behavior first through its owned public capability.",
+        "implementation": "Verify changed domain behavior through its owned public capability with sequencing selected by risk.",
         "delivery": "Verify all required outcomes and meaningful denials through actual behavior."
       },
       "decisionRules": []
@@ -943,7 +962,7 @@
       "route": {
         "kind": "manual",
         "via": ["extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "scripts/consumer_upgrade_workspace.py"],
-        "sections": ["Consumer upgrade and migration planning method"],
+        "sections": ["Fresh story-delivery adoption"],
         "requirements": [],
         "review": "Existing substantive review, scoped recovery and destination activation; no founding bootstrap restart."
       }
@@ -1577,10 +1596,11 @@
         ],
         "sections": [
           "Knowledge and engineering checks",
-          "Reusable foundation proof and operation prerequisites"
+          "Reusable foundation proof and operation prerequisites",
+          "Story delivery and human review"
         ],
-        "requirements": [],
-        "review": "Scoped engineering execution plus normal semantic review; historical evidence is read-only."
+        "requirements": ["story-delivery"],
+        "review": "Scoped engineering execution, assigned human story decisions/progression and advisory effort; historical evidence is read-only."
       }
     },
     {
@@ -1763,7 +1783,8 @@
           "Cohesion and coupling",
           "Horizontal enabling work",
           "Proportional exceptions",
-          "Traceability"
+          "Traceability",
+          "Story and operation boundaries"
         ],
         "requirements": [
           "domain-semantics",

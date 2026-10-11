@@ -23,7 +23,7 @@ def validate_recipes(root, changes):
         raise ValueError('Consumer semantic metadata references an unmaintained migration method')
 
 
-def build(root, destination, version):
+def build(root, destination, version, *, aggregates=True):
     root, destination = Path(root), Path(destination)
     data = json.loads((root / 'releases/history.json').read_text(encoding='utf-8'))
     destination.mkdir(parents=True, exist_ok=True)
@@ -47,7 +47,8 @@ def build(root, destination, version):
     from release_guidance import load_index
     load_index(destination, version)
     entry = next(entry for entry in data['entries'] if entry['version'] == version)
-    (destination / 'RELEASE-NOTES.md').write_bytes((destination / entry['guide']).read_bytes())
-    (destination / 'MIGRATIONS.md').write_text('\n\n'.join((destination / entry['guide']).read_text(encoding='utf-8')
-                                                         for entry in data['entries']), encoding='utf-8')
+    if aggregates:
+        (destination / 'RELEASE-NOTES.md').write_bytes((destination / entry['guide']).read_bytes())
+        (destination / 'MIGRATIONS.md').write_text('\n\n'.join((destination / entry['guide']).read_text(encoding='utf-8')
+                                                             for entry in data['entries']), encoding='utf-8')
     return destination

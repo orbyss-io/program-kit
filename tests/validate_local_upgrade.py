@@ -156,7 +156,8 @@ def seed_confirmed_feature_intake(project: Path, spec: Path) -> None:
         sys.executable, str(scripts / "implementation_preflight.py"),
         "--repository", str(project), "--feature-dir", str(spec.parent), cwd=project,
     )
-    require_success(missing, 'Drafting guidance before feature intake')
+    if missing.returncode != 2 or 'old progress grants no authority' not in missing.stdout:
+        raise AssertionError('An old partial feature must require fresh story adoption: ' + missing.stdout + missing.stderr)
 
     original_directory = Path.cwd()
     sys.path.insert(0, str(scripts))
@@ -751,11 +752,11 @@ def main() -> int:
             "post-reconciliation artifact ownership",
         )
         preflight = project / ".specify/extensions/program-kit-governance/scripts/implementation_preflight.py"
-        require_success(run(sys.executable, str(preflight), '--repository', str(project),
-                            '--feature-dir', str(feature), cwd=project), 'normal implementation guidance')
-        require_success(run(sys.executable, str(preflight.with_name('phase_obligations.py')), 'check',
-                            '--repository',str(project),'--feature-dir',str(feature),'--phase','implementation',cwd=project),
-                        'implementation without bootstrap or phase evidence')
+        for implementation_command in ([sys.executable, str(preflight), '--repository', str(project), '--feature-dir', str(feature)],
+                                       [sys.executable, str(preflight.with_name('phase_obligations.py')), 'check', '--repository', str(project), '--feature-dir', str(feature), '--phase', 'implementation']):
+            blocked = run(*implementation_command, cwd=project)
+            if blocked.returncode != 2 or 'old progress grants no authority' not in blocked.stdout:
+                raise AssertionError('Old partial upgrade fixture continued without fresh adoption: ' + blocked.stdout + blocked.stderr)
         if lifecycle_path.read_bytes() != lifecycle_before:
             raise AssertionError('Normal implementation guidance rewrote historical lifecycle results')
         lock_value = json.loads((project / "packages.lock.json").read_text(encoding="utf-8"))

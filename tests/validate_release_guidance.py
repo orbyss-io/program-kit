@@ -16,6 +16,22 @@ from release_guidance import plan, load_index, require_review, completion
 
 
 class GuidanceTests(unittest.TestCase):
+    def test_compact_bundle_guidance_retains_verified_history_and_current_adoption(self):
+        from release_guidance import semantic_changes
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            version = (ROOT / 'VERSION').read_text().strip()
+            full = build(ROOT, root / 'full', version)
+            compact = build(ROOT, root / 'compact', version, aggregates=False)
+            self.assertEqual(plan(full, '0.12.11', version), plan(compact, '0.12.11', version))
+            self.assertEqual(semantic_changes(full, '0.12.11', version),
+                             semantic_changes(compact, '0.12.11', version))
+            index = load_index(compact, version)
+            for entry in index['entries']:
+                self.assertEqual((full / entry['guide']).read_bytes(), (compact / entry['guide']).read_bytes())
+            self.assertEqual({'RELEASE-NOTES.md', 'MIGRATIONS.md'},
+                             {p.name for p in full.iterdir()} - {p.name for p in compact.iterdir()})
+
     def test_semantic_changes_require_maintained_complete_recipe_contracts(self):
         import shutil
         with tempfile.TemporaryDirectory() as name:

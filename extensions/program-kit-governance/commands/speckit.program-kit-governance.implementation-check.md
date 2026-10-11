@@ -33,14 +33,22 @@ Preserve due authority/security/provider gates beside their dependent operation;
 foundation phase is introduced. Drafting and ordinary hooks never start services.
 
 Run compiler/analyzer checks and
-targeted tests as code changes. Write and run the relevant failing case before its implementation,
-then nearby regressions for refactoring. Expand through changed contracts and reverse dependencies.
+targeted tests as code changes. Select sequence by risk: known scaffold batches first, maintained
+checks before dependent behavior, then missing consumer tests. Prefer meaningful test-first for
+critical/uncertain behavior and regression-first for bugs; wiring uses immediate verification and
+refactoring existing regressions. Expand through changed contracts and reverse dependencies.
 Progress saves, task batches and resumes do not trigger full acceptance. Restore only for changed
 dependency inputs or an explicit preparation need; package only when an affected integration needs it.
 A plan disagreement is a finding to resolve, not a reason to
 rewrite unrelated design documents. Ask humans only about material choices or scoped exceptions.
 Do not require bootstrap completion, ratification receipts, roadmap status, analysis hashes,
 artifact ownership dossiers or extra review approvals before ordinary coding.
+Fresh story-delivery adoption separately requires normal constitution amendment/ratification once;
+do not re-ratify unchanged policy at every operation. Required human story checkpoints remain binding.
 Confirmed code/architecture violations must be corrected before completion and CI acceptance.
 Report the command's stated engineering scope, actual behavior tested and outstanding semantic or
 human review separately. A graph or command pass does not establish overall feature acceptance.
+Preflight also consumes the current story review/progression state. Pending required checkpoints
+pause product work; `--operation <id> --repair` is only for active presented-outcome repair/diagnosis.
+Explicit deferral authorizes only named operations. Review `references/phase-evidence.md`; use its
+same transitions and finish checks even when optional hooks are absent. Clocks are advisory.

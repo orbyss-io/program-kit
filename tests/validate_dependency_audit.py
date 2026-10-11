@@ -265,6 +265,8 @@ class AuditTests(unittest.TestCase):
     def test_setup_and_source_preflight_no_longer_consume_receipts(self):
         feature = self.root / 'specs/001-feature'
         feature.mkdir(parents=True, exist_ok=True)
+        from validate_story_delivery import seed
+        seed(self.root, feature)  # Fictional fresh state; historical bootstrap/proof receipts stay untouched.
         before = {p:p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
         for stage in ['setup','source']:
             with patch.object(sys,'argv',['preflight','--repository',str(self.root),'--feature-dir',str(feature),'--stage',stage]):

@@ -163,6 +163,33 @@
         "Preserve custom source/configuration, accepted history, native locks and failed evidence; retry the same verified resumable updater.",
         "A toolkit update or Git rollback cannot undo external database or identity state; use the application owner's explicit migration and recovery policy."
       ]
+    },
+    {
+      "guide": "migration-0.13.0.md",
+      "automatic": [
+        "Install runnable-story guidance and persistent scoped review state across canonical, projected and installed commands.",
+        "Install advisory active-effort tracking and maintained entry/resume/closure/handoff guards."
+      ],
+      "previous": "0.12.11",
+      "recovery": [
+        "Preserve original installation inputs, abandoned feature archives, failures and decisions; retry the verified updater.",
+        "Real consumer resets and external state changes require separate authority; never promote old partial progress to fresh acceptance."
+      ],
+      "review": [
+        "Amend, review and ratify the constitution before fresh-feature adoption.",
+        "Explicitly select owned reset files and abandon unfinished implementation before rerunning all Spec Kit phases.",
+        "Confirm reviewer assignments and supply scoped acceptance or deferral at required checkpoints."
+      ],
+      "version": "0.13.0",
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "verification": [
+        "Verify installation coherence and retained exact dependency selections.",
+        "Run maintained phase guards, risk-selected engineering checks and independent runnable-story human review.",
+        "Verify preserved inputs, archived abandoned files and all fresh phases for an adopted unfinished feature."
+      ]
     }
   ]
 }

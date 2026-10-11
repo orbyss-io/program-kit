@@ -46,7 +46,7 @@ def validate_analyzer_instructions(analyze):
                    'Operation dependency map', 'Task dependency map',
                    'independent\nfirst operation', 'unrelated future foundation work',
                    'missing named prerequisites', 'authorization', 'security', 'ownership',
-                   'storage/migration', 'real-provider tests', 'TDD', 'authority/approval gates',
+                   'storage/migration', 'real-provider tests', 'risk-selected verification', 'authority/approval gates',
                    'unknown task IDs', 'dependency cycles', 'map cannot waive a mandated gate',
                    'legacy tasks without maps', 'STRICTLY READ-ONLY', 'complete `tasks.md`',
                    'never establish full product acceptance'):
@@ -54,7 +54,7 @@ def validate_analyzer_instructions(analyze):
             raise AssertionError('Installed analyze lost scoped ordering: ' + marker)
 
 
-def validate_installed_workflow(project):
+def validate_installed_workflow(project, fresh_reset=False):
     """Called by the real archive-install validator, using its disposable consumer."""
     import yaml
     hooks = yaml.safe_load((project / '.specify/extensions.yml').read_text(encoding='utf-8'))['hooks']
@@ -84,6 +84,9 @@ def validate_installed_workflow(project):
         if obsolete in tasks:
             raise AssertionError('Installed tasks retained conflicting layer-first instructions')
     validate_analyzer_instructions(analyze)
+    if fresh_reset:
+        from exercise_fresh_story_reset import exercise
+        exercise(project, ROOT)
     implement = (skills / 'speckit-implement/SKILL.md').read_text(encoding='utf-8')
     for marker in ('hooks.before_implement', 'hooks.after_implement', 'MUST actually invoke the hook',
                    '-Scope Focused', '-Scope Affected', 'finish --handoff', 'reuse', 'not full acceptance'):
@@ -411,7 +414,7 @@ class TaskTests(unittest.TestCase):
         self.assertIn('real-provider tests', output)
         self.assertNotIn('ui-evaluation-v1.md', output)  # Optional paid experiments are not browser acceptance.
         catalog = copy.deepcopy(context.catalog())
-        catalog['requirements'][0]['phases'] = ['delivery']
+        next(rule for rule in catalog['requirements'] if rule['id'] == 'domain-semantics')['phases'] = ['delivery']
         with patch.object(context, 'catalog', return_value=catalog):
             self.assertNotIn('domain-semantics', {r['id'] for r in context.project(self.root, self.feature, 'after-plan')['requirements']})
 

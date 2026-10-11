@@ -1,5 +1,5 @@
 ---
-description: Implement and resume a feature using focused TDD and explicit delivery acceptance.
+description: Deliver runnable stories with risk-selected verification and required human review.
 scripts:
   sh: scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks
   ps: scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
@@ -38,8 +38,15 @@ do not invoke its commands again independently.
 3. If checklists exist, inspect their state read-only. Reviewer-owned requirements checklists are
    not implementation completion lists. Preserve upstream's gate: report unchecked criteria and
    obtain the user's decision to proceed before dependent work. Do not tick them on the reviewer's behalf.
-4. Dispatch `hooks.before_implement` once. The combined preflight supplies focused guidance and
+4. Initialize fresh delivery state once using `task_draft.py delivery` and the installed
+   `phase-evidence.md` protocol. Preserve existing delivery state/roles/reviews on resume. An old
+   partial feature needs archived abandonment, constitution amendment/ratification and every Spec
+   Kit phase from a fresh specification; never reuse its partial code or checkmarks as new progress.
+   Dispatch `hooks.before_implement` once. The combined preflight supplies focused guidance and
    validates the planned graph without restore/build. Reuse its result; do not run phase-context again.
+   If that hook is absent, run `implementation_preflight.py --feature-dir <feature>` once explicitly.
+   Pending required review pauses entry; only repair/diagnosis of the presented outcome or the
+   explicitly deferred operations may proceed. Pass `--operation <id> --repair` only for that repair.
 5. Verify necessary setup and ignore patterns for the affected technologies; retain existing
    correct files and accepted pins. Record the initial Git commit as the implementation baseline
    in normal task/progress output. On resume retain the earlier baseline so committed work is included.
@@ -51,12 +58,17 @@ Work in complete vertical outcomes. Do not reinterpret story phases as technical
 Choose one current operation and its observable success/material failure outcomes. Identify its
 exact enabling dependencies and completion checks before editing. Finish that outcome before
 expanding another operation or future infrastructure. Group related invariants into one coherent
-behavior batch; TDD does not require a separate shell invocation or progress narration for every
+behavior batch; verification does not require a separate shell invocation or progress narration for every
 small assertion. A newly exposed shared-contract failure can justify expanding the batch.
 
-- For each new or changed behavior, write its smallest meaningful test, observe the intended
-  missing behavior, implement, then refactor with nearby regression tests passing. A missing tool,
-  syntax error or unrelated setup failure does not prove the intended red behavior.
+- Select verification sequence from actual responsibilities/uncertainty. Materialize known scaffold
+  batches first, run maintained generation/configuration/build/integration checks before dependent
+  behavior, then add missing consumer-specific tests. Prefer meaningful test-first for critical
+  authorization, ownership, transactions, concurrency, replay, destructive actions and recovery;
+  prefer a demonstrating regression for reproducible bugs. Wiring/presentation can be implemented
+  and verified immediately; refactoring uses existing regressions plus missing coverage. Record
+  risk/method and an alternative reason briefly in plan/tasks, without routine approval or new ADR.
+  When test-first is chosen, missing tools, syntax errors or unrelated setup failures are not valid red.
 - Use `eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects <test-project>` and the
   framework's supported filter, or the documented equivalent. Build affected targets with their
   analyzers; do not repeatedly restore unchanged dependencies or package the application.
@@ -84,10 +96,36 @@ small assertion. A newly exposed shared-contract failure can justify expanding t
   tests and normal review; add no proof/approval dossier.
 - Mark a task `[X]` only after its behavior and relevant checks are satisfied. Preserve failures
   and dependencies, save progress, and state remaining work when stopping early.
-  Existing approved coarse tasks may have operation substeps mapped to their stable parent IDs.
-  Report satisfied substeps truthfully while leaving the parent open until all its obligations pass.
+  Preserve the current fresh-feature graph and leave each task open until all its obligations pass.
   Do not silently regenerate or weaken an approved graph; repair guidance is in the installed
   `vertical-slicing.md` reference.
+
+## Human story checkpoint
+
+Before each operation use the maintained `task_draft.py delivery` start transition. Internal operations
+within a story need no human pause. At the completed story or explicitly agreed early checkpoint,
+exercise its integrated journey, pass relevant checks and present the actual runnable entry point,
+prepared account/data, short walkthrough, expected results and material limitations. Disclose simulated
+externals; a mockup cannot establish implemented acceptance. Use the present transition to bind its
+implementation/configuration basis and keep separate engineering/human dispositions.
+Pause before another product operation/story. Repair/diagnosis of that outcome remains allowed.
+Explicit acceptance permits progression; deferral lists only authorized operations or a bounded batch
+and leaves review due before feature acceptance. Silence, time, screenshots and tests grant no authority.
+Corrections to agreed requirements stay in the story; new scope needs the owner's decision and affected
+artifact updates. Required technical failures cannot be waived. Backlog optional improvements explicitly.
+Use actual reviewer assignments and decision sources. Optional GitHub roles need verified account identity
+and human confirmation; retrieve only explicitly supplied references and verify exact author/checkpoint/
+basis. Generic PR approval cannot accept every story. On outage/ambiguity leave the new decision pending,
+preserve prior decisions and use only explicit owner reassignment to the conversation reviewer.
+No automatic posting, polling or monitoring is authorized. Reopen affected acceptance on material outcome/
+workflow/authorization/persistence changes; unrelated commits/tests preserve accepted behavior.
+
+Use delivery status on progress/resume and wait before explicit human waiting. Defaults warn at 60 active
+minutes per operation/120 per story, including preparation/builds/integration/tests/repairs and excluding
+human waiting. Preserve accumulated elapsed effort; never sum parallel command durations or reset by
+renaming/saving/reassigning. Report crossing once with what works/remains, cause and smallest corrective
+action; update materially changed diagnosis/scope. Continue bounded authorized work when appropriate:
+time alone never blocks. Only explicit owner decisions revise budgets.
 
 ## Current checkpoint
 
@@ -115,7 +153,9 @@ uses `finish --handoff`, even when intentionally unfinished work remains.
 
 The after-implement hook owns complete application acceptance at feature/domain closure or formal
 handoff. Do not run acceptance independently before dispatching that hook. If no acceptance hook
-is configured, invoke the documented application acceptance command once at that boundary,
+is configured, invoke `phase_obligations.py finish --feature-dir <feature>` (or `finish --handoff`
+for an explicit formal handoff) once at that boundary. This consumes the same required review state
+before invoking the documented application acceptance command,
 including applicable compiled architecture, contracts, real-provider/runtime, security and delivered
 guides/settings checks. Reuse that invocation's current result rather than calling acceptance again
 to produce the final message. New changes require the relevant checks again. Publication retains its

@@ -8,10 +8,12 @@ def main():
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--stage', choices=('setup','source'), default='source', help='Compatibility option; neither stage consumes governance receipts')
+    parser.add_argument('--operation', help='Operation explicitly permitted by scoped deferral, or active repair')
+    parser.add_argument('--repair', action='store_true', help='Repair/diagnose the active presented outcome only')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
-        print(render(check(root, inside(root, args.feature_dir), 'implementation'), 'implementation'))
+        print(render(check(root, inside(root, args.feature_dir), 'implementation', operation=args.operation, repair=args.repair), 'implementation'))
         return 0
     except (OSError, ValueError, KeyError) as error:
         print(str(error))

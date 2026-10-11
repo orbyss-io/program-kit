@@ -157,3 +157,15 @@ reproduction and recoveryOutcome in the coordination record. Inspect the report 
 consumer-sensitive facts before sharing. Original logs, architecture and source remain
 local unchanged; the summary stays useful when original run retention expires. Sending
 is an explicit consumer action; this workflow sends nothing.
+
+## Fresh story-delivery adoption
+
+Story-delivery-v1 has a specific fresh-feature adoption route in `phase-evidence.md` and recipe
+`fresh-story-delivery-v1`. Archive the abandoned attempt and failures; install through the supported
+updater; amend/review/ratify the constitution; review/select a concrete exclusively owned reset
+inventory; abandon the old partial spec/plan/tasks/code/tests as active work; rerun specify,
+clarification, plan, tasks, analysis and implement. Partial feature code/checkmarks cannot be reused
+as new progress. Preserve unchanged confirmed bootstrap/intake, accepted architecture, installed
+foundations/tooling, consumer locks and delivered features. Installation does not authorize real
+consumer/shared source/migration/data deletion. Historical selective-repair recipes remain for their
+actual earlier changes; they do not offer partial-feature continuation under this amendment.

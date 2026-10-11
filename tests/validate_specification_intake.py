@@ -203,8 +203,8 @@ class IntakeTests(unittest.TestCase):
         result = subprocess.run([sys.executable, str(SCRIPTS / "implementation_preflight.py"),
                                  "--repository", str(self.repository), "--feature-dir", str(feature)],
                                 capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Applicable guidance", result.stdout)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn("old progress grants no authority", result.stdout)
 
 
 class HookContractTests(unittest.TestCase):
