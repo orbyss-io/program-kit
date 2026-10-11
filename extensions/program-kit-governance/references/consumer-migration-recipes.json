@@ -2,6 +2,15 @@
   "schemaVersion": 1,
   "recipes": [
     {
+      "id": "fresh-story-delivery-v1", "version": 1,
+      "applicability": "Adoption of story-delivery-v1 for an affected unfinished feature; no partial-feature continuation.",
+      "preservedBehavior": "Unchanged confirmed bootstrap/intake, accepted architecture, foundations/tooling, consumer locks and delivered features; abandoned history and failed evidence.",
+      "allowedScope": "An explicitly reviewed and selected exclusively owned unfinished-feature file inventory; never unrelated shared code, migrations or live data.",
+      "ordering": ["Archive/checkpoint old attempt", "Install released toolkit through supported updater", "Amend/review/ratify constitution", "Review/select owned reset inventory", "Abandon old spec/plan/tasks/code/tests as active progress", "Rerun specify, clarification, plan, tasks, analysis and implement with hooks once"],
+      "verification": ["Normal hash-bound constitution ratification", "Old partial progress cannot authorize continuation", "Preserved designated inputs and archived old bytes", "Fresh resolved installed policy and phase/progression contracts"],
+      "recoveryLimits": "No real consumer reset under toolkit implementation authorization. Retained archives/history preserve failed evidence; feature resets never authorize service/data adoption or rollback."
+    },
+    {
       "id": "selective-feature-repair-v1", "version": 1,
       "applicability": "Affected architecture, requirements, plan or task guidance; actual code establishes the scope.",
       "preservedBehavior": "Valid requirements, product confirmation, task IDs, completed work, consumer edits and original authority.",

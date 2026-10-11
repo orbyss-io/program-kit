@@ -33,3 +33,12 @@ other features do not require another confirmation. Material changes to the brie
 choices need the user's actual answer; never fabricate it. Reference the brief in the spec.
 Normal Spec Kit clarification handles ambiguity introduced during drafting. Do not create
 parallel approval/recovery dossiers or invent bootstrap obligations for feature work.
+
+Carry small coherent runnable actor journeys, explicit non-goals, independent walkthroughs and
+connected success/material failure outcomes into fresh specification. Estimate preparation,
+integration and verification to human review; split oversized stories by useful journeys before
+tasks, or disclose larger-story effort/rationale. Human acceptance is per story, not each operation.
+Use balanced verification under the ratified constitution: known scaffold-first generation followed
+by maintained checks/missing consumer tests; critical/uncertain behavior prefers meaningful test-first.
+Adoption of this workflow abandons affected partial features and reruns all phases from fresh spec.
+Unchanged confirmed intake informs that fresh spec without repeating the whole product interview.

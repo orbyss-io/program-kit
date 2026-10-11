@@ -80,18 +80,23 @@ implementation, and verification. When a slice exposes a new architecture choice
 decision boundary, propose the ADR, obtain human acceptance, and update the architecture before
 implementation depends on it.
 
-For an existing approved plan with coarse layer tasks, preserve its task IDs, checked states,
-requirements and accepted architecture. Add operation substeps mapped to those parent IDs, then
-identify the smallest usable operation and the actual dependencies needed to prove it. Leave each
-parent task open until all its obligations are complete. Review any proposed prerequisite changes
-against security, data integrity, provider and authority constraints before updating the approved
-graph; neither an upgrade nor a resume may silently rewrite it. Preserve unfinished work and real
-failures, and do not turn simulated or scoped verification into feature acceptance.
+Adoption of story-delivery-v1 requires abandoning the affected unfinished feature, retaining its
+history/failed evidence, amending and normally ratifying the constitution and rerunning all Spec Kit
+phases from fresh specification. Do not map partial code/checkmarks into new progress. Review the
+concrete owned reset inventory; shared source, outputs, migrations and data need clear ownership.
+Preserve unchanged confirmed bootstrap/intake intent, accepted architecture, foundations/tooling,
+consumer locks and delivered features. Toolkit installation/recovery remains the supported updater.
 
-At a consumer checkpoint, first save the working tree and the original implementation baseline,
-current behavior, next operation and unresolved failure artifact references. Upgrade the maintained
-commands/templates and verification wrapper through the normal reviewed consumer upgrade path,
-preserving consumer-owned customizations and its accepted runner/toolchain. Map a custom VSTest or
-offline/provider runner to the supported adapter contract before relying on scoped result reuse.
-Replan only the affected coarse tasks using the substeps above, inspect needed/reusable/unresolved
-verification, and run the checks invalidated by the repair before continuing that operation.
+## Story and operation boundaries
+
+The story is the human acceptance unit; operations are internal implementation/integration checks.
+One coherent actor intent, useful outcome, explicit non-goals and an independent walkthrough through
+the supported interface/effects define the story. Include success/material failures and necessary
+authorization, ownership, persistence and recovery. Estimate preparation, integration and verification
+to human-reviewable behavior. Reconsider oversized stories before tasks; split by useful journeys,
+never layer/endpoint counts. Larger coherent stories disclose rationale/effort. Two hours is advisory.
+Internal operation completion needs no repeated human review. Earlier checkpoints require explicit
+agreement. Present exercised runnable story behavior and relevant passing checks, prepared account/
+data, walkthrough and limitations. Pause further product work until acceptance or explicit scoped
+deferral; deferred reviews remain due at feature acceptance. See `phase-evidence.md` for state,
+review assignments, decision freshness, resume, no-hook closure and advisory active effort.

@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_story_delivery",
+      "command": ["{python}", "tests/validate_story_delivery.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Bounded story/early review progression, scoped deferrals, roles and authenticated reference shapes, freshness, no-hook closure/handoff and deterministic active clocks; simulated humans only.",
+      "owner": "program-kit",
+      "inputs": ["extensions/program-kit-governance/**", "presets/program-kit-governance-preset/**", "tests/validate_story_delivery.py"],
+      "outputs": [], "resources": [],
+      "isolation": "Temporary fictional consumers and recorded GitHub response shapes; no real human acceptance, coding agents, posting, monitoring or real consumer reset."
+    },
+    {
       "id": "qualify_reusable_foundations_contracts",
       "command": ["{python}", "tests/qualify_reusable_foundations.py", "--contract-tests"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
@@ -182,7 +192,7 @@
       "inputs": [
         "extensions/**",
         "presets/**",
-        "tests/validate_normal_development.py"
+        "tests/validate_normal_development.py", "tests/validate_story_delivery.py"
       ],
       "outputs": [
         "artifacts/validate_normal_development"
@@ -233,7 +243,7 @@
       "inputs": [
         "extensions/**",
         "presets/**",
-        "tests/validate_task_generation.py"
+        "tests/validate_task_generation.py", "tests/exercise_fresh_story_reset.py", "tests/validate_story_delivery.py"
       ],
       "outputs": [
         "artifacts/validate_task_generation"
@@ -3720,8 +3730,8 @@
       "id": "validate_consumer_upgrade_install",
       "command": ["{python}", "tests/validate_consumer_upgrade_install.py"],
       "group": "package", "needs": ["build-release"], "platforms": ["Windows", "Linux"],
-      "purpose": "Real packaged primitive installation, isolated updater and fresh destination activation; no coding agents.",
-      "owner": "program-kit", "inputs": ["extensions/**", "scripts/**", "releases/**", "tests/validate_consumer_upgrade_install.py"],
+      "purpose": "Real packaged primitive installation, isolated updater/destination recovery, resolved commands and one deterministic fresh-story reset with normal ratification; simulated humans and no coding agents.",
+      "owner": "program-kit", "inputs": ["extensions/**", "presets/**", "scripts/**", "releases/**", "tests/validate_consumer_upgrade_install.py", "tests/validate_task_generation.py", "tests/exercise_fresh_story_reset.py", "tests/validate_story_delivery.py"],
       "outputs": ["artifacts/consumer-upgrade-install.json"], "resources": ["release-artifacts"],
       "isolation": "Unique disposable source/worktree and exact packaged release; original setup protected."
     },

@@ -92,7 +92,7 @@ screen ownership and state rules in ui-design-model.md and the selected secure-w
 
 Intake resolves consequential user meaning, conflict and recovery needs. Feature planning records
 applicable field rules, state/outcome mapping and recovery in existing artifacts. Implement complete
-fields and states with the first working journey. Run focused changed behavior tests during TDD,
+fields and states with the first working journey. Run focused changed behavior tests selected by risk,
 affected browser/client tests after related changes, and feature acceptance at closure or handoff.
 Reuse the existing browser-experience obligation; add no hook, questionnaire or full suite checkpoint.
 
@@ -101,7 +101,10 @@ invalid styling, linked summary/focus, preserved passing and failing values, cor
 duplicate local submits, actual backend error mapping, conflict, uncertain completion and stale
 callbacks where applicable. Use controlled adapter responses for UI transitions and existing real
 operation tests for backend guarantees. Template fixtures and screenshots do not prove actual
-provider/consumer outcomes. Human visual/assistive review stays in the existing acceptance handoff.
+provider/consumer outcomes. Present the actual runnable journey for human visual/assistive review at
+its required story checkpoint after relevant technical checks. Earlier product checkpoints require
+explicit agreement. Human review assesses usefulness, clarity and intended journey without repeating
+the automated suite; required deferred reviews remain due at feature acceptance. See phase-evidence.md.
 
 When server draft durability is promised, use the generated acceptance/tests/durability.mjs
 checkpoint in the real consumer browser journey. Confirm the exact server draft identity, version

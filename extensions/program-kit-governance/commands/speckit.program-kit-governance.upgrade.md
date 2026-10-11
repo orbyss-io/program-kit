@@ -51,6 +51,12 @@ affected existing areas, preserve requirements, checked tasks and IDs, and resum
 the earliest affected phase. A feature at tasks does not automatically return to specify.
 Use normal task_draft resume, analyze and preflight; preserve founding bootstrap history.
 Use the release-owned workspace install adapter for the sequential updater.
+For story-delivery-v1 adoption, use the fresh-feature exception in `references/phase-evidence.md`:
+archive/abandon the affected unfinished feature, amend and normally ratify the constitution, review
+and explicitly select its owned reset inventory, then rerun specify, clarification, plan, tasks,
+analysis and implement. Do not resume/reconcile partial code/checkmarks as new progress. Preserve
+unchanged confirmed intent/bootstrap, architecture, installed foundations/tooling, locks and delivered
+features. Installation grants no real consumer/shared source/migration/data deletion authority.
 Run relevant baseline and current actual application checks; distinguish unrelated
 baseline failures, introduced failures and inability to verify affected behavior.
 An installer/graph/plan PASS cannot establish consumer correctness or human acceptance.

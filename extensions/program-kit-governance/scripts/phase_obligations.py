@@ -123,9 +123,9 @@ def render(value, phase, detailed=False):
     actions = {
         'planning': 'Make design decisions and name their cheapest reliable tests. No application tests run during planning.',
         'after-plan': 'Review changed design decisions and the planned graph. Carry real-provider tests into the tasks.',
-        'tasks': 'Create test tasks before their corresponding behavior and carry prerequisites. Do not execute proofs while drafting.',
+        'tasks': 'Size coherent runnable stories; name risk, verification sequence and exact prerequisites. Materialize known scaffolds first, run maintained checks, then add missing consumer tests. Do not execute proofs while drafting.',
         'after-tasks': 'Check the finalized graph and run normal read-only analyze once. Drafting is not implementation.',
-        'implementation': 'Use focused red/green/refactor tests. Progress saves and resumes are not full acceptance boundaries.',
+        'implementation': 'Use verification selected by risk. Review runnable stories with the assigned human; required checkpoints pause further product work unless explicitly deferred. Progress saves and resumes are not full acceptance boundaries.',
         'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
     }
     lines += [actions[phase], '']
@@ -172,7 +172,7 @@ def render(value, phase, detailed=False):
     return '\n'.join(lines)
 
 
-def check(root, feature, phase, affected_paths=()):
+def check(root, feature, phase, affected_paths=(), operation=None, repair=False):
     graph_checked, execution = None, None
     from consumer_upgrade import scan, request_scope
     compatibility = scan(root, request_scope(root, feature=feature), {'after-plan': 'planning', 'after-tasks': 'tasks'}.get(phase, phase))
@@ -188,6 +188,8 @@ def check(root, feature, phase, affected_paths=()):
         from feature_plan_decisions import require_resolved
         require_resolved(root, feature)
         require_due_proofs(root, feature, phase)
+        from task_draft import guard
+        guard(root, feature, operation=operation, closure=phase == 'delivery', repair=repair)
     if phase == 'delivery':
         execution = execute(root, feature)
     value = model(root, feature, phase, affected_paths)
@@ -278,13 +280,29 @@ def finish(root, feature, handoff=False):
     pending = len(re.findall(r'^\s*-\s+\[ \]\s+', content, re.M))
     draft = '> Draft:' in content or bool(draft_state and draft_state.get('status') != 'complete')
     if not handoff and (pending or draft):
+        from task_draft import current
+        can_proceed, review_diagnostic = False, 'Initialize fresh story delivery before implementation; old partial progress grants no continuation authority.'
+        if (current(feature) or {}).get('delivery'):
+            from task_draft import guard
+            try:
+                guard(root, feature)
+                can_proceed, review_diagnostic = True, None
+            except ValueError as error:
+                if not str(error).startswith('Pause for required human review:'):
+                    raise
+                can_proceed, review_diagnostic = False, str(error)
         return {'status': 'in-progress', 'pendingTasks': pending, 'draft': draft,
                 'applicationChecksPassed': False, 'acceptanceEstablished': False,
+                'canProceed': can_proceed, 'reviewDiagnostic': review_diagnostic,
                 'currentCheckpoint': current(feature),
                 'instruction': 'Replace the compact current checkpoint in tasks.md with task_draft.py checkpoint; preserve unresolved failures and the implementation baseline. Run only checks required by changed inputs. No full acceptance at this checkpoint.'}
     require(handoff or bool(re.search(r'^\s*-\s+\[[xX]\]\s+', content, re.M)),
             'Feature closure requires completed tasks or an explicit formal handoff')
-    return execute(root, feature)
+    from task_draft import guard
+    guard(root, feature, closure=True)
+    result = execute(root, feature)
+    result['humanReviewsPassed'] = True
+    return result
 
 
 def main():
@@ -298,6 +316,8 @@ def main():
     parser.add_argument('--scope', choices=('Acceptance','Affected'), default='Acceptance')
     parser.add_argument('--changed-from', help='Git baseline for Affected verification including worktree and untracked changes')
     parser.add_argument('--handoff', action='store_true', help='Explicit formal review handoff, including intentionally unfinished work')
+    parser.add_argument('--operation', help='Explicit operation for scoped deferred work or repair')
+    parser.add_argument('--repair', action='store_true', help='Repair/diagnose only the active presented outcome')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     feature = inside(root, args.feature_dir)
@@ -306,7 +326,7 @@ def main():
         result = (finish(root, feature, args.handoff) if args.command == 'finish' else
                   execute(root, feature, args.scope, changed_from=args.changed_from) if args.command == 'verify' else
                   project(root, feature, args.phase, affected) if args.command == 'project' else
-                  check(root, feature, args.phase, affected))
+                  check(root, feature, args.phase, affected, args.operation, args.repair))
         if args.only and args.command not in ('verify', 'finish'):
             result['requirements'] = [r for r in result['requirements'] if r['id'] == args.only]
             if not result['requirements']:

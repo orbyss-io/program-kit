@@ -1,5 +1,7 @@
 # Tasks: [FEATURE NAME]
 
+<!-- program-kit:story-delivery-v1 -->
+
 **Inputs**: spec.md, plan.md and constitution; optional design sections only as needed.
 **Format**: `- [ ] T001 [P] [US1] Description with concrete file path`.
 `[P]` means independent writes and satisfied prerequisites. IDs and checked boxes survive resume.
@@ -7,7 +9,8 @@
 ## Outcome order and coverage
 
 [List prioritized stories, independent operations and requirement/acceptance-scenario mappings.
-Each operation provides a demonstrable user outcome; split a broad story into several operations.
+Each story provides a runnable actor journey; operations are internal integration/verification units.
+Split oversized stories into useful journeys before generating tasks, never technical-layer stories.
 No technical-layer phase or blanket foundation barrier. Put only minimal enabling prerequisites
 beside the first operation that proves them; each prerequisite names its actual consumers.]
 
@@ -16,13 +19,15 @@ beside the first operation that proves them; each prerequisite names its actual 
 **Independent test**: [observable behavior including ownership/security and failure scenarios].
 **Prerequisites**: [exact task IDs and why each is required; none when independent].
 **Verification**: [test level, projects/filter/command and required shared-boundary tests].
+**Risk and sequence**: [changed responsibilities/uncertainty; scaffold-first, test-first, immediate
+verification or regression-based refactoring; brief reason for an alternative].
 
 - [ ] T001 [US1] [One owned prerequisite needed by this operation, concrete path]
-- [ ] T002 [US1] [Test the operation's intended missing behavior, concrete test path]
-- [ ] T003 [US1] [Implement that behavior end-to-end, concrete paths]
+- [ ] T002 [US1] [Materialize known scaffold or test critical missing behavior according to risk, concrete paths]
+- [ ] T003 [US1] [Run maintained scaffold checks before dependent behavior; implement/customize and add missing consumer tests, concrete paths]
 - [ ] T004 [US1] [Refactor and verify the operation's affected boundaries, concrete paths]
 
-[Repeat an operation group for each independently testable outcome; test and implementation pairs
+[Repeat an operation group for each internal outcome; verification and implementation work
 stay together. Security, storage/provider and admission prerequisites precede their consumers.
 Do not complete future OCR/worker infrastructure before an independent create/list operation.]
 
@@ -30,6 +35,21 @@ Do not complete future OCR/worker infrastructure before an independent create/li
 
 [Story regression tasks at story closure, then full application acceptance and required delivery
 guidance/settings at feature closure. Shared contracts/generators retain their necessary checks.]
+
+## Story delivery map
+
+| Story | Operations | Useful outcome | Independent walkthrough | Active minutes to review | Larger-story rationale |
+|-------|------------|----------------|-------------------------|--------------------------|------------------------|
+| US1 | [operation-id] | [one actor intent/outcome with non-goals in spec] | [supported UI/backend/effects or real backend interface] | 120 | none |
+
+Each product operation belongs to exactly one story; `closure` is reserved for overall closure.
+Reassess a story above 120 minutes before task generation; a larger coherent story needs a rationale.
+Include preparation, integration, checks and repairs in the estimate. Required human review is per
+story, with explicitly agreed earlier checkpoints only. Ordinary operations within a story can progress
+without human approval. Present exercised runnable behavior, prepared data/account, walkthrough,
+expected results/limitations and simulated externals after relevant checks. Pause by default; only
+explicit acceptance or bounded listed deferral permits further product work. Required deferred reviews
+remain due before feature acceptance. Engineering checkmarks never manufacture human acceptance.
 
 ## Operation dependency map
 
@@ -101,9 +121,11 @@ Restore only when dependency inputs or preparation require it; pack/stage when a
 those artifacts or at delivery. Keep new and previously failing cases in scope. Successful results
 can be reused only while source/configuration/generated/toolchain and relevant environment inputs
 remain unchanged; failures/interruption never establish acceptance. A scoped pass is not full acceptance.
-Map test tasks to each user story's requirements and acceptance scenarios; place them before their
-corresponding implementation tasks. Observe the intended failing behavior before writing the fix,
-then retain those tests as regression coverage. Preserve scoped constitutional exceptions.
+Map test tasks to each user story's requirements and acceptance scenarios; choose sequencing by risk.
+Known scaffolds/templates are materialized coherently first, then maintained checks and missing
+consumer-specific tests. Prefer test-first for critical/uncertain behavior and regression-first for bugs;
+when chosen, observe intended missing behavior rather than unrelated compilation/tool failures.
+Straightforward wiring uses immediate verification; refactoring uses regressions plus missing coverage.
 Preserve contract generation, security boundaries and release composition checks when applicable.
 Associate each test task with its operation/story, required scenarios, cheapest reliable level and
 actual command. Distinguish compiler/analyzer, behavior, architecture, provider, contract and review
@@ -116,3 +138,9 @@ During implementation use `task_draft.py checkpoint` to replace one compact curr
 in tasks.md. Retain the original baseline, current outcome/task IDs, relevant check references,
 decision references, unresolved failures and next action. Do not append a progress journal.
 Use `task_draft.py current` on resume; it supplies current state without rereading the whole plan.
+The same checkpoint retains all story/early-review decisions, role assignments, presented basis and
+cumulative active effort through replacement. Follow `phase-evidence.md` using `task_draft.py delivery`
+for initialize/start/present/decision and status/wait/resume; required entry/finish validators consume
+this state even without hooks. Default clocks warn at 60 active operation minutes/120 story minutes,
+exclude explicit human waiting, include repairs and never block solely due to time. Only owner
+decisions can reassign reviewers, revise scope/budgets or authorize broader deferral batches.

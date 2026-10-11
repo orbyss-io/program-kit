@@ -15,7 +15,7 @@ an inconsistency or restore a blanket foundation barrier. Minimal enabling work 
 the first operation that needs it; shared prerequisites gate only their named consumers.
 
 Still report missing named prerequisites: authorization, security, ownership, storage/migration,
-real-provider tests, TDD, contracts, admission and retained authority/approval gates. Report
+real-provider tests, risk-selected verification, contracts, admission and retained authority/approval gates. Report
 unknown task IDs, missing map rows, dependency cycles, contradictions between maps and tasks,
 and an operation scheduled before a prerequisite it actually requires. Cite the affected
 operation, task IDs and spec/plan/constitution requirement; do not replace a concrete finding
@@ -30,3 +30,10 @@ Missing its required authorization or provider proof remains a finding. An uploa
 requiring that storage cannot precede it; an OCR operation cannot bypass its admission gate.
 Report planning coverage separately from actual executed proof: finalized tasks,
 unchanged setup readiness or a focused checkpoint never establish full product acceptance.
+
+The accepted constitution's risk-selected sequence overrides upstream universal test-before-code
+examples. Require relevant tests, meaningful red when test-first is chosen, and maintained scaffold
+checks before dependent behavior; do not report coherent scaffold-first generation as a violation.
+Confirm `Story delivery map` sizing/outcome/walkthrough and operation ownership. Required human
+review belongs to each complete runnable story, with earlier gates only when explicitly agreed.
+Missing scoped review/progression/deferral policies remain findings; checked tasks never imply acceptance.

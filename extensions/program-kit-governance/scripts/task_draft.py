@@ -2,12 +2,18 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
 import tempfile
+import time
+from urllib.parse import urlparse
 
 PREFIX = '<!-- program-kit:tasks-draft '
 MARKER = re.compile(r'^<!-- program-kit:tasks-draft (.+) -->$', re.M)
@@ -64,7 +70,7 @@ def current(feature):
     if not markers:
         return None
     value = json.loads(markers[0][1])
-    if not isinstance(value, dict) or value.get('version') != 1:
+    if not isinstance(value, dict) or value.get('version') not in (1, 2):
         raise ValueError('Unsupported current checkpoint; preserve and review retained state')
     for field in ('baseline', 'outcome', 'next'):
         if not isinstance(value.get(field), str) or not value[field].strip():
@@ -72,7 +78,21 @@ def current(feature):
     for field in ('taskIds', 'checks', 'decisions', 'failures'):
         if not isinstance(value.get(field), list) or any(not isinstance(i, str) or not i.strip() for i in value[field]):
             raise ValueError('Malformed current checkpoint: ' + field)
+    if 'delivery' in value:
+        validate(value['delivery'])
     return value
+
+
+def save_current(feature, value):
+    path = feature / 'tasks.md'
+    content = path.read_text(encoding='utf-8')
+    summary = {key: item for key, item in value.items() if key != 'delivery'}
+    serialized = json.dumps(value, ensure_ascii=True, separators=(',', ':'))
+    if '-->' in serialized or len(json.dumps(summary).encode()) > CURRENT_LIMIT or len(serialized.encode()) > 65536:
+        raise ValueError('Checkpoint summary must be at most 8192 bytes and retained story state 65536 bytes; use concise references, never discard unresolved decisions/failures')
+    marker = '<!-- program-kit:current-checkpoint ' + serialized + ' -->'
+    content = CURRENT.sub(lambda _: marker, content, count=1) if CURRENT.search(content) else content.rstrip() + '\n\n' + marker + '\n'
+    atomic_write(path, content)
 
 
 def checkpoint(feature, update):
@@ -109,12 +129,9 @@ def checkpoint(feature, update):
         retained = [i for i in prior.get(field, []) if field != 'failures' or i not in resolved]
         value[field] = list(dict.fromkeys(update.get(field, retained) if field == 'checks'
                                          else retained + update.get(field, [])))
-    serialized = json.dumps(value, ensure_ascii=True, separators=(',', ':'))
-    if '-->' in serialized or '\n' in serialized or len(serialized.encode('utf-8')) > CURRENT_LIMIT:
-        raise ValueError('Checkpoint must be at most 8192 bytes; use concise references to existing artifacts/plan, never discard unresolved failures')
-    marker = '<!-- program-kit:current-checkpoint ' + serialized + ' -->'
-    content = CURRENT.sub(lambda _: marker, content, count=1) if CURRENT.search(content) else content.rstrip() + '\n\n' + marker + '\n'
-    atomic_write(path, content)
+    if 'delivery' in prior:
+        value.update(version=2, delivery=prior['delivery'])
+    save_current(feature, value)
     return value
 
 
@@ -221,7 +238,9 @@ def prepare(root, feature, phases):
     for name in ('spec.md', 'plan.md'):
         if not (feature / name).is_file():
             raise ValueError(f'Missing {name}; no draft created')
-    state = {'version': 2, 'format': 'operation-plan', 'status': 'draft', 'phases': phases, 'completed': [], 'inputs': current}
+
+    fresh = POLICY in (feature / 'spec.md').read_text(encoding='utf-8')
+    state = {'version': 2, 'format': 'story-plan' if fresh else 'operation-plan', 'status': 'draft', 'phases': phases, 'completed': [], 'inputs': current}
     store(path, f'# Tasks: {feature.name}\n\n> Draft: task generation is incomplete. Resume saved phases before analysis or implementation.\n', state)
     return prepare(root, feature, phases)
 
@@ -269,7 +288,10 @@ def finalize(root, feature):
     ids = [line.split()[0] for line in checklists]
     if len(ids) != len(set(ids)):
         raise ValueError('Duplicate task IDs in saved draft; resolve before analysis')
-    validate_operation_graph(content, required=state.get('format') == 'operation-plan')
+    validate_operation_graph(content, required=state.get('format') in ('operation-plan', 'story-plan'))
+    if state.get('format') == 'story-plan':
+
+        plan(content)
     state['status'] = 'complete'
     content = content.replace('> Draft: task generation is incomplete. Resume saved phases before analysis or implementation.\n', '')
     store(path, content, state)
@@ -279,12 +301,13 @@ def finalize(root, feature):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('prepare', 'save-phase', 'acknowledge-inputs', 'finalize', 'checkpoint', 'current'))
+    parser.add_argument('command', choices=('prepare', 'save-phase', 'acknowledge-inputs', 'finalize', 'checkpoint', 'current', 'delivery', 'reset'))
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phases', nargs='+')
     parser.add_argument('--phase')
     parser.add_argument('--content-file')
+    parser.add_argument('--apply', action='store_true', help='Apply only an explicitly human-selected unfinished-feature file inventory')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     feature = (root / args.feature_dir).resolve()
@@ -309,13 +332,568 @@ def main():
             result = checkpoint(feature, json.loads(Path(args.content_file).read_text(encoding='utf-8')))
         elif args.command == 'current':
             result = current(feature)
+        elif args.command == 'reset':
+            if not args.content_file:
+                raise ValueError('reset requires the concrete reviewed inventory in --content-file')
+            result = reset(root, json.loads(Path(args.content_file).read_text(encoding='utf-8')), args.apply)
+        elif args.command == 'delivery':
+
+            if not args.content_file:
+                raise ValueError('delivery requires --content-file with an explicit scoped transition')
+            result = transition(root, feature, json.loads(Path(args.content_file).read_text(encoding='utf-8')))
         else:
             result = finalize(root, feature)
         print(json.dumps(result))
         return 0
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, KeyError, TypeError) as error:
         print(str(error))
         return 2
+
+
+
+
+
+POLICY = 'program-kit:story-delivery-v1'
+STATES = {'pending', 'ready for review', 'changes requested', 'accepted', 'deferred'}
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def nonempty(value):
+    return isinstance(value, str) and bool(value.strip())
+
+
+def path(root, relative):
+    require(nonempty(relative) and not Path(relative).is_absolute(), 'Use a repository-relative basis/reference path')
+    result = (root / relative).resolve()
+    require(result.is_relative_to(root.resolve()), 'Review input escapes repository')
+    return result
+
+
+def basis(root, paths):
+    require(isinstance(paths, list) and paths and len(set(paths)) == len(paths), 'Name unique implementation/configuration basisPaths')
+    result = {}
+    for relative in paths:
+        target = path(root, relative)
+        require(target.is_file(), 'Missing reviewed input: ' + relative)
+        result[relative] = hashlib.sha256(target.read_bytes()).hexdigest()
+    return result
+
+
+def check_artifacts(root, references):
+    require(isinstance(references, list) and references and all(nonempty(ref) for ref in references),
+            'Supply actual relevant successful check artifact references')
+    hashes = {}
+    for ref in references:
+        target = path(root, ref)
+        require(target.is_file(), 'Missing check artifact: ' + ref)
+        if target.suffix == '.json':
+            record = json.loads(target.read_text(encoding='utf-8'))
+            require(record.get('status') == 'completed' and record.get('exitCode', 0) == 0,
+                    'Failed/incomplete technical checks cannot be waived: ' + ref)
+            if 'outcomes' in record:
+                require(record['outcomes'] and all(outcome.get('status') == 'completed' for outcome in record['outcomes']),
+                        'Required technical outcomes are incomplete: ' + ref)
+                # Reuse the maintained native evidence reader when its fingerprints are present.
+                from phase_obligations import _engineering
+                import sys
+                sys.path.insert(0, str(_engineering))
+                from repository_verification import evidence_valid
+                for outcome in record['outcomes']:
+                    if outcome.get('fingerprint'):
+                        require(evidence_valid(root, target, outcome), 'Stale/corrupt technical evidence: ' + ref)
+        elif target.suffix in ('.trx', '.xml'):
+            from phase_obligations import test_results
+            results = test_results(target, 'trx' if target.suffix == '.trx' else 'junit')
+            require(results and all(results.values()), 'Failed/empty technical checks cannot be waived: ' + ref)
+        else:
+            raise ValueError('Supply a maintained JSON result or TRX/JUnit result, not an unverified log: ' + ref)
+        hashes[ref] = hashlib.sha256(target.read_bytes()).hexdigest()
+    return hashes
+
+
+def review_digest(presentation):
+    # Same-code changes to user meaning cannot reuse an older authenticated decision.
+    scope = {key: presentation[key] for key in ('basis', 'outcome', 'expected', 'limitations')}
+    return hashlib.sha256(json.dumps(scope, sort_keys=True).encode()).hexdigest()
+
+
+def require_policy(root, feature):
+    """Adoption is a ratified amendment and fresh feature, never old partial progress."""
+    import governance_state as governance
+    import os
+    previous = Path.cwd()
+    prior_paths = {name: getattr(governance, name) for name in ('CONSTITUTION', 'RATIFICATION', 'ROADMAP', 'DECISIONS')}
+    try:
+        os.chdir(root)
+        governance.configure_paths()
+        governance.validate_ratification()
+        require(POLICY in (root / governance.CONSTITUTION).read_text(encoding='utf-8'),
+                'Amend and ratify the constitution for story delivery before fresh feature implementation')
+    finally:
+        os.chdir(previous)
+        for name, prior in prior_paths.items():
+            setattr(governance, name, prior)
+    for name in ('spec.md', 'plan.md'):
+        require(POLICY in (feature / name).read_text(encoding='utf-8'),
+                'Fresh specification and all Spec Kit phases are required; abandon the old partial feature: ' + name)
+
+
+def plan(content, required=True):
+    from task_draft import _table, _items
+    if '## Story delivery map' not in content:
+        require(not required, 'Fresh tasks require Story delivery map; old partial feature progress cannot authorize continuation')
+        return {}
+    result, seen = {}, set()
+    operations = {row[0] for row in _table(content, 'Operation dependency map', 2)}
+    tasks = _table(content, 'Task dependency map', 5)
+    for story, owned, outcome, walkthrough, estimate, rationale in _table(content, 'Story delivery map', 6):
+        ids = _items(owned)
+        require(re.fullmatch(r'US[1-9]\d*', story) and story not in result and ids and
+                set(ids) <= operations and not seen.intersection(ids), 'Invalid story/operation ownership: ' + story)
+        require(nonempty(outcome) and nonempty(walkthrough), 'Story needs useful outcome and independent walkthrough')
+        minutes = float(estimate)
+        require(math.isfinite(minutes) and minutes > 0 and (minutes <= 120 or (nonempty(rationale) and rationale.lower() != 'none')),
+                'Larger story needs disclosed effort and sizing rationale')
+        task_ids = [row[0] for row in tasks if row[1] in ids]
+        require(task_ids, 'Story must own implementation tasks')
+        result[story] = {'operations': ids, 'taskIds': task_ids, 'outcome': outcome,
+                         'walkthrough': walkthrough, 'estimateMinutes': minutes, 'rationale': rationale}
+        seen.update(ids)
+    require(seen == operations - {'closure'}, 'Every product operation must belong to exactly one story')
+    return result
+
+
+def validate(value):
+    require(isinstance(value, dict) and value.get('version') == 1, 'Malformed story delivery state')
+    require(isinstance(value.get('roles'), dict) and 'owner' in value['roles'] and 'requester' in value['roles'], 'Missing review roles')
+    for role in value['roles'].values():
+        require(isinstance(role, dict) and nonempty(role.get('reference')) and
+                role.get('kind') in ('conversation', 'github'), 'Malformed reviewer assignment')
+        if role['kind'] == 'github':
+            require(role.get('provider') == 'github' and nonempty(role.get('host')) and
+                    isinstance(role.get('id'), int) and nonempty(role.get('login')) and
+                    nonempty(role.get('confirmation')), 'GitHub assignment must be verified and human confirmed')
+    require(isinstance(value.get('stories'), dict) and value['stories'] and
+            isinstance(value.get('checkpoints'), dict), 'Missing retained stories/checkpoints')
+    for key, review in value['checkpoints'].items():
+        require(nonempty(key) and re.fullmatch(r'[A-Za-z0-9_-]+', key), 'Use stable nonempty checkpoint identifiers')
+        require(isinstance(review, dict) and review.get('required') is True, 'Every retained checkpoint has its required review obligation')
+        require(review.get('human') in STATES and review.get('story') in value['stories'] and
+                review.get('reviewer') in value['roles'] and review.get('engineering') in ('pending', 'complete'),
+                'Malformed checkpoint disposition/assignment')
+        require(isinstance(review.get('decisions'), list), 'Missing decision provenance')
+        for decision in review['decisions']:
+            require(isinstance(decision, dict) and decision.get('verdict') in ('accepted', 'changes requested', 'deferred') and
+                    nonempty(decision.get('source')) and nonempty(decision.get('reviewer')) and
+                    isinstance(decision.get('assignment'), dict) and nonempty(decision['assignment'].get('reference')) and
+                    isinstance(decision.get('basis'), dict) and decision['basis'] and
+                    isinstance(decision.get('permits'), list) and isinstance(decision.get('at'), (int, float)),
+                    'Malformed retained human decision provenance')
+        if review['human'] in ('accepted', 'deferred'):
+            require(review.get('engineering') == 'complete' and isinstance(review.get('presentation'), dict) and review['decisions'],
+                    'Decision requires complete engineering, presented basis and provenance')
+            require(review['decisions'][-1]['verdict'] == review['human'] and
+                    review['decisions'][-1]['basis'] == review['presentation'].get('basis'),
+                    'Human disposition must match its actual latest decision/basis')
+            if review['human'] == 'deferred':
+                require(review.get('permits') and review['permits'] == review['decisions'][-1]['permits'],
+                        'Deferred scope must match the explicit decision')
+        if review.get('presentation'):
+            require(all(nonempty(review['presentation'].get(field)) for field in
+                        ('entryPoint', 'preparedData', 'walkthrough', 'expected', 'limitations', 'outcome')) and
+                    isinstance(review.get('checkBasis'), dict) and review['checkBasis'] and review.get('checks') and review.get('basisPaths'),
+                    'Malformed presented journey/verification basis')
+    clock = value.get('clock')
+    require(isinstance(clock, dict) and isinstance(clock.get('at'), (int, float)) and math.isfinite(clock['at']) and
+            isinstance(clock.get('waiting'), bool), 'Malformed active clock')
+    require(isinstance(value.get('plan'), dict), 'Missing story plan basis')
+    for story, row in value['stories'].items():
+        require(story in value['checkpoints'] and isinstance(row.get('operations'), list) and row['operations'] and
+                isinstance(row.get('effort'), dict) and set(row['effort']) == set(row['operations']), 'Malformed story effort/operation ownership')
+        for subject in [row, *row['effort'].values()]:
+            require(all(isinstance(subject.get(field), (int, float)) and math.isfinite(subject[field]) and subject[field] >= 0
+                        for field in ('seconds', 'budgetMinutes')) and subject['budgetMinutes'] > 0 and
+                        isinstance(subject.get('warned'), bool), 'Malformed accumulated effort')
+    active = value.get('active')
+    require(active is None or (isinstance(active, dict) and active.get('story') in value['stories'] and
+            active.get('operation') in value['stories'][active['story']]['operations']), 'Malformed active work')
+    return value
+
+
+def load_delivery(feature):
+    from task_draft import current
+    saved = current(feature)
+    require(saved and 'delivery' in saved, 'Initialize fresh story delivery state before implementation; old progress grants no authority')
+    return copy.deepcopy(validate(saved['delivery']))
+
+
+def persist(feature, value):
+    from task_draft import current, save_current
+    saved = current(feature)
+    saved['delivery'] = validate(value)
+    saved['version'] = 2
+    save_current(feature, saved)
+
+
+def refresh(root, value):
+    """Material basis changes reopen affected reviews; unrelated commits are irrelevant."""
+    for review in value['checkpoints'].values():
+        presented = review.get('presentation')
+        if presented:
+            try:
+                fresh = basis(root, review['basisPaths']) == presented['basis']
+            except ValueError:
+                fresh = False
+            if not fresh:
+                review.update(human='pending', engineering='pending', stale=True)
+    return value
+
+
+def accrue(value, now):
+    clock = value['clock']
+    require(isinstance(now, (int, float)) and math.isfinite(now) and now >= clock['at'], 'Clock moved backwards; preserve accumulated effort')
+    active = value.get('active')
+    if active and not clock['waiting'] and not clock.get('suspended', False):
+        seconds = now - clock['at']
+        story = value['stories'][active['story']]
+        operation = story['effort'][active['operation']]
+        operation['seconds'] += seconds
+        story['seconds'] += seconds
+    clock['at'] = now
+    warnings = []
+    if active:
+        story = value['stories'][active['story']]
+        for identifier, subject in ((active['story'], story), (active['operation'], story['effort'][active['operation']])):
+            if subject['seconds'] >= subject['budgetMinutes'] * 60 and not subject['warned']:
+                subject['warned'] = True
+                warnings.append({'work': identifier, 'activeMinutes': round(subject['seconds'] / 60, 2),
+                    'instruction': 'Report what works, what remains, cause and smallest corrective action; reassess scope. Time alone does not block authorized work.'})
+    return warnings
+
+
+def guard(root, feature, operation=None, closure=False, repair=False):
+    value = refresh(root, load_delivery(feature))
+    from task_draft import validate_operation_graph
+    content = (feature / 'tasks.md').read_text(encoding='utf-8')
+    validate_operation_graph(content, required=True)
+    require(plan(content) == value['plan'],
+            'Story plan changed; obtain a scope decision and update the affected artifacts/state')
+    persist(feature, value)
+    if operation is None and value.get('active'):
+        operation = value['active']['operation']
+    completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
+    rows = _table(content, 'Task dependency map', 5)
+    repairable = repair and any(operation == row[1] and row[0] in completed and
+            row[0] in review.get('taskIds', value['stories'][review['story']]['taskIds']) and review.get('presentation')
+            for review in value['checkpoints'].values() for row in rows)
+    require(not repair or repairable, 'Repair/diagnosis must target an existing presented outcome, never a new product operation')
+    unresolved = [key for key, review in value['checkpoints'].items() if review['human'] != 'accepted']
+    if closure:
+        require(not unresolved, 'Required human reviews remain due before feature acceptance: ' + ', '.join(unresolved))
+        require(not load_failures(feature), 'Required technical failures cannot be waived by human approval')
+        for review in value['checkpoints'].values():
+            require(check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
+        return value
+    for key, review in value['checkpoints'].items():
+        tasks = review.get('taskIds', value['stories'][review['story']]['taskIds'])
+        due = review['human'] in ('ready for review', 'changes requested', 'deferred') or review.get('stale') or (set(tasks) <= completed and review['human'] == 'pending')
+        if due:
+            permitted = review['human'] == 'deferred' and operation in review.get('permits', [])
+            require(permitted or repairable, 'Pause for required human review: ' + key + '; only repair/diagnosis or explicit scoped deferral may proceed')
+    return value
+
+
+def load_failures(feature):
+    from task_draft import current
+    return current(feature).get('failures', [])
+
+
+def github_read(host, endpoint):
+    """Use the existing authenticated GitHub CLI read route; never post or poll."""
+    result = subprocess.run(['gh', 'api', '--hostname', host, endpoint], capture_output=True,
+                            text=True, encoding='utf-8', timeout=30)
+    require(result.returncode == 0, 'GitHub read unavailable; new identity/decision remains pending')
+    return json.loads(result.stdout)
+
+
+def github_reference(reference, reader=github_read):
+    parsed = urlparse(reference)
+    require(parsed.scheme == 'https' and parsed.hostname and not parsed.username and not parsed.query,
+            'Supply an exact HTTPS GitHub comment or review reference')
+    match = re.fullmatch(r'/([^/]+)/([^/]+)/(issues|pull)/(\d+)', parsed.path)
+    fragment = re.fullmatch(r'(issuecomment-|pullrequestreview-|discussion_r)(\d+)', parsed.fragment)
+    require(match and fragment, 'Supply an exact issue comment, pull request review or review comment reference')
+    owner, repo, kind, number = match.groups()
+    resource = {'issuecomment-': 'issues/comments', 'pullrequestreview-': 'pulls/' + number + '/reviews',
+                'discussion_r': 'pulls/comments'}[fragment[1]]
+    record = reader(parsed.hostname, f'repos/{owner}/{repo}/{resource}/{fragment[2]}')
+    require(record.get('html_url') == reference and record.get('user', {}).get('type') == 'User',
+            'GitHub source reference/author could not be verified')
+    return parsed.hostname, record
+
+
+def initialize(root, feature, request, now):
+    from task_draft import current, checkpoint
+    require_policy(root, feature)
+    require(not (current(feature) or {}).get('delivery'), 'Preserve existing delivery state; use scoped transitions')
+    content = (feature / 'tasks.md').read_text(encoding='utf-8')
+    require(not re.search(r'^- \[[xX]\]', content, re.M), 'Abandon old implementation/checkmarks; initialize only a fresh feature')
+    from task_draft import load as draft_load, validate_operation_graph
+    _, draft = draft_load(feature / 'tasks.md')
+    require(not draft or draft['status'] == 'complete', 'Finish task drafting/analysis before implementation')
+    validate_operation_graph(content, required=True)
+    selected = plan(content)
+    require(nonempty(request.get('source')), 'Record the requesting human conversation source')
+    value = {'version': 1, 'plan': selected,
+             'roles': {'requester': {'kind': 'conversation', 'reference': request['source']},
+                       'owner': {'kind': 'conversation', 'reference': request['source']}},
+             'stories': {}, 'checkpoints': {}, 'active': None, 'clock': {'at': now, 'waiting': False, 'suspended': False}}
+    for story, row in selected.items():
+        value['stories'][story] = {**row, 'seconds': 0, 'budgetMinutes': 120, 'warned': False,
+            'effort': {op: {'seconds': 0, 'budgetMinutes': 60, 'warned': False} for op in row['operations']}}
+        value['checkpoints'][story] = {'story': story, 'required': True, 'reviewer': 'requester',
+            'engineering': 'pending', 'human': 'pending', 'basisPaths': [], 'decisions': []}
+    saved = current(feature)
+    if not saved:
+        checkpoint(feature, {'baseline': request['baseline'], 'outcome': 'Fresh story delivery', 'next': 'Start first operation'})
+    persist(feature, value)
+    return value
+
+
+def transition(root, feature, request, now=None, reader=github_read):
+    now = time.time() if now is None else now
+    action = request.get('action')
+    if action == 'initialize':
+        return {'delivery': initialize(root, feature, request, now), 'acceptanceEstablished': False}
+    value = refresh(root, load_delivery(feature))
+    warnings = accrue(value, now)
+    # Persist measured elapsed/freshness even when a requested transition is rejected.
+    persist(feature, value)
+    owner = request.get('actor') == 'owner' and not request.get('reference')
+    if action == 'start':
+        operation = request['operation']
+        guard(root, feature, operation, repair=request.get('purpose') in ('repair', 'diagnose'))
+        story = next((key for key, row in value['stories'].items() if operation in row['operations']), None)
+        require(story, 'Unknown operation; renaming cannot reset effort')
+        from task_draft import _table, _items
+        content = (feature / 'tasks.md').read_text(encoding='utf-8')
+        completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
+        dependencies = {row[0]: _items(row[1]) for row in _table(content, 'Operation dependency map', 2)}
+        tasks = _table(content, 'Task dependency map', 5)
+        require(all(row[0] in completed for row in tasks if row[1] in dependencies[operation]),
+                'Complete the operation actual enabling prerequisites before dependent work')
+        active = value.get('active')
+        if active and active['story'] != story:
+            review = value['checkpoints'][active['story']]
+            require(request.get('purpose') in ('repair', 'diagnose') or review['human'] == 'accepted' or (review['human'] == 'deferred' and operation in review.get('permits', [])),
+                    'Present and resolve the current story before starting another story')
+        value.update(active={'story': story, 'operation': operation})
+        value['clock'].update(waiting=False, suspended=False)
+    elif action in ('present', 'engineering'):
+        key = request['checkpoint']
+        review = value['checkpoints'][key]
+        require(not load_failures(feature), 'Resolve required technical failures before presenting a story')
+        checks = check_artifacts(root, request.get('checks'))
+        story = value['stories'][review['story']]
+        content = (feature / 'tasks.md').read_text(encoding='utf-8')
+        completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
+        require(set(review.get('taskIds', story['taskIds'])) <= completed, 'Complete the checkpoint engineering tasks and relevant checks first')
+        review.update(engineering='complete', checks=request['checks'], checkBasis=checks)
+        if action == 'present':
+            prior = copy.deepcopy(review.get('presentation'))
+            prior_human = review['human']
+            require(all(nonempty(request.get(field)) for field in ('entryPoint', 'preparedData', 'walkthrough', 'expected', 'limitations')),
+                    'Present runnable entry point, prepared data/account, walkthrough, expected results and material limitations')
+            review['basisPaths'] = request['basisPaths']
+            review['presentation'] = {field: request[field] for field in ('entryPoint', 'preparedData', 'walkthrough', 'expected', 'limitations')}
+            review['presentation']['basis'] = basis(root, review['basisPaths'])
+            review['presentation']['outcome'] = story['outcome']
+            unchanged_acceptance = prior_human == 'accepted' and prior and review_digest(prior) == review_digest(review['presentation'])
+            review.update(human='accepted' if unchanged_acceptance else 'ready for review', stale=False, permits=[])
+            value['clock']['waiting'] = True
+    elif action == 'decision':
+        key = request['checkpoint']
+        review = value['checkpoints'][key]
+        verdict = request.get('verdict')
+        require(review['human'] in ('ready for review', 'changes requested', 'deferred') and not review.get('stale'),
+                'Present a fresh checkpoint before recording a decision')
+        require(verdict in ('accepted', 'changes requested', 'deferred'), 'Ambiguous decision remains pending')
+        role = value['roles'][review['reviewer']]
+        source = request.get('source')
+        if request.get('reference'):
+            try:
+                host, record = github_reference(request['reference'], reader)
+                require(role['kind'] == 'github' and host == role['host'] and record['user']['id'] == role['id'], 'Wrong reviewer for checkpoint')
+                expected = {'feature': feature.relative_to(root).as_posix(), 'checkpoint': key,
+                            'basis': review_digest(review['presentation']), 'verdict': verdict}
+                if verdict == 'deferred':
+                    expected['permits'] = request.get('permits', [])
+                matches = re.findall(r'<!-- program-kit:story-decision (.+?) -->', record.get('body') or '')
+                require(len(matches) == 1 and json.loads(matches[0]) == expected, 'GitHub decision does not cover this exact checkpoint/outcome/basis')
+                source = request['reference']
+            except (ValueError, OSError, KeyError, subprocess.SubprocessError) as error:
+                review['pendingDecision'] = {'reference': request['reference'], 'diagnostic': str(error), 'at': now}
+                persist(feature, value)
+                return {'status': 'pending', 'diagnostic': str(error), 'warnings': warnings, 'acceptanceEstablished': False}
+        else:
+            require((role['kind'] == 'conversation' and request.get('actor') == review['reviewer']) or
+                    (owner and verdict == 'deferred'), 'Wrong reviewer; delegated GitHub reviewers supply an authenticated decision reference')
+            require(nonempty(source), 'Record actual explicit human decision source; silence/tests grant no authority')
+        if verdict == 'accepted':
+            require(review['engineering'] == 'complete' and not load_failures(feature), 'Human approval cannot waive required technical failures')
+            require(check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
+        permits = request.get('permits', [])
+        if verdict == 'deferred':
+            all_ops = {op for row in value['stories'].values() for op in row['operations']}
+            require(isinstance(permits, list) and permits and len(set(permits)) == len(permits) and set(permits) <= all_ops,
+                    'Deferral requires a bounded explicit list of permitted operations')
+            require(owner or len(permits) == 1, 'Broader batch deferral requires the owner decision')
+        review.update(human=verdict, permits=permits if verdict == 'deferred' else [])
+        review.pop('pendingDecision', None)
+        deciding_role = 'owner' if owner else review['reviewer']
+        review['decisions'].append({'verdict': verdict, 'reviewer': deciding_role, 'assignment': copy.deepcopy(value['roles'][deciding_role]),
+            'source': source, 'basis': review['presentation']['basis'], 'permits': review['permits'], 'at': now})
+        value['clock']['waiting'] = verdict != 'changes requested'
+    elif action in ('verify-reviewer', 'assign'):
+        require(owner and nonempty(request.get('source')), 'Only an explicit owner decision may reassign review')
+        if request.get('login'):
+            host = request.get('host', 'github.com')
+            require(re.fullmatch(r'[A-Za-z0-9.-]+', host) and re.fullmatch(r'[A-Za-z0-9-]+', request['login']), 'Invalid GitHub account reference')
+            record = reader(host, 'users/' + request['login'])
+            require(isinstance(record.get('id'), int) and record.get('type') == 'User' and
+                    str(record.get('login', '')).lower() == request['login'].lower(), 'Verify actual GitHub human account')
+            if action == 'verify-reviewer':
+                return {'verifiedAccount': {'provider': 'github', 'host': host, 'id': record['id'],
+                        'login': record['login'], 'reference': record['html_url']}, 'assignmentPending': True,
+                        'instruction': 'Obtain actual human confirmation of this exact account before assign.', 'warnings': warnings,
+                        'acceptanceEstablished': False}
+            require(request.get('confirmedId') == record['id'] and nonempty(request.get('confirmation')),
+                    'Obtain human assignment confirmation of the verified stable account ID')
+            role = {'kind': 'github', 'provider': 'github', 'host': host, 'id': record['id'],
+                    'login': record['login'], 'reference': record['html_url'], 'confirmation': request['confirmation']}
+        else:
+            require(action == 'assign', 'Nominate a GitHub account for verification')
+            role_id = request['role']
+            require(role_id == 'requester', 'Conversation decisions are available to the established requesting human')
+            role = value['roles']['requester']
+        key, role_id = request['checkpoint'], request['role']
+        require(role_id != 'owner', 'Owner identity is not a reviewer reassignment')
+        if role['kind'] == 'github':
+            require(role_id != 'requester', 'Preserve established conversation requester; nominate a distinct GitHub reviewer role')
+            if role_id in value['roles']:
+                previous = value['roles'][role_id]
+                require(all(previous.get(field) == role.get(field) for field in ('kind', 'provider', 'host', 'id')),
+                        'Use a distinct role for a different account; never silently reassign other checkpoints')
+        value['roles'][role_id] = role
+        value['checkpoints'][key]['reviewer'] = role_id
+        value['checkpoints'][key]['assignmentSource'] = request['source']
+    elif action == 'early-checkpoint':
+        require(owner and nonempty(request.get('source')), 'An early progression gate requires explicit human agreement')
+        key, story = request['checkpoint'], request['story']
+        require(key not in value['checkpoints'] and story in value['stories'], 'Use a new stable checkpoint ID and known story')
+        require(set(request['taskIds']) <= set(value['stories'][story]['taskIds']) and request['taskIds'], 'Early checkpoint needs scoped tasks')
+        value['checkpoints'][key] = {'story': story, 'required': True, 'reviewer': 'requester', 'taskIds': request['taskIds'],
+            'engineering': 'pending', 'human': 'pending', 'basisPaths': [], 'decisions': [], 'agreement': request['source']}
+    elif action == 'budget':
+        require(owner and nonempty(request.get('source')), 'Only explicit owner effort-budget revisions are allowed')
+        subject = value['stories'][request['story']]
+        if request.get('operation'):
+            subject = subject['effort'][request['operation']]
+        require(isinstance(request.get('minutes'), (int, float)) and request['minutes'] > 0, 'Budget must be positive active minutes')
+        subject.update(budgetMinutes=request['minutes'], budgetSource=request['source'])
+    elif action == 'scope':
+        require(owner and nonempty(request.get('source')), 'New requirement/scope needs the explicit owner decision')
+        updated = plan((feature / 'tasks.md').read_text(encoding='utf-8'))
+        require(set(updated) == set(value['plan']), 'A changed story identity needs fresh specification; never rename work to reset accounting')
+        affected = {key for key in updated if updated[key] != value['plan'][key]}
+        require(affected and affected == set(request.get('stories', [])), 'Name the exact affected stories for this scope decision')
+        for key in affected:
+            require(updated[key]['operations'] == value['plan'][key]['operations'], 'Preserve operation identity/effort; reconsider new story boundaries in fresh planning')
+            value['stories'][key].update(updated[key])
+            for review in value['checkpoints'].values():
+                if review['story'] == key:
+                    review.update(human='pending', engineering='pending', stale=True, scopeSource=request['source'])
+        value['plan'] = updated
+    elif action == 'reuse-review':
+        source = value['checkpoints'][request['from']]
+        target = value['checkpoints'][request['checkpoint']]
+        story = value['stories'][target['story']]
+        require(source['story'] == target['story'] and source['human'] == 'accepted' and not source.get('stale') and
+                set(source.get('taskIds', story['taskIds'])) == set(story['taskIds']) and
+                source['presentation']['outcome'] == story['outcome'], 'Prior review must cover the unchanged complete story outcome')
+        require(check_artifacts(root, source['checks']) == source['checkBasis'], 'Prior technical check evidence changed')
+        target.update(human='accepted', engineering='complete', basisPaths=source['basisPaths'],
+                      presentation=copy.deepcopy(source['presentation']), checks=source['checks'], checkBasis=source['checkBasis'], stale=False,
+                      decisions=copy.deepcopy(source['decisions']), reusedFrom=request['from'])
+    elif action in ('wait', 'resume', 'suspend', 'status'):
+        if action != 'status':
+            value['clock']['waiting'] = action == 'wait'
+            value['clock']['suspended'] = action == 'suspend'
+    else:
+        raise ValueError('Unknown story delivery transition')
+    persist(feature, value)
+    return {'delivery': value, 'warnings': warnings, 'acceptanceEstablished': False,
+            'instruction': 'Engineering and human dispositions are separate; use start before each operation and finish at closure/handoff.'}
+
+
+def reset_inventory(root, request):
+
+    feature = path(root, request['feature'])
+    require(feature.is_relative_to(root / 'specs') and feature.is_dir(), 'Select an existing unfinished feature under specs')
+    require(nonempty(request.get('reviewSource')), 'Review the concrete ownership/reset inventory first')
+    rows = request.get('files', [])
+    require(rows and len({row['path'] for row in rows}) == len(rows), 'Select a bounded unique file inventory')
+    selected = {}
+    for row in rows:
+        target = path(root, row['path'])
+        require(row.get('owner') == request['feature'] and target.is_file() and not target.is_symlink(), 'Every selected file needs exclusive unfinished-feature ownership')
+        parts = Path(row['path']).parts
+        require(parts[0] in ('specs', 'src', 'tests') and not any(p.lower() in
+                ('migrations', 'data', '.git', '.specify', '.program-kit') for p in parts),
+                'Reset does not authorize toolkit/bootstrap/shared inputs, migrations or data')
+        require(not (parts[0] == 'specs' and not target.is_relative_to(feature)), 'Cannot reset another feature')
+        digest = hashlib.sha256(target.read_bytes()).hexdigest()
+        require(row.get('sha256') == digest, 'Reviewed reset input changed: ' + row['path'])
+        selected[row['path']] = digest
+    for name in ('spec.md', 'plan.md', 'tasks.md'):
+        relative = (feature / name).relative_to(root).as_posix()
+        require(relative in selected, 'Abandon all old specification/plan/tasks as active work')
+    preserved = request.get('preserve', [])
+    require(preserved and not set(preserved).intersection(selected), 'Name designated bootstrap/toolkit/shared inputs to preserve')
+    hashes = {relative: hashlib.sha256(path(root, relative).read_bytes()).hexdigest() for relative in preserved}
+    return selected, hashes
+
+
+def reset(root, request, apply=False):
+
+    selected, preserved = reset_inventory(root, request)
+    result = {'status': 'preview', 'abandoned': selected, 'preserved': preserved,
+              'instruction': 'Install released toolkit; amend/review/ratify constitution; rerun specify, clarification, plan, tasks, analysis and implement. No old partial progress may be reused.'}
+    if not apply:
+        return result
+    require(nonempty(request.get('selectionSource')), 'Apply requires the actual human selection of this exact inventory')
+    identity = hashlib.sha256(json.dumps(selected, sort_keys=True).encode()).hexdigest()[:16]
+    archive = root / '.program-kit/abandoned-features' / (Path(request['feature']).name + '-' + identity)
+    require(not archive.exists(), 'Preserve existing abandoned-attempt history; inspect before another reset')
+    # Copy and verify every byte before any removal. Failures preserve the archive/remaining source.
+    for relative, digest in selected.items():
+        target = archive / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(root / relative, target)
+        require(hashlib.sha256(target.read_bytes()).hexdigest() == digest, 'Archive verification failed')
+    (archive / 'inventory.json').write_text(json.dumps({**request, 'preserved': preserved}, indent=2), encoding='utf-8')
+    for relative, digest in selected.items():
+        require(hashlib.sha256((root / relative).read_bytes()).hexdigest() == digest, 'Reset input changed during archival')
+    for relative in selected:
+        (root / relative).unlink()
+    result.update(status='abandoned', archive=archive.relative_to(root).as_posix())
+    return result
+
+
 
 
 if __name__ == '__main__':

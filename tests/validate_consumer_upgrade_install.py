@@ -57,7 +57,7 @@ def fixture_runtime(target):
         shutil.copytree(source, destination)
 
 
-def check_installed_workflow(target):
+def check_installed_workflow(target, fresh_reset=False):
     from validate_task_generation import validate_installed_workflow
     # The real drafting exercise selects a disposable feature. Restore that
     # selection afterward so this test does not invalidate captured installation
@@ -65,7 +65,7 @@ def check_installed_workflow(target):
     selection = target/'.specify/feature.json'
     prior = selection.read_bytes() if selection.is_file() else None
     try:
-        validate_installed_workflow(target)
+        validate_installed_workflow(target, fresh_reset=fresh_reset)
     finally:
         if prior is None:
             selection.unlink(missing_ok=True)
@@ -133,7 +133,7 @@ def main():
         if installed['updaterExitCode'] != 0:
             logs = '\n'.join((target/p).read_text(encoding='utf-8') for p in installed['updaterEvidence'])
             raise AssertionError('Real isolated updater did not converge: ' + logs)
-        check_installed_workflow(target)
+        check_installed_workflow(target, fresh_reset=True)
         if flow.installation_inputs(source) != original: raise AssertionError('Isolated installation changed source')
         checks = [{'id': 'retained-behavior', 'command': [sys.executable, '-c',
                   "from pathlib import Path; assert Path('note.txt').read_text() == 'retained consumer output\\n'"]}]
@@ -178,6 +178,7 @@ def main():
             'sourceProtectedDuringPreparation': True, 'destinationChecksExecuted': True,
             'actualFailedActivationRecovered': True,
             'installedOperationWorkflowVerifiedAfterUpgrade': True,
+            'installedFreshStoryResetVerified': True,
             'applicationBehaviorTested': 'Retained named file output in this disposable minimal consumer',
             'applicationAcceptanceEstablished': False, 'codingAgentsStarted': False})
     print('Packaged consumer preparation, real sequential updater and actual destination activation passed.')

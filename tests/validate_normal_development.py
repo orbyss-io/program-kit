@@ -17,6 +17,7 @@ import phase_obligations as knowledge
 import implementation_preflight
 import execution_history
 import upgrade_remediation
+from validate_story_delivery import seed, accepted_fixture
 
 
 class DevelopmentTests(unittest.TestCase):
@@ -30,6 +31,7 @@ class DevelopmentTests(unittest.TestCase):
                            ('plan.md','Pure domain policy; no database or browser required.'),
                            ('tasks.md','Implement and test reservation outcomes.')]:
             (self.feature / name).write_text(text)
+        seed(self.root, self.feature)
 
     def snapshot(self):
         return {p.relative_to(self.root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
@@ -245,6 +247,7 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
 
     def test_completion_cannot_claim_success_without_an_engineering_command(self):
+        accepted_fixture(self.root, self.feature)
         with self.assertRaisesRegex(ValueError,'no completion claim'):
             knowledge.check(self.root,self.feature,'delivery')
 
@@ -262,15 +265,16 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(1, len(logs))
         self.assertIn('Fixture engineering oracle ran', logs[0].read_text())
 
-    def test_partial_checkpoint_never_runs_full_acceptance_but_explicit_handoff_does(self):
+    def test_partial_checkpoint_never_runs_full_acceptance_and_unreviewed_handoff_is_rejected(self):
         (self.feature/'tasks.md').write_text('- [X] T001 Test the operation\n- [ ] T002 Finish the story\n')
         with patch.object(knowledge, 'execute') as execute:
             result = knowledge.finish(self.root, self.feature)
             self.assertEqual('in-progress', result['status'])
             self.assertFalse(result['acceptanceEstablished'])
             execute.assert_not_called()
-            knowledge.finish(self.root, self.feature, handoff=True)
-            execute.assert_called_once_with(self.root, self.feature)
+            with self.assertRaisesRegex(ValueError, 'old progress grants no authority'):
+                knowledge.finish(self.root, self.feature, handoff=True)
+            execute.assert_not_called()
         (self.feature/'tasks.md').write_text('> Draft: incomplete\n- [X] T001 A saved phase\n')
         with patch.object(knowledge, 'execute') as execute:
             self.assertFalse(knowledge.finish(self.root, self.feature)['acceptanceEstablished'])
@@ -281,9 +285,9 @@ class DevelopmentTests(unittest.TestCase):
             execute.assert_not_called()
 
     def test_feature_closure_runs_acceptance_once_and_forwards_affected_scope(self):
-        (self.feature/'tasks.md').write_text('- [X] T001 Delivered behavior\n')
-        with patch.object(knowledge, 'execute', return_value={'acceptanceEstablished': True}) as execute:
-            self.assertTrue(knowledge.finish(self.root, self.feature)['acceptanceEstablished'])
+        accepted_fixture(self.root, self.feature)
+        with patch.object(knowledge, 'execute', return_value={'acceptanceEstablished': False}) as execute:
+            self.assertTrue(knowledge.finish(self.root, self.feature)['humanReviewsPassed'])
             execute.assert_called_once_with(self.root, self.feature)
 
     def test_coarse_parent_with_delivered_operation_substep_is_still_progress(self):
@@ -327,7 +331,7 @@ class DevelopmentTests(unittest.TestCase):
                   'projects': ['tests/Policies.Tests/Policies.Tests.csproj'],
                   'testArguments': ['--filter', 'CreateOwnedPolicy']}
         (prior/'result.json').write_text(json.dumps(scoped))
-        (self.feature/'tasks.md').write_text('- [X] T001 Delivered operation\n')
+        accepted_fixture(self.root, self.feature)
         with patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as run:
             result = knowledge.finish(self.root, self.feature)
         run.assert_called_once()

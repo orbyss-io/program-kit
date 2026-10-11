@@ -39,8 +39,12 @@ An incomplete draft is not ready for implementation or read-only analysis.
 
 ## Generate the operation plan
 
-1. Extract prioritized user stories, their requirements and acceptance scenarios. Divide broad
-   stories into independently testable end-to-end operations. One task must have one reviewable
+1. Extract prioritized user stories, their requirements and acceptance scenarios. Confirm each
+   coherent actor journey, observable outcome, non-goals, independent walkthrough, connected
+   integration and success/material failure paths. Estimate preparation/integration/verification
+   to human review; split oversized stories by useful journeys before tasks, or disclose larger-story
+   effort and rationale. Operations are internal units; human acceptance is per runnable story.
+   One task must have one reviewable
    behavior or prerequisite; do not bundle all models, services or endpoints in separate layer tasks.
 2. Establish each operation's exact prerequisite graph. Minimal setup/enabling work belongs to the
    first operation that proves it. Shared prerequisites block only their named consumers. Do not make
@@ -55,29 +59,38 @@ An incomplete draft is not ready for implementation or read-only analysis.
    Reuse maintained infrastructure and already established unchanged proof; put changed-input,
    failed or live service checks beside the operation needing them. Do not start setup during drafting.
 3. For each operation, state its independent test, required scenarios, cheapest reliable test level
-   and actual verification command. Place a behavior's test before its implementation, observe its
-   intended failure, implement and refactor with relevant regressions. Tests required by the
+   and actual verification command. Record risk and verification sequence briefly. Generate known
+   scaffolds coherently first, run maintained checks before dependent behavior, then add missing
+   consumer-specific tests. Prefer test-first for critical/uncertain behavior and regression-first
+   for bugs; wiring uses immediate checks and refactoring existing regressions. Observe intended
+   missing behavior when test-first is selected; labels alone do not prove low risk. Tests required by the
    constitution are mandatory. Story closure has story regressions; feature closure has complete
    acceptance. Do not schedule every verification category after every task.
 4. Use checklist lines `- [ ] T001 [P] [US1] Description with concrete file path`, omitting `[P]`
    unless tasks have independent writes and prerequisites. Continue unique IDs. Group by operation
-   within story priority, with test and implementation pairs together, followed by closure work.
+   within story priority, with coherent verification/implementation batches, followed by closure work.
 5. Populate the template's operation and task dependency tables. Name required prerequisite kinds
    and the tasks establishing them. Prerequisites are obligations until executed; draft rows never
    establish approval, provider proof or authority. Map all tasks to a proving operation or closure.
-   Include valid parallel examples and trace every requirement/scenario to its tasks.
+   Include valid parallel examples and trace every requirement/scenario to its tasks. Populate
+   `Story delivery map` with operation ownership, useful outcome, walkthrough, effort and rationale.
+   Required reviews pause per completed story; earlier checkpoints require explicit human agreement.
+   Carry reviewer/owner assignments and scoped deferrals through the existing compact checkpoint.
 6. Final review checks unique IDs, task paths, operation-sized outcomes, full requirement coverage,
-   acyclic dependencies, required gates and test-before-behavior ordering. For a new marked draft,
+   acyclic dependencies, required gates and risk-selected verification ordering. For a new marked draft,
    task_draft.py finalize checks the declared dependency tables. Semantic review must still confirm
    their declarations against plan/spec/constitution. Preserve scoped constitutional exceptions.
 
 ## Existing approved plans
 
 Never automatically rewrite an approved graph. Preserve IDs, checkboxes, failures and obligations.
-Propose operation substeps mapped to existing parent tasks, identify the precise prerequisites and
-review any changed dependencies against the approved plan before adopting them. Follow
-`.specify/extensions/program-kit-governance/references/vertical-slicing.md` for scoped repair.
+Within an existing fresh story-delivery feature, identify precise prerequisites and review changed
+dependencies against its approved plan before adopting them. Follow
+`.specify/extensions/program-kit-governance/references/vertical-slicing.md` for story boundaries.
 An installed toolkit update alone grants no new consumer design or implementation authority.
+Adoption of story-delivery-v1 abandons the affected unfinished feature: archive it, amend/ratify the
+constitution, review its owned reset inventory and rerun all Spec Kit phases from fresh specification.
+Old partial code/tasks/checkmarks cannot become progress under this policy.
 
 ## Completion
 
