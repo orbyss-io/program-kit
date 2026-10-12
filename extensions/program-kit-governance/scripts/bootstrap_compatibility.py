@@ -53,6 +53,12 @@ def prepare(root: Path, scratch: Path, contract: dict):
     fixtures = contract.get('fixtures', {})
     if not isinstance(fixtures, dict):
         raise ValueError('Compatibility fixtures must map scratch-relative paths to repository-owned files')
+    if contract.get('dependencyTargets'):
+        from fixture_readiness import stale_inputs
+        stale = stale_inputs(root, contract)
+        if stale:
+            raise ValueError('Managed recipe authority is stale; stale executable fixture inputs must be picked up before dependent preparation: ' + ', '.join(stale)
+                             + '. Preview fixture_readiness.py with the existing contract and a new identity; archive/materialize the reviewed current draft, then validate it. Original proofs and inputs remain historical.')
     inputs = []
     for relative, source in fixtures.items():
         source_path = contained(root, source)
@@ -75,10 +81,11 @@ def prepare(root: Path, scratch: Path, contract: dict):
                 or parameters.get('dependencyProfile') != effective['profile']):
             raise ValueError('Managed recipe authority is stale; generate a new recipe identity from the retained selection')
         from runtime_fixture import retarget_project
+        from fixture_readiness import xml_identity
         for relative in contract.get('dependencyTargets', []):
             if Path(relative).suffix == '.csproj':
                 payload = (scratch / relative).read_bytes()
-                if retarget_project(payload, catalog, effective['sharedAbi']) != payload:
+                if xml_identity(retarget_project(payload, catalog, effective['sharedAbi'])) != xml_identity(payload):
                     raise ValueError('Managed recipe project pins or restore policy differ from selected authority; regenerate this recipe before provisioning')
         inputs.extend({'path': Path(path).relative_to(root.resolve()).as_posix(), 'sha256': sha}
                       for path, sha in effective['sources'].items())

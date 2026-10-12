@@ -79,12 +79,17 @@ if ($Suite -eq 'Release' -and -not $List) {
 
 try {
     if (-not $List) {
-        $devicePython = Get-Command python -ErrorAction SilentlyContinue
-        if (-not $devicePython) {
+        $devicePythonPath = $env:PROGRAMKIT_DEVICE_PYTHON
+        if (-not $devicePythonPath) {
+            $devicePython = Get-Command python -ErrorAction SilentlyContinue
+            if ($devicePython) { $devicePythonPath = $devicePython.Source }
+        }
+        if (-not $devicePythonPath -or -not [IO.Path]::IsPathRooted($devicePythonPath) -or
+            -not (Test-Path -LiteralPath $devicePythonPath -PathType Leaf)) {
             $requiredPython = (Get-Content -Raw -LiteralPath (Join-Path $projectRoot '.python-version')).Trim()
             throw "PKT030 pause dependent execution: python required=$requiredPython pin=.python-version detected=missing executable=missing. Ask the user to run in their own terminal: uv python install $requiredPython --default; uv python update-shell. If uv is absent follow https://docs.astral.sh/uv/getting-started/installation/. Reopen the terminal and verify Get-Command python -All and python --version. Do not install a repository-local copy."
         }
-        Invoke-ProgramKitNative $devicePython.Source @(
+        Invoke-ProgramKitNative $devicePythonPath @(
             (Join-Path $projectRoot 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'),
             '--contributor', $projectRoot
         ) 'Device readiness failed. Ask the user to run the printed commands in their own terminal, refresh the session, and retry; no device installer was run.'

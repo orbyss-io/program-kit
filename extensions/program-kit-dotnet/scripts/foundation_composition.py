@@ -11,7 +11,6 @@ import ipaddress
 import json
 import re
 import sys
-import identity_fixture
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 from xml.etree import ElementTree as ET
@@ -528,6 +527,7 @@ def validate_materialized(repository, configuration, contract, profile, realm):
 
 
 def materialize(repository, configuration, template_root):
+    import identity_fixture
     contract = publisher_contracts(repository, configuration)
     contract['toolchains'] = {}
     contract['setupAdapterSha256'] = digest((template_root/'files/eng/foundation_qualification.py').read_bytes())

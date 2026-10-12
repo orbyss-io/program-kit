@@ -150,7 +150,7 @@ class WindowsShellLaunchTests(unittest.TestCase):
                     windows_path.canonical_python(self.python)
 
     def test_unavailable_python_is_reported_before_dispatch(self):
-        with mock.patch.dict(os.environ, {'PATH': 'C:/nonexistent/workflow-tools'}):
+        with mock.patch.dict(os.environ, {'PATH': 'C:/nonexistent/workflow-tools', 'PROGRAMKIT_DEVICE_PYTHON': ''}):
             with self.assertRaisesRegex(probe.ShellPreflightError, 'PKT030.*python.*detected=missing'):
                 probe.verify_shell_launch(ROOT)
 

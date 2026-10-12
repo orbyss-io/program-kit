@@ -23,6 +23,88 @@ HOST = 'oci:ghcr.io/orbyss-io/foundation-host'
 class EffectiveContextTests(unittest.TestCase):
     setUp = provider_tests.ProviderContextTests.setUp
 
+    def test_stale_native_sdk_fixture_pickup_preserves_inputs_and_archives(self):
+        self.selected()
+        for extension in ('program-kit-governance', 'program-kit-dotnet'):
+            shutil.copytree(ROOT / 'extensions' / extension, self.root / '.specify/extensions' / extension, dirs_exist_ok=True)
+        from repository_sync import provider
+        pickup = provider('program-kit-governance/scripts/fixture_readiness.py')
+        original = self.root / 'docs/architecture/compatibility/model.csproj'
+        original.parent.mkdir(parents=True, exist_ok=True)
+        original.write_text('<Project><ItemGroup><PackageReference Include="Microsoft.SemanticKernel" Version="1.80.1" /></ItemGroup></Project>')
+        (self.root / 'Directory.Packages.props').write_text('<Project><ItemGroup><PackageVersion Include="Microsoft.SemanticKernel" Version="1.81.0" /></ItemGroup></Project>')
+        recipe = original.with_suffix('.py')
+        recipe.write_text('# Offline fixture only; executes no provider\n')
+        contract_path = original.with_suffix('.contract.json')
+        contract = {'schemaVersion': 1, 'fixtures': {'Probe.csproj': original.relative_to(self.root).as_posix()}, 'dependencyTargets': ['Probe.csproj']}
+        write_json(contract_path, contract)
+        before = {path: path.read_bytes() for path in (original, recipe, contract_path, self.root / 'Directory.Packages.props')}
+        scratch = self.root / 'scratch'; scratch.mkdir()
+        with patch.object(bootstrap_compatibility, 'configuration', return_value=({}, {})):
+            with self.assertRaisesRegex(ValueError, 'stale.*fixture|fixture.*stale'):
+                bootstrap_compatibility.prepare(self.root, scratch, contract)
+        relative = contract_path.relative_to(self.root).as_posix()
+        plan, outputs = pickup.preview(self.root, relative, 'model-current')
+        self.assertTrue(plan['staleInputs'])
+        self.assertTrue(all(path.read_bytes() == payload for path, payload in before.items()))
+        with self.assertRaisesRegex(ValueError, 'stale'):
+            pickup.apply(self.root, relative, 'model-current', '0' * 64)
+        record = pickup.apply(self.root, relative, 'model-current', plan['planDigest'])
+        self.assertEqual('materialized-draft', record['status'])
+        self.assertTrue(all(path.read_bytes() == payload for path, payload in before.items()))
+        for source, archive in record['archives'].items():
+            self.assertEqual((self.root / source).read_bytes(), (self.root / archive).read_bytes())
+        current_contract = json.loads((self.root / plan['newRecipe']).with_suffix('.contract.json').read_text())
+        project = self.root / current_contract['fixtures']['Probe.csproj']
+        self.assertEqual('1.81.0', next(ET.parse(project).iter('PackageReference')).get('Version'))
+        scratch_current = self.root / 'scratch-current'; scratch_current.mkdir()
+        with patch.object(bootstrap_compatibility, 'configuration', return_value=({}, {})):
+            _, prepared = bootstrap_compatibility.prepare(self.root, scratch_current, current_contract)
+        self.assertTrue(prepared)
+        with self.assertRaisesRegex(ValueError, 'existing pickup'):
+            pickup.apply(self.root, relative, 'model-current', plan['planDigest'])
+
+    def test_foundation_and_shared_abi_fixture_pickup_uses_selected_authority(self):
+        catalog = self.selected()
+        for extension in ('program-kit-governance', 'program-kit-dotnet'):
+            shutil.copytree(ROOT / 'extensions' / extension, self.root / '.specify/extensions' / extension, dirs_exist_ok=True)
+        from repository_sync import provider
+        pickup = provider('program-kit-governance/scripts/fixture_readiness.py')
+        renderer = load_module(self.root / '.specify/extensions/program-kit-governance/scripts/managed_provider_probes.py')
+        decisions = copy.deepcopy(self.decisions)
+        decisions['toolchain'] = {'pins': {'dotnet-sdk': '10.0.401'}}
+        write_json(self.root / 'docs/architecture/bootstrap-decisions.json', decisions)
+        recipe = renderer.render(self.root, 'foundation-activation', 'host-old', 'ghcr.io/orbyss-io/foundation-host@sha256:' + 'a' * 64)
+        contract_path = (self.root / recipe['recipe']).with_suffix('.contract.json')
+        contract = json.loads(contract_path.read_text())
+        for relative, source in contract['fixtures'].items():
+            path = self.root / source
+            if relative.endswith('.csproj'):
+                tree = ET.parse(path)
+                for reference in tree.iter('PackageReference'):
+                    reference.set('Version', '0.0.1-historical')
+                tree.write(path, encoding='utf-8')
+            if relative == 'runtime-inputs.json':
+                pins = json.loads(path.read_text())
+                pins['foundationRelease'] = '0.2.2'
+                pins['sharedAbi']['pins']['CShells.Abstractions'] = '0.0.1-historical'
+                write_json(path, pins)
+        before = {self.root / source: (self.root / source).read_bytes() for source in contract['fixtures'].values()}
+        plan, _ = pickup.preview(self.root, contract_path.relative_to(self.root).as_posix(), 'host-current')
+        self.assertTrue(plan['staleInputs'])
+        record = pickup.apply(self.root, contract_path.relative_to(self.root).as_posix(), 'host-current', plan['planDigest'])
+        self.assertTrue(all(path.read_bytes() == payload for path, payload in before.items()))
+        current = json.loads((self.root / plan['newRecipe']).with_suffix('.contract.json').read_text())
+        self.assertEqual([], pickup.stale_inputs(self.root, current))
+        parameters = json.loads((self.root / current['fixtures']['runtime-inputs.json']).read_text())
+        self.assertEqual(catalog['families']['foundation']['releaseVersion'], parameters['foundationRelease'])
+        for source, archive in record['archives'].items():
+            self.assertEqual((self.root / source).read_bytes(), (self.root / archive).read_bytes())
+        scratch = self.root / 'current-host-scratch'; scratch.mkdir()
+        with patch.object(bootstrap_compatibility, 'configuration', return_value=({}, {})):
+            _, prepared = bootstrap_compatibility.prepare(self.root, scratch, current)
+        self.assertTrue(prepared)
+
     def selected(self, identity=None):
         self.blocks = load_module(self.root / '.specify/extensions/program-kit-building-blocks/scripts/building_blocks.py')
         catalog = self.blocks.new_project_catalog(identity)

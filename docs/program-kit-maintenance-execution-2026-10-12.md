@@ -1,6 +1,6 @@
 # Program Kit maintenance execution record
 
-Implementation follows [the saved approved plan](program-kit-maintenance-plan-2026-10-12.md), in its numbered order. Started 2026-10-12 from commit `834a9f2`. The initial checkout was `codex/reusable-foundations-release-0.12.11`; unrelated untracked `.agents/` and the two story delivery documents are preserved. The saved maintenance plan is also initially untracked.
+Implementation follows [the saved approved plan](program-kit-maintenance-plan-2026-10-12.md), in its numbered order. Started incorrectly on 2026-10-12 from stale release commit `834a9f2`. The initial checkout was `codex/reusable-foundations-release-0.12.11`; unrelated untracked `.agents/` and the two story delivery documents are preserved. The maintenance checkpoint was rebased onto published 0.13.0 commit `60e875799e1aa7ae408ca5b660fcd278d9f6abea`, producing `27139eb`. The original story document bytes and stash remain preserved. Nothing was pushed. The requester's concern triggered a complete [0.13.0 context audit](program-kit-maintenance-0130-context-audit.md); implementation beyond step 6 was paused until all 88 Development checks and real packaged adoption passed.
 
 Consumer evidence at `C:/Users/tech_/Code/Orbyss/temp-tests/claim_evaluator` is read-only. No provider calls, paid workers, publication, deployment or interactive intake are authorized. Release qualification remains a separately authorized user-terminal gate. Foundation implementation belongs to “Add authenticated page serving” (`01a130d7-34a3-7a12-9678-56df82f669d7`); its implementation is in progress and is not yet adoption authority.
 
@@ -10,10 +10,10 @@ Consumer evidence at `C:/Users/tech_/Code/Orbyss/temp-tests/claim_evaluator` is 
 | --- | --- | --- |
 | 1 | Baseline, every local correction compared, retained authority inspected, preservation hashes | Complete; final preservation comparison remains required |
 | 2 | Planning and upgrade corrections with fresh regression/negative cases | Complete: 28 planning, 23 boundary, 12 audit, 5 preserved planning and 29 consumer-upgrade tests pass |
-| 3 | Validated verification runtime and required provider isolation with actual child processes | Hook and scoped checks pass; provider-runtime integration follows preparation in step 6 |
-| 4 | Identity version/digest projections and sync reconciliation | Projection/scaffold checks pass; configured Foundation composition check pending |
-| 5 | Literal MSBuild inventory, setup mappings and reverse-dependent lock renewal | Native closure passes; expanded scoped/sync checks in progress |
-| 6 | First-use preparation and stale fixture pickup with archive preservation | Pending |
+| 3 | Validated verification runtime and required provider isolation with actual child processes | Complete: real hook routes, scoped checks and native Host/BFF runtime checks pass |
+| 4 | Identity version/digest projections and sync reconciliation | Complete: both profiles, sync conflict/preservation and configured Foundation composition pass |
+| 5 | Literal MSBuild inventory, setup mappings and reverse-dependent lock renewal | Complete: 44 scoped cases, actual offline renewal/whole-solution LockedMode and composition sync pass |
+| 6 | First-use preparation and stale fixture pickup with archive preservation | Complete: early browser/device/image diagnostics, 13 authority/pickup cases and native provider fixtures pass |
 | 7 | Exact publisher applicability and successful preflight re-entry, hooks once | Pending |
 | 8 | Evidence pickup, invalidation preview and offline renewal bookkeeping | Pending |
 | 9 | Foundation final contract and exact packaged Host candidate qualification | Awaiting Foundation result; independent steps proceed first |
@@ -86,6 +86,30 @@ Before native lock proof: the owner-only renewal preview renews Owner and whole-
 `restore_dependencies.py` now binds the full active literal project graph and reverse closure into request/evidence commands and records transitive subject outputs. Imported/dynamic graphs with unproved edges stop for an evaluated adapter; plain reference-free imports remain supported. `dotnet_sync.py` derives explicit shared setup groups from actual declared native tests, owned application guides/engineering files and current compatibility inputs. `repository_verification.py` exposes matched group IDs in previews, merges setup mappings with consumer mappings, and includes consumer isolation-module changes in shared engineering inputs. Unknown inputs and absence of coverage remain failures. Existing retired-owner successor coverage remains authoritative and is exercised by the scoped suite.
 
 ## Commands and results
+
+### Published 0.13.0 context audit
+
+The 0.12.11 → 0.13.0 comparison covers all 57 changed files and every maintenance
+file. The three overlaps are additive guidance/test changes; 54 newer-release
+files, including story progression, migration, commands/templates, build logic
+and metadata, remain unchanged. Repaired production implementations were unchanged
+between the published baselines. The expanded audit found and repaired an eager
+identity import in setup-only loading, a semantic XML formatting rejection, two
+disposable fixture setup omissions and the real Spec Kit 512-file packaging limit.
+Details and exact evidence are in the linked context audit.
+
+Fresh native results include 26 setup cases, 13 effective-context cases, 20 shell
+preflight cases and 12 provider-context cases. The consolidated 512-file local
+archive builds; real packaged updater/destination activation and normally ratified
+fictional fresh-story reset pass. The first bounded Development run preserved four
+failures; the corrected clean run passed all 88 checks at
+`artifacts/validation-runs/20261012T173945Z-2b11fdd0/journal.json`.
+
+At the 17:29 UTC preservation boundary, 1,520 of the original 1,521 consumer inputs
+matched exactly. Only tasks.md changed through the concurrent user-authorized
+consumer repair chat's recorded resume/preflight transitions. The original snapshot
+is preserved; this is not recorded as an all-files preservation pass. No consumer
+command/write was executed by this maintenance chat.
 
 - `git status --short`, `git log -5 --oneline`, `git branch --show-current`: tracked worktree clean at baseline, existing untracked files listed above.
 - `uv python find 3.15`, exact executable `--version`: Python 3.15.0 found and validated.
