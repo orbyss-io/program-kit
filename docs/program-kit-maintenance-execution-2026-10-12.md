@@ -8,15 +8,15 @@ Consumer evidence at `C:/Users/tech_/Code/Orbyss/temp-tests/claim_evaluator` is 
 
 | Step | Work and required proof | Status |
 | --- | --- | --- |
-| 1 | Baseline, every local correction compared, retained authority inspected, preservation hashes | Complete; final preservation comparison remains required |
+| 1 | Baseline, every local correction compared, retained authority inspected, preservation hashes | Complete; closure snapshot and 1,178 protected original files verified; concurrent consumer adoption disclosed |
 | 2 | Planning and upgrade corrections with fresh regression/negative cases | Complete: 28 planning, 23 boundary, 12 audit, 5 preserved planning and 29 consumer-upgrade tests pass |
 | 3 | Validated verification runtime and required provider isolation with actual child processes | Complete: real hook routes, scoped checks and native Host/BFF runtime checks pass |
 | 4 | Identity version/digest projections and sync reconciliation | Complete: both profiles, sync conflict/preservation and configured Foundation composition pass |
 | 5 | Literal MSBuild inventory, setup mappings and reverse-dependent lock renewal | Complete: 44 scoped cases, actual offline renewal/whole-solution LockedMode and composition sync pass |
 | 6 | First-use preparation and stale fixture pickup with archive preservation | Complete: early browser/device/image diagnostics, 13 authority/pickup cases and native provider fixtures pass |
-| 7 | Exact publisher applicability and successful preflight re-entry, hooks once | Complete targeted proofs: 16 old/new-version knowledge, 29 re-entry and 19 hook-count cases pass; final integrated checks pending |
-| 8 | Evidence pickup, invalidation preview and offline renewal bookkeeping | Complete targeted proofs: 14 audit and 13 pickup/bookkeeping cases pass; conservative binding retained; final integrated checks pending |
-| 9 | Foundation final contract and exact packaged Host qualification | Public 0.3.3 contract/default/knowledge qualified; packaged private/public proofs pass. Dependency-update Development running; two-platform security gate awaits shared Trivy/CI |
+| 7 | Exact publisher applicability and successful preflight re-entry, hooks once | Complete: 16 old/new knowledge, 29 re-entry, 19 hook cases and integrated Development pass |
+| 8 | Evidence pickup, invalidation preview and offline renewal bookkeeping | Complete: 14 audit, 13 pickup/bookkeeping cases and integrated Development pass; conservative binding retained |
+| 9 | Foundation final contract and exact packaged Host qualification | Complete for authorized maintenance: public 0.3.3 default/knowledge, private/public Host/HTTP, all 88 Development checks and both immutable image security scans pass |
 
 ## Original observation dispositions
 
@@ -43,7 +43,7 @@ Final dispositions and fresh evidence are recorded below. Observation numbers re
 
 - Read `AGENTS.md`; no nested repository instruction file was found by `rg --files -g AGENTS.md`.
 - Read the original maintenance request, the saved execution plan, the planning chat, consumer feedback, `local-repair.json`, local patch, `planning-hook-repair.md`, and retained planning regression.
-- The current tasks retain only T001 checked; DS01 delivery remains pending. Older missing-Docker/Node and receipt warnings are historical, so current native proofs must decide prerequisite status.
+- At the original baseline only T001 was checked and DS01 delivery remained pending. The separate consumer chat now owns its ongoing progress. Older missing-Docker/Node and receipt warnings remain historical; actual current proofs decide readiness.
 - Preserve shared planning approximately 95 minutes once, original DS01 carry 13 minutes once, native active effort and existing 60/120-minute warnings. No consumer clock or checkpoint will be modified.
 - `python` resolves to the WindowsApps alias. The installed executable `C:/Users/tech_/AppData/Local/Python/pythoncore-3.15-64/python.exe` reports the pinned `3.15.0`; use that actual runtime for checks without PATH masking or installation.
 
@@ -61,7 +61,7 @@ Fresh before failures on unchanged production source: mixed bindings raise an un
 
 Imported changes: `building_blocks.py` uses extension version authority; `persistence_selection.py` distinguishes structured unmaterialized intent while retaining old-path materialization guards; `dependency_audit.py` archives exact executed toolkit inputs and recognizes the frozen historical producer without granting current readiness; `upgrade_program_kit.py` accepts only exact named repaired-candidate provenance, preserving attempts/originals; `feature_context.py` handles mixed bindings and explicit negation without adopting neighbors.
 
-After checks: planning 28 pass, upgrade-boundary 23 pass, dependency-audit 12 pass. The preserved consumer planning regression, redirected read-only to upstream, freshly passes all five cases including its original-failure reconstruction. Expanded negative cases preserve backend scope conflicts, installed-owner guards, corrupted archives/consumer inputs, incomplete tooling shape and unauthorized upgrade changes. Consumer-upgrade checks need the installed Spec Kit runtime: base Python's missing `specify_cli` is an environment failure. The installed CLI runtime reaches 28 of 29 passing, with only Windows junction creation denied by the outer sandbox; native-access rerun is in progress. No paid worker is invoked.
+After checks: planning 28 pass, upgrade-boundary 23 pass, dependency-audit 12 pass. The preserved consumer planning regression, redirected read-only to upstream, freshly passes all five cases including its original-failure reconstruction. Expanded negatives retain scope conflicts, installed-owner guards, corrupted archives/consumer inputs, incomplete tooling shape and unauthorized upgrade rejection. Base Python's missing `specify_cli` and sandbox junction denial were environment failures; the installed CLI/native-access run subsequently passed all 29 consumer-upgrade cases. No paid worker was invoked.
 
 ### Step 3
 
@@ -75,7 +75,7 @@ The native-access consumer-upgrade rerun passes all 29 tests. The preserved five
 
 Before: `validate_dotnet_scaffold.py` reproduces generated Keycloak descriptor 26.7.3 against compose 26.8.0. After: `identity_fixture.py` derives descriptor version and exact `localIdentityProviderImage` from the one validated immutable compose image. `dotnet_sync.py` uses that projection for both BFF and SPA; `foundation_composition.py` projects its exact accepted service image through the same function. Static descriptors no longer duplicate a version pin.
 
-Scaffold lifecycle, all profile transitions and version/digest comparisons pass. Additional cases reject mutable/ambiguous/malformed digest authority, render both profiles from a changed exact image, establish a retained local repair through real sync writes, reconcile its source template normally, preserve the consumer isolation module, and retain a genuine conflict without consumer/state mutation. Configured composition checks also compare generated service/descriptor/contract authority and remain pending execution.
+Scaffold lifecycle, all profile transitions and version/digest comparisons pass. Additional cases reject mutable/ambiguous/malformed digest authority, render both profiles from a changed exact image, establish a retained local repair through real sync writes, reconcile its source template normally, preserve the consumer isolation module, and retain a genuine conflict without mutation. Configured composition comparisons of service/descriptor/contract authority also pass in both integrated Development runs.
 
 ### Step 5
 
@@ -117,7 +117,7 @@ command/write was executed by this maintenance chat.
 
 ## Remaining gates and consumer adoption
 
-Steps 1–8 have implementations and targeted proofs. Foundation 0.3.3 is public and the new Program Kit default/knowledge pair has passed exact public qualification. Final integrated Development is running. Final local component/bundle install, sequential updater/destination activation and fresh fictional story reset pass. The complete dependency-update security gate awaits shared Trivy or CI; existing reports are preserved and are not this image's scan. Firefox and the Windows-unavailable symbolic-link case retain Linux CI authority. Complete dependency-update CI/security and separately authorized user-owned Program Kit Release/publication remain gates. No release-candidate/publication success is claimed.
+All nine maintenance steps have implementations, required targeted proofs and the final 88-check Development pass. Foundation 0.3.3 default/knowledge passed exact public qualification. Final local component/bundle install, sequential updater/destination activation and fictional fresh-story reset pass. The user installed shared Trivy 0.75.0; both exact immutable image platform scans passed. Firefox and the Windows-unavailable symbolic-link case retain Linux CI authority. Full Linux CI validation and separately authorized user-owned Program Kit Release/publication remain later gates. No Program Kit publication or DS01 acceptance is claimed.
 
 ### Step 7
 
@@ -133,7 +133,7 @@ No current producer demonstrates a receipt independent of whole selection/placem
 
 Fresh targeted results: 14 dependency-audit cases (`step8-unknown-closure-after.log`) and 13 effective-context/pickup cases (`step8-renewal-state-after.log`). The source-inventory and historical-reader checks retain original conditions, authority and receipt hashes. No paid call was made.
 
-### Step 9, in progress
+### Step 9
 
 The explicitly identified `0.3.3-local.authenticated-pages` candidate passed package-linked HTTP probes and 26 real neutral-Host/Nuplane dispatch checks in a disposable repository. Its source manifest hash is `601c951cbb951365116aa09a4ae1bf5228031bbf0665d04f6be8f00b7d5bac6c`. Evidence: `step9-packaged-probe.log` and `step9-packaged-neutral-host.log`. Cases include shared-revision cross-route bootstrap permission denial, rejection of bootstrap admission weaker than its page, anonymous/denied/admitted routes, separately public assets, final headers, logout/re-entry, discovery exclusion and legacy public compatibility. Candidate evidence is not public/default qualification.
 
@@ -141,7 +141,7 @@ The Foundation publisher subsequently completed [the tagged 0.3.3 Release workfl
 
 The first public qualification attempt restored the exact selected Build version but its assets included the machine-wide Visual Studio fallback cache. The strict owned-cache gate correctly rejected this (`step9-public-profile.log`). The qualifier now clears fallback folders in its owned NuGet configuration, preserving exact-version/public-archive checks. Fresh native qualification passed 48 activation closures and four combinations (`step9-public-profile-owned-cache.log`), then browser preparation correctly stopped for the missing registry credential. At the user's explicit request, GitHub CLI's existing OAuth token was supplied to credentialed package operations with supervised redaction; no token was printed or saved. Chromium/WebKit passed (`step9-public-browser.log`, `artifacts/published-forms-browser/eb3d871e`); immutable Host qualification passed (`step9-public-host-inputs.log`, `artifacts/bootstrap-runtime/c2c28128`).
 
-`complete_public_profile.py` resumes the standard updater from those preserved stage results. The standard builder revalidates all command/stream/process cleanup, native executor/recipe/lock, public tooling archives, browser packages and Host payload/results. Public availability passed for every selected artifact; exact knowledge matched the published source commit/Host digest before the standard promotion advanced default plus knowledge (`step9-public-qualification-seal.log`). This is not a standalone receipt writer or a Release receipt. The complete dependency-update security gate remains open.
+`complete_public_profile.py` resumes the standard updater from those preserved stage results. The standard builder revalidates all command/stream/process cleanup, native executor/recipe/lock, public tooling archives, browser packages and Host payload/results. Public availability passed for every selected artifact; exact knowledge matched the published source commit/Host digest before the standard promotion advanced default plus knowledge (`step9-public-qualification-seal.log`). This is not a standalone receipt writer or a Release receipt. The subsequent security pass is recorded in final integrated closure below.
 
 Released contract tested: 0.3.3, commit `0739892610a12f36673941dbe9718f45a38ae6cb`, Host `ghcr.io/orbyss-io/foundation-host@sha256:e61f5432f4c515ecb2b2cb91eed8a9179e64ffa006151aa893f04c490bbb2d2b`, published knowledge SHA256 `c2d0122f4e2abcb82e2c6e4255f9d8442bf4d89a991f974729fdbc2aa23c324b`. New qualified profile: `foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2`. All historical registrations remain available. Consumer pins/locks were not changed by this chat.
 
@@ -157,7 +157,19 @@ Pickup binds an exact preview digest, archives original inputs by content hash a
 
 ### Final preservation boundary
 
-`consumer-preservation-final.json`: 1,515 of 1,521 original inputs match; six differences exactly match the concurrent user-authorized consumer repair chat. They are two feedback documents, retired `runtime/claim-evaluator/settings.json`, and current feature plan/quickstart/tasks. This chat made no consumer write or command. Original archives, proofs/attempts/unknown outcomes, managed history, architecture, pins and locks match. Concurrent changes are disclosed, not restored or presented as an all-files pass. Planning/effort carry, thresholds and human acceptance retain existing consumer authority.
+The earlier `consumer-preservation-final.json` boundary remains preserved: 1,515 of 1,521 original inputs matched and six differences belonged to the concurrent consumer repair. During closure, that chat received the human message “The Foundation 0.3.3 is published.” and began its own qualified transition, sync and lock renewal. The new `consumer-preservation-closure.json` snapshot records 1,474 matching files and 47 differences, including active dependency/profile/sync/fixture/native lock inputs. Its complete path/hash list is preserved. These mutable inputs are no longer claimed unchanged.
+
+Read-only owner inspection identifies the active chat “Implement RM-01 Veterinary Asses” (`01a12c5a-01f8-7562-9475-f3f0d5a0abc5`), its public 0.3.3 qualification/accepted transition, stable ABI adoption and native lock renewal. This maintenance chat executed no consumer command/write, did not supply its unpublished toolkit to that chat, and did not restore over its authorized work. All 1,178 protected original abandoned-feature inputs, immutable dependency-profile captures, governance history and original RM-01 evidence files separately hash-match the original baseline. Original snapshots remain unchanged. No all-files preservation claim is made while the other chat actively changes its consumer. Planning/effort carry, thresholds and human acceptance remain its existing authority.
+
+### Final integrated closure
+
+Implementation checkpoint `2a90b90a168d5bde72bfd31edd1773de82a8dc8a` contains the final shipping change. The first integrated update run passed 87/88 checks; its sole failure assumed the frozen historical catalog's prose must match today's raw catalog. The corrected test verifies the frozen filename/content hash and unchanged composition contract. A separate actual reproduction exposed stale public-only applicability text in resolved catalogs. Resolution now overlays only maintained `when` prose, which is excluded from the resolution contract; frozen snapshots, pins, rules, qualification hashes and old private-page rejection remain intact. Nine installed-history cases and 34 profile-catalog cases pass. Before/after logs: `step9-catalog-description-before.log`, `step9-catalog-description-after.log`, `step9-profile-catalog-after.log`.
+
+Final command: `./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'`, using the verified shared Python base and installed Spec Kit 1.1.3 runtime. All 88 checks pass at `artifacts/validation-runs/20261012T191225Z-e6e00859/journal.json` (`final-integrated-development.log`). The standard journal validator rechecks every command and log hash against that exact checkpoint before closure. Journal SHA256: `f7ab77e443fe311be83a92720032167166579b701d5f1e5b4e8a6802943d4355`. The first failed journal remains unchanged; no Release receipt was created or rewritten.
+
+After the user installed Trivy in their own terminal, a child process refreshed only from the persisted machine/user PATH and verified `C:/Users/tech_/AppData/Local/Programs/Trivy/0.75.0/trivy.exe`, version 0.75.0. The unchanged maintenance policy was copied into a fresh scan root; the initial omitted-policy setup error is preserved separately. The actual standard scan command used `scripts/dependency_maintenance.py scan --root artifacts/maintenance-2026-10-12/step9-security-reviewed --image ghcr.io/orbyss-io/foundation-host@sha256:e61f5432f4c515ecb2b2cb91eed8a9179e64ffa006151aa893f04c490bbb2d2b`. Both amd64/arm64 exit zero, with no HIGH/CRITICAL findings, correct reported platforms, different config digests, exact registry manifest/image identities and zero report validation errors. Fresh reports/log: `step9-security-reviewed/artifacts/dependency-security/`, `step9-public-image-security-prepared.log`. Prior security reports were not overwritten/reused. Local dependency-update metadata, active pins, profile/knowledge qualification, native lock refresh, Development and security stages now all pass; the full Linux CI leg remains later validation.
+
+The reviewed final bundle (`final-package-reviewed/program-kit-0.13.0.zip`) is 512 entries, SHA256 `1607455ed75978c6193b7bb44c7862b7e37cbcf7dc1831d511318fa08601d74e`. Fresh build/component install/upgrade logs are `final-package-reviewed-build.log`, `final-reviewed-component-install.log`, `final-reviewed-package-upgrade.log`. All pass, including actual destination activation and normally ratified fictional fresh-story reset. Earlier package evidence is retained. `final-closure-evidence.json` binds the journal, security reports, archive and protection snapshot. `final-source-review.json` records every changed file and verifies unchanged 0.13.0 implementation-preflight/task-generation, human review templates and delivery guard tests. All artifacts named in this section live under `artifacts/maintenance-2026-10-12` unless an explicit path says otherwise.
 
 ### Future consumer adoption
 

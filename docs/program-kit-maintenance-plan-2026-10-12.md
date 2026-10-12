@@ -189,7 +189,7 @@ For each step, assess every requirement and proof case in the supplied plan, inc
 
 | Step | Approved work | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 1 | Establish baseline and preserve local repairs | Complete | [Execution record](program-kit-maintenance-execution-2026-10-12.md), [published 0.13.0 context audit](program-kit-maintenance-0130-context-audit.md). Final preservation: 1,515/1,521 original inputs match; six concurrent authorized changes disclosed. |
+| 1 | Establish baseline and preserve local repairs | Complete | [Execution record](program-kit-maintenance-execution-2026-10-12.md), [published 0.13.0 context audit](program-kit-maintenance-0130-context-audit.md). Closure snapshot: 1,474/1,521 inputs match; 47 concurrent consumer-adoption changes disclosed. All 1,178 protected original evidence/history inputs separately verified. |
 | 2 | Upstream existing planning and upgrade corrections | Complete | Fresh before/after and negative cases, preserved five-case planning regression, exact repaired upgrade/archive provenance. See execution steps 1/2 and audit. |
 | 3 | Correct verification runtime and provider isolation | Complete | Actual child-process hook routes, required module/runtime negatives, parent restoration and native provider fixtures. See step 3. |
 | 4 | Reconcile identity projections | Complete | Both profiles derive exact version/digest; sync repairs converge; genuine conflicts preserve state. See step 4. |
@@ -197,14 +197,14 @@ For each step, assess every requirement and proof case in the supplied plan, inc
 | 6 | Prepare before the first dependent fixture | Complete | Early browser/device/image/access checks; 13 fixture pickup/authority cases; exact archived inputs and native Host/BFF behavior. See step 6. |
 | 7 | Surface Foundation applicability and require successful re-entry | Complete | 16 exact old/new knowledge cases, 29 re-entry cases and 19 once-per-invocation hook cases; no clock/review reset. See step 7. |
 | 8 | Repair evidence pickup and investigate invalidation scope | Complete | 14 audit and 13 context/pickup cases; conservative whole-selection binding retained because independent closure is unproved; no paid call/retry/reset. See step 8. |
-| 9 | Integrate and qualify Foundation's final contract | Pending final gate | Public 0.3.3 default/knowledge qualified; real public packaged Host/HTTP and both explicit bootstrap cases pass. Complete dependency-update security needs shared Trivy/CI. Final integrated Development verification remains in progress. See step 9. |
+| 9 | Integrate and qualify Foundation's final contract | Complete for authorized maintenance | Public 0.3.3 default/knowledge qualified; actual packaged Host/HTTP and both explicit bootstrap cases pass. All 88 integrated Development checks pass; exact amd64/arm64 image scans pass. Linux CI and separately authorized Program Kit Release/publication remain later gates. See step 9 and final closure evidence. |
 
 ### Final evaluation requirements
 
 - [x] All 14 original observations have individually recorded final dispositions, with reasons and evidence.
-- [ ] Each demonstrated defect has a before-failure, after-pass, relevant negative cases, exact commands/logs and changed files.
-- [x] Preservation is verified through hashes/diffs, including the original archives, proofs, receipts, locks and managed-state history required by the plan. Six concurrent authorized consumer changes are disclosed in the execution record.
-- [ ] The integrated Development suite passes with Chromium/WebKit; the known local Firefox limitation and CI responsibility are recorded.
+- [x] Each demonstrated defect has a before-failure, after-pass, relevant negative cases, exact commands/logs and changed files.
+- [x] Preservation is verified through hashes/diffs, including original archives/proofs/receipts and immutable managed history. The maintenance chat made no consumer edits. The separate chat's 47 changes during explicitly authorized 0.3.3 adoption include mutable pins/locks/managed state; those are disclosed, not claimed unchanged or overwritten.
+- [x] The integrated Development suite passes with Chromium/WebKit; the known local Firefox limitation and CI responsibility are recorded.
 - [x] The exact Foundation contract, artifacts and version actually tested are recorded, including both explicit bootstrap admission cases in step 9.
 - [x] Remaining qualification/publication dependencies are stated precisely; candidate checks and public/default adoption readiness are assessed separately.
 - [x] Future consumer adoption steps cover supported upgrade/sync, local-repair preservation, fixture pickup, complete lock renewal, prerequisite checks and fresh successful preflight re-entry.
