@@ -92,7 +92,13 @@ def adopted_context(root, feature):
         if target.get('kind') == 'dotnet-project':
             tags.add('dotnet')
     for instance in selection.get('instances', []):
-        if set(instance.get('targetBindings', {}).values()).intersection(targets):
+        bound_targets = {
+            target_id
+            for binding in instance.get('targetBindings', {}).values()
+            for target_id in (binding if isinstance(binding, list) else [binding])
+            if isinstance(target_id, str)
+        }
+        if bound_targets.intersection(targets):
             tags.update(compositions.get(instance.get('composition'), set()))
             if instance.get('composition') not in compositions:
                 diagnostics.append('Unmapped selected composition ' + str(instance.get('composition'))
@@ -154,6 +160,15 @@ def affirmative(text):
     return '\n'.join(result)
 
 
+def frontend_only_declaration(prose):
+    """A negated layer split is not an affirmative frontend-only scope."""
+    for match in re.finditer(r'\b(?:frontend|browser|ui)[ -]only\b', prose, re.I):
+        prefix = re.split(r'[.!?;\n]', prose[:match.start()])[-1]
+        if not re.search(r'\b(?:not|never|no)\b[^.!?;\n]{0,120}$', prefix, re.I):
+            return True
+    return False
+
+
 def context(root, feature, phase, affected_paths=()):
     prose = '\n'.join(affirmative(path.read_text(encoding='utf-8'))
                       for name in ('spec.md', 'plan.md', 'research.md', 'data-model.md', 'quickstart.md')
@@ -180,7 +195,7 @@ def context(root, feature, phase, affected_paths=()):
                 engineering.append(package.read_text(encoding='utf-8'))
     content = '\n'.join([prose, *engineering, *source]).lower()
     inherited = adopted_context(root, feature)
-    frontend_only = bool(re.search(r'\b(?:frontend|browser|ui)[ -]only\b', prose, re.I))
+    frontend_only = frontend_only_declaration(prose)
     if frontend_only and selected:
         raise ValueError('A frontend-only declaration conflicts with selected backend project evidence; resolve the feature scope')
     inherited_tags = inherited['tags'] - ({'dotnet', 'api', 'persistence', 'capabilities'} if frontend_only else set())

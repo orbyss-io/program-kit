@@ -193,6 +193,9 @@ def identity_projection_checks(value, services=False):
             config = yaml.safe_load(generated)
             service = config['services']['keycloak']
             assert service['image'] == contract['serviceImages']['keycloak']
+            profile = composition.read(root / 'eng/web-profile.json')
+            assert profile['localIdentityProviderImage'] == service['image']
+            assert profile['localIdentityProvider'] == 'keycloak-' + service['image'].split('@')[0].rsplit(':', 1)[-1]
             assert service['environment']['KC_HOSTNAME'] == configured['identity']['publicOrigin']
             assert service['ports'] == ['127.0.0.1:'+str(port)+':8080']
             assert service['networks']['program-kit-local']['aliases'] == projection['privateAliases']

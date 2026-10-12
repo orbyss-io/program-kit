@@ -21,6 +21,64 @@ from upgrade_probe_fixtures import render_registered_probes
 
 
 class UpgradeBoundaryTests(unittest.TestCase):
+    def test_structured_unmaterialized_owner_is_deferred_despite_legacy_summary(self):
+        self.write(self.root / '.program-kit/managed.json', {
+            'persistenceProfile': 'ef-postgresql', 'persistenceOwners': [self.owner]})
+        selection = persistence.resolve(self.root)
+        scoped = persistence.upgrade_scope(self.root, selection)
+        self.assertEqual(['Portfolio'], [item['owner'] for item in scoped['deferredAdmissions']])
+        self.assertEqual([], scoped['owners'])
+        self.assertEqual([], scoped['blockers'])
+
+    def test_previous_structured_project_cannot_be_relabelled_as_unmaterialized(self):
+        previous = dict(self.owner, providerProject='src/Old.Provider/Old.Provider.csproj')
+        self.write(self.root / '.program-kit/managed.json', {'persistenceProfile': 'ef-postgresql', 'persistenceOwners': [previous]})
+        path = self.root / previous['providerProject']
+        path.parent.mkdir(parents=True)
+        path.write_text('<Project />')
+        self.assertEqual([], persistence.upgrade_scope(self.root, persistence.resolve(self.root))['deferredAdmissions'])
+
+    def test_installed_extension_version_takes_precedence_over_consumer_version(self):
+        from validate_building_blocks import load_module, RESOLVER
+        blocks = load_module(RESOLVER)
+        source = self.root / '.specify/extensions/program-kit-building-blocks/scripts/building_blocks.py'
+        source.parent.mkdir(parents=True)
+        source.write_text('fixture')
+        (source.parents[1] / 'extension.yml').write_text('extension:\n  version: "0.13.0"\n')
+        (self.root / 'VERSION').write_text('consumer-7.2')
+        self.assertEqual('0.13.0', blocks.find_program_kit_version(source))
+        (source.parents[1] / 'extension.yml').write_text('extension:\n  name: invalid\n')
+        with self.assertRaisesRegex(blocks.ResolverError, 'PKB104'):
+            blocks.find_program_kit_version(source)
+
+    def test_corrected_upgrade_requires_exact_repair_authority_and_keeps_originals(self):
+        manifest = self.root / '.specify/extensions/program-kit-governance/extension.yml'
+        manifest.parent.mkdir(parents=True)
+        manifest.write_text('extension:\n  version: "old"\n')
+        release = self.root / 'release'
+        release.mkdir()
+        (release / 'VERSION').write_text('candidate')
+        source = release / 'bundle.yml'
+        source.write_text('original')
+        path, original = upgrade.begin_attempt(self.root, release, 'candidate', 'old')
+        original['status'] = 'incomplete'
+        upgrade.write_attempt(path, original)
+        retained = path.read_bytes()
+        source.write_text('corrected')
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121'):
+            upgrade.begin_attempt(self.root, release, 'candidate', 'candidate')
+        self.assertEqual(before, self.snapshot())
+        _, corrected = upgrade.begin_attempt(self.root, release, 'candidate', 'candidate', original['releaseInputsSha256'])
+        self.assertEqual('old', corrected['previousInstalledVersion'])
+        self.assertEqual(original['originals'], corrected['originals'])
+        self.assertEqual(original['releaseInputsSha256'], corrected['repairOfReleaseSha256'])
+        self.assertEqual(retained, path.read_bytes())
+        before = self.snapshot()
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121'):
+            upgrade.begin_attempt(self.root, release, 'candidate', 'candidate', '0' * 64)
+        self.assertEqual(before, self.snapshot())
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='upgrade-boundary-')
         self.addCleanup(temporary.cleanup)

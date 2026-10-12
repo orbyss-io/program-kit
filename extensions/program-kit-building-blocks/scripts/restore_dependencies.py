@@ -4,9 +4,11 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
+import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "program-kit-governance/scripts"))
 import package_execution
@@ -38,6 +40,127 @@ def safe_path(repository: Path, relative: str) -> Path:
     return candidate
 
 
+def solution_projects(repository: Path, relative: str) -> set[str]:
+    path = safe_path(repository, relative)
+    if path.suffix.casefold() == '.slnx':
+        values = [node.get('Path', '') for node in ET.parse(path).iter('Project')]
+    elif path.suffix.casefold() == '.sln':
+        values = re.findall(r'^Project\([^\n]+?=\s*"[^"]+",\s*"([^"]+)"', path.read_text(encoding='utf-8'), re.M)
+    else:
+        return {relative}
+    projects = set()
+    for value in values:
+        if Path(value).suffix.casefold() not in {'.csproj', '.fsproj', '.vbproj'}:
+            continue
+        target = (path.parent / value.replace('\\', '/')).resolve()
+        if not target.is_relative_to(repository):
+            raise RestoreError('PKB621 solution project escapes repository')
+        projects.add(target.relative_to(repository).as_posix())
+    if not projects:
+        raise RestoreError('PKB621 solution has no supported project inventory; use an evaluated graph adapter')
+    return projects
+
+
+def reference_free_imports(repository: Path, path: Path, seen: set[Path]) -> None:
+    path = path.resolve()
+    if not path.is_relative_to(repository) or not path.is_file():
+        raise RestoreError('PKB621 imported graph is external/missing; use an evaluated graph adapter')
+    if path in seen:
+        return
+    seen.add(path)
+    for node in ET.parse(path).getroot().iter():
+        kind = node.tag.rsplit('}', 1)[-1]
+        if kind == 'ProjectReference':
+            raise RestoreError('PKB621 inherited/imported project graph needs an evaluated graph adapter before renewal')
+        if kind != 'Import':
+            continue
+        value = node.get('Project', '')
+        condition = node.get('Condition', '').strip()
+        if not value or any(c in value for c in '$@%*?;') or node.get('Sdk'):
+            raise RestoreError('PKB621 dynamic imports need an evaluated graph adapter before renewal')
+        optional = condition in {"Exists('" + value + "')", 'Exists("' + value + '")'}
+        if condition and not optional:
+            raise RestoreError('PKB621 conditional imports need an evaluated graph adapter before renewal')
+        imported = (path.parent / value.replace('\\', '/')).resolve()
+        if optional and not imported.exists():
+            if not imported.is_relative_to(repository):
+                raise RestoreError('PKB621 optional import escapes repository')
+            continue
+        reference_free_imports(repository, imported, seen)
+
+
+def nuget_project_graph(repository: Path, subjects: set[str]) -> dict[str, set[str]]:
+    """Read the complete active literal graph, without admitting scratch history."""
+    manifest = repository / 'eng/architecture.json'
+    rows = load_json(manifest).get('runtimeComposition', {}).get('projects', []) if manifest.is_file() else []
+    declared = {row['path']: row for row in rows}
+    physical = {p.relative_to(repository).as_posix() for directory in ('src', 'tests')
+                for p in (repository / directory).rglob('*.*proj')
+                if p.suffix.casefold() in {'.csproj', '.fsproj', '.vbproj'} and not {'bin', 'obj', 'node_modules'} & set(p.parts)}
+    if declared and not physical <= set(declared):
+        raise RestoreError('PKB621 assign all active projects to the complete architecture graph before lock renewal')
+    inventory = set(declared) if declared else physical
+    for path in [*repository.glob('*.sln'), *repository.glob('*.slnx')]:
+        inventory.update(solution_projects(repository, path.relative_to(repository).as_posix()))
+    for subject in subjects:
+        inventory.update(solution_projects(repository, subject))
+    graph = {}
+    pending = list(inventory)
+    while pending:
+        relative = pending.pop()
+        if relative in graph:
+            continue
+        path = safe_path(repository, relative)
+        if not path.is_file():
+            if relative in declared and relative not in physical:
+                continue  # A removed declaration cannot restore a retired project.
+            raise RestoreError('PKB621 active reference project is missing: ' + relative)
+        edges = set()
+        for node in ET.parse(path).getroot().iter():
+            kind = node.tag.rsplit('}', 1)[-1]
+            if kind == 'Import':
+                # Reuse the literal import admission, but never interpret an
+                # imported graph as complete merely from declared edges.
+                value = node.get('Project', '')
+                if not value or any(c in value for c in '$@%*?;') or node.get('Condition') or node.get('Sdk'):
+                    raise RestoreError('PKB621 project import needs an evaluated graph adapter before renewal')
+                reference_free_imports(repository, path.parent / value.replace('\\', '/'), set())
+            if kind != 'ProjectReference':
+                continue
+            value = node.get('Include', '')
+            if not value or any(c in value for c in '$@%*?') or node.get('Condition'):
+                raise RestoreError('PKB621 dynamic project graph needs an evaluated graph adapter before renewal')
+            for item in filter(None, (part.strip() for part in value.split(';'))):
+                target = (path.parent / item.replace('\\', '/')).resolve()
+                if not target.is_relative_to(repository) or not target.is_file():
+                    raise RestoreError('PKB621 project reference is external or missing: ' + item)
+                edges.add(target.relative_to(repository).as_posix())
+        if relative in declared and 'projectReferences' in declared[relative] and edges != set(declared[relative]['projectReferences']):
+            raise RestoreError('PKB621 source projectReferences differ from declared graph; repair or use an evaluated graph adapter')
+        graph[relative] = edges
+        pending.extend(edges - set(graph))
+    # Inherited references could add otherwise invisible reverse dependents.
+    for path in [*repository.rglob('Directory.Build.props'), *repository.rglob('Directory.Build.targets'),
+                 *repository.rglob('Directory.Packages.props')]:
+        if {'artifacts', '.specify', '.git', 'bin', 'obj', 'node_modules'} & set(path.relative_to(repository).parts):
+            continue
+        reference_free_imports(repository, path, set())
+    return graph
+
+
+def nuget_subjects_with_reverse_closure(repository: Path, subjects: set[str]) -> set[str]:
+    if not subjects:
+        return subjects
+    graph = nuget_project_graph(repository, subjects)
+    covered = set().union(*(solution_projects(repository, subject) for subject in subjects))
+    affected = set(covered)
+    while True:
+        expanded = affected | {project for project, edges in graph.items() if edges & affected}
+        if expanded == affected:
+            return subjects | (affected - covered)
+        affected = expanded
+
+
 def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
     commands: list[dict] = []
     nuget_subjects: set[str] = set()
@@ -53,7 +176,7 @@ def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
             manifest = safe_path(repository, target["path"])
             npm_directories.add(manifest.parent.relative_to(repository.resolve()).as_posix())
     nuget_config = repository / "NuGet.config"
-    for relative in sorted(nuget_subjects, key=str.casefold):
+    for relative in sorted(nuget_subjects_with_reverse_closure(repository, nuget_subjects), key=str.casefold):
         subject = safe_path(repository, relative)
         if not subject.is_file():
             raise RestoreError(f"PKB621 NuGet restore subject is missing: {relative}")
@@ -145,6 +268,7 @@ def input_basis(repository: Path, lock: dict) -> dict:
     # Exact runtime evidence and managed dependency assignments are inputs; native locks are
     # outputs and verified separately so renew followed by locked can converge.
     paths.add("artifacts/program-kit/toolchain.json")
+    paths.add('eng/architecture.json')
     records = {relative: hashlib.sha256(safe_path(repository, relative).read_bytes()).hexdigest()
                if safe_path(repository, relative).is_file() else None for relative in sorted(paths)}
     toolchain_path = repository / 'artifacts/program-kit/toolchain.json'
@@ -182,10 +306,15 @@ def subject_outputs(repository: Path, lock: dict, command: dict, mode: str) -> d
         if mode == 'locked':
             paths.add(Path(command['cwd']) / 'node_modules/.package-lock.json')
     elif command['ecosystem'] == 'nuget':
-        for target in lock.get('targets', []):
-            if (target.get('lockRoot') or target['path']) != command['subject']:
-                continue
-            directory = safe_path(repository, target['path']).parent
+        graph = nuget_project_graph(repository, {command['subject']})
+        projects = solution_projects(repository, command['subject'])
+        while True:
+            expanded = projects | {dependency for project in projects for dependency in graph.get(project, set())}
+            if expanded == projects:
+                break
+            projects = expanded
+        for project in projects:
+            directory = safe_path(repository, project).parent
             paths.add(directory / 'packages.lock.json')
             if mode == 'locked':
                 paths.add(directory / 'obj/project.assets.json')

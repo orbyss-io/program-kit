@@ -11,6 +11,7 @@ import ipaddress
 import json
 import re
 import sys
+import identity_fixture
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 from xml.etree import ElementTree as ET
@@ -584,8 +585,8 @@ def materialize(repository, configuration, template_root):
     outputs['eng/web/web-contract.json'] = (encoded(web_contract),'managed')
     profile = read(template_root/'web-profiles/bff-cookie/eng/web-profile.json')
     profile['configuration'] = INPUT
-    profile['localIdentityProvider'] = 'keycloak-'+contract['serviceImages']['keycloak'].split('@')[0].rsplit(':',1)[-1]
-    outputs['eng/web-profile.json'] = (encoded(profile),'managed')
+    outputs['eng/web-profile.json'] = (identity_fixture.render_provider_profile(encoded(profile),
+        contract['serviceImages']['keycloak']), 'managed')
     if contract.get('developmentCandidate'):
         nuget = ET.parse(template_root/'files/NuGet.config').getroot()
         source_name = 'ProgramKitDevelopmentWebDefaults'

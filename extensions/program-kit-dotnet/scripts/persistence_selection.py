@@ -161,15 +161,23 @@ def upgrade_scope(root, selection):
     Unrelated application projects do not materialize a proposed owner. Only its
     actual provider/test paths and installed provider configuration constrain upgrades.
     """
+    recorded = {item['owner']: item for item in selection.get('installedOwners', [])}
     installed = {item['owner'] for item in selection.get('installedOwners', [])
                  if item.get('status') == 'admitted'}
     legacy_profile = read(root / '.program-kit/managed.json', {}).get('persistenceProfile', 'none')
+    # A structured proposed owner is recorded intent, not an installed provider.
+    # Retain the legacy guard when there is no structured owner provenance.
+    legacy_unassigned = legacy_profile not in {'none', None} and not recorded
     deferred, active, deferred_errors = [], [], set()
     for owner in selection['owners']:
         paths = [owner['providerProject']] if owner.get('providerProject') else []
         paths.extend(owner.get('testProjects', []))
+        previous = recorded.get(owner['owner'], {})
+        if previous.get('providerProject'):
+            paths.append(previous['providerProject'])
+        paths.extend(previous.get('testProjects', []))
         pending = (owner['profile'] != 'none' and owner['status'] == 'proposed' and owner['owner'] not in installed
-                   and not (legacy_profile not in {'none', None} and not installed)
+                   and not legacy_unassigned
                    and not owner.get('providerOverride') and not owner.get('transitionAuthority')
                    and not any(inside(root, path).exists() for path in paths))
         if pending:

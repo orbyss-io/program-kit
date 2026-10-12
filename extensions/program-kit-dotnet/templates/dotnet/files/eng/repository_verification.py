@@ -25,7 +25,7 @@ from repository_architecture import inside, read, require, validate_planned
 SHARED_INPUTS = ('global.json', '.editorconfig', 'NuGet.config', 'NuGet.Config',
                  '.globalconfig', '*.ruleset', '.config/**',
                  'Directory.Build.*', 'Directory.Packages.props', 'eng/ProgramKit.*',
-                 'eng/*.json', 'eng/*.py', 'eng/*.ps1')
+                 'eng/*.json', 'eng/*.py', 'eng/*.ps1', 'eng/*.psm1')
 
 EXCLUDED_PARTS = {'bin', 'obj', '.git', 'artifacts', 'node_modules'}
 CONTROLLED_ENVIRONMENT = ('DOTNET_ROLL_FORWARD', 'DOTNET_ROOT', 'DOTNET_ROOT_X64',
@@ -46,6 +46,12 @@ def digest(value):
 def configuration(root):
     path = root / 'eng/verification.json'
     value = read(path) if path.is_file() else {'schemaVersion': 1, 'testGroups': []}
+    setup_path = root / 'eng/verification.setup.json'
+    if setup_path.is_file():
+        setup = read(setup_path)
+        require(setup.get('schemaVersion') == 1 and setup.get('owner') == 'program-kit-setup',
+                'PKV003 invalid setup-owned verification mappings; rerun supported sync')
+        value = {**value, 'testGroups': [*setup.get('testGroups', []), *value.get('testGroups', [])]}
     require(value.get('schemaVersion') == 1, 'PKV003 unsupported verification configuration')
     require('runnerReuse' not in value or isinstance(value['runnerReuse'], bool),
             'PKV003 runnerReuse must be a boolean')
@@ -172,11 +178,12 @@ def literal_edges(root, projects):
             if kind != 'ProjectReference':
                 continue
             value = node.get('Include', '')
-            require(value and not any(c in value for c in '$*;') and not node.get('Condition'),
+            require(value and not any(c in value for c in '$@%*?') and not node.get('Condition'),
                     'PKV003 dynamic project references need a consumer evaluated graph adapter')
-            target = (path.parent / value.replace('\\', '/')).resolve()
-            require(target.is_relative_to(root), 'PKV001 project reference escapes repository')
-            references.add(target.relative_to(root).as_posix())
+            for item in filter(None, (part.strip() for part in value.split(';'))):
+                target = (path.parent / item.replace('\\', '/')).resolve()
+                require(target.is_relative_to(root), 'PKV001 project reference escapes repository')
+                references.add(target.relative_to(root).as_posix())
         require(references == set(project['projectReferences']),
                 'PKV003 projectReferences differ from source; update or evaluate the graph before narrowing tests: ' + relative)
     ancestors = {root}
@@ -294,6 +301,7 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
         known_input_owners = input_owners(root, graph)
         config = configuration(root)
         selected, affected = set(), set()
+        mapped_groups = set()
         context_paths = set()
         for path in paths:
             matched = False
@@ -319,6 +327,7 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
                 require(group_projects and group_projects <= tests, 'PKV003 testGroups must name declared test projects')
                 if any(fnmatchcase(path, pattern) for pattern in group.get('inputs', [])):
                     selected.update(group_projects)
+                    mapped_groups.add(group.get('id', 'consumer-owned'))
                     matched = True
             if not matched and design_context(path):
                 context_paths.add(path)
@@ -335,7 +344,8 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
                 'PKV002 only design context changed; no native run was executed. Reuse current actual results and review the changed design.')
         require(bool(selected), 'PKV003 changed responsibilities have no dependent tests; add coverage or a scoped consumer adapter')
     return {'schemaVersion': 1, 'scope': scope, 'projects': sorted(selected), 'changedInputs': sorted(paths),
-            'baseline': baseline, 'acceptanceEstablished': False}
+            'baseline': baseline, 'acceptanceEstablished': False,
+            'inputMappings': sorted(mapped_groups) if scope == 'Affected' else []}
 
 
 def runner_kind(root):
@@ -358,6 +368,16 @@ def toolchain_identity(root):
             'machine': platform.machine()}
 
 
+def literal_items(value):
+    """Split literal MSBuild item lists; expressions/escapes need evaluation."""
+    require(not any(c in value for c in '$@%'),
+            'PKV003 dynamic item inputs need an evaluated graph adapter')
+    items = [item.strip().replace('\\', '/') for item in value.split(';') if item.strip()]
+    require(items and all(not Path(item).is_absolute() and not re.match(r'^[A-Za-z]:', item) for item in items),
+            'PKV003 external item inputs need an evaluated graph adapter')
+    return items
+
+
 def file_items(root, path):
     result = set()
     allowed_target_nodes = {'Target', 'PropertyGroup', 'ItemGroup', 'Error', 'Warning', 'Message'}
@@ -375,16 +395,15 @@ def file_items(root, path):
             value = node.get(attribute)
             if not value:
                 continue
-            require(not Path(value).is_absolute() and not any(c in value for c in '$;'),
-                    'PKV003 dynamic item inputs need an evaluated graph adapter')
-            for matched in path.parent.glob(value.replace('\\', '/')):
-                require(matched.resolve().is_relative_to(root), 'PKV003 external item inputs need an evaluated graph adapter')
-                if matched.is_file():
-                    result.add(matched)
-            if not any(c in value for c in '*?'):
-                target = (path.parent / value).resolve()
-                require(target.is_relative_to(root), 'PKV003 external item inputs need an evaluated graph adapter')
-                result.add(target)
+            for item in literal_items(value):
+                for matched in path.parent.glob(item):
+                    require(matched.resolve().is_relative_to(root), 'PKV003 external item inputs need an evaluated graph adapter')
+                    if matched.is_file():
+                        result.add(matched)
+                if not any(c in item for c in '*?'):
+                    target = (path.parent / item).resolve()
+                    require(target.is_relative_to(root), 'PKV003 external item inputs need an evaluated graph adapter')
+                    result.add(target)
     return result
 
 
@@ -414,9 +433,10 @@ def input_owners(root, graph):
                 for key in ('Include', 'Update'):
                     value = node.get(key)
                     if value:
-                        item = (path.parent / value.replace('\\', '/')).resolve()
-                        require(item.is_relative_to(root), 'PKV003 external item ownership needs an evaluated graph adapter')
-                        owners.append((item.relative_to(root).as_posix(), project))
+                        for pattern in literal_items(value):
+                            item = (path.parent / pattern).resolve()
+                            require(item.is_relative_to(root), 'PKV003 external item ownership needs an evaluated graph adapter')
+                            owners.append((item.relative_to(root).as_posix(), project))
     return owners
 
 

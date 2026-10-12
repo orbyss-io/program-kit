@@ -60,6 +60,23 @@ or API-proof attestation is mandatory. Historical evidence can be inspected thro
 Keep scoped exceptions and their reasons in engineering policy/ADRs and normal review.
 Never manufacture passing history or change old hashes to imply current execution.
 
+The verification wrapper selects the absolute Python runtime recorded in
+`.specify/python-runtime.json`, or an explicitly selected matching `SPECKIT_PYTHON`,
+and validates the current executable/version before dispatch. Without a record it
+checks the installed device command. A missing, invalid or stale interpreter requires
+repair in the user terminal or explicit core regeneration; verification does not
+install Python or mask PATH.
+
+Repositories with provider integration own `eng/ProviderTestEnvironment.psm1` and its
+exported `Invoke-WithOfflineProviderTestEnvironment -Action <scriptblock>` function.
+Declare `"providerIsolation": { "required": true }` in `eng/verification.json` when
+routine checks require that isolation. A missing or invalid required module blocks
+verification before child execution. The module scopes consumer-defined credential
+clearing and offline mode to all maintained acceptance/scoped routes and restores the
+parent environment in `finally`, including failures. Keep credential names in that
+consumer module; never emit their values. Repositories without provider integration
+remain supported. Direct custom commands need the same consumer isolation boundary.
+
 ## Reusable foundation proof and operation prerequisites
 
 A supported foundation composition inherits exhaustive component tests from its exact

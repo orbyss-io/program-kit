@@ -1431,6 +1431,15 @@ def apply_materialization(repository: Path, lock_path: Path, lock: dict, catalog
 
 
 def find_program_kit_version(script: Path) -> str:
+    # Installed extensions have their own toolkit version. A consumer VERSION
+    # describes the application and must not become generated-lock provenance.
+    manifest = script.resolve().parents[1] / 'extension.yml'
+    if manifest.is_file():
+        match = re.search(r'^\s{2}version:\s*["\']?([^"\'#\s]+)',
+                          manifest.read_text(encoding='utf-8'), re.MULTILINE)
+        if match:
+            return match.group(1)
+        fail('PKB104', f'extension manifest lacks toolkit version: {manifest}')
     for parent in script.resolve().parents:
         candidate = parent / "VERSION"
         if candidate.is_file():

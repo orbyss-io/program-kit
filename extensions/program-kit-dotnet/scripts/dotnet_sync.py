@@ -358,6 +358,25 @@ def engineering_architecture(target: Path, default: bytes) -> bytes:
     validate_manifest(target, manifest)
     return (json.dumps(manifest, indent=2) + '\n').encode()
 
+
+def setup_verification_mappings(target: Path, entries: list[dict]) -> bytes:
+    """Explicit shared setup ownership; consumer-specific narrowing stays authored."""
+    graph = load_json(target / 'eng/architecture.json', {}).get('runtimeComposition', {})
+    tests = sorted(row['path'] for row in graph.get('projects', [])
+                   if row.get('role') == 'test' and (target / row['path']).is_file())
+    inputs = {entry['path'] for entry in entries if entry['path'].startswith('docs/application/') or
+              entry['path'].startswith('eng/') and entry.get('ownership') == 'managed'}
+    fixtures = target / 'docs/architecture/compatibility'
+    inputs.update(path.relative_to(target).as_posix() for path in fixtures.rglob('*')
+                  if path.is_file() and not {'bin', 'obj', 'node_modules', '__pycache__'} & set(path.parts))
+    value = {'schemaVersion': 1, 'owner': 'program-kit-setup', 'testGroups': [],
+             'reason': 'Known shared engineering, application guides and current compatibility inputs select declared native tests explicitly. This is scoped coverage, not application acceptance.',
+             'unmappedInputs': [] if tests else sorted(inputs)}
+    if tests:
+        value['testGroups'].append({'id': 'program-kit-shared-setup', 'projects': tests,
+                                   'inputs': sorted(inputs), 'reuse': False})
+    return (json.dumps(value, indent=2) + '\n').encode('utf-8')
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
@@ -564,6 +583,8 @@ def main() -> int:
     entries.extend({'path':path, 'ownership':ownership, 'contribution':'foundation',
                     'sourceRoot':'../../scripts', 'source':'foundation_composition.py'}
                    for path, (_, ownership) in foundation_outputs.items() if path not in present)
+    entries.append({'path': 'eng/verification.setup.json', 'ownership': 'managed', 'contribution': 'engineering',
+                    'sourceRoot': '../../scripts', 'source': 'dotnet_sync.py'})
     for entry in entries:
         relative = entry["path"]
         if relative in desired_by_path:
@@ -585,6 +606,13 @@ def main() -> int:
         content = desired_content(
             source, relative, dotnet_sdk, web_profile, spa_configuration, template_root
         )
+        if relative == 'eng/verification.setup.json':
+            content = setup_verification_mappings(target, entries)
+            rendered = True
+        if relative == 'eng/web-profile.json' and web_profile in {'bff-cookie', 'spa-pkce'}:
+            image = identity_fixture.provider_image((template_root / 'web-profiles/common/deploy/compose.identity.yml').read_bytes())
+            content = identity_fixture.render_provider_profile(content, image)
+            rendered = True
         if relative == 'eng/program_kit_version.py':
             content = ('# Rendered from the installed Program Kit .NET extension version.\nPROGRAM_KIT_VERSION = '
                        + repr(extension_version(extension_root)) + '\n').encode('utf-8')

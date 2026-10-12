@@ -406,6 +406,7 @@ def proof_tooling(scoped: bool = False):
         'program-kit-governance/scripts/bootstrap_proof_plan.py',
         'program-kit-governance/references/bootstrap-proof-plan.schema.json',
         'program-kit-governance/scripts/bootstrap_compatibility.py',
+        'program-kit-governance/scripts/fixture_readiness.py',
         'program-kit-governance/scripts/compatibility_process.py',
         'program-kit-governance/scripts/compatibility_diagnostics.py',
         'program-kit-governance/scripts/managed_compatibility.py',

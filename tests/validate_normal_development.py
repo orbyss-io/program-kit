@@ -21,6 +21,48 @@ from validate_story_delivery import seed, accepted_fixture
 
 
 class DevelopmentTests(unittest.TestCase):
+    def adopted_bindings(self, bindings):
+        import feature_context
+        architecture = self.root / 'docs/architecture'
+        architecture.mkdir(parents=True, exist_ok=True)
+        (architecture / 'building-block-selection.json').write_text(json.dumps({
+            'status': 'Accepted', 'targets': [{'id': 'owner-runtime', 'kind': 'dotnet-project',
+                'placement': {'owner': 'owner'}}],
+            'instances': [{'composition': 'browser_bff', 'targetBindings': bindings}]}))
+        projection = {'scope': ['owner'], 'elements': [{'id': 'owner', 'type': 'component'}], 'decisions': []}
+        with patch.object(feature_context, 'feature_scope', return_value={'entry': 'RM-01', 'projection': projection}):
+            return feature_context.adopted_context(self.root, self.feature)
+
+    def test_mixed_scalar_list_bindings_preserve_scoped_adoption(self):
+        scalar = self.adopted_bindings({'runtime': 'owner-runtime'})
+        grouped = self.adopted_bindings({'runtime': ['owner-runtime', 'neighbor'], 'optional': None})
+        self.assertEqual(scalar['tags'], grouped['tags'])
+        self.assertIn('web', grouped['tags'])
+
+    def test_neighbor_and_empty_bindings_do_not_inherit_capabilities(self):
+        for bindings in ({'runtime': ['neighbor']}, {'runtime': [], 'optional': None}):
+            self.assertNotIn('web', self.adopted_bindings(bindings)['tags'])
+
+    def test_negated_frontend_scope_retains_actual_backend_obligations(self):
+        import feature_context
+        project = self.root / 'src/Owner/Owner.csproj'
+        project.parent.mkdir(parents=True)
+        project.write_text('<Project Sdk="Microsoft.NET.Sdk" />')
+        (self.feature / 'plan.md').write_text('Use src/Owner/Owner.csproj; exercise each story, not as a later frontend-only story.')
+        result = feature_context.context(self.root, self.feature, 'planning')
+        self.assertIn('dotnet', result)
+        (self.feature / 'plan.md').write_text('Use src/Owner/Owner.csproj for a frontend-only application.')
+        with self.assertRaisesRegex(ValueError, 'conflicts with selected backend'):
+            feature_context.context(self.root, self.feature, 'planning')
+
+    def test_genuine_frontend_only_scope_remains_supported(self):
+        import feature_context
+        (self.root / 'global.json').write_text('{"sdk":{"version":"10.0.401"}}')
+        (self.feature / 'plan.md').write_text('Deliver a frontend-only application. No backend is needed.')
+        result = feature_context.context(self.root, self.feature, 'planning')
+        self.assertNotIn('dotnet', result)
+        self.assertIn('web', result)
+
     def setUp(self):
         temp = tempfile.TemporaryDirectory(prefix='ordinary-development-')
         self.addCleanup(temp.cleanup)

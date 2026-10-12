@@ -5,6 +5,7 @@ import json
 import shutil
 import subprocess
 import tempfile
+import sys
 from pathlib import Path
 
 
@@ -61,6 +62,9 @@ def main() -> int:
         marker = repository / "verification.marker"
         environment = os.environ.copy()
         environment["PROGRAMKIT_TEST_VERIFICATION_MARKER"] = str(marker)
+        runtime = repository / '.specify/python-runtime.json'
+        runtime.parent.mkdir()
+        runtime.write_text(json.dumps({'contractVersion': 1, 'executable': sys.executable}))
         (managed / "Build.ps1").write_text(
             "param([switch]$SkipReleaseBundle, [switch]$LockedMode, [switch]$VerifyArchitecture)\n"
             "if (-not $VerifyArchitecture) { throw 'Fallback must own fresh architecture verification' }\n"
@@ -76,6 +80,8 @@ def main() -> int:
             "root=Path(sys.argv[sys.argv.index('--repository')+1]).resolve()\n"
             "assert Path(os.environ['NUGET_PACKAGES']).resolve()==root/'artifacts/cache/nuget/packages'\n"
             "(root/'architecture.marker').write_text('checked')\n",encoding='utf-8')
+        from verification_isolation_cases import exercise
+        exercise(shell, repository, wrapper, environment)
         absent = run(shell, wrapper, environment)
         if absent.returncode != 0 or marker.read_text(encoding="utf-8").strip() != "fallback":
             raise AssertionError(f"absent consumer hook did not use managed fallback: {absent.stdout}{absent.stderr}")

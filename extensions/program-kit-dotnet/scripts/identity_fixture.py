@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import spa_profile
@@ -16,6 +17,21 @@ GOVERNED_LOGIN_THEME = "program-kit"
 
 def json_bytes(value: dict) -> bytes:
     return (json.dumps(value, indent=2) + "\n").encode("utf-8")
+
+
+def provider_image(compose: bytes) -> str:
+    images = re.findall(r'^\s*image:\s*(quay\.io/keycloak/keycloak:[^\s]+)\s*$', compose.decode('utf-8'), re.M)
+    if len(images) != 1 or not re.fullmatch(r'quay\.io/keycloak/keycloak:[A-Za-z0-9_.-]+@sha256:[a-f0-9]{64}', images[0]):
+        raise ValueError('PKW113 identity compose must select one exact version and immutable Keycloak digest')
+    return images[0]
+
+
+def render_provider_profile(source: bytes, image: str) -> bytes:
+    provider_image(('image: ' + image + '\n').encode('utf-8'))
+    profile = json.loads(source)
+    profile['localIdentityProvider'] = 'keycloak-' + image.split('@')[0].rsplit(':', 1)[-1]
+    profile['localIdentityProviderImage'] = image
+    return json_bytes(profile)
 
 
 def _client_ids(realm: dict) -> list[str]:

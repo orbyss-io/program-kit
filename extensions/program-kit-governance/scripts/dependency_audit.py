@@ -23,6 +23,90 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def toolkit_input(entry):
+    parts = Path(entry['path']).parts
+    return (len(parts) > 3 and parts[:2] == ('.specify', 'extensions')
+            and parts[2] in {'program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet'})
+
+
+def proof_input_archive(root, entry):
+    if not re.fullmatch('[a-f0-9]{64}', str(entry.get('sha256'))):
+        raise ValueError('Retained compatibility input has an invalid digest')
+    return inside(root, '.program-kit/installation/proof-inputs/' + entry['sha256'] + '.original')
+
+
+def input_unchanged(root, entry):
+    current = inside(root, entry['path'])
+    if current.is_file() and sha(current) == entry['sha256']:
+        return True
+    # Toolkit installation replaces these paths. Only exact archived executed
+    # bytes may substitute; consumer fixtures, streams and results remain strict.
+    if toolkit_input(entry):
+        archived = proof_input_archive(root, entry)
+        return archived.is_file() and sha(archived) == entry['sha256']
+    return False
+
+
+def archive_toolkit_proof_inputs(root):
+    ledger = read(root / 'docs/architecture/bootstrap-prerequisites.json', {})
+    for item in ledger.get('prerequisites', []):
+        if item.get('status') != 'closed':
+            continue
+        for evidence in item.get('evidence', []):
+            if evidence.get('kind') != 'compatibility':
+                continue
+            receipt = inside(root, evidence['path'])
+            if sha(receipt) != evidence['sha256']:
+                raise ValueError('Retained compatibility receipt is missing or changed')
+            for entry in read(receipt)['inputs']:
+                if not toolkit_input(entry):
+                    continue
+                archived = proof_input_archive(root, entry)
+                if archived.exists():
+                    if sha(archived) != entry['sha256']:
+                        raise ValueError('Archived compatibility toolkit input changed')
+                    continue
+                current = inside(root, entry['path'])
+                if not current.is_file() or sha(current) != entry['sha256']:
+                    raise ValueError('Historical toolkit input must be recovered before installation: ' + entry['path'])
+                archived.parent.mkdir(parents=True, exist_ok=True)
+                archived.write_bytes(current.read_bytes())
+
+
+# Frozen schema 1.2 producer shape shipped through 0.12.9. Historical receipts
+# cannot contain tooling introduced later. This only classifies unchanged executed
+# scratch inputs; current bootstrap closure still uses the current tooling hashes.
+SCOPED_TOOLING_0_12_9 = frozenset({
+    'program-kit-governance/scripts/bootstrap_lifecycle.py',
+    'program-kit-governance/scripts/bootstrap_proof_plan.py',
+    'program-kit-governance/references/bootstrap-proof-plan.schema.json',
+    'program-kit-governance/scripts/bootstrap_compatibility.py',
+    'program-kit-governance/scripts/compatibility_process.py',
+    'program-kit-governance/scripts/compatibility_diagnostics.py',
+    'program-kit-governance/scripts/managed_compatibility.py',
+    'program-kit-governance/scripts/managed_provider_probes.py',
+    'program-kit-governance/scripts/bootstrap_provider_context.py',
+    'program-kit-governance/scripts/compatibility_scope.py',
+    'program-kit-governance/scripts/repository_sync.py',
+    'program-kit-governance/scripts/package_execution.py',
+    'program-kit-governance/scripts/phase_obligations.py',
+    'program-kit-building-blocks/scripts/restore_dependencies.py',
+    'program-kit-building-blocks/scripts/building_blocks.py',
+    'program-kit-dotnet/scripts/dependency_profile.py',
+    'program-kit-dotnet/templates/dotnet/files/eng/toolchain.py',
+    'program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py',
+    'program-kit-dotnet/templates/dotnet/files/global.json',
+    'program-kit-dotnet/templates/dotnet/files/NuGet.config',
+    'program-kit-dotnet/templates/dotnet/files/.nvmrc',
+    'program-kit-dotnet/templates/dotnet/files/.npm-version',
+})
+
+SCOPED_TOOLING_0_12_11 = SCOPED_TOOLING_0_12_9 | {
+    'program-kit-building-blocks/scripts/dependency_context.py',
+    'program-kit-governance/scripts/runtime_fixture.py',
+}
+
+
 def evidence_inputs(root):
     """Classify immutable executed scratch inputs; this grants no current readiness."""
     result = set()
@@ -52,7 +136,9 @@ def evidence_inputs(root):
                 proof = read(receipt)
                 schema = proof.get('schema_version')
                 tooling = proof.get('tooling_sources', {})
-                allowed = (legacy, current) if schema == '1.1' else (set(proof_tooling(True)),)
+                preparation_helper = {'program-kit-governance/scripts/fixture_readiness.py'}
+                allowed = ((legacy, current, legacy - preparation_helper, current - preparation_helper) if schema == '1.1'
+                           else (SCOPED_TOOLING_0_12_9, SCOPED_TOOLING_0_12_11, set(proof_tooling(True))))
                 if (schema not in {'1.1', '1.2'} or proof.get('prerequisite') != item['id'] or proof.get('exit_code') != 0
                         or not proof.get('command') or not proof.get('inputs') or len(proof.get('streams', [])) != 2
                         or set(tooling) not in allowed or any(not re.fullmatch('[a-f0-9]{64}', str(value)) for value in tooling.values())):
@@ -66,7 +152,7 @@ def evidence_inputs(root):
                 if not test or not proof.get('checks'):
                     raise ValueError('Retained compatibility proof lacks executed named checks')
                 for entry in proof['inputs'] + proof['streams'] + [test]:
-                    if sha(inside(root, entry['path'])) != entry['sha256']:
+                    if not input_unchanged(root, entry):
                         raise ValueError('Retained compatibility inputs/streams changed')
                 cases = test_results(inside(root, test['path']), 'junit')
                 if not all(cases.values()) or not all(cases.get(name) is True for name in proof['checks']):

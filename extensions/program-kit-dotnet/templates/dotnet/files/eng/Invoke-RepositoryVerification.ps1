@@ -20,8 +20,43 @@ $ErrorActionPreference = 'Stop'
 $repository = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $consumerPath = Join-Path $repository 'eng\verify.ps1'
 
+function Resolve-VerificationPython {
+    $recordPath = Join-Path $repository '.specify/python-runtime.json'
+    $saved = $null
+    try {
+        if (Test-Path -LiteralPath $recordPath) {
+            $saved = Get-Content -LiteralPath $recordPath -Raw | ConvertFrom-Json
+            if ($saved.contractVersion -ne 1 -or -not $saved.executable) { throw 'Unsupported core runtime record.' }
+        }
+        $executable = $env:SPECKIT_PYTHON
+        if (-not $executable -and $saved) { $executable = $saved.executable }
+        if (-not $executable) {
+            $command = Get-Command python -ErrorAction SilentlyContinue
+            if ($command) { $executable = $command.Source }
+        }
+        if (-not $executable -or -not [IO.Path]::IsPathRooted($executable) -or
+            -not (Test-Path -LiteralPath $executable -PathType Leaf)) { throw 'Selected interpreter is absent or not an absolute file.' }
+        if ($saved -and [IO.Path]::GetFullPath($executable) -ne [IO.Path]::GetFullPath($saved.executable)) {
+            throw 'SPECKIT_PYTHON differs from the core runtime record; regenerate core instructions explicitly.'
+        }
+        $probe = 'import json,sys; print(json.dumps({''executable'':sys.executable,''version'':''.''.join(map(str,sys.version_info[:3])),''supported'':sys.version_info>=(3,11)}))'
+        $output = & $executable -c $probe
+        if ($LASTEXITCODE -ne 0) { throw 'Selected interpreter did not execute the version probe.' }
+        $actual = $output | ConvertFrom-Json
+        if (-not $actual.supported) { throw 'Python >=3.11 is required.' }
+        $pin = Join-Path $repository '.python-version'
+        if ((Test-Path -LiteralPath $pin) -and $actual.version -ne (Get-Content -LiteralPath $pin -Raw).Trim()) {
+            throw "Interpreter version $($actual.version) differs from .python-version."
+        }
+        return [IO.Path]::GetFullPath($actual.executable)
+    }
+    catch {
+        throw "PKV005 verification Python is unavailable or stale. Select an installed absolute SPECKIT_PYTHON matching .specify/python-runtime.json, or regenerate core instructions after a reviewed runtime change. Verify the actual executable and .python-version in your terminal; no interpreter was installed and PATH was not changed. $($_.Exception.Message)"
+    }
+}
+
 function Invoke-ArchitectureChecks {
-    & python (Join-Path $PSScriptRoot 'repository_architecture.py') --repository $repository `
+    & $verificationPython (Join-Path $PSScriptRoot 'repository_architecture.py') --repository $repository `
         --manifest eng/architecture.json --configuration Release --output artifacts/tests/architecture.xml
     if ($LASTEXITCODE -ne 0) { throw 'Application architecture checks failed. See artifacts/tests/architecture.xml.' }
 }
@@ -60,6 +95,40 @@ function Resolve-ConsumerVerification {
     return $resolved
 }
 
+# The consumer declares its own credential names and offline mode in this fixed
+# repository module. Required isolation is admitted before any child dispatch.
+$providerEnvironmentModule = Join-Path $PSScriptRoot 'ProviderTestEnvironment.psm1'
+$isolationRequired = $false
+$verificationConfiguration = Join-Path $PSScriptRoot 'verification.json'
+if (Test-Path -LiteralPath $verificationConfiguration) {
+    try {
+        $settings = Get-Content -LiteralPath $verificationConfiguration -Raw | ConvertFrom-Json
+        if ($settings.providerIsolation) {
+            if ($settings.providerIsolation.required -isnot [bool]) { throw 'providerIsolation.required must be a boolean.' }
+            $isolationRequired = $settings.providerIsolation.required
+        }
+    }
+    catch { throw "PKV004 invalid provider isolation declaration in eng/verification.json. $($_.Exception.Message)" }
+}
+$isolationCommand = $null
+if (Test-Path -LiteralPath $providerEnvironmentModule) {
+    try {
+        $resolvedModule = Resolve-ConsumerVerification $providerEnvironmentModule
+        $module = Import-Module -Name $resolvedModule -Force -PassThru -ErrorAction Stop
+        $isolationCommand = $module.ExportedCommands['Invoke-WithOfflineProviderTestEnvironment']
+        if (-not $isolationCommand -or -not $isolationCommand.Parameters.ContainsKey('Action') -or
+            $isolationCommand.Parameters['Action'].ParameterType -ne [scriptblock]) {
+            throw 'Export Invoke-WithOfflineProviderTestEnvironment with a scriptblock Action parameter.'
+        }
+    }
+    catch { throw "PKV004 invalid eng/ProviderTestEnvironment.psm1; repair isolation before verification. $($_.Exception.Message)" }
+}
+elseif ($isolationRequired) {
+    throw 'PKV004 required eng/ProviderTestEnvironment.psm1 is missing; restore the consumer isolation module before verification. No child was dispatched.'
+}
+
+$verificationAction = {
+$verificationPython = Resolve-VerificationPython
 if ($Scope -ne 'Acceptance') {
     if ($Mode -eq 'Release') { throw 'PKV002 scoped development checks cannot claim Release acceptance.' }
     $scopedPath = Join-Path $repository 'eng\verify-scoped.ps1'
@@ -87,7 +156,7 @@ if ($Scope -ne 'Acceptance') {
         if ($Plan) { $arguments += '--plan' }
         & (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly
         if (-not $?) { throw 'Could not prepare the native development environment.' }
-        & python @arguments
+        & $verificationPython @arguments
         if ($LASTEXITCODE -ne 0) { throw 'Scoped native checks failed. No full-suite fallback was executed.' }
     }
     Write-Host "Scoped $Scope checks completed; full application acceptance is not established."
@@ -115,4 +184,11 @@ if (Test-Path -LiteralPath $consumerPath) {
 & (Join-Path $PSScriptRoot 'Build.ps1') -SkipReleaseBundle -LockedMode -VerifyArchitecture
 if (-not $?) {
     throw "Managed $Mode verification fallback failed."
+}
+}
+if ($isolationCommand) {
+    & $isolationCommand -Action $verificationAction
+}
+else {
+    & $verificationAction
 }

@@ -15,6 +15,45 @@ import repository_verification as verification
 
 
 class SelectionTests(unittest.TestCase):
+    def test_setup_maps_owned_guides_fixtures_and_shared_engineering_explicitly(self):
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
+        import dotnet_sync
+        guide = self.root / 'docs/application/build-and-run.md'
+        guide.parent.mkdir(parents=True)
+        guide.write_text('Application build guide')
+        fixture = self.root / 'docs/architecture/compatibility/probe.inputs.json'
+        fixture.parent.mkdir(parents=True)
+        fixture.write_text('{}')
+        entries = [{'path': 'docs/application/build-and-run.md', 'ownership': 'scaffold'},
+                   {'path': 'eng/known.py', 'ownership': 'managed'}]
+        mapping = dotnet_sync.setup_verification_mappings(self.root, entries)
+        (self.root / 'eng/verification.setup.json').write_bytes(mapping)
+        result = self.select(['docs/application/build-and-run.md', 'docs/architecture/compatibility/probe.inputs.json'])
+        self.assertEqual(3, len(result['projects']))
+        self.assertEqual(['program-kit-shared-setup'], result['inputMappings'])
+        self.assertFalse(result['acceptanceEstablished'])
+        with self.assertRaisesRegex(ValueError, 'unknown verification input'):
+            self.select(['docs/unowned.json'])
+
+    def test_semicolon_file_items_and_split_items_select_identical_tests(self):
+        project = self.root / 'src/Notes/Notes.csproj'
+        guide = self.root / 'docs/notes.json'
+        guide.parent.mkdir()
+        guide.write_text('{}')
+        fixture = self.root / 'docs/probe.json'
+        fixture.write_text('{}')
+        original = project.read_text()
+        project.write_text(original.replace('</Project>', '<ItemGroup><None Include="../../docs/notes.json;../../docs/probe.json" /></ItemGroup></Project>'))
+        joined = verification.file_items(self.root, project)
+        selected = self.select(['docs/notes.json', 'docs/probe.json'])
+        project.write_text(original.replace('</Project>', '<ItemGroup><None Include="../../docs/notes.json" /><None Include="../../docs/probe.json" /></ItemGroup></Project>'))
+        self.assertEqual(joined, verification.file_items(self.root, project))
+        self.assertEqual(selected['projects'], self.select(['docs/notes.json', 'docs/probe.json'])['projects'])
+        self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], selected['projects'])
+        project.write_text(original.replace('</Project>', '<ItemGroup><None Include="../../docs/notes.json;$(Dynamic)" /></ItemGroup></Project>'))
+        with self.assertRaisesRegex(ValueError, 'dynamic item inputs'):
+            self.select(['docs/notes.json'])
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='scoped-verification-')
         self.addCleanup(temporary.cleanup)
