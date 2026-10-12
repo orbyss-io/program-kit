@@ -21,11 +21,19 @@ import time
 import uuid
 
 from foundation_fixture import captured, require
+from js_toolchain import device
 from test_results import test_results
 
 
 def digest(value):
     return hashlib.sha256(value).hexdigest()
+
+
+def resolved_command(root, command):
+    """Use the same validated shared Python for evidence and execution."""
+    if command and command[0].lower() in ('python', 'python3', 'python.exe', 'python3.exe'):
+        return [str(device.require_python(root)), *command[1:]]
+    return command
 
 
 def contained(root, relative):
@@ -77,7 +85,7 @@ def inputs(root, selected):
     for row in selected.get('setup', {}).get('steps', []) + selected.get('tests', {}).get('commands', []):
         command = row.get('command', [])
         if command:
-            executable = shutil.which(command[0])
+            executable = shutil.which(resolved_command(root, command)[0])
             require(executable is not None, 'PKF001 setup command executable is unavailable')
             path = Path(executable).resolve()
             toolchain[command[0]] = {'path': str(path), 'sha256': digest(path.read_bytes())}
@@ -211,8 +219,8 @@ def execute(root, selected):
         step = {'id': row.get('id', stage), 'stage': stage, 'status': 'running'}
         result['steps'].append(step)
         save()
-        command = [token.replace('{runDirectory}', directory.relative_to(root).as_posix())
-                   for token in row['command']]
+        command = resolved_command(root, [token.replace('{runDirectory}', directory.relative_to(root).as_posix())
+                                         for token in row['command']])
         observed = captured(command, contained(root, row.get('cwd', '.')),
                             directory / f'command-{len(result["steps"]):02d}',
                             timeout=row.get('timeoutSeconds', 900), secret_values=secret_values)

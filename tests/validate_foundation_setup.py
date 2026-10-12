@@ -155,6 +155,28 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             self.assertEqual(result['exitCode'],code)
             self.assertTrue(result['cleanupComplete'] and result['logsDrained'])
 
+    def test_python_alias_uses_validated_shared_selection_for_fingerprint_and_child(self):
+        selected = self.composition()
+        for row in selected['setup']['steps'] + selected['tests']['commands']:
+            row['command'][0] = 'python'
+        alias = self.root / 'unusable-store-python.exe'
+        alias.write_bytes(b'not an executable')
+        base = Path(getattr(sys, '_base_executable', sys.executable)).resolve()
+        actual_which = shutil.which
+        with patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': str(base)}), \
+                patch.object(shutil, 'which', side_effect=lambda name, *args, **kwargs:
+                             str(alias) if name == 'python' else actual_which(name, *args, **kwargs)):
+            before = setup.inputs(self.root, selected)
+            with patch.object(setup, 'captured', wraps=fixture.captured) as executed:
+                result = setup.execute(self.root, selected)
+            self.assertEqual('ready', result['status'])
+            self.assertEqual(before, result['fingerprint'])
+            self.assertEqual(len(executed.call_args_list), 6)
+            self.assertTrue(all(call.args[0][0] == str(base) for call in executed.call_args_list))
+        with patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': str(self.root / 'missing-python.exe')}):
+            with self.assertRaisesRegex(ValueError, 'PKT030'):
+                setup.inputs(self.root, selected)
+
     def test_root_and_nested_real_process_reporting_rerun(self):
         for nested in (False, True):
             first = setup.execute(self.root, self.composition(nested))

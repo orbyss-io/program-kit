@@ -64,7 +64,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.13.1/Initialize-ProgramKit-0.13.1.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.13.0/Initialize-ProgramKit-0.13.0.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -90,7 +90,7 @@ output and the partial installation for diagnosis.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.13.1/Initialize-ProgramKit-0.13.1.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.13.0/Initialize-ProgramKit-0.13.0.sh \
      -o Initialize-ProgramKit.sh
    ```
 
