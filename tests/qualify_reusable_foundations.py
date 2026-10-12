@@ -13,6 +13,7 @@ import os
 import re
 from pathlib import Path
 import shutil
+import socket
 import sys
 import time
 import uuid
@@ -48,6 +49,19 @@ def contract_tests():
         assert {row['stage'] for row in selected['setup']['steps']}=={'restore','build','services'}
         assert all(row['result']['cases']==adapter.CASES[row['capability']] for row in selected['tests']['commands'])
     checks.append('finite-supported-compositions-use-authoritative-nonempty-maintained-cases')
+    with socket.socket() as occupied:
+        occupied.bind(('127.0.0.1', 0))
+        occupied.listen()
+        origin='http://localhost:'+str(occupied.getsockname()[1])
+        config={'application':{'publicOrigin':origin},
+                'identity':{'publicOrigin':origin,'backchannelOrigin':'http://owned-identity:8080'}}
+        disposable_origins(config)
+        ports=[int(config[owner]['publicOrigin'].rsplit(':',1)[1]) for owner in ('application','identity')]
+        assert len(set(ports))==2 and occupied.getsockname()[1] not in ports
+        assert config['identity']['backchannelOrigin']=='http://owned-identity:8080'
+        for port in ports:
+            with socket.socket() as available: available.bind(('127.0.0.1',port))
+    checks.append('disposable-public-origins-avoid-existing-listeners-and-preserve-private-transport')
     platform={'status':'passed','cases':{case:True for values in adapter.CASES.values() for case in values},'productAcceptance':False}
     def failing_product(): raise ValueError('Expected application assertion failure')
     adapter.product_outcome(platform,failing_product)
@@ -994,14 +1008,22 @@ def sync(root, evidence, *, check=False, expected=0):
         write(evidence/'result.json',{'exitCode':code,'expected':expected})
 
 
+def disposable_origins(config):
+    """Select available listeners for this test consumer, preserving private transport."""
+    with socket.socket() as app, socket.socket() as identity:
+        for owner, listener in (('application',app),('identity',identity)):
+            listener.bind(('127.0.0.1',0))
+            config[owner]['publicOrigin']='http://localhost:'+str(listener.getsockname()[1])
+
+
 def scaffold(root, shape, feed, evidence):
     postgres=shape!='base'
     variant='foundation-bff-keycloak'+('-postgresql' if postgres else '')
     config=composition.read(ROOT/'extensions/program-kit-dotnet/templates/dotnet/compositions'/(variant+'.json'))
     config['runner']='xunit-mtp' if shape=='sport' else 'executable'
     config['runtime']['directory']='runtime/nested/persoonlijk' if shape=='sport' else '.'
+    disposable_origins(config)
     if shape=='sport':
-        config['identity']['publicOrigin']='http://localhost:18080'
         config['identity']['realm']='sport-qualification'
         extra={'path':'src/Nieuws/Feed.Api/Feed.Api.csproj','packageId':'Feed.Api','featureIdentity':'Feed.Api','role':'implementation'}
         config['projects'].append(extra); config['runtime']['rootPackages'].append(extra['packageId'])
