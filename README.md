@@ -202,8 +202,8 @@ consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.13.1\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.13.1 `
+python C:\path\to\program-kit-0.13.0\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.13.0 `
   --target . `
   --integration codex
 ```
@@ -612,8 +612,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.13.1.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.13.1.zip -Algorithm SHA256
+gh attestation verify program-kit-0.13.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.13.0.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery
