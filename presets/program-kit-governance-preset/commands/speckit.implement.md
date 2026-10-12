@@ -45,6 +45,10 @@ do not invoke its commands again independently.
    Dispatch `hooks.before_implement` once. The combined preflight supplies focused guidance and
    validates the planned graph without restore/build. Reuse its result; do not run phase-context again.
    If that hook is absent, run `implementation_preflight.py --feature-dir <feature>` once explicitly.
+   A failed preflight stops affected source work. Repair its reported prerequisite, close that
+   failed invocation, and start a fresh invocation with one successful preflight before continuing.
+   A repaired file or earlier failed result is not successful re-entry. Preserve delivery state,
+   baseline, effort and decisions; do not dispatch the hook twice in one invocation.
    Pending required review pauses entry; only repair/diagnosis of the presented outcome or the
    explicitly deferred operations may proceed. Pass `--operation <id> --repair` only for that repair.
 5. Verify necessary setup and ignore patterns for the affected technologies; retain existing

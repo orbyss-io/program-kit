@@ -84,6 +84,66 @@ def require_due_proofs(root, feature, phase):
                          + '; '.join(p['id'] + ' (' + p['owner'] + '): ' + p['task'] for p in pending))
 
 
+def foundation_applicability(root, feature, inherited, tags):
+    """A bounded mechanism brief from the selected publisher's immutable capture."""
+    if not {'api', 'web'}.intersection(tags):
+        return None
+    targets = {identity for source in inherited['sources'] for identity in source.get('targets', [])}
+    selection = read(root / 'docs/architecture/building-block-selection.json', {})
+    if not targets or not selection.get('catalog'):
+        return None  # Proposed/unbound context is not exact publisher adoption.
+    instances = []
+    for instance in selection.get('instances', []):
+        bound = {identity for value in instance.get('targetBindings', {}).values()
+                 for identity in (value if isinstance(value, list) else [value]) if isinstance(identity, str)}
+        if bound & targets and instance.get('composition') in {'api_baseline', 'browser_bff', 'browser_spa_pkce', 'hosted_pages'}:
+            instances.append(instance)
+    if not instances:
+        return None
+    from repository_sync import provider
+    blocks = provider('program-kit-building-blocks/scripts/building_blocks.py')
+    effective = blocks.effective_dependency_context(root)
+    version = effective['catalog']['families']['foundation']['releaseVersion']
+    capture = effective['publisherKnowledge']
+    if not capture:
+        return {'version': version, 'profile': effective['profile'], 'sourceCommit': None,
+                'guidance': ['This exact selection has no captured publisher mechanism knowledge. Resolve its exact profile before choosing an unverified Foundation mechanism; no newer default is substituted.']}
+    registry = Path(effective['registryPath'])
+    def document(name):
+        row = next((item for item in capture['documents'] if item['publisherPath'] == name), None)
+        return blocks.publisher_document_bytes(registry, row).decode('utf-8') if row else ''
+    metadata = document('src/Orbyss.Foundation.WebDefaults/WebResponseMetadata.cs')
+    writer = document('src/Orbyss.Foundation.WebDefaults/WebResponsePoliciesMiddleware.cs')
+    permission = document('src/Orbyss.Foundation.Authentication/PermissionPolicyProvider.cs')
+    guidance = []
+    if 'WebResponseMetadata' in metadata and 'OnStarting' in writer:
+        guidance += ['Shell Foundation:Web:ResponsePolicies selects response policies; endpoints declare WebResponseMetadata(Private: true). WebDefaults owns the final header writer across success, denial, error and redirect. Admit public immutable assets separately.']
+    else:
+        guidance += ['This exact capture does not expose the current response-policy/private-metadata/final-writer contract. Resolve that capability before relying on it; headers alone supply no admission.']
+    if 'permission:' in permission:
+        guidance += ['Where BFF is selected, it supplies session admission; endpoints require canonical permission:<owned id> through Foundation authorization. Application code retains resource/state/effect checks.']
+    guidance += ['Use the exact package schemas and typed configuration for shell deployment values. Keep application permission/route identities in owned constants and use captured framework identifiers; literals are assessed by ownership and lifecycle.']
+    prose = '\n'.join((feature / name).read_text(encoding='utf-8') for name in ('spec.md', 'plan.md') if (feature / name).is_file())
+    hosted = [instance for instance in instances if instance['composition'] == 'hosted_pages']
+    if hosted:
+        options = document('src/Orbyss.Foundation.Web.HostedPages/HostedPageOptions.cs')
+        feature_source = document('src/Orbyss.Foundation.Web.HostedPages/FoundationHostedPagesFeature.cs')
+        access_mode = document('src/Orbyss.Foundation.Web.HostedPages/HostedPageAccessMode.cs')
+        private_contract = 'HostedPageRouteOptions' in options and 'Routes' in options and 'Authenticated' in access_mode
+        for instance in hosted:
+            purpose = str(instance.get('purpose', '')).lower()
+            identity = str(instance.get('id', '')).lower().replace('-', ' ')
+            public_assets = 'public assets' in identity or bool(re.search(r'public(?:ly)?\s+(?:immutable\s+)?(?:code\s+)?assets', purpose))
+            private_intent = bool(re.search(r'(?:private|authenticated)\s+(?:html\s+)?(?:pages?|entries|bootstrap)', identity + ' ' + purpose + ' ' + prose, re.I))
+            if private_intent and not public_assets and not private_contract:
+                raise ValueError('Foundation ' + version + ' HostedPages is public-only in its exact captured contract; selected private-page intent requires a demonstrated qualified private-page mechanism before affected source work. Public immutable assets remain separately valid.')
+        if private_contract:
+            guidance += ['This capture exposes typed HostedPages Routes. Bind distinct route IDs/paths/revisions and page/bootstrap access; qualify the actual admission behavior, including inherited bootstrap requirements and shared-revision isolation.']
+        elif 'AllowAnonymous' in feature_source:
+            guidance += ['HostedPages in this exact capture serves public HTML/bootstrap. An instance name or response policy cannot confer private admission.']
+    return {'version': version, 'profile': effective['profile'], 'sourceCommit': capture['sourceCommit'], 'guidance': guidance}
+
+
 def model(root, feature, phase='planning', affected_paths=()):
     tags = intent(root, feature, phase, affected_paths)
     registry_phase = 'after-plan' if phase == 'tasks' else phase
@@ -99,6 +159,7 @@ def model(root, feature, phase='planning', affected_paths=()):
                       if p['path'] in declarations or Path(p['path']).parent.as_posix() in declarations
                       or any(str(path).replace('\\', '/').startswith(Path(p['path']).parent.as_posix()+'/') for path in affected_paths))
     return {'schemaVersion': 1, 'feature': feature.relative_to(root).as_posix(), 'upgradeCompatibility': compatibility,
+            'foundationApplicability': foundation_applicability(root, feature, inherited, tags),
             'lifecycleFindings': lifecycle_findings(root, manifest, scoped) if manifest and 'dotnet' in tags else [],
             'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
             'decisions': decisions(root, feature),
@@ -129,6 +190,10 @@ def render(value, phase, detailed=False):
         'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
     }
     lines += [actions[phase], '']
+    if value.get('foundationApplicability'):
+        brief = value['foundationApplicability']
+        lines += ['Selected Foundation ' + brief['version'] + '; profile ' + str(brief['profile'])
+                  + '; captured source ' + str(brief['sourceCommit']) + '.', *brief['guidance'], '']
     if value.get('validation'):
         lines += [('Declared graph: PASS.' if value['validation']['declaredGraphPassed'] else
                    'Declared graph: not supplied; no graph check was established.')

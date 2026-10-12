@@ -176,5 +176,64 @@ class KnowledgeApplicationTests(unittest.TestCase):
             knowledge.project(self.root, self.feature, 'planning'), 'planning'))
 
 
+class ExactFoundationApplicabilityTests(unittest.TestCase):
+    def setUp(self):
+        sys.path.insert(0, str(ROOT / 'tests'))
+        from validate_effective_dependency_context import EffectiveContextTests
+        EffectiveContextTests.setUp(self)
+        EffectiveContextTests.selected(self, 'foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2')
+        self.feature = self.root / 'specs/001-web'; self.feature.mkdir(parents=True)
+        (self.feature / 'spec.md').write_text('Private HTML pages and an owned API.')
+        selection = json.loads(self.selection.read_text())
+        selection['status'] = 'Accepted'
+        self.selection.write_text(json.dumps(selection))
+        self.targets = {row['id'] for row in selection['targets']}
+        self.inherited = {'sources': [{'path': 'docs/architecture/building-block-selection.json',
+                                     'targets': sorted(self.targets)}], 'diagnostics': []}
+
+    def brief(self, tags={'api', 'web'}):
+        from unittest.mock import patch
+        with patch.object(knowledge, 'intent', return_value=tags), \
+                patch.object(knowledge, 'adopted_context', return_value=self.inherited):
+            return knowledge.project(self.root, self.feature, 'planning')
+
+    def test_api_brief_uses_exact_captured_mechanisms(self):
+        value = self.brief()['foundationApplicability']
+        self.assertEqual('0.3.2', value['version'])
+        self.assertEqual('8e3576d0b8dc25b820e56f4013d92137e410a440', value['sourceCommit'])
+        rendered = knowledge.render(self.brief(), 'planning')
+        for mechanism in ('Foundation:Web:ResponsePolicies', 'WebResponseMetadata',
+                          'final header writer', 'permission:', 'typed configuration', 'owned constants'):
+            self.assertIn(mechanism, rendered)
+
+    def hosted(self, identity, purpose):
+        selection = json.loads(self.selection.read_text())
+        selection['instances'].append({'id': identity, 'composition': 'hosted_pages', 'purpose': purpose,
+            'targetBindings': {'implementation': sorted(self.targets)}})
+        self.selection.write_text(json.dumps(selection))
+
+    def test_public_only_hosting_rejects_private_page_adoption(self):
+        self.hosted('private-pages', 'Authenticated HTML and bootstrap')
+        with self.assertRaisesRegex(ValueError, '0.3.2.*public-only|public-only.*0.3.2'):
+            self.brief()
+
+    def test_explicit_public_assets_remain_valid_with_private_api(self):
+        self.hosted('public-assets', 'Explicitly public immutable code assets')
+        self.assertIn('WebResponseMetadata', knowledge.render(self.brief(), 'planning'))
+
+    def test_released_private_pages_use_the_exact_new_qualified_contract(self):
+        from validate_effective_dependency_context import EffectiveContextTests
+        EffectiveContextTests.selected(self)
+        self.hosted('private-pages', 'Authenticated HTML and bootstrap')
+        value = self.brief()['foundationApplicability']
+        self.assertEqual('0.3.3', value['version'])
+        self.assertEqual('0739892610a12f36673941dbe9718f45a38ae6cb', value['sourceCommit'])
+        self.assertIn('typed HostedPages Routes', knowledge.render(self.brief(), 'planning'))
+
+    def test_unrelated_scope_does_not_read_foundation_knowledge(self):
+        self.inherited = {'sources': [], 'diagnostics': []}
+        self.assertIsNone(self.brief({'dotnet'}).get('foundationApplicability'))
+
+
 if __name__ == '__main__':
     unittest.main()

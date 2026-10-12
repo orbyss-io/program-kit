@@ -23,6 +23,32 @@ from validate_governance_state import roadmap
 
 
 class AuditTests(unittest.TestCase):
+    def test_invalidation_preview_is_read_only_and_conservative_for_selection(self):
+        source = self.proof()
+        before = {path: path.read_bytes() for path in self.root.rglob('*') if path.is_file()}
+        changes = [source.relative_to(self.root).as_posix(), 'docs/architecture/building-block-selection.json',
+                   'src/Owner/Owner.Api.cs', 'runtime/shells.json', 'Directory.Packages.props',
+                   'docs/architecture/compatibility/current.py', 'artifacts/program-kit/toolchain.json']
+        result = lifecycle.receipt_invalidation_preview(self.root, changes)
+        self.assertFalse(result['proofOrSpendingAuthorityEstablished'])
+        self.assertEqual(set(changes), set(result['receipts'][0]['proposedInvalidations']))
+        self.assertIn('whole-selection', result['receipts'][0]['proposedInvalidations'][changes[1]])
+        independent = lifecycle.receipt_invalidation_preview(self.root, ['docs/unrelated-neighbor.md'])
+        self.assertIn('independence is not demonstrated', independent['receipts'][0]['proposedInvalidations']['docs/unrelated-neighbor.md'])
+        self.assertEqual(before, {path: path.read_bytes() for path in self.root.rglob('*') if path.is_file()})
+
+    def test_invalidation_preview_retains_latest_failure_and_original_receipt(self):
+        self.proof()
+        original = self.root / '.specify/governance/proof/proof.json'
+        retained = original.read_bytes()
+        latest = self.write('.specify/governance/compatibility/probe/attempt-latest/proof.json',
+                            {'prerequisite': 'probe', 'exit_code': 125, 'inputs': [], 'streams': []})
+        result = lifecycle.receipt_invalidation_preview(self.root, [])
+        row = result['receipts'][0]
+        self.assertEqual(latest.relative_to(self.root).as_posix(), row['path'])
+        self.assertIn('latest attempt failed', row['currentBindingFindings'])
+        self.assertEqual(retained, original.read_bytes())
+
     def test_frozen_scoped_producer_shape_is_historical_not_current_acceptance(self):
         source = self.proof()
         receipt = self.root / '.specify/governance/proof/proof.json'

@@ -100,3 +100,22 @@ rebuild selected roots and run applicable maintained readiness plus product-spec
 regressions. Provider removal must remove its selected root/feature contribution
 while preserving application data and deployment migration history. Live Notes and
 De Sportomgeving adoption remain separate consumer actions.
+
+For qualified Foundation 0.3.3 HostedPages, configure typed `Routes` inside the
+shell's `Foundation:HostedPages` section. A route owns `Id`, `Path`, an optional
+`Revision`, and `Page`/`Bootstrap` access (`Mode`, optional `Permission` and
+`ResponsePolicy`). For example, an owned private entry can select page mode
+`Authenticated` and permission `entries.read`; omit Bootstrap access to inherit
+that page admission, or add a stricter bootstrap permission. Use application-owned
+constants for these illustrative IDs. The bootstrap path is
+`/_foundation/bootstrap/{routeId}/{revisionHash}/{locale}.json`; content revision
+alone supplies no cross-route authority. Keep immutable code assets separately
+public. Actual BFF cookie admission, canonical permission policies and the final
+WebDefaults header writer remain the existing mechanisms. Protected product data
+belongs to owned API endpoints with resource/state/effect checks.
+
+Do not apply this private-page contract to retained 0.3.2 selections. Upgrade the
+accepted dependency authority explicitly, regenerate stale executable fixtures,
+renew the complete affected lock closure and qualify actual packaged behavior
+before implementation re-entry. Neither a route name nor a response policy
+supplies authentication by itself.

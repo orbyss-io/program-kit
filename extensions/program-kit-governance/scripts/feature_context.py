@@ -86,6 +86,7 @@ def adopted_context(root, feature):
         'api_baseline': {'dotnet', 'api', 'capabilities'},
         'browser_bff': {'dotnet', 'api', 'web', 'capabilities'},
         'browser_spa_pkce': {'dotnet', 'api', 'web', 'capabilities'},
+        'hosted_pages': {'dotnet', 'api', 'web', 'capabilities'},
         'persistence': {'dotnet', 'persistence', 'capabilities'},
     }
     for target in targets.values():

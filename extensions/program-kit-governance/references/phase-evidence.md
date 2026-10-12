@@ -79,6 +79,36 @@ remain supported. Direct custom commands need the same consumer isolation bounda
 
 ## Reusable foundation proof and operation prerequisites
 
+Before paid prerequisite preparation, settle accepted selection/placement, normal sync,
+current executable fixtures and the complete native lock-renewal batch. Preview impact with
+`bootstrap_lifecycle.py invalidation-preview --changed-path <relative-path>` (repeat the option).
+The forecast preserves current broad whole-selection bindings: even an unrelated placement
+change can invalidate provider evidence when independent closure is not demonstrated. It also
+shows bound input changes and the latest failed/incomplete attempt. It executes no proof, closes
+no ledger item and grants no spending or human authority. Run normal prerequisite validation
+after the actual changes; a preview is not acceptance.
+
+Use `fixture_readiness.py --repository . --contract <old.contract.json> --identity <new-id>`
+to preview current fixture pickup. Review its `planDigest`, then use the same arguments with
+`--apply --plan-digest <digest>` to archive original bytes and write a distinct current draft.
+Never edit old inputs/receipts to imply new execution. Materialization is not a provider proof;
+the normal preparation/restore/check path must validate the draft. Existing or incomplete pickup
+outcomes require inspection and a new identity, never an automatic retry/reset.
+
+Keep any deliberate paid freshness renewal separate: exact new authorization and attempt state,
+unchanged old reservations/unknown outcomes and aggregate ceilings, and no automatic retry or
+fallback. Previously approved spending cannot authorize changed inputs. The optional paid coding
+worker harness retains its own distinct phase-specific one-use manifests; fixture pickup does
+not create or consume them. No new universal approval dossier is introduced.
+
+Preparation derives exact executables/versions, Linux Docker/socket access, image digests and
+required browser launches from the recipe. BFF requires Chromium before its first container;
+that preparation does not move the later full product browser harness or complete T084.
+Missing tools/images/browser support pause dependent behavior for user-terminal preparation.
+An installed shared base Python can be selected explicitly with `PROGRAMKIT_DEVICE_PYTHON`;
+it is validated against device policy and does not override the separate core workflow runtime,
+install software or change PATH.
+
 A supported foundation composition inherits exhaustive component tests from its exact
 qualified packages. Maintained setup checks verify the consumer's selected configuration,
 binding, activation, authentication and applicable provider integration. Successful file

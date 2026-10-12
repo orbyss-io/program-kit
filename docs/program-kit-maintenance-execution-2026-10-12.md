@@ -2,7 +2,7 @@
 
 Implementation follows [the saved approved plan](program-kit-maintenance-plan-2026-10-12.md), in its numbered order. Started incorrectly on 2026-10-12 from stale release commit `834a9f2`. The initial checkout was `codex/reusable-foundations-release-0.12.11`; unrelated untracked `.agents/` and the two story delivery documents are preserved. The maintenance checkpoint was rebased onto published 0.13.0 commit `60e875799e1aa7ae408ca5b660fcd278d9f6abea`, producing `27139eb`. The original story document bytes and stash remain preserved. Nothing was pushed. The requester's concern triggered a complete [0.13.0 context audit](program-kit-maintenance-0130-context-audit.md); implementation beyond step 6 was paused until all 88 Development checks and real packaged adoption passed.
 
-Consumer evidence at `C:/Users/tech_/Code/Orbyss/temp-tests/claim_evaluator` is read-only. No provider calls, paid workers, publication, deployment or interactive intake are authorized. Release qualification remains a separately authorized user-terminal gate. Foundation implementation belongs to “Add authenticated page serving” (`01a130d7-34a3-7a12-9678-56df82f669d7`); its implementation is in progress and is not yet adoption authority.
+Consumer evidence at `C:/Users/tech_/Code/Orbyss/temp-tests/claim_evaluator` is read-only. No provider calls, paid workers, Program Kit publication, deployment or interactive intake are authorized. Program Kit Release qualification remains a separately authorized user-terminal gate. Foundation implementation/publication belongs to “Add authenticated page serving” (`01a130d7-34a3-7a12-9678-56df82f669d7`). Its complete tagged Release workflow has now published 0.3.3 at commit `0739892610a12f36673941dbe9718f45a38ae6cb`; Program Kit's own qualification and adoption checks are underway.
 
 ## Approved steps
 
@@ -14,30 +14,30 @@ Consumer evidence at `C:/Users/tech_/Code/Orbyss/temp-tests/claim_evaluator` is 
 | 4 | Identity version/digest projections and sync reconciliation | Complete: both profiles, sync conflict/preservation and configured Foundation composition pass |
 | 5 | Literal MSBuild inventory, setup mappings and reverse-dependent lock renewal | Complete: 44 scoped cases, actual offline renewal/whole-solution LockedMode and composition sync pass |
 | 6 | First-use preparation and stale fixture pickup with archive preservation | Complete: early browser/device/image diagnostics, 13 authority/pickup cases and native provider fixtures pass |
-| 7 | Exact publisher applicability and successful preflight re-entry, hooks once | Pending |
-| 8 | Evidence pickup, invalidation preview and offline renewal bookkeeping | Pending |
-| 9 | Foundation final contract and exact packaged Host candidate qualification | Awaiting Foundation result; independent steps proceed first |
+| 7 | Exact publisher applicability and successful preflight re-entry, hooks once | Complete targeted proofs: 16 old/new-version knowledge, 29 re-entry and 19 hook-count cases pass; final integrated checks pending |
+| 8 | Evidence pickup, invalidation preview and offline renewal bookkeeping | Complete targeted proofs: 14 audit and 13 pickup/bookkeeping cases pass; conservative binding retained; final integrated checks pending |
+| 9 | Foundation final contract and exact packaged Host qualification | Public 0.3.3 contract/default/knowledge qualified; packaged private/public proofs pass. Dependency-update Development running; two-platform security gate awaits shared Trivy/CI |
 
 ## Original observation dispositions
 
-These initial assessments are provisional until fresh checks establish their final disposition. Observation numbers refer to section C of the original maintenance request; sections A and B additionally govern steps 7 and 9.
+Final dispositions and fresh evidence are recorded below. Observation numbers refer to section C of the original maintenance request; sections A and B additionally govern steps 7 and 9. Integrated checks and security/publication gates remain separate; no disposition claims DS01 acceptance.
 
-| Observation | Initial assessment | Responsible step and remaining proof |
+| Observation | Final disposition | Evidence and scope |
 | --- | --- | --- |
-| 1 Historical executable fixtures | Consumer repair recorded; upstream pickup gap to reproduce | 6: stale pin detection, current recipes, readable archives |
-| 2 Keycloak descriptor drift | Consumer normal-sync repair recorded; upstream projection gap to reproduce | 4: BFF/SPA render and exact digest coherence |
-| 3 Current device readiness | Expected human preparation with first-use visibility gap | 6: executable/version/engine/access checks |
-| 4 Exact image provisioning | Expected preparation with ordering gap | 6: absent/wrong-digest/access distinctions |
-| 5 Early Chromium requirement | Preparation ordering gap | 6: fail before container creation, preserve T084 scope |
-| 6 Paid proof before settled placement | Sequencing error and conservative binding investigation | 8: invalidation preview and prerequisite ordering |
-| 7 Placement and aggregate retirement | Owned consumer setup; preserve actual graph | 5/8: complete mappings and truthful reconciliation |
-| 8 Affected ownership and semicolon items | Consumer repair recorded; upstream inventory/setup gap to reproduce | 5: equivalent literal forms, dynamic/unmapped rejection |
-| 9 Partial lock renewal | Reverse closure gap to reproduce | 5: complete batch, locked restore, unchanged unrelated locks |
-| 10 Provider credentials in routine tests | Consumer isolation seam repaired; upstream required-module gap to reproduce | 3: child clearing/offline and parent restoration |
-| 11 Paid renewal bookkeeping | Consumer bounded actions retained; offline workflow review | 8: separate authorization/state, unknowns/reservations preserved |
-| 12 Ledger and managed-state pickup | Consumer reconciled; upstream pickup/historical-reader review | 2/8: original authority/receipt hashes and truthful failure |
-| 13 Command and Python overhead | Agent invocation errors; wrapper generic Python is a possible defect | 3: real interpreter selection and diagnostics |
-| 14 Local toolkit corrections | Four archived source corrections and two planning corrections identified | 1/2: compare/import individually and fresh regressions |
+| 1 Historical executable fixtures | Fixed explicit stale-input pickup; historical inputs stay readable | 6: 13 exact authority/pickup cases, preserved archives, distinct new draft identity |
+| 2 Keycloak descriptor drift | Fixed single immutable version/digest projection | 4: both BFF/SPA renders, changed authority, normal repair convergence and genuine non-mutating conflict |
+| 3 Current device readiness | Expected human preparation; first-use visibility fixed | 6: actual paths/versions/Linux engine/access/browser before behavior; no agent device installation |
+| 4 Exact image provisioning | Preparation order and diagnostics fixed | 6: absent/wrong digest/denied access remain distinct; readiness supplies no behavior proof |
+| 5 Early Chromium requirement | Fixed early BFF prerequisite | 6: missing browser stops before containers; native Host/BFF pass after preparation; T084 remains separate |
+| 6 Paid proof before settled placement | Sequencing fixed; conservative invalidation retained deliberately | 8: settle placement/selection/fixtures/locks first; no demonstrably independent producer closure, so no placement waiver |
+| 7 Placement and aggregate retirement | Owned setup mappings fixed; actual graph preserved | 5/8: declared tests/guides/engineering/fixtures and retired successor coverage; actual-evidence reconciliation, no new Composition owner |
+| 8 Affected ownership and semicolon items | Literal inventory/shared setup coverage fixed | 5: 44 scoped cases, equivalent lists, dynamic/unmapped rejection and explicit matched groups |
+| 9 Partial lock renewal | Complete affected reverse closure fixed | 5: actual NU1004 before; single owner/API/test batch and whole-solution LockedMode after; unrelated lock/profile bytes match |
+| 10 Provider credentials in routine tests | Required consumer-owned isolation contract fixed | 3: actual child clearing/offline/parent restoration in every route, success/failure; missing/invalid module stops dispatch |
+| 11 Paid renewal bookkeeping | Offline review complete; bounded paid history preserved | 8: synthetic authorization/reservations/unknowns retained; new draft grants no proof, retry/reset or paid authority; no paid call |
+| 12 Ledger and managed-state pickup | Historical reader/truthful pickup fixed and verified | 2/8: archived executed source shape, original receipt/input/stream/result hashes, latest failed/incomplete precedence, original conditions/authority retained |
+| 13 Command and Python overhead | Invocation errors distinguished; runtime selection fixed | 3/6: real interpreter and PKV005 negatives, validated shared base selector; no PATH masking/local substitution |
+| 14 Local toolkit corrections | Each correction compared/imported individually and audited on 0.13.0 | 1/2: fresh reproductions, five preserved planning regressions, upgrade negatives and complete baseline audit; unrelated work retained |
 
 ## Baseline findings
 
@@ -49,7 +49,7 @@ These initial assessments are provisional until fresh checks establish their fin
 
 ## Reproductions and changes
 
-Pending baseline comparison and fresh disposable regression runs. Historical 30-test and five-test results are provenance only.
+Baseline comparison and fresh disposable regression runs are recorded below. Historical 30-test and five-test results are provenance only.
 
 ### Steps 1 and 2
 
@@ -117,4 +117,54 @@ command/write was executed by this maintenance chat.
 
 ## Remaining gates and consumer adoption
 
-All numbered implementation steps remain pending until their proofs are recorded. Foundation exact candidate artifacts and final report are required before step 9 can be qualified. Public Foundation release/default profile adoption, dependency-update qualification and Program Kit Release/publication remain distinct future gates. Consumer upgrade/sync, repair preservation, fixture pickup, complete lock renewal, prerequisite checks and successful preflight re-entry will be specified from the demonstrated final implementation.
+Steps 1–8 have implementations and targeted proofs. Foundation 0.3.3 is public and the new Program Kit default/knowledge pair has passed exact public qualification. Final integrated Development is running. Final local component/bundle install, sequential updater/destination activation and fresh fictional story reset pass. The complete dependency-update security gate awaits shared Trivy or CI; existing reports are preserved and are not this image's scan. Firefox and the Windows-unavailable symbolic-link case retain Linux CI authority. Complete dependency-update CI/security and separately authorized user-owned Program Kit Release/publication remain gates. No release-candidate/publication success is claimed.
+
+### Step 7
+
+`phase_obligations.py` now derives a concise applicability brief from the consumer's exact selected profile and frozen publisher sources. On the retained 0.3.2 profile it identifies shell response policies, private endpoint metadata, the final header writer, canonical permission admission, typed configuration and owned identifiers. Relevant private-page adoption fails against that public-only HostedPages contract; explicitly public immutable assets remain valid in a private application. Unrelated scopes require no publisher reading. No newer checkout is substituted for the selected version.
+
+A failed implementation preflight stops affected work. After repair, a new invocation must pass preflight before source work resumes. The existing once-per-invocation hooks and 0.13.0 delivery state/clock remain intact. Fresh targeted results: 15 knowledge-application cases (`step7-applicability-after.log`), 29 normal-development cases (`step7-reentry-after.log`) and 19 task-generation/hook cases (`step7-hook-counts-after.log`), under `artifacts/maintenance-2026-10-12`. Before-failure and fixture-setup diagnostics remain preserved alongside the passing results. The subsequent 16-case public-release run (`step9-released-applicability-native.log`) retains the explicit 0.3.2 private-page rejection and adds qualified 0.3.3 private-page guidance.
+
+### Step 8
+
+`bootstrap_lifecycle.py invalidation-preview --changed-path <repository-relative-path>` forecasts receipt invalidation without changing receipts, ledgers, authorization or spending. It checks current input/result/stream/design/tooling bytes and honors the latest failed/incomplete attempt instead of presenting an older pass as current. Selection, relevant API/web/runtime/engineering/config/package/fixture/toolchain changes invalidate affected evidence. Unknown changes stay conservative.
+
+No current producer demonstrates a receipt independent of whole selection/placement and global fixture-profile authority. Broad binding is therefore retained: an apparently unrelated placement change can still require fresh evidence. This is an explicit outcome of the investigation, not a new exemption. Preparation guidance settles selection/placement/fixture/native lock inputs before paid prerequisites. Offline synthetic renewal retains the prior authorization, reservations, unknown outcomes and historical input bytes; the new draft fixture supplies no authorization, proof or automatic retry/reset.
+
+Fresh targeted results: 14 dependency-audit cases (`step8-unknown-closure-after.log`) and 13 effective-context/pickup cases (`step8-renewal-state-after.log`). The source-inventory and historical-reader checks retain original conditions, authority and receipt hashes. No paid call was made.
+
+### Step 9, in progress
+
+The explicitly identified `0.3.3-local.authenticated-pages` candidate passed package-linked HTTP probes and 26 real neutral-Host/Nuplane dispatch checks in a disposable repository. Its source manifest hash is `601c951cbb951365116aa09a4ae1bf5228031bbf0665d04f6be8f00b7d5bac6c`. Evidence: `step9-packaged-probe.log` and `step9-packaged-neutral-host.log`. Cases include shared-revision cross-route bootstrap permission denial, rejection of bootstrap admission weaker than its page, anonymous/denied/admitted routes, separately public assets, final headers, logout/re-entry, discovery exclusion and legacy public compatibility. Candidate evidence is not public/default qualification.
+
+The Foundation publisher subsequently completed [the tagged 0.3.3 Release workflow](https://github.com/orbyss-io/dotnet-foundation/actions/runs/38287682319), with public stable CShells 0.0.30. Program Kit's required dependency metadata/update stage passed, preserving fresh observations in `step9-dependency-observations.json`. It changed only two active CShells pins and Foundation Analyzers. Historical profiles and consumer locks were untouched.
+
+The first public qualification attempt restored the exact selected Build version but its assets included the machine-wide Visual Studio fallback cache. The strict owned-cache gate correctly rejected this (`step9-public-profile.log`). The qualifier now clears fallback folders in its owned NuGet configuration, preserving exact-version/public-archive checks. Fresh native qualification passed 48 activation closures and four combinations (`step9-public-profile-owned-cache.log`), then browser preparation correctly stopped for the missing registry credential. At the user's explicit request, GitHub CLI's existing OAuth token was supplied to credentialed package operations with supervised redaction; no token was printed or saved. Chromium/WebKit passed (`step9-public-browser.log`, `artifacts/published-forms-browser/eb3d871e`); immutable Host qualification passed (`step9-public-host-inputs.log`, `artifacts/bootstrap-runtime/c2c28128`).
+
+`complete_public_profile.py` resumes the standard updater from those preserved stage results. The standard builder revalidates all command/stream/process cleanup, native executor/recipe/lock, public tooling archives, browser packages and Host payload/results. Public availability passed for every selected artifact; exact knowledge matched the published source commit/Host digest before the standard promotion advanced default plus knowledge (`step9-public-qualification-seal.log`). This is not a standalone receipt writer or a Release receipt. The complete dependency-update security gate remains open.
+
+Released contract tested: 0.3.3, commit `0739892610a12f36673941dbe9718f45a38ae6cb`, Host `ghcr.io/orbyss-io/foundation-host@sha256:e61f5432f4c515ecb2b2cb91eed8a9179e64ffa006151aa893f04c490bbb2d2b`, published knowledge SHA256 `c2d0122f4e2abcb82e2c6e4255f9d8442bf4d89a991f974729fdbc2aa23c324b`. New qualified profile: `foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2`. All historical registrations remain available. Consumer pins/locks were not changed by this chat.
+
+The released source archive was hash-compared with captured documents. A disposable HTTP probe replaced only source project references with exact public package references; it compiles no Foundation runtime source. Restore/LockedMode and actual HTTP pass (`step9-public-packaged-probe-prepared.log`), including shared-revision route isolation, bootstrap weakening rejection, shell recreation/session revocation, final headers, public compatibility/assets, discovery exclusion and 18 invalid compositions. The initially incomplete copied feed failure remains recorded; preparation added its declared stable CShells/.NET sources without changing product pins. Actual immutable Host/Nuplane settings-only dispatch passed 26 checks (`step9-public-private-neutral-host.log`; `foundation-public-073989/publisher/artifacts/hosted-package-consumption/run-ku2hp7ty/result.json`). That supplemental result truthfully says `releaseQualification: false`; the standard profile receipt separately establishes qualification.
+
+Packaging excludes updater working state, duplicate working catalog/availability, unregistered candidates and failed/unregistered recipes from installations. Every registered profile, proof, selected recipe/native lock, catalog snapshot and knowledge remains shipped byte-for-byte; all working files/evidence remain in source history. Nine packaging/history cases resolve every registered old/new profile from the extracted component (`step9-install-history.log`). Final archive: exactly 512 entries (`final-package-build.log`). Real final component install (`final-component-install.log`) and sequential upgrade/activation/fresh-story reset (`final-package-upgrade.log`) pass.
+
+### Step 6 proof details
+
+The single shipped `fixture_readiness.py` checks actual executable paths/versions, exact image digests, Docker Linux/access and required browsers before behavior. Early BFF Chromium is not T084 acceptance. Native Host/BFF 0.3.2 passes after preparation (`step6-provider-runtime-current.log`); the public 0.3.3 checks add separate exact-version evidence.
+
+Pickup binds an exact preview digest, archives original inputs by content hash and materializes a distinct draft identity from accepted Foundation/shared ABI/SDK/npm/runtime authority. It refuses changed authority/digest, existing output/record and incomplete retry. XML comparisons use semantic identity while retaining original bytes/receipt hashes. Thirteen effective-context cases establish Foundation/CShells/Semantic Kernel pickup and preservation. `PROGRAMKIT_DEVICE_PYTHON` validates a real shared base interpreter; it changes neither core `SPECKIT_PYTHON` authority nor device software.
+
+### Final preservation boundary
+
+`consumer-preservation-final.json`: 1,515 of 1,521 original inputs match; six differences exactly match the concurrent user-authorized consumer repair chat. They are two feedback documents, retired `runtime/claim-evaluator/settings.json`, and current feature plan/quickstart/tasks. This chat made no consumer write or command. Original archives, proofs/attempts/unknown outcomes, managed history, architecture, pins and locks match. Concurrent changes are disclosed, not restored or presented as an all-files pass. Planning/effort carry, thresholds and human acceptance retain existing consumer authority.
+
+### Future consumer adoption
+
+1. After Program Kit publication or approved local-repair authority, use the shipped consumer-upgrade command to prepare a disposable reproduction, review migration guidance and activate the supported destination. These local 0.13.0 archives are development evidence, not replacement public assets or authority to republish the tag.
+2. Preserve failed/local-repair origin and content-addressed originals. Only an explicitly reviewed repair may use `upgrade_program_kit.py --target <consumer> --release-root <candidate> --repair-of-release-sha256 <exact-original-fingerprint>`; ordinary upgrades receive no exception.
+3. Explicitly adopt qualified 0.3.3 authority for the accepted scope, then preview normal sync. Retain custom isolation/configuration/data/existing owners; resolve managed conflicts through supported repair/sync without adding a Composition owner.
+4. Settle placement/configuration and preview receipt invalidation. For stale contracts, preview installed `fixture_readiness.py --repository . --contract <contract> --identity <new-id>`; apply only the reviewed plan using `--apply --plan-digest <exact-digest>`. Retain archives, receipts, reservations and unknowns. New materialization is draft, not proof/paid authority.
+5. Preview/renew the complete affected reverse-dependent lock closure once, retaining pins/unrelated locks; then run whole-solution LockedMode. Dynamic/unmapped edges require a proved adapter, never zero-test success/full-suite fallback.
+6. Prepare shared SDK/Python/Node/npm in the user terminal when required. Check Docker Linux/access, exact images and early BFF Chromium before behavior. Credentials remain in exact registry/provider-isolation scopes. This sequence starts no paid worker or interactive intake.
+7. Run normal preflight for the existing story. Repair/close a failed invocation, then require a fresh invocation with one successful preflight before affected work. Retain stable IDs, fresh 0.13.0 baseline, clock/cumulative carry and human reviews; do not reset the story or claim DS01 delivery.

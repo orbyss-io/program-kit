@@ -189,24 +189,24 @@ For each step, assess every requirement and proof case in the supplied plan, inc
 
 | Step | Approved work | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 1 | Establish baseline and preserve local repairs | Pending | |
-| 2 | Upstream existing planning and upgrade corrections | Pending | |
-| 3 | Correct verification runtime and provider isolation | Pending | |
-| 4 | Reconcile identity projections | Pending | |
-| 5 | Complete affected inventory and lock-renewal closure | Pending | |
-| 6 | Prepare before the first dependent fixture | Pending | |
-| 7 | Surface Foundation applicability and require successful re-entry | Pending | |
-| 8 | Repair evidence pickup and investigate invalidation scope | Pending | |
-| 9 | Integrate and qualify Foundation's final contract | Pending | |
+| 1 | Establish baseline and preserve local repairs | Complete | [Execution record](program-kit-maintenance-execution-2026-10-12.md), [published 0.13.0 context audit](program-kit-maintenance-0130-context-audit.md). Final preservation: 1,515/1,521 original inputs match; six concurrent authorized changes disclosed. |
+| 2 | Upstream existing planning and upgrade corrections | Complete | Fresh before/after and negative cases, preserved five-case planning regression, exact repaired upgrade/archive provenance. See execution steps 1/2 and audit. |
+| 3 | Correct verification runtime and provider isolation | Complete | Actual child-process hook routes, required module/runtime negatives, parent restoration and native provider fixtures. See step 3. |
+| 4 | Reconcile identity projections | Complete | Both profiles derive exact version/digest; sync repairs converge; genuine conflicts preserve state. See step 4. |
+| 5 | Complete affected inventory and lock-renewal closure | Complete | 44 scoped cases; actual owner-only NU1004 before, complete reverse batch plus whole-solution LockedMode after, unrelated locks/pins preserved. See step 5. |
+| 6 | Prepare before the first dependent fixture | Complete | Early browser/device/image/access checks; 13 fixture pickup/authority cases; exact archived inputs and native Host/BFF behavior. See step 6. |
+| 7 | Surface Foundation applicability and require successful re-entry | Complete | 16 exact old/new knowledge cases, 29 re-entry cases and 19 once-per-invocation hook cases; no clock/review reset. See step 7. |
+| 8 | Repair evidence pickup and investigate invalidation scope | Complete | 14 audit and 13 context/pickup cases; conservative whole-selection binding retained because independent closure is unproved; no paid call/retry/reset. See step 8. |
+| 9 | Integrate and qualify Foundation's final contract | Pending final gate | Public 0.3.3 default/knowledge qualified; real public packaged Host/HTTP and both explicit bootstrap cases pass. Complete dependency-update security needs shared Trivy/CI. Final integrated Development verification remains in progress. See step 9. |
 
 ### Final evaluation requirements
 
-- [ ] All 14 original observations have individually recorded final dispositions, with reasons and evidence.
+- [x] All 14 original observations have individually recorded final dispositions, with reasons and evidence.
 - [ ] Each demonstrated defect has a before-failure, after-pass, relevant negative cases, exact commands/logs and changed files.
-- [ ] Preservation is verified through hashes/diffs, including the original archives, proofs, receipts, locks and managed-state history required by the plan.
+- [x] Preservation is verified through hashes/diffs, including the original archives, proofs, receipts, locks and managed-state history required by the plan. Six concurrent authorized consumer changes are disclosed in the execution record.
 - [ ] The integrated Development suite passes with Chromium/WebKit; the known local Firefox limitation and CI responsibility are recorded.
-- [ ] The exact Foundation contract, artifacts and version actually tested are recorded, including both explicit bootstrap admission cases in step 9.
-- [ ] Remaining qualification/publication dependencies are stated precisely; candidate checks and public/default adoption readiness are assessed separately.
-- [ ] Future consumer adoption steps cover supported upgrade/sync, local-repair preservation, fixture pickup, complete lock renewal, prerequisite checks and fresh successful preflight re-entry.
-- [ ] All execution boundaries and preservation requirements in the supplied plan were respected; any changed disposition is explained.
-- [ ] The final review distinguishes completed work, deferred gates and blocked dependencies and makes no DS01 delivery claim.
+- [x] The exact Foundation contract, artifacts and version actually tested are recorded, including both explicit bootstrap admission cases in step 9.
+- [x] Remaining qualification/publication dependencies are stated precisely; candidate checks and public/default adoption readiness are assessed separately.
+- [x] Future consumer adoption steps cover supported upgrade/sync, local-repair preservation, fixture pickup, complete lock renewal, prerequisite checks and fresh successful preflight re-entry.
+- [x] All execution boundaries and preservation requirements in the supplied plan were respected; any changed disposition is explained. The wrong initial checkout and its verified correction are explicitly recorded.
+- [x] The final review distinguishes completed work, deferred gates and blocked dependencies and makes no DS01 delivery claim.

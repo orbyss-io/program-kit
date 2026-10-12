@@ -8,6 +8,10 @@
     "0.0.30-preview.174": {
       "path": "lifecycle-knowledge/0.0.30-preview.174/index.json",
       "sha256": "3ac35f0c83606db23e64a33103f7ff0914056e34a834561b81a2f7b288b8c637"
+    },
+    "0.0.30": {
+      "path": "lifecycle-knowledge/0.0.30/index.json",
+      "sha256": "18d0fa6d242f4379652ad3298eb59bcf6b41511a167dadffd7cb0d1c06323d7e"
     }
   }
 }

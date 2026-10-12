@@ -1531,7 +1531,15 @@ def dependency_profile_catalog(directory: Path, entry: dict, supplied: dict) -> 
     actual = canonical_sha256(composition_projection(supplied))
     if actual not in {canonical_sha256(composition_projection(base)), canonical_sha256(composition_projection(target))}:
         fail('PKB610', 'profile catalog requires its exact base or target composition; review an architecture transition')
-    return target
+    # Applicability prose is excluded from the resolution/composition contract.
+    # Display maintained, explicitly version-gated guidance without rewriting
+    # immutable snapshots, package pins, rules or their qualification evidence.
+    presented = copy.deepcopy(target)
+    for identity, composition in presented['compositions'].items():
+        maintained = supplied['compositions'].get(identity)
+        if maintained is not None and 'when' in maintained:
+            composition['when'] = maintained['when']
+    return presented
 
 
 def dependency_profile_changes(old: dict, new: dict) -> dict:

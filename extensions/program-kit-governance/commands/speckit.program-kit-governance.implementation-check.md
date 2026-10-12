@@ -52,3 +52,9 @@ Preflight also consumes the current story review/progression state. Pending requ
 pause product work; `--operation <id> --repair` is only for active presented-outcome repair/diagnosis.
 Explicit deferral authorizes only named operations. Review `references/phase-evidence.md`; use its
 same transitions and finish checks even when optional hooks are absent. Clocks are advisory.
+
+After preflight failure, repair the stated prerequisite and obtain a fresh successful preflight
+in a new invocation before affected source work. Keep hooks once per invocation and retain the
+same delivery state/baseline/effort; repairs do not supply human acceptance or reset accounting.
+The brief reads the selected exact publisher capture. Resolve unsupported private-page adoption
+before using HostedPages for private HTML/bootstrap; public assets retain separate admission.

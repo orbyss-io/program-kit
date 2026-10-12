@@ -39,6 +39,11 @@ class EffectiveContextTests(unittest.TestCase):
         contract = {'schemaVersion': 1, 'fixtures': {'Probe.csproj': original.relative_to(self.root).as_posix()}, 'dependencyTargets': ['Probe.csproj']}
         write_json(contract_path, contract)
         before = {path: path.read_bytes() for path in (original, recipe, contract_path, self.root / 'Directory.Packages.props')}
+        historical_state = self.root / 'artifacts/provider-trials/previous-state.json'
+        historical_state.parent.mkdir(parents=True)
+        write_json(historical_state, {'authorization': 'one-use-previous', 'status': 'unknown',
+                                     'reservations': ['original-reservation'], 'unknownOutcomes': ['original-unknown']})
+        before[historical_state] = historical_state.read_bytes()
         scratch = self.root / 'scratch'; scratch.mkdir()
         with patch.object(bootstrap_compatibility, 'configuration', return_value=({}, {})):
             with self.assertRaisesRegex(ValueError, 'stale.*fixture|fixture.*stale'):
@@ -51,6 +56,8 @@ class EffectiveContextTests(unittest.TestCase):
             pickup.apply(self.root, relative, 'model-current', '0' * 64)
         record = pickup.apply(self.root, relative, 'model-current', plan['planDigest'])
         self.assertEqual('materialized-draft', record['status'])
+        self.assertIn('No proof, provider call, authorization', record['boundary'])
+        self.assertNotIn('authorization', record)
         self.assertTrue(all(path.read_bytes() == payload for path, payload in before.items()))
         for source, archive in record['archives'].items():
             self.assertEqual((self.root / source).read_bytes(), (self.root / archive).read_bytes())

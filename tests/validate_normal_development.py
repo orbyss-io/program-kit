@@ -91,6 +91,28 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
         print(f'Four phases + implementation guidance: {time.perf_counter()-started:.3f}s; 0 maintained artifacts, 0 approvals')
 
+    def test_failed_entry_requires_a_fresh_successful_invocation_after_repair(self):
+        import task_draft
+        before = task_draft.current(self.feature)['delivery']
+        path = self.root / 'eng/architecture.json'; path.parent.mkdir()
+        graph = {'runtimeComposition': {'projects': [{'path': 'src/Policy/Policy.csproj',
+                 'role': 'core'}], 'bindings': []}}
+        path.write_text(json.dumps(graph))
+        with (self.feature / 'plan.md').open('a') as stream:
+            stream.write('\nC# policy in src/Policy/Policy.csproj.\n')
+        command = [sys.executable, str(ROOT / 'extensions/program-kit-governance/scripts/implementation_preflight.py'),
+                   '--repository', str(self.root), '--feature-dir', 'specs/001-slots']
+        failed = subprocess.run(command, cwd=self.root, capture_output=True, text=True)
+        self.assertEqual(2, failed.returncode, failed.stdout + failed.stderr)
+        self.assertIn('responsibilities', failed.stdout)
+        graph['runtimeComposition']['projects'][0]['responsibilities'] = [
+            {'name': 'ReservationPolicy', 'kind': 'pure-policy', 'effects': []}]
+        path.write_text(json.dumps(graph))
+        resumed = subprocess.run(command, cwd=self.root, capture_output=True, text=True)
+        self.assertEqual(0, resumed.returncode, resumed.stdout + resumed.stderr)
+        self.assertEqual(1, resumed.stdout.count('# Applicable guidance: implementation'))
+        self.assertEqual(before, task_draft.current(self.feature)['delivery'])
+
     def test_planned_roles_gate_after_plan_tasks_and_source_without_builds(self):
         eng = self.root / 'eng'; eng.mkdir()
         graph = {'runtimeComposition': {'projects': [

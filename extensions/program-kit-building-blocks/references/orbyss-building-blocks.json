@@ -3407,7 +3407,7 @@
       ]
     },
     "hosted_pages": {
-      "when": "A public page uses the supported typed bootstrap and immutable Vite asset contract.",
+      "when": "A page uses the exact selected HostedPages HTML/bootstrap and immutable Vite asset contract. Private page admission requires a qualified release exposing typed authenticated Routes.",
       "scopeKind": "application",
       "targetSlots": {
         "dotnet": {

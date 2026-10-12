@@ -79,6 +79,7 @@ def deterministic_zip(source: Path, destination: Path) -> None:
             and "test-results" not in path.parts
             and ".auth" not in path.parts
             and path.suffix != ".pyc"
+            and install_asset(source, path.relative_to(source))
         ),
         key=lambda path: path.relative_to(source).as_posix(),
     )
@@ -175,10 +176,35 @@ def bundle_source_files(root: Path) -> list[Path]:
     return [
         relative
         for relative in repository_source_files(root)
-        if relative.as_posix() in BUNDLE_ROOT_FILES
+        if install_asset(root, relative) and (relative.as_posix() in BUNDLE_ROOT_FILES
         or relative.as_posix() in BUNDLE_RUNTIME_SCRIPTS
-        or relative.as_posix().startswith(BUNDLE_SOURCE_PREFIXES)
+        or relative.as_posix().startswith(BUNDLE_SOURCE_PREFIXES))
     ]
+
+
+def install_asset(root: Path, relative: Path) -> bool:
+    """Keep updater workspaces in source history, outside consumer installations."""
+    parts = relative.parts
+    if 'dependency-profiles' not in parts or 'candidates' not in parts:
+        return True
+    position = parts.index('dependency-profiles')
+    registry = root.joinpath(*parts[:position + 1])
+    index = load_json(registry / 'index.json')
+    registered = {entry['path'].split('/')[1] for entry in index['profiles'].values()
+                  if entry['path'].startswith('candidates/')}
+    candidate = parts[parts.index('candidates') + 1]
+    if candidate not in registered:
+        return False
+    name = relative.name
+    if name in {'state.json', 'catalog.json', 'availability.json'}:
+        # Catalog snapshots and public availability are sealed in registered
+        # qualification evidence; these files are the updater's working inputs.
+        return False
+    if name.startswith('recipe-') and name.endswith('.json'):
+        registered_recipes = {entry.get('qualificationRecipe', {}).get('path')
+                              for entry in index['profiles'].values()}
+        return relative.relative_to(Path(*parts[:position + 1])).as_posix() in registered_recipes
+    return True
 
 
 def build_bundle_from_source(root: Path, output: Path) -> None:
