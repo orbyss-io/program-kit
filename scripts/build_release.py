@@ -200,7 +200,7 @@ def install_asset(root: Path, relative: Path) -> bool:
         # Catalog snapshots and public availability are sealed in registered
         # qualification evidence; these files are the updater's working inputs.
         return False
-    if name.startswith('recipe-') and name.endswith('.json'):
+    if name == 'recipe.json' or name.startswith('recipe-') and name.endswith('.json'):
         registered_recipes = {entry.get('qualificationRecipe', {}).get('path')
                               for entry in index['profiles'].values()}
         return relative.relative_to(Path(*parts[:position + 1])).as_posix() in registered_recipes

@@ -352,6 +352,41 @@
           "tests/**"
         ]
       }
+    },
+    {
+      "id": "maintenance-preparation-and-pickup",
+      "introduced": "0.13.1",
+      "kind": "guidance",
+      "summary": "Prepare exact selected fixture requirements, preserve historical inputs and require successful implementation re-entry.",
+      "constraint": "New fixture materialization grants no proof/paid authority. Retain broad invalidation where independence is unproved and preserve existing fresh-story state.",
+      "selectors": {
+        "paths": [
+          "docs/architecture/compatibility/**",
+          "eng/**",
+          "specs/*/plan.md",
+          "specs/*/tasks.md"
+        ],
+        "selectedDependencies": true
+      },
+      "supportedRetention": [
+        "Retain supported accepted dependencies, historical receipts/unknown outcomes, custom isolation/configuration and the fresh 0.13.0 story."
+      ],
+      "alternatives": [
+        "Retain supported exact authority and repair only affected prerequisites",
+        "Review an exact dependency transition and regenerate affected fixtures with archived originals"
+      ],
+      "verification": [
+        "Check actual readiness before behavior and preserved fixture inputs",
+        "Verify scoped inventory, complete reverse lock renewal and successful preflight re-entry"
+      ],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "implementation",
+      "supersedes": [],
+      "dependencies": [],
+      "review": {
+        "basis": "migration-0.13.1.md and exact fixture/verification contracts",
+        "route": "Normal affected plan/configuration review; existing dependency transition authority"
+      }
     }
   ]
 }
