@@ -159,11 +159,17 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
         selected = self.composition()
         for row in selected['setup']['steps'] + selected['tests']['commands']:
             row['command'][0] = 'python'
-        alias = self.root / 'unusable-store-python.exe'
+        alias = EVIDENCE / 'unusable-store-python.exe'
         alias.write_bytes(b'not an executable')
         base = Path(getattr(sys, '_base_executable', sys.executable)).resolve()
         actual_which = shutil.which
+        actual_read = Path.read_bytes
+        def read_bytes(path):
+            if path == alias:
+                raise OSError(22, 'Invalid argument', str(path))
+            return actual_read(path)
         with patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': str(base)}), \
+                patch.object(Path, 'read_bytes', autospec=True, side_effect=read_bytes), \
                 patch.object(shutil, 'which', side_effect=lambda name, *args, **kwargs:
                              str(alias) if name == 'python' else actual_which(name, *args, **kwargs)):
             before = setup.inputs(self.root, selected)
@@ -176,6 +182,10 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
         with patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': str(self.root / 'missing-python.exe')}):
             with self.assertRaisesRegex(ValueError, 'PKT030'):
                 setup.inputs(self.root, selected)
+            with patch.object(setup, 'captured') as rejected:
+                with self.assertRaisesRegex(ValueError, 'PKT030'):
+                    setup.execute(self.root, selected)
+                rejected.assert_not_called()
 
     def test_root_and_nested_real_process_reporting_rerun(self):
         for nested in (False, True):
