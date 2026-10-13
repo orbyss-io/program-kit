@@ -1,10 +1,51 @@
 # Program Kit 0.13.1
 
-This maintenance release repairs planning, preserved-proof pickup, verification
-isolation, identity projections, affected-project inventory and complete lock
-renewal. New projects receive the qualified Foundation 0.3.3 profile and its exact
+This release makes a typed Foundation composition the single application startup
+definition and repairs planning, preserved-proof pickup, verification isolation,
+identity projections, affected-project inventory and complete lock renewal.
+New projects receive the qualified Foundation 0.3.3 profile and its exact
 publisher knowledge, including authenticated HostedPages routes. Existing consumers
 retain their accepted profiles, custom configuration, owners and native locks.
+
+## Application composition migration
+
+For an Accepted application/runtime selection, populate schema version 2 of
+`eng/foundation-composition.json` before normal engineering synchronization. Link
+its resources to the Accepted owner/placement decisions: hosts, API features,
+separate database servers and logical databases, identity authority, clients,
+audiences and frontends. Generated settings, Keycloak imports and Docker Compose
+are outputs. `Dev.ps1` is retired; no aggregate `.Composition` project is needed.
+Library-only selections continue to use ordinary engineering checks.
+
+Use `composition_migrate.py` from the verified release's .NET scripts directory to
+preview an existing v1 input, or supply `--proposal <local-reviewed-v2.json>` when
+the consumer has no composition input. Pass `--repository <consumer>` and apply
+the exact returned digest with `--apply --plan-digest <digest>`. The importer
+archives the original and rejects changed Accepted inputs, plans, tasks or locks.
+It preserves product code and delivery state. Review affected Accepted placements
+and reconcile their existing materialization before resuming the supported updater;
+an engineering preview that reports PKM003 needs this population first.
+
+After installation, reconcile the managed scaffold and resolve actual source
+conflicts. Run `python eng/composition_run.py prepare`, then `run`. Preparation
+owns acquisition, frontend builds, database provisioning and owned identity
+registration reconciliation. Normal startup checks actual authentication, theme,
+assets and selected provider activation. `update` selects changed compilation
+dependants; `update --host <id>` includes affected dependants; `stop` retains data.
+The implementation prehook uses the same prepared startup path.
+
+Reconcile affected plans/tasks in place and enter implementation in a fresh
+invocation of the same feature. Keep valid code, task IDs, requirements, Accepted
+history, original native locks, baseline and accumulated effort. Do not restart
+intake/bootstrap or import stale completion checkmarks. Product authorization,
+ownership, transactions, idempotency and human journey review remain due.
+
+Initial executable coverage is managed Keycloak, PostgreSQL and BFF application
+hosts with multiple resource instances. External resources and neutral call intents
+have distinct model bindings; unsupported adapters/handshakes fail before execution.
+The published path does not promise production identity provisioning or unqualified
+providers. Current Windows evidence uses fresh consumers on a prepared host, not a
+fresh Windows OS installation.
 
 ## Upgrade and optional Foundation adoption
 

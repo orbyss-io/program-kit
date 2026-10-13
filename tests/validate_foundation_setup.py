@@ -296,6 +296,19 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
         self.assertIsNone(setup.successful_reuse(self.root, result['fingerprint']),
                           'Directory identity order must not conceal a later failed run')
 
+    def test_callback_credentials_are_redacted_without_prior_secret_knowledge(self):
+        callback = 'http://localhost/signin-oidc?code=unknown-code-value&state=unknown-state-value&iss=public-issuer'
+        result = fixture.captured([sys.executable, '-c',
+            'import sys; print(sys.argv[1]); print(sys.argv[1], file=sys.stderr); raise SystemExit(7)', callback],
+            self.root, self.root / 'callback-failure')
+        self.assertEqual(result['exitCode'], 7)
+        for name in ('stdout.log', 'stderr.log'):
+            text = (self.root / 'callback-failure' / name).read_text()
+            self.assertNotIn('unknown-code-value', text)
+            self.assertNotIn('unknown-state-value', text)
+            self.assertIn('iss=public-issuer', text)
+            self.assertEqual(result['streams'][name]['redactionCount'], 2)
+
     def test_redaction_on_actual_failed_child_and_timeout_drain(self):
         secret = 'owned-temporary-credential'
         result = fixture.captured([sys.executable, '-c', 'import sys; print(sys.argv[1]); raise SystemExit(9)', secret],
@@ -668,7 +681,9 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
                 'serviceImages': {'keycloak': 'owned-image', 'postgresql': 'owned-image'}, 'targets': {'publicAuthority': 'owned-public'}, 'hostImage':'owned-host'}
             metadata = {'contracts': []}
             with patch.dict(sys.modules, {'foundation_composition': composition}), \
-                 patch.object(composition, 'load_configuration', return_value=config), patch.object(composition, 'read', return_value=metadata), \
+                 patch.object(qualification, 'configuration', return_value=config), \
+                 patch.object(qualification, 'realm_path', return_value=root/'deploy/keycloak/program-kit-realm.json'), \
+                 patch.object(composition, 'read', return_value=metadata), \
                  patch.object(composition, 'rows', return_value=[('Orbyss.Foundation.Authentication', None, {'path':'Foundation:Web:Owned'})]), \
                  patch.object(qualification, 'bundle_hashes', return_value={'owned':'same'}), patch.object(qualification, 'Commands', Boundary), \
                  patch.object(fixture, 'PostgreSqlFixture', Database), patch.object(qualification, 'request', return_value=(200,b'{"issuer":"owned-public"}')), \

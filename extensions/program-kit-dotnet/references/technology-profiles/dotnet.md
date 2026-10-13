@@ -140,7 +140,9 @@ When accepted:
 
 - feature projects reference `CShells.Abstractions` or, for web composition,
   `CShells.AspNetCore.Abstractions`;
-- only the host/composition project references the full `CShells` and `CShells.AspNetCore` runtimes;
+- the selected published host owns the full `CShells` and `CShells.AspNetCore` runtimes;
+  a consumer host references them only under its Accepted host opt-out. A resource
+  composition is an executable model, not a required C# composition project;
 - the host bridges Nuplane-loaded feature assemblies into CShells and owns only its runtime configuration;
 - an `IShellFeature` or `IWebShellFeature` is a composition adapter, not the domain model;
 - every packaged feature declares `[ShellFeature("<exact FoundationFeatureIdentity>")]`; CLR,

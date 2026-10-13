@@ -207,6 +207,38 @@ def install_asset(root: Path, relative: Path) -> bool:
     return True
 
 
+def pack_historical_package_facts(staging: Path) -> None:
+    """Compact legacy loose facts without changing any profile, index or fact hash."""
+    registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'
+    index = load_json(registry / 'index.json')
+    facts = {}
+    for entry in index['profiles'].values():
+        if not entry.get('knowledge'):
+            continue
+        manifest = load_json(registry / entry['knowledge']['path'])
+        for item in manifest.get('packages', []):
+            if 'byteOffset' in item:
+                continue  # Already uses the maintained indexed pack format.
+            path = (registry / item['path']).resolve()
+            if not path.is_relative_to(registry.resolve()) or path.suffix != '.json':
+                raise ValueError('Historical package fact escapes its registry')
+            raw = path.read_bytes()
+            if len(raw) > 16 * 1_048_576 or hashlib.sha256(raw).hexdigest() != item['sha256']:
+                raise ValueError('Historical package fact differs from its immutable authority')
+            facts[item['path']] = raw
+    if not facts:
+        return
+    packed, entries = bytearray(), {}
+    for relative, raw in sorted(facts.items()):
+        entries[relative] = {'byteOffset': len(packed), 'byteLength': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+        packed.extend(raw)
+    (registry / 'historical-package-facts.pack').write_bytes(packed)
+    (registry / 'historical-package-facts.json').write_text(
+        json.dumps({'schemaVersion': 1, 'entries': entries}, indent=2) + '\n', encoding='utf-8', newline='\n')
+    for relative in facts:
+        (registry / relative).unlink()  # Only the verified disposable packaging tree.
+
+
 def build_bundle_from_source(root: Path, output: Path) -> None:
     """Build the composite bundle from source files, never local caches or build output."""
     with tempfile.TemporaryDirectory(prefix="program-kit-release-source-") as directory:
@@ -215,6 +247,7 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
             destination = staging / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
+        pack_historical_package_facts(staging)
         build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
                        (root / 'VERSION').read_text().strip(), aggregates=False)
         specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")

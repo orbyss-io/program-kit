@@ -54,6 +54,40 @@ def read(path):
     return json.loads(Path(path).read_text(encoding='utf-8'))
 
 
+def configuration(root):
+    """Internal one-shell inspector projection of the sole typed authoring model."""
+    import composition_model as model
+    graph = model.load(root)
+    require(len(model.resources(graph, 'host')) == 1 and len(model.resources(graph, 'shell')) == 1,
+            'PKF101 retained single-shell inspector requires a single-shell fixture; native multi-app readiness uses composition_run')
+    return model.legacy_view(graph, next(iter(model.resources(graph, 'shell'))))
+
+
+def realm_path(root):
+    import composition_model as model
+    graph = model.load(root)
+    config = configuration(root)
+    authority = next(iter(model.resources(graph, 'identityAuthority')))
+    return root / ('deploy/keycloak/' + authority + '/' + config['identity']['realm'] + '-realm.json')
+
+
+def selection(root):
+    """Keep the owned probe/product tests without retaining a second input format."""
+    import foundation_composition as foundation
+    import composition_model as model
+    graph = model.load(root)
+    config = configuration(root)
+    canonical = read(root / foundation.CONTRACT)
+    shell = next(iter(model.resources(graph, 'shell')))
+    contract = {**canonical['shells'][shell], 'serviceImages': canonical['serviceImages'],
+                'identityProjection': foundation.identity_projection(config),
+                'setupAdapterSha256': canonical['qualificationAdapterSha256']}
+    selected = foundation.legacy_resolve(root, config, contract)
+    selected['inputSha256'] = foundation.digest(foundation.encoded(graph))
+    selected['contractSha256'] = foundation.digest(foundation.encoded(canonical))
+    return selected
+
+
 def authentication_browser_configuration(root, configuration, directory, engines):
     # Restore Firefox's JSON document renderer, disabled by Playwright's Juggler
     # profile. An unhandled application/problem+json error document can fail
@@ -67,6 +101,7 @@ def authentication_browser_configuration(root, configuration, directory, engines
             project['use']['launchOptions'] = {'firefoxUserPrefs': {'devtools.jsonview.enabled': True}}
     browser_configuration = directory/'playwright.config.ts'
     browser_configuration.write_text("import { defineConfig } from '"+str(root/'eng/web/node_modules/@playwright/test').replace('\\','/')+"';\nexport default defineConfig({testDir:'"+str(root/'eng/web/tests').replace('\\','/')+"',outputDir:'"+str(directory/'playwright-results').replace('\\','/')+"',forbidOnly:true,retries:0,reporter:[['junit',{includeProjectInTestName:true,outputFile:'"+str(directory/'authentication.xml').replace('\\','/')+"'}]],use:{baseURL:'"+configuration['application']['publicOrigin']+"',trace:'off',video:'off',screenshot:'off'},projects:"+json.dumps(projects)+"});\n",encoding='utf-8')
+    browser_configuration.write_text("process.env.PLAYWRIGHT_NO_COPY_PROMPT = '1';\n" + browser_configuration.read_text(encoding='utf-8'), encoding='utf-8')
     return browser_configuration
 
 
@@ -353,7 +388,7 @@ def integration(root, selected, directory, migration_script=None, product_enable
     started = time.monotonic()
     baseline = bundle_hashes(root, selected)
     command = Commands(root, directory)
-    config = foundation_composition.load_configuration(root)
+    config = configuration(root)
     app = local_origin(config['application']['publicOrigin'])
     public_identity = local_origin(config['identity']['publicOrigin'])
     require(app.port != public_identity.port, 'PKF101 application and public identity listeners conflict')
@@ -425,7 +460,7 @@ def integration(root, selected, directory, migration_script=None, product_enable
                 database.command(['exec',database.name,'psql','-U','fixture','-d','foundation_fixture','-v','ON_ERROR_STOP=1','-f','/tmp/product-schema.sql'])
             result['timings']['providerReadinessAndProductSchemaSeconds']=round(time.monotonic()-database_started,3)
         result['preIssuerStep'] = 'identity-configure'
-        realm = read(root/'deploy/keycloak/program-kit-realm.json')
+        realm = read(realm_path(root))
         require(realm['attributes']['programKitFixture'] == 'local-non-production-only', 'PKF101 non-synthetic realm cannot be provisioned')
         interactive=next(client for client in realm['clients'] if client['clientId']==config['identity']['clientId'])
         require(isinstance(interactive.get('secret'),str) and interactive['secret'],'PKF101 synthetic confidential client has no local fixture secret')
@@ -508,7 +543,8 @@ def integration(root, selected, directory, migration_script=None, product_enable
         result['cases'].update({case:True for case in CASES['host-activation']})
         engines = os.environ.get('PROGRAMKIT_BROWSER_ENGINES','chromium,webkit').split(',')
         browser_configuration = authentication_browser_configuration(root, config, directory, engines)
-        environment = dict(os.environ, PROGRAMKIT_BASE_URL=config['application']['publicOrigin'],PROGRAMKIT_PERMISSION_PROBE_PATH='/api/permission-probe',
+        environment = dict(os.environ, PROGRAMKIT_BASE_URL=config['application']['publicOrigin'],
+                           PROGRAMKIT_IDENTITY_REALM_FILE=str(realm_path(root)), PROGRAMKIT_PERMISSION_PROBE_PATH='/api/permission-probe',
                            PROGRAMKIT_IDENTITY_AUTHORITY=selected['targets']['publicAuthority'])
         authentication_started=time.monotonic()
         command.run(playwright_command(root,['test','authentication.spec.ts','--config',str(browser_configuration)]),cwd=root/'eng/web',timeout=600,environment=environment)
@@ -593,11 +629,13 @@ def integration(root, selected, directory, migration_script=None, product_enable
             removed=None
             if selected['runner']=='xunit-mtp':
                 changed=read(root/foundation_composition.INPUT)
-                removed=changed['projects'].pop()
-                changed['runtime']['rootPackages'].remove(removed['packageId'])
+                import composition_model as model
+                feature_id = list(model.resources(changed, 'feature'))[-1]
+                removed=changed['resources'].pop(feature_id)
+                changed['bindings'] = [row for row in changed['bindings'] if row.get('featureRef') != feature_id]
                 write(root/foundation_composition.INPUT,changed)
                 command.run(sync_command)
-            selected=foundation_composition.resolve(root)
+            selected=selection(root)
             transport['after'] = verify_runtime_snapshot(runtime,host,directory/'runtime-initial-after',command,transport['before']['sourceInputs'])
             command.run(['docker','rm','--force','--volumes',host]); created.remove(('container',host))
             migration_build=directory/'migration-build'; migration_build.mkdir()
@@ -741,7 +779,7 @@ def main():
     write(directory/'acquisition-isolation.json',{name:value for name,value in isolated.items()
           if value.startswith(str(root/'artifacts/cache'))})
     foundation_composition.verify_outputs(root)
-    selected=foundation_composition.resolve(root)
+    selected=selection(root)
     if args.stage: stage(root,selected,args.stage,directory)
     elif args.migration:
         require(args.sync_script and Path(args.sync_script).is_file(),'PKF101 migration requires an available maintained sync entry point')

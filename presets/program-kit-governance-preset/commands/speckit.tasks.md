@@ -54,10 +54,14 @@ An incomplete draft is not ready for implementation or read-only analysis.
    Retained roadmap-feature prerequisites due before implementation still gate that feature's
    preflight. Operation dependencies cannot defer or waive approved ledger gates, approvals or pins.
    Distinguish those retained authority gates from ordinary scoped enabling-task dependencies.
-   For an existing foundation composition, consume the read-only `eng/foundation_setup.py
-   --repository . --status` projection supplied by phase context and its latest named result.
+   For an existing typed foundation composition, consume the read-only `eng/composition_run.py
+   --repository . status` projection supplied by phase context and its latest named result.
    Reuse maintained infrastructure and already established unchanged proof; put changed-input,
    failed or live service checks beside the operation needing them. Do not start setup during drafting.
+   Model resource preparation/start as one supported native route, not a new
+   `.Composition` project or a list of generic infrastructure coding tasks. After
+   explicit preparation, implementation preflight requires current readiness and
+   product tasks begin at the owned feature/context/endpoint seams.
 3. For each operation, state its independent test, required scenarios, cheapest reliable test level
    and actual verification command. Record risk and verification sequence briefly. Generate known
    scaffolds coherently first, run maintained checks before dependent behavior, then add missing

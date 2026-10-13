@@ -40,10 +40,14 @@ do not invoke its commands again independently.
    obtain the user's decision to proceed before dependent work. Do not tick them on the reviewer's behalf.
 4. Initialize fresh delivery state once using `task_draft.py delivery` and the installed
    `phase-evidence.md` protocol. Preserve existing delivery state/roles/reviews on resume. An old
-   partial feature needs archived abandonment, constitution amendment/ratification and every Spec
-   Kit phase from a fresh specification; never reuse its partial code or checkmarks as new progress.
+   partial feature needs the existing story-delivery adoption procedure when that
+   policy itself changes. A composition-machinery migration resumes the same feature:
+   preserve its specification, task identities, valid completed work, implementation
+   baseline, effort and reviews; reconcile affected plans/placements before re-entry.
    Dispatch `hooks.before_implement` once. The combined preflight supplies focused guidance and
-   validates the planned graph without restore/build. Reuse its result; do not run phase-context again.
+   validates the planned graph and runs/checks the prepared typed Foundation composition.
+   Use its readiness diagnostic for repairs; first-time acquisition is explicit preparation.
+   Reuse its result; do not run phase-context again.
    If that hook is absent, run `implementation_preflight.py --feature-dir <feature>` once explicitly.
    A failed preflight stops affected source work. Repair its reported prerequisite, close that
    failed invocation, and start a fresh invocation with one successful preflight before continuing.

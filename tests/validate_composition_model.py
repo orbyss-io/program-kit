@@ -1,0 +1,291 @@
+"""Pure typed-resource invariants and preservation at the legacy import boundary."""
+from copy import deepcopy
+import json
+from pathlib import Path
+import sys
+import unittest
+import tempfile
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
+import composition_model as model
+
+
+def example():
+    value = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak-postgresql.json').read_text())
+    return model.from_legacy(value)
+
+
+class ResourceModel(unittest.TestCase):
+    def test_import_preserves_assigned_ids_and_callbacks(self):
+        value = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak-postgresql.json').read_text())
+        value['application']['callbackPath'] = '/custom-signin'
+        value['identity']['administrationOrigin'] = 'http://identity-admin:8080'
+        value['identity']['backchannelOrigin'] = 'http://identity-metadata:8080'
+        converted = model.from_legacy(value)
+        projected = model.legacy_view(converted, 'application-shell')
+        for key in ('application', 'identity', 'runtime', 'projects'):
+            self.assertEqual(value[key], projected[key])
+        self.assertEqual(converted['schemaVersion'], 2)
+        self.assertNotIn('identity', converted)
+
+    def test_two_contexts_can_bind_two_databases_on_one_server(self):
+        value = example()
+        value['resources']['audit-db'] = {'kind': 'database', 'engine': 'postgresql', 'name': 'audit'}
+        model.environment(value)['audit-db'] = {'credentialRef': 'AUDIT_PASSWORD'}
+        value['bindings'].extend([
+            {'kind': 'databaseServer', 'databaseRef': 'audit-db', 'serverRef': 'postgresql'},
+            {'kind': 'databaseProvider', 'databaseRef': 'audit-db', 'featureRef': 'feature-1',
+             'shellRef': 'application-shell', 'context': 'AuditDbContext', 'policy': 'audit'}])
+        model.validate(value)
+        self.assertEqual(len(model.resources(value, 'databaseServer')), 1)
+        self.assertEqual(len(model.bindings(value, 'databaseProvider')), 2)
+
+    def test_context_cannot_select_two_different_compiled_policies(self):
+        value = example()
+        other = deepcopy(model.bindings(value, 'databaseProvider')[0])
+        other['policy'] = 'different'
+        value['bindings'].append(other)
+        with self.assertRaisesRegex(ValueError, 'conflicting compiled policies'):
+            model.validate(value)
+
+    def test_shared_database_role_requires_one_password_reference_per_server(self):
+        value = example()
+        value['resources']['audit-db'] = {'kind': 'database', 'engine': 'postgresql', 'name': 'audit'}
+        env = model.environment(value)
+        env['database-1']['username'] = 'shared_role'
+        env['audit-db'] = {'username': 'shared_role', 'credentialRef': 'OTHER_PASSWORD'}
+        value['bindings'].append({'kind': 'databaseServer', 'databaseRef': 'audit-db', 'serverRef': 'postgresql'})
+        with self.assertRaisesRegex(ValueError, 'conflicting credential references'):
+            model.validate(value)
+        env['audit-db']['credentialRef'] = env['database-1']['credentialRef']
+        model.validate(value)
+
+    def test_same_database_requires_one_stable_resource_identity(self):
+        value = example()
+        value['resources']['duplicate'] = deepcopy(value['resources']['database-1'])
+        model.environment(value)['duplicate'] = {'credentialRef': 'OTHER_PASSWORD'}
+        value['bindings'].append({'kind': 'databaseServer', 'databaseRef': 'duplicate', 'serverRef': 'postgresql'})
+        with self.assertRaisesRegex(ValueError, 'same physical database'):
+            model.validate(value)
+
+    def test_managed_and_external_database_have_different_required_properties(self):
+        value = example()
+        model.environment(value)['postgresql'] = {'mode': 'external', 'host': 'db.example.test', 'port': 5432}
+        model.validate(value)
+        model.environment(value)['postgresql'] = {'mode': 'external'}
+        with self.assertRaisesRegex(ValueError, 'host and port'):
+            model.validate(value)
+
+    def test_external_identity_has_no_owned_server_or_keycloak_realm(self):
+        value = example()
+        model.environment(value)['product-identity'] = {'provider': 'entra', 'mode': 'external',
+                                                      'issuer': 'https://login.example.test/tenant/v2.0'}
+        model.validate(value)
+        with self.assertRaisesRegex(ValueError, 'capability missing'):
+            model.legacy_view(value, 'application-shell')
+
+    def test_unresolved_wrong_type_and_duplicate_bindings_reject(self):
+        for mutate in (
+            lambda value: value['bindings'][0].update(hostRef='missing'),
+            lambda value: value['bindings'][0].update(hostRef='postgresql'),
+            lambda value: value['bindings'].append(deepcopy(value['bindings'][0])),
+        ):
+            value = example(); mutate(value)
+            with self.assertRaises(ValueError):
+                model.validate(value)
+
+    def test_extra_properties_do_not_create_an_unvalidated_second_model(self):
+        value = example()
+        value['resources']['postgresql']['composeOverrides'] = {'image': 'latest'}
+        with self.assertRaisesRegex(ValueError, 'unsupported fields'):
+            model.validate(value)
+
+    def test_each_shell_requires_explicit_host_and_one_authentication_profile(self):
+        for kind in ('shellHost', 'authentication'):
+            value = example()
+            value['bindings'] = [row for row in value['bindings'] if row['kind'] != kind]
+            with self.assertRaises(ValueError):
+                model.validate(value)
+
+    def test_callback_and_path_escape_reject_before_materialization(self):
+        value = example(); value['resources']['application-shell']['source'] = '../foreign/shells.json'
+        with self.assertRaises(ValueError):
+            model.validate(value)
+        value = example(); value['resources']['application-client']['callbackPath'] = '/../../escape'
+        with self.assertRaises(ValueError):
+            model.validate(value)
+
+    def test_real_renderer_assembles_one_realm_and_three_named_contexts(self):
+        from composition_fixture import two_apps
+        import composition_render as renderer
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary)
+            graph = two_apps(ROOT)
+            result = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            realm_paths = [name for name in result if name.endswith('-realm.json')]
+            self.assertEqual(len(realm_paths), 1)
+            realm = json.loads(result[realm_paths[0]][0])
+            self.assertEqual({row['clientId'] for row in realm['clients']},
+                             {'policy-browser', 'assessment-browser', 'policy-api', 'assessment-api'})
+            profile = json.loads(result['eng/web-profile.shells.json'][0])['CShells']['Shells']
+            self.assertEqual(set(profile), {'policies', 'assessments'})
+            for shell in profile.values():
+                route = shell['Configuration']['Foundation']['HostedPages']['Routes'][0]
+                self.assertEqual(route['Page'], {'Mode': 'Authenticated', 'ResponsePolicy': 'private'})
+                self.assertEqual(route['Bootstrap'], route['Page'])
+            self.assertEqual(set(profile['policies']['Configuration']['Foundation']['PostgreSql']['Policies']), {'policies', 'audit'})
+            self.assertEqual(set(profile['assessments']['Configuration']['Foundation']['PostgreSql']['Policies']), {'assessments'})
+            self.assertIn('src/Application.PostgreSql/PolicyDbContext.cs', result)
+            self.assertIn('src/Application.PostgreSql/AuditDbContext.cs', result)
+            self.assertNotIn('src/Application.PostgreSql/ApplicationDbContext.cs', result)
+            self.assertIn(b'"audit"', result['src/Application.PostgreSql/ProviderFeature.cs'][0])
+            self.assertIn('web/policy-web/package-lock.json', result)
+            self.assertNotIn('__ENTRY__', result['web/policy-web/vite.config.mjs'][0].decode())
+
+    def test_local_bff_cookie_scope_rejects_shared_hostname_before_writes(self):
+        from composition_fixture import two_apps
+        import composition_render as renderer
+        graph = two_apps(ROOT)
+        model.environment(graph)['assessment-host']['publicOrigin'] = 'http://127.0.0.1:5001'
+        with self.assertRaisesRegex(ValueError, 'ports do not isolate'):
+            renderer.validate_capabilities(graph)
+
+    def test_confidential_and_public_clients_require_distinct_credential_shapes(self):
+        value = example()
+        model.environment(value)['application-client']['credentialRef'] = None
+        with self.assertRaisesRegex(ValueError, 'confidential client'):
+            model.validate(value)
+        value = example()
+        value['resources']['application-client']['profile'] = 'browser-spa'
+        with self.assertRaisesRegex(ValueError, 'secret-free'):
+            model.validate(value)
+        model.environment(value)['application-client']['credentialRef'] = None
+        model.validate(value)
+
+    def test_managed_clients_do_not_overwrite_shared_secret_or_provider_identity(self):
+        from composition_fixture import two_apps
+        import composition_render as renderer
+        graph = two_apps(ROOT)
+        env = model.environment(graph)
+        env['assessment-client']['credentialRef'] = env['application-client']['credentialRef']
+        with self.assertRaisesRegex(ValueError, 'distinct credential references'):
+            renderer.validate_capabilities(graph)
+        graph = two_apps(ROOT)
+        model.environment(graph)['application-client']['clientId'] = 'admin-cli'
+        with self.assertRaisesRegex(ValueError, 'reserved Keycloak client'):
+            renderer.materialize(ROOT / 'artifacts/tests/composition-model/reserved', graph,
+                                 ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+
+    def test_authority_is_validated_without_a_repository(self):
+        value = example()
+        value['authority'] = {'architectureMap': '../foreign.json', 'decisionIds': ['ADR-001']}
+        with self.assertRaisesRegex(ValueError, 'escapes'):
+            model.validate(value)
+        value['authority']['architectureMap'] = 'docs/architecture/map.json'
+        value['authority']['decisionIds'] = ['ADR-001', 'ADR-001']
+        with self.assertRaisesRegex(ValueError, 'distinct decision'):
+            model.validate(value)
+        del value['authority']
+        value['resources']['application-host']['ownerRef'] = 'foreign-owner'
+        with self.assertRaisesRegex(ValueError, 'canonical architecture authority'):
+            model.validate(value)
+
+    def test_unqualified_environment_fails_before_any_materialization(self):
+        import composition_render as renderer
+        value = example()
+        model.environment(value)['product-identity'] = {'provider': 'oidc', 'mode': 'external',
+                                                       'issuer': 'https://login.example.test/tenant'}
+        model.validate(value)
+        with self.assertRaisesRegex(ValueError, 'qualified readiness adapter'):
+            renderer.validate_capabilities(value)
+        value = example()
+        model.environment(value)['application-host'].update(publicOrigin='https://localhost:5001', certificateRef='LOCAL_CERT')
+        with self.assertRaisesRegex(ValueError, 'qualified certificate adapter'):
+            renderer.validate_capabilities(value)
+
+    def test_consumer_overlay_cannot_disable_a_feature_or_weaken_private_bootstrap(self):
+        from composition_fixture import two_apps
+        import composition_render as renderer
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); graph = two_apps(ROOT)
+            files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            contract = json.loads(files[renderer.CONTRACT][0])
+            shell = json.loads(files['eng/web-profile.shells.json'][0])['CShells']['Shells']['policies']
+            selected = contract['shells']['application-shell']
+            altered = deepcopy(shell)
+            altered['Features'][next(iter(altered['Features']))] = False
+            with self.assertRaisesRegex(ValueError, 'feature membership'):
+                renderer.validate_consumer_shell(graph, 'application-shell', selected, altered, 'development')
+            altered = deepcopy(shell)
+            altered['Configuration']['Foundation']['HostedPages']['Routes'][0]['Bootstrap']['Mode'] = 'Public'
+            with self.assertRaisesRegex(ValueError, 'hosted page access'):
+                renderer.validate_consumer_shell(graph, 'application-shell', selected, altered, 'development')
+
+    def test_native_source_scope_keeps_shared_dependencies_and_excludes_other_apps(self):
+        from composition_fixture import two_apps
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+        import runtime_closure
+        graph = two_apps(ROOT, frontends=False)
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); (root / 'eng').mkdir()
+            (root / model.INPUT).write_text(json.dumps(graph))
+            projects = [{'path': row['path'], 'projectReferences': []} for row in model.resources(graph, 'feature').values()]
+            core = 'src/Shared.Core/Shared.Core.csproj'
+            projects.append({'path': core, 'projectReferences': []})
+            for row in projects:
+                if row['path'].endswith('.Api.csproj'):
+                    row['projectReferences'] = [core]
+            (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': projects}}))
+            captured = {'src/Application.Api/ApiFeature.cs': 'before',
+                        'src/Assessment.Api/ApiFeature.cs': 'same',
+                        'src/Shared.Core/Contract.cs': 'shared', 'global.json': 'sdk'}
+            edited = {**captured, 'src/Application.Api/ApiFeature.cs': 'after'}
+            stage = root / 'artifacts/runtime/assessments'
+            self.assertEqual(runtime_closure.source_scope(root, stage, captured), runtime_closure.source_scope(root, stage, edited))
+            changed_core = {**captured, 'src/Shared.Core/Contract.cs': 'changed'}
+            self.assertNotEqual(runtime_closure.source_scope(root, stage, captured), runtime_closure.source_scope(root, stage, changed_core))
+            self.assertIn('global.json', runtime_closure.source_scope(root, stage, captured))
+            # The runner expands an explicit host selection to every actual
+            # compilation dependant of a changed shared source.
+            import composition_run
+            import composition_render as renderer
+            resolved = {'hosts': {name: {'runtimeStage': renderer.stage_path(host)}
+                                  for name, host in model.resources(graph, 'host').items()}}
+            closures = root / 'artifacts/composition/closures'; closures.mkdir(parents=True)
+            for name, host in resolved['hosts'].items():
+                (closures / (name + '.json')).write_text(json.dumps({'sourceInputs': runtime_closure.source_scope(root, root / host['runtimeStage'], captured)}))
+            with patch.object(runtime_closure, 'source_inputs', return_value=edited):
+                self.assertEqual(composition_run.affected_hosts(root, graph, resolved, ['application-host']), ['application-host'])
+            with patch.object(runtime_closure, 'source_inputs', return_value=changed_core):
+                self.assertEqual(composition_run.affected_hosts(root, graph, resolved, ['application-host']), ['application-host', 'assessment-host'])
+
+    def test_reviewed_proposal_population_preserves_product_and_delivery_inputs(self):
+        import composition_migrate as migration
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); (root / 'eng').mkdir()
+            graph = example()
+            proposal = root / 'eng/reviewed-proposal.json'; proposal.write_text(json.dumps(graph))
+            tasks = root / 'specs/DS01/tasks.md'; tasks.parent.mkdir(parents=True)
+            tasks.write_text('- [x] T001 existing valid work\n')
+            product = root / 'src/Product/Owned.cs'; product.parent.mkdir(parents=True)
+            product.write_text('consumer implementation')
+            plan = migration.preview(root, 'eng/reviewed-proposal.json')
+            tasks.write_text('- [x] T001 newer valid work\n')
+            with self.assertRaisesRegex(ValueError, 'stale'):
+                migration.apply(root, plan['planDigest'], 'eng/reviewed-proposal.json')
+            plan = migration.preview(root, 'eng/reviewed-proposal.json')
+            migration.apply(root, plan['planDigest'], 'eng/reviewed-proposal.json')
+            self.assertEqual(model.load(root), graph)
+            self.assertEqual(product.read_text(), 'consumer implementation')
+            self.assertEqual(tasks.read_text(), '- [x] T001 newer valid work\n')
+            self.assertEqual(json.loads((root / plan['archive']).read_text()), graph)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

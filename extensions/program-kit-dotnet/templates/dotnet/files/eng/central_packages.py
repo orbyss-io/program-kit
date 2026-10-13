@@ -76,8 +76,13 @@ def central_package_versions(repository: Path) -> dict[str, str]:
                         version = (item[0].text or "").strip()
                     if not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]*", identity):
                         fail(path, "package IDs must be single literal identities")
+                    # NuGet [1.2.3] admits exactly that version. Preserve the pin;
+                    # never interpret flexible ranges or ask MSBuild to evaluate it.
+                    singleton = re.fullmatch(r"\[([^\[\],]+)\]", version or "")
+                    if singleton:
+                        version = singleton[1]
                     if not version or not re.fullmatch(r"[0-9]+(?:\.[0-9]+){2,3}(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?", version):
-                        fail(path, f"'{identity}' requires an exact literal version, without ranges, floating pins or properties")
+                        fail(path, f"'{identity}' requires an exact literal or singleton version, without flexible ranges, floating pins or properties")
                     key = identity.casefold()
                     if key in versions:
                         fail(path, f"duplicate/conflicting pin for '{identity}' (already declared in '{origins[key]}')")

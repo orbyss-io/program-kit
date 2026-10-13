@@ -421,10 +421,11 @@ class ReleaseBundleTests(unittest.TestCase):
 
     def test_shipped_consumer_paths_cannot_publish_images(self):
         release = (TEMPLATE/'.github/workflows/application-release.yml').read_text()
-        dev = (ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Dev.ps1').read_text()
+        startup = (TEMPLATE/'eng/composition_run.py').read_text()
         for forbidden in ('docker build', 'docker push', 'buildx', 'packages: write'):
             self.assertNotIn(forbidden, release)
-        self.assertNotIn('docker build', dev)
+        self.assertNotIn('docker build', startup)
+        self.assertFalse((ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Dev.ps1').exists())
         self.assertFalse((TEMPLATE/'Dockerfile').exists())
         self.assertIn('application-bundle.zip', release)
         nuplane = json.loads((TEMPLATE/'nuplane.settings.json').read_text())

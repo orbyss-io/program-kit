@@ -277,7 +277,7 @@ def package_features(path: Path) -> list[dict]:
     return entries
 
 
-def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str], Path]) -> None:
+def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str], Path], *, composed: bool = False) -> None:
     package_ids = {package_id.casefold() for package_id, _ in identities}
     descriptors: dict[str, tuple[dict, str]] = {}
     for (package_id, _), package_path in identities.items():
@@ -287,7 +287,7 @@ def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str]
                 raise ValueError(f"PKR007 feature '{identity}' resolves to both '{descriptors[identity][1]}' and '{package_id}'.")
             descriptors[identity] = (descriptor, package_id)
 
-    if shells_path.name == shell_composition.CONSUMER_SHELLS.name:
+    if not composed and shells_path.name == shell_composition.CONSUMER_SHELLS.name:
         shells = shell_composition.activated_features(shells_path.parent)
     else:
         value = shell_composition.load(shells_path, required=True)
@@ -701,14 +701,18 @@ def complete_external_closure(repository: Path, staging: Path, identities: dict,
 
 
 def stage(repository: Path, package_output: Path, output: Path, evidence: Path | None = None, inventory: Path | None = None,
-          root_packages: list[str] | None = None) -> None:
+          root_packages: list[str] | None = None, shell_names: list[str] | None = None) -> None:
     artifacts = (repository / 'artifacts').resolve()
     if not output.resolve().is_relative_to(artifacts) or output.resolve() == artifacts:
         raise ValueError('PKR014 bundle output must be an owned directory under repository artifacts')
     evidence = evidence or repository / runtime_closure.EVIDENCE
     runtime_closure.mark_in_progress(repository, output, evidence)
     pack_freshness = runtime_closure.validate_pack(repository, package_output, inventory) if inventory else {'established':False}
-    active = set().union(*shell_composition.activated_features(repository).values())
+    effective_shells = shell_composition.compose_for_stage(repository, output)
+    if shell_names is not None and set(effective_shells['CShells']['Shells']) != set(shell_names):
+        raise ValueError('PKR024 requested stage membership differs from the canonical host binding')
+    active = {identity for shell in effective_shells['CShells']['Shells'].values()
+              for identity, settings in shell['Features'].items() if settings is not False}
     inactive_built_in_packages = {
         package_id.casefold()
         for identity, package_id in BUILT_IN_FEATURE_PACKAGES.items()
@@ -847,7 +851,9 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
         reject_embedded_secrets(hostsettings)
         (staging / "hostsettings.json").write_text(json.dumps(hostsettings, indent=2) + "\n", encoding="utf-8")
         shutil.copyfile(repository / "nuplane.settings.json", staging / "nuplane.settings.json")
-        shell_composition.write(repository, staging / "shells.json")
+        (staging / "shells.json").write_text(json.dumps(effective_shells, indent=2) + '\n', encoding='utf-8')
+        import hosted_bundle
+        hosted_bundle.stage(repository, staging, shell_composition.load(staging / 'shells.json', required=True))
         profile_shells = repository / "eng/web-profile.shells.json"
         if profile_shells.is_file():
             destination = staging / "eng/web-profile.shells.json"
@@ -857,7 +863,9 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
             actual = [version for identity, version in identities if identity.casefold() == package_id]
             if actual != [pinned]:
                 raise ValueError(f"PKR019 staged package '{package_id}' does not match central pin {pinned}.")
-        validate_feature_closure(staging / "shells.json", identities)
+        # The file already contains the admitted source merge. Reapplying a raw
+        # default web profile here would invent a second unselected shell.
+        validate_feature_closure(staging / "shells.json", identities, composed=True)
         if output.exists():
             shutil.rmtree(output)
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -921,7 +929,7 @@ def describe(
     reject_embedded_secrets(profile_shells)
     payload = {
         "schemaVersion": 1,
-        "files": [{"file": item["file"], "sha256": item["sha256"]} for item in closure["configuration"] + closure["packages"]],
+        "files": [{"file": item["file"], "sha256": item["sha256"]} for item in closure["configuration"] + closure["packages"] + closure.get('content', [])],
         "application": {
             "id": application_identity(repository),
             "version": (repository / "VERSION").read_text(encoding="utf-8").strip(),
@@ -953,10 +961,10 @@ def describe(
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
-    # Archive only the validated configuration/package inventory. Arbitrary build
+    # Archive only the validated configuration/package/public content inventory. Arbitrary build
     # outputs (including host binaries and Dockerfiles) never enter the bundle.
     archive_path = output.with_suffix(".zip")
-    files = [item["file"] for item in closure["configuration"] + closure["packages"]]
+    files = [item["file"] for item in closure["configuration"] + closure["packages"] + closure.get('content', [])]
     with tempfile.NamedTemporaryFile(dir=output.parent, suffix=".zip", delete=False) as pending:
         temporary = Path(pending.name)
     try:

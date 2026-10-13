@@ -41,10 +41,12 @@ def main():
     # verified active shared executable's absolute path without changing PATH.
     npm=policy.executable('npm.cmd' if os.name=='nt' else 'npm',ROOT)
     if npm is None: raise ValueError('PKT030 active shared npm selection changed; refresh and rerun readiness.')
-    for relative in ('extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web',
-                     'extensions/program-kit-governance/templates/ui-experience/acceptance'):
+    for label, relative in (
+        ('web-acceptance', 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web'),
+        ('hosted-pages', 'extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web'),
+        ('ui-acceptance', 'extensions/program-kit-governance/templates/ui-experience/acceptance')):
         directory=ROOT/relative
-        run('lock-'+directory.name,[str(npm),
+        run('lock-'+label,[str(npm),
             'install','--package-lock-only','--ignore-scripts','--no-audit','--no-fund','--prefix',str(directory)])
     run('schema-runtime',[sys.executable,'extensions/program-kit-governance/scripts/schema_runtime.py','setup'])
     arguments=[sys.executable,'scripts/run_validation.py','--suite','Development' if args.development else 'PullRequest',

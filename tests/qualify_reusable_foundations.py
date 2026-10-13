@@ -996,6 +996,12 @@ def candidate(root, feed):
 
 
 def sync(root, evidence, *, check=False, expected=0):
+    import composition_model
+    path = root / composition.INPUT
+    value = composition.read(path)
+    if value.get('schemaVersion') == 1:
+        # Explicit migration in a fictional fixture; normal sync never accepts v1.
+        write(path, composition_model.from_legacy(value, root))
     args=[sys.executable,str(SCRIPTS/'dotnet_sync.py'),'--target',str(root),'--profile-selected',
           '--foundation-host-accepted','--building-block-sources-approved','--web-profile','bff-cookie','--json']
     if check: args.append('--check')
@@ -1124,7 +1130,7 @@ def qualify(root, shape, phase, evidence, generation):
     os.environ['PROGRAMKIT_QUALIFY_PRODUCT']='0' if shape=='base' else '1'
     if phase=='cold': require_cold_cache(root)
     started=time.monotonic()
-    command([sys.executable,'eng/foundation_setup.py','--repository','.','--execute'],root,evidence/'readiness',readiness=True)
+    command([sys.executable,'eng/foundation_setup.py','--repository','.','--execute','--qualification'],root,evidence/'readiness',readiness=True)
     runs=sorted((root/'artifacts/tests/runs').glob('foundation-*/result.json'),key=lambda p:p.stat().st_mtime)
     native=json.loads(runs[-1].read_text())
     if native['status']!='ready': raise ValueError('Generated composition failed actual readiness')
@@ -1134,12 +1140,12 @@ def qualify(root, shape, phase, evidence, generation):
     timings={'generationSeconds':round(generation,3), **{row['stage']+'Seconds':row['elapsedSeconds'] for row in native['steps']},
              **{key:value for key,value in json.loads((runs[-1].parent/'restore-timings.json').read_text()).items() if key!='elapsedSeconds'},
              **integration['timings'], 'readinessTotalSeconds':round(time.monotonic()-started,3),
-             'generationToFirstOperationUpperBoundSeconds':round(generation+time.monotonic()-started,3) if shape!='base' else None}
+             'generationToPreauthoredOperationUpperBoundSeconds':round(generation+time.monotonic()-started,3) if shape!='base' else None}
     if shape!='base':
-        timings['generationToFirstWorkingProductOperationSeconds']=round(generation + sum(row['elapsedSeconds'] for row in native['steps'] if row['stage'] in ('restore','build','services')) + integration['timings']['integrationToFirstProductOperationSeconds'],3)
+        timings['generationToPreauthoredProductOperationSeconds']=round(generation + sum(row['elapsedSeconds'] for row in native['steps'] if row['stage'] in ('restore','build','services')) + integration['timings']['integrationToFirstProductOperationSeconds'],3)
     result={'shape':shape,'phase':phase,'status':'passed','coldDefinition':'Fresh isolated NuGet/npm caches and browser downloads; preinstalled SDK/Docker images disclosed separately' if phase=='cold' else 'Same consumer acquired dependency/browser caches',
-            'newConsumerAuthoredGenericHarnessLines':0,'remainingGenericSetupTasks':0,'timings':timings,
-            'readinessArtifact':str(runs[-1].relative_to(ROOT)), 'productionBundle':composition.resolve(root)['runtimeStage']}
+            'fixtureProductCodeWrittenBeforeReadiness':True,'measurement':'Preauthored security/ownership/provider fixture; not readiness-to-first-consumer-code time','timings':timings,
+            'readinessArtifact':str(runs[-1].relative_to(ROOT)), 'productionBundle':runs[-1].parent.relative_to(ROOT).as_posix()}
     write(evidence/'result.json',result)
     return result
 

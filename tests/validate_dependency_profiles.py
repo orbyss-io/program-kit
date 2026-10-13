@@ -20,6 +20,42 @@ CURRENT = 'foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
 
 
 class ProfileTests(unittest.TestCase):
+    def test_bundle_compaction_preserves_all_historical_authorities_and_fact_bytes(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from build_release import pack_historical_package_facts
+        with tempfile.TemporaryDirectory() as directory:
+            staging = Path(directory)
+            registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'
+            shutil.copytree(blocks.profile_registry(), registry)
+            before = {path.relative_to(registry).as_posix(): path.read_bytes() for path in registry.rglob('*') if path.is_file()}
+            pack_historical_package_facts(staging)
+            storage = blocks.load_json(registry / 'historical-package-facts.json')
+            self.assertGreater(len(storage['entries']), 19)
+            for relative, original in before.items():
+                if relative in storage['entries']:
+                    row = storage['entries'][relative]
+                    self.assertEqual(original, blocks.publisher_document_bytes(registry, {'path': relative, 'sha256': row['sha256']}, 16 * 1_048_576))
+                else:
+                    self.assertEqual(original, (registry / relative).read_bytes(), relative)
+            index = blocks.load_json(registry / 'index.json')
+            for identity, entry in index['profiles'].items():
+                if entry['status'] == 'qualified':
+                    blocks.qualified_dependency_profile(registry, identity, blocks.load_json(fixtures.CATALOG))
+            relative, row = next(iter(storage['entries'].items()))
+            item = {'path': relative, 'sha256': row['sha256']}
+            pack = registry / 'historical-package-facts.pack'
+            original = pack.read_bytes()
+            changed = bytearray(original); changed[row['byteOffset']] ^= 1
+            pack.write_bytes(changed)
+            with self.assertRaisesRegex(ValueError, 'historical publisher package fact changed'):
+                blocks.publisher_document_bytes(registry, item, 16 * 1_048_576)
+            pack.write_bytes(original)
+            for offset in (-1, len(original), 0.5):
+                storage['entries'][relative]['byteOffset'] = offset
+                (registry / 'historical-package-facts.json').write_text(json.dumps(storage))
+                with self.assertRaisesRegex(ValueError, 'range is invalid'):
+                    blocks.publisher_document_bytes(registry, item, 16 * 1_048_576)
+
     def test_portable_receipt_builder_rejects_changed_or_failed_evidence(self):
         sys.path.insert(0, str(ROOT / 'scripts'))
         from build_dependency_qualification import build

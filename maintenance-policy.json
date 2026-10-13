@@ -24,6 +24,7 @@
     "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/packages.json",
     "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json",
     "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/package.json",
     "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml",
     "extensions/program-kit-governance/templates/ui-experience/acceptance/package.json",
     "extensions/program-kit-governance/scripts/json-schema-requirements.txt",

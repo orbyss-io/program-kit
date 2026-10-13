@@ -1,0 +1,10 @@
+{
+  "name": "program-kit-hosted-page",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "26.11.1", "npm": "12.2.0" },
+  "packageManager": "npm@12.2.0",
+  "scripts": { "check": "tsc --noEmit", "build": "tsc --noEmit && vite build" },
+  "devDependencies": { "typescript": "7.0.2", "vite": "8.3.4" }
+}

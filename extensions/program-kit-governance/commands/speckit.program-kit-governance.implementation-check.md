@@ -5,7 +5,10 @@ scripts:
 ---
 Locate the current Spec Kit feature. Run `{SCRIPT} --feature-dir <feature>` to validate
 `eng/architecture.json` and obtain guidance. A structural failure blocks affected implementation;
-this check does not restore or build projects and creates no governance receipt.
+this check creates no governance receipt. For a typed Foundation composition it
+invokes the prepared native `eng/composition_run.py run` route and requires its
+current host/provider/authentication readiness before consumer coding. First-use
+acquisition belongs to explicit `prepare`; the hook never installs device tools.
 Reuse current spec.md, plan.md, tasks.md and applicable accepted decisions already loaded by implement.
 Read only changed inputs or the relevant operation when resuming. This is the sole pre-implementation
 guidance/structural check; do not independently invoke phase-context or repeat preflight afterward.
@@ -30,7 +33,8 @@ author application ownership, transaction, conflict, replay and recovery tests w
 File materialization, foundation readiness and product acceptance are separate outcomes.
 An old successful setup result cannot hide changed deployment inputs or a newer failure.
 Preserve due authority/security/provider gates beside their dependent operation; no universal
-foundation phase is introduced. Drafting and ordinary hooks never start services.
+foundation phase is introduced. Drafting never starts services. Implementation's
+single prehook starts/checks the prepared composition using that same native route.
 
 Run compiler/analyzer checks and
 targeted tests as code changes. Select sequence by risk: known scaffold batches first, maintained

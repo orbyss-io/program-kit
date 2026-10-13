@@ -83,6 +83,10 @@ def main() -> int:
             json.dumps({"CShells": {"Shells": {"default": {"Features": {}}}}}) + "\n",
             encoding="utf-8",
         )
+        # A sealed stage must have the same actual source configuration. This
+        # fixture proves receipt schemas; it must still satisfy the freshness guard.
+        for name in ("hostsettings.json", "nuplane.settings.json", "shells.json"):
+            (repository / name).write_bytes((staged / name).read_bytes())
         packages = staged / "packages"
         packages.mkdir()
         package = packages / "Example.Feature.1.0.0.nupkg"

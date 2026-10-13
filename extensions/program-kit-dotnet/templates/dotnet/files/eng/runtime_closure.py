@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import hashlib
-from handoff_contract import source_inputs
+from handoff_contract import source_inputs as native_source_inputs
 import json
 import os
 import tempfile
@@ -9,6 +9,8 @@ import zipfile
 import subprocess
 from pathlib import Path
 from xml.etree import ElementTree
+import shell_composition
+import hosted_bundle
 
 
 EVIDENCE = Path("artifacts/program-kit/runtime-closure.json")
@@ -16,10 +18,79 @@ SCHEMA = "../runtime-closure.schema.json"
 CONFIGURATION = ("hostsettings.json", "nuplane.settings.json", "shells.json", "eng/web-profile.shells.json")
 
 
-def source_configuration(repository: Path) -> list[dict]:
-    return [{"file": name, "sha256": sha256(repository / name)}
-            for name in (*CONFIGURATION, "eng/building-blocks.shells.json")
+def bound_content(repository: Path, staged: Path) -> list[dict]:
+    deployed = shell_composition.load(staged / 'shells.json', required=True)
+    if deployed != shell_composition.compose_for_stage(repository, staged):
+        raise ValueError('PKR024 selected shell configuration changed during staging; restage before sealing')
+    return hosted_bundle.inventory(staged, deployed)
+
+
+def source_inputs(repository: Path) -> dict[str, str]:
+    values = native_source_inputs(repository)
+    graph = shell_composition.resource_model(repository)
+    if graph:
+        import composition_model
+        for name in ('eng/architecture.json', composition_model.INPUT):
+            if (repository / name).is_file():
+                values[name] = sha256(repository / name)
+        for shell in composition_model.resources(graph, 'shell').values():
+            for path in (repository / shell['source'], repository / Path(shell['source']).parent / 'eng/building-blocks.shells.json'):
+                if path.is_file():
+                    values[path.relative_to(repository).as_posix()] = sha256(path)
+        for frontend in composition_model.resources(graph, 'frontend').values():
+            for path in (repository / frontend['directory']).rglob('*'):
+                if path.is_file() and not {'node_modules', 'dist', 'artifacts', '.git'}.intersection(path.relative_to(repository).parts):
+                    values[path.relative_to(repository).as_posix()] = sha256(path)
+    return dict(sorted(values.items()))
+
+
+def source_scope(repository: Path, staged: Path, values: dict[str, str]) -> dict[str, str]:
+    """Select source by the declared native dependency graph, never filename guesses."""
+    graph = shell_composition.resource_model(repository)
+    if not graph:
+        return values
+    import composition_model as model
+    import composition_render as render
+    hosts = [name for name, host in model.resources(graph, 'host').items()
+             if (repository / render.stage_path(host)).resolve() == staged.resolve()]
+    if len(hosts) != 1:
+        raise ValueError('PKR023 source scope requires one canonical host binding')
+    shells = model.host_shells(graph, hosts[0])
+    projects = {graph['resources'][name]['path'] for shell in shells for name in model.shell_features(graph, shell)}
+    architecture = json.loads((repository / 'eng/architecture.json').read_text(encoding='utf-8'))
+    declared = {row['path']: row for row in architecture['runtimeComposition']['projects']}
+    pending = list(projects)
+    while pending:
+        path = pending.pop()
+        if path not in declared:
+            raise ValueError('PKR023 source project lacks a declared compilation graph: ' + path)
+        for dependency in declared[path].get('projectReferences', []):
+            if dependency not in projects:
+                projects.add(dependency); pending.append(dependency)
+    folders = [Path(path).parent.as_posix() + '/' for path in projects]
+    frontend_dirs = [graph['resources'][row['frontendRef']]['directory'] + '/'
+                     for row in model.bindings(graph, 'frontend') if row['shellRef'] in shells]
+    all_frontends = [row['directory'] + '/' for row in model.resources(graph, 'frontend').values()]
+    all_shell_sources = {path for shell in model.resources(graph, 'shell').values()
+                         for path in (shell['source'], (Path(shell['source']).parent / 'eng/building-blocks.shells.json').as_posix())}
+    selected_sources = {path for shell_id in shells for path in
+                        (graph['resources'][shell_id]['source'],
+                         (Path(graph['resources'][shell_id]['source']).parent / 'eng/building-blocks.shells.json').as_posix())}
+    return {name: digest for name, digest in values.items()
+            if (name not in all_shell_sources or name in selected_sources) and
+            ((not name.startswith('src/') and not any(name.startswith(folder) for folder in all_frontends))
+             or any(name.startswith(folder) for folder in [*folders, *frontend_dirs]))}
+
+
+def source_configuration(repository: Path, staged: Path | None = None) -> list[dict]:
+    paths = dict.fromkeys([*CONFIGURATION, *(path.as_posix() for path in shell_composition.source_paths(repository))])
+    if staged:
+        paths = source_scope(repository, staged, paths)
+    configuration = [{"file": name, "sha256": sha256(repository / name)}
+            for name in paths
             if (repository / name).is_file()]
+    content = hosted_bundle.inventory(repository, shell_composition.compose_for_stage(repository, staged) if staged else shell_composition.compose(repository))
+    return configuration + content
 
 
 def sha256(path: Path) -> str:
@@ -51,9 +122,12 @@ def relative(repository: Path, path: Path, label: str) -> str:
         raise ValueError(f"PKR021 {label} must stay inside the repository: {path}") from error
 
 
-def canonical_digest(version: str, packages: list[dict], configuration: list[dict]) -> str:
+def canonical_digest(version: str, packages: list[dict], configuration: list[dict], content: list[dict] | None = None) -> str:
+    inputs = {"programKitVersion": version, "packages": packages, "configuration": configuration}
+    if content:
+        inputs['content'] = content
     value = json.dumps(
-        {"programKitVersion": version, "packages": packages, "configuration": configuration},
+        inputs,
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
@@ -116,14 +190,18 @@ def seal_pack(repository: Path, packages: Path) -> None:
     atomic_write(path, value)
 
 
-def validate_pack(repository: Path, packages: Path, inventory: Path) -> dict:
+def validate_pack(repository: Path, packages: Path, inventory: Path, staged: Path | None = None) -> dict:
     relative(repository, inventory, 'pack inventory')
     if inventory.resolve() != (packages / 'program-kit-pack.json').resolve():
         raise ValueError('PKR023 pack inventory must belong to the supplied pack run')
     value = json.loads(inventory.read_text(encoding='utf-8'))
     actual = {package.name:sha256(package) for package in sorted(packages.glob('*.nupkg'))}
+    captured = value.get('sourceInputs', {}) if isinstance(value, dict) else {}
+    current = source_inputs(repository)
+    if staged:
+        captured, current = source_scope(repository, staged, captured), source_scope(repository, staged, current)
     if (not isinstance(value,dict) or value.get('schemaVersion') != 1 or value.get('state') != 'sealed'
-            or value.get('sourceInputs') != source_inputs(repository) or value.get('sdk') != pack_toolchain(repository)
+            or captured != current or value.get('sdk') != pack_toolchain(repository)
             or value.get('packages') != actual):
         raise ValueError('PKR023 sealed pack inventory is stale, incomplete or tampered; rebuild/restage')
     return {'established':True, 'inventory':relative(repository, inventory, 'pack inventory'), 'sha256':sha256(inventory)}
@@ -150,6 +228,7 @@ def write_success(repository: Path, staged: Path, evidence: Path, version: str, 
             configuration.append({"file": name, "sha256": sha256(path)})
     if not {"hostsettings.json", "nuplane.settings.json", "shells.json"}.issubset({item["file"] for item in configuration}):
         raise ValueError("PKR021 staged runtime closure is missing required configuration")
+    content = bound_content(repository, staged)
     value = {
         "$schema": SCHEMA,
         "schemaVersion": 1,
@@ -157,9 +236,10 @@ def write_success(repository: Path, staged: Path, evidence: Path, version: str, 
         "stagedRoot": relative(repository, staged, "staged runtime closure"),
         "packages": packages,
         "configuration": configuration,
-        "sourceConfiguration": source_configuration(repository),
-        "sourceInputs": source_inputs(repository),
-        "closureDigest": canonical_digest(version, packages, configuration),
+        "content": content,
+        "sourceConfiguration": source_configuration(repository, staged),
+        "sourceInputs": source_scope(repository, staged, source_inputs(repository)),
+        "closureDigest": canonical_digest(version, packages, configuration, content),
         "packageHashesAreRunScoped": True,
         "packSourceFreshness": pack_freshness or {'established':False},
         "satisfied": True,
@@ -186,12 +266,14 @@ def validate(repository: Path, staged: Path, evidence: Path, version: str) -> di
     for key in ("packages", "configuration", "sourceConfiguration", "closureDigest"):
         if value.get(key) != expected[key]:
             raise ValueError(f"PKR022 runtime-closure evidence does not match staged {key}")
+    if value.get('content', []) != expected['content']:
+        raise ValueError('PKR022 runtime-closure evidence does not match staged hosted content')
     if "sourceInputs" in value and value["sourceInputs"] != expected["sourceInputs"]:
         raise ValueError("PKR022 runtime-closure sourceInputs changed; rebuild/restage")
     freshness = value.get('packSourceFreshness', {'established':False})
     if freshness.get('established') is True:
         path = repository / freshness['inventory']
-        if validate_pack(repository, path.parent, path) != freshness:
+        if validate_pack(repository, path.parent, path, staged) != freshness:
             raise ValueError('PKR023 runtime closure pack inventory binding changed')
     return value
 
@@ -213,10 +295,12 @@ def write_value(repository: Path, staged: Path, version: str) -> dict:
         for name in CONFIGURATION
         if (staged / name).is_file()
     ]
+    content = bound_content(repository, staged)
     return {
         "packages": packages,
         "configuration": configuration,
-        "sourceConfiguration": source_configuration(repository),
-        "sourceInputs": source_inputs(repository),
-        "closureDigest": canonical_digest(version, packages, configuration),
+        "content": content,
+        "sourceConfiguration": source_configuration(repository, staged),
+        "sourceInputs": source_scope(repository, staged, source_inputs(repository)),
+        "closureDigest": canonical_digest(version, packages, configuration, content),
     }

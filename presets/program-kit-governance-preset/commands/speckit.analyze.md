@@ -37,3 +37,13 @@ checks before dependent behavior; do not report coherent scaffold-first generati
 Confirm `Story delivery map` sizing/outcome/walkthrough and operation ownership. Required human
 review belongs to each complete runnable story, with earlier gates only when explicitly agreed.
 Missing scoped review/progression/deferral policies remain findings; checked tasks never imply acceptance.
+
+For a selected native Foundation, check the plan against the sole typed
+`eng/foundation-composition.json` and its Accepted owner/placement references. Report duplicate
+legacy authority inputs, unresolved resource bindings, missing adapter capability and a source
+Composition project whose only purpose is dependency collection or startup. Generated realm and
+Compose files are outputs. Preparation and prepared startup belong to the maintained machinery;
+product authorization, ownership, transactions/idempotency and journey tests remain implementation
+work. Inspect existing readiness evidence read-only; analysis must never prepare or start services.
+During adoption, reconcile only affected plans/tasks/retired placements, preserve valid work and
+task identities, and require fresh implementation entry without repeating intake/bootstrap.

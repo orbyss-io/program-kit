@@ -81,6 +81,19 @@
         "additionalProperties": false
       }
     },
+    "content": {
+      "description": "Hash-bound admitted public manifest/assets staged with the selected host; absent on historical receipts.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "sha256"],
+        "properties": {
+          "file": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        },
+        "additionalProperties": false
+      }
+    },
     "closureDigest": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"

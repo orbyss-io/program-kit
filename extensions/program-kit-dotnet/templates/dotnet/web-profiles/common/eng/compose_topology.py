@@ -115,7 +115,7 @@ def validate_desired(models: dict[str, dict], consumer_overlay: Path | None) -> 
         raise TopologyError(
             f"PKC001 Compose service {source_name!r} references {target_name!r} through {reason} "
             f"but shares no effective network. Source: {path}. Attach {source_name!r} to {candidates} "
-            "in the consumer overlay, then rerun Dev.ps1 so Compose recreates the affected services."
+            "in the retained qualification fixture; active consumers use the typed composition and composition_run.py."
         )
 
 
@@ -202,7 +202,7 @@ def verify_running(
             if actual != desired:
                 raise TopologyError(
                     f"PKC002 running Compose service {service_name!r} has networks "
-                    f"{sorted(actual)}, expected {sorted(desired)}. Rerun Dev.ps1 so the stale "
+                    f"{sorted(actual)}, expected {sorted(desired)}. Recreate the owned qualification fixture so the stale "
                     "container is force-recreated from the merged desired model."
                 )
 

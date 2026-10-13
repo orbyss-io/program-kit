@@ -21,6 +21,13 @@ Carry established brand/accessibility intent across those owners; planning maps 
 screens to login-theme customization. Do not invent a provider-styling exclusion because the
 feature request omits that implementation name. Preserve explicit exclusions or assigned deferrals.
 
+Reuse established application/API boundaries, logical databases and their owners, shared identity
+authorities, clients, audiences and application/delegated call intent. Ask only for unresolved
+product relationships; a database server is distinct from a logical database and an external
+identity authority requires no owned server. Carry these stable identities into architecture's
+typed composition input. Provider import fields and generated Compose syntax belong to adapters,
+not an additional intake questionnaire or a new C# Composition project.
+
 Clarify actors, user-visible outcomes, story priority, independent acceptance examples and relevant
 failure cases. Quantify material quality constraints and identify assumptions/dependencies. Ask only
 questions that affect this feature; do not force every risk category into every intake. Carry the

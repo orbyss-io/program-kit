@@ -161,6 +161,21 @@ def consumer_nuget_routing_error(path: Path) -> str | None:
 
 def selected_web_profile(target: Path, requested: str) -> str:
     """Resolve an explicit profile or derive the secure default from reviewed bootstrap evidence."""
+    if (target / foundation_composition.INPUT).is_file():
+        import composition_model
+        graph = composition_model.load(target)
+        profiles = {row['profile'] for row in composition_model.resources(graph, 'clientRegistration').values()
+                    if row['profile'] != 'application'}
+        if profiles != {'browser-bff'}:
+            raise ValueError('PKM003 selected composition requires an authentication adapter not yet qualified for native generation')
+        if requested not in ('auto', 'bff-cookie'):
+            raise ValueError('PKM003 web-profile selector conflicts with the sole typed composition model')
+        return 'bff-cookie'
+    accepted = load_json(target / 'docs/architecture/building-block-selection.json', {})
+    runtime_compositions = {'api_baseline', 'browser_bff', 'browser_spa', 'hosted_application_pages'}
+    if accepted.get('status') == 'Accepted' and any(
+            row.get('composition') in runtime_compositions for row in accepted.get('instances', [])):
+        raise ValueError('PKM003 populate/migrate eng/foundation-composition.json from the Accepted resource bindings before consumer synchronization')
     if requested != "auto":
         return requested
 
@@ -494,6 +509,14 @@ def main() -> int:
         entries = [entry for entry in entries if entry["path"] not in profile_destinations]
         entries.extend(dict(entry, contribution=f"web:{web_profile}") for entry in profile_entries)
 
+    if foundation_configuration is not None:
+        # The resource graph has one lifecycle and generates its authority imports.
+        # Retain profile test support, but never publish competing startup recipes.
+        retired = {'shells.json', 'eng/Dev.ps1', 'eng/compose_topology.py',
+                   'deploy/compose.identity.yml', 'deploy/compose.application.yml'}
+        entries = [entry for entry in entries if entry['path'] not in retired
+                   and not entry['path'].startswith('deploy/keycloak/')]
+
     state_path = target / ".program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
     engineering_default = dependency_profile.engineering_default(target)
@@ -546,7 +569,7 @@ def main() -> int:
             architecture['runtimeComposition']['projects'].extend(
                 project for project in prior_graph.get('runtimeComposition', {}).get('projects', [])
                 if isinstance(project, dict) and isinstance(project.get('path'), str)
-                and project['path'] not in {p['path'] for p in foundation_configuration['projects']}
+                and project['path'] not in {p['path'] for p in __import__('composition_model').project_list(foundation_configuration)}
                 and (target/project['path']).is_file()
                 and (project['path'] in retained_foundation_projects
                      or not foundation_source(project['path'], old_files.get(project['path']))))
@@ -621,7 +644,7 @@ def main() -> int:
             content, entry['ownership'] = foundation_outputs[relative]
             entry['contribution'] = 'foundation'
             rendered = True
-        if foundation_configuration is not None and relative == identity_fixture.REALM_PATH:
+        if foundation_configuration is not None and foundation_configuration.get('schemaVersion') == 1 and relative == identity_fixture.REALM_PATH:
             content = foundation_composition.render_realm(content, foundation_configuration,
                 json.loads(foundation_outputs[foundation_composition.CONTRACT][0]))
             rendered = True
@@ -651,7 +674,7 @@ def main() -> int:
         foundation_composition.validate_materialized(target, foundation_configuration,
             json.loads(foundation_outputs[foundation_composition.CONTRACT][0]),
             desired_by_path['eng/web-profile.shells.json']['content'],
-            desired_by_path[identity_fixture.REALM_PATH]['content'])
+            None)
 
     relocated_sources: dict[str, str] = {}
     created: list[str] = []
@@ -1007,7 +1030,7 @@ def main() -> int:
         return 2
     if args.check:
         return 1 if actions or state_changed or cleanup_directories else 0
-    if web_profile in {"bff-cookie", "spa-pkce"}:
+    if web_profile in {"bff-cookie", "spa-pkce"} and foundation_configuration is None:
         # Validate identity desired-state semantics against staged bytes before commit.
         realm = desired_by_path.get(identity_fixture.REALM_PATH)
         if realm is None:

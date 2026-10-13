@@ -21,6 +21,18 @@ from validate_story_delivery import seed, accepted_fixture
 
 
 class DevelopmentTests(unittest.TestCase):
+    def test_selected_runtime_cannot_enter_implementation_without_its_model(self):
+        path = self.root / 'docs/architecture/building-block-selection.json'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        for composition in ('api_baseline', 'browser_bff', 'browser_spa', 'hosted_application_pages'):
+            path.write_text(json.dumps({'status': 'Accepted', 'instances': [{'composition': composition}]}))
+            with patch.object(implementation_preflight.subprocess, 'run') as run:
+                with self.assertRaisesRegex(ValueError, 'PKM003 populate/migrate'):
+                    implementation_preflight.foundation_readiness(self.root)
+                run.assert_not_called()
+        path.write_text(json.dumps({'status': 'Accepted', 'instances': [{'composition': 'domain_events'}]}))
+        implementation_preflight.foundation_readiness(self.root)
+
     def adopted_bindings(self, bindings):
         import feature_context
         architecture = self.root / 'docs/architecture'

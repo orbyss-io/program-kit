@@ -51,7 +51,8 @@ def configuration(root):
     module = importlib.util.module_from_spec(specification)
     specification.loader.exec_module(module)
     module.verify_outputs(root)
-    return module.resolve(root, module.load_configuration(root))
+    from foundation_qualification import selection
+    return selection(root)
 
 
 def inputs(root, selected):
@@ -276,9 +277,20 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--execute', action='store_true', help='Explicitly prepare services and check the foundation')
     mode.add_argument('--status', action='store_true', help='Read latest evidence; never start services or tests')
+    parser.add_argument('--qualification', action='store_true', help='Run the retained owned-probe acceptance fixture; no alternate authoring input')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
+        if not args.qualification and (root / 'eng/foundation-composition.json').is_file():
+            import composition_run
+            if args.status:
+                print(json.dumps(composition_run.status(root), indent=2))
+            elif args.execute:
+                composition_run.prepare(root)
+                composition_run.run(root)
+            else:
+                print(json.dumps({'status': 'planned', 'route': 'eng/composition_run.py', 'servicesStarted': False}))
+            return 0
         selected = configuration(root)
         stages, commands = validate(selected, root)
         if args.status:

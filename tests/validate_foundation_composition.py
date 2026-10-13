@@ -1,4 +1,4 @@
-"""Exercise real managed sync and selected public package consumption for finite compositions."""
+"""Bounded typed composition reconciliation and preserved source/security conflicts."""
 from __future__ import annotations
 import argparse
 import copy
@@ -10,9 +10,6 @@ import sys
 import tempfile
 import time
 import shutil
-import socket
-import urllib.request
-import yaml
 
 ARTIFACT = None
 COMMAND_NUMBER = 0
@@ -20,6 +17,7 @@ COMMAND_NUMBER = 0
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / 'extensions/program-kit-dotnet/scripts'
 sys.path.insert(0, str(SCRIPTS))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
 import foundation_composition as composition
 
 
@@ -44,6 +42,11 @@ def run(command, cwd, expected=0, timeout=240):
 
 
 def sync(root, check=False, expected=0):
+    import composition_model
+    input_path = root / composition.INPUT
+    value = composition.read(input_path)
+    if value.get('schemaVersion') == 1:
+        input_path.write_bytes(composition.encoded(composition_model.from_legacy(value, root)))
     args = [sys.executable, str(SCRIPTS/'dotnet_sync.py'), '--target', str(root), '--profile-selected',
             '--foundation-host-accepted', '--building-block-sources-approved', '--web-profile', 'bff-cookie', '--json']
     if check: args.append('--check')
@@ -109,7 +112,7 @@ def _retirement_checks(root, value):
     assert added_source not in released['files']
     assert not (root/extras[4]['path']).exists()
     assert not (root/'src/Retirement.Untouched/ApiFeature.cs').exists()
-    resolved = composition.read(root/composition.RESOLVED)
+    resolved = next(iter(composition.read(root/composition.RESOLVED)['hosts'].values()))
     graph = composition.read(root/'eng/architecture.json')['runtimeComposition']
     features = composition.read(root/'eng/web-profile.shells.json')['CShells']['Shells']['default']['Features']
     for project in extras:
@@ -169,310 +172,86 @@ def _retirement_checks(root, value):
     sync(root, True)
 
 
-def identity_projection_checks(value, services=False):
-    """Use the real managed transaction for custom Notes and nested Sport shapes."""
-    for shape in ('notes', 'sport'):
-        configured = copy.deepcopy(value)
-        with socket.socket() as allocated:
-            allocated.bind(('127.0.0.1', 0)); port = allocated.getsockname()[1]
-        configured['identity'].update(publicOrigin='http://127.0.0.1:'+str(port),
-            administrationOrigin='http://'+shape+'-admin:8080', backchannelOrigin='http://'+shape+'-metadata:8080',
-            realm=shape+'-qualification', clientId=shape+'-bff', audience=shape+'-api')
-        if shape == 'sport': configured['runtime']['directory'] = 'Persoonlijk/runtime'
-        with tempfile.TemporaryDirectory(prefix='program-kit-identity-projection-') as temporary:
-            root = Path(temporary); (root/'eng').mkdir()
-            (root/composition.INPUT).write_bytes(composition.encoded(configured))
-            sync(root, True, 1); assert not (root/'deploy').exists()
-            sync(root); composition.verify_outputs(root)
-            actual = root/'deploy/compose.identity.yml'
-            generated = actual.read_bytes()
-            contract = composition.read(root/composition.CONTRACT)
-            projection = contract['identityProjection']
-            assert projection['runnable'] and projection['privateAliases'] == [shape+'-admin', shape+'-metadata']
-            assert contract['serviceImageSources']['keycloak']['sha256'] == composition.digest(generated)
-            config = yaml.safe_load(generated)
-            service = config['services']['keycloak']
-            assert service['image'] == contract['serviceImages']['keycloak']
-            profile = composition.read(root / 'eng/web-profile.json')
-            assert profile['localIdentityProviderImage'] == service['image']
-            assert profile['localIdentityProvider'] == 'keycloak-' + service['image'].split('@')[0].rsplit(':', 1)[-1]
-            assert service['environment']['KC_HOSTNAME'] == configured['identity']['publicOrigin']
-            assert service['ports'] == ['127.0.0.1:'+str(port)+':8080']
-            assert service['networks']['program-kit-local']['aliases'] == projection['privateAliases']
-            imports = [mount for mount in service['volumes'] if ':/opt/keycloak/data/import/' in mount]
-            assert imports == ['./keycloak/program-kit-realm.json:/opt/keycloak/data/import/'+configured['identity']['realm']+'-realm.json:ro']
-            sync(root, True); sync(root); assert actual.read_bytes() == generated
-            actual.write_bytes(generated+b'\n# consumer edit\n')
-            before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            conflicts = sync(root, True, 2)
-            assert 'deploy/compose.identity.yml' in {conflict['path'] for conflict in conflicts['conflicts']}
-            assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            sync(root, False, 2)
-            assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            try: composition.verify_outputs(root)
-            except ValueError: pass
-            else: raise AssertionError('Modified identity deployment retained inherited assurance')
-            actual.write_bytes(generated)
-            rejected_private = ['http://unsupported-private:9999', 'http://192.0.2.1:8080',
-                'http://127.0.0.2:8080', 'http://[2001:db8::1]:8080', 'http://127.000.000.002:8080',
-                'http://0x7f000002:8080', 'http://-invalid:8080', 'http://invalid-:8080',
-                'http://invalid..label:8080', 'http://invalid_label:8080',
-                'http://'+('a'*64)+':8080', 'http://'+'.'.join(['a'*63]*4)+':8080']
-            for target in ('administrationOrigin','backchannelOrigin'):
-                for unsupported in rejected_private:
-                    bad = copy.deepcopy(configured); bad['identity'][target] = unsupported
-                    (root/composition.INPUT).write_bytes(composition.encoded(bad))
-                    before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-                    run([sys.executable,str(SCRIPTS/'dotnet_sync.py'),'--target',str(root),'--profile-selected',
-                         '--foundation-host-accepted','--building-block-sources-approved','--web-profile','bff-cookie','--json'],ROOT,1)
-                    assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            (root/composition.INPUT).write_bytes(composition.encoded(configured))
-            receipt = {'shape':shape,'scope':projection['scope'],'generatedComposeSha256':composition.digest(generated),
-                       'projection':projection,'actualServiceStarted':services,
-                       'inputSha256':composition.digest((root/composition.INPUT).read_bytes()),
-                       'contractSha256':composition.digest((root/composition.CONTRACT).read_bytes()),
-                       'runtimeDirectory':configured['runtime']['directory']}
-            if services:
-                import uuid
-                name = 'pk-generated-identity-'+uuid.uuid4().hex[:10]
-                # Override only the network name to isolate this disposable execution.
-                override = root/'disposable-network.json'
-                override.write_text(json.dumps({'networks':{'program-kit-local':{'name':name}}}),encoding='utf-8')
-                command = ['docker','compose','--project-name',name,'-f',str(actual),'-f',str(override)]
-                try:
-                    run([*command,'config','--quiet'],root)
-                    run([*command,'up','-d','--wait','--wait-timeout','180'],root,timeout=220)
-                    address = configured['identity']['publicOrigin']+'/realms/'+configured['identity']['realm']+'/.well-known/openid-configuration'
-                    with urllib.request.urlopen(address,timeout=15) as response: discovery=json.load(response)
-                    expected = composition.read(root/composition.RESOLVED)['targets']['publicAuthority']
-                    assert discovery['issuer'] == expected
-                    container = run([*command,'ps','-q','keycloak'],root).stdout.strip()
-                    inspection = json.loads(run(['docker','inspect','--format','{{json .NetworkSettings}}',container],root).stdout)
-                    aliases = inspection['Networks'][name]['Aliases']
-                    assert set(projection['privateAliases']) <= set(aliases)
-                    private_results = {}
-                    for alias in projection['privateAliases']:
-                        script = 'exec 3<>/dev/tcp/$1/8080; printf "GET %s HTTP/1.1\\r\\nHost: %s:8080\\r\\nConnection: close\\r\\n\\r\\n" "$2" "$1" >&3; cat <&3'
-                        response = run(['docker','exec',container,'bash','-c',script,'--',alias,'/realms/'+configured['identity']['realm']+'/.well-known/openid-configuration'],root)
-                        assert 'HTTP/1.1 200' in response.stdout and '"issuer":"'+expected+'"' in response.stdout
-                        private_results[alias] = {'status':200,'publicIssuer':expected}
-                    receipt['privateDiscovery'] = private_results
-                    receipt['discoveredIssuer'] = discovery['issuer']
-                finally:
-                    run([*command,'down','--volumes','--remove-orphans'],root,timeout=90)
-            (ARTIFACT/(shape+'-identity-projection.json')).write_bytes(composition.encoded(receipt))
-            (ARTIFACT/(shape+'-compose.identity.yml')).write_bytes(generated)
-            # Admitted production TLS inputs create no local start-dev service.
-            production = copy.deepcopy(configured); production['application'].update(publicOrigin='https://app.example',localDevelopment=False)
-            production['identity'].update(publicOrigin='https://identity.example', administrationOrigin='https://admin.internal', backchannelOrigin='https://metadata.internal')
-            (root/composition.INPUT).write_bytes(composition.encoded(production)); sync(root); composition.verify_outputs(root)
-            assert composition.read(root/composition.RESOLVED)['identityProjection']['runnable'] is False
-            assert 'services: {}' in actual.read_text() and 'start-dev' not in actual.read_text()
-            assert not yaml.safe_load(actual.read_bytes()).get('services')
-
-
 def main():
+    """Bounded current reconciliation coverage; historical layouts are not acceptance."""
     global ARTIFACT
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--identity-services', action='store_true', help='Start generated synthetic identity Compose files in owned disposable networks')
-    parser.add_argument('--build', action='store_true', help='restore/build/pack actual selected public dependencies')
-    parser.add_argument('--candidate-feed', help='Explicit local feed of response-policy development packages')
-    parser.add_argument('--variant', choices=sorted(composition.VARIANTS), help='Bounded qualification of one selected composition')
-    args = parser.parse_args()
     import uuid
-    artifact = ROOT / 'artifacts/foundation-composition' / uuid.uuid4().hex[:8]
-    artifact.mkdir(parents=True, exist_ok=True)
-    ARTIFACT = artifact
-    (artifact/'status.json').write_text(json.dumps({'status':'running','actualPackageBuild':args.build}),encoding='utf-8')
-    (artifact/'source-inputs.json').write_text(json.dumps({str(p.relative_to(ROOT)):composition.digest(p.read_bytes()) for p in [
-        SCRIPTS/'foundation_composition.py', SCRIPTS/'dotnet_sync.py', Path(__file__), ROOT/'extensions/program-kit-dotnet/templates/dotnet/managed-files.json',
-        ROOT/'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml']}),encoding='utf-8')
+    import composition_model as model
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--variant', choices=sorted(composition.VARIANTS))
+    parser.add_argument('--build', action='store_true')
+    parser.add_argument('--identity-services', action='store_true')
+    parser.add_argument('--candidate-feed')
+    args = parser.parse_args()
+    if args.candidate_feed:
+        raise ValueError('Use the explicit retained development-candidate qualifier; this validator uses public captured packages')
+    ARTIFACT = ROOT / 'artifacts/foundation-composition' / uuid.uuid4().hex
+    ARTIFACT.mkdir(parents=True)
     observations = []
     for variant in [args.variant] if args.variant else sorted(composition.VARIANTS):
-        source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions' / (variant+'.json')
-        value = composition.read(source)
-        value['theme']['branding'] = {'displayName':'Qualified Example','accentColor':'#0088aa'}
-        rejected(value, lambda v:v['application'].update({'publicOrigin':'https://app.example/path'}))
-        rejected(value, lambda v:v['application'].update({'publicOrigin':'http://localhost:bad'}))
-        rejected(value, lambda v:v['identity'].update({'backchannelOrigin':'http://private:65536'}))
-        rejected(value, lambda v:v['application'].update({'signedOutCallbackPath':v['application']['callbackPath']}))
-        rejected(value, lambda v:v['runtime'].update({'directory':'../escape'}))
-        rejected(value, lambda v:v['identity'].update({'clientId':v['identity']['audience']}))
-        rejected(value, lambda v:v['theme']['branding'].update({'template':'custom.ftl'}))
-        rejected(value, lambda v:v['settings'].update({'ClientSecret':'never-write'}))
-        with tempfile.TemporaryDirectory(prefix='program-kit-foundation-') as temporary:
-            root = Path(temporary)
-            (root/'eng').mkdir(); (root/composition.INPUT).write_bytes(composition.encoded(value))
-            if args.candidate_feed:
-                feed = root/'.program-kit/development-feed'; feed.mkdir(parents=True)
-                candidates = {}
-                import zipfile
-                for archive in Path(args.candidate_feed).glob('*.nupkg'):
-                    with zipfile.ZipFile(archive) as packed:
-                        try: metadata = json.loads(packed.read('orbyss-foundation/settings.json'))
-                        except KeyError: continue
-                    package = metadata['packageId']
-                    if package not in {'Orbyss.Foundation.WebDefaults','Orbyss.Foundation.Authentication.BffCookie'}: continue
-                    shutil.copy2(archive,feed/archive.name)
-                    candidates[package] = {'version':metadata['packageVersion'],'path':(feed/archive.name).relative_to(root).as_posix(),'sha256':composition.digest(archive.read_bytes())}
-                profile = {'schemaVersion':1,'id':'reusable-foundations-response-policy-development',
-                           'baseProfile':composition.publisher_contracts(root)['profile'],'status':'development-candidate','packages':candidates}
-                path = root/'eng/foundation-development-candidate.json'; path.write_bytes(composition.encoded(profile))
-                value['developmentCandidate'] = {'profile':path.relative_to(root).as_posix(),'sha256':composition.digest(path.read_bytes())}
-                (root/composition.INPUT).write_bytes(composition.encoded(value))
-            started = time.perf_counter(); preview = sync(root, True, 1)
-            assert not (root/'src').exists()
-            sync(root); generation = time.perf_counter()-started
-            composition.verify_outputs(root)
-            assert composition.read(root/'deploy/keycloak/program-kit-realm.json')['displayName']=='Qualified Example'
-            assert '--program-kit-brand-accent: #0088aa' in (root/'deploy/keycloak/themes/program-kit/login/resources/css/program-kit.css').read_text()
-            contract = composition.read(root/composition.CONTRACT)
-            for budget in (1,30):
-                altered_input = copy.deepcopy(value); altered_input['settings']['DiscoveryTimeoutSeconds'] = budget
-                assert composition.web_settings(altered_input,contract)['DiscoveryTimeoutSeconds']==budget
-            for changed in ({'DiscoveryTimeoutSeconds':31}, {'SessionIdleMinutes':30,'SessionAbsoluteMinutes':29}):
-                altered_input = copy.deepcopy(value); altered_input['settings'].update(changed)
-                try: composition.web_settings(altered_input,contract)
-                except ValueError: pass
-                else: raise AssertionError('Selected owner bounds/session relationship were ignored')
-            desired_profile = (root/'eng/web-profile.shells.json').read_bytes()
-            desired_realm = composition.read(root/'deploy/keycloak/program-kit-realm.json')
-            mutations = [lambda r:r['clients'].append({'clientId':'unexpected-spa'}),
-                         lambda r:r['clients'][1].update({'redirectUris':['http://localhost:5000/*']}),
-                         lambda r:r['clients'][1].update({'secret':''}),
-                         lambda r:r['users'][0].update({'realmRoles':[]})]
-            for mutation in mutations:
-                altered = copy.deepcopy(desired_realm); mutation(altered)
-                try: composition.validate_materialized(root,value,contract,desired_profile,composition.encoded(altered))
-                except ValueError: pass
-                else: raise AssertionError('Invalid fixture security field was accepted')
-            sync(root, True)
-            resolved = composition.read(root/composition.RESOLVED)
-            assert resolved['targets']['publicAuthority'].startswith('http://localhost:8080/')
-            assert resolved['targets']['administrationOrigin'] == 'http://program-kit-identity:8080'
-            assert not list((root/'src').glob('**/*Composition*.csproj')) and not list((root/'src').glob('**/Program.cs'))
-            code = root / value['projects'][0]['path']; feature = code.parent/'ApiFeature.cs'
-            feature.write_text(feature.read_text()+'\n// Consumer-owned customization.\n', encoding='utf-8')
-            sync(root); assert 'Consumer-owned customization' in feature.read_text()
-            value['application']['callbackPath'] = '/callback/custom'
-            (root/composition.INPUT).write_bytes(composition.encoded(value)); sync(root)
-            assert composition.read(root/composition.RESOLVED)['targets']['redirectUri'].endswith('/callback/custom')
-            profile = root/'eng/web-profile.shells.json'; profile.write_text(profile.read_text()+'\n')
-            conflicts = sync(root, True, 2); assert 'eng/web-profile.shells.json' in {c['path'] for c in conflicts['conflicts']}, conflicts
-            profile.write_bytes(composition.encoded(composition.read(profile)))
-            # Rendered JSON format is canonical, so restore authenticated managed bytes.
-            sync(root, True)
-            # Invalid effective overlays fail before reconciliation creates any byte.
-            shells = root/'shells.json'; original_shells = shells.read_bytes()
-            invalid_shells = composition.read(shells)
-            invalid_shells['CShells']['Shells']['default'].setdefault('Configuration',{}).setdefault('Foundation',{}).setdefault('Web',{})['CallbackPath'] = '/unreviewed'
-            shells.write_bytes(composition.encoded(invalid_shells))
-            before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            run([sys.executable,str(SCRIPTS/'dotnet_sync.py'),'--target',str(root),'--profile-selected',
-                 '--foundation-host-accepted','--building-block-sources-approved','--web-profile','bff-cookie'],ROOT,1)
-            assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            shells.write_bytes(original_shells)
-            invalid_shells['CShells']['Shells']['default']['Configuration']['Foundation']['Web'].clear()
-            invalid_shells['CShells']['Shells']['default']['Configuration']['Foundation']['Web']['DiscoveryTimeoutSeconds'] = 31
-            shells.write_bytes(composition.encoded(invalid_shells))
-            before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            run([sys.executable,str(SCRIPTS/'dotnet_sync.py'),'--target',str(root),'--profile-selected',
-                 '--foundation-host-accepted','--building-block-sources-approved','--web-profile','bff-cookie'],ROOT,1)
-            assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            shells.write_bytes(original_shells)
-            realm_path = root/'deploy/keycloak/program-kit-realm.json'; original_realm = realm_path.read_bytes()
-            weakened_realm = composition.read(realm_path)
-            weakened_realm['clients'][1].update(publicClient=True,secret='')
-            realm_path.write_bytes(composition.encoded(weakened_realm))
-            try: composition.verify_outputs(root)
-            except ValueError: pass
-            else: raise AssertionError('Weakened installed confidential-client fixture accepted')
-            realm_path.write_bytes(original_realm)
-            theme_path = root/'deploy/keycloak/themes/program-kit/login/resources/css/program-kit.css'
-            original_theme = theme_path.read_bytes(); theme_path.write_bytes(original_theme+b'\nbody {display:none}\n')
-            try: composition.verify_outputs(root)
-            except ValueError: pass
-            else: raise AssertionError('Unqualified theme customization retained inherited assurance')
-            theme_path.write_bytes(original_theme)
-            invalid_shells['CShells']['Shells']['default']['Configuration']['Foundation']['Web'].clear()
-            invalid_shells['CShells']['Shells']['default']['Configuration']['Foundation']['Web']['BackchannelAuthority'] = 'https://other.example/realms/wrong'
-            shells.write_bytes(composition.encoded(invalid_shells))
-            before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            run([sys.executable,str(SCRIPTS/'dotnet_sync.py'),'--target',str(root),'--profile-selected',
-                 '--foundation-host-accepted','--building-block-sources-approved','--web-profile','bff-cookie'],ROOT,1)
-            assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            try: composition.verify_outputs(root)
-            except ValueError: pass
-            else: raise AssertionError('Wrong backchannel realm accepted by installed output validation')
-            shells.write_bytes(original_shells)
-            view = composition.effective_settings(root, {'Foundation:Web:ClientSecret':'secret-do-not-print'})
-            assert 'secret-do-not-print' not in json.dumps(view)
-            input_path = root/composition.INPUT; actual_input = input_path.read_bytes()
-            substituted = copy.deepcopy(value)
-            substituted['setup'] = {'steps':[{'stage':'services','command':[sys.executable,'fake-ready.py']}]}
-            input_path.write_bytes(composition.encoded(substituted))
-            before = {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            run([sys.executable,str(SCRIPTS/'dotnet_sync.py'),'--target',str(root),'--profile-selected',
-                 '--foundation-host-accepted','--building-block-sources-approved','--web-profile','bff-cookie'],ROOT,1)
-            assert before == {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}
-            input_path.write_bytes(actual_input)
-            retirement_checks(root, value)
-            measurements = {'variant':variant, 'generationSeconds':generation, 'newGenericHarnessLines':0, 'runtimeDirectory':resolved['runtimeDirectory']}
-            if args.build:
-                consumer_version = '0.0.1-development' if args.candidate_feed else '0.0.1'
-                solution = '<Solution>\n'+'\n'.join('  <Project Path="'+p['path']+'" />' for p in value['projects'])+'\n</Solution>\n'
-                (root/'Application.slnx').write_text(solution, encoding='utf-8')
-                (root/'VERSION').write_text(consumer_version+'\n', encoding='utf-8')
-                started=time.perf_counter()
-                restored=run(['dotnet','restore','Application.slnx'], root)
-                measurements['restoreSeconds']=time.perf_counter()-started
-                started=time.perf_counter()
-                built=run(['dotnet','build','Application.slnx','-c','Release','--no-restore','-p:Version='+consumer_version],root)
-                measurements['buildSeconds']=time.perf_counter()-started
-                sys.path.insert(0,str(root/'eng'))
-                import runtime_closure
-                runtime_closure.prepare_pack(root,root/'artifacts/packages')
-                packed=run(['dotnet','pack','Application.slnx','-c','Release','--no-build','-p:Version='+consumer_version,'-o','artifacts/packages'],root)
-                runtime_closure.seal_pack(root,root/'artifacts/packages')
-                staged=run([sys.executable,'eng/foundation_composition.py','--repository','.',
-                            '--stage-packages','artifacts/packages','--pack-inventory','artifacts/packages/program-kit-pack.json'],root)
-                assert (root/resolved['runtimeStage']/'shells.json').is_file()
-                assert json.loads((root/'artifacts/program-kit/runtime-closure.json').read_text())['programKitVersion'] == composition.read(root/'.program-kit/managed.json')['programKitVersion']
-                actual_packages = {runtime_closure.package_identity(p)[0] for p in (root/resolved['runtimeStage']/'packages').glob('*.nupkg')}
-                assert set(value['runtime']['rootPackages']) <= actual_packages
-                assert not any('test-support' in p.casefold() for p in actual_packages)
-                import zipfile
-                for project in value['projects']:
-                    package = root/'artifacts/packages'/ (project['packageId']+'.'+consumer_version+'.nupkg')
-                    with zipfile.ZipFile(package) as archive:
-                        assert 'orbyss-foundation/feature.json' in archive.namelist()
-                        assert not any('foundation_setup' in name or 'Probe' in name for name in archive.namelist())
-                (artifact/(variant+'-build.log')).write_text(restored.stdout+built.stdout+packed.stdout+staged.stdout, encoding='utf-8')
-                retained = artifact/variant/'consumer'
-                shutil.copytree(root,retained,ignore=shutil.ignore_patterns('bin','obj','__pycache__','artifacts'))
-                for name in ('hostsettings.json','shells.json','nuplane.settings.json'):
-                    destination = retained/resolved['runtimeStage']/name; destination.parent.mkdir(parents=True,exist_ok=True)
-                    shutil.copy2(root/resolved['runtimeStage']/name,destination)
-                hashes = {p.name:composition.digest(p.read_bytes()) for p in (root/resolved['runtimeStage']/'packages').glob('*.nupkg')}
-                (artifact/variant/'runtime-package-hashes.json').write_text(json.dumps(hashes,indent=2),encoding='utf-8')
-                shutil.copytree(root/'artifacts/packages',artifact/variant/'packages')
-                shutil.copy2(root/'artifacts/program-kit/runtime-closure.json',artifact/variant/'runtime-closure.json')
-                if variant.endswith('-postgresql'):
-                    removed = value['projects'].pop()
-                    value['runtime']['rootPackages'].remove(removed['packageId'])
-                    value['compositionId'] = 'foundation-bff-keycloak'
-                    value['tests'] = {}  # Re-select the maintained capability envelope for the new variant.
-                    (root/composition.INPUT).write_bytes(composition.encoded(value)); sync(root)
-                    effective = composition.read(root/'eng/web-profile.shells.json')
-                    assert removed['featureIdentity'] not in effective['CShells']['Shells']['default']['Features']
-                    assert removed['packageId'] not in composition.read(root/composition.RESOLVED)['rootPackages']
-                    assert removed['path'] not in {p['path'] for p in composition.read(root/'eng/architecture.json')['runtimeComposition']['projects']}
-            observations.append(measurements)
-    identity_projection_checks(composition.read(ROOT/'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json'), args.identity_services)
-    (artifact/'qualification.json').write_bytes(composition.encoded({'schemaVersion':1,'checks':['invalid-inputs','metadata-bounds-and-session-relationships','actual-sync-preview-apply','rerun','consumer-customization','managed-drift','callback-regeneration','distinct-identity-addresses','generated-custom-identity-compose','generated-identity-managed-conflict','beforewrite-unsupported-local-identity-transport','beforewrite-private-ip-and-malformed-dns-rejection','inert-external-identity-projection','beforewrite-overlay-conflicts','beforewrite-maintained-setup-envelope','installed-realm-security','installed-theme-integrity','redacted-provenance','customized-source-retirement-and-release','untouched-scaffold-retirement','managed-configuration-and-engineering-retirement-conflicts','deselected-orphan-exclusion'] + (['actual-build-pack-selected-root-stage','installed-program-kit-version','provider-removal'] if args.build else []), 'actualPackageBuild':args.build, 'actualIdentityServices':args.identity_services, 'measurements':observations,
-        'limitations':['No selected-host/product runtime acceptance or first product operation timing is established by this validator.']}))
-    (artifact/'status.json').write_text(json.dumps({'status':'passed','actualPackageBuild':args.build}),encoding='utf-8')
-    print('Foundation composition selected contracts, synchronization and package checks passed')
+        legacy = composition.read(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions' / (variant + '.json'))
+        legacy['theme']['branding'] = {'displayName': 'Qualified Example', 'accentColor': '#0088aa'}
+        root = ARTIFACT / variant / 'consumer'; (root / 'eng').mkdir(parents=True)
+        input_path = root / composition.INPUT
+        input_path.write_bytes(composition.encoded(legacy))
+        rejected_before = input_path.read_bytes()
+        denied = run([sys.executable, str(SCRIPTS / 'dotnet_sync.py'), '--target', str(root), '--check',
+                      '--profile-selected', '--web-profile', 'bff-cookie'], ROOT, 1)
+        assert 'PKM001' in denied.stderr and input_path.read_bytes() == rejected_before
+        graph = model.from_legacy(legacy, root)
+        input_path.write_bytes(composition.encoded(graph))
+        began = time.monotonic(); preview = sync(root, True, 1)
+        assert not (root / 'src').exists() and not (root / 'deploy').exists()
+        sync(root); sync(root, True); composition.verify_outputs(root)
+        resolved = composition.read(root / composition.RESOLVED)
+        assert resolved['schemaVersion'] == 2 and len(resolved['hosts']) == 1
+        assert not (root / 'eng/Dev.ps1').exists() and not (root / 'deploy/compose.identity.yml').exists()
+        assert not list((root / 'src').glob('**/*Composition*.csproj'))
+        authority = model.environment(graph)['product-identity']
+        realm = root / ('deploy/keycloak/product-identity/' + authority['realm'] + '-realm.json')
+        assert composition.read(realm)['displayName'] == 'Qualified Example'
+        theme = root / 'deploy/keycloak/product-identity/themes/program-kit/login/resources/css/program-kit.css'
+        assert '--program-kit-brand-accent: #0088aa' in theme.read_text()
+        feature = root / Path(legacy['projects'][0]['path']).parent / 'ApiFeature.cs'
+        feature.write_text(feature.read_text() + '\n// Consumer-owned customization.\n')
+        sync(root); assert 'Consumer-owned customization' in feature.read_text()
+        shell = root / graph['resources']['application-shell']['source']
+        original_shell = shell.read_bytes()
+        product_policy = composition.read(shell)
+        product_policy['CShells']['Shells']['default']['Configuration'] = {'Foundation': {'Web': {'RolePermissions': {'user': ['product.read']}}}}
+        shell.write_bytes(composition.encoded(product_policy)); sync(root); composition.verify_outputs(root)
+        for key, value in [('CallbackPath', '/unreviewed'), ('BackchannelAuthority', 'https://other.example/realms/wrong'),
+                           ('DiscoveryTimeoutSeconds', 31)]:
+            wrong = copy.deepcopy(product_policy)
+            wrong['CShells']['Shells']['default']['Configuration']['Foundation']['Web'][key] = value
+            shell.write_bytes(composition.encoded(wrong))
+            before = {path.relative_to(root).as_posix(): path.read_bytes() for path in root.rglob('*') if path.is_file()}
+            run([sys.executable, str(SCRIPTS / 'dotnet_sync.py'), '--target', str(root), '--profile-selected',
+                 '--foundation-host-accepted', '--building-block-sources-approved', '--web-profile', 'bff-cookie'], ROOT, 1)
+            assert before == {path.relative_to(root).as_posix(): path.read_bytes() for path in root.rglob('*') if path.is_file()}
+        shell.write_bytes(original_shell)
+        graph['resources']['application-client']['callbackPath'] = '/callback/custom'
+        input_path.write_bytes(composition.encoded(graph)); sync(root); composition.verify_outputs(root)
+        assert any('/callback/custom' in item.get('redirectUris', []) [0] for item in composition.read(realm)['clients'] if item.get('redirectUris'))
+        for protected in (root / 'eng/web-profile.shells.json', realm, theme):
+            original = protected.read_bytes(); protected.write_bytes(original + b'\n')
+            try:
+                if protected.name == 'web-profile.shells.json':
+                    conflicts = sync(root, True, 2)
+                    assert protected.relative_to(root).as_posix() in {row['path'] for row in conflicts['conflicts']}
+                else:
+                    try: composition.verify_outputs(root)
+                    except ValueError: pass
+                    else: raise AssertionError('changed managed authority/theme retained inherited assurance')
+            finally: protected.write_bytes(original)
+        # Preserve all source/project customization and retirement counterexamples.
+        retirement_checks(root, legacy)
+        observations.append({'variant': variant, 'reconciliationSeconds': round(time.monotonic() - began, 3),
+                             'typedModel': True, 'realRuntimeTested': False})
+    if args.build or args.identity_services:
+        run([sys.executable, 'tests/validate_composition_start.py', '--execute'], ROOT, timeout=1800)
+    (ARTIFACT / 'status.json').write_text(json.dumps({'status': 'passed', 'observations': observations}, indent=2))
+    print('Typed composition reconciliation passed: ' + str(ARTIFACT))
     return 0
 
 

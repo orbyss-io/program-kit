@@ -1586,6 +1586,23 @@ def profile_entry_matches_hash(entry: dict, expected: str) -> bool:
 def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576) -> bytes:
     """Read one frozen document from an ordinary file or an indexed source pack."""
     source=repository_path(directory,item['path'])
+    packed = False
+    if not source.is_file() and 'byteOffset' not in item:
+        # Install packaging can compact old loose package facts while their
+        # historical manifests and original per-document hashes remain unchanged.
+        storage = repository_path(directory, 'historical-package-facts.json')
+        if storage.is_file():
+            if storage.stat().st_size > 1_048_576:
+                fail('PKB611', 'historical package storage index exceeds its bound')
+            index = load_json(storage)
+            if index.get('schemaVersion') != 1 or not isinstance(index.get('entries'), dict):
+                fail('PKB611', 'historical package storage index is invalid')
+            row = index['entries'].get(item['path'])
+            if not isinstance(row, dict) or set(row) != {'byteOffset', 'byteLength', 'sha256'} or row['sha256'] != item.get('sha256'):
+                fail('PKB611', 'historical package storage differs from its original authority')
+            item = {**item, **row}
+            source = repository_path(directory, 'historical-package-facts.pack')
+            packed = True
     offset=item.get('byteOffset',0)
     length=item.get('byteLength',source.stat().st_size)
     if (type(offset) is not int or type(length) is not int or offset<0 or length<0
@@ -1593,7 +1610,10 @@ def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576
         fail('PKB611','publisher document range is invalid')
     with source.open('rb') as stream:
         stream.seek(offset)
-        return stream.read(length)
+        result = stream.read(length)
+    if packed and hashlib.sha256(result).hexdigest() != item['sha256']:
+        fail('PKB611', 'historical publisher package fact changed')
+    return result
 
 
 def publisher_package_fact(directory: Path, item: dict) -> dict:
