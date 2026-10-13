@@ -482,7 +482,7 @@ def integration(root, selected, directory, migration_script=None, product_enable
         command.run(['docker','create','--name',identity,'--pull=never','--network',network,'--network-alias',private.hostname,
                      '-p','127.0.0.1:'+str(public_identity.port)+':8080','-e','KC_HOSTNAME='+config['identity']['publicOrigin'],
                      '-e','KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true',
-                     '--mount','type=bind,source='+str(root/'deploy/keycloak/themes')+',target=/opt/keycloak/themes,readonly',
+                     '--mount','type=bind,source='+str(realm_path(root).parent/'themes')+',target=/opt/keycloak/themes,readonly',
                      selected['serviceImages']['keycloak'],'start-dev','--import-realm']); created.append(('container',identity))
         result['preIssuerStep'] = 'identity-import'
         command.run(['docker','cp',str(import_directory),identity+':/opt/keycloak/data/import'])

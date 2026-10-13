@@ -15,7 +15,7 @@ RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Resto
 
 
 PACK_ENGINE_FILES = ('release_bundle.py', 'central_packages.py', 'handoff_contract.py',
-                     'shell_composition.py', 'runtime_closure.py', 'program_kit_version.py')
+                     'shell_composition.py', 'runtime_closure.py', 'hosted_bundle.py', 'program_kit_version.py')
 
 
 def materialize_pack_engine(managed: Path) -> None:

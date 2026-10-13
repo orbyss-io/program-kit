@@ -47,6 +47,15 @@ def main():
             try:
                 bootstrap_compatibility.restore(root, scratch, timeout=300, stdout=stdout, stderr=stderr)
                 environment = os.environ.copy()
+                from fixture_readiness import plan as readiness_plan
+                pins = json.loads((scratch / 'runtime-inputs.json').read_text())
+                if os.environ.get('GITHUB_ACTIONS') == 'true':
+                    # This disposable CI device owns acquisition before the
+                    # consumer's read-only prerequisite check and any behavior.
+                    for reference in readiness_plan(scratch, pins)['images']:
+                        code = run(['docker', 'pull', reference], scratch, stdout, stderr, 600, env=environment)
+                        if code:
+                            raise ValueError('CI exact-image preparation failed with exit ' + str(code))
                 if kind == 'bff-keycloak':
                     # Acquisition is user-terminal preparation. Observe the exact
                     # restored package's actual headless browser before containers.
@@ -62,7 +71,7 @@ def main():
                         if code:
                             raise ValueError('CI Chromium preparation failed with exit ' + str(code))
                     from fixture_readiness import check
-                    check(scratch, json.loads((scratch / 'runtime-inputs.json').read_text()), environment=environment)
+                    check(scratch, pins, environment=environment)
                 code = run([sys.executable, str(root / recipe['recipe'])], scratch, stdout, stderr, 600, env=environment)
                 if code: raise ValueError('Native recipe failed with exit ' + str(code))
                 from phase_obligations import test_results

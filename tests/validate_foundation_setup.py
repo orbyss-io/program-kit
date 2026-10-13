@@ -645,8 +645,8 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             (root/'eng/foundation-qualification-support/QualificationFeature.cs').write_text('__DEPENDENCIES__')
             (root/'runtime/packages').mkdir(parents=True)
             (root/'runtime/shells.json').write_text(json.dumps({'CShells': {'Shells': {'default': {'Features': {}, 'Configuration': {'Foundation': {'Web': {}}}}}}}))
-            (root/'deploy/keycloak').mkdir(parents=True)
-            (root/'deploy/keycloak/program-kit-realm.json').write_text(json.dumps({'attributes': {'programKitFixture': 'local-non-production-only'},
+            (root/'deploy/keycloak/owned-authority/themes').mkdir(parents=True)
+            (root/'deploy/keycloak/owned-authority/program-kit-realm.json').write_text(json.dumps({'attributes': {'programKitFixture': 'local-non-production-only'},
                 'clients': [{'clientId': 'owned', 'secret': '' if failure=='identity-configure' else 'synthetic'}]}))
             (root/'tests/foundation-product').mkdir(parents=True); (root/'tests/foundation-product/schema.sql').write_text('owned schema boundary')
             pins = ('CShells.Abstractions','CShells.AspNetCore.Abstractions','Orbyss.Foundation.Authentication','Orbyss.Foundation.Analyzers','Orbyss.Foundation.Build')
@@ -659,6 +659,10 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
                     if command[:3]==['docker','network','create']: stage='network-create'
                     elif command[:2]==['docker','create']:
                         stage='identity-create' if 'pk-foundation-identity-' in command[3] else 'completed'
+                        if stage=='identity-create':
+                            expected='type=bind,source='+str(root/'deploy/keycloak/owned-authority/themes')+',target=/opt/keycloak/themes,readonly'
+                            if command[command.index('--mount')+1] != expected:
+                                raise AssertionError('Identity must mount the selected authority theme directory')
                     elif command[:2]==['docker','cp']:
                         if command[2].endswith('identity-import'): stage='identity-import'
                         elif ':/opt/keycloak/data/import' in command[2]:
@@ -682,7 +686,7 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             metadata = {'contracts': []}
             with patch.dict(sys.modules, {'foundation_composition': composition}), \
                  patch.object(qualification, 'configuration', return_value=config), \
-                 patch.object(qualification, 'realm_path', return_value=root/'deploy/keycloak/program-kit-realm.json'), \
+                 patch.object(qualification, 'realm_path', return_value=root/'deploy/keycloak/owned-authority/program-kit-realm.json'), \
                  patch.object(composition, 'read', return_value=metadata), \
                  patch.object(composition, 'rows', return_value=[('Orbyss.Foundation.Authentication', None, {'path':'Foundation:Web:Owned'})]), \
                  patch.object(qualification, 'bundle_hashes', return_value={'owned':'same'}), patch.object(qualification, 'Commands', Boundary), \
