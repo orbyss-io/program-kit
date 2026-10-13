@@ -34,6 +34,12 @@ assets and selected provider activation. `update` selects changed compilation
 dependants; `update --host <id>` includes affected dependants; `stop` retains data.
 The implementation prehook uses the same prepared startup path.
 
+Keep future product interfaces and provider bindings in the Accepted architecture
+plan. Foundation preparation checks planned boundaries and performs real compilation,
+packaging and selected runtime admission; it does not require those future product
+bindings to be implemented first. Full compiled-product architecture verification
+remains required during affected implementation and acceptance.
+
 Reconcile affected plans/tasks in place and enter implementation in a fresh
 invocation of the same feature. Keep valid code, task IDs, requirements, Accepted
 history, original native locks, baseline and accumulated effort. Do not restart

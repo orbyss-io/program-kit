@@ -30,6 +30,12 @@ provider connectivity, BFF authentication/theme and page runtime loading. `updat
 services; `stop` preserves owned database/identity volumes. Implementation's single
 prehook calls the same prepared run/readiness route. First acquisition is explicit.
 
+Preparation validates the planned architecture, then actually builds, packages and
+starts the selected foundation. Accepted product bindings may still name interfaces
+and implementations that have not been written. Keep those bindings in the plan;
+the full evaluated/compiled product architecture check remains an implementation
+verification obligation. Foundation readiness does not claim that check has passed.
+
 Generated settings, realm imports and Compose files are outputs. Legacy finite
 inputs require explicit `eng/composition_migrate.py` preview/apply, followed by normal
 managed reconciliation and fresh implementation entry. Preserve task IDs, valid owned

@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import uuid
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / 'extensions/program-kit-dotnet/scripts'
@@ -31,6 +32,29 @@ def containers(project):
                              '--format', '{{.ID}} {{.Label "com.docker.compose.service"}}'],
                             capture_output=True, text=True, timeout=30, check=True)
     return {line.split()[1]: line.split()[0] for line in result.stdout.splitlines() if line.strip()}
+
+
+def add_unimplemented_product_plan(root):
+    """Planning may name future product bindings before foundation startup."""
+    core = 'src/Planned.Core/Planned.Core.csproj'
+    path = root / core; path.parent.mkdir(parents=True)
+    path.write_text('<Project Sdk="Microsoft.NET.Sdk" />\n', encoding='utf-8')
+    project = root / 'src/Application.Api/Application.Api.csproj'
+    project.write_text(project.read_text().replace('</Project>',
+        '<ItemGroup><ProjectReference Include="../Planned.Core/Planned.Core.csproj" /></ItemGroup></Project>'), encoding='utf-8')
+    solution = root / 'Application.slnx'; document = ET.fromstring(solution.read_bytes())
+    ET.SubElement(document, 'Project', Path=core)
+    solution.write_bytes(ET.tostring(document) + b'\n')
+    path = root / 'eng/architecture.json'; architecture = json.loads(path.read_text())
+    graph = architecture['runtimeComposition']
+    graph['projects'].append({'path': core, 'role': 'core', 'projectReferences': [], 'packageReferences': [],
+        'responsibilities': [{'name': 'Planned.Core.ProductContract', 'kind': 'contract', 'effects': []}]})
+    api = next(row for row in graph['projects'] if row['path'] == 'src/Application.Api/Application.Api.csproj')
+    api['projectReferences'] = [core]
+    graph['bindings'].append({'capabilityProject': core, 'capability': 'Planned.Core.IFutureProduct',
+        'implementationProject': api['path'], 'implementation': 'Application.Api.FutureProduct',
+        'registration': 'Application.Api.FutureRegistration.Register'})
+    path.write_text(json.dumps(architecture, indent=2) + '\n', encoding='utf-8')
 
 
 def main():
@@ -65,6 +89,10 @@ def main():
     # A second reconciliation must preserve source and produce no new contribution.
     command([*sync, '--check'], ROOT, directory / 'scaffold-check')
     command([*native, 'check', *options], ROOT, directory / 'native-check')
+    add_unimplemented_product_plan(root)
+    command(sync, ROOT, directory / 'product-plan-scaffold')
+    command([*sync, '--check'], ROOT, directory / 'product-plan-scaffold-check')
+    command([*native, 'check', *options], ROOT, directory / 'product-plan-native-check')
     # Model admission is item-specific, never a blanket project/pin exemption.
     project = root / 'src/Application.Api/Application.Api.csproj'
     original_project = project.read_bytes()
@@ -165,12 +193,22 @@ def main():
                 raise ValueError('new protected resource was not provisioned into the existing identity authority')
             command([sys.executable, 'eng/composition_run.py', 'run'], root, directory / 'identity-reconcile-run')
             command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(directory / 'post-reconcile-feature-result.json')], root, directory / 'post-reconcile-feature')
+            # The ordinary product gate still rejects the incomplete binding.
+            # Run this last: its metadata-helper restore legitimately adds lock
+            # inputs and invalidates prior staging; do not reseal that evidence.
+            command([sys.executable, 'eng/repository_architecture.py', '--repository', '.',
+                     '--manifest', 'eng/architecture.json', '--configuration', 'Release',
+                     '--build-subject', 'Application.slnx', '--output', 'artifacts/product-architecture.xml'],
+                    root, directory / 'pending-product-architecture', expected=2)
+            if 'Binding must name real compiled interface and implementation types' not in (directory / 'pending-product-architecture/stderr.log').read_text():
+                raise ValueError('ordinary product architecture gate failed before the intended unimplemented binding')
             run_result = json.loads((directory / 'run/stdout.log').read_text().splitlines()[-1])
             result.update(status='passed', runtimeExercised=True, preparation=preparation['timings'],
                           preparationSeconds=preparation['elapsedSeconds'], preparedStartupSeconds=run_result['elapsedSeconds'],
                           editToWorkingConsumerSeconds=edit_elapsed, authenticatedPrivacyFailureChecked=True,
                           unchangedServiceCount=len(before) - 1, infrastructureRepairsAfterReadiness=0,
                           frontendIncrementalUpdate=True, persistentIdentityReconciliation=True,
+                          pendingProductBindingPreserved=True, completeProductArchitectureStillRequired=True,
                           measurement='Deterministic edit/build/authenticated operation; no agent reasoning-time claim')
         finally:
             model_file = root / 'eng/foundation-composition.json'

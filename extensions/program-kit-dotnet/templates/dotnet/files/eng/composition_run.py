@@ -353,8 +353,12 @@ def build(root, graph, resolved, command, selected_hosts=None, restore=False):
     version = (root / 'VERSION').read_text(encoding='utf-8').strip()
     packages = root / 'artifacts/packages' / version / uuid.uuid4().hex
     packages.mkdir(parents=True)
+    # Foundation preparation precedes product implementation. The Accepted plan
+    # may name interfaces/providers that do not exist yet. Admit its declared
+    # boundaries here; full compiled-product verification remains an implementation
+    # check. The real build, pack and selected runtime activation still follow.
     command.run([sys.executable, 'eng/repository_architecture.py', '--repository', '.', '--manifest', 'eng/architecture.json',
-                 '--configuration', 'Release', '--build-subject', qualification.solution(root), '--version', version,
+                 '--planned',
                  '--output', str(command.directory / 'architecture.xml')], timeout=600)
     # Native architecture tooling can establish its own locked restore inputs.
     # Bind the pack only after that step, then rebuild under the sealed snapshot.
