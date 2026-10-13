@@ -1145,7 +1145,9 @@ def qualify(root, shape, phase, evidence, generation):
         timings['generationToPreauthoredProductOperationSeconds']=round(generation + sum(row['elapsedSeconds'] for row in native['steps'] if row['stage'] in ('restore','build','services')) + integration['timings']['integrationToFirstProductOperationSeconds'],3)
     result={'shape':shape,'phase':phase,'status':'passed','coldDefinition':'Fresh isolated NuGet/npm caches and browser downloads; preinstalled SDK/Docker images disclosed separately' if phase=='cold' else 'Same consumer acquired dependency/browser caches',
             'fixtureProductCodeWrittenBeforeReadiness':True,'measurement':'Preauthored security/ownership/provider fixture; not readiness-to-first-consumer-code time','timings':timings,
-            'readinessArtifact':str(runs[-1].relative_to(ROOT)), 'productionBundle':runs[-1].parent.relative_to(ROOT).as_posix()}
+            'readinessArtifact':str(runs[-1].relative_to(ROOT)),
+            'productionBundles': {name: (root/host['runtimeStage']).relative_to(ROOT).as_posix()
+                                  for name,host in composition.resolve(root)['hosts'].items()}}
     write(evidence/'result.json',result)
     return result
 
@@ -1177,7 +1179,8 @@ def migrate(root, config, evidence):
         removed=config['projects'][-1]['packageId']
         assert result['migration']['removedIndependentFeature']==config['projects'][-1]['featureIdentity']
         built=list((root/'artifacts/packages').rglob(removed+'.*.nupkg'))
-        assert built and not list((root/composition.resolve(root)['runtimeStage']/'packages').glob(removed+'.*.nupkg'))
+        assert built and all(not list((root/host['runtimeStage']/'packages').glob(removed+'.*.nupkg'))
+                             for host in composition.resolve(root)['hosts'].values())
         result['migration']['preservedConsumerOwnedOrphanInputs']=owned_orphans
         result['migration']['orphanBuiltPackage']={'path':str(max(built,key=lambda p:p.stat().st_mtime).relative_to(root)),
             'excludedFromSelectedRuntime':True}
@@ -1205,11 +1208,15 @@ def main():
         if not root.is_relative_to(ROOT/'artifacts/tests/reusable-foundations') or not (root/composition.INPUT).is_file():
             parser.error('Migration must target an owned disposable qualification consumer')
         artifact=ROOT/'artifacts/tests/reusable-foundations'/('migration-repair-'+uuid.uuid4().hex[:16]); artifact.mkdir()
-        config=composition.read(root/composition.INPUT)
-        if config['runner']=='xunit-mtp' and not any(row['packageId']=='Feed.Api' for row in config['projects']):
-            config['projects'].append({'path':'src/Nieuws/Feed.Api/Feed.Api.csproj','packageId':'Feed.Api','featureIdentity':'Feed.Api','role':'implementation'})
-            config['runtime']['rootPackages'].append('Feed.Api')
-            write(root/composition.INPUT,config)
+        import composition_model as model
+        graph=model.load(root)
+        shell=next(iter(model.resources(graph,'shell')))
+        if graph['runner']=='xunit-mtp' and not any(row['packageId']=='Feed.Api' for row in model.resources(graph,'feature').values()):
+            graph['resources']['migration-feed']={'kind':'feature','path':'src/Nieuws/Feed.Api/Feed.Api.csproj',
+                'packageId':'Feed.Api','featureIdentity':'Feed.Api','role':'implementation'}
+            graph['bindings'].append({'kind':'featureShell','featureRef':'migration-feed','shellRef':shell})
+            write(root/composition.INPUT,model.validate(graph,root))
+        config=model.legacy_view(graph,shell)
         sync(root,artifact/'synchronize-reviewed-ownership-repair')
         directory=root/'artifacts/tests/runs'/('migration-preparation-'+uuid.uuid4().hex); directory.mkdir()
         command([sys.executable,'eng/foundation_qualification.py','--repository','.',
