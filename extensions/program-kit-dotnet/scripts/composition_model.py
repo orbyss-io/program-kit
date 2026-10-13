@@ -233,7 +233,8 @@ def validate(model, repository=None):
     unique = set()
     for row in model['bindings']:
         require(isinstance(row, dict) and row.get('kind') in BINDING_FIELDS, 'unknown binding type')
-        object_fields(row, BINDING_FIELDS[row['kind']], label='binding')
+        optional = {'pagePermission', 'bootstrapPermission'} if row['kind'] == 'frontend' else set()
+        object_fields(row, BINDING_FIELDS[row['kind']], optional, label='binding')
         key = json.dumps(row, sort_keys=True)
         require(key not in unique, 'duplicate binding')
         unique.add(key)
@@ -254,6 +255,10 @@ def validate(model, repository=None):
             identifier(row['routeId'], 'hosted route identity')
             require(isinstance(row['path'], str) and re.fullmatch(r'/[A-Za-z0-9/_-]*', row['path']) and
                     '..' not in row['path'] and '//' not in row['path'], 'invalid hosted page route')
+            for field in ('pagePermission', 'bootstrapPermission'):
+                if field in row:
+                    require(isinstance(row[field], str) and row[field].strip() == row[field] and
+                            0 < len(row[field]) <= 256, 'invalid hosted page permission')
         elif row['kind'] == 'apiCall':
             require(row['intent'] in ('application', 'delegated'), 'unsupported call intent')
             require(isinstance(row['permissions'], list) and set(row['permissions']) <=
@@ -262,6 +267,10 @@ def validate(model, repository=None):
         require(sum(row['shellRef'] == name for row in bindings(model, 'shellHost')) == 1, 'each shell needs exactly one host')
         require(sum(row['shellRef'] == name for row in bindings(model, 'authentication')) == 1, 'each shell needs one authentication profile')
         require(shell_features(model, name), 'shell has no selected owned feature')
+        pages = [row for row in bindings(model, 'frontend') if row['shellRef'] == name]
+        require(len({row['frontendRef'] for row in pages}) <= 1, 'one selected HostedPages deployment root per shell is supported')
+        require(len({row['routeId'].casefold() for row in pages}) == len(pages) and
+                len({row['path'].casefold() for row in pages}) == len(pages), 'ambiguous hosted page route identity or path')
     for name in resources(model, 'host'):
         require(host_shells(model, name), 'host has no selected shell')
     for name in resources(model, 'feature'):

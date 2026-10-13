@@ -14,6 +14,13 @@ bind separate databases on a shared server, and multiple applications can use on
 authority with separate registrations and audiences. This supplies no aggregate C#
 project or consumer host. Feature and context sources are consumer-owned after scaffold.
 
+A frontend can bind several distinct page routes in the same shell while sharing one
+compiled deployment root. Each `frontend` binding supplies its `routeId` and `path`,
+with optional `pagePermission` and `bootstrapPermission`. Both admissions remain
+authenticated and private; bootstrap permission adds to page admission. These fields
+preserve existing route restrictions during migration and never grant permissions to
+users. Product role/permission assignments remain consumer-owned.
+
 `eng/composition_run.py prepare` verifies prerequisites, acquires exact dependencies
 and browser executables, builds frontends, stages admitted assets/packages and provisions
 owned databases and identity registrations. Existing identity users and registration IDs are

@@ -43,6 +43,10 @@ def main():
     (root / 'eng').mkdir(parents=True)
     started = time.monotonic()
     graph = two_apps(ROOT, dynamic_ports=True)
+    page_binding = next(row for row in graph['bindings'] if row['kind'] == 'frontend')
+    graph['bindings'].extend([
+        {**page_binding, 'routeId': 'second-page', 'path': '/second-page'},
+        {**page_binding, 'routeId': 'restricted-page', 'path': '/restricted-page', 'pagePermission': 'restricted.read'}])
     (root / 'eng/foundation-composition.json').write_text(json.dumps(graph, indent=2) + '\n', encoding='utf-8')
     environment = os.environ.copy()
     environment.setdefault('PROGRAMKIT_DEVICE_PYTHON', sys.executable)
@@ -89,6 +93,7 @@ def main():
             plan = json.loads(native_run.read_text())
             first = next(host for host in plan['hosts'] if host['id'] == 'application-host')
             first.update(productPath='/api/first-policy', productResponse={'policy': 'consumer-ready'})
+            first['pageChecks'] = [{'path': '/second-page', 'status': 200}, {'path': '/restricted-page', 'status': 403}]
             plan_path = directory / 'consumer-feature-plan.json'
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
             product_result = directory / 'consumer-feature-result.json'

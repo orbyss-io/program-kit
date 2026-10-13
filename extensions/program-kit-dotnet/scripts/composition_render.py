@@ -35,6 +35,16 @@ def auth_binding(graph, shell_id):
     return next(row for row in model.bindings(graph, 'authentication') if row['shellRef'] == shell_id)
 
 
+def hosted_route(binding):
+    route = {'Id': binding['routeId'], 'Path': binding['path'],
+             'Page': {'Mode': 'Authenticated', 'ResponsePolicy': 'private'},
+             'Bootstrap': {'Mode': 'Authenticated', 'ResponsePolicy': 'private'}}
+    for field, section in (('pagePermission', 'Page'), ('bootstrapPermission', 'Bootstrap')):
+        if field in binding:
+            route[section]['Permission'] = binding[field]
+    return route
+
+
 def authority_issuer(graph, authority_id, env_name=None, private=False):
     binding = model.environment(graph, env_name)[authority_id]
     if binding['mode'] == 'external':
@@ -323,15 +333,13 @@ def materialize(repository, graph, template, env_name=None):
                 policies[row['policy']] = foundation.defaults(selected, 'Foundation:PostgreSql:Policies:{policyName}:')
             configuration['Foundation']['PostgreSql'] = {'Policies': policies}
         pages = [row for row in model.bindings(graph, 'frontend') if row['shellRef'] == shell_id]
-        require(len(pages) <= 1, 'one selected HostedPages deployment root per shell is supported')
+        require(len({row['frontendRef'] for row in pages}) <= 1, 'one selected HostedPages deployment root per shell is supported')
         if pages:
             row = pages[0]; frontend = graph['resources'][row['frontendRef']]
             configuration['Foundation']['HostedPages'] = {'Root': frontend['directory'] + '/dist', 'Manifest': 'manifest.json',
                 'ManifestSha256': '0' * 64, 'CurrentRevision': 'unprepared',
                 'AssetResponsePolicy': 'public-asset',
-                'Routes': [{'Id': row['routeId'], 'Path': row['path'],
-                            'Page': {'Mode': 'Authenticated', 'ResponsePolicy': 'private'},
-                            'Bootstrap': {'Mode': 'Authenticated', 'ResponsePolicy': 'private'}}]}
+                'Routes': [hosted_route(binding) for binding in pages]}
         foundation.validate_bound_settings(configuration, selected)
         profiles['CShells']['Shells'][shell['name']] = {'Name': shell['name'], 'Features': features, 'Configuration': configuration}
         # Keep the scaffold contribution in the desired manifest on every sync.
@@ -475,9 +483,7 @@ def validate_consumer_shell(graph, shell_id, selected, shell, env_name):
         routes = [row for row in model.bindings(graph, 'frontend') if row['shellRef'] == shell_id]
         if routes:
             pages = shell['Configuration']['Foundation'].get('HostedPages', {})
-            expected_routes = [{'Id': row['routeId'], 'Path': row['path'],
-                                'Page': {'Mode': 'Authenticated', 'ResponsePolicy': 'private'},
-                                'Bootstrap': {'Mode': 'Authenticated', 'ResponsePolicy': 'private'}} for row in routes]
+            expected_routes = [hosted_route(row) for row in routes]
             require(pages.get('Routes') == expected_routes and pages.get('AssetResponsePolicy') == 'public-asset',
                     'consumer overlay changes canonical hosted page access/response bindings')
 

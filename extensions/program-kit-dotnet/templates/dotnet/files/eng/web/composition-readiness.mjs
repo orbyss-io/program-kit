@@ -99,6 +99,11 @@ try {
               require(response.status() === 200);
               require(JSON.stringify(await response.json()) === JSON.stringify(host.productResponse));
             }
+            for (const check of host.pageChecks ?? []) {
+              current.phase = 'additional-page-access';
+              const response = await context.request.get(host.origin + check.path, { maxRedirects: 0 });
+              require(response.status() === check.status);
+            }
             evidence.checks.push({ engine, host: host.id, origin: host.origin, authenticated: true,
               hostedAssetsLoaded: Boolean(host.page), consumerFeature: Boolean(host.productPath) });
           } catch {

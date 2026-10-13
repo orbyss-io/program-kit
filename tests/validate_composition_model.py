@@ -225,6 +225,40 @@ class ResourceModel(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'hosted page access'):
                 renderer.validate_consumer_shell(graph, 'application-shell', selected, altered, 'development')
 
+    def test_shared_frontend_preserves_distinct_routes_and_permissions(self):
+        from composition_fixture import two_apps
+        import composition_render as renderer
+        graph = two_apps(ROOT)
+        first = next(row for row in graph['bindings'] if row['kind'] == 'frontend')
+        first.update(path='/policies', pagePermission='policies.read')
+        graph['bindings'].append({**first, 'routeId': 'evaluations', 'path': '/evaluations',
+                                  'pagePermission': 'evaluations.read', 'bootstrapPermission': 'evaluations.details'})
+        model.validate(graph)
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            files = renderer.materialize(Path(temporary), graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            shell = json.loads(files['eng/web-profile.shells.json'][0])['CShells']['Shells']['policies']
+            routes = shell['Configuration']['Foundation']['HostedPages']['Routes']
+            self.assertEqual([row['Path'] for row in routes], ['/policies', '/evaluations'])
+            self.assertEqual(routes[0]['Page']['Permission'], 'policies.read')
+            self.assertEqual(routes[1]['Page']['Permission'], 'evaluations.read')
+            self.assertEqual(routes[1]['Bootstrap']['Permission'], 'evaluations.details')
+            selected = json.loads(files[renderer.CONTRACT][0])['shells']['application-shell']
+            renderer.validate_consumer_shell(graph, 'application-shell', selected, shell, 'development')
+            del routes[1]['Page']['Permission']
+            with self.assertRaisesRegex(ValueError, 'hosted page access'):
+                renderer.validate_consumer_shell(graph, 'application-shell', selected, shell, 'development')
+
+    def test_shared_frontend_rejects_ambiguous_routes_or_invalid_permissions(self):
+        from composition_fixture import two_apps
+        graph = two_apps(ROOT)
+        first = next(row for row in graph['bindings'] if row['kind'] == 'frontend')
+        for change in ({'routeId': 'other'}, {'path': '/other'}, {'pagePermission': ''}, {'bootstrapPermission': False}):
+            candidate = deepcopy(graph)
+            candidate['bindings'].append({**first, **change})
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'hosted page'):
+                model.validate(candidate)
+
     def test_native_source_scope_keeps_shared_dependencies_and_excludes_other_apps(self):
         from composition_fixture import two_apps
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
