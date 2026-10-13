@@ -12,6 +12,17 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+# Resolve the verified shared interpreter before Restore redirects APPDATA and
+# LOCALAPPDATA for NuGet. A launcher resolved afterward can attempt installation
+# into that isolated profile instead of using the prepared device runtime.
+$pythonCandidate = $env:PROGRAMKIT_DEVICE_PYTHON
+if (-not $pythonCandidate) { $pythonCandidate = (Get-Command python -ErrorAction Stop).Source }
+if (-not [IO.Path]::IsPathRooted($pythonCandidate) -or -not (Test-Path -LiteralPath $pythonCandidate -PathType Leaf)) {
+    throw 'PKT030 selected shared Python is missing; complete device preparation before building.'
+}
+$pythonSelection = @(& $pythonCandidate -I -c 'import sys; from pathlib import Path; sys.path.insert(0, sys.argv[1]); import device_toolchain; print(device_toolchain.require_python(Path(sys.argv[2])))' $PSScriptRoot $root)
+if ($LASTEXITCODE -ne 0 -or $pythonSelection.Count -ne 1) { throw 'PKT030 shared Python readiness failed before restore.' }
+$buildPython = $pythonSelection[0].Trim()
 $version = (Get-Content -Raw -LiteralPath (Join-Path $root 'VERSION')).Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
     throw "VERSION is not a valid SemVer value: '$version'"
@@ -146,10 +157,10 @@ else {
     & (Join-Path $PSScriptRoot 'Restore.ps1') -Subject $solutions[0].FullName
 }
 if (-not $?) { throw 'Managed repository-isolated restore failed.' }
-python (Join-Path $PSScriptRoot 'release_bundle.py') prepare-pack --repository $root --packages $packages
+& $buildPython (Join-Path $PSScriptRoot 'release_bundle.py') prepare-pack --repository $root --packages $packages
 if ($LASTEXITCODE -ne 0) { throw 'Fresh build/pack input capture failed.' }
 if ($VerifyArchitecture) {
-    python (Join-Path $PSScriptRoot 'repository_architecture.py') --repository $root `
+    & $buildPython (Join-Path $PSScriptRoot 'repository_architecture.py') --repository $root `
         --manifest eng/architecture.json --configuration Release --build-subject $solutions[0].FullName `
         --version $version --output artifacts/tests/architecture.xml
     if ($LASTEXITCODE -ne 0) { throw 'Fresh build/architecture checks failed.' }
@@ -172,14 +183,14 @@ if (-not $SkipTests) {
 
 dotnet pack $solutions[0].FullName -c Release --no-build -p:Version=$version -p:PackageOutputPath=$packages
 if ($LASTEXITCODE -ne 0) { throw 'dotnet pack failed.' }
-python (Join-Path $PSScriptRoot 'release_bundle.py') seal-pack --repository $root --packages $packages
+& $buildPython (Join-Path $PSScriptRoot 'release_bundle.py') seal-pack --repository $root --packages $packages
 if ($LASTEXITCODE -ne 0) { throw 'Build/pack input or output integrity check failed.' }
 
 if (-not $SkipReleaseBundle -or $openApiEnabled) {
     $stageArguments = @('stage', '--repository', $root, '--packages', $packages,
         '--output', (Join-Path $artifacts 'release-bundle'), '--inventory', (Join-Path $packages 'program-kit-pack.json'))
     foreach ($packageId in $RootPackage) { $stageArguments += @('--root-package', $packageId) }
-    python (Join-Path $PSScriptRoot 'release_bundle.py') @stageArguments
+    & $buildPython (Join-Path $PSScriptRoot 'release_bundle.py') @stageArguments
     if ($LASTEXITCODE -ne 0) { throw 'Release-bundle staging failed.' }
 }
 
@@ -187,6 +198,6 @@ if ($openApiEnabled) {
     $openApiArguments = @('--repository', $root, '--registry', 'eng/openapi-contracts.json')
     if ($InitializeOpenApiBaseline) { $openApiArguments += '--initialize-baselines' }
     if ($UpdateOpenApiArtifact) { $openApiArguments += '--update-artifacts' }
-    python (Join-Path $PSScriptRoot 'openapi_pipeline.py') @openApiArguments
+    & $buildPython (Join-Path $PSScriptRoot 'openapi_pipeline.py') @openApiArguments
     if ($LASTEXITCODE -ne 0) { throw 'Producer-first OpenAPI contract pipeline failed.' }
 }
