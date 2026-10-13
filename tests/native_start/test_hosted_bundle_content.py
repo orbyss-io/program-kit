@@ -12,6 +12,7 @@ import shutil
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
 import runtime_closure
 import release_bundle
+import hosted_bundle
 
 
 class HostedBundleContentTests(unittest.TestCase):
@@ -52,6 +53,14 @@ class HostedBundleContentTests(unittest.TestCase):
         self.asset.write_bytes(b'changed')
         with self.assertRaises(ValueError):
             runtime_closure.write_value(self.root, self.root, '0.13.0')
+
+    def test_native_mount_keeps_admitted_content_beneath_its_frontend_directory(self):
+        self.assertEqual(['web'], hosted_bundle.public_mount_roots(self.root, self.settings))
+
+    def test_native_mount_rejects_unlisted_sibling_bytes(self):
+        (self.root / 'web/private.txt').write_text('unlisted private sibling', encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'unlisted bytes'):
+            hosted_bundle.public_mount_roots(self.root, self.settings)
 
     def test_manifest_hash_mismatch_rejects(self):
         self.manifest.write_text('{}', encoding='utf-8')

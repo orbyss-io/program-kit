@@ -272,12 +272,7 @@ def compose_model(root, graph, contract, resolved, credentials):
         if (stage / 'shells.json').is_file():
             import hosted_bundle
             staged_shells = shell_composition.load(stage / 'shells.json', True)
-            # The stage already contains only admitted bytes. Directory mounts
-            # preserve real file-provider/stat behavior on Docker Desktop/Windows.
-            hosted_bundle.inventory(stage, staged_shells)
-            public_roots = {shell['Configuration']['Foundation']['HostedPages']['Root']
-                            for shell in staged_shells['CShells']['Shells'].values()
-                            if 'HostedPages' in shell.get('Configuration', {}).get('Foundation', {})}
+            public_roots = hosted_bundle.public_mount_roots(stage, staged_shells)
             volumes += [{'type': 'bind', 'source': str(stage / public_root), 'target': '/app/' + public_root,
                          'read_only': True, 'bind': {'create_host_path': False}}
                         for public_root in sorted(public_roots)]

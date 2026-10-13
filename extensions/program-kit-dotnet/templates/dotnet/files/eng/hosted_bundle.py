@@ -65,6 +65,31 @@ def inventory(root: Path, shells: dict) -> list[dict]:
     return [{'file': name, 'sha256': digest} for name, digest in sorted(files.items())]
 
 
+def public_mount_roots(root: Path, shells: dict) -> list[str]:
+    """Mount the admitted frontend container, keeping its content root a child.
+
+    Docker Desktop can return EIO when statting a directly bound content-root
+    directory. The enclosing staged frontend retains native stat/link checks;
+    reject any unlisted sibling bytes before exposing that enclosing directory.
+    """
+    admitted = {item['file'] for item in inventory(root, shells)}
+    parents = set()
+    for shell in shells['CShells']['Shells'].values():
+        if FEATURE not in shell['Features'] or shell['Features'][FEATURE] is False:
+            continue
+        options = shell['Configuration']['Foundation']['HostedPages']
+        parent = deployment_path(root, options['Root']).parent
+        if parent == root:
+            raise ValueError('PKR024 native hosted output requires an enclosing frontend directory')
+        for path in parent.rglob('*'):
+            relative = path.relative_to(root).as_posix()
+            deployment_path(root, relative)
+            if path.is_file() and relative not in admitted:
+                raise ValueError('PKR024 unlisted bytes in staged public mount; restage before activation')
+        parents.add(parent.relative_to(root).as_posix())
+    return sorted(parents)
+
+
 def stage(repository: Path, output: Path, shells: dict) -> None:
     admitted = inventory(repository, shells)
     for item in admitted:
