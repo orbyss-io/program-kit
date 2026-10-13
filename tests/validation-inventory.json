@@ -4415,10 +4415,11 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Preserved selected-shell, exact singleton version and admitted public-content regressions with real archive inventory and freshness guards.",
+      "purpose": "Preserved selected-shell, exact singleton version and public-content regressions with real archive inventory, freshness guards and generated Vite incremental builds retaining prior assets.",
       "owner": "program-kit",
       "inputs": [
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/**",
+        "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/**",
         "tests/native_start/**",
         "tests/validate_native_start_repairs.py"
       ],

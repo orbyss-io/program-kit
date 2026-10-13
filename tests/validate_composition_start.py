@@ -118,6 +118,11 @@ def main():
     if args.execute:
         command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'prepare')
         preparation = json.loads((root / 'artifacts/composition/prepared.json').read_text())
+        frontend_output = root / graph['resources']['policy-web']['directory'] / 'dist'
+        prepared_manifest = json.loads((frontend_output / 'manifest.json').read_text())
+        prepared_revision = prepared_manifest['revisions'][-1]
+        prepared_assets = {asset['file']: (frontend_output / asset['file']).read_bytes()
+                           for asset in prepared_revision['assets']}
         try:
             command([sys.executable, 'eng/composition_run.py', 'run'], root, directory / 'run')
             preparation = json.loads((root / 'artifacts/composition/prepared.json').read_text())
@@ -158,7 +163,15 @@ def main():
             edit_elapsed = round(time.monotonic() - edit_started, 3)
             frontend = root / graph['resources']['policy-web']['directory'] / graph['resources']['policy-web']['entry']
             frontend.write_text(frontend.read_text().replace("heading.textContent = 'Application foundation'", "heading.textContent = 'Consumer edited frontend'").replace("createElement('h1')", "createElement('h2')"), encoding='utf-8')
+            styles = frontend.with_name('styles.css')
+            styles.write_text(styles.read_text() + '\nh2 { color: rebeccapurple; }\n', encoding='utf-8')
             command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'frontend-update')
+            updated_manifest = json.loads((frontend_output / 'manifest.json').read_text())
+            if updated_manifest['currentRevision'] == prepared_manifest['currentRevision'] or prepared_revision not in updated_manifest['revisions']:
+                raise ValueError('frontend update did not retain the prepared revision alongside a new revision')
+            for name, payload in prepared_assets.items():
+                if (frontend_output / name).read_bytes() != payload:
+                    raise ValueError('frontend update changed a previous revision asset: ' + name)
             ui_updated = containers(preparation['project'])
             if any(after[name] != ui_updated[name] for name in after if name != changed):
                 raise ValueError('frontend edit recreated unrelated services')
