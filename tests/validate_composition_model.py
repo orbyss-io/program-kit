@@ -53,6 +53,58 @@ class ResourceModel(unittest.TestCase):
         self.assertEqual(converted['schemaVersion'], 2)
         self.assertNotIn('identity', converted)
 
+    def test_legacy_migration_preserves_identity_branding_and_archive(self):
+        import composition_migrate as migration
+        value = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json').read_text())
+        value['theme']['branding'] = {'displayName': 'Claim Evaluator', 'accentColor': '#0088aa'}
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); (root / 'eng').mkdir()
+            original = json.dumps(value).encode()
+            (root / model.INPUT).write_bytes(original)
+            plan = migration.preview(root)
+            migration.apply(root, plan['planDigest'])
+            converted = model.load(root)
+            self.assertEqual(converted['resources']['product-identity']['theme'], value['theme'])
+            self.assertEqual(model.legacy_view(converted, 'application-shell')['theme'], value['theme'])
+            self.assertEqual((root / plan['archive']).read_bytes(), original)
+            self.assertFalse(model.resources(converted, 'frontend'))
+
+    def test_proposal_migration_preserves_branding_and_consumer_activation_project(self):
+        from composition_fixture import two_apps
+        import composition_migrate as migration
+        import composition_render as renderer
+        graph = two_apps(ROOT)
+        graph['resources']['product-identity']['theme']['branding'] = {
+            'displayName': 'Claim Evaluator', 'accentColor': '#0088aa'}
+        branding = model.default_branding()
+        branding['theme'] = 'green'
+        branding['locales']['en-GB'].update(title='Claim Evaluator', purpose='Your private policies and evaluations.',
+            loadingText='Opening your workspace.', failureText='Your workspace is unavailable. Please try again.',
+            noScriptText='Enable JavaScript to use your private workspace.', logoAlt='Claim Evaluator')
+        branding['locales']['nl-NL'] = {**branding['locales']['en-GB'], 'title': 'Claimbeoordelaar'}
+        graph['resources']['policy-web']['branding'] = branding
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); (root / 'eng').mkdir()
+            proposal = root / 'eng/reviewed-proposal.json'; proposal.write_text(json.dumps(graph))
+            owned = root / 'tests/Activation/Activation.csproj'; owned.parent.mkdir(parents=True)
+            owned.write_bytes(b'<Project><!-- consumer-owned activation tests --></Project>\n')
+            original = owned.read_bytes()
+            plan = migration.preview(root, 'eng/reviewed-proposal.json')
+            migration.apply(root, plan['planDigest'], 'eng/reviewed-proposal.json')
+            converted = model.load(root)
+            self.assertEqual(converted, graph)
+            self.assertEqual(converted['resources']['policy-web']['branding'], branding)
+            self.assertNotIn('branding', converted['resources']['assessment-web'])
+            files = renderer.materialize(root, converted, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            realm = json.loads(files['deploy/keycloak/product-identity/program-kit-realm.json'][0])
+            self.assertEqual(realm['displayName'], 'Claim Evaluator')
+            css = files['deploy/keycloak/product-identity/themes/program-kit/login/resources/css/program-kit.css'][0]
+            self.assertIn(b'--program-kit-brand-accent: #0088aa', css)
+            self.assertFalse(any(path.startswith('tests/') for path in files))
+            self.assertEqual(owned.read_bytes(), original)
+
     def test_two_contexts_can_bind_two_databases_on_one_server(self):
         value = example()
         value['resources']['audit-db'] = {'kind': 'database', 'engine': 'postgresql', 'name': 'audit'}

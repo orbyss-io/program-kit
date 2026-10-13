@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_composition_activation",
+      "command": ["{python}", "tests/validate_composition_activation.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Build and execute consumer-owned activation tests against generated feature contracts; reject missing direct CShells references using existing central pins.",
+      "owner": "program-kit",
+      "inputs": ["extensions/program-kit-dotnet/scripts/foundation_composition.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props", "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/packages.json", "extensions/program-kit-dotnet/templates/dotnet/files/global.json", "tests/validate_composition_activation.py", "tests/fixtures/composition-activation/**"],
+      "outputs": ["artifacts/tests/composition-activation"], "resources": [],
+      "isolation": "Unique disposable compiler fixture and pinned public packages; no service, live consumer or coding agent."
+    },
+    {
       "id": "validate_story_delivery",
       "command": ["{python}", "tests/validate_story_delivery.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],

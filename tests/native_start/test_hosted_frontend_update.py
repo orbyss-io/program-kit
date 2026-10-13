@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
 sys.path.insert(0, str(TEMPLATE / 'files/eng'))
 from composition_fixture import two_apps
 import composition_render
+import composition_model
 import prepare_hosted_pages
 import runtime_closure
 
@@ -56,6 +57,10 @@ class HostedFrontendUpdateTests(unittest.TestCase):
             output = root / frontend['directory'] / 'dist'
             original = json.loads((output / 'manifest.json').read_text())
             prior = original['revisions'][-1]
+            defaults = composition_model.default_branding()
+            self.assertEqual(prior['locales'], defaults['locales'])
+            self.assertEqual(prior['defaultLocale'], defaults['defaultLocale'])
+            self.assertEqual(prior['theme'], defaults['theme'])
             prior_bytes = {asset['file']: (output / asset['file']).read_bytes() for asset in prior['assets']}
             self.assert_hashed_mount(commands, output, frontend, prior, 'Application foundation')
 
@@ -64,6 +69,14 @@ class HostedFrontendUpdateTests(unittest.TestCase):
             source.write_text(source.read_text().replace('Application foundation', 'Edited application'), encoding='utf-8')
             styles = source.with_name('styles.css')
             styles.write_text(styles.read_text() + '\nh1 { color: rebeccapurple; }\n', encoding='utf-8')
+            # Consumer-supplied branding reaches the actual producer unchanged.
+            branding = composition_model.default_branding()
+            branding['theme'] = 'green'
+            branding['locales']['en-GB'].update(title='Claim Evaluator', purpose='Your private policies and evaluations.',
+                loadingText='Opening your workspace.', failureText='Your workspace is unavailable. Please try again.',
+                noScriptText='Enable JavaScript to use your private workspace.', logoAlt='Claim Evaluator')
+            branding['locales']['nl-NL'] = {**branding['locales']['en-GB'], 'title': 'Claimbeoordelaar'}
+            frontend['branding'] = branding
             with self.assertRaisesRegex(ValueError, 'PKC110 frontend inputs changed'):
                 prepare_hosted_pages.admission(root, graph, 'policy-web')
             prepare_hosted_pages.build(root, graph, commands, selected_hosts=hosts)
@@ -72,6 +85,9 @@ class HostedFrontendUpdateTests(unittest.TestCase):
             self.assertEqual([prior['id'], updated['currentRevision']], [item['id'] for item in updated['revisions']])
             self.assertEqual(prior, updated['revisions'][0])
             current = updated['revisions'][-1]
+            self.assertEqual(current['locales'], branding['locales'])
+            self.assertEqual(current['defaultLocale'], branding['defaultLocale'])
+            self.assertEqual(current['theme'], branding['theme'])
             self.assert_hashed_mount(commands, output, frontend, current, 'Edited application')
             self.assert_hashed_mount(commands, output, frontend, prior, 'Application foundation')
             self.assertTrue(set(prior_bytes).isdisjoint(asset['file'] for asset in current['assets']))

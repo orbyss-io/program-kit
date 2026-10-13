@@ -195,7 +195,12 @@ def main():
     accepted_graph = two_apps(ROOT)
     accept_fixture(accepted_root, accepted_graph, ROOT)
     (accepted_root / composition.INPUT).write_bytes(composition.encoded(accepted_graph))
+    activation = accepted_root / 'tests/Activation/Activation.csproj'
+    activation.parent.mkdir(parents=True)
+    activation_bytes = (ROOT / 'tests/fixtures/composition-activation/Activation.Tests.csproj').read_bytes()
+    activation.write_bytes(activation_bytes)
     sync(accepted_root)
+    assert activation.read_bytes() == activation_bytes
     native_path = 'eng/ProgramKit.BuildingBlocks.props'
     native_bytes = b'<Project><!-- existing native selection contribution --></Project>\n'
     (accepted_root / native_path).write_bytes(native_bytes)
@@ -215,6 +220,7 @@ def main():
     assert 'consumer-owned central configuration' in migrated_central
     assert migrated_central.count('<Import Project="eng/ProgramKit.Foundation.props"') == 1
     sync(accepted_root, True)
+    assert activation.read_bytes() == activation_bytes
     observations = []
     for variant in [args.variant] if args.variant else sorted(composition.VARIANTS):
         legacy = composition.read(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions' / (variant + '.json'))

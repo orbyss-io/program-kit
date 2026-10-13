@@ -14,6 +14,33 @@ bind separate databases on a shared server, and multiple applications can use on
 authority with separate registrations and audiences. This supplies no aggregate C#
 project or consumer host. Feature and context sources are consumer-owned after scaffold.
 
+Branding is consumer-owned authoring data. During migration, retain the existing
+identity display name/accent in `identityAuthority.theme.branding` and each frontend's
+localized title, purpose, loading, failure, no-script and logo alternative text in
+`frontend.branding`. The version 1 importer preserves its explicit identity theme;
+version 1 has no frontend resource. For a reviewed version 2 proposal, the consumer
+must carry existing frontend branding into the proposal before preview/apply. The
+importer preserves supplied values; it does not infer copy from generated realm,
+theme or page files. New projects without supplied branding keep the generic defaults.
+
+Activation-test projects and their feature `ProjectReference` bindings are
+consumer-owned. Program Kit does not generate or rebind them during composition
+migration/synchronization. Tests that instantiate or inspect web feature types must
+directly reference both `CShells.Abstractions` and `CShells.AspNetCore.Abstractions`,
+using the matching central pins already imported from `eng/ProgramKit.Packages.props`:
+
+```xml
+<PackageReference Include="CShells.Abstractions" PrivateAssets="all" />
+<PackageReference Include="CShells.AspNetCore.Abstractions" PrivateAssets="all" />
+```
+
+Feature projects keep these contracts private because the production host supplies
+them. A test `ProjectReference` therefore cannot supply their compile/runtime closure.
+After rebinding tests to migrated feature projects, restore through the supported
+consumer tooling and build/execute the actual activation tests. Preserve unrelated
+locks; do not remove `PrivateAssets="all"` from feature projects to make tests compile.
+Native host readiness complements these consumer registration/preparation assertions.
+
 A frontend can bind several distinct page routes in the same shell while sharing one
 compiled deployment root. Each `frontend` binding supplies its `routeId` and `path`,
 with optional `pagePermission` and `bootstrapPermission`. Both admissions remain
