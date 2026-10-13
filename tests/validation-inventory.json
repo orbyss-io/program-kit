@@ -47,7 +47,7 @@
       "platforms": ["Windows", "Linux"],
       "purpose": "Actual selected public composition activation, maintained authentication/provider checks, disposable product ownership, migration and fresh/prepared acquisition measurements; no coding agent.",
       "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/**", "tests/qualify_reusable_foundations.py", "tests/fixtures/reusable-foundations/**"],
-      "outputs": ["artifacts/tests/reusable-foundations"], "resources": ["docker", "browser"],
+      "outputs": ["artifacts/tests/reusable-foundations"], "resources": ["docker", "browser-runtime"],
       "isolation": "Unique disposable consumers and owned containers; reference repositories and live data remain untouched."
     },
     {
@@ -108,7 +108,8 @@
         "artifacts/consumer-provider-runtime"
       ],
       "resources": [
-        "docker"
+        "docker",
+        "browser-runtime"
       ]
     },
     {
@@ -4455,7 +4456,7 @@
       ],
       "resources": [
         "docker",
-        "browser"
+        "browser-runtime"
       ],
       "isolation": "Unique fictional consumer/Compose project and retained owned volumes; zero paid providers or coding agents. Prepared host evidence is not a clean OS claim."
     }
