@@ -15,6 +15,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 import retired_sync_integration
+import native_phase_ownership
 
 from openapi_upgrade_reconciliation import (
     ReconciliationError,
@@ -114,6 +115,150 @@ def selected_integration(target: Path, requested: str) -> str:
     if not isinstance(candidate, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", candidate):
         raise UpgradeError(f"PKU104 unsupported integration identity: {candidate!r}")
     return candidate
+
+
+def phase_refresh_plan(target: Path, release: Path) -> dict:
+    """Admit native refresh from recorded ownership, never from a directory convention."""
+    from specify_cli.integrations import get_integration
+    from specify_cli.integrations.manifest import IntegrationManifest
+    state = read_destination_state(target / '.specify/integration.json', 'integration')
+    default = state.get('default_integration') or state.get('integration')
+    keys = state.get('installed_integrations', [default])
+    if (not isinstance(keys, list) or not keys or default not in keys
+            or any(not isinstance(key, str) or not re.fullmatch(r'[A-Za-z0-9_-]+', key) for key in keys)
+            or len(keys) != len(set(keys))):
+        raise UpgradeError('PKU134 native phase refresh needs unambiguous installed integration ownership')
+    flow = load_release_module(release / 'extensions/program-kit-governance/scripts/consumer_upgrade.py',
+                               'upgrade_phase_ownership')
+    rows = []
+    for key in sorted(keys):
+        if get_integration(key) is None:
+            raise UpgradeError(f'PKU134 native phase refresh does not support installed integration {key}')
+        path = target / '.specify/integrations' / (key + '.manifest.json')
+        if not path.is_file():
+            raise UpgradeError(f'PKU134 native phase refresh has no ownership manifest: {path}')
+        try:
+            manifest = IntegrationManifest.load(key, target)
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            raise UpgradeError(f'PKU134 invalid native integration manifest {key}: {error}') from error
+        if not manifest.files:
+            raise UpgradeError(f'PKU134 native integration {key} has no owned phase outputs')
+        inherited, hashes = [], {}
+        for relative, expected in manifest.files.items():
+            output = repository_relative_path(target, relative, key + ' phase output')
+            observed = hashlib.sha256(output.read_bytes()).hexdigest() if output.is_file() else None
+            hashes[relative] = observed
+            preset = flow.preset_baseline(target, relative, key)
+            # A recovered file was observed during install rather than produced.
+            # Equality with its recorded hash alone cannot authorize replacement.
+            recovered = manifest.is_recovered(relative)
+            if recovered or (observed is not None and observed != expected.removeprefix('sha256:')):
+                restored = restored_core_baseline(target, relative, key) if preset != observed else None
+                if observed is None or (preset != observed and restored != observed):
+                    raise UpgradeError(f'PKU134 consumer customization or unresolved native ownership: '
+                                       f'{key} {relative}; preserve it and reconcile the owner before refresh')
+                inherited.append(relative)
+        rows.append({'integration': key, 'before': hashes, 'nativePresetOverrides': inherited})
+    native = native_phase_ownership.preflight(target, release, sorted(keys))
+    return {'schemaVersion': 1, 'defaultIntegration': default, 'integrations': rows,
+            'nativePhaseOwnership': native}
+
+
+def restored_core_baseline(target: Path, relative: str, integration: str) -> str | None:
+    """Recognize native preset-removal rendering without trusting its installed cache.
+
+    Spec Kit's core setup and preset-removal renderers have different skill
+    headings. Both are maintained producers. Re-render the removal form from
+    bundled core into a disposable view to recognize historical native restores.
+    """
+    path = Path(relative)
+    if path.name != 'SKILL.md' or not path.parent.name.startswith('speckit-'):
+        return None
+    try:
+        from specify_cli.presets import PresetManager
+        with tempfile.TemporaryDirectory(prefix='program-kit-core-ownership-') as name:
+            view = Path(name)
+            for source_name in ('init-options.json', 'integration.json'):
+                source = repository_relative_path(target, '.specify/' + source_name, 'native core inputs')
+                if source.is_file():
+                    destination = view / '.specify' / source_name
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    destination.write_bytes(source.read_bytes())
+            skills = view / 'skills'
+            (skills / path.parent.name).mkdir(parents=True)
+            (skills / path.parent.name / 'SKILL.md').write_text('Native restore target\n', encoding='utf-8')
+            PresetManager(view)._unregister_skills_in_dir([path.parent.name], skills, integration,
+                                                     restore_from_bundled_core=True)
+            generated = skills / path.parent.name / 'SKILL.md'
+            return hashlib.sha256(generated.read_bytes()).hexdigest() if generated.is_file() else None
+    except (ImportError, AttributeError, ValueError, OSError, KeyError, TypeError):
+        return None
+
+
+def refresh_phase_integrations(target: Path, release: Path, specify: list[str], plan: dict,
+                               directory: Path, number: int, total: int) -> int:
+    """Native core setup and native extension/preset composition for every installed integration."""
+    from specify_cli.integrations.manifest import IntegrationManifest
+    flow = load_release_module(release / 'extensions/program-kit-governance/scripts/consumer_upgrade.py',
+                               'upgrade_phase_ownership_after_components')
+    results = []
+    original = plan['defaultIntegration']
+    try:
+        for row in plan['integrations']:
+            key = row['integration']
+            manifest = IntegrationManifest.load(key, target)
+            # Native preset registration may legitimately predate the core manifest
+            # hash. Rebind only bytes recomposed from declared native preset inputs.
+            # This does not authorize --force or recovered/user-authored outputs.
+            changed = False
+            for relative in manifest.check_modified():
+                output = repository_relative_path(target, relative, key + ' phase output')
+                expected = flow.preset_baseline(target, relative, key)
+                observed = hashlib.sha256(output.read_bytes()).hexdigest() if output.is_file() else None
+                restored = restored_core_baseline(target, relative, key) if expected != observed else None
+                if observed is None or (expected != observed and restored != observed):
+                    raise UpgradeError(f'PKU134 phase output changed during installation: {key} {relative}')
+                manifest.record_existing(relative)
+                changed = True
+            if changed:
+                manifest.save()
+            run_step(specify + ['integration', 'upgrade', key], target,
+                     'Refresh native phase machinery: ' + key, number, total, directory)
+            number += 1
+            # Core upgrades re-register only the active integration. Native use
+            # composes every other integration without copying generated outputs.
+            run_step(specify + ['integration', 'use', key], target,
+                     'Compose installed phase contributions: ' + key, number, total, directory)
+            number += 1
+            refreshed = IntegrationManifest.load(key, target)
+            files = {}
+            for relative in refreshed.files:
+                output = repository_relative_path(target, relative, key + ' refreshed phase output')
+                if not output.is_file():
+                    raise UpgradeError(f'PKU134 refreshed native phase output is missing: {key} {relative}')
+                observed = hashlib.sha256(output.read_bytes()).hexdigest()
+                expected = flow.preset_baseline(target, relative, key)
+                if expected is not None and expected != observed:
+                    raise UpgradeError(f'PKU134 native preset composition did not converge: {key} {relative}')
+                files[relative] = observed
+            if refreshed.check_modified():
+                # Native use can register the same preset after the core upgrade;
+                # reconcile only recomposed native preset bytes on that path too.
+                for relative in refreshed.check_modified():
+                    if flow.preset_baseline(target, relative, key) != files.get(relative):
+                        raise UpgradeError(f'PKU134 native refresh hash mismatch: {key} {relative}')
+                    refreshed.record_existing(relative)
+                refreshed.save()
+            results.append({'integration': key, 'outputs': files,
+                            'version': refreshed.version, 'nativeRefresh': True})
+    finally:
+        if selected_integration(target, 'auto') != original:
+            run_step(specify + ['integration', 'use', original], target,
+                     'Restore selected integration: ' + original, number, total, directory)
+            number += 1
+    write_attempt(directory / 'phase-refresh.json', {**plan, 'results': results,
+                  'defaultRestored': selected_integration(target, 'auto') == original})
+    return number
 
 
 def require_existing_bundle(target: Path) -> None:
@@ -506,6 +651,11 @@ def repository_relative_path(target: Path, value: str, label: str) -> Path:
     relative = Path(value.replace("\\", "/"))
     if not value or relative.is_absolute() or ".." in relative.parts:
         raise UpgradeError(f"PKU115 unsafe {label} destination: {value!r}")
+    lexical = target
+    for part in relative.parts:
+        lexical = lexical / part
+        if lexical.is_symlink() or getattr(lexical, 'is_junction', lambda: False)():
+            raise UpgradeError(f"PKU115 linked {label} destination must be reconciled before mutation: {value!r}")
     path = (target / relative).resolve()
     try:
         path.relative_to(target)
@@ -1225,8 +1375,13 @@ def main() -> int:
             observed = previous_installed_version(target, release, version, args.repair_of_release_sha256)
             _, plan = migration_plan(release, migration_origin(target, current_version(target), observed, version), version)
             plan['installationActions'] = ['install bundle/workflow/extensions/preset sequentially',
+                'refresh every installed native integration and compose all registered phase contributions; preserve customizations',
                 'synchronize engineering configuration transactionally', 'validate installation coherence',
                 'restore and verify affected native dependencies' if not args.offline else 'report native dependency verification pending']
+            if importlib.util.find_spec('specify_cli') is not None:
+                plan['phaseRefreshPlan'] = phase_refresh_plan(target, release)
+            else:
+                plan['phaseRefreshPlan'] = {'unresolved': 'Native ownership preview requires the installed Spec Kit Python runtime; installation runs this admission before component writes.'}
             profile = load_managed_profile(target)
             if profile:
                 result = subprocess.run([sys.executable, str(release / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
@@ -1259,6 +1414,7 @@ def main() -> int:
         delegated = ensure_cli_runtime(specify, release)
         if delegated is not None:
             return delegated
+        phase_plan = phase_refresh_plan(target, release)
         if pending_upgrade_transactions(target):
             descriptor, lock_path = acquire_lock(target)
             recover_upgrade_transactions(target, release)
@@ -1333,18 +1489,24 @@ def main() -> int:
         ]
         total = (
             len(steps)
+            + 2 * len(phase_plan['integrations'])
+            + (1 if len(phase_plan['integrations']) > 1 else 0)
             + 2
             + 1
             + (1 if has_bootstrap_decisions else 0)
             + (1 if reconciliation else 0)
         )
-        for number, (command, label) in enumerate(steps, 1):
+        # Seal the bundle only after actual core and contribution refresh.
+        for number, (command, label) in enumerate(steps[:-1], 1):
             run_step(command, target, label, number, total, attempt_path.parent)
+        next_step = refresh_phase_integrations(target, release, specify, phase_plan,
+                                              attempt_path.parent, len(steps), total)
+        run_step(steps[-1][0], target, steps[-1][1], next_step, total, attempt_path.parent)
+        next_step += 1
         runtime.record_copy(target)
         retired_sync_integration.verify_removed(target)
         if exporter_transition:
             apply_catalog_transition(target, release, exporter_transition, exporter_transition["resolver"], version)
-        next_step = len(steps) + 1
         print(f"[{next_step}/{total}] Synchronize existing repository setup")
         sync_source = target / ".specify/extensions/program-kit-governance/scripts/repository_sync.py"
         sys.path.insert(0, str(sync_source.parent))

@@ -77,6 +77,35 @@ the obligations that must already be established by an ancestor task's `Provides
 dependencies, not evidence that a task has passed. Do not claim a prerequisite for unrelated
 operations; a missing required gate or unexplained cross-operation dependency blocks finalization.
 Semantic review verifies that the declarations include every actual gate from governing inputs.
+
+## Verification obligations
+
+| Task | Scope | Retained baseline | Selected test owners | Planned changed inputs |
+|------|-------|-------------------|----------------------|------------------------|
+| [verification task ID] | Affected | [original implementation Git baseline] | [exact comma-separated csproj paths] | [complete comma-separated planned changed paths] |
+
+## Test materialization map
+
+| Test owner | Producer task | Existing native evidence |
+|------------|---------------|--------------------------|
+| [exact csproj path] | [task that adds its meaningful tests] | none |
+
+Record these maps for every named Affected checklist gate. Named Focused gates can also use
+them. Each selected owner has a producer task that is an ancestor of its gate, or `existing`
+with an intact schema-version-2 native run receipt proving that owner executed at least one
+test. Task finalization and after_tasks compare owners to maintained native selection for the
+planned inputs. Include shared build inputs and pending retired-owner obligations. This is
+planned ordering, never an execution receipt. Keep the original baseline and eventual Affected
+gate when moving a prerequisite to Focused; preserve existing task IDs and approved edges.
+
+For test responsibilities in `eng/architecture.json`, declare `testSeams` from actual direct
+test use: `shell-lifecycle` needs CShells.Abstractions; `api-feature` and shell `activation`
+need both CShells contracts; `pure-core` adds neither. Do not infer test dependencies from a
+tested project's role. Unknown/missing scoped knowledge requires a diagnosis. For a new
+declared owner, preview `python eng/test_project.py --project <path>` and apply only its
+reviewed digest; existing consumer projects remain authored. Use selected central pins,
+synchronize exact package inventory, restore normally and retain locks before execution.
+
 Retained roadmap-feature prerequisites due before implementation still gate feature preflight.
 Operation dependency rows cannot defer or waive approved ledger gates, authority, approvals or pins;
 distinguish them from ordinary scoped enabling-task prerequisites.

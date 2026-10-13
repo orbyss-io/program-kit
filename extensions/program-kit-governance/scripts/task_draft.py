@@ -165,7 +165,7 @@ def _items(cell):
     return parts
 
 
-def validate_operation_graph(content, required=False):
+def validate_operation_graph(content, required=False, root=None):
     """Check declared task/gate topology; semantic input review remains required."""
     if not re.search(r'^## Operation dependency map\s*$', content, re.M):
         if required:
@@ -217,7 +217,80 @@ def validate_operation_graph(content, required=False):
         provided = set().union(*(tasks[a]['provides'] for a in task_ancestors[task]))
         if row['requires'] - provided:
             raise ValueError('Missing prerequisite gates for ' + task + ': ' + ', '.join(sorted(row['requires'] - provided)))
+    validate_verification_obligations(content, tasks, task_ancestors, root)
     return True
+
+
+def validate_verification_obligations(content, tasks, ancestors, root=None):
+    """A broad planned gate must follow every selected owner's test-producing task.
+
+    Native selection checks the declared future changed inputs. It is planning
+    evidence; actual execution still enforces meaningful tests and retained failures.
+    """
+    broad = {task for task, description in re.findall(r'^- \[[ xX]\] (T\d+) (.+)$', content, re.M)
+             if re.search(r'\bAffected\b', description)}
+    has_map = bool(re.search(r'^## Verification obligations\s*$', content, re.M))
+    if not has_map:
+        if broad:
+            raise ValueError('PKT021 Affected gate requires Verification obligations and Test materialization map: ' + ', '.join(sorted(broad)))
+        return
+    def paths(cell):
+        values = [part.strip().strip('`') for part in cell.split(',')]
+        if not values or any(not value or Path(value).is_absolute() or '..' in Path(value).parts for value in values):
+            raise ValueError('PKT021 use explicit repository-relative verification owners/inputs')
+        return values
+    materialization = {}
+    for owner, producer, evidence in _table(content, 'Test materialization map', 3):
+        if owner in materialization or not owner.endswith('.csproj'):
+            raise ValueError('PKT021 invalid or duplicate test owner: ' + owner)
+        paths(owner)
+        if producer != 'existing':
+            if producer not in tasks or evidence != 'none':
+                raise ValueError('PKT021 name an actual test-producing task, or existing native evidence: ' + owner)
+        else:
+            paths(evidence)
+            if evidence == 'none' or root is None:
+                raise ValueError('PKT021 existing meaningful suite requires verifiable native evidence: ' + owner)
+            from repository_verification import evidence_valid
+            receipt_path = (root / evidence).resolve()
+            if not receipt_path.is_relative_to(root.resolve()) or not receipt_path.is_file():
+                raise ValueError('PKT021 missing native test evidence: ' + owner)
+            receipt = json.loads(receipt_path.read_text(encoding='utf-8'))
+            outcomes = [o for o in receipt.get('outcomes', []) if o.get('project') == owner]
+            if receipt.get('schemaVersion') != 2 or not any(o.get('status') == 'completed'
+                    and type(o.get('executedTests')) is int and o['executedTests'] >= 1
+                    and evidence_valid(root, receipt_path, o) for o in outcomes):
+                raise ValueError('PKT021 existing suite lacks valid meaningful native execution: ' + owner)
+        materialization[owner] = producer
+    covered = set()
+    baselines = set()
+    for gate, scope, baseline, owners_cell, inputs_cell in _table(content, 'Verification obligations', 5):
+        if gate not in tasks or gate in covered or scope not in {'Focused', 'Affected'} or not baseline or baseline == 'none':
+            raise ValueError('PKT021 invalid/duplicate verification gate or missing retained baseline: ' + gate)
+        if gate in broad and scope != 'Affected':
+            raise ValueError('PKT021 an Affected checklist gate must retain its Affected obligation: ' + gate)
+        covered.add(gate); baselines.add(baseline)
+        owners = set(paths(owners_cell))
+        if not owners <= materialization.keys():
+            raise ValueError('PKT021 unresolved selected test materialization: ' + gate + '; ' + ', '.join(sorted(owners - materialization.keys())))
+        if root is not None:
+            from repository_verification import select
+            inputs = paths(inputs_cell)
+            actual = select(root, scope, projects=sorted(owners) if scope == 'Focused' else (),
+                            changed_paths=inputs)['projects']
+            if set(actual) != owners:
+                raise ValueError('PKT021 selected test owners differ from maintained selection: ' + gate + '; actual ' + ', '.join(actual))
+        for owner in owners:
+            producer = materialization[owner]
+            if producer != 'existing' and producer not in ancestors[gate]:
+                raise ValueError('PKT021 premature ' + scope + ' gate ' + gate + ': ' + owner + ' is produced by ' + producer + '; add the dependency or move the gate after materialization')
+    if broad - covered:
+        raise ValueError('PKT021 missing Affected verification obligations: ' + ', '.join(sorted(broad - covered)))
+    if len(baselines) != 1:
+        raise ValueError('PKT021 preserve one original implementation baseline across verification gates')
+    retained = CURRENT.search(content)
+    if retained and json.loads(retained[1]).get('baseline') not in baselines:
+        raise ValueError('PKT021 verification obligations must retain the original checkpoint baseline')
 
 
 def prepare(root, feature, phases):
@@ -288,7 +361,7 @@ def finalize(root, feature):
     ids = [line.split()[0] for line in checklists]
     if len(ids) != len(set(ids)):
         raise ValueError('Duplicate task IDs in saved draft; resolve before analysis')
-    validate_operation_graph(content, required=state.get('format') in ('operation-plan', 'story-plan'))
+    validate_operation_graph(content, required=state.get('format') in ('operation-plan', 'story-plan'), root=root)
     if state.get('format') == 'story-plan':
 
         plan(content)
@@ -579,7 +652,7 @@ def guard(root, feature, operation=None, closure=False, repair=False):
     value = refresh(root, load_delivery(feature))
     from task_draft import validate_operation_graph
     content = (feature / 'tasks.md').read_text(encoding='utf-8')
-    validate_operation_graph(content, required=True)
+    validate_operation_graph(content, required=True, root=root)
     require(plan(content) == value['plan'],
             'Story plan changed; obtain a scope decision and update the affected artifacts/state')
     persist(feature, value)
@@ -645,7 +718,7 @@ def initialize(root, feature, request, now):
     from task_draft import load as draft_load, validate_operation_graph
     _, draft = draft_load(feature / 'tasks.md')
     require(not draft or draft['status'] == 'complete', 'Finish task drafting/analysis before implementation')
-    validate_operation_graph(content, required=True)
+    validate_operation_graph(content, required=True, root=root)
     selected = plan(content)
     require(nonempty(request.get('source')), 'Record the requesting human conversation source')
     value = {'version': 1, 'plan': selected,

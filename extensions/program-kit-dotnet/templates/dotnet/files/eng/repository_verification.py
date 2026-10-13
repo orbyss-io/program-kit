@@ -43,7 +43,7 @@ def digest(value):
     return hashlib.sha256(value).hexdigest()
 
 
-def configuration(root):
+def configuration(root, normalize_owners=True):
     path = root / 'eng/verification.json'
     value = read(path) if path.is_file() else {'schemaVersion': 1, 'testGroups': []}
     setup_path = root / 'eng/verification.setup.json'
@@ -60,6 +60,10 @@ def configuration(root):
         require(isinstance(group, dict), 'PKV003 testGroup must be an object')
         require(all(key not in group or isinstance(group[key], bool) for key in ('reuse', 'externalState')),
                 'PKV003 reuse and externalState must be booleans')
+    if normalize_owners and value.get('testOwnershipReplacements'):
+        replacements = ownership_replacements(root)
+        value = {**value, 'testGroups': [{**group, 'projects': replacement_projects(root,
+                  group.get('projects', []), replacements)} for group in value.get('testGroups', [])]}
     return value
 
 
@@ -76,7 +80,7 @@ def normalize(root, path):
 
 def ownership_replacements(root, graph=None):
     """Explicit migration of retired test owners; no aliases for still-active tests."""
-    rows = configuration(root).get('testOwnershipReplacements', [])
+    rows = configuration(root, normalize_owners=False).get('testOwnershipReplacements', [])
     require(isinstance(rows, list), 'PKV003 testOwnershipReplacements must be an array')
     if not rows:
         return {}
@@ -103,6 +107,78 @@ def ownership_replacements(root, graph=None):
             return {project}
         return set().union(*(leaves(p, active | {project}) for p in mappings[project]))
     return {p: sorted(leaves(p, set())) for p in mappings}
+
+
+def replacement_projects(root, projects, replacements):
+    require(isinstance(projects, list) and all(isinstance(p, str) for p in projects),
+            'PKV003 verification projects must be an array of owner paths')
+    return sorted({successor for project in projects
+                   for successor in replacements.get(normalize(root, project), [normalize(root, project)])})
+
+
+def ownership_reconciliation(root):
+    """Preview only explicit successor substitutions; preserve authored checks and archives."""
+    graph = validate_planned(root, read(root / 'eng/architecture.json'))
+    replacements = ownership_replacements(root, graph)
+    tests = {p for p, row in graph.items() if row['role'] == 'test'}
+    changes, basis = {}, {}
+    for relative, field in (('eng/verification.json', 'testGroups'),
+                            ('eng/verification.setup.json', 'testGroups'),
+                            ('eng/verification-inputs.json', 'rules')):
+        path = root / relative
+        if not path.is_file():
+            continue
+        source = path.read_bytes(); value = json.loads(source)
+        require(value.get('schemaVersion') == 1 and isinstance(value.get(field, []), list),
+                'PKV003 unsupported ownership mappings: ' + relative)
+        changed = False
+        for group in value.get(field, []):
+            require(isinstance(group, dict), 'PKV003 invalid ownership row: ' + relative)
+            projects = group.get('projects', [])
+            normalized = replacement_projects(root, projects, replacements)
+            require(set(normalized) <= tests, 'PKV003 unresolved verification owner: ' + relative + '; ' + ', '.join(sorted(set(normalized) - tests)))
+            if set(normalized) != set(projects):
+                group['projects'] = normalized; changed = True
+        basis[relative] = digest(source)
+        if changed:
+            changes[relative] = json.dumps(value, indent=2) + '\n'
+    basis['eng/architecture.json'] = digest((root / 'eng/architecture.json').read_bytes())
+    managed = root / '.program-kit/managed.json'
+    basis['.program-kit/managed.json'] = digest(managed.read_bytes()) if managed.is_file() else None
+    identity = {'basis': basis, 'replacements': replacements, 'changes': changes}
+    return {**identity, 'planDigest': digest(json.dumps(identity, sort_keys=True).encode()),
+            'unresolved': unresolved_failures(root), 'acceptanceEstablished': False}
+
+
+def reconcile_ownership(root, approved_digest=None):
+    plan = ownership_reconciliation(root)
+    if approved_digest is None:
+        return plan
+    require(plan['planDigest'] == approved_digest, 'PKV003 ownership inputs changed; review a fresh reconciliation preview')
+    # The native .NET sync transaction owns writes and preserves consumer customizations.
+    # Expose a hash-bound reviewed proposal for that existing reconciliation adapter.
+    import importlib.util
+    adapter = root / '.specify/extensions/program-kit-dotnet/scripts/reconciliation.py'
+    require(adapter.is_file(), 'PKV003 supported installed reconciliation adapter required; run native .NET installation/sync')
+    spec = importlib.util.spec_from_file_location('verification_owned_reconciliation', adapter)
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    operations = [{'kind': 'write', 'path': relative, 'content': content.encode('utf-8')}
+                  for relative, content in plan['changes'].items()]
+    require(not module.pending_transactions(root), 'PKV003 recover the pending native sync transaction before ownership reconciliation')
+    state_path = root / '.program-kit/managed.json'
+    require(state_path.is_file(), 'PKV003 installed native sync state required before ownership reconciliation')
+    state = read(state_path)
+    for relative, content in plan['changes'].items():
+        row = state.get('files', {}).get(relative)
+        if row is not None:
+            require(isinstance(row, dict), 'PKV003 invalid installed ownership state: ' + relative)
+            row.update(installedHash=digest(content.encode()), lastWrittenHash=digest(content.encode()))
+    state['verificationOwnershipReconciliation'] = {'planDigest': plan['planDigest'],
+                                                  'replacements': plan['replacements']}
+    next_state = (json.dumps(state, indent=2, sort_keys=True) + '\n').encode('utf-8')
+    # Adapter API is shared with ordinary sync; writes retain its existing rollback journal.
+    transaction = module.apply_plan(root, operations, next_state)
+    return {**plan, 'transactionId': transaction, 'applied': True}
 
 
 def changed_inputs(root, baseline):
@@ -817,7 +893,9 @@ def execute(root, selection, arguments, configuration='Debug', restore=False, re
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', default='.')
-    parser.add_argument('--scope', choices=('Focused', 'Affected'), required=True)
+    parser.add_argument('--scope', choices=('Focused', 'Affected'))
+    parser.add_argument('--reconcile-owners', action='store_true', help='Preview successor substitutions in setup and authored verification mappings')
+    parser.add_argument('--apply-digest', help='Apply only the reviewed --reconcile-owners plan through the native sync transaction')
     parser.add_argument('--project', action='append', default=[])
     parser.add_argument('--changed-path', action='append', default=[])
     parser.add_argument('--changed-from')
@@ -832,6 +910,13 @@ def main():
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
+        if args.reconcile_owners:
+            require(not args.scope and not args.project and not args.changed_path and not args.test_argument,
+                    'PKV003 ownership reconciliation is separate from test execution')
+            print(json.dumps(reconcile_ownership(root, args.apply_digest)))
+            return 0
+        require(args.scope is not None and args.apply_digest is None,
+                'PKV002 test execution requires --scope; apply-digest belongs to --reconcile-owners')
         selection = select(root, args.scope, args.project, args.changed_path, args.changed_from)
         if args.feature_dir:
             selection['feature'] = normalize(root, args.feature_dir)

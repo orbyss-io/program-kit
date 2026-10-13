@@ -108,6 +108,7 @@ def foundation_applicability(root, feature, inherited, tags):
     if not capture:
         return {'version': version, 'profile': effective['profile'], 'sourceCommit': None,
                 'guidance': ['This exact selection has no captured publisher mechanism knowledge. Resolve its exact profile before choosing an unverified Foundation mechanism; no newer default is substituted.']}
+    capabilities = provider('program-kit-building-blocks/scripts/wire_capabilities.py').project(blocks, effective)
     registry = Path(effective['registryPath'])
     def document(name):
         row = next((item for item in capture['documents'] if item['publisherPath'] == name), None)
@@ -123,6 +124,12 @@ def foundation_applicability(root, feature, inherited, tags):
     if 'permission:' in permission:
         guidance += ['Where BFF is selected, it supplies session admission; endpoints require canonical permission:<owned id> through Foundation authorization. Application code retains resource/state/effect checks.']
     guidance += ['Use the exact package schemas and typed configuration for shell deployment values. Keep application permission/route identities in owned constants and use captured framework identifiers; literals are assessed by ownership and lifecycle.']
+    if capabilities['problem']:
+        guidance += ['Selected problem writer fields: ' + ', '.join(capabilities['problem']['fields'])
+                     + '; closed envelope. Put recovery metadata in typed operation responses/UI with retained server-issued operation identity.']
+    if capabilities['json']:
+        guidance += ['Selected JSON profiles require Strict numeric tokens. Use demonstrated scoped JsonNumberHandling.Strict DTO metadata; regenerate actual producer/client output and prove reader/writer parity. Custom converters or shared types under distinct profiles require exact binding proof.']
+    guidance += ['Unresolved selected wire capability: ' + message for message in capabilities['unresolved']]
     prose = '\n'.join((feature / name).read_text(encoding='utf-8') for name in ('spec.md', 'plan.md') if (feature / name).is_file())
     hosted = [instance for instance in instances if instance['composition'] == 'hosted_pages']
     if hosted:
@@ -141,7 +148,8 @@ def foundation_applicability(root, feature, inherited, tags):
             guidance += ['This capture exposes typed HostedPages Routes. Bind distinct route IDs/paths/revisions and page/bootstrap access; qualify the actual admission behavior, including inherited bootstrap requirements and shared-revision isolation.']
         elif 'AllowAnonymous' in feature_source:
             guidance += ['HostedPages in this exact capture serves public HTML/bootstrap. An instance name or response policy cannot confer private admission.']
-    return {'version': version, 'profile': effective['profile'], 'sourceCommit': capture['sourceCommit'], 'guidance': guidance}
+    return {'version': version, 'profile': effective['profile'], 'sourceCommit': capture['sourceCommit'],
+            'wireCapabilities': capabilities, 'guidance': guidance}
 
 
 def model(root, feature, phase='planning', affected_paths=()):
@@ -245,10 +253,16 @@ def check(root, feature, phase, affected_paths=(), operation=None, repair=False)
         raise ValueError('Affected upgrade work is due: ' + ', '.join(compatibility['blockers']) + '; use migration pickup/local recovery. Unaffected work remains available.')
     if phase in ('after-plan', 'after-tasks', 'implementation'):
         graph_checked = validate_planned_architecture(root, feature)
+        # This uses the existing registered .json document, never a companion
+        # wire schema. Missing/prose-only/success-only promises are unresolved.
+        tags = intent(root, feature, phase, affected_paths)
+        if 'api' in tags and foundation_applicability(root, feature, adopted_context(root, feature), tags):
+            from openapi_capabilities import check_registered
+            check_registered(root, feature, 'planning')
     if phase in ('after-tasks', 'implementation') and (feature / 'tasks.md').is_file():
         from task_draft import validate_operation_graph, load
         task_content, task_state = load(feature / 'tasks.md')
-        validate_operation_graph(task_content, required=bool(task_state and task_state.get('format') == 'operation-plan'))
+        validate_operation_graph(task_content, required=bool(task_state and task_state.get('format') == 'operation-plan'), root=root)
     if phase in ('implementation', 'delivery'):
         from feature_plan_decisions import require_resolved
         require_resolved(root, feature)

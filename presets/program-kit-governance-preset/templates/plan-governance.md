@@ -38,6 +38,22 @@ operation responses/UI using retained server-issued IDs; a proposal is not contr
 Prove numeric DTO schemas match the selected strict request profile using real producer output
 and numeric-string rejection tests. ASP.NET defaults may describe numbers as number|string.
 Keep strict parsing, existing compatibility baselines and the human review gate.
+Use the registered OpenAPI `.json` as the single wire-shape authority; its `.contract.json`
+owns pipeline configuration and `.baseline.json` retains compatibility history. At planning,
+run `python eng/openapi_capabilities.py --repository . --feature-dir <feature>` against
+the proposed/current document, covering relevant errors as well as successes and native
+`x-foundation-json-contracts` bindings. Missing schemas/bindings/captured capabilities are
+scoped unresolved work, never an assumed pass. Planning admission is not runtime evidence.
+After-plan repeats admission. Generate real OpenAPI from the earliest DTO/endpoint metadata
+scaffold before business effects; the native producer pipeline checks untouched output before
+baseline/client changes. Preserve existing strict annotations and review actual compatibility
+changes; never strip TypeScript string unions or reset baselines to conceal a mismatch.
+The supported scoped default pairs `[JsonNumberHandling(JsonNumberHandling.Strict)]` with
+`[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]` on request DTOs and their
+nested owned types. Qualify each actual binding. Under Foundation 0.3.3 / exporter 0.2.5 /
+ASP.NET OpenAPI 10.0.12, nullable integer metadata still emits `integer|string|null` even with
+class/property Strict attributes: retain the exact unresolved diagnostic and do not claim
+universal numeric parity or remove nullable intent. A broader publisher integration is separate.
 Review changed responsibilities and applicable mechanisms, not a repeated full SOLID inventory per edit.
 
 No artifact-ownership, obligation-design/review, semantic-contract or proof-attestation dossier

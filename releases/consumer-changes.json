@@ -2,6 +2,22 @@
   "schemaVersion": 1,
   "changes": [
     {
+      "id": "preimplementation-diagnostics-repair",
+      "introduced": "0.13.1",
+      "kind": "contract",
+      "summary": "Refresh installed phase machinery and reconcile selected wire capabilities, verification ownership and obsolete scaffold contributions before implementation.",
+      "constraint": "OpenAPI alone owns wire shape; exact selected immutable knowledge constrains planning and producer admission. Missing knowledge and unsupported numeric/profile bindings stay unresolved. Installation does not restart accepted feature phases.",
+      "selectors": {"paths": ["eng/**", "contracts/**", "docs/architecture/**", "specs/*/spec.md", "specs/*/plan.md", "specs/*/tasks.md"], "selectedDependencies": true},
+      "supportedRetention": ["Retain exact selected profiles/pins/locks, accepted intent, repaired consumer code/annotations/styles, task identities and historical approvals/failures."],
+      "alternatives": ["Retain supported selected behavior and reconcile affected retained artifacts in place", "Resolve exact unsupported capability/binding obligations through ordinary owner review"],
+      "verification": ["Native four-stage phase refresh, customization protection and recovery", "Selected structural admission plus actual scoped producer/parser/writer/client proof", "Meaningful tests, explicit retired-owner successors and task-producer prerequisites", "Canonical identity and selected Foundation renderer accessible palette"],
+      "method": "preimplementation-diagnostics-v1",
+      "duePhase": "planning",
+      "supersedes": [],
+      "dependencies": [],
+      "review": {"basis": "migration-0.13.1.md diagnostics repair batch and bounded disposable proofs", "route": "Existing scoped consumer upgrade/reconcile, architecture/contract review and native workspace activation"}
+    },
+    {
       "id": "canonical-consumer-descriptors",
       "introduced": "0.12.6",
       "kind": "contract",

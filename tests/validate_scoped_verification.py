@@ -223,6 +223,97 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual([], verification.unresolved_failures(self.root))
         self.assertEqual(before, original.read_bytes())
 
+    def retirement_reconciliation_fixture(self):
+        successor = 'tests/Notes.Tests/Notes.Tests.csproj'
+        old = 'tests/Other.Tests/Other.Tests.csproj'
+        old_file = self.root / old
+        archive = self.root / 'artifacts/retired-owners/Other.Tests.csproj'
+        archive.parent.mkdir(parents=True); archive.write_bytes(old_file.read_bytes())
+        lock = archive.with_name('packages.lock.json'); lock.write_bytes(b'{"historical":"exact-lock-bytes"}\r\n')
+        history = self.failed_history(old)
+        self.replace_test_owner([successor])
+        for name in ('Contracts.Tests', 'Activation.Tests'):
+            relative = f'tests/{name}/{name}.csproj'
+            target = self.root / relative; target.parent.mkdir(parents=True); target.write_text('<Project />')
+            self.manifest['runtimeComposition']['projects'].append({'path': relative, 'role': 'test', 'projectReferences': []})
+        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        setup = {'schemaVersion': 1, 'owner': 'program-kit-setup', 'testGroups': [
+            {'id': 'old-setup', 'projects': [old, 'tests/Bridge.Tests/Bridge.Tests.csproj'], 'inputs': ['docs/setup/**'], 'reuse': False}]}
+        (self.root / 'eng/verification.setup.json').write_text(json.dumps(setup))
+        inputs = {'schemaVersion': 1, 'rules': [
+            {'owner': 'reviewed authored rule', 'projects': [old], 'inputs': ['docs/owned/**'], 'checks': ['tooling']},
+            {'owner': 'tooling only', 'projects': [], 'inputs': ['docs/testing/**'], 'checks': ['tooling']}]}
+        (self.root / 'eng/verification-inputs.json').write_text(json.dumps(inputs))
+        tasks = self.root / 'specs/001/tasks.md'; tasks.parent.mkdir(parents=True)
+        tasks.write_bytes(b'- [X] T007 Focused prerequisite\r\n- [ ] T009 Behavior\r\n- [ ] T012 Affected\r\n')
+        installed = self.root / '.specify/extensions/program-kit-dotnet/scripts/reconciliation.py'
+        installed.parent.mkdir(parents=True)
+        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/scripts/reconciliation.py', installed)
+        state = self.root / '.program-kit/managed.json'; state.parent.mkdir()
+        state.write_text(json.dumps({'schemaVersion': 2, 'files': {'eng/verification.setup.json': {'ownership': 'managed'}}}))
+        retained = {p: p.read_bytes() for p in (archive, lock, history, tasks)}
+        return successor, inputs, retained
+
+    def test_stale_setup_and_authored_rules_reconcile_through_reviewed_successors(self):
+        successor, inputs, retained = self.retirement_reconciliation_fixture()
+        before = {relative: (self.root / relative).read_bytes() for relative in
+                  ('eng/verification.setup.json', 'eng/verification-inputs.json')}
+        selection = self.select(['Directory.Build.props', 'docs/setup/guide.md'])
+        self.assertEqual(4, len(selection['projects']))
+        self.assertIn(successor, selection['projects'])
+        preview = verification.reconcile_ownership(self.root)
+        self.assertEqual(set(before), set(preview['changes']))
+        for relative, content in before.items():
+            self.assertEqual(content, (self.root / relative).read_bytes())
+        with self.assertRaisesRegex(ValueError, 'inputs changed'):
+            verification.reconcile_ownership(self.root, 'wrong-digest')
+        result = verification.reconcile_ownership(self.root, preview['planDigest'])
+        self.assertTrue(result['applied'])
+        actual = json.loads((self.root / 'eng/verification-inputs.json').read_text())
+        expected = json.loads(json.dumps(inputs)); expected['rules'][0]['projects'] = [successor]
+        self.assertEqual(expected, actual)
+        self.assertEqual(4, len(self.select(['Directory.Build.props'])['projects']))
+        self.assertTrue(verification.unresolved_failures(self.root))
+        for path, content in retained.items():
+            self.assertEqual(content, path.read_bytes())
+        self.assertEqual({}, verification.reconcile_ownership(self.root)['changes'])
+
+    def test_successor_mapping_reconciliation_rolls_back_interruption_without_losing_failure(self):
+        _, _, retained = self.retirement_reconciliation_fixture()
+        preview = verification.reconcile_ownership(self.root)
+        before = {relative: (self.root / relative).read_bytes() for relative in preview['changes']}
+        with patch.dict(os.environ, {'PROGRAMKIT_TEST_SYNC_FAIL_AFTER_ACTION': '1'}), self.assertRaisesRegex(OSError, 'Injected'):
+            verification.reconcile_ownership(self.root, preview['planDigest'])
+        for relative, content in before.items():
+            self.assertEqual(content, (self.root / relative).read_bytes())
+        for path, content in retained.items():
+            self.assertEqual(content, path.read_bytes())
+        self.assertTrue(verification.unresolved_failures(self.root))
+
+    def test_unknown_authored_owner_cannot_be_ignored_during_reconciliation(self):
+        self.retirement_reconciliation_fixture()
+        (self.root / 'eng/verification-inputs.json').write_text(json.dumps({'schemaVersion': 1,
+            'rules': [{'projects': ['tests/Unknown/Unknown.csproj'], 'checks': ['tooling']}]}))
+        with self.assertRaisesRegex(ValueError, 'unresolved verification owner'):
+            verification.reconcile_ownership(self.root)
+
+    def test_after_tasks_compares_broad_obligations_to_actual_shared_input_selection(self):
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
+        import task_draft
+        tasks = {'T007': {}, 'T009': {}, 'T012': {}}
+        content = '''- [ ] T012 Run Affected regression
+## Verification obligations
+| Task | Scope | Baseline | Owners | Inputs |
+|------|-------|----------|--------|--------|
+| T012 | Affected | initial-commit | tests/Notes.Tests/Notes.Tests.csproj | Directory.Build.props |
+## Test materialization map
+| Owner | Producer | Evidence |
+|-------|----------|----------|
+| tests/Notes.Tests/Notes.Tests.csproj | T009 | none |
+'''
+        with self.assertRaisesRegex(ValueError, 'differ from maintained selection.*Bridge.Tests'):
+            task_draft.validate_verification_obligations(content, tasks, {'T012': {'T007', 'T009'}}, self.root)
+
     def test_replaced_failure_cannot_be_repaid_by_cached_or_filtered_success(self):
         successor = 'tests/Notes.Tests/Notes.Tests.csproj'
         old = 'tests/Other.Tests/Other.Tests.csproj'

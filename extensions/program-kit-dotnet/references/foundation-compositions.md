@@ -41,12 +41,33 @@ consumer tooling and build/execute the actual activation tests. Preserve unrelat
 locks; do not remove `PrivateAssets="all"` from feature projects to make tests compile.
 Native host readiness complements these consumer registration/preparation assertions.
 
+Record each planned test responsibility's actual direct uses in `testSeams` in
+`eng/architecture.json`: `shell-lifecycle` requires only CShells.Abstractions;
+`api-feature` and shell `activation` require both contracts; `pure-core` adds neither.
+This mapping is bounded to those public seams. Missing or unsupported selected test use
+is unresolved, not permission to add blanket dependencies. Keep production PrivateAssets.
+For a new declared test owner, `python eng/test_project.py --project <csproj>` previews
+the project and synchronized inventory, bound to the accepted central pins. Apply with
+`--apply-digest <reviewed digest>`. It creates no behavioral assertions and cannot replace
+an existing consumer project; actual restore, locked dependency review, build and tests
+remain required. Existing tests receive only reviewed demonstrably needed direct references.
+
 During task reconciliation, match planned test owners to actual projects. Reviewed unused
 empty scaffolds can be archived with their locks and declared successor ownership in
 `eng/verification.json`; do not create empty tests to make a broad gate green. Use named
 Focused activation and architecture tests plus real browser/build checks as prerequisites,
 then run Affected from the retained implementation baseline once descendant behavior tests
 exist. Preserve task IDs, effort, historical failures and story human reviews.
+
+After reviewed archival, preview `python eng/repository_verification.py --reconcile-owners`.
+Its explicit `testOwnershipReplacements` resolve stale owners in verification.json,
+verification.setup.json and authored verification-inputs.json rules. Missing, active,
+ambiguous or cyclic replacements fail. Apply only the reviewed plan with
+`--reconcile-owners --apply-digest <digest>` through the installed native sync transaction.
+Authored input/check rules, archive bytes, planned project identities and failed-run evidence
+remain intact; fresh unfiltered successor regression must repay retained failure obligations.
+Runtime selection also normalizes setup/testGroups through these same explicit successors.
+Neither reconciliation nor a Focused prerequisite proves eventual broad acceptance.
 
 Offline OpenAPI export composes metadata, not provider initialization. Effect-only provider
 scaffolds emit `FoundationComposeForOpenApi=false`; apply the same reviewed metadata to

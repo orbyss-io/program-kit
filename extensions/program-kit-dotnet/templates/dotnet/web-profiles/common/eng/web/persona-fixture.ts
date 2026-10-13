@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 type Persona = Readonly<{ username: string; password: string }>;
@@ -10,12 +10,18 @@ type RealmFixture = {
   users?: unknown;
 };
 
+const typedComposition = fileURLToPath(new URL('../../eng/foundation-composition.json', import.meta.url));
+if (existsSync(typedComposition) && (!process.env.PROGRAMKIT_IDENTITY_REALM_FILE || !process.env.PROGRAMKIT_IDENTITY_AUTHORITY)) {
+  throw new Error('PKW101 typed composition requires the selected realm file and authority; run eng/Test-Web.ps1 with an unambiguous shell selection.');
+}
 const realmPath = process.env.PROGRAMKIT_IDENTITY_REALM_FILE ?? fileURLToPath(
-  new URL('../../../deploy/keycloak/program-kit-realm.json', import.meta.url),
+  new URL('../../deploy/keycloak/program-kit-realm.json', import.meta.url),
 );
 
 function loadRealm(): RealmFixture {
-  const value: unknown = JSON.parse(readFileSync(realmPath, 'utf8'));
+  let value: unknown;
+  try { value = JSON.parse(readFileSync(realmPath, 'utf8')); }
+  catch { throw new Error('PKW102 the selected local identity fixture is missing, unreadable or malformed; reconcile its managed composition contribution.'); }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('The managed local identity fixture must be a JSON object.');
   }

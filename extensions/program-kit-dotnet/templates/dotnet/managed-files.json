@@ -1,6 +1,8 @@
 {
   "schemaVersion": 1,
   "files": [
+    { "path": "eng/test_project.py", "ownership": "managed" },
+    { "path": "eng/web_identity.py", "ownership": "managed" },
     { "path": "eng/keycloak_composition.py", "ownership": "managed" },
     { "path": "eng/composition_model.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_model.py" },
     { "path": "eng/composition_render.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_render.py" },
@@ -121,6 +123,10 @@
     },
     {
       "path": "eng/openapi_pipeline.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/openapi_capabilities.py",
       "ownership": "managed"
     },
     {

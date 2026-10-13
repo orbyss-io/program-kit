@@ -29,6 +29,41 @@ def read(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
+TEST_SEAM_CONTRACTS = {
+    'pure-core': (),
+    'shell-lifecycle': ('CShells.Abstractions',),
+    'api-feature': ('CShells.Abstractions', 'CShells.AspNetCore.Abstractions'),
+    'activation': ('CShells.Abstractions', 'CShells.AspNetCore.Abstractions'),
+}
+
+
+def test_compile_contracts(project, required=False):
+    """Derive direct references from reviewed test use, never the tested project's role."""
+    if project.get('role') != 'test':
+        return set()
+    contracts = set()
+    rows = project.get('responsibilities', [])
+    require(isinstance(rows, list) and all(isinstance(row, dict) for row in rows),
+            'PKA020 invalid test responsibilities: ' + project['path'])
+    require(not required or any(row.get('kind') == 'test' for row in rows),
+            'PKA020 unresolved test responsibility: ' + project['path'] + '; declare meaningful test ownership and testSeams')
+    for row in rows:
+        if row.get('kind') != 'test':
+            continue
+        seams = row.get('testSeams')
+        require(seams is not None or not required,
+                'PKA020 unresolved test compile responsibilities: ' + project['path'] + ' / ' + row['name'] + '; declare testSeams')
+        if seams is None:
+            continue  # Retained manifests have only their previously declared structural scope.
+        require(isinstance(seams, list) and seams and all(isinstance(s, str) for s in seams),
+                'PKA020 testSeams must name actual direct test uses: ' + project['path'])
+        require(set(seams) <= set(TEST_SEAM_CONTRACTS),
+                'PKA020 unsupported test seam: ' + project['path'] + '; ' + ', '.join(sorted(set(seams) - set(TEST_SEAM_CONTRACTS))))
+        for seam in seams:
+            contracts.update(TEST_SEAM_CONTRACTS[seam])
+    return contracts
+
+
 def lifecycle_findings(root, manifest, affected=None):
     """Concrete source/owner prompts for normal review, never semantic certification.
 
@@ -120,6 +155,9 @@ def validate_responsibilities(projects, bindings, required=False):
                 require(any(b['implementationProject'] == path and b['capability'] == capability
                             and b['implementation'] == row['name'] for b in bindings),
                         'Missing planned capability binding: ' + capability + ' -> ' + row['name'])
+        contracts = test_compile_contracts(project, requires_review)
+        missing = contracts - set(project.get('packageReferences', []))
+        require(not missing, 'PKA020 missing direct test compile contracts: ' + path + '; add ' + ', '.join(sorted(missing)) + ' from selected central pins and synchronize packageReferences')
 
 
 def validate_manifest(root, manifest):
@@ -215,6 +253,14 @@ def validate_cycles(projects, edges):
 def validate_planned(root, manifest, require_responsibilities=False):
     projects = validate_manifest(root, manifest)
     validate_responsibilities(projects, manifest['runtimeComposition'].get('bindings', []), require_responsibilities)
+    required_contracts = {p: test_compile_contracts(row) for p, row in projects.items()
+                          if test_compile_contracts(row)}
+    if required_contracts:
+        from central_packages import central_package_versions
+        pins = central_package_versions(root)
+        for path, contracts in required_contracts.items():
+            missing = {c for c in contracts if c.casefold() not in pins}
+            require(not missing, 'PKA020 missing selected central test contract pins: ' + path + '; ' + ', '.join(sorted(missing)))
     physical = {p.relative_to(root).as_posix() for directory in ('src', 'tests')
                 for p in (root / directory).rglob('*.csproj') if not {'obj', 'bin'} & set(p.parts)}
     require(physical <= set(projects), 'Assign an architectural role to new projects in eng/architecture.json: '
@@ -263,6 +309,8 @@ def validate_graph(root, manifest, evaluated, compiled):
                 continue
             packages.add(item['Identity'])
         require('packageReferences' not in project or packages == set(project['packageReferences']), f'Evaluated package references differ: {relative}')
+        require(test_compile_contracts(project) <= packages,
+                'PKA020 evaluated direct test compile contracts differ from responsibilities: ' + relative)
         persistence_packages = {name for name in packages if name.lower().startswith(PERSISTENCE_PACKAGE_PREFIXES)}
         require(not persistence_packages or project['role'] in {'provider', 'test'},
                 'Persistence packages must stay in their owning provider/tests: ' + relative)

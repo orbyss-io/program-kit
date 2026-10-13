@@ -88,6 +88,29 @@ one backend effect. Concurrency rejection preserves the draft and offers the agr
 reapply behavior; never silently overwrite newer state. Authentication/expiry/logout follow the
 screen ownership and state rules in ui-design-model.md and the selected secure-web profile.
 
+| Established outcome | Retained state | Explicit permitted recovery |
+| --- | --- | --- |
+| Server contract confirms validation rejected without effect | Preserve editable values and field focus; clear only the rejected action | Correct input, then explicitly prepare a new action |
+| Server contract confirms admission expired before acceptance | Preserve values; restore editability and hide reconciliation for that expired unaccepted action | Explicitly prepare a new action |
+| Accepted operation, lost response, timeout, or uncertain commit | Retain original server-issued operation identity and values | Reauthorize status lookup or supported safe identical replay; no blind new dispatch |
+| Receipt absent or lookup returns unknown | Keep completion unknown and retain original identity | Reconcile using the supported status contract; absence alone proves neither rejection nor rollback |
+
+Codes and documented acceptance semantics establish no effect; generic HTTP 400/409 alone
+does not. Status lookup checks current owner/permission and performs no business effect.
+Unknown/forbidden status and public errors disclose no private identities, provider data or
+raw diagnostics. Selected Foundation closed problems carry safe standard fields; typed
+operation responses and the UI own recovery choices.
+The maintained [operation recovery example](operation-recovery-example.mjs) illustrates these
+semantic transitions. Its events require the consumer's reviewed server contract; it supplies
+neither a competing wire schema nor authority to classify every HTTP 400/409 as no effect.
+
+Test correction editability for every affected field, retained values, focus, absence of
+automatic preparation, and unknown completion identity retention. A simulated UI refusal
+proves presentation only: separately exercise actual server invalid-input and owned fixture
+expiry rejection, plus accepted-response loss and missing-receipt behavior. Mirror server
+control-character rules including C0, DEL and C1 (`U+0000–001F`, `U+007F–009F`) when the
+server uses that bounded rule; server validation remains authoritative.
+
 ## Phase and acceptance
 
 Intake resolves consequential user meaning, conflict and recovery needs. Feature planning records

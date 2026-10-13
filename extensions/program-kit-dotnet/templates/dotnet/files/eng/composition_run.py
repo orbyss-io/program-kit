@@ -116,10 +116,18 @@ def browser_check(root, graph, resolved, command, directory, launch_only=False, 
                           'realm': str(root / ('deploy/keycloak/' + client['authorityRef'] + '/' + authority['realm'] + '-realm.json'))})
     plan = directory / ('browser-launch.json' if launch_only else 'browser-plan.json')
     result = directory / ('browser-launch-result.json' if launch_only else 'browser-result.json')
-    write(plan, {'engines': browser_engines(), 'hosts': hosts, 'launchOnly': launch_only})
+    toolchain = root / 'artifacts/program-kit/toolchain.json'
+    require(toolchain.is_file(), 'browser launch requires the observed exact toolchain')
+    write(plan, {'engines': browser_engines(), 'hosts': hosts, 'launchOnly': launch_only,
+                 'toolchainSha256': runtime_closure.sha256(toolchain),
+                 'browserCache': command.environment['PLAYWRIGHT_BROWSERS_PATH']})
     command.run(['node', 'eng/web/composition-readiness.mjs', str(plan), str(result)], timeout=180)
-    require(read(result)['status'] == 'ready', 'authentication readiness did not pass')
-    return read(result)
+    observed = read(result)
+    require(observed['status'] == 'ready' and observed.get('planSha256') == runtime_closure.sha256(plan),
+            'authentication readiness did not pass or differs from its selected plan')
+    require(observed.get('launches') == [{'engine': engine, 'launched': True, 'closed': True} for engine in browser_engines()],
+            'each selected browser must launch and close before readiness')
+    return observed
 
 
 def prepare_browsers(root, graph, resolved, command, directory):

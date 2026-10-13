@@ -96,7 +96,8 @@ class MigratedTooling(unittest.TestCase):
         realm = self.root / 'deploy/keycloak/product-identity/program-kit-realm.json'
         document = json.loads(realm.read_text())
         import os
-        environment = {**os.environ, 'PROGRAMKIT_IDENTITY_REALM_FILE': str(realm)}
+        environment = {**os.environ, 'PROGRAMKIT_IDENTITY_REALM_FILE': str(realm),
+                       'PROGRAMKIT_IDENTITY_AUTHORITY': 'http://localhost:8080/realms/program-kit'}
         command = ['node', '--input-type=module', '-e', "await import('./persona-fixture.ts')"]
         loaded = subprocess.run(command, cwd=suite, env=environment, capture_output=True, text=True, timeout=30)
         self.assertEqual(0, loaded.returncode, loaded.stderr)
@@ -108,6 +109,23 @@ class MigratedTooling(unittest.TestCase):
         for user in document['users']:
             for credential in user['credentials']:
                 self.assertNotIn(credential['value'], loaded.stdout + loaded.stderr + rejected.stdout + rejected.stderr)
+
+    def test_initializer_rejects_missing_or_malformed_pin_without_partial_writes(self):
+        import openapi_init
+        registry = self.root / 'eng/openapi-contracts.json'
+        original_registry = registry.read_bytes()
+        arguments = ['openapi_init', '--repository', str(self.root), '--identity', 'invalid-pin',
+                     '--document-name', 'v1', '--shell', 'policies', '--feature', 'Application.Api',
+                     '--application-directory', 'web', '--application-tsconfig', 'web/tsconfig.json']
+        for value in (None, '', 'latest', '1.33.0\n1.29.1'):
+            pin = self.root / '.oasdiff-version'
+            if value is None: pin.unlink(missing_ok=True)
+            else: pin.write_text(value)
+            with self.subTest(pin=value), patch.object(sys, 'argv', arguments):
+                self.assertEqual(2, openapi_init.main())
+                self.assertEqual(original_registry, registry.read_bytes())
+                self.assertFalse((self.root / 'contracts/openapi/invalid-pin.contract.json').exists())
+                self.assertFalse((self.root / 'tools/openapi/invalid-pin').exists())
 
     def test_unknown_ambiguous_and_stale_composition_reject(self):
         with self.assertRaisesRegex(ValueError, 'exactly one'):
