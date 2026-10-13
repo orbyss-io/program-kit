@@ -64,6 +64,13 @@ def selected(root, check_frontends=True):
 
 
 class Commands(qualification.Commands):
+    def __init__(self, root, directory):
+        super().__init__(root, directory)
+        # Keep acquisition and launch on one owned cache. Playwright's Windows
+        # default nests under the isolated NuGet profile and can exceed native
+        # executable path limits even in an ordinary managed worktree.
+        self.environment['PLAYWRIGHT_BROWSERS_PATH'] = str(root / 'artifacts/cache/browsers')
+
     def run(self, command, **arguments):
         # Resolution applies to every nested command, not just the outer wrapper.
         if command and command[0].lower() in ('python', 'python3', 'python.exe', 'python3.exe'):
