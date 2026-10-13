@@ -102,7 +102,7 @@ def main():
                 raise ValueError('first consumer feature did not pass actual authenticated HTTP')
             edit_elapsed = round(time.monotonic() - edit_started, 3)
             frontend = root / graph['resources']['policy-web']['directory'] / graph['resources']['policy-web']['entry']
-            frontend.write_text(frontend.read_text().replace("heading.textContent = 'Application foundation'", "heading.textContent = 'Consumer edited frontend'"), encoding='utf-8')
+            frontend.write_text(frontend.read_text().replace("heading.textContent = 'Application foundation'", "heading.textContent = 'Consumer edited frontend'").replace("createElement('h1')", "createElement('h2')"), encoding='utf-8')
             command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'frontend-update')
             ui_updated = containers(preparation['project'])
             if any(after[name] != ui_updated[name] for name in after if name != changed):

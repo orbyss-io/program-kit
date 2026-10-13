@@ -85,9 +85,11 @@ try {
             if (host.page) {
               current.phase = 'authenticated-page';
               require((await context.request.get(host.origin + host.page)).status() === 200);
-              await page.locator('#foundation-form h1').waitFor({ timeout: 15000 });
-              if (host.expectedHeading) require(await page.locator('#foundation-form h1').textContent() === host.expectedHeading);
-              require(await page.locator('#foundation-status').isHidden());
+              // Foundation owns the mount/status containers; product markup can
+              // change immediately after scaffold without invalidating readiness.
+              await page.locator('#foundation-form > *').first().waitFor({ state: 'attached', timeout: 15000 });
+              await page.locator('#foundation-status').waitFor({ state: 'hidden', timeout: 15000 });
+              if (host.expectedHeading) require(await page.getByRole('heading', { name: host.expectedHeading, exact: true }).count() === 1);
             }
             // The already-authenticated first app must survive signing into the second.
             for (const previous of evidence.checks.filter(value => value.engine === engine)) {
