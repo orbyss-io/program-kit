@@ -20,6 +20,14 @@ spec.loader.exec_module(m)
 
 
 class UpdateTests(unittest.TestCase):
+    def test_npm_lookup_uses_bounded_stable_manifest_and_checks_identity(self):
+        pin = {'kind': 'npm', 'name': 'vite', 'current': '8.3.4', 'channel': 'stable'}
+        with patch.object(m, 'fetch', return_value={'name': 'vite', 'version': '8.3.4'}) as fetched:
+            self.assertEqual(m.observe(pin, {})['latest'], '8.3.4')
+            fetched.assert_called_once_with('https://registry.npmjs.org/vite/latest')
+        with patch.object(m, 'fetch', return_value={'name': 'foreign', 'version': '8.3.4'}):
+            with self.assertRaisesRegex(ValueError, 'different package identity'):
+                m.observe(pin, {})
     def test_lock_refresh_uses_active_shared_npm_without_shortening_inherited_path(self):
         spec = importlib.util.spec_from_file_location('update_dependencies', ROOT / 'scripts/update_dependencies.py')
         update = importlib.util.module_from_spec(spec)
@@ -40,7 +48,8 @@ class UpdateTests(unittest.TestCase):
             self.assertEqual(inherited, os.environ['PATH'])
         self.assertEqual([ROOT], ready)
         locks = [args for name, args in commands if name.startswith('lock-')]
-        self.assertEqual(2, len(locks))
+        self.assertEqual(3, len(locks))
+        self.assertTrue(any('/hosted-pages/web' in args[-1].replace('\\', '/') for args in locks))
         self.assertTrue(all(args[0] == str(npm) and '--package-lock-only' in args for args in locks))
         self.assertTrue(all('--global' not in args for args in locks))
 

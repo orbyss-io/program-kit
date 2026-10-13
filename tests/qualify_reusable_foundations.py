@@ -13,6 +13,7 @@ import os
 import re
 from pathlib import Path
 import shutil
+import socket
 import sys
 import time
 import uuid
@@ -48,6 +49,19 @@ def contract_tests():
         assert {row['stage'] for row in selected['setup']['steps']}=={'restore','build','services'}
         assert all(row['result']['cases']==adapter.CASES[row['capability']] for row in selected['tests']['commands'])
     checks.append('finite-supported-compositions-use-authoritative-nonempty-maintained-cases')
+    with socket.socket() as occupied:
+        occupied.bind(('127.0.0.1', 0))
+        occupied.listen()
+        origin='http://localhost:'+str(occupied.getsockname()[1])
+        config={'application':{'publicOrigin':origin},
+                'identity':{'publicOrigin':origin,'backchannelOrigin':'http://owned-identity:8080'}}
+        disposable_origins(config)
+        ports=[int(config[owner]['publicOrigin'].rsplit(':',1)[1]) for owner in ('application','identity')]
+        assert len(set(ports))==2 and occupied.getsockname()[1] not in ports
+        assert config['identity']['backchannelOrigin']=='http://owned-identity:8080'
+        for port in ports:
+            with socket.socket() as available: available.bind(('127.0.0.1',port))
+    checks.append('disposable-public-origins-avoid-existing-listeners-and-preserve-private-transport')
     platform={'status':'passed','cases':{case:True for values in adapter.CASES.values() for case in values},'productAcceptance':False}
     def failing_product(): raise ValueError('Expected application assertion failure')
     adapter.product_outcome(platform,failing_product)
@@ -982,6 +996,12 @@ def candidate(root, feed):
 
 
 def sync(root, evidence, *, check=False, expected=0):
+    import composition_model
+    path = root / composition.INPUT
+    value = composition.read(path)
+    if value.get('schemaVersion') == 1:
+        # Explicit migration in a fictional fixture; normal sync never accepts v1.
+        write(path, composition_model.from_legacy(value, root))
     args=[sys.executable,str(SCRIPTS/'dotnet_sync.py'),'--target',str(root),'--profile-selected',
           '--foundation-host-accepted','--building-block-sources-approved','--web-profile','bff-cookie','--json']
     if check: args.append('--check')
@@ -994,14 +1014,22 @@ def sync(root, evidence, *, check=False, expected=0):
         write(evidence/'result.json',{'exitCode':code,'expected':expected})
 
 
+def disposable_origins(config):
+    """Select available listeners for this test consumer, preserving private transport."""
+    with socket.socket() as app, socket.socket() as identity:
+        for owner, listener in (('application',app),('identity',identity)):
+            listener.bind(('127.0.0.1',0))
+            config[owner]['publicOrigin']='http://localhost:'+str(listener.getsockname()[1])
+
+
 def scaffold(root, shape, feed, evidence):
     postgres=shape!='base'
     variant='foundation-bff-keycloak'+('-postgresql' if postgres else '')
     config=composition.read(ROOT/'extensions/program-kit-dotnet/templates/dotnet/compositions'/(variant+'.json'))
     config['runner']='xunit-mtp' if shape=='sport' else 'executable'
     config['runtime']['directory']='runtime/nested/persoonlijk' if shape=='sport' else '.'
+    disposable_origins(config)
     if shape=='sport':
-        config['identity']['publicOrigin']='http://localhost:18080'
         config['identity']['realm']='sport-qualification'
         extra={'path':'src/Nieuws/Feed.Api/Feed.Api.csproj','packageId':'Feed.Api','featureIdentity':'Feed.Api','role':'implementation'}
         config['projects'].append(extra); config['runtime']['rootPackages'].append(extra['packageId'])
@@ -1102,7 +1130,7 @@ def qualify(root, shape, phase, evidence, generation):
     os.environ['PROGRAMKIT_QUALIFY_PRODUCT']='0' if shape=='base' else '1'
     if phase=='cold': require_cold_cache(root)
     started=time.monotonic()
-    command([sys.executable,'eng/foundation_setup.py','--repository','.','--execute'],root,evidence/'readiness',readiness=True)
+    command([sys.executable,'eng/foundation_setup.py','--repository','.','--execute','--qualification'],root,evidence/'readiness',readiness=True)
     runs=sorted((root/'artifacts/tests/runs').glob('foundation-*/result.json'),key=lambda p:p.stat().st_mtime)
     native=json.loads(runs[-1].read_text())
     if native['status']!='ready': raise ValueError('Generated composition failed actual readiness')
@@ -1112,12 +1140,14 @@ def qualify(root, shape, phase, evidence, generation):
     timings={'generationSeconds':round(generation,3), **{row['stage']+'Seconds':row['elapsedSeconds'] for row in native['steps']},
              **{key:value for key,value in json.loads((runs[-1].parent/'restore-timings.json').read_text()).items() if key!='elapsedSeconds'},
              **integration['timings'], 'readinessTotalSeconds':round(time.monotonic()-started,3),
-             'generationToFirstOperationUpperBoundSeconds':round(generation+time.monotonic()-started,3) if shape!='base' else None}
+             'generationToPreauthoredOperationUpperBoundSeconds':round(generation+time.monotonic()-started,3) if shape!='base' else None}
     if shape!='base':
-        timings['generationToFirstWorkingProductOperationSeconds']=round(generation + sum(row['elapsedSeconds'] for row in native['steps'] if row['stage'] in ('restore','build','services')) + integration['timings']['integrationToFirstProductOperationSeconds'],3)
+        timings['generationToPreauthoredProductOperationSeconds']=round(generation + sum(row['elapsedSeconds'] for row in native['steps'] if row['stage'] in ('restore','build','services')) + integration['timings']['integrationToFirstProductOperationSeconds'],3)
     result={'shape':shape,'phase':phase,'status':'passed','coldDefinition':'Fresh isolated NuGet/npm caches and browser downloads; preinstalled SDK/Docker images disclosed separately' if phase=='cold' else 'Same consumer acquired dependency/browser caches',
-            'newConsumerAuthoredGenericHarnessLines':0,'remainingGenericSetupTasks':0,'timings':timings,
-            'readinessArtifact':str(runs[-1].relative_to(ROOT)), 'productionBundle':composition.resolve(root)['runtimeStage']}
+            'fixtureProductCodeWrittenBeforeReadiness':True,'measurement':'Preauthored security/ownership/provider fixture; not readiness-to-first-consumer-code time','timings':timings,
+            'readinessArtifact':str(runs[-1].relative_to(ROOT)),
+            'productionBundles': {name: (root/host['runtimeStage']).relative_to(ROOT).as_posix()
+                                  for name,host in composition.resolve(root)['hosts'].items()}}
     write(evidence/'result.json',result)
     return result
 
@@ -1149,7 +1179,8 @@ def migrate(root, config, evidence):
         removed=config['projects'][-1]['packageId']
         assert result['migration']['removedIndependentFeature']==config['projects'][-1]['featureIdentity']
         built=list((root/'artifacts/packages').rglob(removed+'.*.nupkg'))
-        assert built and not list((root/composition.resolve(root)['runtimeStage']/'packages').glob(removed+'.*.nupkg'))
+        assert built and all(not list((root/host['runtimeStage']/'packages').glob(removed+'.*.nupkg'))
+                             for host in composition.resolve(root)['hosts'].values())
         result['migration']['preservedConsumerOwnedOrphanInputs']=owned_orphans
         result['migration']['orphanBuiltPackage']={'path':str(max(built,key=lambda p:p.stat().st_mtime).relative_to(root)),
             'excludedFromSelectedRuntime':True}
@@ -1177,11 +1208,15 @@ def main():
         if not root.is_relative_to(ROOT/'artifacts/tests/reusable-foundations') or not (root/composition.INPUT).is_file():
             parser.error('Migration must target an owned disposable qualification consumer')
         artifact=ROOT/'artifacts/tests/reusable-foundations'/('migration-repair-'+uuid.uuid4().hex[:16]); artifact.mkdir()
-        config=composition.read(root/composition.INPUT)
-        if config['runner']=='xunit-mtp' and not any(row['packageId']=='Feed.Api' for row in config['projects']):
-            config['projects'].append({'path':'src/Nieuws/Feed.Api/Feed.Api.csproj','packageId':'Feed.Api','featureIdentity':'Feed.Api','role':'implementation'})
-            config['runtime']['rootPackages'].append('Feed.Api')
-            write(root/composition.INPUT,config)
+        import composition_model as model
+        graph=model.load(root)
+        shell=next(iter(model.resources(graph,'shell')))
+        if graph['runner']=='xunit-mtp' and not any(row['packageId']=='Feed.Api' for row in model.resources(graph,'feature').values()):
+            graph['resources']['migration-feed']={'kind':'feature','path':'src/Nieuws/Feed.Api/Feed.Api.csproj',
+                'packageId':'Feed.Api','featureIdentity':'Feed.Api','role':'implementation'}
+            graph['bindings'].append({'kind':'featureShell','featureRef':'migration-feed','shellRef':shell})
+            write(root/composition.INPUT,model.validate(graph,root))
+        config=model.legacy_view(graph,shell)
         sync(root,artifact/'synchronize-reviewed-ownership-repair')
         directory=root/'artifacts/tests/runs'/('migration-preparation-'+uuid.uuid4().hex); directory.mkdir()
         command([sys.executable,'eng/foundation_qualification.py','--repository','.',

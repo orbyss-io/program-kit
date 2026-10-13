@@ -24,9 +24,9 @@
       "id": "validate_foundation_composition",
       "command": ["{python}", "tests/validate_foundation_composition.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
-      "purpose": "Finite composition configuration, source-backed views and actual sync preview/apply/rerun/conflicts. Actual package/runtime qualification is separately executed.",
+      "purpose": "Bounded typed-model managed sync preview/apply, public publisher constraints, source preservation/retirement and managed security conflicts. Actual runtime acceptance is the golden and retained provider/product qualifiers.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-dotnet/**", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_foundation_composition.py"],
+      "inputs": ["extensions/program-kit-dotnet/**", "extensions/program-kit-building-blocks/**", "extensions/program-kit-governance/scripts/**", "tests/composition_fixture.py", "tests/validate_foundation_composition.py"],
       "outputs": ["artifacts/foundation-composition"], "resources": [],
       "isolation": "Unique disposable generated consumers; preserve captured profiles and native locks."
     },
@@ -47,7 +47,7 @@
       "platforms": ["Windows", "Linux"],
       "purpose": "Actual selected public composition activation, maintained authentication/provider checks, disposable product ownership, migration and fresh/prepared acquisition measurements; no coding agent.",
       "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/**", "tests/qualify_reusable_foundations.py", "tests/fixtures/reusable-foundations/**"],
-      "outputs": ["artifacts/tests/reusable-foundations"], "resources": ["docker", "browser"],
+      "outputs": ["artifacts/tests/reusable-foundations"], "resources": ["docker", "browser-runtime"],
       "isolation": "Unique disposable consumers and owned containers; reference repositories and live data remain untouched."
     },
     {
@@ -108,7 +108,8 @@
         "artifacts/consumer-provider-runtime"
       ],
       "resources": [
-        "docker"
+        "docker",
+        "browser-runtime"
       ]
     },
     {
@@ -4374,6 +4375,94 @@
       "outputs": [],
       "resources": [],
       "isolation": "Temporary files and in-process fixtures only."
+    },
+    {
+      "id": "validate_composition_model",
+      "command": [
+        "{python}",
+        "tests/validate_composition_model.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Typed resource cardinality, provider-neutral authority placement, named databases, exact renderer and native source dependency scopes.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-building-blocks/**",
+        "extensions/program-kit-governance/scripts/**",
+        "tests/validate_composition_model.py",
+        "tests/composition_fixture.py"
+      ],
+      "outputs": [
+        "artifacts/tests/composition-model"
+      ],
+      "resources": [],
+      "isolation": "Pure fictional graphs and owned temporary files; no service, provider or coding agent."
+    },
+    {
+      "id": "validate_native_start_repairs",
+      "command": [
+        "{python}",
+        "tests/validate_native_start_repairs.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Preserved selected-shell, exact singleton version and admitted public-content regressions with real archive inventory and freshness guards.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/**",
+        "tests/native_start/**",
+        "tests/validate_native_start_repairs.py"
+      ],
+      "outputs": [
+        "artifacts/cache/hosted-bundle-tests"
+      ],
+      "resources": [],
+      "isolation": "Owned temporary package/configuration fixtures; no real consumer writes or service launches."
+    },
+    {
+      "id": "qualify_composition_start",
+      "command": [
+        "{python}",
+        "tests/validate_composition_start.py",
+        "--execute",
+        "--engines={engines}"
+      ],
+      "group": "release",
+      "needs": [
+        "validate_composition_model",
+        "validate_native_start_repairs",
+        "validate_foundation_composition"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Golden native consumer: two apps, three databases, one authority, real frontend/authentication; first consumer code after readiness and incremental update preserving other services, with separated timings.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-building-blocks/**",
+        "extensions/program-kit-governance/scripts/**",
+        "tests/composition_fixture.py",
+        "tests/validate_composition_start.py"
+      ],
+      "outputs": [
+        "artifacts/tests/composition-start"
+      ],
+      "resources": [
+        "docker",
+        "browser-runtime"
+      ],
+      "isolation": "Unique fictional consumer/Compose project and retained owned volumes; zero paid providers or coding agents. Prepared host evidence is not a clean OS claim."
     }
   ],
   "groups": {

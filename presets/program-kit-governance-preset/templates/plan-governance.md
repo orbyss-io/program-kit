@@ -19,6 +19,12 @@ Plan actual compiler/analyzer, architecture, contract, security and behavioral t
 cheapest reliable level. Put architectural role/exception configuration in `eng/architecture.json`
 and native dependency/composition configuration in their ordinary engineering files.
 Use the selected published host and package/bundle composition when applicable.
+Define Foundation resources, bindings and environment placement only in the typed
+`eng/foundation-composition.json`, linked to Accepted architecture/selection identities.
+Database resources belong to explicit servers and named context policies; multiple
+applications can share one identity authority with separate clients/resources. Generated
+settings, imports and Docker Compose are outputs. Resource composition supplies no reason
+to add a `.Composition` assembly: an extra source project needs a real Accepted responsibility.
 Describe test scope: risk-selected operation verification, story regression, reverse dependencies for shared
 contracts/configuration, and complete feature/domain acceptance at closure or formal handoff.
 Name actual test projects/framework filters and non-source inputs that need owned test mappings.

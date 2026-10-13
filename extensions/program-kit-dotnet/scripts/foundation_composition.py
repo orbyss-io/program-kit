@@ -131,6 +131,10 @@ def validate_configuration(value):
     return value
 
 
+# Read-only historical import validation; it is not an active v2 execution route.
+validate_legacy_configuration = validate_configuration
+
+
 def private_dns_alias(hostname):
     """A transport must resolve through the owned Docker DNS alias, never an IP."""
     if not isinstance(hostname, str) or len(hostname) > 253:
@@ -191,7 +195,7 @@ def load_configuration(repository):
     return validate_configuration(read(Path(repository) / INPUT))
 
 
-def publisher_contracts(repository, configuration=None):
+def publisher_contracts(repository, configuration=None, selected_packages=None):
     import dependency_profile
     effective = dependency_profile.resolver().effective_dependency_context(repository)
     knowledge = effective['publisherKnowledge']
@@ -207,7 +211,7 @@ def publisher_contracts(repository, configuration=None):
         descriptors[row['id']] = descriptor
         for feature in descriptor.get('features',[]): feature_owners[feature['identity']] = row['id']
     documents = []
-    selected_packages = BASE_PACKAGES + (['Orbyss.Foundation.PostgreSql', 'Orbyss.Foundation.Execution'] if configuration and configuration['compositionId'].endswith('-postgresql') else [])
+    selected_packages = selected_packages or BASE_PACKAGES + (['Orbyss.Foundation.PostgreSql', 'Orbyss.Foundation.Execution'] if configuration and configuration['compositionId'].endswith('-postgresql') else [])
     for package in selected_packages:
         row = next((p for p in knowledge['packages'] if p['id'] == package), None)
         require(row is not None, 'selected profile is missing package knowledge: ' + package)
@@ -527,6 +531,7 @@ def validate_materialized(repository, configuration, contract, profile, realm):
 
 
 def materialize(repository, configuration, template_root):
+    import identity_fixture
     contract = publisher_contracts(repository, configuration)
     contract['toolchains'] = {}
     contract['setupAdapterSha256'] = digest((template_root/'files/eng/foundation_qualification.py').read_bytes())
@@ -584,8 +589,8 @@ def materialize(repository, configuration, template_root):
     outputs['eng/web/web-contract.json'] = (encoded(web_contract),'managed')
     profile = read(template_root/'web-profiles/bff-cookie/eng/web-profile.json')
     profile['configuration'] = INPUT
-    profile['localIdentityProvider'] = 'keycloak-'+contract['serviceImages']['keycloak'].split('@')[0].rsplit(':',1)[-1]
-    outputs['eng/web-profile.json'] = (encoded(profile),'managed')
+    outputs['eng/web-profile.json'] = (identity_fixture.render_provider_profile(encoded(profile),
+        contract['serviceImages']['keycloak']), 'managed')
     if contract.get('developmentCandidate'):
         nuget = ET.parse(template_root/'files/NuGet.config').getroot()
         source_name = 'ProgramKitDevelopmentWebDefaults'
@@ -710,6 +715,61 @@ def verify_outputs(repository):
     require(client and client['redirectUris'] == [expected['targets']['redirectUri']] and client['attributes']['post.logout.redirect.uris'] == expected['targets']['signedOutRedirectUri'], 'provider callbacks do not match the effective application')
 
 
+# Historical rendering helpers remain available for immutable migration/qualification
+# evidence. Active configuration and writes use only the versioned resource model.
+legacy_resolve = resolve
+legacy_materialize = materialize
+legacy_validate_materialized = validate_materialized
+legacy_render_realm = render_realm
+legacy_effective_settings = effective_settings
+
+
+def load_configuration(repository):
+    import composition_model
+    return composition_model.load(repository)
+
+
+def validate_configuration(value):
+    if value.get('schemaVersion') == 2:
+        import composition_model
+        return composition_model.validate(value)
+    return validate_legacy_configuration(value)  # Pure, explicit historical import validation.
+
+
+def materialize(repository, configuration, template_root):
+    import composition_render
+    require(configuration.get('schemaVersion') == 2, 'migrate the legacy composition before managed generation')
+    return composition_render.materialize(repository, configuration, template_root)
+
+
+def validate_materialized(repository, configuration, contract, profile, realm=None):
+    import composition_render
+    require(configuration.get('schemaVersion') == 2, 'legacy projection cannot establish active composition readiness')
+    return composition_render.validate_materialized(repository, configuration, contract, profile)
+
+
+def resolve(repository, configuration=None, contract=None, setup_adapter=None):
+    import composition_render
+    configuration = configuration or load_configuration(repository)
+    require(configuration.get('schemaVersion') == 2, 'migrate the legacy composition before resolution')
+    return composition_render.resolve(configuration, contract or read(Path(repository) / CONTRACT))
+
+
+def verify_outputs(repository):
+    import composition_render
+    return composition_render.verify_outputs(repository)
+
+
+def effective_settings(repository, overrides=None):
+    require(not overrides, 'deployment overrides belong to typed environment bindings; secret values remain referenced inputs')
+    import composition_render
+    graph, contract = composition_render.verify_outputs(repository)
+    return {'schemaVersion': 2, 'modelDigest': contract['modelDigest'], 'environment': contract['environment'],
+            'scope': 'Configured source projection; no activated options or product acceptance claim',
+            'shells': {name: {'name': shell['name'], 'web': composition_render.web_settings(graph, name, contract['shells'][name], contract['environment'])}
+                       for name, shell in __import__('composition_model').resources(graph, 'shell').items()}}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', default='.')
@@ -725,8 +785,10 @@ def main():
             require(bool(args.pack_inventory), 'staging requires the actual sealed fresh pack inventory')
             import release_bundle
             selected = resolve(repository)
-            release_bundle.stage(repository, (repository/args.stage_packages).resolve(), repository/selected['runtimeStage'],
-                                 inventory=(repository/args.pack_inventory).resolve(), root_packages=selected['rootPackages'])
+            for host_id, host in selected['hosts'].items():
+                release_bundle.stage(repository, (repository/args.stage_packages).resolve(), repository/host['runtimeStage'],
+                    evidence=repository/'artifacts/composition/closures'/(host_id+'.json'),
+                    inventory=(repository/args.pack_inventory).resolve(), root_packages=host['rootPackages'], shell_names=host['shellNames'])
             return 0
         print(json.dumps(effective_settings(repository, read(Path(args.overrides)) if args.overrides else None) if args.effective else resolve(repository), indent=2))
         return 0

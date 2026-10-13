@@ -18,7 +18,7 @@ RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Resto
 
 
 PACK_ENGINE_FILES = ('release_bundle.py', 'central_packages.py', 'handoff_contract.py',
-                     'shell_composition.py', 'runtime_closure.py', 'program_kit_version.py')
+                     'shell_composition.py', 'runtime_closure.py', 'hosted_bundle.py', 'device_toolchain.py', 'program_kit_version.py')
 
 
 def materialize_pack_engine(managed: Path) -> None:
@@ -181,6 +181,7 @@ def create_repository(value: str, solution_name: str, test_flags: tuple[bool, ..
 def run_build(shell: str, repository: Path, tools: Path) -> tuple[subprocess.CompletedProcess[str], list[str]]:
     log = repository / "dotnet.log"
     environment = os.environ.copy()
+    environment['PROGRAMKIT_DEVICE_PYTHON'] = os.environ.get('PROGRAMKIT_DEVICE_PYTHON', sys._base_executable)
     environment["PATH"] = str(tools) + os.pathsep + environment.get("PATH", "")
     environment["PROGRAM_KIT_DISCOVERY_LOG"] = str(log)
     result = subprocess.run(

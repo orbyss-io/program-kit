@@ -250,7 +250,7 @@ def write_attempt(path: Path, value: dict) -> None:
             # replacement diagnostic rather than masking it in cleanup.
 
 
-def prior_attempt(target: Path, release: Path, version: str):
+def prior_attempt(target: Path, release: Path, version: str, repair_of: str | None = None):
     decision = target / 'docs/architecture/bootstrap-decisions.json'
     authority_hash = hashlib.sha256(decision.read_bytes()).hexdigest() if decision.is_file() else None
     fingerprint = release_fingerprint(release)
@@ -266,12 +266,19 @@ def prior_attempt(target: Path, release: Path, version: str):
                 and value.get('status') in {'running', 'incomplete'}):
             previous.append((path, value))
     latest = max(attempts, key=lambda item: item[1]['startedAt']) if attempts else None
+    repaired_prior = None
     if latest and latest[1].get('status') in {'running', 'incomplete'} and (
             latest[1].get('releaseInputsSha256') != fingerprint):
-        raise UpgradeError('PKU121 interrupted upgrade candidate or approved inputs changed; '
-                           'preserve the failed attempt and restore its exact reviewed inputs before retrying. '
-                           'A partially installed version cannot establish a new migration origin.')
-    prior = max(previous, key=lambda item: item[1]['startedAt']) if previous else None
+        if repair_of != latest[1].get('releaseInputsSha256'):
+            raise UpgradeError('PKU121 interrupted upgrade candidate or approved inputs changed; '
+                               'preserve the failed attempt and restore its exact reviewed inputs before retrying. '
+                               'An explicitly authorized repair can name its exact prior fingerprint with '
+                               '--repair-of-release-sha256; original migration provenance is still required.')
+        repaired_prior = latest
+        previous.append(latest)
+    elif repair_of and not any(item[1].get('releaseInputsSha256') == repair_of for item in attempts):
+        raise UpgradeError('PKU121 candidate repair fingerprint has no matching preserved attempt')
+    prior = repaired_prior or (max(previous, key=lambda item: item[1]['startedAt']) if previous else None)
     if len({item[1]['previousInstalledVersion'] for item in previous}) > 1:
         raise UpgradeError('PKU121 interrupted upgrade contains contradictory original version authority')
     if prior:
@@ -287,13 +294,13 @@ def prior_attempt(target: Path, release: Path, version: str):
     return prior, fingerprint, authority_hash
 
 
-def previous_installed_version(target: Path, release: Path, version: str) -> str:
-    prior, _, _ = prior_attempt(target, release, version)
+def previous_installed_version(target: Path, release: Path, version: str, repair_of: str | None = None) -> str:
+    prior, _, _ = prior_attempt(target, release, version, repair_of)
     return prior[1]['previousInstalledVersion'] if prior else current_version(target)
 
 
-def begin_attempt(target: Path, release: Path, version: str, observed: str) -> tuple[Path, dict]:
-    prior, fingerprint, authority_hash = prior_attempt(target, release, version)
+def begin_attempt(target: Path, release: Path, version: str, observed: str, repair_of: str | None = None) -> tuple[Path, dict]:
+    prior, fingerprint, authority_hash = prior_attempt(target, release, version, repair_of)
     directory = target / 'artifacts/program-kit/runs' / uuid.uuid4().hex
     value = {'schemaVersion': 1, 'id': uuid.uuid4().hex, 'targetVersion': version,
              'observedInstalledVersion': observed,
@@ -304,6 +311,8 @@ def begin_attempt(target: Path, release: Path, version: str, observed: str) -> t
              'authorization': 'explicit-local-upgrade-command'}
     if prior:
         value['originals'] = prior[1]['originals']
+        if prior[1]['releaseInputsSha256'] != fingerprint:
+            value['repairOfReleaseSha256'] = prior[1]['releaseInputsSha256']
     else:
         originals = {}
         for name, relative in {
@@ -824,7 +833,7 @@ def software_update_offer() -> dict:
     }
 
 
-def building_block_upgrade_state(target: Path, release: Path, exporter_transition: dict | None = None) -> str | None:
+def building_block_upgrade_state(target: Path, release: Path, exporter_transition: dict | None = None, repair_of: str | None = None) -> str | None:
     """Validate authority and distinguish an accepted plan from applied dependencies.
 
     A missing lock alone is never evidence of an unmaterialized selection. That
@@ -876,7 +885,7 @@ def building_block_upgrade_state(target: Path, release: Path, exporter_transitio
             # its inputs. Only generator/catalog provenance may change afterward.
             installed_catalog = (exporter_transition["oldCatalog"] if exporter_transition else catalog_path)
             previous_version = (exporter_transition['previousInstalledVersion'] if exporter_transition
-                                else previous_installed_version(target, release, (release / 'VERSION').read_text().strip()))
+                                else previous_installed_version(target, release, (release / 'VERSION').read_text().strip(), repair_of))
             previous = module.resolve(target, selection_path, installed_catalog, previous_version)
             actual = module.load_json(lock_path)
             if actual.get("materializationScope") == "existing-compositions":
@@ -1191,6 +1200,7 @@ def main() -> int:
     )
     parser.add_argument('--offline', action='store_true', help='Install offline and report required dependency verification without network restores')
     parser.add_argument('--plan', action='store_true', help='Read verified migration guidance without mutation')
+    parser.add_argument('--repair-of-release-sha256', help='Explicitly resume a corrected candidate from this exact preserved failed release fingerprint')
     parser.add_argument("--specify-command", default="specify", help=argparse.SUPPRESS)
     parser.add_argument("--specify-command-json", default="", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -1212,7 +1222,7 @@ def main() -> int:
                                'No component mutation started.')
         version = validate_release(release)
         if args.plan:
-            observed = previous_installed_version(target, release, version)
+            observed = previous_installed_version(target, release, version, args.repair_of_release_sha256)
             _, plan = migration_plan(release, migration_origin(target, current_version(target), observed, version), version)
             plan['installationActions'] = ['install bundle/workflow/extensions/preset sequentially',
                 'synchronize engineering configuration transactionally', 'validate installation coherence',
@@ -1240,7 +1250,7 @@ def main() -> int:
         if not (target / ".specify").is_dir():
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
-        previous_version = previous_installed_version(target, release, version)
+        previous_version = previous_installed_version(target, release, version, args.repair_of_release_sha256)
         guidance, guidance_plan = migration_plan(release, migration_origin(target, current_version(target), previous_version, version), version)
         guidance.require_review(target, guidance_plan)
         integration = selected_integration(target, args.integration)
@@ -1253,7 +1263,7 @@ def main() -> int:
             descriptor, lock_path = acquire_lock(target)
             recover_upgrade_transactions(target, release)
         exporter_transition = {} if args.accept_openapi_producer_pin_reconciliation else None
-        building_block_state = building_block_upgrade_state(target, release, exporter_transition)
+        building_block_state = building_block_upgrade_state(target, release, exporter_transition, args.repair_of_release_sha256)
         retained_exporter = None
         if building_block_state and not args.accept_openapi_producer_pin_reconciliation:
             blocks = load_release_module(release / 'extensions/program-kit-building-blocks/scripts/building_blocks.py', 'upgrade_profile_preflight')
@@ -1294,8 +1304,10 @@ def main() -> int:
                 raise UpgradeError('SCHEMA_RUNTIME_MISSING: offline upgrade needs its dependency runtime prepared: '
                                    f'python "{runtime_source}" setup --project-root "{target}"; then retry the same command')
             runtime.setup(target)
-        attempt_path, attempt = begin_attempt(target, release, version, previous_version)
+        attempt_path, attempt = begin_attempt(target, release, version, previous_version, args.repair_of_release_sha256)
         previous_version = attempt['previousInstalledVersion']
+        audit = load_release_module(release / 'extensions/program-kit-governance/scripts/dependency_audit.py', 'upgrade_historical_input_archive')
+        audit.archive_toolkit_proof_inputs(target)
         if exporter_transition:
             archive_catalog_transition(exporter_transition)
         elif building_block_state:
@@ -1449,6 +1461,8 @@ def main() -> int:
         print('No component installation started; resolve the reported input/permission issue.' if attempt is None else
               'Tooling installation may be partial. Whether the migration introduced an application failure is unverified; application source and unfinished work remain available.', file=sys.stderr)
         recovery = [sys.executable, str(release / 'scripts/upgrade_program_kit.py'), '--release-root', str(release), '--target', str(target)]
+        if args.repair_of_release_sha256:
+            recovery.extend(['--repair-of-release-sha256', args.repair_of_release_sha256])
         if args.offline: recovery.append('--offline')
         if args.accept_openapi_producer_pin_reconciliation: recovery.append('--accept-openapi-producer-pin-reconciliation')
         print('Next action: fix the reported cause, then run ' + subprocess.list2cmdline(recovery), file=sys.stderr)

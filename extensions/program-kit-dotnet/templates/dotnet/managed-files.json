@@ -1,6 +1,17 @@
 {
   "schemaVersion": 1,
   "files": [
+    { "path": "eng/keycloak_composition.py", "ownership": "managed" },
+    { "path": "eng/composition_model.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_model.py" },
+    { "path": "eng/composition_render.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_render.py" },
+    { "path": "eng/composition_migrate.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_migrate.py" },
+    { "path": "eng/composition_run.py", "ownership": "managed" },
+    { "path": "eng/web/composition-readiness.mjs", "ownership": "managed" },
+    { "path": "eng/prepare_hosted_pages.py", "ownership": "managed" },
+    { "path": "eng/hosted_bundle.py", "ownership": "managed" },
+    { "path": "eng/vendor/foundation-0.3.3/create_hosted_manifest.py", "ownership": "managed" },
+    { "path": "eng/vendor/foundation-0.3.3/LICENSE", "ownership": "managed" },
+    { "path": "eng/vendor/foundation-0.3.3/README.md", "ownership": "managed" },
     { "path": "eng/foundation_qualification.py", "ownership": "managed" },
     { "path": "eng/foundation-qualification-support/QualificationFeature.cs", "ownership": "managed" },
     { "path": "eng/foundation-qualification-support/RuntimeOptionsObservation.cs", "ownership": "managed" },
@@ -352,6 +363,7 @@
     }
   ],
   "obsoleteFiles": [
+    "eng/Dev.ps1",
     "eng/program-kit/create_application_bundle.py",
     "eng/runnable_host.py",
     ".program-kit/runnable-host.schema.json",

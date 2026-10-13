@@ -69,6 +69,7 @@ def public_tool_configuration(path: Path) -> None:
     mapping = ET.SubElement(configuration, 'packageSourceMapping')
     ET.SubElement(mapping, 'clear')
     ET.SubElement(ET.SubElement(mapping, 'packageSource', key='nuget.org'), 'package', pattern='*')
+    ET.SubElement(ET.SubElement(configuration, 'fallbackPackageFolders'), 'clear')
     ET.indent(configuration)
     ET.ElementTree(configuration).write(path, encoding='utf-8', xml_declaration=True)
 
@@ -151,6 +152,17 @@ def generate_native_probe(selected: dict, catalog: dict, work: Path, named: bool
         destination = work / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(TEMPLATE / relative, destination)
+    if named:
+        # A machine-wide Visual Studio cache must not enter an owned qualification.
+        configuration = work / 'NuGet.config'
+        tree = ET.parse(configuration)
+        fallback = tree.getroot().find('fallbackPackageFolders')
+        if fallback is None:
+            fallback = ET.SubElement(tree.getroot(), 'fallbackPackageFolders')
+        fallback.clear()
+        ET.SubElement(fallback, 'clear')
+        ET.indent(tree)
+        tree.write(configuration, encoding='utf-8', xml_declaration=True)
     central = work / 'Directory.Packages.props'
     runtime = selected_runtime_packages(catalog, named)
     versions = '\n'.join(f'<PackageVersion Include="{escape(p["packageId"])}" Version="{escape(p["version"])}" />'

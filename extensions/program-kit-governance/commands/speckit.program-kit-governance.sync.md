@@ -24,8 +24,9 @@ For an explicitly selected supported foundation composition, synchronization mat
 configuration and feature-owned registration/provider seams through the same preview/apply
 ownership flow. Link `docs/architecture/foundation-configuration.md` and the redacted settings
 view. Materialization alone establishes neither runtime readiness nor product acceptance.
-Run maintained `eng/foundation_setup.py` only through explicit service/setup authorization;
-inspect its selected inputs, restore/build, actual activation and applicable setup test outcomes.
-Do not start it from task drafting, intake or an ordinary hook. Use its named repair for failure
+Use `eng/composition_run.py prepare` for explicit acquisition/provisioning, then `run`
+for prepared foundation startup and authenticated readiness. The implementation prehook
+uses this same run route. Inspect its selected inputs and actual activation outcomes.
+Drafting/intake remain read-only. Use its named repair for failure
 instead of scheduling a generic compatibility-research phase. Preserve captured profiles and
 consumer-owned configuration; apply updates through the existing reviewed upgrade mechanism.

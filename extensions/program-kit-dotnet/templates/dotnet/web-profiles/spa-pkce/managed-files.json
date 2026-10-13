@@ -21,7 +21,6 @@
     { "path": "deploy/keycloak/themes/program-kit/email/html/executeActions.ftl", "ownership": "configuration", "sourceRoot": "web-profiles/common" },
     { "path": "deploy/keycloak/themes/program-kit/email/text/executeActions.ftl", "ownership": "configuration", "sourceRoot": "web-profiles/common" },
     { "path": "deploy/keycloak/themes/program-kit/email/messages/messages_en.properties", "ownership": "configuration", "sourceRoot": "web-profiles/common" },
-    { "path": "eng/Dev.ps1", "ownership": "managed", "sourceRoot": "web-profiles/common" },
     { "path": "eng/Test-Web.ps1", "ownership": "managed", "sourceRoot": "web-profiles/common" },
     { "path": "eng/web/.gitignore", "ownership": "managed", "sourceRoot": "web-profiles/common" },
     { "path": "eng/web/package.json", "ownership": "managed", "sourceRoot": "web-profiles/common" },

@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 const require = createRequire(resolve('package.json'));
 const { chromium } = require('@playwright/test');
 const baseURL = process.env.PROGRAMKIT_BASE_URL;
-const realm = JSON.parse(readFileSync(resolve('../../deploy/keycloak/program-kit-realm.json'), 'utf8'));
+const realm = JSON.parse(readFileSync(resolve(process.env.PROGRAMKIT_IDENTITY_REALM_FILE ?? '../../deploy/keycloak/program-kit-realm.json'), 'utf8'));
 if (realm.attributes?.programKitFixture !== 'local-non-production-only') throw new Error('Synthetic realm required');
 const browser = await chromium.launch();
 const contexts = {};

@@ -56,6 +56,8 @@ def render(root, kind, identity, host_image):
                       sharedAbi=effective['sharedAbi'],
                       credentialEnvironmentNames=sorted({source['authentication']['credentialEnvironment']
                           for source in catalog['sources'].values() if source.get('authentication', {}).get('credentialEnvironment')}))
+    parameters.update(requiredTools=['dotnet', 'node', 'npm'] if kind == 'bff-keycloak' else ['dotnet'],
+                      requiredBrowsers=['chromium'] if kind == 'bff-keycloak' else [])
     generated = {}
 
     def fixture(destination, source):
@@ -95,6 +97,7 @@ def render(root, kind, identity, host_image):
         targets = ['Probe.csproj', 'package.json']
         entry = 'identity_probe'
     fixture('runtime_fixture.py', governance / 'scripts/runtime_fixture.py')
+    fixture('fixture_readiness.py', governance / 'scripts/fixture_readiness.py')
     fixture('runtime_probe.py', governance / 'examples/bootstrap-runtime/runtime_probe.py')
     for path, payload in generated.items():
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -129,6 +132,7 @@ def render_postgresql(root, identity, selected):
     fixture = governance / 'examples/bootstrap-postgresql'
     sources = {'runtime-inputs.json': config.relative_to(root).as_posix(),
                'Probe.csproj': project_file.relative_to(root).as_posix()}
+    sources['fixture_readiness.py'] = (governance / 'scripts/fixture_readiness.py').relative_to(root).as_posix()
     for target, path in {'Program.cs': fixture / 'Program.cs', 'postgresql_probe.py': fixture / 'postgresql_probe.py',
                          'bounded_process.py': governance / 'scripts/compatibility_process.py'}.items():
         if not path.is_file(): raise ValueError('Maintained PostgreSQL fixture missing: ' + str(path))
@@ -141,7 +145,7 @@ def render_postgresql(root, identity, selected):
     config.write_text(json.dumps(runtime, indent=2) + '\n', encoding='utf-8')
     from compatibility_scope import fixture_keys
     scope = {'schemaVersion': 1, 'artifactKeys': fixture_keys(root, sources)}
-    recipe.write_text('from pathlib import Path\nimport sys\nsys.path.insert(0, str(Path.cwd()))\nfrom postgresql_probe import main\nraise SystemExit(main())\n', encoding='utf-8')
+    recipe.write_text('from pathlib import Path\nimport sys,json\nsys.path.insert(0, str(Path.cwd()))\nfrom fixture_readiness import check\ncheck(Path.cwd(), json.loads(Path("runtime-inputs.json").read_text()))\nfrom postgresql_probe import main\nraise SystemExit(main())\n', encoding='utf-8')
     contract.write_text(json.dumps({'schemaVersion': 1, 'checks': [{'id': 'ef-postgresql',
         'kind': 'runtime-compatibility', 'testCases': CASES['ef-postgresql']}],
         'fixtures': sources, 'dependencyTargets': ['Probe.csproj'], 'dependencyScope': scope}, indent=2) + '\n', encoding='utf-8')

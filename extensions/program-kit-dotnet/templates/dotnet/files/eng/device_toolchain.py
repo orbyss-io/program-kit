@@ -218,7 +218,12 @@ def require_python(repository: Path, required: str | None = None, authority: str
         pin = repository / '.python-version'
         required = pin.read_text(encoding='utf-8').strip() if pin.is_file() else '>=3.11'
         if pin.is_file(): authority = str(pin)
-    path = executable('python', repository)
+    selected = os.environ.get('PROGRAMKIT_DEVICE_PYTHON')
+    if selected:
+        candidate = Path(selected)
+        path = candidate.resolve() if candidate.is_absolute() and candidate.is_file() and shared(candidate, repository) else None
+    else:
+        path = executable('python', repository)
     output = probe([str(path), '-I', '-c',
                     'import sys,json; print(json.dumps([sys.executable, sys.version.split()[0], sys.prefix == sys.base_prefix]))'], repository) if path else None
     try:

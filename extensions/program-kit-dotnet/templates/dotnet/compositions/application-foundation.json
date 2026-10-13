@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 2,
+  "compositionId": "application-foundation",
+  "runner": "executable",
+  "defaultEnvironment": "development",
+  "resources": {
+    "application-host": {
+      "kind": "host",
+      "runtimeDirectory": "."
+    },
+    "application-shell": {
+      "kind": "shell",
+      "name": "default",
+      "source": "shells.json",
+      "settings": {}
+    },
+    "product-identity": {
+      "kind": "identityAuthority",
+      "protocol": "oidc",
+      "theme": {
+        "selection": "program-kit",
+        "branding": {}
+      },
+      "session": {
+        "idleMinutes": 20,
+        "absoluteMinutes": 480
+      }
+    },
+    "application-client": {
+      "kind": "clientRegistration",
+      "authorityRef": "product-identity",
+      "profile": "browser-bff",
+      "callbackPath": "/signin-oidc",
+      "signedOutCallbackPath": "/signout-callback-oidc"
+    },
+    "application-api": {
+      "kind": "protectedResource",
+      "authorityRef": "product-identity"
+    },
+    "application-feature": {
+      "kind": "feature",
+      "path": "src/Application.Api/Application.Api.csproj",
+      "packageId": "Application.Api",
+      "featureIdentity": "Application.Api",
+      "role": "implementation"
+    },
+    "application-web": {
+      "kind": "frontend",
+      "directory": "web/application",
+      "entry": "src/app.ts"
+    }
+  },
+  "bindings": [
+    {
+      "kind": "shellHost",
+      "shellRef": "application-shell",
+      "hostRef": "application-host"
+    },
+    {
+      "kind": "authentication",
+      "shellRef": "application-shell",
+      "clientRef": "application-client",
+      "resourceRef": "application-api"
+    },
+    {
+      "kind": "featureShell",
+      "featureRef": "application-feature",
+      "shellRef": "application-shell"
+    },
+    {
+      "kind": "frontend",
+      "frontendRef": "application-web",
+      "shellRef": "application-shell",
+      "routeId": "application",
+      "path": "/"
+    }
+  ],
+  "environments": {
+    "development": {
+      "resources": {
+        "application-host": {
+          "mode": "managed",
+          "publicOrigin": "http://localhost:5000"
+        },
+        "product-identity": {
+          "provider": "keycloak",
+          "mode": "managed",
+          "publicOrigin": "http://localhost:8080",
+          "administrationOrigin": "http://program-kit-identity:8080",
+          "backchannelOrigin": "http://program-kit-identity:8080",
+          "realm": "program-kit"
+        },
+        "application-client": {
+          "clientId": "program-kit-bff",
+          "credentialRef": "PROGRAMKIT_APPLICATION_CLIENT_SECRET"
+        },
+        "application-api": {
+          "audience": "program-kit-api"
+        }
+      }
+    }
+  }
+}

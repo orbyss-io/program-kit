@@ -370,16 +370,16 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 
 | Artifact | Ownership and supported change path |
 | --- | --- |
-| `eng/spa-pkce.json` | Scaffold-owned typed SPA security input. Edit it, then rerun sync. |
+| `eng/foundation-composition.json` | Sole active resource/binding/environment input, linked to Accepted architecture. Synchronize it, explicitly prepare prerequisites, then use `eng/composition_run.py`. The initial native adapter qualifies BFF; other profiles require their declared adapter qualification. |
+| `eng/spa-pkce.json` | Retained legacy import/source-qualification input. It does not authorize a second consumer startup composition. Preserve its assigned values during explicit migration. |
 | `hostsettings.json` | Consumer-owned host infrastructure only, including eager activation. Bundle staging projects the separately owned `nuplane.settings.json` runtime feed/loading settings into this file for the published host. It contains no auth profile configuration. |
-| `deploy/keycloak/program-kit-realm.json` | Managed derived local fixture composed from shared provider state and exactly one selected-profile client. Never edit it; change the selected profile (or SPA input) and sync. |
-| `deploy/compose.application.yml` | Managed API-host composition. SPA-PKCE never receives a client secret. |
-| SPA process composition | Consumer-owned Compose overlay passed to `Dev.ps1 -ComposeOverlay <path>` or an independently managed static-server process. |
-| `eng/Dev.ps1` and `Test-Web.ps1` | Managed launch/test entry points. Use their parameters; do not fork them. |
+| `deploy/keycloak/<authority>/<realm>-realm.json` | Managed full import generated from one authority and its declared client/resource bindings. Never edit generated registrations. Preserve identity data during subsequent reconciliation. |
+| `artifacts/composition/compose.json` | Generated backend output of the typed model. It is never a consumer authoring input. |
+| `eng/composition_run.py` and `Test-Web.ps1` | One managed preparation/run/update/stop route and the maintained security test entry point. `Dev.ps1` is retired. |
 | `eng/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
 | Consumer `vite.config` | Consumer-owned adapter point importing `programKitSpaSecurity` and the SPA session adapter. |
 | `eng/web-profile.shells.json` | Managed selected-profile contribution: activates exactly one authentication feature and supplies its shell-scoped configuration. |
-| `shells.json` | Consumer-owned CShells composition. It is loaded after the managed profile contribution, so a consumer can set `Orbyss.Foundation.Web.ProblemDetails` to `false` and activate its own exception feature. |
+| Model-selected `shells.json` | Consumer-owned product policy overlay. Canonical identity, selected features and public/private route bindings remain controlled by the typed model and Accepted selection; conflicting overrides are rejected. |
 
 ## CShells feature composition
 

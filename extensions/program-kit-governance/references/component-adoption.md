@@ -48,9 +48,23 @@ not configure global HttpJsonOptions or infer profiles from DTO types. Tolerant 
 reading is a distinct boundary policy. Do not silently replace existing canonical
 numeric/hash identity with the new canonicalizer during upgrade.
 
-HostedPages supports typed public bootstrap, fixed encoded semantic HTML and admitted
-immutable assets with Vite `mount(element, bootstrap)`. It does not support arbitrary
-templates, private downloads or SVG branding. Program Kit's broader UI SVG allowance
+HostedPages supports fixed encoded semantic HTML, typed bootstrap and admitted
+immutable assets with Vite `mount(element, bootstrap)`. The exact qualified 0.3.3
+contract adds distinct typed `Routes` with owned `Id`/`Path`, optional `Revision`
+(defaulting to `CurrentRevision`) and explicit `Public`/`Authenticated` page access.
+Bootstrap inherits page admission and may add restrictions; it cannot weaken those
+requirements. Its URL includes the route ID and revision hash, so two routes sharing
+content cannot bypass each other's permissions. Admit immutable public code assets
+separately. Retained 0.3.2 profiles remain public-only; a newer default does not upgrade
+their authority. Legacy public `PagePath` remains supported.
+
+Use `HostedPageOptions.SectionName`, `HostedPageRouteOptions`, `HostedPageAccessOptions`
+and `HostedPageAccessMode` from that exact capture. Permission selection uses the
+canonical Foundation policy (`PermissionPolicyNames.ForPermission`) and actual BFF
+session admission; WebDefaults writes final private response headers. The application
+still owns resource/state/effect checks and protected API data. Route and permission
+IDs belong in application-owned constants. It does not support arbitrary templates,
+private downloads, per-account bootstrap or SVG branding. Program Kit's broader UI SVG allowance
 does not imply HostedPages compatibility; use an allowed branding representation or
 review a different adapter. Verify the actual hosted journey and asset admission.
 

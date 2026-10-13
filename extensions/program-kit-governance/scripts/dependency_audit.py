@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -21,6 +22,90 @@ def inside(root, relative):
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def toolkit_input(entry):
+    parts = Path(entry['path']).parts
+    return (len(parts) > 3 and parts[:2] == ('.specify', 'extensions')
+            and parts[2] in {'program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet'})
+
+
+def proof_input_archive(root, entry):
+    if not re.fullmatch('[a-f0-9]{64}', str(entry.get('sha256'))):
+        raise ValueError('Retained compatibility input has an invalid digest')
+    return inside(root, '.program-kit/installation/proof-inputs/' + entry['sha256'] + '.original')
+
+
+def input_unchanged(root, entry):
+    current = inside(root, entry['path'])
+    if current.is_file() and sha(current) == entry['sha256']:
+        return True
+    # Toolkit installation replaces these paths. Only exact archived executed
+    # bytes may substitute; consumer fixtures, streams and results remain strict.
+    if toolkit_input(entry):
+        archived = proof_input_archive(root, entry)
+        return archived.is_file() and sha(archived) == entry['sha256']
+    return False
+
+
+def archive_toolkit_proof_inputs(root):
+    ledger = read(root / 'docs/architecture/bootstrap-prerequisites.json', {})
+    for item in ledger.get('prerequisites', []):
+        if item.get('status') != 'closed':
+            continue
+        for evidence in item.get('evidence', []):
+            if evidence.get('kind') != 'compatibility':
+                continue
+            receipt = inside(root, evidence['path'])
+            if sha(receipt) != evidence['sha256']:
+                raise ValueError('Retained compatibility receipt is missing or changed')
+            for entry in read(receipt)['inputs']:
+                if not toolkit_input(entry):
+                    continue
+                archived = proof_input_archive(root, entry)
+                if archived.exists():
+                    if sha(archived) != entry['sha256']:
+                        raise ValueError('Archived compatibility toolkit input changed')
+                    continue
+                current = inside(root, entry['path'])
+                if not current.is_file() or sha(current) != entry['sha256']:
+                    raise ValueError('Historical toolkit input must be recovered before installation: ' + entry['path'])
+                archived.parent.mkdir(parents=True, exist_ok=True)
+                archived.write_bytes(current.read_bytes())
+
+
+# Frozen schema 1.2 producer shape shipped through 0.12.9. Historical receipts
+# cannot contain tooling introduced later. This only classifies unchanged executed
+# scratch inputs; current bootstrap closure still uses the current tooling hashes.
+SCOPED_TOOLING_0_12_9 = frozenset({
+    'program-kit-governance/scripts/bootstrap_lifecycle.py',
+    'program-kit-governance/scripts/bootstrap_proof_plan.py',
+    'program-kit-governance/references/bootstrap-proof-plan.schema.json',
+    'program-kit-governance/scripts/bootstrap_compatibility.py',
+    'program-kit-governance/scripts/compatibility_process.py',
+    'program-kit-governance/scripts/compatibility_diagnostics.py',
+    'program-kit-governance/scripts/managed_compatibility.py',
+    'program-kit-governance/scripts/managed_provider_probes.py',
+    'program-kit-governance/scripts/bootstrap_provider_context.py',
+    'program-kit-governance/scripts/compatibility_scope.py',
+    'program-kit-governance/scripts/repository_sync.py',
+    'program-kit-governance/scripts/package_execution.py',
+    'program-kit-governance/scripts/phase_obligations.py',
+    'program-kit-building-blocks/scripts/restore_dependencies.py',
+    'program-kit-building-blocks/scripts/building_blocks.py',
+    'program-kit-dotnet/scripts/dependency_profile.py',
+    'program-kit-dotnet/templates/dotnet/files/eng/toolchain.py',
+    'program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py',
+    'program-kit-dotnet/templates/dotnet/files/global.json',
+    'program-kit-dotnet/templates/dotnet/files/NuGet.config',
+    'program-kit-dotnet/templates/dotnet/files/.nvmrc',
+    'program-kit-dotnet/templates/dotnet/files/.npm-version',
+})
+
+SCOPED_TOOLING_0_12_11 = SCOPED_TOOLING_0_12_9 | {
+    'program-kit-building-blocks/scripts/dependency_context.py',
+    'program-kit-governance/scripts/runtime_fixture.py',
+}
 
 
 def evidence_inputs(root):
@@ -52,7 +137,9 @@ def evidence_inputs(root):
                 proof = read(receipt)
                 schema = proof.get('schema_version')
                 tooling = proof.get('tooling_sources', {})
-                allowed = (legacy, current) if schema == '1.1' else (set(proof_tooling(True)),)
+                preparation_helper = {'program-kit-governance/scripts/fixture_readiness.py'}
+                allowed = ((legacy, current, legacy - preparation_helper, current - preparation_helper) if schema == '1.1'
+                           else (SCOPED_TOOLING_0_12_9, SCOPED_TOOLING_0_12_11, set(proof_tooling(True))))
                 if (schema not in {'1.1', '1.2'} or proof.get('prerequisite') != item['id'] or proof.get('exit_code') != 0
                         or not proof.get('command') or not proof.get('inputs') or len(proof.get('streams', [])) != 2
                         or set(tooling) not in allowed or any(not re.fullmatch('[a-f0-9]{64}', str(value)) for value in tooling.values())):
@@ -66,7 +153,7 @@ def evidence_inputs(root):
                 if not test or not proof.get('checks'):
                     raise ValueError('Retained compatibility proof lacks executed named checks')
                 for entry in proof['inputs'] + proof['streams'] + [test]:
-                    if sha(inside(root, entry['path'])) != entry['sha256']:
+                    if not input_unchanged(root, entry):
                         raise ValueError('Retained compatibility inputs/streams changed')
                 cases = test_results(inside(root, test['path']), 'junit')
                 if not all(cases.values()) or not all(cases.get(name) is True for name in proof['checks']):
@@ -173,10 +260,45 @@ def engineering_outputs(root):
     return result
 
 
+def composition_dependency_ownership(root):
+    """Admit only the exact dependencies of the validated executable model.
+
+    Consumer project files remain audited item by item. A graph cannot exempt an
+    entire project, and generated pins require the reconciler's exact ownership.
+    """
+    if not (root / 'eng/foundation-composition.json').is_file():
+        return {}, set()
+    from repository_sync import provider
+    model = provider('program-kit-dotnet/scripts/composition_model.py')
+    sys.path.insert(0, str(Path(model.__file__).parent))
+    try:
+        renderer = provider('program-kit-dotnet/scripts/composition_render.py')
+        graph = model.load(root)
+        template = Path(renderer.__file__).parents[1] / 'templates/dotnet'
+        outputs = renderer.materialize(root, graph, template)
+    finally:
+        sys.path.pop(0)
+    relative = 'eng/ProgramKit.Foundation.props'
+    expected = outputs[relative][0]
+    state = read(root / '.program-kit/managed.json', {})
+    entry = state.get('files', {}).get(relative, {})
+    path = root / relative
+    digest = hashlib.sha256(expected).hexdigest()
+    if (not path.is_file() or path.read_bytes() != expected or entry.get('ownership') != 'managed'
+            or entry.get('contribution') != 'foundation' or entry.get('lastWrittenHash') != digest
+            or entry.get('templateHash') != digest):
+        raise ValueError('composition dependency contribution is missing, stale or not owned; synchronize the Accepted model')
+    projects = {}
+    for feature in model.resources(graph, 'feature').values():
+        document = ET.fromstring(outputs[feature['path']][0])
+        projects[feature['path']] = {item.get('Include').casefold() for item in document.iter('PackageReference')}
+    return projects, {path.resolve()}
+
+
 def audit_exemptions(root, lock):
     evidence = evidence_inputs(root)
     reject_active_references(root, evidence, lock)
-    return evidence | engineering_outputs(root)
+    return evidence | engineering_outputs(root) | composition_dependency_ownership(root)[1]
 
 
 def planned_selection_errors(root, projects):
@@ -193,10 +315,11 @@ def planned_selection_errors(root, projects):
     catalog_ids = {item['packageId'].casefold() for item in catalog['packages'].values() if item['ecosystem'] == 'nuget'}
     by_path = {target['path']: {item['packageId'].casefold() for item in target['packages']
                               if item['materializationKind'] == 'nuget-project'} for target in lock['targets']}
+    composition_projects = composition_dependency_ownership(root)[0] if (root / 'eng/ProgramKit.Foundation.props').is_file() else {}
     errors = []
     for project in projects:
         planned = {name.casefold() for name in project['packageReferences']} & catalog_ids
-        missing = planned - by_path.get(project['path'], set())
+        missing = planned - by_path.get(project['path'], set()) - composition_projects.get(project['path'], set())
         if missing:
             errors.append(f'PKA016 planned direct catalog references lack selection target bindings: {project["path"]}: '
                           + ', '.join(sorted(missing)) + '. Inherited engineering analyzers are not direct project references; '

@@ -6,6 +6,5 @@
   "selection": "program-kit-secure-default",
   "browserCredential": "opaque-http-only-session-cookie",
   "tokenLocation": "server-side-ticket-store",
-  "antiforgery": "X-CSRF-TOKEN",
-  "localIdentityProvider": "keycloak-26.7.3"
+  "antiforgery": "X-CSRF-TOKEN"
 }

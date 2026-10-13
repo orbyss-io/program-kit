@@ -232,8 +232,17 @@ def observe(pin, overrides):
         versions = [v for v in fetch(url) if re.fullmatch(r'v\d+\.\d+\.\d+', v['version'])]
         latest = max(versions, key=lambda v: version_key(v['version']))['version'].removeprefix('v')
     elif kind == "npm":
-        url = url or "https://registry.npmjs.org/" + urllib.parse.quote(name, safe="")
-        latest = fetch(url)["dist-tags"]["latest"]
+        if url:
+            latest = fetch(url)["dist-tags"]["latest"]
+        else:
+            # A complete package history can exceed the metadata input bound.
+            # Query the publisher's exact stable-tag manifest directly; retain
+            # the existing bound and reject redirects rather than retry/fallback.
+            url = "https://registry.npmjs.org/" + urllib.parse.quote(name, safe="") + "/latest"
+            manifest = fetch(url)
+            if manifest.get('name') != name:
+                raise ValueError('npm publisher returned a different package identity')
+            latest = manifest['version']
     elif kind == "pypi":
         url = url or "https://pypi.org/pypi/" + name + "/json"
         latest = fetch(url)["info"]["version"]

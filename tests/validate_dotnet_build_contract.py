@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -15,7 +16,7 @@ RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Resto
 
 
 PACK_ENGINE_FILES = ('release_bundle.py', 'central_packages.py', 'handoff_contract.py',
-                     'shell_composition.py', 'runtime_closure.py', 'program_kit_version.py')
+                     'shell_composition.py', 'runtime_closure.py', 'hosted_bundle.py', 'device_toolchain.py', 'program_kit_version.py')
 
 
 def materialize_pack_engine(managed: Path) -> None:
@@ -138,6 +139,12 @@ def main() -> int:
             )
             dotnet.chmod(0o755)
         environment = os.environ.copy()
+        environment['PROGRAMKIT_DEVICE_PYTHON'] = os.environ.get('PROGRAMKIT_DEVICE_PYTHON', sys._base_executable)
+        # A prepared interpreter must survive profile isolation. Any subsequent
+        # bare-python launch is a regression, even when a launcher could install.
+        launcher = tools / ('python.cmd' if os.name == 'nt' else 'python')
+        launcher.write_text('@echo off\r\nexit /b 83\r\n' if os.name == 'nt' else '#!/bin/sh\nexit 83\n')
+        if os.name != 'nt': launcher.chmod(0o755)
         environment["PATH"] = str(tools) + os.pathsep + environment.get("PATH", "")
         hostile_profile = repository / "denied-roaming-profile/NuGet"
         hostile_profile.mkdir(parents=True)
@@ -162,6 +169,13 @@ def main() -> int:
         if result.returncode != 0:
             raise AssertionError(f"managed Build.ps1 failed in restricted-profile fixture: {result.stdout}{result.stderr}")
         assert_pack_capture(repository)
+        before_python_rejection = log.read_bytes()
+        missing_python = subprocess.run(
+            [shell, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(managed / 'Build.ps1'), '-SkipReleaseBundle'],
+            cwd=repository, env=dict(environment, PROGRAMKIT_DEVICE_PYTHON=str(workspace / 'missing-python.exe')),
+            capture_output=True, text=True, timeout=30)
+        if missing_python.returncode == 0 or 'PKT030' not in missing_python.stdout + missing_python.stderr or log.read_bytes() != before_python_rejection:
+            raise AssertionError('Unavailable selected Python must reject before restore without a launcher fallback')
         outside_subject = workspace / "Outside.csproj"
         outside_subject.write_text("<Project Sdk=\"Microsoft.NET.Sdk\" />\n", encoding="utf-8")
         before_rejection = log.read_bytes()
@@ -228,6 +242,7 @@ def main() -> int:
             "root=Path(sys.argv[sys.argv.index('--repository')+1]).resolve()\n"
             "assert Path(os.environ['NUGET_PACKAGES']).resolve()==root/'artifacts/cache/nuget/packages'\n"
             "(root/'architecture.marker').write_text('checked')\n",encoding='utf-8')
+        environment['SPECKIT_PYTHON'] = environment['PROGRAMKIT_DEVICE_PYTHON']
         verification = subprocess.run(
             [
                 shell,

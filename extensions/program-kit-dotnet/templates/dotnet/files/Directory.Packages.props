@@ -8,5 +8,7 @@
           Condition="Exists('eng/ProgramKit.Persistence.props')" />
   <Import Project="eng/ProgramKit.BuildingBlocks.props"
           Condition="Exists('eng/ProgramKit.BuildingBlocks.props')" />
+  <Import Project="eng/ProgramKit.Foundation.props"
+          Condition="Exists('eng/ProgramKit.Foundation.props')" />
   <!-- Consumer-owned central package versions belong here. -->
 </Project>

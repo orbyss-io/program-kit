@@ -119,6 +119,8 @@ class OfficialToolBindingTests(unittest.TestCase):
                       if node.attrib.get('Include') == 'Orbyss.Foundation.Build']
             self.assertEqual(['0.2.0'], actual)
             self.assertEqual(str(work / 'dotnet-home'), kwargs['env'].get('DOTNET_CLI_HOME'))
+            configuration = ET.parse(work / 'NuGet.config').getroot()
+            self.assertIsNotNone(configuration.find('fallbackPackageFolders/clear'))
             raise RestoreObserved()
         with patch.object(self.native.profile_catalogs, 'qualification_inputs', return_value={'catalog': base, 'nativeLock': lock}), \
                 patch.object(self.native.subprocess, 'run', side_effect=dispatch):
@@ -501,7 +503,9 @@ class CatalogProfileTests(unittest.TestCase):
         self.assertEqual(1, len(targets))
         self.assertEqual(1, len(bases))
         target, base = blocks.load_json(targets[0]), blocks.load_json(bases[0])
-        self.assertEqual(blocks.raw_sha256(blocks.default_catalog(Path(blocks.__file__))), blocks.raw_sha256(bases[0]))
+        self.assertEqual(bases[0].stem.removeprefix('base-'), blocks.raw_sha256(bases[0]))
+        self.assertEqual(blocks.composition_projection(blocks.load_json(blocks.default_catalog(Path(blocks.__file__)))),
+                         blocks.composition_projection(base))
         blocks.validate_additive_profile_catalog(base, target)
         profile = blocks.load_json(registry / 'dependency-profile-foundation-0.3.0.json')
         self.assertEqual(target, blocks.materialize_dependency_profile(target, profile))

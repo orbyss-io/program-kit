@@ -525,6 +525,9 @@ def validate_release_feature_closure() -> None:
         staged.mkdir(parents=True)
         hostsettings = {"Nuplane": {"Loading": {"Enabled": True}}}
         shells_value = {"CShells": {"Shells": {"default": {"Features": {}}}}}
+        # A sealed deployment must bind the actual source settings as well as
+        # staged bytes; a staged-only fixture cannot establish freshness.
+        (repository / "shells.json").write_text(json.dumps(shells_value), encoding="utf-8")
         (staged / "hostsettings.json").write_text(json.dumps(hostsettings), encoding="utf-8")
         (staged / "nuplane.settings.json").write_text(json.dumps(hostsettings), encoding="utf-8")
         (staged / "shells.json").write_text(json.dumps(shells_value), encoding="utf-8")
@@ -567,7 +570,7 @@ def validate_release_feature_closure() -> None:
                     output,
                 )
             except ValueError as error:
-                if "PKR022" not in str(error):
+                if "PKC002" not in str(error):
                     raise
             else:
                 raise AssertionError("release describe accepted stale runtime-closure evidence")

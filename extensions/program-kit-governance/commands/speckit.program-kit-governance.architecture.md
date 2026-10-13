@@ -19,6 +19,14 @@ Classify responsibilities before choosing project roles. Stable contracts/pure p
 persistence-calling orchestration, endpoint adaptation and provider mechanisms require their actual
 present compilation roles. An accepted earlier decision is not an implicit waiver. Surface conflicts
 and resolve substantive changes through governed review. No universal project count is prescribed.
+Distinguish runtime resource composition from compilation ownership. Bind typed Foundation
+resources to the existing Accepted model/selection IDs, using one authority, explicit
+client/API relationships and separately placed database/server resources as applicable.
+The executable graph lives in `eng/foundation-composition.json`; settings, provider imports
+and Docker Compose are generated outputs. Do not introduce a `.Composition` project to
+collect feature selections or start services. A separate preset needs an explicitly
+Accepted reusable source responsibility. Reconcile active scoped decisions and retire
+superseded placements before updating dependent plans, preserving prior decision history.
 
 
 Read the supplied brief with `python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py read-brief --stage architecture --run-id <run> --page 1`, then each indicated next page in a separate tool response. Read all pages; this is lossless paging, not a summary. For sizing, follow `output_contract.budget_basis`: use its advisory sizing command once after drafting, not ad hoc whole-file byte assertions. Authored limits exclude only verified generated views; preserve their complete content. Do not combine brief, skill and reference dumps in one response or reread already received pages.

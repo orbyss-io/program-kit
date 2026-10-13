@@ -10,7 +10,7 @@ type RealmFixture = {
   users?: unknown;
 };
 
-const realmPath = fileURLToPath(
+const realmPath = process.env.PROGRAMKIT_IDENTITY_REALM_FILE ?? fileURLToPath(
   new URL('../../deploy/keycloak/program-kit-realm.json', import.meta.url),
 );
 
@@ -22,8 +22,7 @@ function loadRealm(): RealmFixture {
   const realm = value as RealmFixture;
   const attributes = realm.attributes as Record<string, unknown> | undefined;
   if (
-    realm.displayName !== 'Program Kit Local Identity'
-    || attributes?.programKitFixture !== 'local-non-production-only'
+    attributes?.programKitFixture !== 'local-non-production-only'
     || !Array.isArray(realm.users)
   ) {
     throw new Error('The managed identity realm is not explicitly classified as the local non-production fixture.');

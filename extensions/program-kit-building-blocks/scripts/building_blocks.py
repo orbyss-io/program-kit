@@ -1123,11 +1123,13 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
     # authorities. Never infer ownership from a docs/specs directory name.
     governance = Path(__file__).resolve().parents[2] / 'program-kit-governance/scripts'
     exempt = set()
+    composition_projects = {}
     if (governance / 'dependency_audit.py').is_file():
         sys.path.insert(0, str(governance))
         try:
-            from dependency_audit import audit_exemptions
+            from dependency_audit import audit_exemptions, composition_dependency_ownership
             exempt = audit_exemptions(repository, ownership_lock or {})
+            composition_projects = composition_dependency_ownership(repository)[0]
         except (OSError, ValueError, KeyError, TypeError) as error:
             fail('PKB405', str(error))
         finally:
@@ -1154,7 +1156,7 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
         if prior and prior["kind"] == "nuget-project":
             content = remove_marker_region(content, BEGIN_MARKER, END_MARKER, path)
         for package_id in reference_pattern.findall(content):
-            if package_id.casefold() in nuget_ids:
+            if package_id.casefold() in nuget_ids and package_id.casefold() not in composition_projects.get(relative, set()):
                 findings.append(f"unmanaged NuGet reference {package_id} in {relative}")
     for path in repository_files(repository, "*.props"):
         relative = path.relative_to(repository).as_posix()
@@ -1431,6 +1433,15 @@ def apply_materialization(repository: Path, lock_path: Path, lock: dict, catalog
 
 
 def find_program_kit_version(script: Path) -> str:
+    # Installed extensions have their own toolkit version. A consumer VERSION
+    # describes the application and must not become generated-lock provenance.
+    manifest = script.resolve().parents[1] / 'extension.yml'
+    if manifest.is_file():
+        match = re.search(r'^\s{2}version:\s*["\']?([^"\'#\s]+)',
+                          manifest.read_text(encoding='utf-8'), re.MULTILINE)
+        if match:
+            return match.group(1)
+        fail('PKB104', f'extension manifest lacks toolkit version: {manifest}')
     for parent in script.resolve().parents:
         candidate = parent / "VERSION"
         if candidate.is_file():
@@ -1522,7 +1533,15 @@ def dependency_profile_catalog(directory: Path, entry: dict, supplied: dict) -> 
     actual = canonical_sha256(composition_projection(supplied))
     if actual not in {canonical_sha256(composition_projection(base)), canonical_sha256(composition_projection(target))}:
         fail('PKB610', 'profile catalog requires its exact base or target composition; review an architecture transition')
-    return target
+    # Applicability prose is excluded from the resolution/composition contract.
+    # Display maintained, explicitly version-gated guidance without rewriting
+    # immutable snapshots, package pins, rules or their qualification evidence.
+    presented = copy.deepcopy(target)
+    for identity, composition in presented['compositions'].items():
+        maintained = supplied['compositions'].get(identity)
+        if maintained is not None and 'when' in maintained:
+            composition['when'] = maintained['when']
+    return presented
 
 
 def dependency_profile_changes(old: dict, new: dict) -> dict:
@@ -1569,6 +1588,23 @@ def profile_entry_matches_hash(entry: dict, expected: str) -> bool:
 def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576) -> bytes:
     """Read one frozen document from an ordinary file or an indexed source pack."""
     source=repository_path(directory,item['path'])
+    packed = False
+    if not source.is_file() and 'byteOffset' not in item:
+        # Install packaging can compact old loose package facts while their
+        # historical manifests and original per-document hashes remain unchanged.
+        storage = repository_path(directory, 'historical-package-facts.json')
+        if storage.is_file():
+            if storage.stat().st_size > 1_048_576:
+                fail('PKB611', 'historical package storage index exceeds its bound')
+            index = load_json(storage)
+            if index.get('schemaVersion') != 1 or not isinstance(index.get('entries'), dict):
+                fail('PKB611', 'historical package storage index is invalid')
+            row = index['entries'].get(item['path'])
+            if not isinstance(row, dict) or set(row) != {'byteOffset', 'byteLength', 'sha256'} or row['sha256'] != item.get('sha256'):
+                fail('PKB611', 'historical package storage differs from its original authority')
+            item = {**item, **row}
+            source = repository_path(directory, 'historical-package-facts.pack')
+            packed = True
     offset=item.get('byteOffset',0)
     length=item.get('byteLength',source.stat().st_size)
     if (type(offset) is not int or type(length) is not int or offset<0 or length<0
@@ -1576,7 +1612,10 @@ def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576
         fail('PKB611','publisher document range is invalid')
     with source.open('rb') as stream:
         stream.seek(offset)
-        return stream.read(length)
+        result = stream.read(length)
+    if packed and hashlib.sha256(result).hexdigest() != item['sha256']:
+        fail('PKB611', 'historical publisher package fact changed')
+    return result
 
 
 def publisher_package_fact(directory: Path, item: dict) -> dict:

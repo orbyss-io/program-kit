@@ -19,7 +19,22 @@ import initialize_device
 
 
 class RepositoryToolchainTests(unittest.TestCase):
+    def test_explicit_device_python_is_validated_without_path_masking(self):
+        selected = self.binary(self.shared, 'python', 'fixture')
+        before = os.environ.get('PATH')
+        with patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': str(selected)}), \
+                patch.object(device, 'executable', return_value=None), \
+                patch.object(device, 'probe', return_value=json.dumps([str(selected), '3.15.0', True])):
+            self.assertEqual(selected, device.require_python(self.repo))
+            self.assertEqual(before, os.environ.get('PATH'))
+        with patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': str(self.repo / 'missing.exe')}), \
+                patch.object(device, 'executable', return_value=selected):
+            with self.assertRaisesRegex(ValueError, 'PKT030'):
+                device.require_python(self.repo)
+
     def setUp(self):
+        environment = patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': ''})
+        environment.start(); self.addCleanup(environment.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.base = Path(self.temp.name)

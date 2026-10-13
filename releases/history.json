@@ -190,6 +190,32 @@
         "Run maintained phase guards, risk-selected engineering checks and independent runnable-story human review.",
         "Verify preserved inputs, archived abandoned files and all fresh phases for an adopted unfinished feature."
       ]
+    },
+    {
+      "version": "0.13.1",
+      "previous": "0.13.0",
+      "guide": "migration-0.13.1.md",
+      "automatic": [
+        "Install maintenance repairs for preserved proofs/planning, verified runtime/isolation, identity projection and complete affected lock closure.",
+        "Offer qualified Foundation 0.3.3 and captured exact publisher knowledge to new projects; retain existing accepted dependencies."
+      ],
+      "review": [
+        "Review only affected verification mappings, stale fixture inputs and selected dependency transitions.",
+        "Keep the existing fresh 0.13.0 story, clock, task IDs and human reviews; no new reset or ratification."
+      ],
+      "verification": [
+        "Verify installed coherence and original repair/history preservation.",
+        "Prepare exact tools/images/browsers before behavior; renew the complete affected reverse closure and run whole-solution LockedMode.",
+        "Require fresh successful implementation preflight and actual selected Foundation behavior without granting paid or human acceptance authority."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve original inputs/receipts/unknown outcomes and failed attempts; repair and resume the verified updater.",
+        "No automatic paid retry/reset or external data/identity rollback."
+      ]
     }
   ]
 }

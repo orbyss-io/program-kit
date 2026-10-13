@@ -406,6 +406,7 @@ def proof_tooling(scoped: bool = False):
         'program-kit-governance/scripts/bootstrap_proof_plan.py',
         'program-kit-governance/references/bootstrap-proof-plan.schema.json',
         'program-kit-governance/scripts/bootstrap_compatibility.py',
+        'program-kit-governance/scripts/fixture_readiness.py',
         'program-kit-governance/scripts/compatibility_process.py',
         'program-kit-governance/scripts/compatibility_diagnostics.py',
         'program-kit-governance/scripts/managed_compatibility.py',
@@ -591,16 +592,85 @@ def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
     return {'path': receipt.relative_to(root).as_posix(), 'sha256': digest(receipt), 'kind': 'compatibility', 'exit_code': exit_code}
 
 
+def receipt_invalidation_preview(root, changed_paths):
+    """Forecast invalidation; preserve broad bindings until independence is proved."""
+    changes = sorted({Path(value).as_posix() for value in changed_paths})
+    for value in changes:
+        local(root, value)
+    ledger = load(root / LEDGER)
+    rows = []
+    for item in ledger['prerequisites']:
+        if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9-]{0,100}', str(item.get('id', ''))):
+            raise LifecycleError('Invalid prerequisite identity in receipt preview')
+        evidence = [entry for entry in item.get('evidence', []) if entry.get('kind') == 'compatibility']
+        attempts = sorted((path for path in (root / '.specify/governance/compatibility' / item['id']).glob('attempt-*')
+                           if path.is_dir()), key=lambda path: (path.stat().st_mtime_ns, path.name), reverse=True)
+        if attempts:
+            latest = attempts[0] / 'proof.json'
+            if not latest.is_file():
+                rows.append({'id': item['id'], 'path': latest.relative_to(root).as_posix(),
+                             'currentBindingFindings': ['latest attempt is incomplete'],
+                             'proposedInvalidations': {path: 'incomplete attempt has no proved independent closure' for path in changes}})
+                continue
+            evidence = [{'path': latest.relative_to(root).as_posix(), 'sha256': digest(latest)}]
+        for entry in evidence:
+            path = local(root, entry['path'])
+            findings, invalidations = [], {}
+            if not path.is_file() or digest(path) != entry['sha256']:
+                rows.append({'id': item['id'], 'path': entry['path'], 'currentBindingFindings': ['receipt missing or changed'],
+                             'proposedInvalidations': {value: 'receipt has no proved current closure' for value in changes}})
+                continue
+            proof = load(path)
+            if proof.get('exit_code') != 0:
+                findings.append('latest attempt failed')
+            bound = {row['path']: row['sha256'] for row in proof.get('inputs', []) + proof.get('streams', [])
+                     + ([proof['test_result']] if proof.get('test_result') else [])}
+            for relative, expected in bound.items():
+                current = local(root, relative)
+                if not current.is_file() or digest(current) != expected:
+                    findings.append('executed input missing/changed: ' + relative)
+            design = proof.get('design_sources', {})
+            for relative, expected in design.items():
+                current = local(root, relative)
+                if not current.is_file() or design_digest(current, proof.get('schema_version') == '1.2') != expected:
+                    findings.append('selected design changed: ' + relative)
+            tooling = proof.get('tooling_sources', {})
+            if tooling != proof_tooling(proof.get('schema_version') == '1.2'):
+                findings.append('current producer tooling differs; historical readability grants no current readiness')
+            toolkit_paths = {'.specify/extensions/' + value for value in tooling}
+            for relative in changes:
+                if relative == 'docs/architecture/building-block-selection.json':
+                    invalidations[relative] = 'conservative whole-selection binding; unrelated placement independence is not demonstrated'
+                elif relative in bound or relative in design or relative in toolkit_paths:
+                    invalidations[relative] = 'executed input, selected design or producer tooling is bound to this receipt'
+                elif (relative in {'global.json', '.python-version', '.nvmrc', '.npm-version', 'Directory.Packages.props',
+                                   'NuGet.config', 'artifacts/program-kit/toolchain.json', 'hostsettings.json', 'shells.json', 'nuplane.settings.json'}
+                      or Path(relative).name in {'package.json', 'package-lock.json', 'packages.lock.json'}
+                      or Path(relative).suffix in {'.csproj', '.fsproj', '.vbproj', '.props', '.targets'}
+                      or relative.startswith(('src/', 'web/', 'runtime/', 'eng/', 'docs/architecture/', '.program-kit/dependency-profile', '.program-kit/installed-'))):
+                    invalidations[relative] = 'API/shell/configuration/package/fixture/toolchain closure is not proved independent; renew conservatively'
+                else:
+                    invalidations[relative] = 'unknown change closure; independence is not demonstrated by this receipt'
+            rows.append({'id': item['id'], 'path': entry['path'], 'sha256': digest(path),
+                         'currentBindingFindings': findings, 'proposedInvalidations': invalidations})
+    return {'schemaVersion': 1, 'changedPaths': changes, 'receipts': rows,
+            'proofOrSpendingAuthorityEstablished': False,
+            'instruction': 'Settle selection, placement, current fixture drafts and complete native lock renewal before paid preparation. Inspect this forecast and normal prerequisite validation; preserve receipts, attempts, reservations and unknown outcomes. A new paid run needs distinct exact authorization/state; no automatic retry or reset.'}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['proof', 'source-hashes', 'source-status'])
+    parser.add_argument('command', choices=['proof', 'source-hashes', 'source-status', 'invalidation-preview'])
+    parser.add_argument('--changed-path', action='append', default=[])
     parser.add_argument('--id')
     parser.add_argument('--recipe')
     parser.add_argument('--timeout', type=int, default=120)
     args = parser.parse_args()
     root = Path.cwd().resolve()
     try:
-        if args.command == 'source-status':
+        if args.command == 'invalidation-preview':
+            result = receipt_invalidation_preview(root, args.changed_path)
+        elif args.command == 'source-status':
             result = source_binding_status(root)
         elif args.command == 'source-hashes':
             result = {'sources': [{'path': p, 'sha256': source_digest(local(root, p)), 'prerequisites': []} for p in source_paths(root)]}

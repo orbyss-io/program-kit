@@ -109,6 +109,8 @@ def rewrite_archive(path, mutation):
 
 
 def main():
+    from fixture_readiness_cases import exercise
+    exercise(ROOT)
     results = []
     assert maintained_cshells_source() == probe.CSHELLS_PREVIEW_SOURCE
     results.append('canonical-cshells-source-matches-maintained-native-restore-mapping')

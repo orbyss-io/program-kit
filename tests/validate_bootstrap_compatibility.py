@@ -113,8 +113,14 @@ class CompatibilityTests(unittest.TestCase):
         self.assertIsNotNone(proof['provisioning']['lockedRestore'])
 
     def test_target_must_have_a_bound_fixture(self):
-        with self.assertRaisesRegex(ValueError, 'bound fixture'):
-            compatibility.prepare(self.root, self.root, {'dependencyTargets': ['Missing.csproj']})
+        source = self.root / 'original.cs'
+        source.write_text('retained original')
+        with patch('fixture_readiness.stale_inputs') as lookup:
+            with self.assertRaisesRegex(ValueError, 'bound fixture'):
+                compatibility.prepare(self.root, self.root, {'dependencyTargets': ['Missing.csproj'],
+                    'fixtures': {'copied.cs': 'original.cs'}})
+            lookup.assert_not_called()
+        self.assertFalse((self.root / 'copied.cs').exists())
 
     def test_nested_scratch_uses_only_own_consumer_cache(self):
         executor = compatibility.provider('program-kit-building-blocks/scripts/restore_dependencies.py')

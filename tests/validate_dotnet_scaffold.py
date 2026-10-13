@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import re
 from pathlib import Path
 
 
@@ -76,6 +77,11 @@ def assert_profile(repository: Path, expected: str) -> None:
         assert 'styles=css/styles.css css/program-kit.css' in theme, 'Custom branding dropped the parent login/recovery styles'
         identity_compose = (repository / "deploy/compose.identity.yml").read_text(encoding="utf-8")
         assert "./keycloak/themes:/opt/keycloak/themes:ro" in identity_compose
+        identity_image = re.search(r'^\s*image:\s*(quay\.io/keycloak/keycloak:[^\s]+)', identity_compose, re.M).group(1)
+        descriptor = json.loads((repository / 'eng/web-profile.json').read_text())
+        identity_version = identity_image.split('@')[0].rsplit(':', 1)[-1]
+        assert descriptor['localIdentityProvider'] == 'keycloak-' + identity_version, 'Identity descriptor version drift'
+        assert descriptor['localIdentityProviderImage'] == identity_image, 'Identity descriptor digest drift'
     spa_only = (
         "eng/spa-pkce.json",
         "eng/spa-pkce.schema.json",
@@ -111,6 +117,8 @@ def seed_legacy_root_web_settings(repository: Path, profile: str) -> None:
 
 
 def main() -> int:
+    from identity_projection_cases import exercise
+    exercise(ROOT)
     template_root = ROOT / "extensions/program-kit-dotnet/templates/dotnet"
     neutral_realm = json.loads(
         (template_root / "web-profiles/common/deploy/keycloak/program-kit-realm.json")

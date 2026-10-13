@@ -21,11 +21,19 @@ import time
 import uuid
 
 from foundation_fixture import captured, require
+from js_toolchain import device
 from test_results import test_results
 
 
 def digest(value):
     return hashlib.sha256(value).hexdigest()
+
+
+def resolved_command(root, command):
+    """Use the same validated shared Python for evidence and execution."""
+    if command and command[0].lower() in ('python', 'python3', 'python.exe', 'python3.exe'):
+        return [str(device.require_python(root)), *command[1:]]
+    return command
 
 
 def contained(root, relative):
@@ -43,7 +51,8 @@ def configuration(root):
     module = importlib.util.module_from_spec(specification)
     specification.loader.exec_module(module)
     module.verify_outputs(root)
-    return module.resolve(root, module.load_configuration(root))
+    from foundation_qualification import selection
+    return selection(root)
 
 
 def inputs(root, selected):
@@ -77,7 +86,7 @@ def inputs(root, selected):
     for row in selected.get('setup', {}).get('steps', []) + selected.get('tests', {}).get('commands', []):
         command = row.get('command', [])
         if command:
-            executable = shutil.which(command[0])
+            executable = shutil.which(resolved_command(root, command)[0])
             require(executable is not None, 'PKF001 setup command executable is unavailable')
             path = Path(executable).resolve()
             toolchain[command[0]] = {'path': str(path), 'sha256': digest(path.read_bytes())}
@@ -211,8 +220,8 @@ def execute(root, selected):
         step = {'id': row.get('id', stage), 'stage': stage, 'status': 'running'}
         result['steps'].append(step)
         save()
-        command = [token.replace('{runDirectory}', directory.relative_to(root).as_posix())
-                   for token in row['command']]
+        command = resolved_command(root, [token.replace('{runDirectory}', directory.relative_to(root).as_posix())
+                                         for token in row['command']])
         observed = captured(command, contained(root, row.get('cwd', '.')),
                             directory / f'command-{len(result["steps"]):02d}',
                             timeout=row.get('timeoutSeconds', 900), secret_values=secret_values)
@@ -268,9 +277,20 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--execute', action='store_true', help='Explicitly prepare services and check the foundation')
     mode.add_argument('--status', action='store_true', help='Read latest evidence; never start services or tests')
+    parser.add_argument('--qualification', action='store_true', help='Run the retained owned-probe acceptance fixture; no alternate authoring input')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
+        if not args.qualification and (root / 'eng/foundation-composition.json').is_file():
+            import composition_run
+            if args.status:
+                print(json.dumps(composition_run.status(root), indent=2))
+            elif args.execute:
+                composition_run.prepare(root)
+                composition_run.run(root)
+            else:
+                print(json.dumps({'status': 'planned', 'route': 'eng/composition_run.py', 'servicesStarted': False}))
+            return 0
         selected = configuration(root)
         stages, commands = validate(selected, root)
         if args.status:

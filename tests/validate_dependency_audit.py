@@ -23,6 +23,82 @@ from validate_governance_state import roadmap
 
 
 class AuditTests(unittest.TestCase):
+    def test_invalidation_preview_is_read_only_and_conservative_for_selection(self):
+        source = self.proof()
+        before = {path: path.read_bytes() for path in self.root.rglob('*') if path.is_file()}
+        changes = [source.relative_to(self.root).as_posix(), 'docs/architecture/building-block-selection.json',
+                   'src/Owner/Owner.Api.cs', 'runtime/shells.json', 'Directory.Packages.props',
+                   'docs/architecture/compatibility/current.py', 'artifacts/program-kit/toolchain.json']
+        result = lifecycle.receipt_invalidation_preview(self.root, changes)
+        self.assertFalse(result['proofOrSpendingAuthorityEstablished'])
+        self.assertEqual(set(changes), set(result['receipts'][0]['proposedInvalidations']))
+        self.assertIn('whole-selection', result['receipts'][0]['proposedInvalidations'][changes[1]])
+        independent = lifecycle.receipt_invalidation_preview(self.root, ['docs/unrelated-neighbor.md'])
+        self.assertIn('independence is not demonstrated', independent['receipts'][0]['proposedInvalidations']['docs/unrelated-neighbor.md'])
+        self.assertEqual(before, {path: path.read_bytes() for path in self.root.rglob('*') if path.is_file()})
+
+    def test_invalidation_preview_retains_latest_failure_and_original_receipt(self):
+        self.proof()
+        original = self.root / '.specify/governance/proof/proof.json'
+        retained = original.read_bytes()
+        latest = self.write('.specify/governance/compatibility/probe/attempt-latest/proof.json',
+                            {'prerequisite': 'probe', 'exit_code': 125, 'inputs': [], 'streams': []})
+        result = lifecycle.receipt_invalidation_preview(self.root, [])
+        row = result['receipts'][0]
+        self.assertEqual(latest.relative_to(self.root).as_posix(), row['path'])
+        self.assertIn('latest attempt failed', row['currentBindingFindings'])
+        self.assertEqual(retained, original.read_bytes())
+
+    def test_frozen_scoped_producer_shape_is_historical_not_current_acceptance(self):
+        source = self.proof()
+        receipt = self.root / '.specify/governance/proof/proof.json'
+        proof = audit.read(receipt)
+        proof['schema_version'] = '1.2'
+        shape = json.loads((ROOT / 'tests/fixtures/historical-compatibility-tooling-0.12.9.json').read_text())
+        proof['tooling_sources'] = {name: 'a' * 64 for name in shape}
+        self.write(receipt.relative_to(self.root), proof)
+        ledger_path = 'docs/architecture/bootstrap-prerequisites.json'
+        ledger = audit.read(self.root / ledger_path)
+        ledger['prerequisites'][0]['evidence'][0]['sha256'] = audit.sha(receipt)
+        self.write(ledger_path, ledger)
+        retained = receipt.read_bytes()
+        self.assertIn(source.resolve(), audit.evidence_inputs(self.root))
+        from governance_state import roadmap_records
+        with self.assertRaises(ValueError):
+            lifecycle.validate_prerequisites(self.root, roadmap_records(self.root / 'docs/architecture/specification-roadmap.md'))
+        self.assertEqual(retained, receipt.read_bytes())
+        proof['tooling_sources'].pop(shape[0])
+        self.write(receipt.relative_to(self.root), proof)
+        ledger['prerequisites'][0]['evidence'][0]['sha256'] = audit.sha(receipt)
+        self.write(ledger_path, ledger)
+        with self.assertRaisesRegex(ValueError, 'immutable executed proof provenance'):
+            audit.evidence_inputs(self.root)
+
+    def test_exact_archived_toolkit_input_preserves_historical_proof_only(self):
+        source = self.proof()
+        receipt = self.root / '.specify/governance/proof/proof.json'
+        toolkit = self.write('.specify/extensions/program-kit-governance/scripts/executed.py', 'executed original')
+        proof = audit.read(receipt)
+        entry = {'path': toolkit.relative_to(self.root).as_posix(), 'sha256': audit.sha(toolkit)}
+        proof['inputs'].append(entry)
+        self.write(receipt.relative_to(self.root), proof)
+        ledger_path = 'docs/architecture/bootstrap-prerequisites.json'
+        ledger = audit.read(self.root / ledger_path)
+        ledger['prerequisites'][0]['evidence'][0]['sha256'] = audit.sha(receipt)
+        self.write(ledger_path, ledger)
+        original = receipt.read_bytes()
+        archive = self.write('.program-kit/installation/proof-inputs/' + entry['sha256'] + '.original', toolkit.read_text())
+        toolkit.write_text('upgraded source')
+        self.assertIn(source.resolve(), audit.evidence_inputs(self.root))
+        self.assertEqual(original, receipt.read_bytes())
+        archive.write_text('corrupt history')
+        with self.assertRaisesRegex(ValueError, 'inputs/streams changed'):
+            audit.evidence_inputs(self.root)
+        archive.write_text('executed original')
+        source.write_text('changed consumer proof input')
+        with self.assertRaisesRegex(ValueError, 'inputs/streams changed'):
+            audit.evidence_inputs(self.root)
+
     def test_migration_scope_is_independent_of_unfinished_features(self):
         self.write('specs/001-future/spec.md','Unfinished feature')
         self.write('specs/001-future/tasks.md','- [ ] unfinished work')

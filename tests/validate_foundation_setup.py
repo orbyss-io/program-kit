@@ -155,6 +155,38 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             self.assertEqual(result['exitCode'],code)
             self.assertTrue(result['cleanupComplete'] and result['logsDrained'])
 
+    def test_python_alias_uses_validated_shared_selection_for_fingerprint_and_child(self):
+        selected = self.composition()
+        for row in selected['setup']['steps'] + selected['tests']['commands']:
+            row['command'][0] = 'python'
+        alias = EVIDENCE / 'unusable-store-python.exe'
+        alias.write_bytes(b'not an executable')
+        base = Path(getattr(sys, '_base_executable', sys.executable)).resolve()
+        actual_which = shutil.which
+        actual_read = Path.read_bytes
+        def read_bytes(path):
+            if path == alias:
+                raise OSError(22, 'Invalid argument', str(path))
+            return actual_read(path)
+        with patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': str(base)}), \
+                patch.object(Path, 'read_bytes', autospec=True, side_effect=read_bytes), \
+                patch.object(shutil, 'which', side_effect=lambda name, *args, **kwargs:
+                             str(alias) if name == 'python' else actual_which(name, *args, **kwargs)):
+            before = setup.inputs(self.root, selected)
+            with patch.object(setup, 'captured', wraps=fixture.captured) as executed:
+                result = setup.execute(self.root, selected)
+            self.assertEqual('ready', result['status'])
+            self.assertEqual(before, result['fingerprint'])
+            self.assertEqual(len(executed.call_args_list), 6)
+            self.assertTrue(all(call.args[0][0] == str(base) for call in executed.call_args_list))
+        with patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': str(self.root / 'missing-python.exe')}):
+            with self.assertRaisesRegex(ValueError, 'PKT030'):
+                setup.inputs(self.root, selected)
+            with patch.object(setup, 'captured') as rejected:
+                with self.assertRaisesRegex(ValueError, 'PKT030'):
+                    setup.execute(self.root, selected)
+                rejected.assert_not_called()
+
     def test_root_and_nested_real_process_reporting_rerun(self):
         for nested in (False, True):
             first = setup.execute(self.root, self.composition(nested))
@@ -263,6 +295,19 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
         later.write_text(json.dumps({**result, 'status': 'failed', 'startedAtUtc': '2099-01-01T00:00:00+00:00'}), encoding='utf-8')
         self.assertIsNone(setup.successful_reuse(self.root, result['fingerprint']),
                           'Directory identity order must not conceal a later failed run')
+
+    def test_callback_credentials_are_redacted_without_prior_secret_knowledge(self):
+        callback = 'http://localhost/signin-oidc?code=unknown-code-value&state=unknown-state-value&iss=public-issuer'
+        result = fixture.captured([sys.executable, '-c',
+            'import sys; print(sys.argv[1]); print(sys.argv[1], file=sys.stderr); raise SystemExit(7)', callback],
+            self.root, self.root / 'callback-failure')
+        self.assertEqual(result['exitCode'], 7)
+        for name in ('stdout.log', 'stderr.log'):
+            text = (self.root / 'callback-failure' / name).read_text()
+            self.assertNotIn('unknown-code-value', text)
+            self.assertNotIn('unknown-state-value', text)
+            self.assertIn('iss=public-issuer', text)
+            self.assertEqual(result['streams'][name]['redactionCount'], 2)
 
     def test_redaction_on_actual_failed_child_and_timeout_drain(self):
         secret = 'owned-temporary-credential'
@@ -600,8 +645,8 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
             (root/'eng/foundation-qualification-support/QualificationFeature.cs').write_text('__DEPENDENCIES__')
             (root/'runtime/packages').mkdir(parents=True)
             (root/'runtime/shells.json').write_text(json.dumps({'CShells': {'Shells': {'default': {'Features': {}, 'Configuration': {'Foundation': {'Web': {}}}}}}}))
-            (root/'deploy/keycloak').mkdir(parents=True)
-            (root/'deploy/keycloak/program-kit-realm.json').write_text(json.dumps({'attributes': {'programKitFixture': 'local-non-production-only'},
+            (root/'deploy/keycloak/owned-authority/themes').mkdir(parents=True)
+            (root/'deploy/keycloak/owned-authority/program-kit-realm.json').write_text(json.dumps({'attributes': {'programKitFixture': 'local-non-production-only'},
                 'clients': [{'clientId': 'owned', 'secret': '' if failure=='identity-configure' else 'synthetic'}]}))
             (root/'tests/foundation-product').mkdir(parents=True); (root/'tests/foundation-product/schema.sql').write_text('owned schema boundary')
             pins = ('CShells.Abstractions','CShells.AspNetCore.Abstractions','Orbyss.Foundation.Authentication','Orbyss.Foundation.Analyzers','Orbyss.Foundation.Build')
@@ -614,6 +659,10 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
                     if command[:3]==['docker','network','create']: stage='network-create'
                     elif command[:2]==['docker','create']:
                         stage='identity-create' if 'pk-foundation-identity-' in command[3] else 'completed'
+                        if stage=='identity-create':
+                            expected='type=bind,source='+str(root/'deploy/keycloak/owned-authority/themes')+',target=/opt/keycloak/themes,readonly'
+                            if command[command.index('--mount')+1] != expected:
+                                raise AssertionError('Identity must mount the selected authority theme directory')
                     elif command[:2]==['docker','cp']:
                         if command[2].endswith('identity-import'): stage='identity-import'
                         elif ':/opt/keycloak/data/import' in command[2]:
@@ -636,7 +685,9 @@ console.log(JSON.stringify(result)); } catch(error) { console.error(error.messag
                 'serviceImages': {'keycloak': 'owned-image', 'postgresql': 'owned-image'}, 'targets': {'publicAuthority': 'owned-public'}, 'hostImage':'owned-host'}
             metadata = {'contracts': []}
             with patch.dict(sys.modules, {'foundation_composition': composition}), \
-                 patch.object(composition, 'load_configuration', return_value=config), patch.object(composition, 'read', return_value=metadata), \
+                 patch.object(qualification, 'configuration', return_value=config), \
+                 patch.object(qualification, 'realm_path', return_value=root/'deploy/keycloak/owned-authority/program-kit-realm.json'), \
+                 patch.object(composition, 'read', return_value=metadata), \
                  patch.object(composition, 'rows', return_value=[('Orbyss.Foundation.Authentication', None, {'path':'Foundation:Web:Owned'})]), \
                  patch.object(qualification, 'bundle_hashes', return_value={'owned':'same'}), patch.object(qualification, 'Commands', Boundary), \
                  patch.object(fixture, 'PostgreSqlFixture', Database), patch.object(qualification, 'request', return_value=(200,b'{"issuer":"owned-public"}')), \

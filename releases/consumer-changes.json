@@ -352,6 +352,83 @@
           "tests/**"
         ]
       }
+    },
+    {
+      "id": "maintenance-preparation-and-pickup",
+      "introduced": "0.13.1",
+      "kind": "guidance",
+      "summary": "Prepare exact selected fixture requirements, preserve historical inputs and require successful implementation re-entry.",
+      "constraint": "New fixture materialization grants no proof/paid authority. Retain broad invalidation where independence is unproved and preserve existing fresh-story state.",
+      "selectors": {
+        "paths": [
+          "docs/architecture/compatibility/**",
+          "eng/**",
+          "specs/*/plan.md",
+          "specs/*/tasks.md"
+        ],
+        "selectedDependencies": true
+      },
+      "supportedRetention": [
+        "Retain supported accepted dependencies, historical receipts/unknown outcomes, custom isolation/configuration and the fresh 0.13.0 story."
+      ],
+      "alternatives": [
+        "Retain supported exact authority and repair only affected prerequisites",
+        "Review an exact dependency transition and regenerate affected fixtures with archived originals"
+      ],
+      "verification": [
+        "Check actual readiness before behavior and preserved fixture inputs",
+        "Verify scoped inventory, complete reverse lock renewal and successful preflight re-entry"
+      ],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "implementation",
+      "supersedes": [],
+      "dependencies": [],
+      "review": {
+        "basis": "migration-0.13.1.md and exact fixture/verification contracts",
+        "route": "Normal affected plan/configuration review; existing dependency transition authority"
+      }
+    },
+    {
+      "id": "typed-executable-foundation",
+      "introduced": "0.13.1",
+      "kind": "contract",
+      "summary": "One typed resource graph populates and runs the application foundation before consumer implementation.",
+      "constraint": "Accepted application runtimes require the v2 graph; generated settings, provider imports and Compose are outputs. No parallel legacy startup definition or aggregate source project.",
+      "selectors": {
+        "paths": [
+          "eng/foundation-composition.json",
+          "eng/foundation-setup.json",
+          "eng/Dev.ps1",
+          "docs/architecture/building-block-selection.json",
+          "runtime/**",
+          "specs/*/plan.md",
+          "specs/*/tasks.md"
+        ],
+        "selectedDependencies": true
+      },
+      "supportedRetention": [
+        "Retain valid requirements, Accepted history, owned product code, task identities, effort, original locks and live data.",
+        "Retain exact supported package selections; adapter support is explicit and does not change dependencies silently."
+      ],
+      "alternatives": [
+        "Populate the typed graph from Accepted consumer bindings and migrate before synchronization.",
+        "Library-only selections retain ordinary engineering validation without application startup."
+      ],
+      "verification": [
+        "Preview/apply the hash-bound import and reconcile affected phase artifacts.",
+        "Prepare and run the actual selected foundation, then implement the first owned operation.",
+        "Verify incremental source/frontend updates and retained unrelated services/data."
+      ],
+      "method": "typed-foundation-migration-v1",
+      "duePhase": "implementation",
+      "supersedes": [
+        "reusable-foundation-compositions"
+      ],
+      "dependencies": [],
+      "review": {
+        "basis": "migration-0.13.1.md and the two-app/three-database native golden",
+        "route": "Scoped Accepted architecture/placement repair, maintained composition import and a fresh implementation invocation of the same feature."
+      }
     }
   ]
 }

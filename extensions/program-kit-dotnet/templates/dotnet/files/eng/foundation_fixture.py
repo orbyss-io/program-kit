@@ -59,6 +59,12 @@ def captured(command, cwd, directory, *, timeout=120, environment=None, secret_v
                         encoded = value.encode('utf-8')
                         count += clean.count(encoded)
                         clean = clean.replace(encoded, b'[REDACTED]')
+                # Authentication callbacks can reach framework request logs.
+                # Their short-lived credentials are not known before execution.
+                clean, query_count = re.subn(
+                    rb'([?&](?:code|state|session_state|id_token|access_token|refresh_token)=)[^\s&\x22\x27<>]+',
+                    rb'\1[REDACTED]', clean, flags=re.IGNORECASE)
+                count += query_count
                 path.write_bytes(clean)
                 result['streams'][path.name] = {'rawSha256': hashlib.sha256(raw).hexdigest(),
                     'sha256': hashlib.sha256(clean).hexdigest(), 'redactionCount': count}

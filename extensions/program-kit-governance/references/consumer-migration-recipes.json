@@ -2,40 +2,106 @@
   "schemaVersion": 1,
   "recipes": [
     {
-      "id": "fresh-story-delivery-v1", "version": 1,
+      "id": "fresh-story-delivery-v1",
+      "version": 1,
       "applicability": "Adoption of story-delivery-v1 for an affected unfinished feature; no partial-feature continuation.",
       "preservedBehavior": "Unchanged confirmed bootstrap/intake, accepted architecture, foundations/tooling, consumer locks and delivered features; abandoned history and failed evidence.",
       "allowedScope": "An explicitly reviewed and selected exclusively owned unfinished-feature file inventory; never unrelated shared code, migrations or live data.",
-      "ordering": ["Archive/checkpoint old attempt", "Install released toolkit through supported updater", "Amend/review/ratify constitution", "Review/select owned reset inventory", "Abandon old spec/plan/tasks/code/tests as active progress", "Rerun specify, clarification, plan, tasks, analysis and implement with hooks once"],
-      "verification": ["Normal hash-bound constitution ratification", "Old partial progress cannot authorize continuation", "Preserved designated inputs and archived old bytes", "Fresh resolved installed policy and phase/progression contracts"],
+      "ordering": [
+        "Archive/checkpoint old attempt",
+        "Install released toolkit through supported updater",
+        "Amend/review/ratify constitution",
+        "Review/select owned reset inventory",
+        "Abandon old spec/plan/tasks/code/tests as active progress",
+        "Rerun specify, clarification, plan, tasks, analysis and implement with hooks once"
+      ],
+      "verification": [
+        "Normal hash-bound constitution ratification",
+        "Old partial progress cannot authorize continuation",
+        "Preserved designated inputs and archived old bytes",
+        "Fresh resolved installed policy and phase/progression contracts"
+      ],
       "recoveryLimits": "No real consumer reset under toolkit implementation authorization. Retained archives/history preserve failed evidence; feature resets never authorize service/data adoption or rollback."
     },
     {
-      "id": "selective-feature-repair-v1", "version": 1,
+      "id": "selective-feature-repair-v1",
+      "version": 1,
       "applicability": "Affected architecture, requirements, plan or task guidance; actual code establishes the scope.",
       "preservedBehavior": "Valid requirements, product confirmation, task IDs, completed work, consumer edits and original authority.",
       "allowedScope": "Affected owners, contracts and dependency closure only.",
-      "ordering": ["Inspect current inputs", "Resolve substantive architecture choices normally", "Edit affected plan/tasks in place", "Run normal consistency/preflight and behavioral tests"],
-      "verification": ["Retained task identity and requirements", "Declared graph plus actual effect placement", "Meaningful affected behavior tests"],
+      "ordering": [
+        "Inspect current inputs",
+        "Resolve substantive architecture choices normally",
+        "Edit affected plan/tasks in place",
+        "Run normal consistency/preflight and behavioral tests"
+      ],
+      "verification": [
+        "Retained task identity and requirements",
+        "Declared graph plus actual effect placement",
+        "Meaningful affected behavior tests"
+      ],
       "recoveryLimits": "Workspace edits can be reverted under consumer authority. External state requires separate rollout and recovery."
     },
     {
-      "id": "dependency-transition-v1", "version": 1,
+      "id": "dependency-transition-v1",
+      "version": 1,
       "applicability": "Explicit optional adoption or demonstrated unsupported exact dependency selection.",
       "preservedBehavior": "Accepted architecture, supported retained profile and existing locks until an exact reviewed transition.",
       "allowedScope": "Selected dependency artifacts and actual reverse contract closure.",
-      "ordering": ["Inspect selected profile/catalog/native locks", "dependency_profiles.py draft exact profile", "Normal Accepted transition review", "dependency_profiles.py accept", "Run affected native and behavioral checks"],
-      "verification": ["Transition digest and Accepted authority", "Exact locks and native restore", "Actual provider and consumer compatibility"],
+      "ordering": [
+        "Inspect selected profile/catalog/native locks",
+        "dependency_profiles.py draft exact profile",
+        "Normal Accepted transition review",
+        "dependency_profiles.py accept",
+        "Run affected native and behavioral checks"
+      ],
+      "verification": [
+        "Transition digest and Accepted authority",
+        "Exact locks and native restore",
+        "Actual provider and consumer compatibility"
+      ],
       "recoveryLimits": "Keep original transition evidence; native package retention does not roll back deployed services or databases."
     },
     {
-      "id": "canonical-descriptors-v1", "version": 1,
+      "id": "canonical-descriptors-v1",
+      "version": 1,
       "applicability": "Consumer descriptor production/receiver contract changes at the selected exact engineering profile.",
       "preservedBehavior": "Public contract identity and provider behavior; engineering dependencies remain outside runtime.",
       "allowedScope": "Shared producer/receiver contract and affected projects/domains, grouped once.",
-      "ordering": ["Inspect actual produced descriptors and selected dependencies", "Review contract alternatives", "Plan producer/receiver ordering and tests", "Implement in disposable resources", "Verify actual receiver behavior"],
-      "verification": ["Descriptor contents", "Package/runtime separation", "Independent consumer behavior and handoff checks"],
+      "ordering": [
+        "Inspect actual produced descriptors and selected dependencies",
+        "Review contract alternatives",
+        "Plan producer/receiver ordering and tests",
+        "Implement in disposable resources",
+        "Verify actual receiver behavior"
+      ],
+      "verification": [
+        "Descriptor contents",
+        "Package/runtime separation",
+        "Independent consumer behavior and handoff checks"
+      ],
       "recoveryLimits": "Git restoration cannot undo published packages or deployed receiver state; scope external activation separately."
+    },
+    {
+      "id": "typed-foundation-migration-v1",
+      "version": 1,
+      "applicability": "Accepted application runtime selections adopting the sole v2 executable composition; library-only engineering is unchanged.",
+      "preservedBehavior": "Valid requirements, Accepted history, owner code, task IDs, delivery baseline/effort, original exact locks, identity users and database contents.",
+      "allowedScope": "Application resource relationships, affected owner placements and plans/tasks, and generated foundation outputs; no consumer product journey implementation.",
+      "ordering": [
+        "Inspect Accepted consumer values and current repairs.",
+        "Populate a reviewed graph; preview/apply composition_migrate.py from the verified release before synchronization.",
+        "Reconcile affected Accepted placements and their existing materialization, preserving historical evidence.",
+        "Resume supported toolkit installation and managed scaffold reconciliation.",
+        "Prepare/run the foundation and enter implementation in a fresh invocation of the same feature."
+      ],
+      "verification": [
+        "Stale migration inputs reject and original bytes remain archived.",
+        "Real selected authentication, assets, provider preparation and HTTP readiness.",
+        "Incremental updates retain unrelated services and persistent identity/data.",
+        "Product and human journey acceptance remain distinct."
+      ],
+      "recoveryLimits": "Stop uses owned lifecycle inventory and retains volumes even if a pending model is invalid. Workspace recovery cannot undo external data or identity changes; no paid retry or provider fallback authority."
     }
   ]
 }

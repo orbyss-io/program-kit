@@ -48,6 +48,16 @@ class JournalTests(unittest.TestCase):
         self.assertIn(('blocked', ['one']), observations)
         self.assertLess([x[0] for x in observations].index('one'), [x[0] for x in observations].index('two'))
 
+    def test_native_browser_installers_share_the_actual_inventory_lock(self):
+        # Each of these may invoke Playwright --with-deps on Linux. They must
+        # serialize access to apt/dpkg even when their browser caches differ.
+        checks = {check['id']: check for check in runner.selected('Release', 'Linux')}
+        installers = ('ui-browser', 'validate_published_forms_browser',
+                      'validate_consumer_provider_runtime', 'qualify_reusable_foundations',
+                      'qualify_composition_start')
+        common = set.intersection(*(set(checks[name]['resources']) for name in installers))
+        self.assertTrue(common, 'Native browser installers must share a scheduler resource')
+
     def test_scheduler_rejects_cycles_and_missing_dependencies(self):
         for checks in ([dict(id='a', needs=['b'])],
                        [dict(id='a', needs=['b']), dict(id='b', needs=['a'])]):

@@ -16,6 +16,35 @@ from release_guidance import plan, load_index, require_review, completion
 
 
 class GuidanceTests(unittest.TestCase):
+    def test_install_payload_preserves_every_registered_profile_and_knowledge(self):
+        import zipfile
+        from build_release import deterministic_zip
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
+        import building_blocks as blocks
+        source = ROOT / 'extensions/program-kit-building-blocks'
+        with tempfile.TemporaryDirectory() as name:
+            destination = Path(name)
+            archive_path = destination / 'component.zip'
+            deterministic_zip(source, archive_path)
+            with zipfile.ZipFile(archive_path) as archive:
+                self.assertFalse(any(path.endswith(('/state.json', '/catalog.json', '/availability.json'))
+                                     and '/candidates/' in path for path in archive.namelist()))
+                archive.extractall(destination / 'installed')
+            registry = destination / 'installed/references/dependency-profiles'
+            index = blocks.load_json(registry / 'index.json')
+            catalog = blocks.load_json(destination / 'installed/references/orbyss-building-blocks.json')
+            for identity in index['profiles']:
+                with self.subTest(profile=identity):
+                    qualified, selected = blocks.qualified_dependency_profile(registry, identity, catalog)
+                    self.assertEqual(identity, selected['id'])
+                    self.assertEqual(selected['catalogResolutionSha256'], blocks.catalog_resolution_sha256(qualified))
+                    self.assertEqual(catalog['compositions']['hosted_pages']['when'],
+                                     qualified['compositions']['hosted_pages']['when'])
+            for installed in registry.rglob('*'):
+                if installed.is_file():
+                    original = source / 'references/dependency-profiles' / installed.relative_to(registry)
+                    self.assertEqual(original.read_bytes(), installed.read_bytes())
+
     def test_compact_bundle_guidance_retains_verified_history_and_current_adoption(self):
         from release_guidance import semantic_changes
         with tempfile.TemporaryDirectory() as name:

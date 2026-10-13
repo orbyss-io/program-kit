@@ -40,6 +40,9 @@ def retarget_fixture(target, catalog, abi):
 
 
 def provision_public_host(target, pins):
+    from fixture_readiness import check
+    readiness = check(target, pins, environment=runtime_environment(pins.get('credentialEnvironmentNames', [])))
+    write(target / 'fixture-readiness.json', readiness)
     import runtime_probe as contract
     if pins.get('identityImage'):
         import re

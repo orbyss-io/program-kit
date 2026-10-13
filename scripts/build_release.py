@@ -79,6 +79,7 @@ def deterministic_zip(source: Path, destination: Path) -> None:
             and "test-results" not in path.parts
             and ".auth" not in path.parts
             and path.suffix != ".pyc"
+            and install_asset(source, path.relative_to(source))
         ),
         key=lambda path: path.relative_to(source).as_posix(),
     )
@@ -175,10 +176,67 @@ def bundle_source_files(root: Path) -> list[Path]:
     return [
         relative
         for relative in repository_source_files(root)
-        if relative.as_posix() in BUNDLE_ROOT_FILES
+        if install_asset(root, relative) and (relative.as_posix() in BUNDLE_ROOT_FILES
         or relative.as_posix() in BUNDLE_RUNTIME_SCRIPTS
-        or relative.as_posix().startswith(BUNDLE_SOURCE_PREFIXES)
+        or relative.as_posix().startswith(BUNDLE_SOURCE_PREFIXES))
     ]
+
+
+def install_asset(root: Path, relative: Path) -> bool:
+    """Keep updater workspaces in source history, outside consumer installations."""
+    parts = relative.parts
+    if 'dependency-profiles' not in parts or 'candidates' not in parts:
+        return True
+    position = parts.index('dependency-profiles')
+    registry = root.joinpath(*parts[:position + 1])
+    index = load_json(registry / 'index.json')
+    registered = {entry['path'].split('/')[1] for entry in index['profiles'].values()
+                  if entry['path'].startswith('candidates/')}
+    candidate = parts[parts.index('candidates') + 1]
+    if candidate not in registered:
+        return False
+    name = relative.name
+    if name in {'state.json', 'catalog.json', 'availability.json'}:
+        # Catalog snapshots and public availability are sealed in registered
+        # qualification evidence; these files are the updater's working inputs.
+        return False
+    if name == 'recipe.json' or name.startswith('recipe-') and name.endswith('.json'):
+        registered_recipes = {entry.get('qualificationRecipe', {}).get('path')
+                              for entry in index['profiles'].values()}
+        return relative.relative_to(Path(*parts[:position + 1])).as_posix() in registered_recipes
+    return True
+
+
+def pack_historical_package_facts(staging: Path) -> None:
+    """Compact legacy loose facts without changing any profile, index or fact hash."""
+    registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'
+    index = load_json(registry / 'index.json')
+    facts = {}
+    for entry in index['profiles'].values():
+        if not entry.get('knowledge'):
+            continue
+        manifest = load_json(registry / entry['knowledge']['path'])
+        for item in manifest.get('packages', []):
+            if 'byteOffset' in item:
+                continue  # Already uses the maintained indexed pack format.
+            path = (registry / item['path']).resolve()
+            if not path.is_relative_to(registry.resolve()) or path.suffix != '.json':
+                raise ValueError('Historical package fact escapes its registry')
+            raw = path.read_bytes()
+            if len(raw) > 16 * 1_048_576 or hashlib.sha256(raw).hexdigest() != item['sha256']:
+                raise ValueError('Historical package fact differs from its immutable authority')
+            facts[item['path']] = raw
+    if not facts:
+        return
+    packed, entries = bytearray(), {}
+    for relative, raw in sorted(facts.items()):
+        entries[relative] = {'byteOffset': len(packed), 'byteLength': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+        packed.extend(raw)
+    (registry / 'historical-package-facts.pack').write_bytes(packed)
+    (registry / 'historical-package-facts.json').write_text(
+        json.dumps({'schemaVersion': 1, 'entries': entries}, indent=2) + '\n', encoding='utf-8', newline='\n')
+    for relative in facts:
+        (registry / relative).unlink()  # Only the verified disposable packaging tree.
 
 
 def build_bundle_from_source(root: Path, output: Path) -> None:
@@ -189,6 +247,7 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
             destination = staging / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
+        pack_historical_package_facts(staging)
         build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
                        (root / 'VERSION').read_text().strip(), aggregates=False)
         specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
