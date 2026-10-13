@@ -82,7 +82,7 @@ def recipe_projection(graph, shell_id, env_name=None):
     return value
 
 
-def selected_packages(graph, shell_id):
+def selected_packages(graph, shell_id, admitted=None):
     client = graph['resources'][auth_binding(graph, shell_id)['clientRef']]
     profile = client['profile']
     require(profile in ('browser-bff', 'browser-spa'), 'selected profile has no shell authentication adapter')
@@ -92,7 +92,23 @@ def selected_packages(graph, shell_id):
         packages += ['Orbyss.Foundation.PostgreSql', 'Orbyss.Foundation.Execution']
     if any(row['shellRef'] == shell_id for row in model.bindings(graph, 'frontend')):
         packages.append('Orbyss.Foundation.Web.HostedPages')
-    return packages
+    shell = graph['resources'][shell_id]
+    for activation in (admitted or {}).get('activations', []):
+        if activation['path'] == shell['source'] and activation['shell'] == shell['name']:
+            key = activation['packageKey']
+            require(key.startswith('nuget:Orbyss.Foundation.'), 'selected publisher activation requires its qualified composition adapter: ' + key)
+            packages.append(key.removeprefix('nuget:'))
+    return list(dict.fromkeys(packages))
+
+
+def accepted_selection(repository):
+    path = repository / 'docs/architecture/building-block-selection.json'
+    if not path.is_file() or json.loads(path.read_text()).get('status') != 'Accepted':
+        return None
+    import dependency_profile
+    blocks = dependency_profile.resolver()
+    effective = blocks.effective_dependency_context(repository)
+    return blocks.resolve(repository, path, Path(effective['catalogPath']), 'composition-render')
 
 
 def validate_capabilities(graph, env_name=None):
@@ -295,8 +311,9 @@ def materialize(repository, graph, template, env_name=None):
     validate_capabilities(graph, env_name)
     env_name = env_name or graph['defaultEnvironment']
     env = model.environment(graph, env_name)
+    admitted = accepted_selection(repository)
     contracts = {shell_id: foundation.publisher_contracts(repository, recipe_projection(graph, shell_id, env_name),
-                 selected_packages(graph, shell_id)) for shell_id in model.resources(graph, 'shell')}
+                 selected_packages(graph, shell_id, admitted)) for shell_id in model.resources(graph, 'shell')}
     packages = {}
     for contract in contracts.values():
         for name, version in contract['packages'].items():
@@ -349,10 +366,17 @@ def materialize(repository, graph, template, env_name=None):
         outputs[shell['source']] = (encoded(existing), 'scaffold')
     outputs['eng/web-profile.shells.json'] = (encoded(profiles), 'managed')
     props = ET.Element('Project'); group = ET.SubElement(props, 'ItemGroup')
+    native_pins = {row['packageId']: row['version'] for output in (admitted or {}).get('managedOutputs', [])
+                   if output['kind'] == 'nuget-central-pins' for row in output['entries']}
     for name, version in sorted(packages.items()):
+        if name in native_pins:
+            require(native_pins[name] == version, 'Accepted package pin conflicts with composition: ' + name)
+            continue
         ET.SubElement(group, 'PackageVersion', Include=name, Version=version)
     ET.indent(props, space='  ')
-    outputs['eng/ProgramKit.BuildingBlocks.props'] = (ET.tostring(props) + b'\n', 'managed')
+    # Native selection remains the sole writer of BuildingBlocks.props. Only
+    # adapter dependencies not already admitted there belong to this contribution.
+    outputs['eng/ProgramKit.Foundation.props'] = (ET.tostring(props) + b'\n', 'managed')
     frontend_template = template / 'hosted-pages/web'
     for name, frontend in model.resources(graph, 'frontend').items():
         for file in frontend_template.rglob('*'):
@@ -370,8 +394,22 @@ def materialize(repository, graph, template, env_name=None):
         # Source project references only its selected owners' exact packages.
         shell_id = next(row['shellRef'] for row in model.bindings(graph, 'featureShell') if row['featureRef'] == name)
         selected = contracts[shell_id]
+        native_project = next((row for row in (admitted or {}).get('targets', []) if row['path'] == project['path']), {})
+        native_packages = {row['packageId'] for row in native_project.get('packages', []) if row['ecosystem'] == 'nuget'}
+        if admitted:
+            selected = deepcopy(selected)
+            allowed = set(selected_packages(graph, shell_id)) | native_packages
+            selected['packages'] = {key: value for key, value in selected['packages'].items() if key in allowed}
         files = provider_scaffold(project, [row for row in model.bindings(graph, 'databaseProvider') if row['featureRef'] == name], selected) \
             if feature['role'] == 'provider' else foundation.scaffold_project(project, selected)
+        if native_packages:
+            document = ET.fromstring(files[project['path']])
+            for group in document.findall('ItemGroup'):
+                for item in list(group):
+                    if item.tag == 'PackageReference' and item.get('Include') in native_packages:
+                        group.remove(item)
+            ET.indent(document, space='  ')
+            files[project['path']] = ET.tostring(document) + b'\n'
         outputs.update({path: (content, 'scaffold') for path, content in files.items()})
     for authority_id, authority in model.resources(graph, 'identityAuthority').items():
         if env[authority_id]['mode'] != 'managed':

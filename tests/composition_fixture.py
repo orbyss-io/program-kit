@@ -2,6 +2,7 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+import hashlib
 import socket
 
 
@@ -65,3 +66,46 @@ def two_apps(root, dynamic_ports=False, frontends=True):
             ports.add(port)
             env[name]['publicOrigin'] = 'http://' + host + ':' + str(port)
     return model.validate(value)
+
+
+def accept_fixture(repository, graph, kit_root):
+    """Fictional Accepted owner/selection authority for actual adapter integration."""
+    import dependency_profile
+    blocks = dependency_profile.resolver()
+    registry = kit_root / 'extensions/program-kit-building-blocks/references/dependency-profiles'
+    index = json.loads((registry / 'index.json').read_text())
+    catalog, _ = blocks.qualified_dependency_profile(registry, index['default'],
+        json.loads((registry.parent / 'orbyss-building-blocks.json').read_text()))
+    authority = {'architectureMap': 'docs/architecture/architecture-map.json', 'decisionIds': ['fixture-foundation']}
+    selection = {'schemaVersion': '1.0', 'selectionId': 'golden-selection', 'revision': 1, 'status': 'Accepted',
+        'catalog': blocks.catalog_binding(catalog), 'authority': {**authority, 'rationale': 'Fictional deterministic fixture authority.'},
+        'scopes': [{'id': 'application', 'kind': 'application', 'environment': 'development'}], 'targets': [], 'instances': []}
+    placement = {'state': 'planned', 'owner': 'application', 'decisionIds': authority['decisionIds'],
+                 'rationale': 'Fictional fixture owner placement; no human consumer authority.'}
+    for name, resource in graph['resources'].items():
+        resource['ownerRef'] = 'application'
+        if resource['kind'] == 'feature':
+            selection['targets'].append({'id': name, 'kind': 'dotnet-project', 'path': resource['path'],
+                'role': resource['role'], 'scope': 'application', 'placement': deepcopy(placement)})
+        elif resource['kind'] == 'shell':
+            selection['targets'].append({'id': name, 'kind': 'cshell-shell', 'path': resource['source'],
+                'shell': resource['name'], 'role': 'composition', 'scope': 'application', 'placement': deepcopy(placement)})
+    api = next(name for name, row in graph['resources'].items() if row['kind'] == 'feature' and row['role'] == 'implementation')
+    shell = next(row['shellRef'] for row in graph['bindings'] if row['kind'] == 'featureShell' and row['featureRef'] == api)
+    selection['instances'].append({'id': 'retained-domain-events', 'composition': 'domain_events', 'scope': 'application',
+        'targetBindings': {'dotnet': api, 'shell': shell}, 'options': {}})
+    graph['authority'] = {**authority, 'selectionId': selection['selectionId']}
+    folder = repository / 'docs/architecture'; folder.mkdir(parents=True, exist_ok=True)
+    decision = folder / 'fixture-foundation.md'
+    decision.write_text('Fictional deterministic fixture: accept declared resources and retained domain events.\n')
+    selection_path = folder / 'building-block-selection.json'
+    selection_path.write_text(json.dumps(selection, indent=2) + '\n')
+    architecture = {'elements': [{'id': 'application', 'ownership': 'consumer', 'decision_refs': authority['decisionIds']}],
+        'decisions': [{'id': 'fixture-foundation', 'status': 'Accepted', 'path': 'docs/architecture/fixture-foundation.md',
+                       'sha256': hashlib.sha256(decision.read_bytes()).hexdigest()}],
+        'documentation': [{'id': 'selection', 'path': 'docs/architecture/building-block-selection.json',
+                           'sha256': hashlib.sha256(selection_path.read_bytes()).hexdigest()}]}
+    (folder / 'architecture-map.json').write_text(json.dumps(architecture, indent=2) + '\n')
+    catalog_path = folder / 'fixture-catalog.json'; catalog_path.write_text(json.dumps(catalog))
+    blocks.preserve_dependency_profile(repository, selection, catalog_path)
+    return selection_path, catalog_path

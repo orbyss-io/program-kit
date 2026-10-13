@@ -15,7 +15,7 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / 'extensions/program-kit-dotnet/scripts'
 sys.path.insert(0, str(SCRIPTS))
-from composition_fixture import two_apps
+from composition_fixture import two_apps, accept_fixture
 
 
 def command(arguments, root, evidence, expected=0):
@@ -47,6 +47,7 @@ def main():
     graph['bindings'].extend([
         {**page_binding, 'routeId': 'second-page', 'path': '/second-page'},
         {**page_binding, 'routeId': 'restricted-page', 'path': '/restricted-page', 'pagePermission': 'restricted.read'}])
+    selection, catalog = accept_fixture(root, graph, ROOT)
     (root / 'eng/foundation-composition.json').write_text(json.dumps(graph, indent=2) + '\n', encoding='utf-8')
     environment = os.environ.copy()
     environment.setdefault('PROGRAMKIT_DEVICE_PYTHON', sys.executable)
@@ -55,8 +56,33 @@ def main():
     sync = [sys.executable, str(SCRIPTS / 'dotnet_sync.py'), '--target', str(root), '--profile-selected',
             '--foundation-host-accepted', '--building-block-sources-approved', '--web-profile', 'bff-cookie', '--json']
     command(sync, ROOT, directory / 'scaffold')
+    blocks = ROOT / 'extensions/program-kit-building-blocks/scripts/building_blocks.py'
+    native = [sys.executable, str(blocks)]
+    options = ['--target', str(root), '--catalog', str(catalog)]
+    command([*native, 'plan', *options], ROOT, directory / 'native-plan')
+    native_plan = json.loads((directory / 'native-plan/stdout.log').read_text())
+    command([*native, 'apply', *options, '--plan-digest', native_plan['planDigest']], ROOT, directory / 'native-apply')
     # A second reconciliation must preserve source and produce no new contribution.
     command([*sync, '--check'], ROOT, directory / 'scaffold-check')
+    command([*native, 'check', *options], ROOT, directory / 'native-check')
+    # Model admission is item-specific, never a blanket project/pin exemption.
+    project = root / 'src/Application.Api/Application.Api.csproj'
+    original_project = project.read_bytes()
+    try:
+        project.write_bytes(original_project.replace(b'</Project>', b'<ItemGroup><PackageReference Include="Orbyss.Foundation.Mcp.AspNetCore" /></ItemGroup></Project>'))
+        command([*native, 'check', *options], ROOT, directory / 'unselected-reference-rejection', expected=2)
+        if 'PKB405' not in (directory / 'unselected-reference-rejection/stderr.log').read_text():
+            raise ValueError('extra dependency was not rejected by native ownership admission')
+    finally:
+        project.write_bytes(original_project)
+    pins = root / 'eng/ProgramKit.Foundation.props'; original_pins = pins.read_bytes()
+    try:
+        pins.write_bytes(original_pins.replace(b'</Project>', b'<ItemGroup><PackageVersion Include="Orbyss.Foundation.Mcp.AspNetCore" Version="0.3.3" /></ItemGroup></Project>'))
+        command([*native, 'check', *options], ROOT, directory / 'unowned-pin-rejection', expected=2)
+        if 'PKB405' not in (directory / 'unowned-pin-rejection/stderr.log').read_text():
+            raise ValueError('altered dependency contribution was not rejected by native ownership admission')
+    finally:
+        pins.write_bytes(original_pins)
     if (root / 'eng/Dev.ps1').exists() or (root / 'deploy/compose.identity.yml').exists():
         raise ValueError('competing startup authoring route was generated')
     result = {'schemaVersion': 2, 'status': 'scaffolded', 'consumer': root.relative_to(ROOT).as_posix(),
@@ -126,7 +152,8 @@ def main():
                     raise ValueError('authenticated private DOM escaped into failure evidence')
             prior_identity = json.loads((root / 'artifacts/composition/private/identity-state.json').read_text())['product-identity']
             graph['resources']['application-client']['callbackPath'] = '/consumer-signin'
-            graph['resources']['reports-api'] = {'kind': 'protectedResource', 'authorityRef': 'product-identity'}
+            graph['resources']['reports-api'] = {'kind': 'protectedResource', 'authorityRef': 'product-identity',
+                                                  'ownerRef': graph['resources']['application-api']['ownerRef']}
             graph['environments']['development']['resources']['reports-api'] = {'audience': 'reports-api'}
             (root / 'eng/foundation-composition.json').write_text(json.dumps(graph), encoding='utf-8')
             command(sync, ROOT, directory / 'identity-reconcile-scaffold')

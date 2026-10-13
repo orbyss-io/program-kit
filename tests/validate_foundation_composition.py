@@ -187,6 +187,34 @@ def main():
         raise ValueError('Use the explicit retained development-candidate qualifier; this validator uses public captured packages')
     ARTIFACT = ROOT / 'artifacts/foundation-composition' / uuid.uuid4().hex
     ARTIFACT.mkdir(parents=True)
+    # A former standalone generator must hand native pins back without deleting
+    # them, and add its new import without replacing the consumer's central file.
+    from composition_fixture import two_apps, accept_fixture
+    accepted_root = ARTIFACT / 'accepted-ownership/consumer'
+    (accepted_root / 'eng').mkdir(parents=True)
+    accepted_graph = two_apps(ROOT)
+    accept_fixture(accepted_root, accepted_graph, ROOT)
+    (accepted_root / composition.INPUT).write_bytes(composition.encoded(accepted_graph))
+    sync(accepted_root)
+    native_path = 'eng/ProgramKit.BuildingBlocks.props'
+    native_bytes = b'<Project><!-- existing native selection contribution --></Project>\n'
+    (accepted_root / native_path).write_bytes(native_bytes)
+    state_path = accepted_root / '.program-kit/managed.json'
+    state = composition.read(state_path)
+    state['files'][native_path] = copy.deepcopy(state['files']['eng/ProgramKit.Foundation.props'])
+    state_path.write_bytes(composition.encoded(state))
+    central_path = accepted_root / 'Directory.Packages.props'
+    central = central_path.read_text()
+    central = '\n'.join(line for line in central.split('\n') if 'ProgramKit.Foundation.props' not in line)
+    central = central.replace('</Project>', '  <!-- consumer-owned central configuration -->\n</Project>')
+    central_path.write_text(central, encoding='utf-8')
+    sync(accepted_root)
+    assert (accepted_root / native_path).read_bytes() == native_bytes
+    assert native_path not in composition.read(state_path)['files']
+    migrated_central = central_path.read_text()
+    assert 'consumer-owned central configuration' in migrated_central
+    assert migrated_central.count('<Import Project="eng/ProgramKit.Foundation.props"') == 1
+    sync(accepted_root, True)
     observations = []
     for variant in [args.variant] if args.variant else sorted(composition.VARIANTS):
         legacy = composition.read(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions' / (variant + '.json'))

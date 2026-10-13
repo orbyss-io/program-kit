@@ -18,6 +18,29 @@ def example():
 
 
 class ResourceModel(unittest.TestCase):
+    def test_accepted_selection_keeps_native_pins_and_activation_with_its_owner(self):
+        from composition_fixture import two_apps, accept_fixture
+        import composition_render as renderer
+        import xml.etree.ElementTree as ET
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); graph = two_apps(ROOT)
+            accept_fixture(root, graph, ROOT)
+            files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            admitted = renderer.accepted_selection(root)
+            native = {row['packageId'] for output in admitted['managedOutputs']
+                      if output['kind'] == 'nuget-central-pins' for row in output['entries']}
+            generated = {row.get('Include') for row in ET.fromstring(files['eng/ProgramKit.Foundation.props'][0]).iter('PackageVersion')}
+            self.assertTrue(native)
+            self.assertFalse(native & generated)
+            self.assertNotIn('eng/ProgramKit.BuildingBlocks.props', files)
+            contracts = json.loads(files[renderer.CONTRACT][0])['shells']
+            self.assertIn('Orbyss.Foundation.DomainEvents', contracts['application-shell']['packages'])
+            self.assertNotIn('Orbyss.Foundation.DomainEvents', contracts['assessment-shell']['packages'])
+            for feature in model.resources(graph, 'feature').values():
+                references = {row.get('Include') for row in ET.fromstring(files[feature['path']][0]).iter('PackageReference')}
+                self.assertNotIn('Orbyss.Foundation.DomainEvents', references)
+
     def test_import_preserves_assigned_ids_and_callbacks(self):
         value = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak-postgresql.json').read_text())
         value['application']['callbackPath'] = '/custom-signin'

@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -259,10 +260,45 @@ def engineering_outputs(root):
     return result
 
 
+def composition_dependency_ownership(root):
+    """Admit only the exact dependencies of the validated executable model.
+
+    Consumer project files remain audited item by item. A graph cannot exempt an
+    entire project, and generated pins require the reconciler's exact ownership.
+    """
+    if not (root / 'eng/foundation-composition.json').is_file():
+        return {}, set()
+    from repository_sync import provider
+    model = provider('program-kit-dotnet/scripts/composition_model.py')
+    sys.path.insert(0, str(Path(model.__file__).parent))
+    try:
+        renderer = provider('program-kit-dotnet/scripts/composition_render.py')
+        graph = model.load(root)
+        template = Path(renderer.__file__).parents[1] / 'templates/dotnet'
+        outputs = renderer.materialize(root, graph, template)
+    finally:
+        sys.path.pop(0)
+    relative = 'eng/ProgramKit.Foundation.props'
+    expected = outputs[relative][0]
+    state = read(root / '.program-kit/managed.json', {})
+    entry = state.get('files', {}).get(relative, {})
+    path = root / relative
+    digest = hashlib.sha256(expected).hexdigest()
+    if (not path.is_file() or path.read_bytes() != expected or entry.get('ownership') != 'managed'
+            or entry.get('contribution') != 'foundation' or entry.get('lastWrittenHash') != digest
+            or entry.get('templateHash') != digest):
+        raise ValueError('composition dependency contribution is missing, stale or not owned; synchronize the Accepted model')
+    projects = {}
+    for feature in model.resources(graph, 'feature').values():
+        document = ET.fromstring(outputs[feature['path']][0])
+        projects[feature['path']] = {item.get('Include').casefold() for item in document.iter('PackageReference')}
+    return projects, {path.resolve()}
+
+
 def audit_exemptions(root, lock):
     evidence = evidence_inputs(root)
     reject_active_references(root, evidence, lock)
-    return evidence | engineering_outputs(root)
+    return evidence | engineering_outputs(root) | composition_dependency_ownership(root)[1]
 
 
 def planned_selection_errors(root, projects):
@@ -279,10 +315,11 @@ def planned_selection_errors(root, projects):
     catalog_ids = {item['packageId'].casefold() for item in catalog['packages'].values() if item['ecosystem'] == 'nuget'}
     by_path = {target['path']: {item['packageId'].casefold() for item in target['packages']
                               if item['materializationKind'] == 'nuget-project'} for target in lock['targets']}
+    composition_projects = composition_dependency_ownership(root)[0] if (root / 'eng/ProgramKit.Foundation.props').is_file() else {}
     errors = []
     for project in projects:
         planned = {name.casefold() for name in project['packageReferences']} & catalog_ids
-        missing = planned - by_path.get(project['path'], set())
+        missing = planned - by_path.get(project['path'], set()) - composition_projects.get(project['path'], set())
         if missing:
             errors.append(f'PKA016 planned direct catalog references lack selection target bindings: {project["path"]}: '
                           + ', '.join(sorted(missing)) + '. Inherited engineering analyzers are not direct project references; '

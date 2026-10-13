@@ -784,6 +784,18 @@ def main() -> int:
                 if relative in {'Directory.Build.props','Directory.Build.targets','Directory.Packages.props',
                                 '.github/workflows/application-ci.yml','.github/workflows/application-release.yml'}:
                     migrated_content = relocate_references(migrated_content)
+                if foundation_configuration is not None and relative == 'Directory.Packages.props':
+                    document = ElementTree.fromstring(migrated_content)
+                    pin_file = 'eng/ProgramKit.Foundation.props'
+                    if not any(item.get('Project') == pin_file for item in document.findall('Import')):
+                        # Preserve consumer content/formatting; add only the new
+                        # generated contribution to the existing native root.
+                        text = migrated_content.decode('utf-8')
+                        closing = text.rfind('</Project>')
+                        if closing < 0:
+                            raise ValueError('central package root lacks its closing Project element')
+                        text = text[:closing] + ('  <Import Project="' + pin_file + '" Condition="Exists(\'' + pin_file + '\')" />\n') + text[closing:]
+                        migrated_content = text.encode('utf-8')
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
                 conflicts.append(relative)
                 conflict_details[relative] = str(error)
@@ -890,6 +902,13 @@ def main() -> int:
             continue
         current_hash = sha256_bytes(destination.read_bytes())
         previous = candidate["previous"]
+        if (relative == 'eng/ProgramKit.BuildingBlocks.props' and foundation_configuration is not None
+                and foundation_configuration.get('schemaVersion') == 2
+                and load_json(target / 'docs/architecture/building-block-selection.json', {}).get('status') == 'Accepted'):
+            # Transfer the former standalone scaffold output to its existing
+            # native selection owner, without deleting or overwriting its bytes.
+            preserved.append(relative)
+            continue
         migration = candidate["migration"]
         safe_hashes: set[str] = set()
         if relative in relocated_sources:

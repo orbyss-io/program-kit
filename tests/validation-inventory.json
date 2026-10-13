@@ -26,7 +26,7 @@
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Bounded typed-model managed sync preview/apply, public publisher constraints, source preservation/retirement and managed security conflicts. Actual runtime acceptance is the golden and retained provider/product qualifiers.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-dotnet/**", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_foundation_composition.py"],
+      "inputs": ["extensions/program-kit-dotnet/**", "extensions/program-kit-building-blocks/**", "extensions/program-kit-governance/scripts/**", "tests/composition_fixture.py", "tests/validate_foundation_composition.py"],
       "outputs": ["artifacts/foundation-composition"], "resources": [],
       "isolation": "Unique disposable generated consumers; preserve captured profiles and native locks."
     },
@@ -4392,6 +4392,8 @@
       "owner": "program-kit",
       "inputs": [
         "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-building-blocks/**",
+        "extensions/program-kit-governance/scripts/**",
         "tests/validate_composition_model.py",
         "tests/composition_fixture.py"
       ],
@@ -4448,6 +4450,8 @@
       "owner": "program-kit",
       "inputs": [
         "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-building-blocks/**",
+        "extensions/program-kit-governance/scripts/**",
         "tests/composition_fixture.py",
         "tests/validate_composition_start.py"
       ],

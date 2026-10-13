@@ -1123,11 +1123,13 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
     # authorities. Never infer ownership from a docs/specs directory name.
     governance = Path(__file__).resolve().parents[2] / 'program-kit-governance/scripts'
     exempt = set()
+    composition_projects = {}
     if (governance / 'dependency_audit.py').is_file():
         sys.path.insert(0, str(governance))
         try:
-            from dependency_audit import audit_exemptions
+            from dependency_audit import audit_exemptions, composition_dependency_ownership
             exempt = audit_exemptions(repository, ownership_lock or {})
+            composition_projects = composition_dependency_ownership(repository)[0]
         except (OSError, ValueError, KeyError, TypeError) as error:
             fail('PKB405', str(error))
         finally:
@@ -1154,7 +1156,7 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
         if prior and prior["kind"] == "nuget-project":
             content = remove_marker_region(content, BEGIN_MARKER, END_MARKER, path)
         for package_id in reference_pattern.findall(content):
-            if package_id.casefold() in nuget_ids:
+            if package_id.casefold() in nuget_ids and package_id.casefold() not in composition_projects.get(relative, set()):
                 findings.append(f"unmanaged NuGet reference {package_id} in {relative}")
     for path in repository_files(repository, "*.props"):
         relative = path.relative_to(repository).as_posix()
