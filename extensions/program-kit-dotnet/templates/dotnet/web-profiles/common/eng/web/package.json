@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "test:fixture": "node -e \"JSON.parse(require('node:fs').readFileSync('../../../deploy/keycloak/program-kit-realm.json', 'utf8'))\"",
+    "test:fixture": "node --input-type=module -e \"await import('./persona-fixture.ts')\"",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

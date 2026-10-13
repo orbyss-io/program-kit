@@ -96,6 +96,23 @@ def validate_stage(repository: Path, value: object, name: str, output: str) -> d
     return resolved
 
 
+def runtime_target(repository: Path, shell: str) -> tuple[str, Path]:
+    """Bind export to the shell's canonical host and freshness authority."""
+    if not (repository / "eng/foundation-composition.json").is_file():
+        return "artifacts/release-bundle/packages", repository / runtime_closure.EVIDENCE
+    import composition_model
+    import composition_render
+    graph = composition_model.load(repository)
+    composition_render.verify_outputs(repository, check_frontends=False)
+    shells = [name for name, row in composition_model.resources(graph, 'shell').items() if row['name'] == shell]
+    hosts = [row['hostRef'] for row in composition_model.bindings(graph, 'shellHost') if row['shellRef'] in shells]
+    if len(shells) != 1 or len(hosts) != 1:
+        raise ValueError("PKO204 contract shell must belong to exactly one declared host.")
+    host = hosts[0]
+    stage = composition_render.stage_path(graph['resources'][host])
+    return stage + "/packages", repository / "artifacts/composition/closures" / (host + ".json")
+
+
 def validate_contract(
     repository: Path, path: Path, exporter_version: str, oasdiff_version: str
 ) -> tuple[dict, dict]:
@@ -120,9 +137,10 @@ def validate_contract(
         or len(features) != len(set(features))
     ):
         raise ValueError("PKO204 features must be a non-empty array of unique identities.")
-    if str(value.get("packageClosure", "")).replace("\\", "/") != "artifacts/release-bundle/packages":
+    package_closure, closure_evidence = runtime_target(repository, value["shell"])
+    if str(value.get("packageClosure", "")).replace("\\", "/") != package_closure:
         raise ValueError(
-            "PKO204 packageClosure must be the validated artifacts/release-bundle/packages closure."
+            "PKO204 packageClosure must be the exact validated stage for the contract's declared host."
         )
     compatibility = value.get("compatibility")
     if not isinstance(compatibility, dict) or not isinstance(compatibility.get("oasdiffVersion"), str):
@@ -132,6 +150,7 @@ def validate_contract(
             f"PKO204 contract oasdiff version must equal managed tool pin {oasdiff_version!r}."
         )
     resolved = {
+        "closureEvidence": closure_evidence,
         "packages": relative_path(repository, value["packageClosure"], "packageClosure"),
         "raw": relative_path(repository, value["rawDocument"], "rawDocument"),
         "artifact": relative_path(repository, value["artifact"], "artifact"),
@@ -316,7 +335,7 @@ def execute_contract(
     runtime_closure.validate(
         repository,
         staged_root,
-        repository / runtime_closure.EVIDENCE,
+        paths["closureEvidence"],
         PROGRAM_KIT_VERSION,
     )
     export_evidence = repository / f"artifacts/program-kit/openapi/{identity}-export.json"
@@ -409,8 +428,6 @@ def main() -> int:
             raise ValueError(f"PKO209 exporter test override is missing: {exporter}")
         if exporter is None:
             restore_exporter(dotnet, manifest, repository, nuget_environment)
-        effective_shells = repository / "artifacts/cache/openapi/effective-shells.json"
-        shell_composition.write(repository / "artifacts/release-bundle", effective_shells)
         evidence = []
         seen: set[str] = set()
         for item in contracts:
@@ -420,6 +437,9 @@ def main() -> int:
             if identity in seen:
                 raise ValueError(f"PKO208 duplicate OpenAPI contract identity: {identity}")
             seen.add(identity)
+            stage_key = hashlib.sha256(paths["packages"].parent.relative_to(repository).as_posix().encode()).hexdigest()[:24]
+            effective_shells = repository / "artifacts/cache/openapi" / stage_key / "effective-shells.json"
+            shell_composition.write(paths["packages"].parent, effective_shells)
             evidence.append(
                 execute_contract(
                     repository,

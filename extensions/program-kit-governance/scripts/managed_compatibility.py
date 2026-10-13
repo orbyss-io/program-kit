@@ -50,7 +50,7 @@ def render(root: Path, kind: str, identity: str, engines=('chromium',), host_ima
         parameters['sdk'] = sdk
         project = directory / (identity + '.csproj')
         program = directory / (identity + '.cs')
-        project.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net' + sdk.split('.')[0] + '.0</TargetFramework></PropertyGroup></Project>\n')
+        project.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally><OutputType>Exe</OutputType><TargetFramework>net' + sdk.split('.')[0] + '.0</TargetFramework></PropertyGroup></Project>\n')
         program.write_text('System.Console.WriteLine("PROGRAM_KIT_RUNTIME_OK");\n')
         fixtures.update({'Probe.csproj': project.relative_to(root).as_posix(), 'Program.cs': program.relative_to(root).as_posix()})
         targets = ['Probe.csproj']

@@ -101,6 +101,12 @@ def prepare(root: Path, scratch: Path, contract: dict):
     for relative in targets:
         path = contained(scratch, relative)
         if path.suffix == '.csproj':
+            from xml.etree import ElementTree as ET
+            project = ET.parse(path)
+            explicit_versions = any(item.get('Version') or item.findtext('Version') for item in project.iter('PackageReference'))
+            properties = list(project.iter('ManagePackageVersionsCentrally'))
+            if explicit_versions and (not properties or any(item.get('Condition') or item.text != 'false' for item in properties)):
+                raise ValueError('Compatibility explicit-version fixtures require unconditional ManagePackageVersionsCentrally=false; pick up a distinct current fixture before restore')
             kind = 'nuget-project'
             dotnet = True
         elif path.name == 'package.json':

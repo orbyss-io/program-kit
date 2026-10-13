@@ -41,6 +41,32 @@ consumer tooling and build/execute the actual activation tests. Preserve unrelat
 locks; do not remove `PrivateAssets="all"` from feature projects to make tests compile.
 Native host readiness complements these consumer registration/preparation assertions.
 
+During task reconciliation, match planned test owners to actual projects. Reviewed unused
+empty scaffolds can be archived with their locks and declared successor ownership in
+`eng/verification.json`; do not create empty tests to make a broad gate green. Use named
+Focused activation and architecture tests plus real browser/build checks as prerequisites,
+then run Affected from the retained implementation baseline once descendant behavior tests
+exist. Preserve task IDs, effort, historical failures and story human reviews.
+
+Offline OpenAPI export composes metadata, not provider initialization. Effect-only provider
+scaffolds emit `FoundationComposeForOpenApi=false`; apply the same reviewed metadata to
+consumer effect-only runtime features. API features must retain complete dependencies/routes
+and explicit `[FromServices]` endpoint dependencies so offline export does not infer services
+as request bodies. Real host activation must resolve those services with actual bindings.
+Do not fabricate connection configuration for export. Build stages every declared host using
+its canonical `runtimeStage`/`rootPackages`; contracts select their unique shell's host stage,
+closure evidence and effective shell configuration. Closure freshness remains mandatory.
+
+Foundation 0.3.3's strict request parser rejects numeric strings, while ASP.NET's default
+`JsonNumberHandling.AllowReadingFromString` can produce number|string schemas. Compare
+real export output with each registered profile's `TypeInfo<T>()` before implementing the
+wire contract. Profile metadata yields numeric-only schemas; explicit DTO property
+`[JsonNumberHandling(JsonNumberHandling.Strict)]` is a scoped candidate when those DTOs
+are exclusively strict contracts. Verify real producer output and actual numeric-string
+rejection before adoption. A publisher profile-aware transformer must distinguish contract
+direction/profile; do not strip strings from all schemas, broaden parsing, change all shell
+serializer options, or reset a compatibility baseline. Contract changes still require review.
+
 A frontend can bind several distinct page routes in the same shell while sharing one
 compiled deployment root. Each `frontend` binding supplies its `routeId` and `path`,
 with optional `pagePermission` and `bootstrapPermission`. Both admissions remain

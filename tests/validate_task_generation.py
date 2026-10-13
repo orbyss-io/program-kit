@@ -214,6 +214,19 @@ def operation_fixture():
 
 
 class TaskTests(unittest.TestCase):
+    def test_migrated_prerequisite_guidance_preserves_eventual_coverage_and_contract_review(self):
+        template = ROOT / 'presets/program-kit-governance-preset/templates'
+        tasks = (template / 'tasks-governance.md').read_text(encoding='utf-8')
+        plan = (template / 'plan-governance.md').read_text(encoding='utf-8')
+        for marker in ('testOwnershipReplacements', 'archive project/lock bytes', 'task IDs/effort',
+                       'Focused activation/architecture', 'retained-baseline Affected', 'Zero tests must fail',
+                       'before story closure and the human review'):
+            self.assertIn(marker, tasks)
+        for marker in ('before endpoint implementation', 'closed envelope', '`retryMode`/`statusPath`',
+                       'pending human approval', 'proposal is not contract approval', 'numeric-string rejection',
+                       'existing compatibility baselines'):
+            self.assertIn(marker, plan)
+
     def test_native_analyzer_append_preserves_core_and_rejects_missing_alignment_or_gates(self):
         import shutil
         from specify_cli.presets import PresetRegistry, PresetResolver

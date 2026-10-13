@@ -35,7 +35,11 @@ def main() -> int:
         defaults = json.loads((repository / "eng/openapi-defaults.json").read_text(encoding="utf-8"))
         tool_manifest = json.loads((repository / "eng/.config/dotnet-tools.json").read_text(encoding="utf-8"))
         exporter = tool_manifest["tools"]["orbyss.foundation.openapi.exporter"]["version"]
-        oasdiff = defaults["compatibility"]["version"]
+        oasdiff = (repository / ".oasdiff-version").read_text(encoding="utf-8").strip()
+        if not re.fullmatch(r"\d+\.\d+\.\d+", oasdiff):
+            raise ValueError("PKO103 authoritative .oasdiff-version must contain one exact version")
+        from openapi_pipeline import runtime_target
+        package_closure, _ = runtime_target(repository, args.shell)
         generator_default = defaults["typescriptGenerator"]
         generator_package = generator_default["package"]
         generator_version = generator_default["version"]
@@ -74,7 +78,7 @@ def main() -> int:
             "shell": args.shell,
             "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": exporter},
             "features": list(dict.fromkeys(args.feature)),
-            "packageClosure": "artifacts/release-bundle/packages",
+            "packageClosure": package_closure,
             "rawDocument": f"artifacts/openapi/{args.identity}.raw.json",
             "artifact": f"contracts/openapi/{args.identity}.json",
             "baseline": f"contracts/openapi/{args.identity}.baseline.json",

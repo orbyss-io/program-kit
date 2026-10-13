@@ -1025,6 +1025,7 @@ def validate_openapi_initialization() -> None:
     script = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_init.py"
     with tempfile.TemporaryDirectory(prefix="program-kit-openapi-init-") as value:
         repository = Path(value)
+        (repository / ".oasdiff-version").write_text("1.33.0\n", encoding="utf-8")
         defaults = repository / "eng/openapi-defaults.json"
         defaults.parent.mkdir(parents=True)
         defaults.write_text(
@@ -1065,7 +1066,7 @@ def validate_openapi_initialization() -> None:
         )
         if (
             contract["producer"]["version"] != "0.1.0"
-            or contract["compatibility"]["oasdiffVersion"] != "1.29.1"
+            or contract["compatibility"]["oasdiffVersion"] != "1.33.0"
             or contract["generator"]["directory"] == contract["application"]["directory"]
             or generator_package["devDependencies"] != {"openapi-typescript": "7.13.0"}
             or generator_package["scripts"]["generate"]

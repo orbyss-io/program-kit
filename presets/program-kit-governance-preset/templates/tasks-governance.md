@@ -88,6 +88,16 @@ outcome before spreading work across future operations; parallel flags grant no 
 
 ## Incremental task generation
 
+Match test projects to the approved plan before scheduling prerequisites. Preserve existing
+consumer tests. For reviewed unused empty scaffolds, archive project/lock bytes, remove their
+solution and architecture entries, and record `testOwnershipReplacements` in `eng/verification.json`.
+Do not infer deletion authority from emptiness. Retain the planned test owners and task IDs/effort.
+Before dependent behavior, run named Focused activation/architecture tests, maintained browser
+checks and the actual composition build/update. A prerequisite cannot run tests whose behavior
+is implemented by its descendants. Schedule the complete retained-baseline Affected regression
+after those behavior tests exist, before story closure and the human review. Zero tests must fail;
+Focused prerequisite checks never replace that eventual broad gate.
+
 Follow the before_tasks phase-context draft/resume procedure. Persist tasks.md immediately
 after required inputs and save each completed phase before preparing the next. On interruption,
 resume completed phases from the existing draft and inspect only changed inputs or missing

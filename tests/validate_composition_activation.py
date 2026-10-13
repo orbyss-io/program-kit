@@ -16,6 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
 import foundation_composition
+import composition_model
+import composition_migrate
 
 CONTRACTS = ('CShells.Abstractions', 'CShells.AspNetCore.Abstractions')
 
@@ -52,6 +54,14 @@ def main():
 </packageSources></configuration>''', encoding='utf-8')
         project = {'path': 'src/Activation.Api/Activation.Api.csproj', 'packageId': 'Activation.Api',
                    'featureIdentity': 'Activation.Api', 'role': 'implementation'}
+        legacy = json.loads((TEMPLATE / 'compositions/foundation-bff-keycloak.json').read_text())
+        legacy['projects'] = [project]
+        legacy['runtime']['rootPackages'] = [project['packageId']]
+        (root / 'eng').mkdir()
+        (root / composition_model.INPUT).write_text(json.dumps(legacy), encoding='utf-8')
+        migration = composition_migrate.preview(root)
+        composition_migrate.apply(root, migration['planDigest'])
+        project = next(iter(composition_model.resources(composition_model.load(root), 'feature').values()))
         # The generated API seam uses only public shell contracts. Omit publisher
         # runtime packages from this bounded compiler probe, with no build/pack claim.
         files = foundation_composition.scaffold_project(project, {'packages': {}})

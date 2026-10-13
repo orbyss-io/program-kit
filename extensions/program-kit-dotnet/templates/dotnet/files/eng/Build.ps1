@@ -187,11 +187,30 @@ if ($LASTEXITCODE -ne 0) { throw 'dotnet pack failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Build/pack input or output integrity check failed.' }
 
 if (-not $SkipReleaseBundle -or $openApiEnabled) {
-    $stageArguments = @('stage', '--repository', $root, '--packages', $packages,
-        '--output', (Join-Path $artifacts 'release-bundle'), '--inventory', (Join-Path $packages 'program-kit-pack.json'))
-    foreach ($packageId in $RootPackage) { $stageArguments += @('--root-package', $packageId) }
-    & $buildPython (Join-Path $PSScriptRoot 'release_bundle.py') @stageArguments
-    if ($LASTEXITCODE -ne 0) { throw 'Release-bundle staging failed.' }
+    if (Test-Path -LiteralPath (Join-Path $root 'eng/foundation-composition.json') -PathType Leaf) {
+        & $buildPython -I -c 'import sys; from pathlib import Path; sys.path.insert(0, sys.argv[1]); import composition_render; composition_render.verify_outputs(Path(sys.argv[2]), check_frontends=False)' $PSScriptRoot $root
+        if ($LASTEXITCODE -ne 0) { throw 'Canonical composition output verification failed.' }
+        $resolvedComposition = Get-Content -Raw -LiteralPath (Join-Path $root 'eng/foundation-composition.resolved.json') | ConvertFrom-Json
+        foreach ($declaredHost in $resolvedComposition.hosts.PSObject.Properties) {
+            $hostRoots = @($declaredHost.Value.rootPackages)
+            if ($RootPackage.Count -gt 0 -and (@(Compare-Object ($RootPackage | Sort-Object) ($hostRoots | Sort-Object)).Count -gt 0)) {
+                throw 'Explicit package roots must match the canonical host binding.'
+            }
+            $stageArguments = @('stage', '--repository', $root, '--packages', $packages,
+                '--output', (Join-Path $root $declaredHost.Value.runtimeStage), '--inventory', (Join-Path $packages 'program-kit-pack.json'),
+                '--evidence', (Join-Path $root ('artifacts/composition/closures/' + $declaredHost.Name + '.json')))
+            foreach ($packageId in $hostRoots) { $stageArguments += @('--root-package', $packageId) }
+            & $buildPython (Join-Path $PSScriptRoot 'release_bundle.py') @stageArguments
+            if ($LASTEXITCODE -ne 0) { throw 'Declared host bundle staging failed.' }
+        }
+    }
+    else {
+        $stageArguments = @('stage', '--repository', $root, '--packages', $packages,
+            '--output', (Join-Path $artifacts 'release-bundle'), '--inventory', (Join-Path $packages 'program-kit-pack.json'))
+        foreach ($packageId in $RootPackage) { $stageArguments += @('--root-package', $packageId) }
+        & $buildPython (Join-Path $PSScriptRoot 'release_bundle.py') @stageArguments
+        if ($LASTEXITCODE -ne 0) { throw 'Release-bundle staging failed.' }
+    }
 }
 
 if ($openApiEnabled) {

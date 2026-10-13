@@ -408,6 +408,7 @@ def scaffold_project(project, contract):
     <RootNamespace>{namespace}</RootNamespace>
     <FoundationFeatureIdentity>{project['featureIdentity']}</FoundationFeatureIdentity>
     <FoundationFeatureDependencies>{';'.join(deps)}</FoundationFeatureDependencies>
+    <FoundationComposeForOpenApi>{'true' if project['role'] == 'implementation' else 'false'}</FoundationComposeForOpenApi>
   </PropertyGroup>
   <ItemGroup>
 {refs}

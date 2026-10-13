@@ -32,7 +32,7 @@ class EffectiveContextTests(unittest.TestCase):
         original = self.root / 'docs/architecture/compatibility/model.csproj'
         original.parent.mkdir(parents=True, exist_ok=True)
         original.write_text('<Project><ItemGroup><PackageReference Include="Microsoft.SemanticKernel" Version="1.80.1" /></ItemGroup></Project>')
-        (self.root / 'Directory.Packages.props').write_text('<Project><ItemGroup><PackageVersion Include="Microsoft.SemanticKernel" Version="1.81.0" /></ItemGroup></Project>')
+        (self.root / 'Directory.Packages.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup><PackageVersion Include="Microsoft.SemanticKernel" Version="1.81.0" /></ItemGroup></Project>')
         recipe = original.with_suffix('.py')
         recipe.write_text('# Offline fixture only; executes no provider\n')
         contract_path = original.with_suffix('.contract.json')
@@ -64,6 +64,7 @@ class EffectiveContextTests(unittest.TestCase):
         current_contract = json.loads((self.root / plan['newRecipe']).with_suffix('.contract.json').read_text())
         project = self.root / current_contract['fixtures']['Probe.csproj']
         self.assertEqual('1.81.0', next(ET.parse(project).iter('PackageReference')).get('Version'))
+        self.assertEqual('false', ET.parse(project).findtext('PropertyGroup/ManagePackageVersionsCentrally'))
         scratch_current = self.root / 'scratch-current'; scratch_current.mkdir()
         with patch.object(bootstrap_compatibility, 'configuration', return_value=({}, {})):
             _, prepared = bootstrap_compatibility.prepare(self.root, scratch_current, current_contract)

@@ -141,7 +141,7 @@ def render_postgresql(root, identity, selected):
     references = ''.join(f'<PackageReference Include="{name}" Version="{packages[name]}" />' for name in
                          ('Microsoft.EntityFrameworkCore', 'Npgsql.EntityFrameworkCore.PostgreSQL'))
     directory.mkdir(parents=True, exist_ok=True)
-    project_file.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup><ItemGroup>' + references + '</ItemGroup></Project>\n', encoding='utf-8')
+    project_file.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup><ItemGroup>' + references + '</ItemGroup></Project>\n', encoding='utf-8')
     config.write_text(json.dumps(runtime, indent=2) + '\n', encoding='utf-8')
     from compatibility_scope import fixture_keys
     scope = {'schemaVersion': 1, 'artifactKeys': fixture_keys(root, sources)}

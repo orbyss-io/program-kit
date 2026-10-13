@@ -29,6 +29,15 @@ Describe test scope: risk-selected operation verification, story regression, rev
 contracts/configuration, and complete feature/domain acceptance at closure or formal handoff.
 Name actual test projects/framework filters and non-source inputs that need owned test mappings.
 Use existing engineering configuration and native commands; no per-feature verification dossier.
+
+Reconcile the wire contract against the selected publisher before endpoint implementation.
+Foundation 0.3.3's problem writer has a closed envelope; `retryMode`/`statusPath` problem
+extensions are incompatible. Record the conflict at planning/reconciliation and pause the
+dependent endpoint work pending human approval. A proposal may place retry guidance in typed
+operation responses/UI using retained server-issued IDs; a proposal is not contract approval.
+Prove numeric DTO schemas match the selected strict request profile using real producer output
+and numeric-string rejection tests. ASP.NET defaults may describe numbers as number|string.
+Keep strict parsing, existing compatibility baselines and the human review gate.
 Review changed responsibilities and applicable mechanisms, not a repeated full SOLID inventory per edit.
 
 No artifact-ownership, obligation-design/review, semantic-contract or proof-attestation dossier

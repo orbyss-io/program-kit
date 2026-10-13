@@ -26,6 +26,15 @@ def retarget_project(payload, catalog, abi):
         package = catalog['packages'].get('nuget:' + identity)
         if package: reference.set('Version', package['version'])
         if identity in abi['pins']: reference.set('Version', abi['pins'][identity])
+    # Scratch fixtures carry exact explicit versions and may sit below a CPM
+    # consumer. This property is part of the new fixture, never its historical source.
+    central = list(value.iter('ManagePackageVersionsCentrally'))
+    if not central:
+        central = [ET.SubElement(ET.SubElement(value, 'PropertyGroup'), 'ManagePackageVersionsCentrally')]
+    for setting in central:
+        if setting.get('Condition'):
+            raise ValueError('Fixture package-management mode must be unconditional')
+        setting.text = 'false'
     release = catalog['families']['foundation']['releaseVersion']
     if tuple(map(int, release.split('.'))) >= (0, 3, 0):
         settings = list(value.iter('RestoreEnablePackagePruning'))

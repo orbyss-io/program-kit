@@ -1,5 +1,13 @@
 # Governed .NET persistence profiles
 
+Explicit SQL deployment is administrator-owned. Before actual startup, grant the exact
+managed application role schema `USAGE` and only the table permissions required by its
+operations, including journal `SELECT` for schema admission. Quote the concrete schema,
+role and table identifiers; verify using the application's real connection and rerun host
+startup. Do not grant to PUBLIC, grant broad administrator privileges, create product tables
+at startup, or reset retained data to work around admission. Schema admission must fail when
+the application role cannot read the journal, even if the deployment administrator can.
+
 Persistence is admitted per domain capability and data owner; it is not inferred from a PostgreSQL
 readiness probe or from the presence of a provider props file. The consuming repository selects
 exactly one profile for an owning provider package by importing the matching managed props

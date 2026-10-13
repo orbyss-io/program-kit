@@ -31,6 +31,34 @@ class BuildCommands:
 
 
 class HostedFrontendUpdateTests(unittest.TestCase):
+    def test_retained_mutable_vite_recipe_reproduces_pkc110_without_waiving_immutability(self):
+        scratch = ROOT / 'artifacts/cache/hosted-bundle-tests'
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary)
+            graph = two_apps(ROOT)
+            frontend = graph['resources']['policy-web']
+            for name, (payload, _) in composition_render.materialize(root, graph, TEMPLATE).items():
+                if name.startswith(frontend['directory'] + '/'):
+                    target = root / name; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(payload)
+            # A migrated consumer can retain its old scaffold contribution. This
+            # reproduces that obsolete recipe, never changes the shipped template.
+            config = root / frontend['directory'] / 'vite.config.mjs'
+            config.write_text(config.read_text().replace('[name]-[hash]', '[name]'), encoding='utf-8')
+            for name in ('global.json', '.nvmrc', '.npm-version'):
+                shutil.copyfile(TEMPLATE / 'files' / name, root / name)
+            shutil.copyfile(ROOT / '.python-version', root / '.python-version')
+            builder = root / 'eng/vendor/foundation-0.3.3/create_hosted_manifest.py'
+            builder.parent.mkdir(parents=True)
+            shutil.copyfile(TEMPLATE / 'files/eng/vendor/foundation-0.3.3/create_hosted_manifest.py', builder)
+            commands = BuildCommands(root)
+            commands.run([sys.executable, str(TEMPLATE / 'files/eng/toolchain.py'), '--repository', str(root)])
+            prepare_hosted_pages.build(root, graph, commands, restore=True, selected_hosts=['application-host'])
+            source = root / frontend['directory'] / frontend['entry']
+            source.write_text(source.read_text().replace('Application foundation', 'Edited mutable application'), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'PKC110 runtime filename is mutable'):
+                prepare_hosted_pages.build(root, graph, commands, selected_hosts=['application-host'])
+
     def test_prepare_source_edit_update_retains_previous_assets_and_mount(self):
         scratch = ROOT / 'artifacts/cache/hosted-bundle-tests'
         scratch.mkdir(parents=True, exist_ok=True)

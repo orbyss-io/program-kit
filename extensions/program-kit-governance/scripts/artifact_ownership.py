@@ -779,9 +779,15 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
                 + ", ".join(untraced)
             )
         package_closure = normalize(str(contract.get("packageClosure", "")))
-        if package_closure != "artifacts/release-bundle/packages":
+        expected_closure = "artifacts/release-bundle/packages"
+        if (root / 'eng/foundation-composition.json').is_file():
+            import sys
+            sys.path.insert(0, str(root / 'eng'))
+            from openapi_pipeline import runtime_target
+            expected_closure, _ = runtime_target(root, contract.get('shell'))
+        if package_closure != expected_closure:
             raise ValueError(
-                "PKA014 OpenAPI production must compose the validated artifacts/release-bundle/packages closure"
+                "PKA014 OpenAPI production must compose the contract shell's validated host closure: " + expected_closure
             )
         for stage_name, output_name in (("generator", "generatedTypes"), ("application", "tsconfig")):
             stage = contract.get(stage_name)

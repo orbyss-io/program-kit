@@ -200,6 +200,16 @@ def current_files(root, contract):
             references = {reference.get('Include') for reference in tree.iter('PackageReference')}
             if any('nuget:' + identity in selected['packages'] or identity in effective['sharedAbi']['pins'] for identity in references if identity):
                 payload = retarget_project(payload, selected, effective['sharedAbi'])
+            tree = ET.fromstring(payload)
+            if any(item.get('Version') or item.findtext('Version') for item in tree.iter('PackageReference')):
+                central = list(tree.iter('ManagePackageVersionsCentrally'))
+                if not central:
+                    central = [ET.SubElement(ET.SubElement(tree, 'PropertyGroup'), 'ManagePackageVersionsCentrally')]
+                for setting in central:
+                    if setting.get('Condition'):
+                        raise ValueError('FIXTURE_PICKUP: fixture package-management mode must be unconditional')
+                    setting.text = 'false'
+            payload = ET.tostring(tree, encoding='utf-8', xml_declaration=True)
             if xml_identity(original) == xml_identity(payload):
                 payload = original
         if relative == 'runtime-inputs.json':

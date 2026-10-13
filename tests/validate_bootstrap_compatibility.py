@@ -82,12 +82,38 @@ class CompatibilityTests(unittest.TestCase):
         subprocess.run(['docker', 'pull', runtime['image']], check=True, timeout=300)
         with patch.object(probes, '__file__', str(self.root / '.specify/extensions/program-kit-governance/scripts/managed_provider_probes.py')):
             plan = probes.render_postgresql(self.root, 'maintained-postgresql', selected)
+        # Reproduce a legacy explicit-version fixture under inherited CPM. Pickup
+        # writes a distinct current identity; originals/proof history remain unchanged.
+        from fixture_readiness import preview, apply
+        historical_contract = (self.root / plan['recipe']).with_suffix('.contract.json')
+        contract = json.loads(historical_contract.read_text())
+        original_project = self.root / contract['fixtures']['Probe.csproj']
+        original_project.write_text(original_project.read_text().replace(
+            '<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>', ''))
+        historical = original_project.read_bytes()
+        (self.root / 'Directory.Packages.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup>' +
+            ''.join('<PackageVersion Include="' + key + '" Version="' + value + '" />' for key, value in runtime['packages'].items()) + '</ItemGroup></Project>')
+        rejected = subprocess.run(['dotnet', 'restore', str(original_project), '--configfile', str(manifest.parent / 'NuGet.config')],
+                                  capture_output=True, text=True, timeout=120)
+        reproduction = rejected.stdout + rejected.stderr
+        self.assertNotEqual(0, rejected.returncode)
+        self.assertIn('NU1008', reproduction)
+        pickup, _ = preview(self.root, historical_contract.relative_to(self.root).as_posix(), 'postgresql-current')
+        apply(self.root, historical_contract.relative_to(self.root).as_posix(), 'postgresql-current', pickup['planDigest'])
+        self.assertEqual(historical, original_project.read_bytes())
+        plan.update(id='postgresql-current', recipe=pickup['newRecipe'])
+        current = json.loads((self.root / plan['recipe']).with_suffix('.contract.json').read_text())
+        current_project = self.root / current['fixtures']['Probe.csproj']
+        mode = subprocess.run(['dotnet', 'msbuild', str(current_project), '-getProperty:ManagePackageVersionsCentrally', '-nologo'],
+                              capture_output=True, text=True, check=True)
+        self.assertEqual('false', mode.stdout.strip())
         result = run_proof(self.root, plan['id'], plan['recipe'], plan['timeout'])
         proof = load(self.root / result['path'])
         # Preserve both success and failure evidence beyond the disposable fixture.
         import uuid
         preserved = ROOT / 'artifacts/bootstrap-postgresql' / uuid.uuid4().hex[:8]
         shutil.copytree((self.root / result['path']).parent, preserved)
+        (preserved / 'cpm-reproduction.log').write_text(reproduction, encoding='utf-8')
         self.assertEqual(0, result['exit_code'], f'Inspect {preserved}')
         self.assertEqual(probes.CASES['ef-postgresql'], proof['checks'])
         self.assertIn('PostgreSql.row_lock_exclusion_and_release', proof['checks'])
