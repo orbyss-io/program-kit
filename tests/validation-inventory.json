@@ -2,6 +2,24 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_authentication_presentation",
+      "command": ["{python}", "tests/validate_authentication_presentation.py", "--unit"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Qualified selected-profile resolution and exact archive/version/native-byte admission for the application-owned authentication presentation example.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_authentication_presentation.py", "tests/fixtures/authentication-presentation/**", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"],
+      "outputs": ["artifacts/tests/authentication-presentation"], "resources": [],
+      "isolation": "Synthetic archive admission only; no package restore, browser launch, coding agent or consumer authority."
+    },
+    {
+      "id": "validate_label_validation",
+      "command": ["{python}", "tests/validate_label_validation.py", "--unit"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Closed normalization-aware label descriptor/generator admission and deterministic staleness checks; preserves Core ownership and UTF-16 semantics.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/label_validation.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json", "tests/validate_label_validation.py", "tests/fixtures/label-validation/**"],
+      "outputs": ["artifacts/tests/validation-parity"], "resources": [],
+      "isolation": "Synthetic owned metadata and generated code; no consumer edits, runtime package changes or coding agents."
+    },
+    {
       "id": "validate_native_phase_ownership",
       "command": ["{python}", "tests/validate_native_phase_ownership.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
@@ -4123,6 +4141,24 @@
         "integration-fixtures",
         "browser-runtime"
       ]
+    },
+    {
+      "id": "validate_authentication_presentation_native",
+      "command": ["{python}", "tests/validate_authentication_presentation.py", "--execute", "--engines={engines}"],
+      "group": "release", "needs": ["validate_authentication_presentation", "ui-browser"], "platforms": ["Windows", "Linux"],
+      "purpose": "Compile the owner error/landing example against current qualified exact Foundation pins, verify machine problem compatibility, and exercise branded/focused keyboard recovery in actual browsers.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_authentication_presentation.py", "tests/fixtures/authentication-presentation/**", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"],
+      "outputs": ["artifacts/tests/authentication-presentation"], "resources": ["browser-runtime"],
+      "isolation": "Disposable selected-package restore and compiled provider-free presentation/cookie-service fixture. No selected Host, provider login, correlation-expiry or consumer UI acceptance claim."
+    },
+    {
+      "id": "validate_label_validation_native",
+      "command": ["{python}", "tests/validate_label_validation.py", "--execute", "--engines={engines}"],
+      "group": "release", "needs": ["validate_label_validation", "ui-browser"], "platforms": ["Windows", "Linux"],
+      "purpose": "Actual Core/exported-descriptor/generated-JS parity, native API rejection and real clipboard input preservation, error and zero-request regression under selected engines.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/label_validation.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json", "tests/validate_label_validation.py", "tests/fixtures/label-validation/**"],
+      "outputs": ["artifacts/tests/validation-parity"], "resources": ["browser-runtime"],
+      "isolation": "Disposable compiled fixture/server and synthetic browser input; no real consumer acceptance claim, paid provider or coding agent."
     },
     {
       "id": "validate_bootstrap_compatibility",

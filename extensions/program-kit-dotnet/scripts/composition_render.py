@@ -111,6 +111,29 @@ def accepted_selection(repository):
     return blocks.resolve(repository, path, Path(effective['catalogPath']), 'composition-render')
 
 
+def admit_runtime_reconciliation(repository, project):
+    """An obsolete customized CLR seam cannot coexist with its replacement."""
+    if project['responsibility'] != 'runtime':
+        return
+    relative = str(PurePosixPath(project['path']).parent / 'ApiFeature.cs')
+    path = repository / relative
+    if not path.is_file():
+        return
+    payload = path.read_bytes()
+    source = payload.decode('utf-8')
+    identity = r'\bShellFeature\s*\(\s*"' + re.escape(project['featureIdentity']) + r'"'
+    if not re.search(identity, source):
+        return
+    manifest = repository / '.program-kit/managed.json'
+    state = json.loads(manifest.read_text(encoding='utf-8')) if manifest.is_file() else {}
+    entry = state.get('files', {}).get(relative, {})
+    authenticated = (entry.get('ownership') == 'scaffold' and entry.get('contribution') == 'foundation'
+                     and entry.get('sourceIdentity') == '../../scripts/foundation_composition.py'
+                     and hashlib.sha256(payload).hexdigest() == entry.get('baselineHash', entry.get('templateHash')))
+    require(authenticated, 'retained customized API seam conflicts with runtime responsibility: ' + relative +
+            '; move the owned registration to ' + project['packageId'].replace('.', '') + 'Feature.cs and reconcile its CLR name/IShellFeature, preserving ConfigureServices, ShellFeature identity and selected dependencies before synchronization')
+
+
 def validate_capabilities(graph, env_name=None):
     """Reject unsupported transport/profile relationships before managed writes."""
     env = model.environment(graph, env_name)
@@ -390,12 +413,16 @@ def materialize(repository, graph, template, env_name=None):
                 relative = frontend['entry']
             outputs[frontend['directory'] + '/' + relative] = (payload, 'scaffold')
     for name, feature in model.resources(graph, 'feature').items():
-        project = {key: feature[key] for key in ('path', 'packageId', 'featureIdentity', 'role')}
+        project = model.project_definition(feature, repository)
+        admit_runtime_reconciliation(repository, project)
         # Source project references only its selected owners' exact packages.
         shell_id = next(row['shellRef'] for row in model.bindings(graph, 'featureShell') if row['featureRef'] == name)
         selected = contracts[shell_id]
         native_project = next((row for row in (admitted or {}).get('targets', []) if row['path'] == project['path']), {})
         native_packages = {row['packageId'] for row in native_project.get('packages', []) if row['ecosystem'] == 'nuget'}
+        project['capabilityPackages'] = sorted(set(project['capabilityPackages']) | {
+            package for package in native_packages if package.startswith('Orbyss.Foundation.')})
+        project['admittedCapabilityPackages'] = sorted(native_packages)
         if admitted:
             selected = deepcopy(selected)
             allowed = set(selected_packages(graph, shell_id)) | native_packages
@@ -428,9 +455,11 @@ def materialize(repository, graph, template, env_name=None):
             outputs['deploy/keycloak/' + authority_id + '/themes/program-kit/' + file.relative_to(theme_root).as_posix()] = (payload, 'managed')
     architecture = {'schemaVersion': 1, 'runtimeComposition': {'projects': [
         {'path': row['path'], 'role': row['role'], 'projectReferences': [],
-         'responsibilities': [{'name': row['featureIdentity'], 'kind': 'http' if row['role'] == 'implementation' else 'persistence',
-                              'effects': ['owned endpoint registration'] if row['role'] == 'implementation' else ['named provider connectivity admission']}]}
-        for row in model.resources(graph, 'feature').values()], 'coreReferences': [], 'bindings': []}}
+         'responsibilities': definition.get('responsibilities') or [{'name': row['featureIdentity'], 'kind': definition['responsibility'],
+                              'effects': ['owned endpoint registration'] if definition['responsibility'] == 'http' else
+                                         ['named provider connectivity admission'] if row['role'] == 'provider' else ['owned runtime capability registration']}]}
+        for row in model.resources(graph, 'feature').values()
+        for definition in [model.project_definition(row, repository)]], 'coreReferences': [], 'bindings': []}}
     outputs['eng/architecture.json'] = (encoded(architecture), 'scaffold')
     if (repository / 'Application.slnx').is_file() or (not list(repository.glob('*.sln')) and not list(repository.glob('*.slnx'))):
         solution = ET.Element('Solution')

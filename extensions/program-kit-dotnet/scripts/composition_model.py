@@ -18,7 +18,7 @@ VERSION = 2
 RESOURCE_FIELDS = {
     'host': ({'kind', 'runtimeDirectory'}, {'ownerRef'}),
     'shell': ({'kind', 'name', 'source'}, {'ownerRef', 'settings'}),
-    'feature': ({'kind', 'path', 'packageId', 'featureIdentity', 'role'}, {'ownerRef'}),
+    'feature': ({'kind', 'path', 'packageId', 'featureIdentity', 'role'}, {'ownerRef', 'responsibility', 'capabilityPackages'}),
     'databaseServer': ({'kind', 'engine'}, {'ownerRef'}),
     'database': ({'kind', 'engine', 'name'}, {'ownerRef'}),
     'identityAuthority': ({'kind', 'protocol'}, {'ownerRef', 'session', 'theme'}),
@@ -126,6 +126,49 @@ def project_list(model):
             for row in resources(model, 'feature').values()]
 
 
+def project_definition(feature, repository=None):
+    """Project source responsibilities, never a role or filename guess.
+
+    Existing reviewed engineering responsibilities remain authoritative. The
+    explicit discriminator supplies greenfield intent before source exists.
+    """
+    project = {key: feature[key] for key in ('path', 'packageId', 'featureIdentity', 'role')}
+    declared = feature.get('responsibility')
+    require(declared is None or declared in ('runtime', 'http', 'persistence'), 'unsupported feature responsibility')
+    owned = None
+    if repository is not None:
+        path = Path(repository) / 'eng/architecture.json'
+        if path.is_file():
+            graph = json.loads(path.read_text(encoding='utf-8'))
+            matches = [row for row in graph.get('runtimeComposition', {}).get('projects', [])
+                       if row.get('path') == feature['path']]
+            require(len(matches) <= 1, 'duplicate source responsibility authority: ' + feature['path'])
+            if matches:
+                owned = matches[0]
+                require(owned.get('role') in (None, feature['role']), 'source role conflicts with composition: ' + feature['path'])
+                kinds = {row.get('kind') for row in owned.get('responsibilities', [])} & {'runtime', 'http', 'persistence'}
+                if feature['role'] == 'provider':
+                    require('http' not in kinds, 'provider cannot own HTTP source responsibility: ' + feature['path'])
+                    kinds = {'persistence'} if kinds else set()
+                require(len(kinds) <= 1, 'conflicting source responsibilities: ' + feature['path'])
+                if kinds:
+                    actual = next(iter(kinds))
+                    require(declared is None or declared == actual, 'feature responsibility conflicts with source authority: ' + feature['path'])
+                    declared = actual
+    if feature['role'] == 'provider':
+        require(declared in (None, 'persistence'), 'provider requires persistence responsibility: ' + feature['path'])
+        declared = 'persistence'
+    else:
+        require(declared in ('runtime', 'http'), 'declare runtime or HTTP source responsibility before scaffolding: ' + feature['path'])
+    project['responsibility'] = declared
+    # A resolved package inventory may include the old scaffold's erroneous
+    # web references; it is not evidence of capability consumption.
+    project['capabilityPackages'] = list(feature.get('capabilityPackages', []))
+    if owned:
+        project['responsibilities'] = deepcopy(owned.get('responsibilities', []))
+    return project
+
+
 def validate(model, repository=None):
     object_fields(model, {'schemaVersion', 'compositionId', 'resources', 'bindings', 'environments',
                          'defaultEnvironment', 'runner'}, {'developmentCandidate', 'authority'}, 'composition')
@@ -177,6 +220,15 @@ def validate(model, repository=None):
             require(row['path'].endswith('.csproj'), 'feature path must name a .csproj')
             require(row['role'] in ('implementation', 'provider'),
                     'resource composition does not introduce an aggregate source project')
+            if 'responsibility' in row:
+                require(row['responsibility'] in ('runtime', 'http', 'persistence') and
+                        (row['role'] == 'provider') == (row['responsibility'] == 'persistence'),
+                        'feature responsibility conflicts with source role')
+            consumed = row.get('capabilityPackages', [])
+            require(isinstance(consumed, list) and
+                    all(isinstance(item, str) and re.fullmatch(r'Orbyss\.Foundation\.[A-Za-z0-9_.]+', item) for item in consumed) and
+                    len(consumed) == len(set(consumed)),
+                    'feature capability packages require distinct selected Foundation package identities')
             for field, seen in (('path', paths), ('packageId', packages), ('featureIdentity', feature_names)):
                 item = row[field].casefold()
                 require(item not in seen, 'duplicate feature ' + field)
@@ -381,6 +433,8 @@ def validate(model, repository=None):
                 if key in row:
                     require((repository / row[key]).resolve().is_relative_to(repository), 'linked resource path escapes repository')
         validate_authority(model, repository)
+        for feature in resources(model, 'feature').values():
+            project_definition(feature, repository)
     return model
 
 
@@ -490,6 +544,15 @@ def from_legacy(value, repository=None):
     for index, project in enumerate(value['projects']):
         name = 'feature-' + str(index)
         nodes[name] = {'kind': 'feature', **project}
+        if project['role'] == 'implementation':
+            # The retired finite recipe explicitly supported API seams only.
+            # Existing engineering ownership can correct that historical input.
+            try:
+                nodes[name]['responsibility'] = project_definition(nodes[name], repository)['responsibility']
+            except ValueError as error:
+                if 'declare runtime or HTTP' not in str(error):
+                    raise
+                nodes[name]['responsibility'] = 'http'
         edges.append({'kind': 'featureShell', 'featureRef': name, 'shellRef': 'application-shell'})
         if project['role'] == 'provider':
             nodes.setdefault('postgresql', {'kind': 'databaseServer', 'engine': 'postgresql'})

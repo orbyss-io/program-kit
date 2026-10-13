@@ -9,6 +9,13 @@ implementation; it does not block task drafting or authorize a changed pin/appro
 resolver and required availability/compatibility checks in that prerequisite, then retain normal
 engineering evidence. Never infer acceptance from catalog presence or fabricate runtime proof.
 
+For schema-driven forms, keep consumer validation meaning authoritative and inspect the exact selected
+Forms validator/compiler contract before reuse. Ordinary schema string length and native input limits
+do not establish normalization parity. Consumer-owned .NET label rules can use the supported
+[Core export and generated browser validator](../../program-kit-dotnet/references/label-validation.md)
+without introducing a Forms dependency. This bounded path preserves source ownership; it neither
+extracts arbitrary business rules nor transfers consumer policy to the renderer or catalog.
+
 ## Selection and materialization contract
 
 Orbyss is a software factory and AI consultancy. Foundation, Forms, and Localization are reusable,

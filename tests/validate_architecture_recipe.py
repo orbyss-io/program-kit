@@ -69,6 +69,19 @@ class RecipeTests(unittest.TestCase):
                        cwd=self.root, capture_output=True, check=True, timeout=60)
         with self.assertRaisesRegex(ValueError, 'include every declared'):
             recipe.execute(self.root, self.manifest, 'Debug', build_subject=solution.name)
+        core = self.root / 'Core/Slots.Core.csproj'
+        original_core = core.read_text(encoding='utf-8')
+        core.write_text(original_core.replace('</Project>',
+            '<ItemGroup><InternalsVisibleTo Include="Slots.Tests" /></ItemGroup></Project>'), encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'PKA021 friend access'):
+            execute(self.root, self.manifest, 'Debug')
+        core.write_text(original_core, encoding='utf-8')
+        friend_source = self.root / 'Core/Friend.cs'
+        friend_source.write_text('using Friend = System.Runtime.CompilerServices.InternalsVisibleToAttribute; '
+                                '[assembly: Friend("Slots.Tests")]', encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'PKA021 compiled friend access'):
+            execute(self.root, self.manifest, 'Debug')
+        friend_source.unlink()
         rogue = self.root / 'Rogue/Rogue.csproj'
         rogue.parent.mkdir()
         rogue.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><NuGetAudit>false</NuGetAudit></PropertyGroup></Project>', encoding='utf-8')
@@ -79,6 +92,17 @@ class RecipeTests(unittest.TestCase):
 
     def test_compiled_capability_and_evaluated_graph(self):
         self.assertEqual(2, len(self.check()))
+
+    def test_friend_access_from_evaluated_items_and_compiled_attributes_is_rejected(self):
+        items = self.evaluated['Core/Slots.Core.csproj']['Items']
+        for key, identity in (('InternalsVisibleTo', 'Slots.Tests'),
+                              ('AssemblyAttribute', 'System.Runtime.CompilerServices.InternalsVisibleToAttribute')):
+            with self.subTest(key=key):
+                items[key] = [{'Identity': identity}]
+                with self.assertRaisesRegex(ValueError, 'PKA021 friend access'): self.check()
+                del items[key]
+        self.compiled[0]['attributes'] = ['System.Runtime.CompilerServices.InternalsVisibleToAttribute']
+        with self.assertRaisesRegex(ValueError, 'PKA021 compiled friend access'): self.check()
 
     def test_binding_roles_and_physical_separation_are_mandatory(self):
         for index, role, message in ((0, 'composition', 'capability.*Core'),

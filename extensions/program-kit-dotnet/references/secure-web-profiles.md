@@ -404,6 +404,38 @@ an application feature.
 
 ## Review and non-claims
 
+Browser presentation is part of application acceptance. Keep authentication machine/API problems
+and `/bff/signed-out` typed JSON as protocol contracts. An application-owned presentation feature
+uses `IAuthenticationErrorWriter` for safe browser callback/access-denied output and provides public
+branded sign-out/recovery pages; Keycloak themes cannot render host callback failures. Use stable
+allowlisted codes, escaped text, accessible field/headings/focus and a validated local restart target.
+The [application presentation example](examples/ApplicationAuthenticationPresentation.cs) demonstrates
+the existing writer and independent cookie-session observation. Register it through the application's
+real HTTP feature and map its public session page separately; qualify against the selected publisher.
+Preserve final private/no-store/no-index/security policies; no route shadowing or private bootstrap
+for anonymous recovery. Inspect actual session state independently of a callback-error URL.
+
+The remote authentication timeout bounds the entire human flow, including credential entry, MFA
+and consent. Program Kit's omitted default is fifteen minutes; discovery/backchannel HTTP waits
+retain their separate short limits. Preserve explicit overrides and all protocol safeguards.
+Test a fresh actual login with human-paced delay, expired-flow rejection/restart and independently
+bounded network failure. Immediate automated credential filling does not prove the interaction window.
+
+Invoke the managed BFF logout adapter from a trusted user gesture, with an explicit application-owned
+`signedOutPath` and a signal independent of cancelled private-view work. Clear private content through
+`onDispatched`. Inspect its `localTermination` result: a postdispatch `unconfirmed` observation needs
+public status/recovery, never restored private content or a claim that logout did not happen. The
+adapter's one monotonic budget bounds its fetches/body reads; provider navigation is separate. Confirmed
+local termination can show a signed-out page even if provider completion is unavailable; say which fact
+is known and offer explicit sign-in. Preserve the possibility that an existing provider session is reused.
+
+Use the selected publisher's supported browser logout destination setting when available and qualified;
+retain its root/non-root success/fallback coverage and JSON status contract. Before that capability is
+selected, a client-owned landing can control the application window but does not fix the publisher's
+hardcoded callback/fallback destinations. Preserve actual antiforgery and local-first session termination.
+Test actual controls/adapter, keyboard/focus/recovery and denied private access after provider failure;
+label raw JSON/status assertions as protocol evidence rather than complete browser acceptance.
+
 The profile must be reviewed when its standards or platform guidance changes, when the browser-app
 draft becomes final, when the runtime/provider/library/deployment model changes, after a relevant
 incident or advisory, for a security-sensitive override, and at least every twelve months. Review

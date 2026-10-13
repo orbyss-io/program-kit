@@ -19,6 +19,16 @@ dependent implementation. Preserve approved bootstrap history; a plan cannot clo
 or delivery execution. Missing responsibility metadata needs review of the selected projects.
 The declared graph checks supplied labels; inspect actual Core/runtime/provider ownership and
 canonical-permission versus resource/state/effect authorization in the changed code.
+For relevant changed operations, trace production abstractions to real responsibilities, completed and
+uncertain result payloads to known facts, final clock reads past asynchronous waits, and one outer deadline
+through provider stages. Trace operational limits from actual activated options through API admission and
+execution. Exercise public production registration with independent durable-effect assertions instead of
+friend access or test-only production wrappers. Browser protocol checks do not establish a usable journey.
+For .NET operations apply the concrete correction and regression patterns in
+`program-kit-dotnet/references/implementation-boundaries.md`, including current storage metadata,
+activated pagination settings, lock-wait expiry, public transaction tests and
+[normalized-label export](../../program-kit-dotnet/references/label-validation.md).
+Resolve concrete findings in ordinary tasks/source review; do not add another review or approval artifact.
 Resolve material `lifecycleFindings` against their named owner/source in normal scoped review:
 a composition rationale cannot justify foreign task registration or concrete provider preparation.
 Consult the exact captured publisher lifecycle route before choosing contributions/order, and carry

@@ -51,6 +51,6 @@
   "budgetsSeconds": {
     "identityDiscovery": 3,
     "applicationControlledOutcome": 5,
-    "remoteAuthentication": 10
+    "remoteAuthentication": 900
   }
 }

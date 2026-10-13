@@ -504,6 +504,27 @@ def package_sources(repository: Path) -> list[str]:
     ]
 
 
+def typed_publisher_features(repository: Path, active: set[str]) -> dict[str, tuple[str, str]]:
+    """Activated publisher packages belong to composition, not source projects."""
+    if shell_composition.resource_model(repository) is None:
+        return {}
+    import composition_render
+    _, contract = composition_render.verify_outputs(repository, check_frontends=False)
+    result = {}
+    for selected in contract['shells'].values():
+        for package_id, descriptor in selected['featureDescriptors'].items():
+            version = selected['packages'][package_id]
+            for feature in descriptor['features']:
+                identity = feature['identity']
+                if identity not in active:
+                    continue
+                binding = (package_id, version)
+                if identity in result and result[identity] != binding:
+                    raise ValueError('PKR019 typed publisher feature has conflicting selected owners: ' + identity)
+                result[identity] = binding
+    return result
+
+
 
 
 def package_base_addresses(sources: list[str]) -> list[str]:
@@ -749,6 +770,11 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
                 if key.startswith('nuget:') and item['featureIdentity'] in active:
                     selected_features[item['featureIdentity']] = key.split(':', 1)[1]
         selected_features = {**{identity: BUILT_IN_FEATURE_PACKAGES[identity] for identity in built_ins}, **selected_features}
+        typed_features = typed_publisher_features(repository, active)
+        for identity, (package_id, _) in typed_features.items():
+            if identity in selected_features and selected_features[identity] != package_id:
+                raise ValueError('PKR019 typed composition conflicts with selected publisher feature owner: ' + identity)
+            selected_features[identity] = package_id
         central_versions = central_package_versions(repository) if selected_features else {}
         pinned_built_ins: dict[str, str] = {}
         for identity, package_id in selected_features.items():
@@ -758,6 +784,8 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
                     raise ValueError(
                         f"PKR019 built-in feature '{identity}' has no central package pin for '{package_id}' in Directory.Packages.props and its supported imports."
                     )
+                if identity in typed_features and version != typed_features[identity][1]:
+                    raise ValueError('PKR019 typed publisher feature pin differs from captured selected version: ' + identity)
                 pinned_built_ins[package_id.casefold()] = version
                 required.add((package_id, version))
             if version in LEGACY_FEATURE_BRIDGE['packageVersions']:

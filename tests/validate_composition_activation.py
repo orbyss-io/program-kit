@@ -102,6 +102,88 @@ def main():
         output = command(['dotnet', 'run', '--project', str(test_project), '--no-build'], 'execute')
         assert re.search(r'^\s*total:\s*1\s*$', output, re.MULTILINE), 'Activation assertion did not execute'
         assert re.search(r'^\s*succeeded:\s*1\s*$', output, re.MULTILINE), 'Activation assertion did not pass'
+        # Activate the mixed generated seams through the selected real shell
+        # runtime, instead of treating direct ConfigureServices calls as activation.
+        runtime = {'path': 'src/Activation.Runtime/Activation.Runtime.csproj', 'packageId': 'Activation.Runtime',
+                   'featureIdentity': 'Existing.RuntimeIdentity', 'role': 'implementation', 'responsibility': 'runtime'}
+        runtime_files = foundation_composition.scaffold_project(runtime, {'packages': {}})
+        for path, payload in runtime_files.items():
+            target = root / path; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(payload)
+        runtime_source = root / 'src/Activation.Runtime/ActivationRuntimeFeature.cs'
+        runtime_source.write_text(runtime_source.read_text().replace(
+            'public void ConfigureServices(IServiceCollection services) { }',
+            'public void ConfigureServices(IServiceCollection services) { services.AddScoped<OwnedRuntimeService>(); }'))
+        (runtime_source.parent / 'OwnedRuntimeService.cs').write_text('''namespace Activation.Runtime;
+public sealed class OwnedRuntimeService : IDisposable {
+    public Guid Identity { get; } = Guid.NewGuid();
+    public bool Disposed { get; private set; }
+    public void Dispose() => Disposed = true;
+}
+''')
+        runtime_refs = {item.get('Include') for item in ET.fromstring(runtime_files[runtime['path']]).iter('PackageReference')}
+        assert runtime_refs == {'CShells.Abstractions'}
+        assert b'IWebShellFeature' not in runtime_files['src/Activation.Runtime/ActivationRuntimeFeature.cs']
+        central = ET.parse(root / 'Directory.Packages.props').getroot()
+        ET.SubElement(central.find('ItemGroup'), 'PackageVersion', Include='CShells.AspNetCore', Version=pins['CShells.AspNetCore.Abstractions'])
+        (root / 'Directory.Packages.props').write_bytes(ET.tostring(central))
+        mixed = root / 'tests/MixedActivation'; mixed.mkdir()
+        (mixed / 'MixedActivation.csproj').write_text('''<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><OutputType>Exe</OutputType><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup><PackageReference Include="CShells.AspNetCore" />
+    <ProjectReference Include="../../src/Activation.Api/Activation.Api.csproj" />
+    <ProjectReference Include="../../src/Activation.Runtime/Activation.Runtime.csproj" />
+  </ItemGroup>
+</Project>''')
+        (mixed / 'Program.cs').write_text('''using CShells.AspNetCore.Configuration;
+using CShells.DependencyInjection;
+using CShells.Features;
+using CShells.Lifecycle;
+using Activation.Runtime;
+var builder = WebApplication.CreateBuilder();
+builder.Logging.ClearProviders();
+builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
+    ["CShells:Shells:mixed:Features:Activation.Api"] = "true",
+    ["CShells:Shells:mixed:Features:Existing.RuntimeIdentity"] = "true"
+});
+builder.Services.AddCShells(shells => shells.WithAssemblies(typeof(Program).Assembly,
+    typeof(Activation.Api.ApiFeature).Assembly, typeof(ActivationRuntimeFeature).Assembly)
+    .WithConfigurationProvider(builder.Configuration));
+await using var host = builder.Build();
+var registry = host.Services.GetRequiredService<IShellRegistry>();
+var shell = await registry.GetOrActivateAsync("mixed");
+if (shell.State != ShellLifecycleState.Active) throw new InvalidOperationException("Mixed shell did not activate.");
+OwnedRuntimeService first;
+using (var scope = shell.ServiceProvider.CreateScope()) {
+    first = scope.ServiceProvider.GetRequiredService<OwnedRuntimeService>();
+    if (!ReferenceEquals(first, scope.ServiceProvider.GetRequiredService<OwnedRuntimeService>()))
+        throw new InvalidOperationException("Owned service did not retain scope lifetime.");
+}
+if (!first.Disposed) throw new InvalidOperationException("Owned scope did not dispose.");
+using (var scope = shell.ServiceProvider.CreateScope()) {
+    if (first.Identity == scope.ServiceProvider.GetRequiredService<OwnedRuntimeService>().Identity)
+        throw new InvalidOperationException("Owned service leaked across scopes.");
+    if (scope.ServiceProvider.GetRequiredService<ActivationMarker>() is null)
+        throw new InvalidOperationException("Generated HTTP prerequisites were not activated.");
+}
+using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+await (await registry.DrainAsync(shell, deadline.Token)).WaitAsync(deadline.Token);
+Console.WriteLine("Mixed generated feature activation and owned scope lifetime passed.");
+public sealed class ActivationMarker;
+[ShellFeature("Orbyss.Foundation.Authentication")]
+public sealed class AuthenticationPrerequisite : IShellFeature {
+    public void ConfigureServices(IServiceCollection services) => services.AddSingleton<ActivationMarker>();
+}
+[ShellFeature("Orbyss.Foundation.WebDefaults")]
+public sealed class WebPrerequisite : IShellFeature {
+    public void ConfigureServices(IServiceCollection services) { }
+}
+''')
+        mixed_project = mixed / 'MixedActivation.csproj'
+        command(['dotnet', 'restore', str(mixed_project), '--nologo', '-warnaserror'], 'mixed-restore')
+        command(['dotnet', 'restore', str(mixed_project), '--locked-mode', '--nologo', '-warnaserror'], 'mixed-locked')
+        command(['dotnet', 'build', str(mixed_project), '--no-restore', '--nologo'], 'mixed-build')
+        mixed_output = command(['dotnet', 'run', '--project', str(mixed_project), '--no-build'], 'mixed-activation')
+        assert 'Mixed generated feature activation and owned scope lifetime passed.' in mixed_output
         scoped = {}
         for name, seam, source, expected in (
             ('Lifecycle', 'shell-lifecycle', '''using CShells.Lifecycle;
@@ -142,7 +224,8 @@ public sealed class PurePolicyTests { [Fact] public void PurePolicyHasNoShellCon
         (evidence / 'status.json').write_text(json.dumps({'status': 'passed',
             'contractPins': {identity: pins[identity] for identity in CONTRACTS},
             'missingContractsRejected': True, 'activationTestsExecuted': 1, 'generatedTestDependencies': True,
-            'activationLockedRestore': True, 'responsibilityScopes': scoped}, indent=2), encoding='utf-8')
+            'activationLockedRestore': True, 'mixedShellActivation': True, 'runtimeScopedResolutionAndDisposal': True,
+            'responsibilityScopes': scoped}, indent=2), encoding='utf-8')
         print('Composition activation-test build/execution passed: ' + str(evidence))
     except Exception as error:
         (evidence / 'status.json').write_text(json.dumps({'status': 'failed', 'failure': str(error)}), encoding='utf-8')

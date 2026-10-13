@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "files": [
     { "path": "eng/test_project.py", "ownership": "managed" },
+    { "path": "eng/label_validation.py", "ownership": "managed" },
+    { "path": "eng/label-validation.schema.json", "ownership": "managed" },
     { "path": "eng/web_identity.py", "ownership": "managed" },
     { "path": "eng/keycloak_composition.py", "ownership": "managed" },
     { "path": "eng/composition_model.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_model.py" },

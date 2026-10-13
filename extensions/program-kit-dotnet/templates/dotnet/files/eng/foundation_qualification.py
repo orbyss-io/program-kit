@@ -543,7 +543,7 @@ def integration(root, selected, directory, migration_script=None, product_enable
         result['cases'].update({case:True for case in CASES['host-activation']})
         engines = os.environ.get('PROGRAMKIT_BROWSER_ENGINES','chromium,webkit').split(',')
         browser_configuration = authentication_browser_configuration(root, config, directory, engines)
-        environment = dict(os.environ, PROGRAMKIT_BASE_URL=config['application']['publicOrigin'],
+        environment = dict(os.environ, PLAYWRIGHT_NO_COPY_PROMPT='1', PROGRAMKIT_BASE_URL=config['application']['publicOrigin'],
                            PROGRAMKIT_IDENTITY_REALM_FILE=str(realm_path(root)), PROGRAMKIT_PERMISSION_PROBE_PATH='/api/permission-probe',
                            PROGRAMKIT_IDENTITY_AUTHORITY=selected['targets']['publicAuthority'])
         authentication_started=time.monotonic()

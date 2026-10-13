@@ -831,6 +831,15 @@ def main() -> int:
                 updated.append(relative)
                 actions.append({'kind':'update','path':relative,'content':desired})
                 final_hash = final_baseline = final_written = desired_hash
+            elif (foundation_configuration is not None and relative in foundation_outputs
+                  and Path(relative).suffix in {'.csproj', '.cs'} and foundation_source(relative, previous)
+                  and current_hash == last_written_hash == baseline_hash):
+                # Reconcile only authenticated untouched generated references/seams.
+                # Native selection/customization changes the bytes and retains
+                # the existing project for its scoped owner correction instead.
+                updated.append(relative)
+                actions.append({'kind': 'update', 'path': relative, 'content': desired})
+                final_hash = final_baseline = final_written = desired_hash
             elif (
                 isinstance(previous, dict)
                 and current_hash == last_written_hash

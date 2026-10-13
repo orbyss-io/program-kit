@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:program-kit:label-validation:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "owner", "contractId", "contractVersion", "rules"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "owner": { "$ref": "#/$defs/identity" },
+    "contractId": { "$ref": "#/$defs/identity" },
+    "contractVersion": { "$ref": "#/$defs/version" },
+    "rules": {
+      "type": "object", "minProperties": 1, "maxProperties": 64,
+      "propertyNames": { "$ref": "#/$defs/identity" },
+      "additionalProperties": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "$defs": {
+    "identity": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$" },
+    "version": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+    "rule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ruleId", "ruleVersion", "normalizationOrder", "trimCodeUnits", "rejectedRawCodeUnitRanges", "lengthUnit", "minimumLength", "maximumLength"],
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/identity" },
+        "ruleVersion": { "$ref": "#/$defs/version" },
+        "normalizationOrder": { "const": ["rejectRawControls", "trim", "validateUtf16Length"] },
+        "trimCodeUnits": { "const": [9, 10, 11, 12, 13, 32, 133, 160, 5760, 8192, 8193, 8194, 8195, 8196, 8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, 12288] },
+        "rejectedRawCodeUnitRanges": { "const": [[0, 31], [127, 159]] },
+        "lengthUnit": { "const": "utf16" },
+        "minimumLength": { "$ref": "#/$defs/version" },
+        "maximumLength": { "$ref": "#/$defs/version" }
+      }
+    }
+  }
+}

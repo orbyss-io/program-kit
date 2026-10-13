@@ -312,6 +312,9 @@ def validate_bound_settings(configuration, contract):
 
 def web_settings(configuration, contract):
     result = defaults(contract, 'Foundation:Web:')
+    # Program Kit's interactive window includes the person's provider-page work.
+    # Network discovery/backchannel budgets remain the exact provider settings.
+    result['RemoteAuthenticationTimeoutSeconds'] = 900
     app, identity = configuration['application'], configuration['identity']
     result.update(configuration['settings'])
     result.update({'Authority': identity['publicOrigin'] + '/realms/' + identity['realm'],
@@ -397,8 +400,24 @@ def render_realm(source, configuration, contract):
 
 def scaffold_project(project, contract):
     namespace = project['packageId']
-    deps = ['Orbyss.Foundation.Authentication', 'Orbyss.Foundation.WebDefaults'] if project['role'] == 'implementation' else ['Orbyss.Foundation.Execution']
-    packages = ['CShells.Abstractions', 'CShells.AspNetCore.Abstractions'] + [p for p in contract['packages'] if p not in {'Orbyss.Foundation.PostgreSql','Orbyss.Foundation.Execution'}] if project['role'] == 'implementation' else ['CShells.Abstractions', 'Orbyss.Foundation.PostgreSql']
+    responsibility = project.get('responsibility', 'persistence' if project['role'] == 'provider' else None)
+    require(responsibility in {'runtime', 'http', 'persistence'}, 'declare actual source responsibility before scaffolding: ' + project['path'])
+    http = responsibility == 'http'
+    provider = responsibility == 'persistence'
+    deps = ['Orbyss.Foundation.Authentication', 'Orbyss.Foundation.WebDefaults'] if http else ['Orbyss.Foundation.Execution'] if provider else []
+    consumed = set(project.get('capabilityPackages', []))
+    admitted_packages = set(contract['packages']) | set(project.get('admittedCapabilityPackages', []))
+    require(consumed <= admitted_packages, 'source capability package is absent from selected shell: ' + ', '.join(sorted(consumed - admitted_packages)))
+    for package in sorted(consumed):
+        deps.extend(feature['identity'] for feature in contract.get('featureDescriptors', {}).get(package, {}).get('features', [])
+                    if feature['identity'] in contract.get('activations', []))
+    deps = list(dict.fromkeys(deps))
+    packages = ['CShells.Abstractions'] + (['CShells.AspNetCore.Abstractions'] if http else [])
+    packages += [p for p in deps if p in contract['packages']]
+    packages += ['Orbyss.Foundation.PostgreSql'] if provider else []
+    packages += sorted(consumed)
+    packages = list(dict.fromkeys(packages))
+    dependency_attribute = ', DependsOn = [' + ', '.join('"' + item + '"' for item in deps) + ']' if deps else ''
     refs = '\n'.join('    <PackageReference Include="' + package + '"' + (' PrivateAssets="all"' if package.startswith('CShells.') else '') + ' />' for package in packages)
     csproj = f'''<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -408,15 +427,15 @@ def scaffold_project(project, contract):
     <RootNamespace>{namespace}</RootNamespace>
     <FoundationFeatureIdentity>{project['featureIdentity']}</FoundationFeatureIdentity>
     <FoundationFeatureDependencies>{';'.join(deps)}</FoundationFeatureDependencies>
-    <FoundationComposeForOpenApi>{'true' if project['role'] == 'implementation' else 'false'}</FoundationComposeForOpenApi>
+    <FoundationComposeForOpenApi>{'true' if http else 'false'}</FoundationComposeForOpenApi>
   </PropertyGroup>
   <ItemGroup>
 {refs}
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+{('    <FrameworkReference Include="Microsoft.AspNetCore.App" />' if http or provider else '')}
   </ItemGroup>
 </Project>
 '''
-    if project['role'] == 'implementation':
+    if http:
         source = f'''using CShells.AspNetCore.Features;
 using CShells.Features;
 using Microsoft.AspNetCore.Routing;
@@ -426,13 +445,28 @@ using Microsoft.Extensions.Hosting;
 namespace {namespace};
 
 /// <summary>Application-owned endpoint registration seam; product routes belong here.</summary>
-[ShellFeature("{project['featureIdentity']}", DependsOn = ["Orbyss.Foundation.Authentication", "Orbyss.Foundation.WebDefaults"])]
+[ShellFeature("{project['featureIdentity']}"{dependency_attribute})]
 public sealed class ApiFeature : IWebShellFeature
 {{
     /// <summary>Registers application adapters, without resolving or preparing providers.</summary>
     public void ConfigureServices(IServiceCollection services) {{ }}
     /// <summary>Maps application endpoints when their product contracts are implemented.</summary>
     public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment) {{ }}
+}}
+'''
+    elif not provider:
+        type_name = namespace.replace('.', '') + 'Feature'
+        source = f'''using CShells.Features;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace {namespace};
+
+/// <summary>Registers the application's owned runtime capabilities.</summary>
+[ShellFeature("{project['featureIdentity']}"{dependency_attribute})]
+public sealed class {type_name} : IShellFeature
+{{
+    /// <summary>Registers owned services without preparing providers or mapping endpoints.</summary>
+    public void ConfigureServices(IServiceCollection services) {{ }}
 }}
 '''
     else:
@@ -446,7 +480,7 @@ using Orbyss.Foundation.PostgreSql;
 namespace {namespace};
 
 /// <summary>Owns the application's empty provider context and selected native Prepare lifecycle.</summary>
-[ShellFeature("{project['featureIdentity']}", DependsOn = ["Orbyss.Foundation.Execution"])]
+[ShellFeature("{project['featureIdentity']}"{dependency_attribute})]
 public sealed class ProviderFeature(ShellSettings settings) : IShellFeature
 {{
     /// <summary>Registers provider-owned preparation. Product migrations remain explicit.</summary>
@@ -477,8 +511,10 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 '''
     folder = PurePosixPath(project['path']).parent
     files = {project['path']: csproj.encode()}
-    if project['role'] == 'implementation':
+    if http:
         files[str(folder/'ApiFeature.cs')] = source.encode()
+    elif not provider:
+        files[str(folder/(type_name+'.cs'))] = source.encode()
     else:
         # Keep each public type in its owning file, as required by the selected analyzer.
         preamble = source.split('/// <summary>Owns')[0]
@@ -606,7 +642,9 @@ def materialize(repository, configuration, template_root):
         ET.indent(nuget,space='  ')
         outputs['NuGet.config'] = (ET.tostring(nuget)+b'\n','managed')
     for project in configuration['projects']:
-        outputs.update({path: (payload, 'scaffold') for path,payload in scaffold_project(project, contract).items()})
+        # This retained finite recipe explicitly declared API/provider seams.
+        historical = {**project, 'responsibility': 'http' if project['role'] == 'implementation' else 'persistence'}
+        outputs.update({path: (payload, 'scaffold') for path,payload in scaffold_project(historical, contract).items()})
     outputs['docs/architecture/foundation-configuration.md'] = (reference(configuration, contract).encode(), 'managed')
     if 'accentColor' in configuration['theme']['branding']:
         css_path = 'deploy/keycloak/themes/program-kit/login/resources/css/program-kit.css'

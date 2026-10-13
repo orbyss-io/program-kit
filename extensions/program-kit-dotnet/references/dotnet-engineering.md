@@ -106,8 +106,17 @@ AsyncLazy abstraction, hide synchronous blocking, or defer mandatory configurati
 
 - Use `TimeProvider` for replaceable time, monotonic timestamps for elapsed duration, and controlled-time
   tests for deadlines. Use `PeriodicTimer` when its single-consumer semantics fit owned periodic work.
+  Consume the selected replaceable default rather than unconditionally registering `TimeProvider.System`.
+  Effect owners read UTC at their actual decision boundary after lock/I/O waits; explicit instants belong
+  to meaningful caller inputs or pure policy evaluation. Preserve persisted timestamp precision and
+  previously accepted replay semantics when correcting expiry checks. Test actual feature registration.
+  When selected, carry Foundation's `IExecutionDeadline` into PostgreSQL units and capped stages; distinguish
+  caller cancellation from `IsExpired`, and neither from postdispatch commit uncertainty.
 - Bind typed options and validate at their actual activation boundary. Root `ValidateOnStart` alone is
   not evidence for a CShells provider. Define reload and snapshot lifetimes and test invalid configuration.
+  Operational pagination default/maximum sizes are owner options, consumed consistently by API defaults,
+  application admission and bounded query construction. Positive page size remains an input invariant.
+  Do not turn accepted application/protocol ceilings or immutable migration identities into settings.
 - Use a supported `HttpClient` lifetime/DNS strategy: factory-managed handlers or long-lived clients with
   a configured pooled connection lifetime. Define deadlines and cancellation; retry only replay-safe
   operations, accounting for effects and commit ambiguity. Use `IFileProvider` where it fits the resource
@@ -122,6 +131,10 @@ admission as defined in `programming-guardrails.md`.
 - Specify ordinal/culture and normalization semantics for protocol identifiers; do not let machine culture
   change authorization, identity or persisted wire meaning. Bound untrusted parsing, regular expressions,
   archives and decompression; use timeouts or an appropriate non-backtracking regex where supported.
+  For consumer-owned normalized labels, use the supported
+  [Core export and generated browser validator](label-validation.md). Keep operation order, character
+  sets and length units source-backed; test normalization and digest parity instead of copying bounds
+  into browser code or treating generated DTO types as runtime validation.
 - Allowlist polymorphic input. Admit file paths, outbound URLs and process arguments at their trust
   boundary; use structured process argument APIs and protect against traversal/SSRF. Use platform
   cryptographic primitives and secure random APIs for security purposes, never custom cryptography.

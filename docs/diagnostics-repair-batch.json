@@ -2073,5 +2073,26 @@
     "tests/validate_web_identity.py": "35aece25f39cf16ccf053496c871fdc8545026b5bc900ffdf42e43c3c6de0fcb",
     "tests/validate_wire_capabilities.py": "df654910b3335176def2b8ee76032f4a3f659a532acf8664fb7ae0122ff0f2c6",
     "tests/validation-inventory.json": "4204c4a3bef83f51316145cd900af97a2bec5140d2a7edc73d86a2181c573abd"
+  },
+  "additionalResearch": {
+    "report": "docs/ds01-implementation-diagnostics-research-2026-10-13.md",
+    "status": "All accepted Program Kit upstream repairs implemented; complete Development and focused native/browser checks pass. Foundation repair CI passes, with publication blocked by the upstream SDK image. Consumer correction and publication acceptance remain separate.",
+    "items": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28
+    ],
+    "originalEvidence": "Original items, timestamps, baseline and artifact hashes above remain historical evidence unchanged.",
+    "implementation": "docs/ds01-implementation-coverage-2026-10-14.md"
   }
 }

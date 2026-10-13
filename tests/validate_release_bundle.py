@@ -158,6 +158,27 @@ class ReleaseBundleTests(unittest.TestCase):
         manifest = unpack_release_bundle(archive, self.root/'admitted')
         self.assertEqual(manifest['runtimeClosure']['packageCount'], 1)
 
+    def test_activation_owned_external_package_needs_no_application_reference(self):
+        identity, package_id = 'Fixture.HostedPages', 'Fixture.PageProvider'
+        self.assertNotIn(identity, bundle.BUILT_IN_FEATURE_PACKAGES)
+        self.write('shells.json', {'CShells': {'Shells': {'default': {'Features': {identity: {}}}}}})
+        self.write('Directory.Packages.props', '<Project><ItemGroup><PackageVersion Include="' + package_id + '" Version="1.0.0" /></ItemGroup></Project>')
+        feed = self.root / 'artifacts/feed'; feed.mkdir()
+        with zipfile.ZipFile(feed / (package_id + '.1.0.0.nupkg'), 'w') as archive:
+            archive.writestr(package_id + '.nuspec', '<package><metadata><id>' + package_id + '</id><version>1.0.0</version>'
+                             '<authors>fixture</authors><description>Activation-owned provider</description></metadata></package>')
+            archive.writestr('lib/net10.0/Fixture.dll', b'native-restore-only fixture')
+            archive.writestr('orbyss-foundation/feature.json', json.dumps({'schemaVersion': 1, 'packageId': package_id,
+                             'identity': identity, 'featureDependencies': [], 'runtimeDependencies': [], 'routes': []}))
+        self.write('NuGet.config', '<configuration><packageSources><clear/><add key="fixture" value="' + str(feed) + '"/></packageSources></configuration>')
+        with patch.object(bundle, 'typed_publisher_features', return_value={identity: (package_id, '1.0.0')}):
+            bundle.stage(self.root, self.packages, self.stage)
+        self.assertEqual({(package_id, '1.0.0')}, {bundle.package_identity(path) for path in (self.stage / 'packages').glob('*.nupkg')})
+        self.assertFalse(list(self.root.glob('src/**/*.csproj')))
+        with patch.object(bundle, 'typed_publisher_features', return_value={identity: (package_id, '2.0.0')}):
+            with self.assertRaisesRegex(ValueError, 'pin differs from captured selected version'):
+                bundle.stage(self.root, self.packages, self.stage)
+
     def test_removed_and_unselected_output_packages_do_not_enter_configuration_only_bundle(self):
         for identity in ('Removed.Feature', 'Unnecessary.Composition'):
             with zipfile.ZipFile(self.packages / (identity+'.1.0.0.nupkg'), 'w') as z:

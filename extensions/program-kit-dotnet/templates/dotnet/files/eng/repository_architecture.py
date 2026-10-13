@@ -283,6 +283,15 @@ def validate_graph(root, manifest, evaluated, compiled):
         authorized.add((edge['fromProject'], edge['toProject']))
     for relative, project in projects.items():
         data = evaluated[relative]
+        friend_type = 'System.Runtime.CompilerServices.InternalsVisibleToAttribute'
+        require(not data['Items'].get('InternalsVisibleTo')
+                and not any(item.get('Identity') in {friend_type, friend_type.removesuffix('Attribute')}
+                            for item in data['Items'].get('AssemblyAttribute', [])),
+                'PKA021 friend access is forbidden: ' + relative
+                + '; test public capabilities through production registration')
+        require(friend_type not in assemblies[data['Properties']['AssemblyName']].get('attributes', []),
+                'PKA021 compiled friend access is forbidden: ' + relative
+                + '; keep implementation state private and exercise public capabilities')
         refs = set()
         for item in data['Items'].get('ProjectReference', []):
             path = Path(item.get('FullPath') or inside(root, relative).parent / item['Identity']).resolve()
@@ -424,7 +433,8 @@ def execute(root, manifest, configuration, feature=None, build_subject=None, ver
     for project in manifest['runtimeComposition']['projects']:
         path = inside(root, project['path'])
         command = ['dotnet', 'msbuild', str(path), '-nologo', f'-p:Configuration={configuration}',
-                   '-getProperty:AssemblyName,TargetPath,ManagePackageVersionsCentrally', '-getItem:ProjectReference,PackageReference,PackageVersion']
+                   '-getProperty:AssemblyName,TargetPath,ManagePackageVersionsCentrally',
+                   '-getItem:ProjectReference,PackageReference,PackageVersion,InternalsVisibleTo,AssemblyAttribute']
         if version:
             command.append('-p:Version=' + version)
         result = subprocess.run(command, cwd=root, capture_output=True, text=True, encoding='utf-8', check=True, timeout=120)

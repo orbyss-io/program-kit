@@ -14,6 +14,22 @@ bind separate databases on a shared server, and multiple applications can use on
 authority with separate registrations and audiences. This supplies no aggregate C#
 project or consumer host. Feature and context sources are consumer-owned after scaffold.
 
+An `implementation` project may own runtime services or HTTP; the role alone does not select
+an endpoint seam. Feature resources use `responsibility: "runtime"` or `"http"` for explicit
+new intent. Retained projects may obtain that distinction from their accepted architecture
+responsibilities; conflicting or missing authority rejects before writes. Runtime gets a named
+`IShellFeature`, while HTTP gets `IWebShellFeature`. Providers retain their persistence seam.
+Changing the CLR name preserves the exact `featureIdentity`/ShellFeature string and package owner.
+
+Use optional `capabilityPackages` only for selected Foundation package IDs actually consumed by
+that feature. Accepted native per-project selections also contribute their packages. This field
+selects no version and cannot admit an unselected dependency; it does not copy every shell web
+package into each runtime project. An architecture package inventory containing obsolete scaffold
+references is not evidence of capability use. Preserve native pins, meaningful selected activations
+and consumer customizations. Untouched authenticated scaffold contributions reconcile through normal
+sync; a customized obsolete ApiFeature that would duplicate the identity requires scoped source
+correction before managed writes. Do not reset owned code or locks to force reconciliation.
+
 Branding is consumer-owned authoring data. During migration, retain the existing
 identity display name/accent in `identityAuthority.theme.branding` and each frontend's
 localized title, purpose, loading, failure, no-script and logo alternative text in

@@ -520,15 +520,15 @@ def authentication_contracts(evidence, checks, original_child, original_selected
     passing=[(engine,title,None,'') for engine in AUTHENTICATION_ENGINES for title in titles]
     path.write_bytes(report(passing))
     label=authentication_failure(directory,set())
-    assert label=='authentication=no-failure authCases=21 authCompleteness=observed-complete authFailed=none authSkipped=none authenticationFailure=unknown'
+    assert label==f'authentication=no-failure authCases={len(passing)} authCompleteness=observed-complete authFailed=none authSkipped=none authenticationFailure=unknown'
     assert secret not in label
     checks.append('exact-maintained-authentication-titles-and-engines-project-only-bounded-ids')
     failed=list(passing); failed[0]=('chromium',titles[0],'failure','Error: browserType.launch: '+secret)
-    failed[8]=('firefox',titles[1],'error','browserType.launch: '+secret)
+    failed[len(titles)+1]=('firefox',titles[1],'error','browserType.launch: '+secret)
     failed[-1]=('webkit',titles[-1],'skipped',secret)
     path.write_bytes(report(failed)); launch_report=path.read_bytes()
     label=authentication_failure(directory,set())
-    assert label=='authentication=failed authCases=21 authCompleteness=observed-complete authFailed=chromium:anonymous-session,firefox:governed-headers authSkipped=webkit:permission-boundary authenticationFailure=browser-launch'
+    assert label==f'authentication=failed authCases={len(passing)} authCompleteness=observed-complete authFailed=chromium:anonymous-session,firefox:governed-headers authSkipped=webkit:permission-boundary authenticationFailure=browser-launch'
     assert secret not in label
     checks.append('current-junit-failed-skipped-cases-and-secret-annotations-never-export-prose')
     for marker,category in (('Test timeout of 30000ms exceeded. '+secret,'test-timeout'),
@@ -594,7 +594,7 @@ def authentication_contracts(evidence, checks, original_child, original_selected
     try: command([sys.executable,str(child/'fail_setup.py')],child,evidence/'authentication-failed-readiness-command',timeout=30,readiness=True)
     except ValueError as error:
         label=str(error)
-        assert 'stage=check stepExit=13 code=PKF003 checkpoint=integration-absent childExit=unknown authentication=failed authCases=21' in label
+        assert f'stage=check stepExit=13 code=PKF003 checkpoint=integration-absent childExit=unknown authentication=failed authCases={len(passing)}' in label
         assert 'authFailed=chromium:anonymous-session,firefox:governed-headers' in label
         assert 'authenticationFailure=browser-launch outerExit=2;' in label and secret not in label
     else: raise AssertionError('Actual failed authentication reporter child concealed')
@@ -828,10 +828,14 @@ def integration_failure(directory, read_owned, previous):
 AUTHENTICATION_CASES = {
     'anonymous browser has no BFF session':'anonymous-session',
     'WEB-V3 same-origin BFF response has the governed browser headers':'governed-headers',
-    'real browser form logout clears local state and completes provider navigation':'session-logout',
+    'native logout protocol clears the local session and retains its JSON acknowledgement':'session-logout',
     'missing or invalid browser antiforgery logout does not clear the session':'antiforgery-denial',
     'cross-site top-level logout form fails before session mutation':'cross-site-denial',
-    'provider navigation failure cannot restore local access or displace the signed-out page':'provider-navigation-failure',
+    'native provider navigation failure leaves local session absent and retains JSON acknowledgement':'provider-navigation-failure',
+    'fresh native login permits sixteen seconds of human credential entry':'human-paced-login',
+    'shipped logout adapter clears private UI and reaches accessible owner landing':'adapter-owner-landing',
+    'shipped logout adapter retains public recovery when provider navigation fails':'adapter-provider-failure',
+    'shipped logout adapter reconciles lost local observation without restoring private UI':'adapter-local-observation-loss',
     'configured permission endpoint distinguishes authorized and unauthorized users':'permission-boundary',
 }
 AUTHENTICATION_ENGINES = ('chromium','firefox','webkit')
@@ -874,7 +878,7 @@ def authentication_failure(directory, previous):
                 elif node.tag=='properties':
                     if any(item.tag!='property' or list(item) or item.get('name')==CROSS_SITE_PHASE_PROPERTY for item in node): return unknown
                 else: return unknown
-        if len(cases)>21 or len(cases)!=sum(1 for node in document.iter() if node.tag=='testcase'): return unknown
+        if len(cases)>len(AUTHENTICATION_CASES)*len(AUTHENTICATION_ENGINES) or len(cases)!=sum(1 for node in document.iter() if node.tag=='testcase'): return unknown
         identities=set(); failed=[]; skipped=[]; categories=[]; phases={}
         for node in cases:
             if node.get('classname')!='authentication.spec.ts': return unknown
@@ -1120,9 +1124,13 @@ public sealed class ProductBoundaryTests
     (root/'docs/architecture/adoption-history.md').write_text('Disposable accepted architecture history. No live consumer adoption.\n',encoding='utf-8')
     if postgres:
         shells=composition.read(root/'shells.json')
-        shells['CShells']['Shells']['default'].setdefault('Configuration',{}).setdefault('Foundation',{}).setdefault('Web',{})['RemoteAuthenticationTimeoutSeconds']=11
+        # Retain a purposeful override distinct from the 900-second generated default, while
+        # allowing the real sixteen-second human-entry regression to complete.
+        shells['CShells']['Shells']['default'].setdefault('Configuration',{}).setdefault('Foundation',{}).setdefault('Web',{})['RemoteAuthenticationTimeoutSeconds']=901
         write(root/'shells.json',shells)
     sync(root,evidence/'rerun-sync')
+    if postgres:
+        assert composition.read(root/'shells.json')['CShells']['Shells']['default']['Configuration']['Foundation']['Web']['RemoteAuthenticationTimeoutSeconds']==901
     return config
 
 
@@ -1135,6 +1143,10 @@ def qualify(root, shape, phase, evidence, generation):
     native=json.loads(runs[-1].read_text())
     if native['status']!='ready': raise ValueError('Generated composition failed actual readiness')
     integration=json.loads((runs[-1].parent/'integration.json').read_text())
+    if shape!='base':
+        runtime=json.loads((runs[-1].parent/'effective-settings.runtime.json').read_text())
+        observed=[row['value'] for row in runtime['settings'] if row['path']=='Foundation:Web:RemoteAuthenticationTimeoutSeconds']
+        assert observed==[901], 'The actual activated options lost the deliberate interaction-window override'
     if shape!='base' and integration.get('productAcceptance') is not True:
         raise ValueError('First actual authenticated owner operation not established')
     timings={'generationSeconds':round(generation,3), **{row['stage']+'Seconds':row['elapsedSeconds'] for row in native['steps']},
@@ -1195,10 +1207,13 @@ def main():
     parser.add_argument('--contract-tests',action='store_true',help='Bounded failure-contract checks; starts no external service or package restore')
     parser.add_argument('--engines',default='chromium,webkit',help='Actual maintained browser engines; CI includes Firefox')
     parser.add_argument('--functional-consumer',type=Path,help='Reuse a preserved disposable bundle/cache for functional repairs; establishes no cold timing or readiness receipt')
+    parser.add_argument('--interactive-window-seconds',type=int,help='Explicit temporary interaction-window override for a preserved disposable functional consumer; retains/restores original source bytes')
     parser.add_argument('--migration-consumer',type=Path,help='Resume actual retained-data migration on a preserved disposable consumer; establishes no new timing claim')
     parser.add_argument('--default-readiness',action='store_true',help='With a preserved consumer, run actual default foundation setup without application proving')
     parser.add_argument('--product-failure',nargs='?',const='initial',choices=('initial','retained'),help='With an owned functional consumer, retain real platform success beside an intentionally failed application assertion')
     args=parser.parse_args()
+    if args.interactive_window_seconds is not None and (not args.functional_consumer or args.default_readiness or not 17<=args.interactive_window_seconds<=3600):
+        parser.error('An explicit 17-3600 second interaction-window override requires an owned functional consumer without default-readiness mode')
     if args.contract_tests: return contract_tests()
     engines=args.engines.split(',')
     if not engines or not set(engines)<={'chromium','webkit','firefox'}: parser.error('Unsupported browser engine selection')
@@ -1233,6 +1248,7 @@ def main():
         artifact=ROOT/'artifacts/tests/reusable-foundations'/('functional-'+uuid.uuid4().hex[:16])
         artifact.mkdir(parents=True)
         sync(root,artifact/'synchronize-repaired-test-support')
+        source_shells=root/'shells.json'; original_shells=None; original_bundle=None
         if args.default_readiness:
             if args.product_failure: parser.error('Default readiness and application failure proving are separate modes')
             product=root/'tests/foundation-product/qualification.mjs'
@@ -1309,8 +1325,37 @@ foundation_fixture.captured = _observed
                 if needle not in text: parser.error('Retained-product failure requires the exact owned fixture seam')
                 product.write_text(text.replace(needle,needle+'\n    throw new Error("Expected owned retained-product assertion failure");'),encoding='utf-8')
         try:
+            if args.interactive_window_seconds is not None:
+                original_shells=source_shells.read_bytes()
+                (artifact/'retained-source-shells.json').write_bytes(original_shells)
+                bundle_hosts=composition.read(root/'eng/foundation-composition.resolved.json')['hosts']
+                if len(bundle_hosts)!=1: raise ValueError('Temporary interaction-window override requires one selected disposable Host')
+                selected_bundle=root/next(iter(bundle_hosts.values()))['runtimeStage']
+                if selected_bundle.resolve()!=selected_bundle.absolute() or not selected_bundle.resolve().is_relative_to(root):
+                    raise ValueError('Temporary interaction-window bundle must remain inside its owned consumer')
+                bundle_paths=[path for path in selected_bundle.rglob('*') if path.is_file()]
+                if any(path.resolve()!=path.absolute() for path in bundle_paths): raise ValueError('Temporary bundle archive cannot follow file aliases')
+                original_bundle={path.relative_to(selected_bundle):path.read_bytes() for path in bundle_paths}
+                for relative, raw in original_bundle.items():
+                    destination=artifact/'retained-runtime-bundle'/relative; destination.parent.mkdir(parents=True,exist_ok=True); destination.write_bytes(raw)
+                selected_shells=composition.read(source_shells)
+                selected_shells['CShells']['Shells']['default'].setdefault('Configuration',{}).setdefault('Foundation',{}).setdefault('Web',{})['RemoteAuthenticationTimeoutSeconds']=args.interactive_window_seconds
+                write(source_shells,selected_shells)
+                write(artifact/'interaction-window-override.json',{'scope':'Temporary owned disposable fixture override; real consumer and dependency pins unchanged',
+                    'selectedSeconds':args.interactive_window_seconds,'originalSha256':hashlib.sha256(original_shells).hexdigest(),
+                    'selectedSha256':hashlib.sha256(source_shells.read_bytes()).hexdigest()})
+                # Activation consumes the preserved bundle, not source files directly. Rebuild
+                # through its maintained stage so the reviewed temporary input actually ships
+                # into this disposable run; never patch the running Host's private snapshot.
+                command([sys.executable,'eng/foundation_qualification.py','--repository','.',
+                    '--run-directory',directory.relative_to(root).as_posix(),'--stage','build'],root,artifact/'prepare-interaction-window-bundle')
             command([sys.executable,'eng/foundation_qualification.py','--repository','.',
                      '--run-directory',directory.relative_to(root).as_posix(),'--check','host-activation'],root,artifact/'integration')
+            if args.interactive_window_seconds is not None:
+                runtime=json.loads((directory/'effective-settings.runtime.json').read_text())
+                observed=[row['value'] for row in runtime['settings'] if row['path']=='Foundation:Web:RemoteAuthenticationTimeoutSeconds']
+                assert observed==[args.interactive_window_seconds], 'Actual activated options did not use the explicit fixture interaction window'
+                write(artifact/'interaction-window-activated.json',{'observedSeconds':observed[0]})
             if args.product_failure:
                 result=json.loads((directory/'integration.json').read_text())
                 if result['status']!='passed' or result['productAcceptance'] is not False or result['productPhase'].get('failure')!='application-proving-failed' or not all(result['cases'].values()):
@@ -1319,6 +1364,22 @@ foundation_fixture.captured = _observed
                      'productAcceptance':False,'productFailure':result['productPhase'],'actualIntegration':str(directory.relative_to(ROOT))})
         finally:
             if args.product_failure and original is not None: product.write_bytes(original)
+            if original_shells is not None:
+                source_shells.write_bytes(original_shells)
+                if original_bundle is not None:
+                    for path in selected_bundle.rglob('*'):
+                        if path.is_file() and path.relative_to(selected_bundle) not in original_bundle:
+                            if not path.resolve().is_relative_to(selected_bundle.resolve()): raise ValueError('Derived cleanup escaped the owned bundle')
+                            path.unlink()  # Only a new temporary bundle file; unique pack/run evidence is retained.
+                    for relative, raw in original_bundle.items():
+                        destination=selected_bundle/relative; destination.parent.mkdir(parents=True,exist_ok=True); destination.write_bytes(raw)
+                    restored={path.relative_to(selected_bundle):path.read_bytes() for path in selected_bundle.rglob('*') if path.is_file()}
+                    if restored!=original_bundle: raise ValueError('Original derived bundle restoration could not be established')
+                if source_shells.read_bytes()!=original_shells: raise ValueError('Original source restoration could not be established')
+                write(artifact/'interaction-window-cleanup.json',{'sourceRestored':True,'derivedBundleRestored':original_bundle is not None,
+                    'sourceSha256':hashlib.sha256(original_shells).hexdigest(),
+                    'bundleInputs':{str(path).replace('\\','/'):hashlib.sha256(raw).hexdigest() for path,raw in (original_bundle or {}).items()},
+                    'scope':'Original source and staged descriptor/manifest/archive bytes restored; newly produced unique pack/run evidence retained, no historical receipt changed'})
         write(artifact/'qualification.json',{'status':'functional-checks-passed','actualIntegration':str(directory.relative_to(ROOT)),
               'coldTimingEstablished':False,'foundationReadinessReceiptEstablished':False})
         print('Functional prepared integration: '+str(artifact))

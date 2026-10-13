@@ -49,4 +49,8 @@ human acceptance. Required unresolved findings prevent overall completion; comma
 Compiler diagnostics, architecture tests, contract checks and
 behavioral tests must pass. Assess semantic judgments for changed responsibilities in normal code review; a green compiler
 alone does not prove them. Do not create separate proof attestations or hash-bound reviews.
+Apply the relevant effect/test-boundary review in programming-guardrails.md: purposeful abstractions,
+result invariants, time reads after waits, deadline propagation, actual configured limits, independently
+observed durable effects, public test seams and complete browser recovery. Record affected source and
+dispositions in existing tasks/delivery output. Structural success cannot close unresolved semantic findings.
 Spec Kit analyze findings stay in its normal output. Do not save an extra approval dossier.

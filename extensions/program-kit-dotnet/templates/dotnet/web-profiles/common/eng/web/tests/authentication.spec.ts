@@ -1,8 +1,86 @@
 import { expect, type Browser, type BrowserContext, type Download, type Page, test } from '@playwright/test';
 import { personas } from '../persona-fixture.js';
+import { readFileSync } from 'node:fs';
+import { stripTypeScriptTypes } from 'node:module';
+
+// Set this in the test worker as well as the runner: provider documents and credential assertions
+// must not become an automatic failure DOM artifact. Keep only finite diagnostic categories.
+process.env.PLAYWRIGHT_NO_COPY_PROMPT = '1';
+test.afterEach(async ({}, info) => {
+  for (const error of info.errors) {
+    const message = info.status === 'timedOut'
+      ? `Test timeout of ${info.timeout}ms exceeded. Private authentication payload suppressed.`
+      : /^(?:Error: )?browserType\.launch:/.test(error.message ?? '')
+        ? 'Error: browserType.launch: Private authentication payload suppressed.'
+        : /^(?:Error: )?expect\(/.test(error.message ?? '')
+          ? 'Error: expect(private authentication assertion).toPass(); payload suppressed.'
+          : 'Private authentication check failed; payload suppressed.';
+    for (const key of Object.keys(error)) Reflect.deleteProperty(error, key);
+    // Reporters accept the public thrown-value shape. A message would also trigger
+    // Playwright's automatic error-context document despite its DOM opt-out.
+    error.value = message;
+  }
+});
 
 const identityAuthority = process.env.PROGRAMKIT_IDENTITY_AUTHORITY ?? 'http://localhost:8080/realms/program-kit';
 const identityOrigin = new URL(identityAuthority).origin;
+
+// Only the owner UI and its module are fixture documents. All BFF/Keycloak requests remain native.
+// Transpile the shipped adapter itself, rather than rebuilding its protocol in the journey test.
+const logoutAdapter = stripTypeScriptTypes(readFileSync(new URL('../bff-session.ts', import.meta.url), 'utf8'), { mode: 'strip' });
+
+async function installLogoutPresentation(context: BrowserContext, baseURL: string): Promise<string> {
+  const entry = new URL('/__program-kit-owner-logout', baseURL).href;
+  const landing = '/__program-kit-owner-session-ended';
+  const modulePath = '/__program-kit-owner-logout.js';
+  const adapterPath = '/__program-kit-shipped-bff-session.js';
+  await context.route(new URL(adapterPath, baseURL).href, route => route.fulfill({ contentType: 'text/javascript', body: logoutAdapter }));
+  await context.route(new URL(modulePath, baseURL).href, route => route.fulfill({ contentType: 'text/javascript', body: `
+    import { beginFoundationBffLogout } from '${adapterPath}';
+    const root = document.querySelector('main');
+    function recovery(title, copy) {
+      root.replaceChildren();
+      const heading = document.createElement('h1'); heading.textContent = title; heading.tabIndex = -1;
+      const message = document.createElement('p'); message.textContent = copy; message.setAttribute('role', 'status');
+      const signIn = document.createElement('a'); signIn.textContent = 'Sign in'; signIn.href = '/bff/login?returnUrl=/';
+      root.append(heading, message, signIn); heading.focus();
+    }
+    async function observeSession() {
+      const reply = await fetch('/bff/user', {credentials:'same-origin', cache:'no-store', redirect:'error', signal:AbortSignal.timeout(5000)});
+      if (!reply.ok) throw new Error('Native session observation failed.');
+      const session = await reply.json();
+      if (typeof session.authenticated !== 'boolean') throw new Error('Native session contract failed.');
+      return session.authenticated;
+    }
+    if (location.pathname === '${landing}') {
+      if (await observeSession() === false) recovery('Your application session has ended', 'This application has no active session. Provider sign-out has not been confirmed.');
+      else recovery('Your application session is still active', 'You can return to your workspace or try signing out again.');
+    } else {
+      document.querySelector('button').addEventListener('click', () => {
+        void (async () => {
+          const result = await beginFoundationBffLogout({signedOutPath:'${landing}', onDispatched:() => recovery('Checking your application session', 'Private content has been cleared.')});
+          if (result.localTermination === 'unconfirmed') {
+            recovery('Your session status is unconfirmed', 'Private content remains cleared. Check your application session before claiming sign-out.');
+            const check = document.createElement('button'); check.type = 'button'; check.textContent = 'Check session';
+            check.addEventListener('click', () => { void observeSession().then(authenticated => {
+              if (!authenticated) location.assign('${landing}');
+              else recovery('Your application session is still active', 'You can return to your workspace or try signing out again.');
+            }).catch(() => { root.querySelector('[role=status]').textContent = 'Session status remains unconfirmed. You can check again.'; }); });
+            root.append(check);
+          }
+        })().catch(() => { document.querySelector('[role=status]').textContent = 'Sign out did not start. You can try again.'; });
+      });
+    }
+  ` }));
+  const html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Example Workspace</title></head><body><header>Example Workspace</header><main><h1>Example workspace</h1><section data-private-content><input aria-label="Private draft" value="Synthetic private draft"></section><button type="button">Sign out</button><p role="status"></p></main><script type="module" src="' + modulePath + '"></script></body></html>';
+  const documentPath = new URL(entry);
+  await context.route(url => url.origin === documentPath.origin && url.pathname === documentPath.pathname,
+    route => route.fulfill({ contentType: 'text/html', headers: { 'Cache-Control': 'no-store' }, body: html }));
+  const publicHtml = html.replace(/<main>[\s\S]*?<\/main>/, '<main></main>');
+  await context.route(url => url.origin === documentPath.origin && url.pathname === landing,
+    route => route.fulfill({ contentType: 'text/html', headers: { 'Cache-Control': 'no-store' }, body: publicHtml }));
+  return entry;
+}
 
 async function authenticatedContext(
   browser: Browser,
@@ -71,7 +149,28 @@ test('WEB-V3 same-origin BFF response has the governed browser headers', async (
   expect(response.headers()['x-content-type-options']).toBe('nosniff');
 });
 
-test('real browser form logout clears local state and completes provider navigation', async ({ browser, baseURL }) => {
+test('fresh native login permits sixteen seconds of human credential entry', async ({ browser, baseURL }) => {
+  test.setTimeout(90_000);
+  if (!baseURL) throw new Error('Playwright baseURL is required.');
+  const context = await browser.newContext({ baseURL });
+  try {
+    const page = await context.newPage();
+    await page.goto('/bff/login?returnUrl=/');
+    await page.waitForLoadState('load');
+    await expect(page.locator('#username')).toBeVisible();
+    // Deliberate real elapsed time; a browser fake clock cannot expire server correlation cookies.
+    await page.waitForTimeout(16_000);
+    await page.locator('#username').fill(personas.user.username);
+    await page.locator('#password').fill(personas.user.password);
+    await expect(page.locator('#username')).toHaveValue(personas.user.username);
+    await expect(page.locator('#password')).toHaveValue(personas.user.password);
+    await page.locator('#kc-login').click();
+    await page.waitForURL(`${baseURL}/`);
+    expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
+  } finally { await context.close(); }
+});
+
+test('native logout protocol clears the local session and retains its JSON acknowledgement', async ({ browser, baseURL }) => {
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
   const page = await context.newPage();
@@ -223,7 +322,7 @@ test('cross-site top-level logout form fails before session mutation', async ({ 
   }
 });
 
-test('provider navigation failure cannot restore local access or displace the signed-out page', async ({ browser, baseURL }) => {
+test('native provider navigation failure leaves local session absent and retains JSON acknowledgement', async ({ browser, baseURL }) => {
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
   await context.route(`${identityOrigin}/**`, route => route.abort());
@@ -241,6 +340,53 @@ test('provider navigation failure cannot restore local access or displace the si
   expect(await signedOut!.json()).toEqual({ signedOut: true });
   await providerWindow.close();
   await context.close();
+});
+
+async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined, providerUnavailable: boolean, lostObservation = false): Promise<void> {
+    if (!baseURL) throw new Error('Playwright baseURL is required.');
+    const context = await authenticatedContext(browser, baseURL, personas.user);
+    try {
+      const entry = await installLogoutPresentation(context, baseURL);
+      if (providerUnavailable) await context.route(`${identityOrigin}/**`, route => route.abort());
+      if (lostObservation) await context.route(new URL('/bff/user', baseURL).href, route => route.abort());
+      const page = await context.newPage(); await page.goto(entry);
+      await expect(page.getByLabel('Private draft')).toHaveValue('Synthetic private draft');
+      const popup = page.waitForEvent('popup');
+      const signOut = page.getByRole('button', { name: 'Sign out', exact: true });
+      if (providerUnavailable) await signOut.click();
+      else { await signOut.focus(); await page.keyboard.press('Enter'); }
+      const providerWindow = await popup;
+      if (lostObservation) {
+        await expect(page.getByRole('heading', { name: 'Your session status is unconfirmed' })).toBeVisible();
+        await expect(page.locator('[data-private-content]')).toHaveCount(0);
+        // Request-client observation is independent of the browser transport fault above.
+        expect(await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
+        await context.unroute(new URL('/bff/user', baseURL).href);
+        await page.getByRole('button', { name: 'Check session', exact: true }).click();
+      }
+      await expect(page.getByRole('heading', { name: 'Your application session has ended' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Your application session has ended' })).toBeFocused();
+      await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/bff/login?returnUrl=/');
+      await expect(page.getByRole('status')).toContainText('Provider sign-out has not been confirmed.');
+      await expect(page.locator('[data-private-content]')).toHaveCount(0);
+      expect(await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
+      if (!providerUnavailable) await providerWindow.waitForURL(`${baseURL}/bff/signed-out`);
+      // The application page uses native session evidence, not the popup URL or a remote query hint.
+      expect(new URL(page.url()).pathname).toBe('/__program-kit-owner-session-ended');
+      await providerWindow.close();
+    } finally { await context.close(); }
+}
+
+test('shipped logout adapter clears private UI and reaches accessible owner landing', async ({ browser, baseURL }) => {
+  await adapterOwnerJourney(browser, baseURL, false);
+});
+
+test('shipped logout adapter retains public recovery when provider navigation fails', async ({ browser, baseURL }) => {
+  await adapterOwnerJourney(browser, baseURL, true);
+});
+
+test('shipped logout adapter reconciles lost local observation without restoring private UI', async ({ browser, baseURL }) => {
+  await adapterOwnerJourney(browser, baseURL, false, true);
 });
 
 test('configured permission endpoint distinguishes authorized and unauthorized users', async ({ browser, baseURL }) => {
