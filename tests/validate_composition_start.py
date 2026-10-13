@@ -93,7 +93,8 @@ def main():
             plan = json.loads(native_run.read_text())
             first = next(host for host in plan['hosts'] if host['id'] == 'application-host')
             first.update(productPath='/api/first-policy', productResponse={'policy': 'consumer-ready'})
-            first['pageChecks'] = [{'path': '/second-page', 'status': 200}, {'path': '/restricted-page', 'status': 403}]
+            first['pageChecks'] = [{'path': '/second-page', 'status': 200},
+                                  {'path': '/restricted-page', 'status': 302, 'denialPath': '/bff/access-denied'}]
             plan_path = directory / 'consumer-feature-plan.json'
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
             product_result = directory / 'consumer-feature-result.json'

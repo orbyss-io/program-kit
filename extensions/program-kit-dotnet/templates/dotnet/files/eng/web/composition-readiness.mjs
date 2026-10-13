@@ -104,7 +104,13 @@ try {
             for (const check of host.pageChecks ?? []) {
               current.phase = 'additional-page-access';
               const response = await context.request.get(host.origin + check.path, { maxRedirects: 0 });
+              current.additionalPageStatus = response.status();
               require(response.status() === check.status);
+              if (check.denialPath) {
+                const target = new URL(response.headers().location, host.origin);
+                require(target.origin === host.origin && target.pathname === check.denialPath);
+                require((await context.request.get(host.origin + check.path)).status() === 403);
+              }
             }
             evidence.checks.push({ engine, host: host.id, origin: host.origin, authenticated: true,
               hostedAssetsLoaded: Boolean(host.page), consumerFeature: Boolean(host.productPath) });
