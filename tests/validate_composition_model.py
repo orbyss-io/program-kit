@@ -124,7 +124,10 @@ class ResourceModel(unittest.TestCase):
             identity = 'Orbyss.Foundation.Web.HostedPages'
             self.assertNotIn(identity, release_bundle.BUILT_IN_FEATURE_PACKAGES)
             owners = release_bundle.typed_publisher_features(root, {identity})
-            self.assertEqual(owners, {identity: ('Orbyss.Foundation.Web.HostedPages', '0.3.3')})
+            import dependency_profile
+            selected = dependency_profile.resolver().effective_dependency_context(root)
+            version = selected['catalog']['packages']['nuget:Orbyss.Foundation.Web.HostedPages']['version']
+            self.assertEqual(owners, {identity: ('Orbyss.Foundation.Web.HostedPages', version)})
             self.assertEqual(release_bundle.typed_publisher_features(root, {'Unselected.Consumer'}), {})
             profile = root / 'eng/web-profile.shells.json'; profile.write_bytes(profile.read_bytes() + b'\n')
             with self.assertRaisesRegex(ValueError, 'managed composition output changed'):

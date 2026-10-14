@@ -2076,7 +2076,7 @@
   },
   "additionalResearch": {
     "report": "docs/ds01-implementation-diagnostics-research-2026-10-13.md",
-    "status": "Accepted upstream repairs and follow-up validator corrections implemented; stable commit548611c passes101 Development checks. Foundation0.3.4 is publicly verified. Native Program Kit adoption awaits the repaired catalog updater's qualification. The owner recovery focus lifecycle repair passes local Chromium/WebKit checks and awaits fresh Firefox CI. Consumer correction and patch publication acceptance remain separate.",
+    "status": "Accepted upstream repairs and follow-up validator corrections implemented; commit a198f38 passes101 Development checks. Foundation0.3.4 is publicly verified. Candidate profile/knowledge qualification passed, but mandatory adoption remains failed on an official exporter assembly incompatibility, stale default-version assertions, Firefox recovery focus and an unclassified remote PostgreSQL fixture failure. Repairs and publisher coordination continue; no failed update was adopted. Consumer correction and patch publication acceptance remain separate.",
     "items": [
       16,
       17,

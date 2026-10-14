@@ -10,12 +10,15 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
 import openapi_capabilities as admission
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
+import building_blocks as blocks
 
 
 class WireCapabilities(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.capabilities = admission.selected(ROOT)
+        cls.effective = blocks.effective_dependency_context(ROOT)
 
     def document(self):
         fields = self.capabilities['problem']['fields']
@@ -38,7 +41,13 @@ class WireCapabilities(unittest.TestCase):
         return document
 
     def test_exact_captured_constraints_and_supported_typed_recovery(self):
-        self.assertEqual('0.3.3', self.capabilities['packages']['Orbyss.Foundation.Json'])
+        self.assertEqual(self.effective['profile'], self.capabilities['profile'])
+        self.assertEqual(self.effective['publisherKnowledge']['sourceCommit'], self.capabilities['sourceCommit'])
+        self.assertEqual({'Orbyss.Foundation.Json', 'Orbyss.Foundation.Json.AspNetCore',
+                          'Orbyss.Foundation.Web.ProblemDetails', 'Orbyss.Foundation.Web.ProblemDetails.Core'},
+                         set(self.capabilities['packages']))
+        for package, version in self.capabilities['packages'].items():
+            self.assertEqual(self.effective['catalog']['packages']['nuget:' + package]['version'], version, package)
         self.assertEqual({'type', 'title', 'status', 'code', 'correlationId', 'traceId', 'fieldErrors', 'detail'}, set(self.capabilities['problem']['fields']))
         result = admission.require(self.document(), self.capabilities)
         self.assertFalse(result['runtimeEvidence'])
@@ -51,7 +60,9 @@ class WireCapabilities(unittest.TestCase):
             document = self.document(); document['components']['schemas']['Problem']['properties'][field] = {'type': 'string'}
             result = admission.validate(document, self.capabilities)
             self.assertFalse(result['admitted'])
-            self.assertTrue(any('#/components/schemas/Problem/properties/' + field in message and '0.3.3' in message for message in result['findings']))
+            provenance = ('Orbyss.Foundation.Web.ProblemDetails@' + self.capabilities['packages']['Orbyss.Foundation.Web.ProblemDetails']
+                          + '; profile=' + self.effective['profile'] + '; source=' + self.effective['publisherKnowledge']['sourceCommit'])
+            self.assertTrue(any('#/components/schemas/Problem/properties/' + field in message and provenance in message for message in result['findings']))
         document = self.document(); document['components']['schemas']['Problem'].pop('additionalProperties')
         self.assertTrue(any('additionalProperties' in f for f in admission.validate(document, self.capabilities)['findings']))
 

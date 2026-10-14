@@ -36,6 +36,31 @@ async function installLogoutPresentation(context: BrowserContext, baseURL: strin
   const modulePath = '/__program-kit-owner-logout.js';
   const adapterPath = '/__program-kit-shipped-bff-session.js';
   const focusPath = '/__program-kit-authentication-recovery-focus.js';
+  // Native forwarding observation is confined to these fictional owner documents.
+  // Neither the BFF/provider documents nor private values become diagnostic inputs.
+  await context.addInitScript(({ origin, paths }) => {
+    if (location.origin !== origin || !paths.includes(location.pathname)) return;
+    const trace = { headingFocusCalled:false, callDocumentFocused:false, headingEverSelected:false,
+      headingLastSelected:false, windowFocusSeen:false, visibilityEventSeen:false,
+      frameExecuted:false, frameDocumentFocused:false };
+    Object.defineProperty(window, '__programKitRecoveryFocusTrace', { value:trace });
+    const nativeFocus = HTMLElement.prototype.focus;
+    HTMLElement.prototype.focus = function (...args) {
+      const heading = this === document.querySelector('main > h1');
+      if (heading) { trace.headingFocusCalled = true; trace.callDocumentFocused = document.hasFocus(); }
+      Reflect.apply(nativeFocus, this, args);
+      if (heading) {
+        trace.headingLastSelected = document.activeElement === this;
+        trace.headingEverSelected ||= trace.headingLastSelected;
+      }
+    };
+    const nativeFrame = window.requestAnimationFrame;
+    window.requestAnimationFrame = callback => nativeFrame.call(window, time => {
+      trace.frameExecuted = true; trace.frameDocumentFocused = document.hasFocus(); callback(time);
+    });
+    window.addEventListener('focus', event => { if (event.target === window) trace.windowFocusSeen = true; });
+    document.addEventListener('visibilitychange', () => { trace.visibilityEventSeen = true; });
+  }, { origin:new URL(baseURL).origin, paths:[new URL(entry).pathname, landing] });
   await context.route(new URL(adapterPath, baseURL).href, route => route.fulfill({ contentType: 'text/javascript', body: logoutAdapter }));
   await context.route(new URL(focusPath, baseURL).href, route => route.fulfill({ contentType: 'text/javascript', body: recoveryFocus }));
   await context.route(new URL(modulePath, baseURL).href, route => route.fulfill({ contentType: 'text/javascript', body: `
@@ -390,6 +415,8 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
       const heading = page.getByRole('heading', { name: 'Your application session has ended' });
       const focusFacts = { type: 'program-kit-logout-adapter-focus', description: 'owner-state-unavailable' };
       test.info().annotations.push(focusFacts);
+      const focusTrace = { type: 'program-kit-logout-adapter-focus-trace', description: 'owner-state-unavailable' };
+      test.info().annotations.push(focusTrace);
       try { await expect(heading).toBeFocused(); }
       finally {
         // Observe after the actual assertion, before teardown. Read only booleans from
@@ -402,6 +429,15 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
               headingSelected: element.ownerDocument.activeElement === element,
             }), undefined, { timeout: 1000 });
             focusFacts.description = `documentFocused=${state.documentFocused};headingSelected=${state.headingSelected};popupClosed=${providerWindow.isClosed()}`;
+            focusTrace.description = await heading.evaluate(element => {
+              const trace = Reflect.get(window, '__programKitRecoveryFocusTrace');
+              if (!trace) return 'owner-state-unavailable';
+              const active = document.activeElement;
+              const category = active === element ? 'heading' : active === document.body ? 'body'
+                : active === document.documentElement ? 'document' : active === document.querySelector('main > a') ? 'recovery-link'
+                  : active === null ? 'none' : 'owner-other';
+              return `headingFocusCalled=${trace.headingFocusCalled};callDocumentFocused=${trace.callDocumentFocused};headingEverSelected=${trace.headingEverSelected};headingLastSelected=${trace.headingLastSelected};windowFocusSeen=${trace.windowFocusSeen};visibilityEventSeen=${trace.visibilityEventSeen};frameExecuted=${trace.frameExecuted};frameDocumentFocused=${trace.frameDocumentFocused};activeElement=${category}`;
+            }, undefined, {timeout:1000});
           } else focusFacts.description = 'owner-page-unobserved';
         } catch { /* Keep the bounded unavailable state without replacing the original failure. */ }
       }

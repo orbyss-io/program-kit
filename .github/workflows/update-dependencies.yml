@@ -78,4 +78,9 @@ jobs:
             artifacts/bootstrap-runtime/
             artifacts/validation-runs/
             artifacts/consumer-provider-runtime/
+            artifacts/tests/numeric-schema/**/*.log
+            artifacts/tests/schema-role-grants/**/*.log
+            artifacts/tests/schema-role-grants/**/operations.json
+            extensions/program-kit-building-blocks/references/dependency-profiles/
+            extensions/program-kit-building-blocks/references/orbyss-building-blocks.json
             !artifacts/**/cache/nuget/http/**

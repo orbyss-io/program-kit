@@ -692,6 +692,35 @@ def authentication_contracts(evidence, checks, original_child, original_selected
     path.write_bytes(focus_bytes)
     assert authentication_failure(directory,{path})=='authentication=unknown'
     checks.append('finite-owner-document-heading-and-popup-focus-facts-reject-prose-malformed-duplicate-stale-and-outside-case-properties')
+    def adapter_trace_report(state, *, engine='firefox', title=None, duplicate=None, suite_level=False):
+        document=ET.fromstring(adapter_phase_report('ended-heading-focused',engine=engine,title=title))
+        properties=ET.SubElement(document.find('testsuite'),'properties') if suite_level else document.find('testsuite/testcase/properties')
+        ET.SubElement(properties,'property',name=ADAPTER_FOCUS_TRACE_PROPERTY,value=state)
+        if duplicate is not None: ET.SubElement(properties,'property',name=ADAPTER_FOCUS_TRACE_PROPERTY,value=duplicate)
+        return ET.tostring(document,encoding='utf-8')
+    trace_base=';'.join(name+'=false' for name in ADAPTER_FOCUS_TRACE_FLAGS)+';activeElement=body'
+    trace_states=['owner-state-unavailable',trace_base]
+    trace_states.extend(trace_base.replace(name+'=false',name+'=true') for name in ADAPTER_FOCUS_TRACE_FLAGS)
+    trace_states.extend(trace_base.replace('activeElement=body','activeElement='+element) for element in ADAPTER_FOCUS_TRACE_ELEMENTS)
+    for state in trace_states:
+        for engine in AUTHENTICATION_ENGINES:
+            for title in adapter_titles:
+                path.write_bytes(adapter_trace_report(state,engine=engine,title=title))
+                label=authentication_failure(directory,set())
+                assert label.endswith('adapterTrace='+engine+':'+AUTHENTICATION_CASES[title]+':'+state) and secret not in label
+    for state in (secret,trace_base+';'+secret,trace_base.replace('=false','=0',1),
+                  trace_base.replace('activeElement=body','activeElement='+secret),
+                  ';'.join(reversed(trace_base.split(';'))),trace_base+'\n',
+                  trace_base.replace('headingFocusCalled=false;','')):
+        path.write_bytes(adapter_trace_report(state)); assert authentication_failure(directory,set())=='authentication=unknown'
+    for data in (adapter_trace_report(trace_base,duplicate=trace_base),
+                 adapter_trace_report(trace_base,duplicate='owner-state-unavailable'),
+                 adapter_trace_report(trace_base,title=titles[0]),
+                 adapter_trace_report(trace_base,suite_level=True)):
+        path.write_bytes(data); assert authentication_failure(directory,set())=='authentication=unknown'
+    path.write_bytes(adapter_trace_report(trace_base))
+    assert authentication_failure(directory,{path})=='authentication=unknown'
+    checks.append('native-focus-trace-projects-only-closed-ordered-booleans-and-owner-categories-and-refuses-private-or-contradictory-properties')
     script=child/'fail_authentication.py'
     script.write_text('import sys\nfrom pathlib import Path\n'
         +'directory=Path(sys.argv[1]); (directory/"authentication.xml").write_bytes('+repr(focus_bytes)+')\n'
@@ -918,6 +947,11 @@ ADAPTER_FOCUS_PROPERTY = 'program-kit-logout-adapter-focus'
 ADAPTER_FOCUS_STATES = ('owner-state-unavailable','owner-page-unobserved',*(
     'documentFocused='+focused+';headingSelected='+selected+';popupClosed='+closed
     for focused in ('true','false') for selected in ('true','false') for closed in ('true','false')))
+ADAPTER_FOCUS_TRACE_PROPERTY = 'program-kit-logout-adapter-focus-trace'
+ADAPTER_FOCUS_TRACE_FLAGS = ('headingFocusCalled','callDocumentFocused','headingEverSelected',
+    'headingLastSelected','windowFocusSeen','visibilityEventSeen','frameExecuted','frameDocumentFocused')
+ADAPTER_FOCUS_TRACE_ELEMENTS = ('heading','body','document','recovery-link','none','owner-other')
+ADAPTER_FOCUS_TRACE_PATTERN = ';'.join(name+'=(?:true|false)' for name in ADAPTER_FOCUS_TRACE_FLAGS) + ';activeElement=(?:' + '|'.join(ADAPTER_FOCUS_TRACE_ELEMENTS) + ')'
 
 
 def authentication_failure(directory, previous):
@@ -948,10 +982,10 @@ def authentication_failure(directory, previous):
                 elif node.tag in ('system-out','system-err'):
                     if list(node): return unknown
                 elif node.tag=='properties':
-                    if any(item.tag!='property' or list(item) or item.get('name') in (CROSS_SITE_PHASE_PROPERTY,ADAPTER_PHASE_PROPERTY,ADAPTER_FOCUS_PROPERTY) for item in node): return unknown
+                    if any(item.tag!='property' or list(item) or item.get('name') in (CROSS_SITE_PHASE_PROPERTY,ADAPTER_PHASE_PROPERTY,ADAPTER_FOCUS_PROPERTY,ADAPTER_FOCUS_TRACE_PROPERTY) for item in node): return unknown
                 else: return unknown
         if len(cases)>len(AUTHENTICATION_CASES)*len(AUTHENTICATION_ENGINES) or len(cases)!=sum(1 for node in document.iter() if node.tag=='testcase'): return unknown
-        identities=set(); failed=[]; skipped=[]; categories=[]; phases={}; adapter_phases={}; adapter_focus={}
+        identities=set(); failed=[]; skipped=[]; categories=[]; phases={}; adapter_phases={}; adapter_focus={}; adapter_trace={}
         for node in cases:
             if node.get('classname')!='authentication.spec.ts': return unknown
             match=re.fullmatch(r'\[(chromium|firefox|webkit)\] (.+)',node.get('name',''))
@@ -959,13 +993,14 @@ def authentication_failure(directory, previous):
             identity=match.group(1)+':'+AUTHENTICATION_CASES[match.group(2)]
             if identity in identities: return unknown
             identities.add(identity)
-            declared_phases=[]; declared_adapter_phases=[]; declared_adapter_focus=[]
+            declared_phases=[]; declared_adapter_phases=[]; declared_adapter_focus=[]; declared_adapter_trace=[]
             for child in node:
                 if child.tag=='properties':
                     if any(item.tag!='property' or list(item) for item in child): return unknown
                     declared_phases.extend(item.get('value') for item in child if item.get('name')==CROSS_SITE_PHASE_PROPERTY)
                     declared_adapter_phases.extend(item.get('value') for item in child if item.get('name')==ADAPTER_PHASE_PROPERTY)
                     declared_adapter_focus.extend(item.get('value') for item in child if item.get('name')==ADAPTER_FOCUS_PROPERTY)
+                    declared_adapter_trace.extend(item.get('value') for item in child if item.get('name')==ADAPTER_FOCUS_TRACE_PROPERTY)
                 elif child.tag not in ('failure','error','skipped','system-out','system-err') or list(child): return unknown
             if declared_phases:
                 if (not identity.endswith(':cross-site-denial') or len(declared_phases)!=1
@@ -979,6 +1014,12 @@ def authentication_failure(directory, previous):
                 if (not identity.split(':',1)[1].startswith('adapter-') or len(declared_adapter_focus)!=1
                         or declared_adapter_focus[0] not in ADAPTER_FOCUS_STATES): return unknown
                 adapter_focus[identity]=declared_adapter_focus[0]
+            if declared_adapter_trace:
+                if (not identity.split(':',1)[1].startswith('adapter-') or len(declared_adapter_trace)!=1
+                        or not isinstance(declared_adapter_trace[0],str)
+                        or (declared_adapter_trace[0]!='owner-state-unavailable'
+                            and not re.fullmatch(ADAPTER_FOCUS_TRACE_PATTERN,declared_adapter_trace[0]))): return unknown
+                adapter_trace[identity]=declared_adapter_trace[0]
             outcomes=[child for child in node if child.tag in ('failure','error','skipped')]
             if len(outcomes)>1: return unknown
             if outcomes and outcomes[0].tag=='skipped': skipped.append(identity)
@@ -1008,6 +1049,8 @@ def authentication_failure(directory, previous):
             classification+=' adapterPhase='+','.join(identity+':'+adapter_phases.get(identity,'unknown') for identity in adapter_failed)
             if any(identity in adapter_focus for identity in adapter_failed):
                 classification+=' adapterFocus='+','.join(identity+':'+adapter_focus.get(identity,'owner-state-unavailable') for identity in adapter_failed)
+            if any(identity in adapter_trace for identity in adapter_failed):
+                classification+=' adapterTrace='+','.join(identity+':'+adapter_trace.get(identity,'owner-state-unavailable') for identity in adapter_failed)
         return classification
     except (OSError,ValueError,TypeError,RecursionError,ET.ParseError):
         return unknown

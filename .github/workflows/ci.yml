@@ -97,6 +97,9 @@ jobs:
           path: |
             artifacts/validation-runs/
             artifacts/bootstrap-postgresql/
+            artifacts/tests/numeric-schema/**/*.log
+            artifacts/tests/schema-role-grants/**/*.log
+            artifacts/tests/schema-role-grants/**/operations.json
             artifacts/*.json
             artifacts/*.zip
             artifacts/*.cmd

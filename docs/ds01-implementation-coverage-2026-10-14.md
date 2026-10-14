@@ -161,6 +161,43 @@ self-only CSP and no-script presentation. Failure privacy, strict TypeScript and
 also passed. Historical staged inputs were restored. Firefox still requires fresh Linux CI;
 the failed foreground-only attempts remain failed.
 
+The committed focus repair `a198f380ef1e35c9a1a1b1d757dc706b1d4bc159` passed all101
+bounded Development checks at `artifacts/validation-runs/20261014T050339Z-084fefa4/journal.json`.
+However, targeted CI38514486891 and full CI38514476241 still failed Firefox recovery-heading
+selection with an active owner document. Local success therefore does not establish Firefox repair.
+Further investigation retains the native assertion and adds only finite synthetic owner observations.
+
+Required dependency update38514490015 successfully qualified/promoted its candidate profile and
+public0.3.4 knowledge, then failed deterministic validation. Three failures were obsolete tests that
+selected the evolving default while asserting literal0.3.3 identities; historical coverage must be
+retained when correcting those assertions. The numeric official exporter failed with a real public
+assembly mismatch. Independent local reproduction at
+`artifacts/tests/ds01-repair/numeric-public-0.3.4-5b6f9b41/official-export.log` reports PKO200:
+selected OpenApi.Exporter0.2.5 cannot inspect the0.3.4 closure's Microsoft.AspNetCore.OpenApi10.0.13
+and Microsoft.OpenApi2.12.2 assemblies. The existing Foundation task received this exact integration
+failure for supported repair and independent tool publication; no source-tool substitution is accepted.
+The failed workflow also retained a PostgreSQL fixture failure whose inner log was omitted from
+upload. A local exact-image role regression passed at
+`artifacts/tests/schema-role-grants/771f02b29dc64c49b55b13b0231bcfff/`; its remote cause remains
+unestablished. Narrow numeric and already-redacted role logs are added to future CI/update evidence.
+Security scanning and opening the update PR did not run after these failures. No candidate profile,
+pins or knowledge have been adopted locally, and no Program Kit patch has been selected or published.
+
+The obsolete-default assertions are repaired with independent selected-context provenance checks;
+explicit historical0.3.2/0.3.3 coverage remains. Composition30, wire11 and knowledge17 checks pass
+under the unchanged admitted default. Public0.3.4 wire/guidance projection checks pass at
+`artifacts/tests/ds01-repair/adoption-fixture-compatibility/`; these disposable projections do not
+reconstruct missing qualification authority. Future update evidence preserves the actual candidate
+registry and maintained catalog alongside qualification logs so their original hashes can be checked.
+The native focus trace passes22 local browser cases at
+`artifacts/tests/reusable-foundations/functional-075d587c8e8c45b2/`, and strict finite projection
+contracts pass at `artifacts/tests/reusable-foundations/contracts-6e9c0868895e4439/`.
+Presentation/lifecycle/privacy verification passes at
+`artifacts/tests/authentication-presentation/32009c7c/`. The diagnostic change forwards native calls
+only on exact fictional owner pages and exports eight booleans plus a closed active-element category;
+it reads no private text, value, provider DOM or raw exception. This establishes observability, not
+another claimed Firefox repair. Fresh targeted Linux reproduction is required.
+
 The required Program Kit dependency workflow, exact new profile/knowledge adoption and fresh
 Program Kit Release qualification remain open. Program Kit patch publication is authorized after
 these gates. The Windows Release command must run in the user-owned terminal unless the user

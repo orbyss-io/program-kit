@@ -223,12 +223,30 @@ class ExactFoundationApplicabilityTests(unittest.TestCase):
 
     def test_released_private_pages_use_the_exact_new_qualified_contract(self):
         from validate_effective_dependency_context import EffectiveContextTests
-        EffectiveContextTests.selected(self)
+        EffectiveContextTests.selected(self, 'foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2')
         self.hosted('private-pages', 'Authenticated HTML and bootstrap')
         value = self.brief()['foundationApplicability']
         self.assertEqual('0.3.3', value['version'])
         self.assertEqual('0739892610a12f36673941dbe9718f45a38ae6cb', value['sourceCommit'])
         self.assertIn('typed HostedPages Routes', knowledge.render(self.brief(), 'planning'))
+
+    def test_default_private_pages_use_independently_verified_selected_capture(self):
+        from validate_effective_dependency_context import EffectiveContextTests
+        EffectiveContextTests.selected(self)
+        effective = self.blocks.effective_dependency_context(self.root)
+        self.hosted('private-pages', 'Authenticated HTML and bootstrap')
+        value = self.brief()['foundationApplicability']
+        self.assertEqual(effective['catalog']['families']['foundation']['releaseVersion'], value['version'])
+        self.assertEqual(effective['profile'], value['profile'])
+        self.assertEqual(effective['publisherKnowledge']['sourceCommit'], value['sourceCommit'])
+        options = next(row for row in effective['publisherKnowledge']['documents']
+                       if row['publisherPath'] == 'src/Orbyss.Foundation.Web.HostedPages/HostedPageOptions.cs')
+        source = self.blocks.publisher_document_bytes(Path(effective['registryPath']), options).decode('utf-8')
+        self.assertIn('HostedPageRouteOptions', source)
+        self.assertIn('Routes', source)
+        rendered = knowledge.render(self.brief(), 'planning')
+        self.assertIn('typed HostedPages Routes', rendered)
+        self.assertIn(value['sourceCommit'], rendered)
 
     def test_unrelated_scope_does_not_read_foundation_knowledge(self):
         self.inherited = {'sources': [], 'diagnostics': []}

@@ -57,7 +57,7 @@
       "command": ["{python}", "tests/validate_wire_capabilities.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Selected immutable capability projection, planned error coverage, closed problem fields, numeric binding diagnostics and producer admission constraints.",
-      "owner": "program-kit", "inputs": ["extensions/program-kit-building-blocks/scripts/wire_capabilities.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi*", "tests/validate_wire_capabilities.py"],
+      "owner": "program-kit", "inputs": ["extensions/program-kit-building-blocks/scripts/wire_capabilities.py", "extensions/program-kit-building-blocks/scripts/building_blocks.py", "extensions/program-kit-building-blocks/scripts/dependency_context.py", "extensions/program-kit-building-blocks/references/**", "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi*", "tests/validate_wire_capabilities.py"],
       "outputs": ["artifacts/tests/wire-capabilities"], "resources": [],
       "isolation": "Bounded selected-profile and structural validator fixtures; planning does not claim runtime proof."
     },
