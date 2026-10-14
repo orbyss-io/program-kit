@@ -321,3 +321,34 @@ and artifacts remain under `artifacts/tests/ds01-repair/remote-failures/dependen
 The repaired test compares selected catalog to independent active tool-manifest authority and
 retains frozen historical expectations. No failed update is adopted and publication remains
 conditional on this batch plus complete required qualification.
+
+## Final-source qualification and native logout ordering
+
+Source `38db205dab87518b1a4224cfd073e82b1ed61d40` passed all101 bounded Development checks
+in `artifacts/validation-runs/20261014T085526Z-e99350ec`; its successful log and journal
+remain unchanged. Full CI38537958578 and required dependency update38537955991 both failed
+only `qualify_reusable_foundations`, at WebKit's lost-observation independent session check.
+Both exercised all33 authentication cases without skips; Firefox focus was not the reported
+failure. Their exact logs/artifacts remain under `artifacts/tests/ds01-repair/remote-failures`.
+The required update did not reach Host scanning or a tested update PR and was not adopted.
+Its real mixed-host, three-engine composition qualification passed all new storage/readiness
+guarantees on the candidate profile; that intermediate proof does not satisfy adoption gates.
+
+The old test made one immediate session request after browser observation failed. The production
+adapter correctly returns unconfirmed after dispatch without promising that the separate popup's
+POST has completed. The redacted old logs do not establish the exact response or exception.
+The strengthened test holds the actual native POST, observes authenticated state independently
+while pending, releases native dispatch, then requires absent session within a bounded independent
+observation and exactly one POST. Private content stays cleared and explicit recovery remains
+required. It fabricates neither a successful response nor cookie removal; production adapter
+behavior and all timeout/cancellation assertions remain unchanged.
+
+Both controlled cases passed in the first local native run; that overall run failed the human-paced
+login with a deliberately tight17-second fixture window after16 seconds of human delay. That
+evidence remains preserved. With an explicit bounded30-second fixture window, all22 native
+Chromium/WebKit journeys pass in `artifacts/tests/reusable-foundations/functional-eb8809ac4d0c4c82`.
+Original source/settings/bundle bytes were restored; the production900-second default and existing
+consumer overrides were not changed. Bounded classification/privacy contracts also pass.
+The added fixed `uncertain-session-before-dispatch` checkpoint exposes ordering without retaining
+page/provider data. Fresh CI and complete required qualification are still mandatory; no claim of
+new-source Firefox acceptance or patch publication is made here.

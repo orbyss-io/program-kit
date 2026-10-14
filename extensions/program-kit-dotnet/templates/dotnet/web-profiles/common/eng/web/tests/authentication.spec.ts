@@ -379,11 +379,25 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
     const adapterPhase = { type: 'program-kit-logout-adapter-phase', description: 'authenticated-context' };
     test.info().annotations.push(adapterPhase);
     const context = await authenticatedContext(browser, baseURL, personas.user);
+    let releaseLogout = () => {};
+    let logoutDispatches = 0;
     try {
       adapterPhase.description = 'owner-fixture-entry';
       const entry = await installLogoutPresentation(context, baseURL);
       if (providerUnavailable) await context.route(`${identityOrigin}/**`, route => route.abort());
-      if (lostObservation) await context.route(new URL('/bff/user', baseURL).href, route => route.abort());
+      if (lostObservation) {
+        await context.route(new URL('/bff/user', baseURL).href, route => route.abort());
+        const released = new Promise<void>(resolve => { releaseLogout = resolve; });
+        // Hold actual dispatch, without fabricating a response or successful
+        // termination. Lost observation can finish before the native POST does.
+        await context.route(new URL('/bff/logout', baseURL).href, async route => {
+          if (route.request().method() === 'POST') {
+            logoutDispatches++;
+            await released;
+          }
+          await route.continue();
+        });
+      }
       const page = await context.newPage(); await page.goto(entry);
       await expect(page.getByLabel('Private draft')).toHaveValue('Synthetic private draft');
       const popup = page.waitForEvent('popup');
@@ -399,8 +413,13 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
         adapterPhase.description = 'uncertain-private-ui-cleared';
         await expect(page.locator('[data-private-content]')).toHaveCount(0);
         // Request-client observation is independent of the browser transport fault above.
+        adapterPhase.description = 'uncertain-session-before-dispatch';
+        expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
+        releaseLogout();
         adapterPhase.description = 'uncertain-independent-local-session';
-        expect(await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
+        await expect.poll(async () => await (await context.request.get('/bff/user')).json(),
+          { timeout: 5000 }).toEqual({ authenticated: false });
+        expect(logoutDispatches).toBe(1);
         adapterPhase.description = 'uncertain-reconcile-action';
         await context.unroute(new URL('/bff/user', baseURL).href);
         await page.getByRole('button', { name: 'Check session', exact: true }).click();
@@ -456,7 +475,7 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
       expect(new URL(page.url()).pathname).toBe('/__program-kit-owner-session-ended');
       await providerWindow.close();
       adapterPhase.description = 'completed';
-    } finally { await context.close(); }
+    } finally { releaseLogout(); await context.close(); }
 }
 
 test('shipped logout adapter clears private UI and reaches accessible owner landing', async ({ browser, baseURL }) => {
