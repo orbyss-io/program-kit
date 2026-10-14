@@ -225,6 +225,32 @@ document provider from the validated staged assembly. Installed diagnostic-packa
 public0.3.3/0.3.4 and frozen older/Assurance closures is reported passed. This is candidate evidence;
 full qualification and protected public publication remain pending, so Program Kit does not adopt it.
 
+Exporter0.2.6 is now public. Protected independent publication38524116102 completed successfully
+after Windows/Linux CI38522658333 and mandatory qualification38522657477. Program Kit independently
+downloaded and verified its exact source `ef5d1e7f22e425bb05ca93398d7bea9f80534ffb`, all16 payload
+files and the absence of private OpenAPI libraries. Public package SHA-256 is
+`222126f6be411b3e45287a14fe5449fd7a8a450048e6c7f8c5aba18a597e7cbd`; independent tool knowledge
+SHA-256 is `acc51cb1788d15ed6eb716cdbcfc85f585054f3736459ba41ce30e59a22cb43c`.
+Evidence is `artifacts/tests/ds01-repair/exporter-0.2.6-public/verification.json`.
+The previously failing real public0.3.4 exporter fixture now succeeds with0.2.6 at
+`artifacts/tests/ds01-repair/numeric-public-0.3.4-exporter-0.2.6-f1efcfc2/`, retaining exact producer,
+business-effect exclusion, controlled negative registration and unsupported nullable refusal.
+This is isolated tool compatibility proof, not complete candidate profile adoption.
+
+Targeted CI38523570537 passed cold qualification but failed one Firefox landing case on the prepared
+consumer; fullCI38523575187 failed both cold Firefox recovery cases. The frame did execute in an
+active document, but native focus remained refused. The TCP role fixture passed in that full run.
+Pinned [Playwright1.64 source](https://raw.githubusercontent.com/microsoft/playwright/v1.64.0/packages/injected/src/injectedScript.ts)
+and its actual installed bundle independently document two native focus calls for Firefox scenarios.
+The next candidate therefore permits one guarded second native call within the same rendering frame
+only after refusal, while connection, visibility, non-hidden/non-inert state, neutral user focus and
+binding lifetime still permit it. There is no delay loop, platform sniff or test-side forced focus.
+Local22/22 journeys pass at `artifacts/tests/reusable-foundations/functional-6e5005829b4f46fc/`;
+seven lifecycle regressions,25 compiled cases,20 actual browser observations and privacy proof pass
+at `artifacts/tests/authentication-presentation/bff63d2d/`. Exact primary/source evidence is
+`artifacts/tests/ds01-repair/focus-native-fallback-ab05254a.json`. Fresh repeated Firefox qualification
+and the complete required dependency/security workflow remain mandatory before adoption/publication.
+
 The required Program Kit dependency workflow, exact new profile/knowledge adoption and fresh
 Program Kit Release qualification remain open. Program Kit patch publication is authorized after
 these gates. The Windows Release command must run in the user-owned terminal unless the user

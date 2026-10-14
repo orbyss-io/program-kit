@@ -2076,7 +2076,7 @@
   },
   "additionalResearch": {
     "report": "docs/ds01-implementation-diagnostics-research-2026-10-13.md",
-    "status": "Accepted upstream repairs implemented; commit a198f38 passes101 Development checks. Foundation0.3.4 is publicly verified. Mandatory adoption remains failed; stale default-version assertions are repaired, and measured rendering-boundary focus and final-server TCP fixture repairs pass local checks awaiting CI. Independent exporter0.2.6 compatibility repair awaits protected public publication. No failed update was adopted. Consumer correction and patch publication acceptance remain separate.",
+    "status": "Accepted upstream repairs implemented; commit a198f38 passes101 Development checks. Foundation0.3.4 and independent exporter0.2.6 are publicly verified; isolated real public-tool compatibility passes. Stale default-version assertions and final-server TCP fixture readiness are repaired. A guarded native Firefox focus fallback passes local regressions and awaits repeated CI. Complete dependency/security adoption and patch qualification remain mandatory. No failed update was adopted; actual consumer correction remains separate.",
     "items": [
       16,
       17,

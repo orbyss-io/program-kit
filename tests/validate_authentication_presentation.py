@@ -141,9 +141,9 @@ def main():
         (directory / 'focus.config.mjs').write_text('export default ' + json.dumps(focus_config) + ';\n')
         run(['node', str(browser_root / 'node_modules/playwright/cli.js'), 'test', '--config', 'focus.config.mjs'])
         focus_cases = list(ET.parse(directory / 'focus.xml').iter('testcase'))
-        if len(focus_cases) != 5 or any(any(node.tag in ('error','failure','skipped') for node in case) for case in focus_cases):
+        if len(focus_cases) != 7 or any(any(node.tag in ('error','failure','skipped') for node in case) for case in focus_cases):
             raise ValueError('Maintained recovery focus lifecycle tests were incomplete')
-        evidence['focusLifecycle'] = {'passedCases':5, 'scope':'Maintained module with controlled document activation, visibility, user-selected focus and disposal; no browser/provider claim.'}
+        evidence['focusLifecycle'] = {'passedCases':7, 'scope':'Maintained module with rendering-boundary activation, one guarded native fallback, eligibility, user-selected focus and disposal; no browser/provider claim.'}
         script = (ROOT / 'tests/fixtures/authentication-presentation/browser.mjs').read_text().replace('__PLAYWRIGHT__', (browser_root / 'node_modules/playwright/index.mjs').as_uri())
         (directory / 'browser.mjs').write_text(script)
         observed = run(['node', 'browser.mjs', str(output), args.engines])

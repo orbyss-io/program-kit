@@ -24,8 +24,16 @@ export function focusAuthenticationRecovery(heading: HTMLElement): () => void {
   const attempt = () => {
     if (disposed) return;
     if (!heading.isConnected || !neutral()) { dispose(); return; }
-    if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
-    if (document.activeElement !== heading) heading.focus({ preventScroll: true });
+    const eligible = () => !disposed && heading.isConnected && neutral()
+      && !heading.closest('[hidden],[inert]') && document.visibilityState === 'visible' && document.hasFocus();
+    if (!eligible()) return;
+    if (document.activeElement !== heading) {
+      heading.focus({ preventScroll: true });
+      // Pinned Playwright 1.64 also uses two native calls: Firefox can refuse the
+      // first. Retry once in this frame only while the target and user focus remain
+      // eligible; do not schedule an elapsed-time retry or override a chosen control.
+      if (document.activeElement !== heading && eligible()) heading.focus({ preventScroll: true });
+    }
     if (document.activeElement === heading) dispose();
   };
   // One rendering frame lets native activation settle; events coalesce and disposal
