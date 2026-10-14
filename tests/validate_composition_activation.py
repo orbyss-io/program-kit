@@ -5,7 +5,6 @@ remains in the composition golden; no real consumer, service or agent is started
 """
 import json
 from pathlib import Path
-import re
 import shutil
 import subprocess
 import sys
@@ -23,6 +22,25 @@ sys.path.insert(0, str(TEMPLATE / 'files/eng'))
 CONTRACTS = ('CShells.Abstractions', 'CShells.AspNetCore.Abstractions')
 
 
+def require_test_report(path, expected_type, expected_method):
+    """Count named executed tests from the selected runner's native XML report."""
+    try:
+        document = ET.parse(path).getroot()
+        assemblies = document.findall('assembly')
+        tests = document.findall('./assembly/collection/test')
+        counts = {key: sum(int(assembly.get(key, '-1')) for assembly in assemblies)
+                  for key in ('total', 'passed', 'failed', 'skipped', 'errors')}
+        names = [(test.get('type'), test.get('method'), test.get('result')) for test in tests]
+    except (OSError, ET.ParseError, ValueError) as error:
+        raise AssertionError('Missing or invalid native test report: ' + str(path) + '; ' + str(error)) from error
+    assert document.tag == 'assemblies' and len(assemblies) == 1 and counts == {
+        'total': 1, 'passed': 1, 'failed': 0, 'skipped': 0, 'errors': 0
+    } and names == [(expected_type, expected_method, 'Pass')], (
+        'Native test report did not prove the expected assertion: ' + str(path) +
+        '; counts=' + json.dumps(counts, sort_keys=True) + '; tests=' + json.dumps(names))
+    return {'report': str(path), 'counts': counts, 'test': expected_type + '.' + expected_method}
+
+
 def main():
     evidence = ROOT / 'artifacts/tests/composition-activation' / uuid.uuid4().hex
     root = evidence / 'consumer'; root.mkdir(parents=True)
@@ -34,6 +52,14 @@ def main():
         if (result.returncode == 0) != succeeds:
             raise AssertionError('Unexpected command result; inspect ' + str(evidence / (name + '.log')))
         return output
+
+    def execute_tests(project, name, expected_type, expected_method):
+        results = evidence / (name + '-results')
+        command(['dotnet', 'run', '--project', str(project), '--no-build', '--',
+                 '--report-xunit-xml', '--report-xunit-xml-filename', 'results.xml',
+                 '--results-directory', str(results), '--minimum-expected-tests', '1',
+                 '--zero-tests-policy', 'strict'], name)
+        return require_test_report(results / 'results.xml', expected_type, expected_method)
 
     try:
         shutil.copyfile(TEMPLATE / 'files/global.json', root / 'global.json')
@@ -99,9 +125,8 @@ def main():
         command(['dotnet', 'restore', str(test_project), '--nologo', '-warnaserror'], 'restore-contracts')
         command(['dotnet', 'restore', str(test_project), '--locked-mode', '--nologo', '-warnaserror'], 'restore-locked')
         command(['dotnet', 'build', str(test_project), '--no-restore', '--nologo'], 'build')
-        output = command(['dotnet', 'run', '--project', str(test_project), '--no-build'], 'execute')
-        assert re.search(r'^\s*total:\s*1\s*$', output, re.MULTILINE), 'Activation assertion did not execute'
-        assert re.search(r'^\s*succeeded:\s*1\s*$', output, re.MULTILINE), 'Activation assertion did not pass'
+        reports = {'activation': execute_tests(test_project, 'execute', 'Activation.Tests.SelectedFeatureTests',
+                    'GeneratedFeatureExposesContractsAndRegistersWithoutProviderWork')}
         # Activate the mixed generated seams through the selected real shell
         # runtime, instead of treating direct ConfigureServices calls as activation.
         runtime = {'path': 'src/Activation.Runtime/Activation.Runtime.csproj', 'packageId': 'Activation.Runtime',
@@ -215,8 +240,9 @@ public sealed class PurePolicyTests { [Fact] public void PurePolicyHasNoShellCon
             command(['dotnet', 'restore', str(target), '--nologo', '-warnaserror'], name.lower() + '-restore')
             command(['dotnet', 'restore', str(target), '--locked-mode', '--nologo', '-warnaserror'], name.lower() + '-locked')
             command(['dotnet', 'build', str(target), '--no-restore', '--nologo'], name.lower() + '-build')
-            result = command(['dotnet', 'run', '--project', str(target), '--no-build'], name.lower() + '-execute')
-            assert re.search(r'^\s*total:\s*1\s*$', result, re.MULTILINE) and re.search(r'^\s*succeeded:\s*1\s*$', result, re.MULTILINE)
+            reports[seam] = execute_tests(target, name.lower() + '-execute',
+                'LifecycleTests' if name == 'Lifecycle' else 'PurePolicyTests',
+                'OwnerPreparationRunsExactlyOnce' if name == 'Lifecycle' else 'PurePolicyHasNoShellContractDependency')
             lock = json.loads((target.parent / 'packages.lock.json').read_text())
             direct = {k for framework in lock['dependencies'].values() for k, row in framework.items() if row['type'] == 'Direct'}
             assert expected <= direct and not (set(CONTRACTS) - expected) & direct
@@ -225,7 +251,7 @@ public sealed class PurePolicyTests { [Fact] public void PurePolicyHasNoShellCon
             'contractPins': {identity: pins[identity] for identity in CONTRACTS},
             'missingContractsRejected': True, 'activationTestsExecuted': 1, 'generatedTestDependencies': True,
             'activationLockedRestore': True, 'mixedShellActivation': True, 'runtimeScopedResolutionAndDisposal': True,
-            'responsibilityScopes': scoped}, indent=2), encoding='utf-8')
+            'responsibilityScopes': scoped, 'nativeTestReports': reports}, indent=2), encoding='utf-8')
         print('Composition activation-test build/execution passed: ' + str(evidence))
     except Exception as error:
         (evidence / 'status.json').write_text(json.dumps({'status': 'failed', 'failure': str(error)}), encoding='utf-8')

@@ -874,7 +874,8 @@ CROSS_SITE_PHASES = ('registered','authenticated','source-registered','source-lo
     'rejection-body-parsed','rejection-validated','navigation-completed','session-retained')
 ADAPTER_PHASE_PROPERTY = 'program-kit-logout-adapter-phase'
 ADAPTER_PHASES = ('authenticated-context','owner-fixture-entry','logout-dispatch','popup-observed',
-    'uncertain-recovery','ended-heading-visible','ended-heading-focused','recovery-link',
+    'uncertain-recovery','uncertain-private-ui-cleared','uncertain-independent-local-session',
+    'uncertain-reconcile-action','ended-heading-visible','ended-heading-focused','recovery-link',
     'provider-status','private-ui-cleared','independent-local-session','provider-navigation-complete',
     'owner-landing-url','completed')
 

@@ -365,15 +365,22 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
       if (lostObservation) {
         adapterPhase.description = 'uncertain-recovery';
         await expect(page.getByRole('heading', { name: 'Your session status is unconfirmed' })).toBeVisible();
+        adapterPhase.description = 'uncertain-private-ui-cleared';
         await expect(page.locator('[data-private-content]')).toHaveCount(0);
         // Request-client observation is independent of the browser transport fault above.
+        adapterPhase.description = 'uncertain-independent-local-session';
         expect(await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
+        adapterPhase.description = 'uncertain-reconcile-action';
         await context.unroute(new URL('/bff/user', baseURL).href);
         await page.getByRole('button', { name: 'Check session', exact: true }).click();
       }
       adapterPhase.description = 'ended-heading-visible';
       await expect(page.getByRole('heading', { name: 'Your application session has ended' })).toBeVisible();
       adapterPhase.description = 'ended-heading-focused';
+      // The provider popup can own the foreground document. Model the user returning
+      // to the application tab; do not focus the heading here. Its native page
+      // recovery must already have selected the heading for keyboard navigation.
+      await page.bringToFront();
       await expect(page.getByRole('heading', { name: 'Your application session has ended' })).toBeFocused();
       adapterPhase.description = 'recovery-link';
       await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/bff/login?returnUrl=/');

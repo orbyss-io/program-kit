@@ -86,7 +86,7 @@
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Reproduce numeric-schema mismatch, execute exact selected official exporter, bounded problem writer and strict parser, generate actual TypeScript, and block unsupported nullable numeric promises without changing baselines or approval.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_numeric_schema.py", "tests/fixtures/composition-numeric/**"],
+      "inputs": ["extensions/program-kit-building-blocks/references/dependency-profiles/**", "extensions/program-kit-dotnet/templates/dotnet/files/global.json", "extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc", "extensions/program-kit-dotnet/templates/dotnet/files/.npm-version", "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi-defaults.json", "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolchain.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_qualification.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/oasdiff_cli.py", "extensions/program-kit-governance/scripts/windows_workflow_path.py", ".python-version", "tests/validate_numeric_schema.py", "tests/fixtures/composition-numeric/**"],
       "outputs": ["artifacts/tests/numeric-schema"], "resources": [],
       "isolation": "Unique disposable compiler probe and loopback ASP.NET schema producer with existing selected public pins; no Foundation host/provider or product contract approval."
     },

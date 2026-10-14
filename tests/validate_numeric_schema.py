@@ -1,5 +1,6 @@
 """Investigate truthful numeric schemas without changing parser or compatibility authority."""
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -12,9 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
 
 
-def run(evidence, name, command, cwd=None, expected=0):
+def run(evidence, name, command, cwd=None, expected=0, environment=None):
     started = time.perf_counter()
-    result = subprocess.run(command, cwd=cwd or evidence, capture_output=True, text=True, timeout=300)
+    result = subprocess.run(command, cwd=cwd or evidence, env=environment, capture_output=True, text=True, timeout=300)
     (evidence / (name + '.log')).write_text(result.stdout + result.stderr, encoding='utf-8')
     if result.returncode != expected: raise AssertionError('Numeric parity probe failed: ' + str(evidence / (name + '.log')))
     return {'command': command, 'seconds': round(time.perf_counter() - started, 3)}
@@ -135,18 +136,41 @@ def generated_client(evidence, document):
     (generator / 'package.json').write_text(json.dumps({'name': 'numeric-parity', 'version': '1.0.0', 'private': True,
         'scripts': {'generate': 'openapi-typescript ../official-exporter/document.json -o types.ts'},
         'devDependencies': {defaults['package']: defaults['version']}}))
-    npm = shutil.which('npm.cmd') if sys.platform == 'win32' else shutil.which('npm')
-    if not npm: raise AssertionError('Exact installed npm command is unavailable')
-    run(evidence, 'client-lock', [npm, 'install', '--package-lock-only', '--ignore-scripts', '--strict-peer-deps', '--engine-strict'], generator)
-    run(evidence, 'client-ci', [npm, 'ci', '--ignore-scripts', '--strict-peer-deps', '--engine-strict'], generator)
-    run(evidence, 'client-generate', [npm, 'run', 'generate'], generator)
+    # Use maintained exact shared-tool selection, cache and TLS admission.
+    # This disposable fixture must not inherit CMD's overlong-PATH failure or
+    # infer npm's installation layout from the discovered launcher.
+    for name in ('global.json', '.nvmrc', '.npm-version'):
+        shutil.copyfile(TEMPLATE / name, evidence / name)
+    sys.path.insert(0, str(TEMPLATE / 'eng'))
+    from device_toolchain import require_python
+    shared_python = require_python(evidence)
+    environment = os.environ.copy()
+    inherited_path_characters = len(environment.get('PATH', ''))
+    if os.name == 'nt':
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
+        from windows_workflow_path import prepare_path
+        environment['PATH'] = prepare_path(environment.get('PATH', ''), str(shared_python))
+    run(evidence, 'client-toolchain', [str(shared_python), str(TEMPLATE / 'eng/toolchain.py'),
+        '--repository', str(evidence)], environment=environment)
+    from foundation_qualification import npm_command
+    npm, environment = npm_command(evidence, [])
+    if os.name == 'nt':
+        environment['PATH'] = prepare_path(environment.get('PATH', ''), str(shared_python))
+    for name, arguments in (
+        ('client-lock', ['install', '--package-lock-only', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
+        ('client-ci', ['ci', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
+        ('client-generate', ['run', 'generate'])):
+        run(evidence, name, [*npm, *arguments], generator, environment=environment)
     types = (generator / 'types.ts').read_text()
     for property in ('amount', 'count', 'revision'):
         import re
         lines = re.findall(r'\b' + property + r'\??: ([^;]+);', types)
         assert lines and all('number' in line and 'string' not in line for line in lines), (property, lines)
     assert 'amounts: number[]' in types
-    return {'generator': defaults, 'lockSha256': hashlib.sha256((generator / 'package-lock.json').read_bytes()).hexdigest(),
+    return {'generator': defaults, 'toolchainEvidence': str(evidence / 'artifacts/program-kit/toolchain.json'),
+            'inheritedPathCharacters': inherited_path_characters,
+            'npmPathCharacters': len(environment.get('PATH', '')),
+            'lockSha256': hashlib.sha256((generator / 'package-lock.json').read_bytes()).hexdigest(),
             'typesSha256': hashlib.sha256((generator / 'types.ts').read_bytes()).hexdigest()}
 
 

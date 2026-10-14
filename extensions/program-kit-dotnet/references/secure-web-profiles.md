@@ -414,10 +414,19 @@ the existing writer and independent cookie-session observation. Register it thro
 real HTTP feature and map its public session page separately; qualify against the selected publisher.
 Preserve final private/no-store/no-index/security policies; no route shadowing or private bootstrap
 for anonymous recovery. Inspect actual session state independently of a callback-error URL.
+Where the exact selected publisher exposes initial-login availability recovery, include `/bff/login`
+in the writer's explicit browser-purpose paths. The verified 0.3.4 candidate keeps the writer interface
+and `TryAddSingleton` replacement seam, and additionally routes proven native provider transport,
+document-retrieval and PAR availability failures to 503 `identity_provider_unavailable`. This excludes
+caller cancellation, malformed/client/configuration errors and unmarked or opaque custom transports;
+do not infer availability from exception text or catch every challenge failure as a provider outage.
 
 The remote authentication timeout bounds the entire human flow, including credential entry, MFA
 and consent. Program Kit's omitted default is fifteen minutes; discovery/backchannel HTTP waits
-retain their separate short limits. Preserve explicit overrides and all protocol safeguards.
+retain their separate short per-request limits, and native metadata retries can use more than one.
+Preserve explicit overrides and all protocol safeguards. Foundation 0.3.3's package fallback was ten
+seconds; the verified 0.3.4 candidate defaults to 900 seconds and aligns native nonce lifetime with
+the selected interaction timeout. Source qualification alone does not establish public availability.
 Test a fresh actual login with human-paced delay, expired-flow rejection/restart and independently
 bounded network failure. Immediate automated credential filling does not prove the interaction window.
 
@@ -433,6 +442,12 @@ Use the selected publisher's supported browser logout destination setting when a
 retain its root/non-root success/fallback coverage and JSON status contract. Before that capability is
 selected, a client-owned landing can control the application window but does not fix the publisher's
 hardcoded callback/fallback destinations. Preserve actual antiforgery and local-first session termination.
+The verified 0.3.4 candidate supplies `Foundation:Web:LogoutLandingPath`: its default remains the
+machine route, while `/` or an admitted application-owned public path selects browser presentation.
+It preserves the captured native authentication path base on success and initiation failure. This
+setting selects a local destination; reaching it or reading its query hint proves neither current
+local session state nor provider-wide termination. Select the exact published/qualified contract
+before relying on this option; do not retrofit it into the retained 0.3.3 profile or shadow its routes.
 Test actual controls/adapter, keyboard/focus/recovery and denied private access after provider failure;
 label raw JSON/status assertions as protocol evidence rather than complete browser acceptance.
 

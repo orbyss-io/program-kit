@@ -72,15 +72,52 @@ active pins and native locks, qualified source `805383ad55e2f50716196faf2ba76407
 for0.3.4, passed full Windows/Linux CI and dependency qualification, and scanned both candidate
 image platforms with zero High/Critical findings. PR11 merged and the exact source was tagged;
 the [protected Release](https://github.com/orbyss-io/dotnet-foundation/actions/runs/38506924214)
-is running. Adoption still waits for completed publication and verified public artifacts. The
-earlier failed evidence and published0.3.3 profile remain unchanged.
+passed qualification and image scans but failed during NuGet publication on an HTTP500 followed
+by a300-second timeout. Foundation preserved the failed attempt, verified the21 visible payloads
+against the exact candidate knowledge, and is retrying the same protected workflow without changing
+source/version/tag. Nine package publications and final Host/knowledge verification remain pending.
+Adoption still waits for complete success and verified public artifacts. The earlier failed evidence
+and published0.3.3 profile remain unchanged.
 
 Program Kit [PR CI](https://github.com/orbyss-io/program-kit/actions/runs/38483789818) and the
 required [dependency update](https://github.com/orbyss-io/program-kit/actions/runs/38483858372)
 failed on the Linux composition activation probe and the Firefox owner-landing/provider-failure
 authentication journeys. Windows CI passed. Original logs and artifacts are preserved under
-`artifacts/tests/ds01-repair/remote-failures/`; investigation and repairs are underway. These
-failures block qualification and are separate from the known local Firefox launch limitation.
+`artifacts/tests/ds01-repair/remote-failures/`. The activation validator now requests native xUnit XML
+and checks exact named tests and counts. Focused proof at
+`artifacts/tests/composition-activation/dafab161c89c4b2ab330328f404bd5af/` retains compile-negative,
+locked restore, mixed shell and lifetime checks. Eight malformed report probes were rejected; a real
+ANSI-formatted execution reproduces the old console-parser failure while its native report passes.
+The exact remote formatting cause remains inferred because the inner execution log was not uploaded.
+
+The [targeted browser reproduction](https://github.com/orbyss-io/program-kit/actions/runs/38507694729)
+observed all33 cases and isolated both Firefox failures to `ended-heading-focused`. Finite checkpoint
+properties export no private content and reject unexpected, conflicting or stale input. The corrected
+journey brings the application tab forward after the provider popup, then retains the original heading
+focus assertion without focusing the element itself. Native Chromium/WebKit verification passed22/22
+at `artifacts/tests/reusable-foundations/functional-cfbe58d78b7343b0/`, bound to source
+`28f2b72485d8ba448432d0105e625b697a2f36550f7a82dd686dd0c384074811`. The original fixture and52
+staged inputs were restored exactly. An earlier21/22 run failed in WebKit's uncertain-recovery branch;
+the narrowed rerun passed without changing those assertions, so that failure's precise cause remains
+unestablished and its evidence is retained. Final Firefox acceptance still requires fresh Linux CI.
+
+A fresh bounded Development run retained a numeric client-generation failure despite successful
+installation. The same installed generator succeeds with the existing child-only Windows PATH
+preparation, reducing the23299-character inherited PATH to1830 without installing or substituting
+tools. The validator now uses maintained exact toolchain/npm/TLS/cache selection and that existing
+Windows preparation. Focused numeric parity passed at
+`artifacts/tests/numeric-schema/0f3505edd0954991b3f4e72adeaac34b/`, retaining parser, writer,
+official producer, actual generated client and nullable-numeric refusal checks. This is a test-harness
+environment repair, not a schema change or token403 waiver. Fresh bounded Development and remote
+qualification of the stable source remain due.
+
+The full follow-up Development attempt is preserved at
+`artifacts/validation-runs/20261014T034553Z-52f9240b/journal.json`: numeric generation, standalone
+engineering and native frontend builds failed. Normal user TEMP, the independently verified shared
+device Python and the existing Windows invocation PATH preparation resolved the remaining environment
+failures in focused reruns. Validation-runner11, standalone restore/build/behavior/architecture/pack
+with negative behavior, and native-start26 checks passed; logs are
+`artifacts/tests/ds01-repair/prepared-*-20261014.log`. The failed full attempt remains failed.
 
 Foundation publication, the required Program Kit dependency workflow, exact new profile/knowledge adoption and fresh
 Program Kit Release qualification remain open. Program Kit patch publication is authorized after

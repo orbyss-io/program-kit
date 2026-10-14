@@ -19,13 +19,13 @@ public sealed class ApplicationAuthenticationPresentation : IAuthenticationError
     private readonly string brand;
     /// <summary>The approved local workspace destination; request query strings cannot replace it.</summary>
     private readonly PathString returnPath;
-    /// <summary>Exact selected callback/error routes permitted to receive browser HTML.</summary>
+    /// <summary>Exact selected login/callback/error routes permitted to receive browser HTML.</summary>
     private readonly HashSet<PathString> interactiveFailures;
 
     /// <summary>Admits the owner's branding, workspace destination and exact interactive error routes.</summary>
     /// <param name="brand">The application's display name.</param>
     /// <param name="returnPath">An unambiguous application-local workspace path, without a query or fragment.</param>
-    /// <param name="interactiveFailurePaths">The selected callback/error paths; API routes are excluded.</param>
+    /// <param name="interactiveFailurePaths">The selected callback/error paths and /bff/login when supported initial-login recovery is selected; API routes are excluded.</param>
     public ApplicationAuthenticationPresentation(string brand, string returnPath, IEnumerable<string> interactiveFailurePaths)
     {
         this.brand = string.IsNullOrWhiteSpace(brand) ? throw new ArgumentException("Application branding is required.") : brand;
