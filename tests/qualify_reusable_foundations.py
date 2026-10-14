@@ -667,6 +667,42 @@ def authentication_contracts(evidence, checks, original_child, original_selected
     path.write_bytes(adapter_phase_report('ended-heading-focused'))
     assert authentication_failure(directory,{path})=='authentication=unknown'
     checks.append('exact-adapter-cases-and-finite-phases-export-no-private-content-and-reject-injected-or-stale-properties')
+    def adapter_focus_report(state, *, engine='firefox', title=None, duplicate=None, suite_level=False):
+        document=ET.fromstring(adapter_phase_report('ended-heading-focused',engine=engine,title=title))
+        node=document.find('testsuite/testcase')
+        properties=ET.SubElement(document.find('testsuite'),'properties') if suite_level else node.find('properties')
+        ET.SubElement(properties,'property',name=ADAPTER_FOCUS_PROPERTY,value=state)
+        if duplicate is not None: ET.SubElement(properties,'property',name=ADAPTER_FOCUS_PROPERTY,value=duplicate)
+        return ET.tostring(document,encoding='utf-8')
+    for state in ADAPTER_FOCUS_STATES:
+        for engine in AUTHENTICATION_ENGINES:
+            for title in adapter_titles:
+                path.write_bytes(adapter_focus_report(state,engine=engine,title=title))
+                label=authentication_failure(directory,set())
+                assert label.endswith('adapterFocus='+engine+':'+AUTHENTICATION_CASES[title]+':'+state) and secret not in label
+    focus_state='documentFocused=false;headingSelected=true;popupClosed=false'
+    for data in (adapter_focus_report(secret),adapter_focus_report(focus_state+';'+secret),
+                 adapter_focus_report('documentFocused=1;headingSelected=true;popupClosed=false'),
+                 adapter_focus_report(focus_state,duplicate=focus_state),
+                 adapter_focus_report(focus_state,duplicate='owner-state-unavailable'),
+                 adapter_focus_report(focus_state,title=titles[0]),
+                 adapter_focus_report(focus_state,suite_level=True)):
+        path.write_bytes(data); assert authentication_failure(directory,set())=='authentication=unknown'
+    focus_bytes=adapter_focus_report(focus_state)
+    path.write_bytes(focus_bytes)
+    assert authentication_failure(directory,{path})=='authentication=unknown'
+    checks.append('finite-owner-document-heading-and-popup-focus-facts-reject-prose-malformed-duplicate-stale-and-outside-case-properties')
+    script=child/'fail_authentication.py'
+    script.write_text('import sys\nfrom pathlib import Path\n'
+        +'directory=Path(sys.argv[1]); (directory/"authentication.xml").write_bytes('+repr(focus_bytes)+')\n'
+        +'print('+repr(secret)+',file=sys.stderr); sys.exit(13)\n',encoding='utf-8')
+    try: command([sys.executable,str(child/'fail_setup.py')],child,evidence/'adapter-focus-failed-readiness-command',timeout=30,readiness=True)
+    except ValueError as error:
+        label=str(error)
+        assert 'adapterPhase=firefox:adapter-owner-landing:ended-heading-focused' in label
+        assert 'adapterFocus=firefox:adapter-owner-landing:'+focus_state+' outerExit=2;' in label and secret not in label
+    else: raise AssertionError('Actual failed focus reporter child concealed')
+    checks.append('actual-maintained-supervisor-failure-projects-only-bounded-owner-focus-facts')
     path.write_bytes(report([('firefox',cross_title,'failure',secret)]))
     assert authentication_failure(directory,set()).endswith('crossSitePhase=firefox:unknown')
     # The existing maintained setup/supervisor now executes a fresh controlled
@@ -878,6 +914,10 @@ ADAPTER_PHASES = ('authenticated-context','owner-fixture-entry','logout-dispatch
     'uncertain-reconcile-action','ended-heading-visible','ended-heading-focused','recovery-link',
     'provider-status','private-ui-cleared','independent-local-session','provider-navigation-complete',
     'owner-landing-url','completed')
+ADAPTER_FOCUS_PROPERTY = 'program-kit-logout-adapter-focus'
+ADAPTER_FOCUS_STATES = ('owner-state-unavailable','owner-page-unobserved',*(
+    'documentFocused='+focused+';headingSelected='+selected+';popupClosed='+closed
+    for focused in ('true','false') for selected in ('true','false') for closed in ('true','false')))
 
 
 def authentication_failure(directory, previous):
@@ -908,10 +948,10 @@ def authentication_failure(directory, previous):
                 elif node.tag in ('system-out','system-err'):
                     if list(node): return unknown
                 elif node.tag=='properties':
-                    if any(item.tag!='property' or list(item) or item.get('name') in (CROSS_SITE_PHASE_PROPERTY,ADAPTER_PHASE_PROPERTY) for item in node): return unknown
+                    if any(item.tag!='property' or list(item) or item.get('name') in (CROSS_SITE_PHASE_PROPERTY,ADAPTER_PHASE_PROPERTY,ADAPTER_FOCUS_PROPERTY) for item in node): return unknown
                 else: return unknown
         if len(cases)>len(AUTHENTICATION_CASES)*len(AUTHENTICATION_ENGINES) or len(cases)!=sum(1 for node in document.iter() if node.tag=='testcase'): return unknown
-        identities=set(); failed=[]; skipped=[]; categories=[]; phases={}; adapter_phases={}
+        identities=set(); failed=[]; skipped=[]; categories=[]; phases={}; adapter_phases={}; adapter_focus={}
         for node in cases:
             if node.get('classname')!='authentication.spec.ts': return unknown
             match=re.fullmatch(r'\[(chromium|firefox|webkit)\] (.+)',node.get('name',''))
@@ -919,12 +959,13 @@ def authentication_failure(directory, previous):
             identity=match.group(1)+':'+AUTHENTICATION_CASES[match.group(2)]
             if identity in identities: return unknown
             identities.add(identity)
-            declared_phases=[]; declared_adapter_phases=[]
+            declared_phases=[]; declared_adapter_phases=[]; declared_adapter_focus=[]
             for child in node:
                 if child.tag=='properties':
                     if any(item.tag!='property' or list(item) for item in child): return unknown
                     declared_phases.extend(item.get('value') for item in child if item.get('name')==CROSS_SITE_PHASE_PROPERTY)
                     declared_adapter_phases.extend(item.get('value') for item in child if item.get('name')==ADAPTER_PHASE_PROPERTY)
+                    declared_adapter_focus.extend(item.get('value') for item in child if item.get('name')==ADAPTER_FOCUS_PROPERTY)
                 elif child.tag not in ('failure','error','skipped','system-out','system-err') or list(child): return unknown
             if declared_phases:
                 if (not identity.endswith(':cross-site-denial') or len(declared_phases)!=1
@@ -934,6 +975,10 @@ def authentication_failure(directory, previous):
                 if (not identity.split(':',1)[1].startswith('adapter-') or len(declared_adapter_phases)!=1
                         or declared_adapter_phases[0] not in ADAPTER_PHASES): return unknown
                 adapter_phases[identity]=declared_adapter_phases[0]
+            if declared_adapter_focus:
+                if (not identity.split(':',1)[1].startswith('adapter-') or len(declared_adapter_focus)!=1
+                        or declared_adapter_focus[0] not in ADAPTER_FOCUS_STATES): return unknown
+                adapter_focus[identity]=declared_adapter_focus[0]
             outcomes=[child for child in node if child.tag in ('failure','error','skipped')]
             if len(outcomes)>1: return unknown
             if outcomes and outcomes[0].tag=='skipped': skipped.append(identity)
@@ -961,6 +1006,8 @@ def authentication_failure(directory, previous):
         adapter_failed=[identity for identity in sorted(failed) if identity.split(':',1)[1].startswith('adapter-')]
         if adapter_failed:
             classification+=' adapterPhase='+','.join(identity+':'+adapter_phases.get(identity,'unknown') for identity in adapter_failed)
+            if any(identity in adapter_focus for identity in adapter_failed):
+                classification+=' adapterFocus='+','.join(identity+':'+adapter_focus.get(identity,'owner-state-unavailable') for identity in adapter_failed)
         return classification
     except (OSError,ValueError,TypeError,RecursionError,ET.ParseError):
         return unknown

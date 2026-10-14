@@ -381,7 +381,24 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
       // to the application tab; do not focus the heading here. Its native page
       // recovery must already have selected the heading for keyboard navigation.
       await page.bringToFront();
-      await expect(page.getByRole('heading', { name: 'Your application session has ended' })).toBeFocused();
+      const heading = page.getByRole('heading', { name: 'Your application session has ended' });
+      const focusFacts = { type: 'program-kit-logout-adapter-focus', description: 'owner-state-unavailable' };
+      test.info().annotations.push(focusFacts);
+      try { await expect(heading).toBeFocused(); }
+      finally {
+        // Observe after the actual assertion, before teardown. Read only booleans from
+        // this synthetic owner document; never retain active element text or provider DOM.
+        try {
+          const location = new URL(page.url());
+          if (location.origin === new URL(baseURL).origin && location.pathname === '/__program-kit-owner-session-ended') {
+            const state = await heading.evaluate(element => ({
+              documentFocused: element.ownerDocument.hasFocus(),
+              headingSelected: element.ownerDocument.activeElement === element,
+            }), undefined, { timeout: 1000 });
+            focusFacts.description = `documentFocused=${state.documentFocused};headingSelected=${state.headingSelected};popupClosed=${providerWindow.isClosed()}`;
+          } else focusFacts.description = 'owner-page-unobserved';
+        } catch { /* Keep the bounded unavailable state without replacing the original failure. */ }
+      }
       adapterPhase.description = 'recovery-link';
       await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/bff/login?returnUrl=/');
       adapterPhase.description = 'provider-status';

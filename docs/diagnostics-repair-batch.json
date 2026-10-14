@@ -2076,7 +2076,7 @@
   },
   "additionalResearch": {
     "report": "docs/ds01-implementation-diagnostics-research-2026-10-13.md",
-    "status": "All accepted Program Kit upstream repairs implemented; complete Development and focused native/browser checks pass. Foundation repair CI passes, with publication blocked by the upstream SDK image. Consumer correction and publication acceptance remain separate.",
+    "status": "Accepted upstream repairs and follow-up validator corrections implemented; stable commit548611c passes101 Development checks. Foundation0.3.4 is publicly verified. Native Program Kit adoption awaits the repaired catalog updater's qualification; Firefox heading-focus failures remain under bounded investigation. Consumer correction and patch publication acceptance remain separate.",
     "items": [
       16,
       17,

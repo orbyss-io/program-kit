@@ -119,6 +119,31 @@ failures in focused reruns. Validation-runner11, standalone restore/build/behavi
 with negative behavior, and native-start26 checks passed; logs are
 `artifacts/tests/ds01-repair/prepared-*-20261014.log`. The failed full attempt remains failed.
 
+The stable follow-up commit `548611c4422871487c8d49c575a7e6cc3562ecb6` passed all101 bounded
+Development checks with the verified invocation environment. Its journal is
+`artifacts/validation-runs/20261014T040543Z-a5704e8b/journal.json`. Latest full
+[CI38509608053](https://github.com/orbyss-io/program-kit/actions/runs/38509608053) passed activation
+and all other checks but retained both Firefox heading-focus failures. The foreground attempt is
+therefore insufficient for Firefox acceptance. Additional finite owner-document/heading/popup focus
+observations are being collected through targeted CI; no assertion or production helper was weakened.
+
+Foundation0.3.4 is now fully public and independently verified. Protected Release38506924214
+succeeded on attempt2 at the same immutable source. Program Kit independently downloaded its public
+knowledge and verified SHA-256 `4d644f1fa5ca08f6c522fd64e20f373500fed4bd8dae82af2de582a62f593493`,
+source `805383ad55e2f50716196faf2ba764073aa5f42c`, version0.3.4 and30 packages. The publisher verified
+every public package payload and Host digest
+`sha256:5c13acaf838cae83ab60e187fcef4720e67f85bc84201df4e3fb1ed2d6f938d9` on both platforms.
+This resolves publisher availability; exact Program Kit profile adoption remains due.
+
+Required [adoption workflow38510590025](https://github.com/orbyss-io/program-kit/actions/runs/38510590025)
+stopped before qualification because its old0.3.0 blueprint would discard retained HostedPages
+composition metadata. PKB610 correctly rejected that proposal. The updater now derives targets from
+the verified current qualified default and checks preservation from both current and maintained base
+before writes. Four preparation regressions retain historical bytes and reject corrupted history or
+conflicting candidates. Dependency workflow17 and profile catalog34 focused checks pass at
+`artifacts/tests/ds01-repair/updater-current-target/`; native adoption must still pass its complete
+workflow. No local profiles, pins, knowledge or consumer locks changed during these repairs.
+
 Foundation publication, the required Program Kit dependency workflow, exact new profile/knowledge adoption and fresh
 Program Kit Release qualification remain open. Program Kit patch publication is authorized after
 these gates. The Windows Release command must run in the user-owned terminal unless the user
