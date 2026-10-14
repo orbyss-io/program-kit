@@ -21,8 +21,11 @@ function fixture(active = true, visible = true) {
     bind: () => focusAuthenticationRecovery(heading as unknown as HTMLElement) };
 }
 
-test('focuses an active recovery once and removes later activation work', () => {
+test('waits for the first rendering boundary and removes later activation work', () => {
   const owner = fixture(); owner.bind();
+  expect(owner.document.activeElement).toBe(owner.document.body);
+  expect(owner.attempts()).toBe(0); expect(owner.pendingFrames()).toBe(1);
+  owner.flush();
   expect(owner.document.activeElement).toBe(owner.heading);
   owner.document.activeElement = owner.document.body;
   owner.view.dispatchEvent(new Event('focus')); owner.document.dispatchEvent(new Event('visibilitychange')); owner.flush();
@@ -30,7 +33,7 @@ test('focuses an active recovery once and removes later activation work', () => 
 });
 
 test('defers background recovery until the owner document becomes active', () => {
-  const owner = fixture(false); owner.bind(); expect(owner.attempts()).toBe(0);
+  const owner = fixture(false); owner.bind(); owner.flush(); expect(owner.attempts()).toBe(0);
   owner.active(true); owner.view.dispatchEvent(new Event('focus')); owner.flush();
   expect(owner.document.activeElement).toBe(owner.heading);
 });

@@ -38,7 +38,9 @@ export function focusAuthenticationRecovery(heading: HTMLElement): () => void {
   window.addEventListener('pagehide', dispose);
   document.addEventListener('visibilitychange', activated);
   document.addEventListener('focusin', selected);
-  attempt();
+  // Newly rendered recovery content also needs its first rendering boundary. Firefox
+  // can refuse synchronous focus even when the new document already reports active.
+  activated();
   return dispose;
 }
 

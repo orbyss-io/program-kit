@@ -50,7 +50,9 @@ def main():
         created = True
         deadline = time.monotonic() + 45
         while True:
-            code, _ = run(['exec', container, 'pg_isready', '-U', 'postgres'], allowed=(0, 1, 2))
+            # The immutable image starts a socket-only initialization server and stops
+            # it before the real server starts. Admit the application's TCP transport.
+            code, _ = run(['exec', container, 'pg_isready', '-h', '127.0.0.1', '-U', 'postgres'], allowed=(0, 1, 2))
             if not code:
                 break
             if time.monotonic() >= deadline:
@@ -90,6 +92,7 @@ def main():
         'schemaUsageRequired': True, 'journalSelectRequired': True, 'exactRoleReadAdmitted': True,
         'unrelatedTableStillDenied': True, 'cleanupComplete': True,
         'actualApplicationLogin': True, 'idempotentDeploymentReplay': True,
+        'applicationTcpReadinessRequired': True,
         'exactOperationInsertUpdateAdmitted': True, 'runtimeCreateDenied': True, 'ungrantedDeleteDenied': True,
         'scope': 'Synthetic deployment guidance; no consumer schema, startup creation or reset.'}, indent=2))
     print('Exact application-role grant regression passed: ' + str(evidence))

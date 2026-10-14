@@ -198,6 +198,33 @@ only on exact fictional owner pages and exports eight booleans plus a closed act
 it reads no private text, value, provider DOM or raw exception. This establishes observability, not
 another claimed Firefox repair. Fresh targeted Linux reproduction is required.
 
+Targeted diagnostic CI38520948303 failed both Firefox owner recovery cases and established that
+the active document called native heading focus, which never selected the heading. The active element
+remained the body; no activation, visibility or rendering-frame callback occurred. This narrows the
+failure to the initial refused call rather than a later lost selection. The next candidate schedules
+initial focus through the same existing coalesced rendering-frame boundary. It retains neutral-focus
+guards, cleanup and the native assertion. Local22/22 journeys pass at
+`artifacts/tests/reusable-foundations/functional-90d1bb2cca534815/`, now observing actual frame
+execution and heading selection. Lifecycle,25 compiled presentation cases,20 browser observations
+and credential-failure privacy pass at `artifacts/tests/authentication-presentation/9140cf7c/`.
+Historical source and52 staged inputs were restored. Fresh Firefox acceptance remains required.
+
+Full diagnostic CI38520934866 retained the refused initial focus and also reproduced the PostgreSQL
+fixture failure. Its newly preserved inner logs show socket readiness followed by a missing socket
+on the first SQL command. The exact immutable18.6 image entrypoint confirms a temporary socket-only
+initialization server (`listen_addresses=''`) that stops before the final server starts. Readiness now
+requires127.0.0.1 TCP, matching the actual application transport and excluding that temporary server.
+Real role grants, denial, idempotent deployment and application-login checks pass at
+`artifacts/tests/schema-role-grants/51dc3dfb43ef4159a9fc56f4f3b0b9c5/`. This repairs fixture readiness;
+the historical failed runs remain failed and consumer schema ownership remains unchanged.
+
+The Foundation task reports an exporter repair in PR12 at
+`ef5d1e7f22e425bb05ca93398d7bea9f80534ffb`: tool-private OpenAPI assemblies shadowed the staged
+runtime closure. The independent0.2.6 candidate removes that private dependency and obtains the native
+document provider from the validated staged assembly. Installed diagnostic-package acceptance against
+public0.3.3/0.3.4 and frozen older/Assurance closures is reported passed. This is candidate evidence;
+full qualification and protected public publication remain pending, so Program Kit does not adopt it.
+
 The required Program Kit dependency workflow, exact new profile/knowledge adoption and fresh
 Program Kit Release qualification remain open. Program Kit patch publication is authorized after
 these gates. The Windows Release command must run in the user-owned terminal unless the user
