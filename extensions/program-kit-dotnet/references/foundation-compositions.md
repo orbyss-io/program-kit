@@ -144,3 +144,24 @@ Local insecure BFF applications require distinct browser hostnames because ports
 not isolate the pinned publisher's cookies. HTTP/TLS routing/certificate capabilities
 must be qualified for the actual environment. Private imports/personas are synthetic
 Development inputs, not production authority provisioning.
+
+Retained private Development/Test filesystem storage uses a `privateFiles` resource
+with its architecture `ownerRef`, an environment `directory` outside source, runtime,
+package and public asset trees, and a binding with `filesRef`, `hostRef`, `shellRef`,
+`featureRef` and `setting`. Optional `section` defaults to `EvidenceFiles` for retained
+consumers. It supplies owner configuration through normal CShells configuration and
+a writable `/private-evidence/<resource-id>` bind with `create_host_path: false`.
+It creates no storage capability port or production/cloud policy; the selected owner
+implements its accepted port and validates writable availability at activation.
+Explicit `prepare` first provisions a dedicated directory and records its identity in
+existing lifecycle state. Repeated preparation, updates and restarts retain it. A lost
+or relocated previously bound directory stops setup; restore it or perform an explicit
+owned data migration. Existing operator-provisioned permissions are preserved. On
+POSIX, only a newly created empty directory is initialized for the selected immutable
+Host's actual UID and the provisioning user's group; existing data is never recursively
+chowned. Private bytes never enter package stages, public manifests or archives.
+
+Run and update wait for only the selected hosts' managed database/identity services
+without recreating their containers before host activation. External endpoints retain
+their qualified readiness obligations. A source-only no-op `update` remains a no-op;
+select `--host <id>` explicitly to recover a stopped host/dependency without source changes.

@@ -2076,7 +2076,8 @@
   },
   "additionalResearch": {
     "report": "docs/ds01-implementation-diagnostics-research-2026-10-13.md",
-    "status": "Accepted upstream repairs implemented; commit a198f38 passes101 Development checks. Foundation0.3.4 and independent exporter0.2.6 are publicly verified; isolated real public-tool compatibility passes. Stale default-version assertions and final-server TCP fixture readiness are repaired. A guarded native Firefox focus fallback passes local regressions and awaits repeated CI. Complete dependency/security adoption and patch qualification remain mandatory. No failed update was adopted; actual consumer correction remains separate.",
+    "status": "Prior repair source 2cb8560 passed full and repeated three-engine CI; a198f38 passed101 Development checks. The user approved additional items29–33. Their upstream code and guidance are implemented and under focused/native validation. Mandatory update38526051812 failed a stale exporter assertion; its exact evidence is preserved, no pins were adopted, and the assertion now compares the independently maintained tool manifest. Complete dependency/security adoption and patch qualification remain mandatory; actual consumer corrections remain separate.",
+    "additionalBatchReport": "docs/ds01-additional-repairs-2026-10-14.md",
     "items": [
       16,
       17,
@@ -2090,7 +2091,12 @@
       25,
       26,
       27,
-      28
+      28,
+      29,
+      30,
+      31,
+      32,
+      33
     ],
     "originalEvidence": "Original items, timestamps, baseline and artifact hashes above remain historical evidence unchanged.",
     "implementation": "docs/ds01-implementation-coverage-2026-10-14.md"

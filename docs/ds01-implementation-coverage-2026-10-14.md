@@ -262,3 +262,29 @@ The existing repair PR41 remains unpublished and includes the original fifteen r
 extension. During patch preparation, carry its unreleased diagnostics migration addition into the
 new patch guide and restore the published0.13.1 guide bytes; do not describe that addition as already
 delivered in0.13.1. Preserve original diagnostic records and immutable native source witnesses.
+
+## Additional approved batch, items29–33
+
+The user confirmed implementation after the additional grilling. See
+[the classification, repair matrix and separate PDF/OCR handoff](ds01-additional-repairs-2026-10-14.md).
+Private storage and selected dependency readiness are Program Kit defects. npm child PATH
+reuses the existing safe preparation algorithm, managed into standalone engineering helpers.
+Review scoping uses versioned supported projections inside the current checkpoint lifecycle,
+preserving human decisions while separately blocking stale engineering. PDF/OCR remains
+consumer-owned with generic parser qualification added to existing semantic guidance.
+
+Current focused evidence: `artifacts/tests/ds01-repair/second-batch-toolchain-native.log`
+passes15 cases including actual npm child execution with oversized inherited PATH and unchanged
+parent environment. `second-batch-review.log` passes31 cases including scoped freshness,
+shared authentication/storage impact, preserved decisions, unknown/deleted inputs and failed
+checks. Initial native-start evidence passes35 cases; the complete new disposable Host
+qualification is running and its results will be recorded separately. These are focused
+checks, not a Release receipt or real-consumer acceptance.
+
+Prior-source targeted three-engine CI38526047800 and full CI38526053067 passed. Mandatory
+dependency update38526051812 failed the hardcoded exporter0.2.5 expectation after selecting
+public0.2.6; consumer-provider validation was dependency-blocked rather than executed. Logs
+and artifacts remain under `artifacts/tests/ds01-repair/remote-failures/dependency-38526051812`.
+The repaired test compares selected catalog to independent active tool-manifest authority and
+retains frozen historical expectations. No failed update is adopted and publication remains
+conditional on this batch plus complete required qualification.

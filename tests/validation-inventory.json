@@ -106,7 +106,7 @@
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Bounded story/early review progression, scoped deferrals, roles and authenticated reference shapes, freshness, no-hook closure/handoff and deterministic active clocks; simulated humans only.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-governance/**", "presets/program-kit-governance-preset/**", "tests/validate_story_delivery.py"],
+      "inputs": ["extensions/program-kit-governance/**", "extensions/program-kit-dotnet/scripts/composition_model.py", "presets/program-kit-governance-preset/**", "tests/validate_story_delivery.py", "tests/composition_fixture.py"],
       "outputs": [], "resources": [],
       "isolation": "Temporary fictional consumers and recorded GitHub response shapes; no real human acceptance, coding agents, posting, monitoring or real consumer reset."
     },

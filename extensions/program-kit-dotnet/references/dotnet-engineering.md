@@ -131,6 +131,11 @@ admission as defined in `programming-guardrails.md`.
 - Specify ordinal/culture and normalization semantics for protocol identifiers; do not let machine culture
   change authorization, identity or persisted wire meaning. Bound untrusted parsing, regular expressions,
   archives and decompression; use timeouts or an appropriate non-backtracking regex where supported.
+  Qualify the actual packaged runtime, including deferred decoding and native failure/fallback behavior.
+  Managed-heap limits and working-set polling do not establish a hard total-process ceiling. State
+  monitored overshoot, concurrent admission and cancellation/cleanup bounds; use OS containment when
+  the application contract requires a hard process limit. Follow the untrusted-parser review in
+  [programming guardrails](../../program-kit-governance/references/programming-guardrails.md).
   For consumer-owned normalized labels, use the supported
   [Core export and generated browser validator](label-validation.md). Keep operation order, character
   sets and length units source-backed; test normalization and digest parity instead of copying bounds

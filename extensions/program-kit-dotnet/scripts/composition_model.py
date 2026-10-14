@@ -25,6 +25,7 @@ RESOURCE_FIELDS = {
     'clientRegistration': ({'kind', 'authorityRef', 'profile'}, {'ownerRef', 'callbackPath', 'signedOutCallbackPath'}),
     'protectedResource': ({'kind', 'authorityRef'}, {'ownerRef', 'permissions'}),
     'frontend': ({'kind', 'directory', 'entry'}, {'ownerRef', 'branding'}),
+    'privateFiles': ({'kind', 'ownerRef'}, set()),
 }
 BINDING_FIELDS = {
     'shellHost': {'kind', 'shellRef', 'hostRef'},
@@ -34,11 +35,12 @@ BINDING_FIELDS = {
     'authentication': {'kind', 'shellRef', 'clientRef', 'resourceRef'},
     'frontend': {'kind', 'frontendRef', 'shellRef', 'routeId', 'path'},
     'apiCall': {'kind', 'clientRef', 'resourceRef', 'intent', 'permissions'},
+    'privateFiles': {'kind', 'filesRef', 'hostRef', 'shellRef', 'featureRef', 'setting'},
 }
 REFERENCE_KINDS = {'shellRef': 'shell', 'hostRef': 'host', 'featureRef': 'feature',
                    'databaseRef': 'database', 'serverRef': 'databaseServer',
                    'clientRef': 'clientRegistration', 'resourceRef': 'protectedResource',
-                   'authorityRef': 'identityAuthority', 'frontendRef': 'frontend'}
+                   'authorityRef': 'identityAuthority', 'frontendRef': 'frontend', 'filesRef': 'privateFiles'}
 
 
 def require(condition, message):
@@ -124,6 +126,45 @@ def shell_features(model, shell):
 def project_list(model):
     return [{key: row[key] for key in ('path', 'packageId', 'featureIdentity', 'role')}
             for row in resources(model, 'feature').values()]
+
+
+def private_directories(model, env_name=None, repository=None):
+    """Private roots are outside every source, stage and public asset tree.
+
+    Resolve existing aliases as well as lexical paths; nested roots are not
+    distinct stores. This validates placement without creating any directory.
+    """
+    env = environment(model, env_name)
+    base = Path(repository or '.').resolve()
+    forbidden = [base / name for name in ('src', 'tests', 'tools', 'web', 'eng', 'docs', 'deploy', 'packages',
+                 'scripts', 'extensions', 'presets', 'catalogs', 'workflows', '.git', '.specify', '.program-kit',
+                 '.agents', '.codex', '.github', 'release-bundle', 'artifacts/composition')]
+    forbidden += [base / row['directory'] for row in resources(model, 'frontend').values()]
+    forbidden += [base / ('release-bundle' if row['runtimeDirectory'] == '.' else row['runtimeDirectory'])
+                  for row in resources(model, 'host').values()]
+    forbidden += [base / ('artifacts/release-bundle' if row['runtimeDirectory'] == '.' else 'artifacts/' + row['runtimeDirectory'])
+                  for row in resources(model, 'host').values()]
+    forbidden += [(base / row['path']).parent for row in resources(model, 'feature').values()]
+    architecture = base / 'eng/architecture.json'
+    if repository is not None and architecture.is_file():
+        graph = json.loads(architecture.read_text(encoding='utf-8'))
+        for row in graph.get('runtimeComposition', {}).get('projects', []):
+            local_path(row['path'], 'owned source project')
+            forbidden.append((base / row['path']).parent)
+    def parts(path):
+        return tuple(part.casefold() for part in path.resolve().parts)
+    def overlap(left, right):
+        return left[:len(right)] == right or right[:len(left)] == left
+    selected = {}
+    for name in resources(model, 'privateFiles'):
+        directory = base / env[name]['directory']
+        resolved = directory.resolve()
+        require(resolved.is_relative_to(base) and resolved != base, 'private storage escapes repository')
+        identity = parts(directory)
+        require(not any(overlap(identity, parts(other)) for other in forbidden), 'private storage overlaps source, runtime or public assets')
+        require(not any(overlap(identity, parts(other)) for other in selected.values()), 'private storage roots overlap or alias')
+        selected[name] = directory
+    return selected
 
 
 def project_definition(feature, repository=None):
@@ -285,7 +326,7 @@ def validate(model, repository=None):
     unique = set()
     for row in model['bindings']:
         require(isinstance(row, dict) and row.get('kind') in BINDING_FIELDS, 'unknown binding type')
-        optional = {'pagePermission', 'bootstrapPermission'} if row['kind'] == 'frontend' else set()
+        optional = {'pagePermission', 'bootstrapPermission'} if row['kind'] == 'frontend' else ({'section'} if row['kind'] == 'privateFiles' else set())
         object_fields(row, BINDING_FIELDS[row['kind']], optional, label='binding')
         key = json.dumps(row, sort_keys=True)
         require(key not in unique, 'duplicate binding')
@@ -293,7 +334,15 @@ def validate(model, repository=None):
         for field, kind in REFERENCE_KINDS.items():
             if field in row:
                 reference(model, row[field], kind)
-        if row['kind'] == 'databaseProvider':
+        if row['kind'] == 'privateFiles':
+            for field in ('setting', 'section'):
+                value = row.get(field, 'EvidenceFiles')
+                require(isinstance(value, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,127}', value), 'invalid private storage configuration target')
+            require(row.get('section', 'EvidenceFiles').casefold() not in ('foundation', 'hostedpages', 'web', 'postgresql'),
+                    'private storage must use owner configuration')
+            require(row['featureRef'] in shell_features(model, row['shellRef']) and
+                    row['shellRef'] in host_shells(model, row['hostRef']), 'private storage binding has foreign placement')
+        elif row['kind'] == 'databaseProvider':
             require(re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,127}', str(row['context'])), 'invalid context type')
             identifier(row['policy'], 'database policy')
             require(reference(model, row['featureRef'], 'feature')['role'] == 'provider', 'database binding requires provider ownership')
@@ -327,6 +376,14 @@ def validate(model, repository=None):
         require(host_shells(model, name), 'host has no selected shell')
     for name in resources(model, 'feature'):
         require(any(row['featureRef'] == name for row in bindings(model, 'featureShell')), 'feature has no shell placement')
+    storage_targets = set()
+    for name in resources(model, 'privateFiles'):
+        rows = [row for row in bindings(model, 'privateFiles') if row['filesRef'] == name]
+        require(len(rows) == 1, 'private storage requires exactly one owning binding')
+        row = rows[0]
+        target = (row['shellRef'], row.get('section', 'EvidenceFiles').casefold(), row['setting'].casefold())
+        require(target not in storage_targets, 'duplicate private storage configuration target')
+        storage_targets.add(target)
     database_names = set()
     for name, row in resources(model, 'database').items():
         placement = [item for item in bindings(model, 'databaseServer') if item['databaseRef'] == name]
@@ -343,7 +400,7 @@ def validate(model, repository=None):
         require(key not in policies or policies[key] == row['databaseRef'], 'shared policy name has conflicting database configuration')
         policies[key] = row['databaseRef']
     require(isinstance(model['environments'], dict) and model['defaultEnvironment'] in model['environments'], 'missing default environment')
-    supplied = {'host', 'databaseServer', 'database', 'identityAuthority', 'clientRegistration', 'protectedResource'}
+    supplied = {'host', 'databaseServer', 'database', 'identityAuthority', 'clientRegistration', 'protectedResource', 'privateFiles'}
     needed = {name for name, row in model['resources'].items() if row['kind'] in supplied}
     for env_name, env in model['environments'].items():
         identifier(env_name, 'environment name')
@@ -352,7 +409,11 @@ def validate(model, repository=None):
         listeners = set()
         for name, binding in env['resources'].items():
             kind = model['resources'][name]['kind']
-            if kind == 'host':
+            if kind == 'privateFiles':
+                require(env_name.casefold() in ('development', 'test'), 'private filesystem adapter is qualified only for Development/Test')
+                object_fields(binding, {'directory'}, label=name)
+                local_path(binding['directory'], name + '.directory')
+            elif kind == 'host':
                 object_fields(binding, {'mode', 'publicOrigin'}, {'certificateRef'}, name)
                 require(binding['mode'] == 'managed', 'external application-host execution adapter is not qualified')
                 uri = origin(binding['publicOrigin'], name)
@@ -407,6 +468,7 @@ def validate(model, repository=None):
                 object_fields(binding, {'audience'}, label=name)
                 require(isinstance(binding['audience'], str) and binding['audience'], 'empty assigned audience')
         roles = {}
+        private_directories(model, env_name, repository)
         for name, row in resources(model, 'database').items():
             server = next(item['serverRef'] for item in bindings(model, 'databaseServer') if item['databaseRef'] == name)
             assigned = env['resources'][name]

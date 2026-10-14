@@ -24,6 +24,9 @@ uncertain result payloads to known facts, final clock reads past asynchronous wa
 through provider stages. Trace operational limits from actual activated options through API admission and
 execution. Exercise public production registration with independent durable-effect assertions instead of
 friend access or test-only production wrappers. Browser protocol checks do not establish a usable journey.
+For untrusted parsers, apply the failure/fallback, deferred-work, actual-runtime and resource-bound
+qualification in `program-kit-governance/references/programming-guardrails.md`; reject inconclusive
+inspection before downstream dispatch. Do not promote top-level traversal to unexercised guarantees.
 For .NET operations apply the concrete correction and regression patterns in
 `program-kit-dotnet/references/implementation-boundaries.md`, including current storage metadata,
 activated pagination settings, lock-wait expiry, public transaction tests and

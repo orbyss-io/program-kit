@@ -10,6 +10,7 @@
     { "path": "eng/composition_render.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_render.py" },
     { "path": "eng/composition_migrate.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "composition_migrate.py" },
     { "path": "eng/composition_run.py", "ownership": "managed" },
+    { "path": "eng/windows_workflow_path.py", "ownership": "managed", "sourceRoot": "../../../program-kit-governance", "source": "scripts/windows_workflow_path.py" },
     { "path": "eng/web/composition-readiness.mjs", "ownership": "managed" },
     { "path": "eng/prepare_hosted_pages.py", "ownership": "managed" },
     { "path": "eng/hosted_bundle.py", "ownership": "managed" },

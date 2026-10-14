@@ -96,6 +96,17 @@ in existing tasks and delivery output; a passing graph or generic SOLID statemen
 Apply these checks only to relevant changed responsibilities. They introduce no additional approval
 stage, proof dossier or full-acceptance run during ordinary implementation.
 
+Before external processing of untrusted input, define what successful local inspection establishes.
+Inspect the selected dependency's failure, fallback and deferred-execution semantics. A strict option,
+successful return or top-level traversal can leave corrupt, unsupported or lazy work unvalidated.
+Complete the application admission contract through supported native seams, reject inconclusive
+results before dispatch, and preserve the identity of admitted bytes through submission.
+Qualify the actual packaged runtime and dependency closure with malformed, truncated, expansion,
+timeout and cancellation cases. Distinguish enforced resource bounds from monitored limits;
+account for concurrent work and cleanup. Rejection must produce no downstream processing effect.
+Keep failure observations bounded and free of input contents, sensitive paths and raw parser messages.
+Record remaining uncertainty in ordinary tasks; happy-path checks prove only exercised guarantees.
+
 ## Maintained application handoff
 
 During planning identify affected delivered guides, public contracts, source-backed settings and

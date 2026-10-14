@@ -183,9 +183,29 @@ outside its workflow and claims no agent-supervisor control.
 
 Name actual implementation/configuration inputs covering user meaning, workflow, authorization,
 persistence and effects in `basisPaths`; include relevant generated/build/policy inputs. Presentation
-binds their exact bytes. Changed/deleted inputs reopen only that checkpoint and retain prior decisions.
+binds their exact bytes. Legacy changed/deleted inputs reopen only that checkpoint and retain prior decisions.
 Unrelated test corrections/new commits do not invalidate every story. Re-present the repaired outcome
 and retain valid prior acceptance; a fresh generic check result is not a human decision.
+
+New presentations may provide `materialScope` version 1 alongside `basisPaths`. Every raw input must
+be classified exactly once: `file` binds exact bytes; `json` binds the complete canonical JSON;
+`foundation-composition` version 1 selects named `hosts` and `environments` and includes the whole
+shared host startup closure; `verification` version 1 selects relevant test `projects` and retains
+global verification policy plus every group touching those projects. Use the maintained
+`review_material.py` projection; arbitrary JSON pointers or path exclusions are unsupported.
+Include selected source, generated activation/settings, project/build/dependency closure and public
+contracts in the other basis inputs. Architecture and resolved output use full `json`/`file` bindings
+until a supported narrower projection exists; do not discard their provenance hashes manually.
+The projection definition and executable implementation are hash-bound. Raw-only changes retain the
+actual human decision but require renewed engineering checks before progression or closure. Material
+host mounts, authentication, provider settings, outcome/expected results or limitations reopen human
+review. Unknown/deleted inputs, unsupported projections and unprovable legacy history remain pending.
+An `engineering` transition renews raw-input freshness only with actual successful relevant artifacts;
+tests never create acceptance. Original decision objects and their raw basis remain unchanged.
+
+A parser dependency pin alone does not identify the executing runtime. Qualification evidence names
+the actual runtime, packaged closure, configuration and exercised deferred paths, and proves only
+the demonstrated admission and resource guarantees.
 
 Use stable story/operation IDs. Elapsed wall time accrues once for the active operation and story,
 including preparation, planning, builds, integration, tests and repairs, rather than summing commands.

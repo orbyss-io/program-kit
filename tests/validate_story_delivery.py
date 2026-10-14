@@ -18,6 +18,9 @@ sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import task_draft as delivery
 import task_draft as draft
 import phase_obligations as phases
+sys.path.insert(0, str(ROOT / 'tests'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
+from composition_fixture import two_apps
 import task_draft as reset
 
 
@@ -109,6 +112,130 @@ class DeliveryTests(unittest.TestCase):
 
     def accept(self, key='US1'):
         return self.act('decision', checkpoint=key, verdict='accepted', actor='requester', source='simulated explicit acceptance')
+
+    def scoped_presentation(self):
+        self.complete('T001', 'T002')
+        (self.root / 'eng').mkdir(exist_ok=True)
+        self.graph = two_apps(ROOT)
+        self.composition = self.root / 'eng/foundation-composition.json'
+        self.composition.write_text(json.dumps(self.graph))
+        self.scope = {'schemaVersion': 1, 'inputs': [
+            {'path': 'src/Create.txt', 'kind': 'file'},
+            {'path': 'eng/foundation-composition.json', 'kind': 'foundation-composition', 'version': 1,
+             'hosts': ['application-host'], 'environments': ['development']}]}
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+            basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
+            entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
+        self.accept()
+
+    def test_scoped_sibling_host_change_retains_human_decision_but_blocks_stale_engineering(self):
+        self.scoped_presentation()
+        decision = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+        self.graph['resources']['assessment-shell']['name'] = 'changed-assessment'
+        self.composition.write_text(json.dumps(self.graph, indent=2))
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('accepted', review['human']); self.assertEqual('pending', review['engineering'])
+        self.assertEqual(decision, review['decisions'])
+        with self.assertRaisesRegex(ValueError, 'engineering checks remain due'):
+            self.act('start', operation='export')
+        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('start', operation='export')
+        self.assertEqual(decision, delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+
+    def test_canonical_formatting_change_retains_acceptance_without_rewriting_approval(self):
+        self.scoped_presentation()
+        prior = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+        self.composition.write_text(json.dumps(self.graph, indent=4))
+        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+            basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
+            entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('accepted', review['human']); self.assertEqual(prior, review['decisions'])
+
+    def test_material_shared_host_authentication_change_reopens_only_affected_review(self):
+        self.scoped_presentation()
+        self.graph['resources']['product-identity']['session'] = {'idleMinutes': 25, 'absoluteMinutes': 480}
+        self.composition.write_text(json.dumps(self.graph))
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('pending', review['human']); self.assertTrue(review['stale'])
+        self.assertEqual('accepted', review['decisions'][-1]['verdict'])
+
+    def test_unknown_duplicate_or_deleted_shared_input_cannot_claim_unchanged(self):
+        for content in ('{"schemaVersion":2,"schemaVersion":2}', '{"schemaVersion":999}', None):
+            with self.subTest(content=content):
+                self.scoped_presentation()
+                if content is None:
+                    self.composition.unlink()
+                else:
+                    self.composition.write_text(content)
+                self.act('status')
+                self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_changed_scope_does_not_promote_historical_acceptance(self):
+        self.scoped_presentation()
+        value = delivery.load_delivery(self.feature)
+        value['checkpoints']['US1']['materialScope']['inputs'][1]['hosts'] = ['assessment-host']
+        delivery.persist(self.feature, value)
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_shared_private_mount_is_material_even_without_business_source_change(self):
+        self.scoped_presentation()
+        self.graph['authority'] = {'architectureMap': 'docs/architecture/map.json', 'decisionIds': ['fixture']}
+        self.graph['resources']['private-store'] = {'kind': 'privateFiles', 'ownerRef': 'application'}
+        self.graph['environments']['development']['resources']['private-store'] = {'directory': 'artifacts/private-evidence/policies'}
+        self.graph['bindings'].append({'kind': 'privateFiles', 'filesRef': 'private-store', 'hostRef': 'application-host',
+            'shellRef': 'application-shell', 'featureRef': 'feature-0', 'setting': 'Root'})
+        self.composition.write_text(json.dumps(self.graph))
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_verification_sibling_group_requires_current_checks_without_new_human_decision(self):
+        import review_material
+        file = self.root / 'eng/verification.json'; file.parent.mkdir(exist_ok=True)
+        value = {'schemaVersion': 1, 'testGroups': [{'id': 'create', 'projects': ['tests/Create.csproj'], 'inputs': ['src/Create/**']}]}
+        file.write_text(json.dumps(value))
+        scope = {'schemaVersion': 1, 'inputs': [{'path': 'eng/verification.json', 'kind': 'verification', 'version': 1,
+                                               'projects': ['tests/Create.csproj']}]}
+        original = review_material.basis(self.root, scope, ['eng/verification.json'])
+        value['testGroups'].append({'id': 'export', 'projects': ['tests/Export.csproj'], 'inputs': ['src/Export/**']})
+        file.write_text(json.dumps(value))
+        self.assertEqual(original, review_material.basis(self.root, scope, ['eng/verification.json']))
+        value['testGroups'][0]['reuse'] = False; file.write_text(json.dumps(value))
+        self.assertNotEqual(original, review_material.basis(self.root, scope, ['eng/verification.json']))
+        value['unknownFutureBehavior'] = True; file.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError, 'unknown verification'):
+            review_material.basis(self.root, scope, ['eng/verification.json'])
+
+    def test_failed_checks_cannot_renew_scoped_engineering(self):
+        self.scoped_presentation()
+        self.composition.write_text(json.dumps(self.graph, indent=2))
+        (self.root / 'artifacts/passing.json').write_text('{"status":"failed","exitCode":1}')
+        with self.assertRaisesRegex(ValueError, 'Failed/incomplete'):
+            self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['engineering'])
+
+    def test_projection_implementation_change_reopens_review(self):
+        self.scoped_presentation()
+        import review_material
+        prior = review_material.basis
+        def changed(*arguments):
+            result = prior(*arguments); result['implementationSha256'] = 'changed-fixture'; return result
+        with patch.object(review_material, 'basis', side_effect=changed):
+            self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_active_environment_switch_cannot_hide_behind_old_environment_projection(self):
+        self.scoped_presentation()
+        self.graph['environments']['test'] = copy.deepcopy(self.graph['environments']['development'])
+        self.graph['defaultEnvironment'] = 'test'
+        self.composition.write_text(json.dumps(self.graph))
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
 
     def test_operations_progress_without_review_and_actual_dependencies_remain(self):
         self.act('start', operation='create')

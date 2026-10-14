@@ -491,6 +491,8 @@ def check_artifacts(root, references):
 def review_digest(presentation):
     # Same-code changes to user meaning cannot reuse an older authenticated decision.
     scope = {key: presentation[key] for key in ('basis', 'outcome', 'expected', 'limitations')}
+    if 'materialBasis' in presentation:
+        scope['basis'] = presentation['materialBasis']
     return hashlib.sha256(json.dumps(scope, sort_keys=True).encode()).hexdigest()
 
 
@@ -567,7 +569,11 @@ def validate(value):
                     isinstance(decision.get('permits'), list) and isinstance(decision.get('at'), (int, float)),
                     'Malformed retained human decision provenance')
         if review['human'] in ('accepted', 'deferred'):
-            require(review.get('engineering') == 'complete' and isinstance(review.get('presentation'), dict) and review['decisions'],
+            scoped_retained = (review.get('materialScope') and isinstance(review.get('presentation'), dict) and
+                              review['presentation'].get('materialBasis') and review.get('engineeringInputBasis') and
+                              review['decisions'] and review['decisions'][-1].get('materialBasis') == review['presentation']['materialBasis'] and
+                              not review.get('stale'))
+            require((review.get('engineering') == 'complete' or scoped_retained) and isinstance(review.get('presentation'), dict) and review['decisions'],
                     'Decision requires complete engineering, presented basis and provenance')
             require(review['decisions'][-1]['verdict'] == review['human'] and
                     review['decisions'][-1]['basis'] == review['presentation'].get('basis'),
@@ -618,11 +624,21 @@ def refresh(root, value):
         presented = review.get('presentation')
         if presented:
             try:
-                fresh = basis(root, review['basisPaths']) == presented['basis']
-            except ValueError:
+                raw = basis(root, review['basisPaths'])
+                fresh = raw == review.get('engineeringInputBasis', presented['basis'])
+                material_fresh = False
+                if review.get('materialScope') and presented.get('materialBasis'):
+                    import review_material
+                    material_fresh = review_material.basis(root, review['materialScope'], review['basisPaths']) == presented['materialBasis']
+                    fresh = fresh and material_fresh
+            except (ValueError, OSError, KeyError, TypeError):
                 fresh = False
+                material_fresh = False
             if not fresh:
-                review.update(human='pending', engineering='pending', stale=True)
+                if material_fresh:
+                    review.update(engineering='pending')
+                else:
+                    review.update(human='pending', engineering='pending', stale=True)
     return value
 
 
@@ -669,9 +685,13 @@ def guard(root, feature, operation=None, closure=False, repair=False):
         require(not unresolved, 'Required human reviews remain due before feature acceptance: ' + ', '.join(unresolved))
         require(not load_failures(feature), 'Required technical failures cannot be waived by human approval')
         for review in value['checkpoints'].values():
+            require(review['engineering'] == 'complete', 'Current engineering checks remain due after changed review inputs')
             require(check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
         return value
     for key, review in value['checkpoints'].items():
+        if review.get('presentation') and review['human'] in ('accepted', 'deferred'):
+            require(repairable or review['engineering'] == 'complete', 'Current engineering checks remain due: ' + key)
+            require(repairable or check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
         tasks = review.get('taskIds', value['stories'][review['story']]['taskIds'])
         due = review['human'] in ('ready for review', 'changes requested', 'deferred') or review.get('stale') or (set(tasks) <= completed and review['human'] == 'pending')
         if due:
@@ -776,6 +796,8 @@ def transition(root, feature, request, now=None, reader=github_read):
         completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
         require(set(review.get('taskIds', story['taskIds'])) <= completed, 'Complete the checkpoint engineering tasks and relevant checks first')
         review.update(engineering='complete', checks=request['checks'], checkBasis=checks)
+        if review.get('basisPaths'):
+            review['engineeringInputBasis'] = basis(root, review['basisPaths'])
         if action == 'present':
             prior = copy.deepcopy(review.get('presentation'))
             prior_human = review['human']
@@ -785,7 +807,18 @@ def transition(root, feature, request, now=None, reader=github_read):
             review['presentation'] = {field: request[field] for field in ('entryPoint', 'preparedData', 'walkthrough', 'expected', 'limitations')}
             review['presentation']['basis'] = basis(root, review['basisPaths'])
             review['presentation']['outcome'] = story['outcome']
+            if request.get('materialScope') is not None:
+                import review_material
+                review['materialScope'] = copy.deepcopy(request['materialScope'])
+            if review.get('materialScope'):
+                import review_material
+                review['presentation']['materialBasis'] = review_material.basis(root, review['materialScope'], review['basisPaths'])
+            review['engineeringInputBasis'] = basis(root, review['basisPaths'])
             unchanged_acceptance = prior_human == 'accepted' and prior and review_digest(prior) == review_digest(review['presentation'])
+            if unchanged_acceptance:
+                # Preserve the exact original decision's raw basis. Current raw
+                # hashes belong to engineering freshness, not rewritten approval.
+                review['presentation']['basis'] = prior['basis']
             review.update(human='accepted' if unchanged_acceptance else 'ready for review', stale=False, permits=[])
             value['clock']['waiting'] = True
     elif action == 'decision':
@@ -816,7 +849,7 @@ def transition(root, feature, request, now=None, reader=github_read):
             require((role['kind'] == 'conversation' and request.get('actor') == review['reviewer']) or
                     (owner and verdict == 'deferred'), 'Wrong reviewer; delegated GitHub reviewers supply an authenticated decision reference')
             require(nonempty(source), 'Record actual explicit human decision source; silence/tests grant no authority')
-        if verdict == 'accepted':
+        if verdict in ('accepted', 'deferred'):
             require(review['engineering'] == 'complete' and not load_failures(feature), 'Human approval cannot waive required technical failures')
             require(check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
         permits = request.get('permits', [])
@@ -830,6 +863,8 @@ def transition(root, feature, request, now=None, reader=github_read):
         deciding_role = 'owner' if owner else review['reviewer']
         review['decisions'].append({'verdict': verdict, 'reviewer': deciding_role, 'assignment': copy.deepcopy(value['roles'][deciding_role]),
             'source': source, 'basis': review['presentation']['basis'], 'permits': review['permits'], 'at': now})
+        if review['presentation'].get('materialBasis'):
+            review['decisions'][-1]['materialBasis'] = copy.deepcopy(review['presentation']['materialBasis'])
         value['clock']['waiting'] = verdict != 'changes requested'
     elif action in ('verify-reviewer', 'assign'):
         require(owner and nonempty(request.get('source')), 'Only an explicit owner decision may reassign review')
@@ -896,12 +931,16 @@ def transition(root, feature, request, now=None, reader=github_read):
         target = value['checkpoints'][request['checkpoint']]
         story = value['stories'][target['story']]
         require(source['story'] == target['story'] and source['human'] == 'accepted' and not source.get('stale') and
+                source['engineering'] == 'complete' and
                 set(source.get('taskIds', story['taskIds'])) == set(story['taskIds']) and
                 source['presentation']['outcome'] == story['outcome'], 'Prior review must cover the unchanged complete story outcome')
         require(check_artifacts(root, source['checks']) == source['checkBasis'], 'Prior technical check evidence changed')
         target.update(human='accepted', engineering='complete', basisPaths=source['basisPaths'],
                       presentation=copy.deepcopy(source['presentation']), checks=source['checks'], checkBasis=source['checkBasis'], stale=False,
                       decisions=copy.deepcopy(source['decisions']), reusedFrom=request['from'])
+        for field in ('materialScope', 'engineeringInputBasis'):
+            if field in source:
+                target[field] = copy.deepcopy(source[field])
     elif action in ('wait', 'resume', 'suspend', 'status'):
         if action != 'status':
             value['clock']['waiting'] = action == 'wait'
