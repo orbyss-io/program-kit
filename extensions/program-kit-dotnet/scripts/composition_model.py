@@ -337,7 +337,8 @@ def validate(model, repository=None):
         if row['kind'] == 'privateFiles':
             for field in ('setting', 'section'):
                 value = row.get(field, 'EvidenceFiles')
-                require(isinstance(value, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,127}', value), 'invalid private storage configuration target')
+                require(isinstance(value, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,127}', value) and '__' not in value,
+                        'invalid private storage configuration target')
             require(row.get('section', 'EvidenceFiles').casefold() not in ('foundation', 'hostedpages', 'web', 'postgresql'),
                     'private storage must use owner configuration')
             require(row['featureRef'] in shell_features(model, row['shellRef']) and

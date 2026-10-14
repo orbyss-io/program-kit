@@ -75,12 +75,20 @@ class PrivateFilesTests(unittest.TestCase):
         row['hostRef'] = 'assessment-host'
         with self.assertRaisesRegex(ValueError, 'foreign placement'):
             model.validate(self.graph)
+
         row['hostRef'] = 'application-host'
         self.graph['resources']['other'] = {'kind': 'privateFiles', 'ownerRef': 'application'}
         model.environment(self.graph)['other'] = {'directory': 'artifacts/private-evidence/other'}
         self.graph['bindings'].append({**row, 'filesRef': 'other', 'section': 'evidencefiles', 'setting': 'root'})
         with self.assertRaisesRegex(ValueError, 'duplicate private'):
             model.validate(self.graph)
+
+    def test_configuration_target_cannot_inject_framework_or_nested_keys(self):
+        for section, setting in (('Foundation', 'Root'), ('Foundation__Web', 'ClientSecret'), ('EvidenceFiles', 'Root__Other')):
+            with self.subTest(section=section, setting=setting):
+                value = graph(); value['bindings'][-1].update(section=section, setting=setting)
+                with self.assertRaisesRegex(ValueError, 'owner configuration|configuration target'):
+                    model.validate(value)
 
     def test_private_roots_reject_public_stage_source_nested_and_alias(self):
         for relative in ('web/policy-web/private', 'artifacts/runtime/policies/private', 'src/hidden', 'tests/private',

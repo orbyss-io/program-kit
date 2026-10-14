@@ -275,11 +275,44 @@ consumer-owned with generic parser qualification added to existing semantic guid
 
 Current focused evidence: `artifacts/tests/ds01-repair/second-batch-toolchain-native.log`
 passes15 cases including actual npm child execution with oversized inherited PATH and unchanged
-parent environment. `second-batch-review.log` passes31 cases including scoped freshness,
+parent environment. `second-batch-review-final.log` passes32 cases including scoped freshness,
 shared authentication/storage impact, preserved decisions, unknown/deleted inputs and failed
-checks. Initial native-start evidence passes35 cases; the complete new disposable Host
-qualification is running and its results will be recorded separately. These are focused
+checks. Final native-start evidence passes37 cases, with two Windows filesystem limitations
+covered by Linux CI (POSIX ownership and directory symlinks). The complete new disposable Host
+qualification passes at `artifacts/tests/composition-start/ad55635a5d294803b1d448699cacac1b`:
+actual non-root Host writes retain65,536 bytes across restart, authenticated public requests
+cannot retrieve them, missing retained storage is rejected and recovery succeeds, cold update
+starts selected prerequisites and stopped database recovery preserves its container identity.
+Existing identity reconciliation, browser privacy, immutable frontend revision and incomplete
+product-architecture refusal checks still pass. Source helper hashes, immutable image identities,
+Compose hash and retained-byte hash were independently verified in
+`artifacts/tests/ds01-repair/second-batch-native-verification.json` against repair source
+`d36d8177acdd8e1e8218e588975d7b9945b8ae1c`. These are focused
 checks, not a Release receipt or real-consumer acceptance.
+
+Both failed native attempts remain preserved. The first proved the new guarantees but stopped
+the Host during the deliberate missing-volume case and omitted restart before an existing later
+browser check; the fixture now explicitly proves volume recovery. The second failed because
+Docker had exhausted its network address pool, before host activation. Disposal removes only
+this fixture's hash-verified Compose containers/network, retaining named volumes, private data
+and all evidence; no global Docker pruning was performed. Final PostgreSQL readiness uses TCP
+to exclude the image's temporary socket-only initialization server.
+
+Current exact-source full CI38536210895 and mandatory dependency qualification38536205978 are
+running for `d36d817`. Bounded Development is running with preserved log
+`artifacts/tests/ds01-repair/development-d36d817.log` and journal
+`artifacts/validation-runs/20261014T083448Z-f3c982c0/journal.json`. No complete Release was started
+from this task, and no release tag was created.
+
+The bounded run exposed a Windows source-test loader omission: it loaded `js_toolchain`
+without its managed shared PATH module. Installed consumer helper hashes were already verified.
+The test loader now loads the same canonical module, and all28 setup cases pass in
+`artifacts/tests/ds01-repair/second-batch-foundation-setup.log`. Preserve the original failed
+bounded journal; fresh passing Development evidence is required. Final source review also
+rejects `__` in private configuration target literals, preventing environment-key nesting into
+framework settings. All12 focused private cases pass (the same two platform skips). The native
+proof above remains exact for its original source; the added refusal requires current-source
+CI and eventual complete Release qualification, with no altered receipt or false reuse claim.
 
 Prior-source targeted three-engine CI38526047800 and full CI38526053067 passed. Mandatory
 dependency update38526051812 failed the hardcoded exporter0.2.5 expectation after selecting

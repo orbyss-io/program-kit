@@ -32,6 +32,7 @@ def load(name, path):
 
 
 load('foundation_process', ROOT / 'extensions/program-kit-governance/scripts/compatibility_process.py')
+load('windows_workflow_path', ROOT / 'extensions/program-kit-governance/scripts/windows_workflow_path.py')
 fixture = load('foundation_fixture', ENG / 'foundation_fixture.py')
 load('test_results', ENG / 'test_results.py')
 js_toolchain = load('js_toolchain', ENG / 'js_toolchain.py')
