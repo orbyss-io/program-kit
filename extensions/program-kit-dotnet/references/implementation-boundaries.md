@@ -27,7 +27,7 @@ Use the selected publisher's supported native EF interceptor contribution when a
 capture. Keep test instrumentation in the tests and use native `TransactionCommittedAsync` for a
 fault after the actual database commit.
 
-The verified 0.3.4 candidate source (`805383ad55e2f50716196faf2ba764073aa5f42c`) adds an overload
+Published Foundation 0.3.4 (`805383ad55e2f50716196faf2ba764073aa5f42c`) adds an overload
 to both `AddFoundationPostgreSql<TContext>` registration forms with
 `Func<IServiceProvider, IReadOnlyList<IInterceptor>> interceptors` after the context constructor.
 The callback runs once per admitted context with that tracked unit's provider. Contributions are
@@ -36,8 +36,8 @@ and repeated instance references are rejected. Resolve disposable test contribut
 transient instances can be context-specific, scoped instances share the unit, and the retained unit
 scope owns their disposal after the final context leaves. Externally supplied instances retain their
 owner's disposal responsibility. This is a native contribution seam, not permission to replace
-provider/options or remove guards. A qualified source candidate does not establish public availability;
-retain the older contract until public release checks and exact consumer selection admit this one.
+provider/options or remove guards. Retain the older contract until exact consumer selection admits
+this published version; installing Program Kit does not change an existing consumer's pins.
 
 Resolve the operation's production port through actual feature registration. With a real PostgreSQL
 transaction, commit once and throw once from the postcommit hook. An independent connection must
@@ -98,11 +98,11 @@ an independently valid session. Offer Continue only after observing that session
 fresh sign-in action. Exercise a human-paced fresh login and actual expired-state recovery while
 preserving nonce, state, correlation and PKCE validation. The fifteen-minute Program Kit interaction
 policy includes credentials/MFA/consent; do not confuse it with Foundation 0.3.3's ten-second package
-fallback. In the verified 0.3.4 candidate, the package default is 900 seconds and native nonce lifetime
+fallback. In Foundation 0.3.4, the package default is 900 seconds and native nonce lifetime
 matches the selected positive interaction timeout. `DiscoveryTimeoutSeconds` remains the separate
 per-backchannel-HTTP-request budget; native metadata retries can consume several such budgets.
 
-That candidate also routes proven initial `/bff/login` provider availability failures through the
+That release also routes proven initial `/bff/login` provider availability failures through the
 existing `IAuthenticationErrorWriter` as 503 `identity_provider_unavailable`. Include `/bff/login`
 among the exact browser-purpose paths in the application writer, alongside the selected callback and
 access-denied paths. Native transport/document-retrieval/PAR provenance admits transport failures,
@@ -118,7 +118,7 @@ confirmed local sign-out with unconfirmed provider completion differs from unkno
 acknowledgement. Clear private state after dispatch and offer bounded independent session recovery.
 Never restore private content merely because the response was lost.
 
-The verified 0.3.4 candidate's `Foundation:Web:LogoutLandingPath` retains `/bff/signed-out` as the
+Foundation 0.3.4's `Foundation:Web:LogoutLandingPath` retains `/bff/signed-out` as the
 default machine destination and permits an application-owned public page such as `/signed-out` or
 `/`. It is a literal shell-relative path of at most 2048 characters, excluding queries, fragments,
 escapes, dot segments, routing syntax and reserved protocol/API/BFF endpoints. Both provider completion
@@ -126,6 +126,18 @@ and initiation-failure fallback use the native authentication feature's captured
 the fallback adds `remote=unavailable` without making that query hint proof of session state. Native
 caller cancellation still propagates and a started response cannot be rewritten. Preserve the existing
 writer interface and machine acknowledgement contract when selecting this additive destination setting.
+
+Recovery focus belongs to the presentation owner. A provider popup can leave the new recovery page
+in the background, where a one-shot `autofocus` or `heading.focus()` may not select its heading.
+Bundle the maintained `eng/web/authentication-recovery-focus.ts` through the owner's public frontend
+build and actually serve its external module asset. Supply that shell-relative path to the
+application presentation example; its script URL preserves the captured native shell prefix.
+The module selects the marked recovery heading when the document becomes visible and active,
+preserves a user's chosen control, and cleans up pending work. Dynamic presentations use its
+`focusAuthenticationRecovery` return value to dispose the previous pending selection before
+replacing content. Keep readable HTML and keyboard links usable when scripts are disabled. Browser
+tests must return to the owner window and observe application-selected focus without focusing the
+heading themselves; preserve private-content and independent session assertions throughout.
 
 Protocol assertions are necessary and separately named. Complete browser acceptance clicks the actual
 product controls and shipped adapter, checks branding, readable text, keyboard/focus and explicit

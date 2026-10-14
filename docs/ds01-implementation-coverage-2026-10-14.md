@@ -144,7 +144,24 @@ conflicting candidates. Dependency workflow17 and profile catalog34 focused chec
 `artifacts/tests/ds01-repair/updater-current-target/`; native adoption must still pass its complete
 workflow. No local profiles, pins, knowledge or consumer locks changed during these repairs.
 
-Foundation publication, the required Program Kit dependency workflow, exact new profile/knowledge adoption and fresh
+The next [Firefox reproduction38511790143](https://github.com/orbyss-io/program-kit/actions/runs/38511790143)
+observed all33 cases and isolated the provider-failure recovery to an active owner document with
+an unselected heading and a still-open provider popup. The one-shot owner focus behavior therefore
+needed an implementation repair. The maintained recovery module now waits for actual document
+activation, preserves a user-selected control and disposes pending work on navigation or view
+replacement. The compiled HTML example serves that same external module under its captured shell
+prefix; guidance requires an actually served owner asset. Browser tests retain their original focus
+assertions and never focus the heading themselves.
+
+Final local verification passed22/22 Chromium/WebKit maintained authentication cases at
+`artifacts/tests/reusable-foundations/functional-18477b4855e4496a/`. Presentation evidence at
+`artifacts/tests/authentication-presentation/259c917e/` includes five module lifecycle cases,
+25 compiled contract cases and20 browser observations covering activation, chosen controls,
+self-only CSP and no-script presentation. Failure privacy, strict TypeScript and fast unit checks
+also passed. Historical staged inputs were restored. Firefox still requires fresh Linux CI;
+the failed foreground-only attempts remain failed.
+
+The required Program Kit dependency workflow, exact new profile/knowledge adoption and fresh
 Program Kit Release qualification remain open. Program Kit patch publication is authorized after
 these gates. The Windows Release command must run in the user-owned terminal unless the user
 explicitly overrides the restriction. No paid live phase, real-consumer acceptance or release success

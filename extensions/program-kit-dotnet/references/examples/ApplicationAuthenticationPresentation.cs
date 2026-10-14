@@ -21,16 +21,20 @@ public sealed class ApplicationAuthenticationPresentation : IAuthenticationError
     private readonly PathString returnPath;
     /// <summary>Exact selected login/callback/error routes permitted to receive browser HTML.</summary>
     private readonly HashSet<PathString> interactiveFailures;
+    /// <summary>The owner's actually served external recovery-focus module, relative to the shell.</summary>
+    private readonly PathString recoveryModulePath;
 
     /// <summary>Admits the owner's branding, workspace destination and exact interactive error routes.</summary>
     /// <param name="brand">The application's display name.</param>
     /// <param name="returnPath">An unambiguous application-local workspace path, without a query or fragment.</param>
     /// <param name="interactiveFailurePaths">The selected callback/error paths and /bff/login when supported initial-login recovery is selected; API routes are excluded.</param>
-    public ApplicationAuthenticationPresentation(string brand, string returnPath, IEnumerable<string> interactiveFailurePaths)
+    /// <param name="recoveryModulePath">The owner-local asset serving the maintained authentication-recovery-focus module.</param>
+    public ApplicationAuthenticationPresentation(string brand, string returnPath, IEnumerable<string> interactiveFailurePaths, string recoveryModulePath)
     {
         this.brand = string.IsNullOrWhiteSpace(brand) ? throw new ArgumentException("Application branding is required.") : brand;
         this.returnPath = LocalPath(returnPath);
         interactiveFailures = interactiveFailurePaths.Select(LocalPath).ToHashSet();
+        this.recoveryModulePath = LocalPath(recoveryModulePath);
         if (interactiveFailures.Any(path => path.StartsWithSegments("/api")))
             throw new ArgumentException("API paths cannot select browser error presentation.");
     }
@@ -84,6 +88,7 @@ public sealed class ApplicationAuthenticationPresentation : IAuthenticationError
         var basePath = context.Features.Get<IAuthenticationFeature>()?.OriginalPathBase ?? context.Request.PathBase;
         var home = basePath.Add(returnPath).Value!;
         var restart = basePath.Add(new PathString("/bff/login")).Value! + "?returnUrl=" + Uri.EscapeDataString(home);
+        var focusModule = basePath.Add(recoveryModulePath).Value!;
         var continueLink = existingSession ? $"<p><a tabindex=\"0\" href=\"{Encode(home)}\">Continue to your workspace</a></p>" : "";
         context.Response.StatusCode = status;
         context.Response.ContentType = "text/html; charset=utf-8";
@@ -92,9 +97,9 @@ public sealed class ApplicationAuthenticationPresentation : IAuthenticationError
         await context.Response.WriteAsync($"""
             <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
             <title>{Encode(title)} — {Encode(brand)}</title></head><body><header><p>{Encode(brand)}</p></header>
-            <main aria-labelledby="recovery-title"><h1 id="recovery-title" tabindex="-1" autofocus>{Encode(title)}</h1>
+            <main aria-labelledby="recovery-title"><h1 id="recovery-title" data-authentication-recovery-heading tabindex="-1" autofocus>{Encode(title)}</h1>
             <p role="status">{Encode(explanation)}</p>{continueLink}<p><a tabindex="0" href="{Encode(restart)}">Start a fresh sign-in</a></p>
-            </main></body></html>
+            </main><script type="module" src="{Encode(focusModule)}"></script></body></html>
             """, context.RequestAborted);
     }
 

@@ -15,7 +15,7 @@ var output = args.Single(); Directory.CreateDirectory(output);
 var serviceCollection = new ServiceCollection();
 serviceCollection.AddLogging(); serviceCollection.AddFoundationProblemDetails();
 serviceCollection.AddSingleton<IAuthenticationService, FixtureCookieAuthentication>();
-serviceCollection.AddSingleton(new ApplicationAuthenticationPresentation("Example <Workspace>", "/workspace", ["/bff/login", "/bff/access-denied", "/signin-oidc"]));
+serviceCollection.AddSingleton(new ApplicationAuthenticationPresentation("Example <Workspace>", "/workspace", ["/bff/login", "/bff/access-denied", "/signin-oidc"], "/assets/authentication-recovery-focus.js"));
 serviceCollection.AddSingleton<IAuthenticationErrorWriter>(provider => provider.GetRequiredService<ApplicationAuthenticationPresentation>());
 await using var services = serviceCollection.BuildServiceProvider();
 var writer = services.GetRequiredService<IAuthenticationErrorWriter>();
@@ -65,6 +65,7 @@ foreach (var existing in new[] { false, true })
     Require(context.Response.StatusCode == 400 && context.Response.ContentType == "text/html; charset=utf-8", "Browser status/representation changed.");
     Require(html.Contains("Example &lt;Workspace&gt;") && !html.Contains("secret-provider-payload") && !html.Contains("attacker.invalid"), "Unsafe browser reflection.");
     Require(html.Contains("Continue to your workspace") == existing && html.Contains("/tenant/bff/login?returnUrl=%2Ftenant%2Fworkspace"), "Session/restart decision changed.");
+    Require(html.Contains("src=\"/tenant/assets/authentication-recovery-focus.js\"") && !html.Contains("<script>"), "Recovery module lost native prefix or admitted inline code.");
     Require(context.Response.Headers.CacheControl == "no-store" && context.Response.Headers["X-Robots-Tag"].ToString().Contains("noindex"), "Privacy headers lost.");
     await File.WriteAllTextAsync(Path.Combine(output, existing ? "error-existing.html" : "error-anonymous.html"), html); cases++;
 }
@@ -82,7 +83,7 @@ foreach (var path in new[] { "/bff/login", "/bff/access-denied", "/api/policies"
     }
     else
     {
-        Require(context.Response.ContentType == "text/html; charset=utf-8" && body.Contains("/tenant/bff/login?returnUrl=%2Ftenant%2Fworkspace"), "Restored shell route lost purpose or native base.");
+        Require(context.Response.ContentType == "text/html; charset=utf-8" && body.Contains("/tenant/bff/login?returnUrl=%2Ftenant%2Fworkspace") && body.Contains("src=\"/tenant/assets/authentication-recovery-focus.js\""), "Restored shell route lost purpose or native base.");
         await File.WriteAllTextAsync(Path.Combine(output, path == "/session-ended" ? "session-restored.html" : path == "/bff/login" ? "login-restored.html" : "denied-restored.html"), body);
     }
     cases++;
@@ -103,7 +104,7 @@ foreach (var existing in new[] { false, true })
 }
 foreach (var path in new[] { "//attacker.invalid", "/\\attacker.invalid", "/%2f%2fattacker.invalid", "/../outside", "/workspace?returnUrl=https://attacker.invalid" })
 {
-    try { _ = new ApplicationAuthenticationPresentation("Example", path, ["/signin-oidc"]); throw new InvalidOperationException("Unsafe target accepted."); }
+    try { _ = new ApplicationAuthenticationPresentation("Example", path, ["/signin-oidc"], "/assets/authentication-recovery-focus.js"); throw new InvalidOperationException("Unsafe target accepted."); }
     catch (ArgumentException) { cases++; }
 }
 var cancelled = Context("/signin-oidc", "text/html"); cancelled.RequestAborted = new CancellationToken(true);

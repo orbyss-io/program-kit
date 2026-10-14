@@ -83,7 +83,7 @@ def main():
         evidence['unit'] = unit_checks(directory)
         if not args.execute:
             evidence['status'] = 'passed'; print('Authentication presentation admission passed: ' + str(directory)); return
-        for source in [EXAMPLE, ROOT / 'tests/fixtures/authentication-presentation/Probe.cs', ROOT / 'tests/fixtures/authentication-presentation/browser.mjs']:
+        for source in [EXAMPLE, ROOT / 'tests/fixtures/authentication-presentation/Probe.cs', ROOT / 'tests/fixtures/authentication-presentation/browser.mjs', TEMPLATE / 'web-profiles/common/eng/web/authentication-recovery-focus.ts']:
             shutil.copyfile(source, directory / source.name)
             evidence['sources'][str(source.relative_to(ROOT))] = hashlib.sha256(source.read_bytes()).hexdigest()
         shutil.copyfile(TEMPLATE / 'files/global.json', directory / 'global.json')
@@ -130,6 +130,20 @@ def main():
         if package['version'] != expected: raise ValueError('Prepared Playwright differs from selected exact pin')
         if run(['node', '--version']).strip().removeprefix('v') != (TEMPLATE / 'files/.nvmrc').read_text().strip().removeprefix('v'):
             raise ValueError('Node differs from selected exact pin')
+        test_import = (browser_root / 'node_modules/@playwright/test/index.mjs').as_uri()
+        (directory / 'package.json').write_text('{"type":"module"}')
+        focus_test = TEMPLATE / 'web-profiles/common/eng/web/tests/authentication-recovery-focus.spec.ts'
+        focus_directory = directory / 'focus-tests'; focus_directory.mkdir()
+        (focus_directory / focus_test.name).write_text(focus_test.read_text().replace("'@playwright/test'", json.dumps(test_import)))
+        evidence['sources'][str(focus_test.relative_to(ROOT))] = hashlib.sha256(focus_test.read_bytes()).hexdigest()
+        focus_config = {'testDir':str(focus_directory), 'testMatch':focus_test.name, 'workers':1, 'retries':0,
+            'outputDir':str(directory / 'focus-results'), 'reporter':[['junit',{'outputFile':str(directory / 'focus.xml')}]]}
+        (directory / 'focus.config.mjs').write_text('export default ' + json.dumps(focus_config) + ';\n')
+        run(['node', str(browser_root / 'node_modules/playwright/cli.js'), 'test', '--config', 'focus.config.mjs'])
+        focus_cases = list(ET.parse(directory / 'focus.xml').iter('testcase'))
+        if len(focus_cases) != 5 or any(any(node.tag in ('error','failure','skipped') for node in case) for case in focus_cases):
+            raise ValueError('Maintained recovery focus lifecycle tests were incomplete')
+        evidence['focusLifecycle'] = {'passedCases':5, 'scope':'Maintained module with controlled document activation, visibility, user-selected focus and disposal; no browser/provider claim.'}
         script = (ROOT / 'tests/fixtures/authentication-presentation/browser.mjs').read_text().replace('__PLAYWRIGHT__', (browser_root / 'node_modules/playwright/index.mjs').as_uri())
         (directory / 'browser.mjs').write_text(script)
         observed = run(['node', 'browser.mjs', str(output), args.engines])
@@ -142,8 +156,6 @@ def main():
         hook = authentication[hook_start:hook_end]
         if 'test.afterEach(' not in hook: raise ValueError('Maintained authentication privacy hook is absent')
         secret = 'synthetic-private-credential-' + uuid.uuid4().hex
-        test_import = (browser_root / 'node_modules/@playwright/test/index.mjs').as_uri()
-        (directory / 'package.json').write_text('{"type":"module"}')
         (directory / 'privacy.spec.ts').write_text(f"import {{expect,test}} from {json.dumps(test_import)};\n" + hook
             + "test('owned credential assertion privacy proof',async({page})=>{await page.setContent('<input aria-label=Credential>');"
             + 'await page.getByLabel("Credential").fill(' + json.dumps(secret) + ');'

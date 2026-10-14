@@ -414,8 +414,16 @@ the existing writer and independent cookie-session observation. Register it thro
 real HTTP feature and map its public session page separately; qualify against the selected publisher.
 Preserve final private/no-store/no-index/security policies; no route shadowing or private bootstrap
 for anonymous recovery. Inspect actual session state independently of a callback-error URL.
+Bundle the maintained `eng/web/authentication-recovery-focus.ts` into a public owner-local asset
+and pass its actually served shell-relative module path to the presentation example. External code
+preserves the selected CSP without inline scripts and must be available to anonymous recovery.
+Initial autofocus alone can fail behind a provider popup. The module handles pending heading focus
+on document activation/visibility without stealing a user's chosen control; dynamic owner pages
+dispose the previous `focusAuthenticationRecovery` selection before replacing content.
+Retain readable HTML/keyboard recovery without scripts. Test actual application-selected focus after
+returning to the owner window; a test-side heading focus call cannot establish that behavior.
 Where the exact selected publisher exposes initial-login availability recovery, include `/bff/login`
-in the writer's explicit browser-purpose paths. The verified 0.3.4 candidate keeps the writer interface
+in the writer's explicit browser-purpose paths. Published Foundation 0.3.4 keeps the writer interface
 and `TryAddSingleton` replacement seam, and additionally routes proven native provider transport,
 document-retrieval and PAR availability failures to 503 `identity_provider_unavailable`. This excludes
 caller cancellation, malformed/client/configuration errors and unmarked or opaque custom transports;
@@ -425,8 +433,8 @@ The remote authentication timeout bounds the entire human flow, including creden
 and consent. Program Kit's omitted default is fifteen minutes; discovery/backchannel HTTP waits
 retain their separate short per-request limits, and native metadata retries can use more than one.
 Preserve explicit overrides and all protocol safeguards. Foundation 0.3.3's package fallback was ten
-seconds; the verified 0.3.4 candidate defaults to 900 seconds and aligns native nonce lifetime with
-the selected interaction timeout. Source qualification alone does not establish public availability.
+seconds; Foundation 0.3.4 defaults to 900 seconds and aligns native nonce lifetime with
+the selected interaction timeout. Exact consumer selection is still required before relying on its contract.
 Test a fresh actual login with human-paced delay, expired-flow rejection/restart and independently
 bounded network failure. Immediate automated credential filling does not prove the interaction window.
 
@@ -442,7 +450,7 @@ Use the selected publisher's supported browser logout destination setting when a
 retain its root/non-root success/fallback coverage and JSON status contract. Before that capability is
 selected, a client-owned landing can control the application window but does not fix the publisher's
 hardcoded callback/fallback destinations. Preserve actual antiforgery and local-first session termination.
-The verified 0.3.4 candidate supplies `Foundation:Web:LogoutLandingPath`: its default remains the
+Foundation 0.3.4 supplies `Foundation:Web:LogoutLandingPath`: its default remains the
 machine route, while `/` or an admitted application-owned public path selects browser presentation.
 It preserves the captured native authentication path base on success and initiation failure. This
 setting selects a local destination; reaching it or reading its query hint proves neither current

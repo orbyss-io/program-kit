@@ -6,7 +6,7 @@
       "command": ["{python}", "tests/validate_authentication_presentation.py", "--unit"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Qualified selected-profile resolution and exact archive/version/native-byte admission for the application-owned authentication presentation example.",
-      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_authentication_presentation.py", "tests/fixtures/authentication-presentation/**", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"],
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_authentication_presentation.py", "tests/fixtures/authentication-presentation/**", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/authentication-recovery-focus.ts", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication-recovery-focus.spec.ts"],
       "outputs": ["artifacts/tests/authentication-presentation"], "resources": [],
       "isolation": "Synthetic archive admission only; no package restore, browser launch, coding agent or consumer authority."
     },
@@ -4147,7 +4147,7 @@
       "command": ["{python}", "tests/validate_authentication_presentation.py", "--execute", "--engines={engines}"],
       "group": "release", "needs": ["validate_authentication_presentation", "ui-browser"], "platforms": ["Windows", "Linux"],
       "purpose": "Compile the owner error/landing example against current qualified exact Foundation pins, verify machine problem compatibility, and exercise branded/focused keyboard recovery in actual browsers.",
-      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_authentication_presentation.py", "tests/fixtures/authentication-presentation/**", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"],
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_authentication_presentation.py", "tests/fixtures/authentication-presentation/**", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/authentication-recovery-focus.ts", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication-recovery-focus.spec.ts"],
       "outputs": ["artifacts/tests/authentication-presentation"], "resources": ["browser-runtime"],
       "isolation": "Disposable selected-package restore and compiled provider-free presentation/cookie-service fixture. No selected Host, provider login, correlation-expiry or consumer UI acceptance claim."
     },

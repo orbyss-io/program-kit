@@ -28,22 +28,28 @@ const identityOrigin = new URL(identityAuthority).origin;
 // Only the owner UI and its module are fixture documents. All BFF/Keycloak requests remain native.
 // Transpile the shipped adapter itself, rather than rebuilding its protocol in the journey test.
 const logoutAdapter = stripTypeScriptTypes(readFileSync(new URL('../bff-session.ts', import.meta.url), 'utf8'), { mode: 'strip' });
+const recoveryFocus = stripTypeScriptTypes(readFileSync(new URL('../authentication-recovery-focus.ts', import.meta.url), 'utf8'), { mode: 'strip' });
 
 async function installLogoutPresentation(context: BrowserContext, baseURL: string): Promise<string> {
   const entry = new URL('/__program-kit-owner-logout', baseURL).href;
   const landing = '/__program-kit-owner-session-ended';
   const modulePath = '/__program-kit-owner-logout.js';
   const adapterPath = '/__program-kit-shipped-bff-session.js';
+  const focusPath = '/__program-kit-authentication-recovery-focus.js';
   await context.route(new URL(adapterPath, baseURL).href, route => route.fulfill({ contentType: 'text/javascript', body: logoutAdapter }));
+  await context.route(new URL(focusPath, baseURL).href, route => route.fulfill({ contentType: 'text/javascript', body: recoveryFocus }));
   await context.route(new URL(modulePath, baseURL).href, route => route.fulfill({ contentType: 'text/javascript', body: `
     import { beginFoundationBffLogout } from '${adapterPath}';
+    import { focusAuthenticationRecovery } from '${focusPath}';
     const root = document.querySelector('main');
+    let disposeRecoveryFocus = () => {};
     function recovery(title, copy) {
+      disposeRecoveryFocus();
       root.replaceChildren();
       const heading = document.createElement('h1'); heading.textContent = title; heading.tabIndex = -1;
       const message = document.createElement('p'); message.textContent = copy; message.setAttribute('role', 'status');
       const signIn = document.createElement('a'); signIn.textContent = 'Sign in'; signIn.href = '/bff/login?returnUrl=/';
-      root.append(heading, message, signIn); heading.focus();
+      root.append(heading, message, signIn); disposeRecoveryFocus = focusAuthenticationRecovery(heading);
     }
     async function observeSession() {
       const reply = await fetch('/bff/user', {credentials:'same-origin', cache:'no-store', redirect:'error', signal:AbortSignal.timeout(5000)});
