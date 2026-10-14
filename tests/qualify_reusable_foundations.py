@@ -503,6 +503,9 @@ def authentication_contracts(evidence, checks, original_child, original_selected
     assert phase_declaration is not None
     declared_phases={phase_declaration.group(1),*re.findall(r"phase\.description = '([^']+)'",source_text)}
     assert declared_phases==set(CROSS_SITE_PHASES)
+    adapter_declaration=re.search(r"type: 'program-kit-logout-adapter-phase', description: '([^']+)'",source_text)
+    assert adapter_declaration is not None
+    assert {adapter_declaration.group(1),*re.findall(r"adapterPhase\.description = '([^']+)'",source_text)}==set(ADAPTER_PHASES)
     directory=evidence/'authentication-report-fixtures'; directory.mkdir()
     path=directory/'authentication.xml'
     def report(rows):
@@ -641,6 +644,29 @@ def authentication_contracts(evidence, checks, original_child, original_selected
     path.write_bytes(phase_bytes)
     assert authentication_failure(directory,{path})=='authentication=unknown'
     checks.append('duplicate-conflicting-injected-stale-or-unexpected-case-phase-properties-fail-closed')
+    def adapter_phase_report(phase, *, engine='firefox', title=None, duplicate=None, suite_level=False):
+        selected_title=title or next(title for title,identity in AUTHENTICATION_CASES.items() if identity=='adapter-owner-landing')
+        document=ET.fromstring(report([(engine,selected_title,'failure',secret)]))
+        node=document.find('testsuite/testcase')
+        properties=ET.SubElement(document.find('testsuite'),'properties') if suite_level else node.find('properties')
+        ET.SubElement(properties,'property',name=ADAPTER_PHASE_PROPERTY,value=phase)
+        if duplicate is not None: ET.SubElement(properties,'property',name=ADAPTER_PHASE_PROPERTY,value=duplicate)
+        return ET.tostring(document,encoding='utf-8')
+    adapter_titles=[title for title,identity in AUTHENTICATION_CASES.items() if identity.startswith('adapter-')]
+    for phase in ADAPTER_PHASES:
+        for engine in AUTHENTICATION_ENGINES:
+            for title in adapter_titles:
+                path.write_bytes(adapter_phase_report(phase,engine=engine,title=title))
+                label=authentication_failure(directory,set())
+                assert label.endswith('adapterPhase='+engine+':'+AUTHENTICATION_CASES[title]+':'+phase) and secret not in label
+    for data in (adapter_phase_report(secret),adapter_phase_report('ended-heading-focused',duplicate='ended-heading-focused'),
+                 adapter_phase_report('ended-heading-focused',duplicate='owner-landing-url'),
+                 adapter_phase_report('ended-heading-focused',title=titles[0]),
+                 adapter_phase_report('ended-heading-focused',suite_level=True)):
+        path.write_bytes(data); assert authentication_failure(directory,set())=='authentication=unknown'
+    path.write_bytes(adapter_phase_report('ended-heading-focused'))
+    assert authentication_failure(directory,{path})=='authentication=unknown'
+    checks.append('exact-adapter-cases-and-finite-phases-export-no-private-content-and-reject-injected-or-stale-properties')
     path.write_bytes(report([('firefox',cross_title,'failure',secret)]))
     assert authentication_failure(directory,set()).endswith('crossSitePhase=firefox:unknown')
     # The existing maintained setup/supervisor now executes a fresh controlled
@@ -846,6 +872,11 @@ CROSS_SITE_PHASES = ('registered','authenticated','source-registered','source-lo
     'request-validated','status-validated','rejection-download-observed','rejection-capture-request-missing',
     'rejection-capture-evicted','rejection-document-validated','rejection-body-read',
     'rejection-body-parsed','rejection-validated','navigation-completed','session-retained')
+ADAPTER_PHASE_PROPERTY = 'program-kit-logout-adapter-phase'
+ADAPTER_PHASES = ('authenticated-context','owner-fixture-entry','logout-dispatch','popup-observed',
+    'uncertain-recovery','ended-heading-visible','ended-heading-focused','recovery-link',
+    'provider-status','private-ui-cleared','independent-local-session','provider-navigation-complete',
+    'owner-landing-url','completed')
 
 
 def authentication_failure(directory, previous):
@@ -876,10 +907,10 @@ def authentication_failure(directory, previous):
                 elif node.tag in ('system-out','system-err'):
                     if list(node): return unknown
                 elif node.tag=='properties':
-                    if any(item.tag!='property' or list(item) or item.get('name')==CROSS_SITE_PHASE_PROPERTY for item in node): return unknown
+                    if any(item.tag!='property' or list(item) or item.get('name') in (CROSS_SITE_PHASE_PROPERTY,ADAPTER_PHASE_PROPERTY) for item in node): return unknown
                 else: return unknown
         if len(cases)>len(AUTHENTICATION_CASES)*len(AUTHENTICATION_ENGINES) or len(cases)!=sum(1 for node in document.iter() if node.tag=='testcase'): return unknown
-        identities=set(); failed=[]; skipped=[]; categories=[]; phases={}
+        identities=set(); failed=[]; skipped=[]; categories=[]; phases={}; adapter_phases={}
         for node in cases:
             if node.get('classname')!='authentication.spec.ts': return unknown
             match=re.fullmatch(r'\[(chromium|firefox|webkit)\] (.+)',node.get('name',''))
@@ -887,16 +918,21 @@ def authentication_failure(directory, previous):
             identity=match.group(1)+':'+AUTHENTICATION_CASES[match.group(2)]
             if identity in identities: return unknown
             identities.add(identity)
-            declared_phases=[]
+            declared_phases=[]; declared_adapter_phases=[]
             for child in node:
                 if child.tag=='properties':
                     if any(item.tag!='property' or list(item) for item in child): return unknown
                     declared_phases.extend(item.get('value') for item in child if item.get('name')==CROSS_SITE_PHASE_PROPERTY)
+                    declared_adapter_phases.extend(item.get('value') for item in child if item.get('name')==ADAPTER_PHASE_PROPERTY)
                 elif child.tag not in ('failure','error','skipped','system-out','system-err') or list(child): return unknown
             if declared_phases:
                 if (not identity.endswith(':cross-site-denial') or len(declared_phases)!=1
                         or declared_phases[0] not in CROSS_SITE_PHASES): return unknown
                 phases[identity]=declared_phases[0]
+            if declared_adapter_phases:
+                if (not identity.split(':',1)[1].startswith('adapter-') or len(declared_adapter_phases)!=1
+                        or declared_adapter_phases[0] not in ADAPTER_PHASES): return unknown
+                adapter_phases[identity]=declared_adapter_phases[0]
             outcomes=[child for child in node if child.tag in ('failure','error','skipped')]
             if len(outcomes)>1: return unknown
             if outcomes and outcomes[0].tag=='skipped': skipped.append(identity)
@@ -921,6 +957,9 @@ def authentication_failure(directory, previous):
         cross_site_failed=[identity for identity in sorted(failed) if identity.endswith(':cross-site-denial')]
         if cross_site_failed:
             classification+=' crossSitePhase='+','.join(identity.split(':',1)[0]+':'+phases.get(identity,'unknown') for identity in cross_site_failed)
+        adapter_failed=[identity for identity in sorted(failed) if identity.split(':',1)[1].startswith('adapter-')]
+        if adapter_failed:
+            classification+=' adapterPhase='+','.join(identity+':'+adapter_phases.get(identity,'unknown') for identity in adapter_failed)
         return classification
     except (OSError,ValueError,TypeError,RecursionError,ET.ParseError):
         return unknown

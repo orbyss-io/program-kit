@@ -63,8 +63,24 @@ fixtures, not real consumer or provider-wide logout acceptance.
 The required [Foundation dependency update](https://github.com/orbyss-io/dotnet-foundation/actions/runs/38477135373)
 failed because official metadata selects SDK10.0.402 while its matching Microsoft container image
 returns not found. The local refresh independently reproduced the failure and rolled back pins.
-Foundation has not selected/tagged/published a new immutable version. Its retained native qualification
-uses SDK10.0.401, EF10.0.12 and Npgsql/provider10.0.3; published0.3.3 remains the adoption baseline.
+At that failed attempt Foundation had not selected/tagged/published a new immutable version.
+Its retained native qualification used SDK10.0.401, EF10.0.12 and Npgsql/provider10.0.3;
+published0.3.3 remains the adoption baseline until its successor is fully verified.
+
+Subsequent progress on October14: the SDK image became available. Foundation refreshed its
+active pins and native locks, qualified source `805383ad55e2f50716196faf2ba764073aa5f42c`
+for0.3.4, passed full Windows/Linux CI and dependency qualification, and scanned both candidate
+image platforms with zero High/Critical findings. PR11 merged and the exact source was tagged;
+the [protected Release](https://github.com/orbyss-io/dotnet-foundation/actions/runs/38506924214)
+is running. Adoption still waits for completed publication and verified public artifacts. The
+earlier failed evidence and published0.3.3 profile remain unchanged.
+
+Program Kit [PR CI](https://github.com/orbyss-io/program-kit/actions/runs/38483789818) and the
+required [dependency update](https://github.com/orbyss-io/program-kit/actions/runs/38483858372)
+failed on the Linux composition activation probe and the Firefox owner-landing/provider-failure
+authentication journeys. Windows CI passed. Original logs and artifacts are preserved under
+`artifacts/tests/ds01-repair/remote-failures/`; investigation and repairs are underway. These
+failures block qualification and are separate from the known local Firefox launch limitation.
 
 Foundation publication, the required Program Kit dependency workflow, exact new profile/knowledge adoption and fresh
 Program Kit Release qualification remain open. Program Kit patch publication is authorized after

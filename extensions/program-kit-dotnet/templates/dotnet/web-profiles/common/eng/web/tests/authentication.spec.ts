@@ -344,8 +344,12 @@ test('native provider navigation failure leaves local session absent and retains
 
 async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined, providerUnavailable: boolean, lostObservation = false): Promise<void> {
     if (!baseURL) throw new Error('Playwright baseURL is required.');
+    // Only fixed journey checkpoints become reporter properties; no page/provider data is retained.
+    const adapterPhase = { type: 'program-kit-logout-adapter-phase', description: 'authenticated-context' };
+    test.info().annotations.push(adapterPhase);
     const context = await authenticatedContext(browser, baseURL, personas.user);
     try {
+      adapterPhase.description = 'owner-fixture-entry';
       const entry = await installLogoutPresentation(context, baseURL);
       if (providerUnavailable) await context.route(`${identityOrigin}/**`, route => route.abort());
       if (lostObservation) await context.route(new URL('/bff/user', baseURL).href, route => route.abort());
@@ -353,10 +357,13 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
       await expect(page.getByLabel('Private draft')).toHaveValue('Synthetic private draft');
       const popup = page.waitForEvent('popup');
       const signOut = page.getByRole('button', { name: 'Sign out', exact: true });
+      adapterPhase.description = 'logout-dispatch';
       if (providerUnavailable) await signOut.click();
       else { await signOut.focus(); await page.keyboard.press('Enter'); }
+      adapterPhase.description = 'popup-observed';
       const providerWindow = await popup;
       if (lostObservation) {
+        adapterPhase.description = 'uncertain-recovery';
         await expect(page.getByRole('heading', { name: 'Your session status is unconfirmed' })).toBeVisible();
         await expect(page.locator('[data-private-content]')).toHaveCount(0);
         // Request-client observation is independent of the browser transport fault above.
@@ -364,16 +371,25 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
         await context.unroute(new URL('/bff/user', baseURL).href);
         await page.getByRole('button', { name: 'Check session', exact: true }).click();
       }
+      adapterPhase.description = 'ended-heading-visible';
       await expect(page.getByRole('heading', { name: 'Your application session has ended' })).toBeVisible();
+      adapterPhase.description = 'ended-heading-focused';
       await expect(page.getByRole('heading', { name: 'Your application session has ended' })).toBeFocused();
+      adapterPhase.description = 'recovery-link';
       await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/bff/login?returnUrl=/');
+      adapterPhase.description = 'provider-status';
       await expect(page.getByRole('status')).toContainText('Provider sign-out has not been confirmed.');
+      adapterPhase.description = 'private-ui-cleared';
       await expect(page.locator('[data-private-content]')).toHaveCount(0);
+      adapterPhase.description = 'independent-local-session';
       expect(await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
+      adapterPhase.description = 'provider-navigation-complete';
       if (!providerUnavailable) await providerWindow.waitForURL(`${baseURL}/bff/signed-out`);
       // The application page uses native session evidence, not the popup URL or a remote query hint.
+      adapterPhase.description = 'owner-landing-url';
       expect(new URL(page.url()).pathname).toBe('/__program-kit-owner-session-ended');
       await providerWindow.close();
+      adapterPhase.description = 'completed';
     } finally { await context.close(); }
 }
 
