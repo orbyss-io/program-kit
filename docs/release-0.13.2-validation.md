@@ -87,11 +87,30 @@ different-culture satellite assemblies. Both outcomes are preserved under
 `upstream/runtime-probe/`; the initial compilation against internal types
 remains a failed diagnostic and was replaced with the supported public API.
 
-Foundation 0.3.5 is therefore **not adopted**, even if its current Program Kit
-qualification succeeds. Publication waits for an independently verified corrected
+At this point, Foundation 0.3.5 was **not adopted** pending owner review, even if
+its current Program Kit qualification succeeded. Publication awaited a corrected
 Nuplane release, public Foundation Host/package/knowledge closure, both image
 scans and fresh Program Kit qualification. No unpublished branch substitutes for
 that gate. The passing PdfPig observation does not waive the satellite regression.
+
+### Subsequent owner decision: development use of the public 109 closure
+
+After reviewing the exact source comparison and real public-loader observations,
+the owner explicitly selected: **“Proceed with Foundation 0.3.5 and verified 109
+loader for development.”** This supersedes the adoption hold immediately above.
+The owner accepts this interim public runtime for the PdfPig loading requirement
+while waiting for the corrected upstream variant. The satellite-resource limitation
+is disclosed in the shipped patch guide. It is not a waiver of mandatory tests,
+both Host scans, current-source CI or the complete local Release. No unpublished
+upstream source or modified package/image bytes are used.
+
+The required public exporter 0.2.6 was independently checked as well. Its source
+is `ef5d1e7f22e425bb05ca93398d7bea9f80534ffb`, and exact-source
+[tool Release 38524116102](https://github.com/orbyss-io/dotnet-foundation/actions/runs/38524116102)
+succeeded. Public knowledge SHA-256 is
+`acc51cb1788d15ed6eb716cdbcfc85f585054f3736459ba41ce30e59a22cb43c`;
+all 16 unsigned public package payload files match that knowledge. Archive SHA-256:
+`222126f6be411b3e45287a14fe5449fd7a8a450048e6c7f8c5aba18a597e7cbd`.
 
 ## Migration and current gates
 
@@ -100,6 +119,9 @@ checked against the published tag. SHA-256:
 `89ca98c3149a8ae3505458e364de415ee2e1e4800606325b499ee40f732beeb8`.
 All published history entries were retained; unpublished diagnostics guidance moved
 to `migration-0.13.2.md` and its semantic introduction moved to 0.13.2.
+Public tag inspection found only v0.13.0 and v0.13.1 in this minor line; there is
+no prior v0.13.2 candidate. The latest stable 0.13.1 source is
+`5e462b73b2fd34604701573161f9fd071e09427f`, with successful Release 38395049553.
 
 The new semantic change selects `fresh-feature-delete-v1` and supersedes old
 continuation/archival routes. Ten focused release-guidance cases pass, including
@@ -121,9 +143,9 @@ fresh coordinated closure verification. No assertion was loosened. The full CI
 artifact and log remain under `artifacts/tests/patch-0.13.2/ci-38728301173*`.
 
 The dependency run is still executing its own coordinated deterministic checks;
-its final outcome remains to be recorded. Its Foundation 0.3.5 proposal cannot
-be adopted because of the independently reproduced regression above, regardless
-of its test outcome.
+its final outcome remains to be recorded. Its Foundation 0.3.5 proposal may be
+adopted under the subsequent owner decision above only after its mandatory tests
+and both image scans pass.
 
 The user installed Spec Kit 1.2.0, Node 26.12.0 and npm 12.2.0 in their own
 terminal. The maintained readiness wrapper subsequently passed with the actual
@@ -149,5 +171,5 @@ was updated. No coding agents or actual ClaimEvaluator changes occurred.
 
 This is a pre-upstream rehearsal, not final-profile acceptance or a Release
 receipt. Fresh bounded Development, final-source CI and the complete local
-Release remain due after corrected public upstream adoption. No local Release
+Release remain due after qualified public closure adoption. No local Release
 receipt has been created for 0.13.2 at this point.

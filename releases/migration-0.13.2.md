@@ -109,10 +109,14 @@ inspection. Preserve meaningful consumer isolation and existing dispatch blocks.
 
 ## Public Foundation adoption and verification
 
-The default must bind the corrected public Foundation release, its immutable Host,
-exact packages/locks, required exporter and frozen knowledge together. Foundation
-0.3.5 / Nuplane 1.0.0-preview.109 contains the original multi-assembly fix but also
-its satellite-resource regression; this closure is not accepted for publication.
+The default binds public Foundation 0.3.5, its immutable Host, exact packages/locks,
+required exporter and frozen knowledge together. Its Nuplane 1.0.0-preview.109
+loader contains the same production fix as 0.0.11-preview.108: a public-API probe
+loads all seven real PdfPig 0.1.16 assemblies and opens a PDF without a PdfPig.dll.
+The owner approved this public closure for development while the corrected upstream
+variant is pending. Different-culture satellite assemblies still cause an identity
+conflict in this loader; consumers requiring that capability must wait for a corrected
+qualified public closure. This limitation does not waive any mandatory validation gate.
 Ordinary dependency loading needs no worker or package-byte workaround. The shipped
 profile/qualification assets give exact digests and knowledge hashes. Existing profiles
 and consumer locks remain unchanged until an accepted transition.
