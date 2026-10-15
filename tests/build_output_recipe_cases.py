@@ -18,6 +18,9 @@ sys.path.insert(0, str(ENG))
 import build_output_recipe as outputs
 import repository_verification as verification
 import repository_architecture as architecture
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
+import artifact_ownership as ownership
+import json_schema
 
 
 class BuildOutputRecipeTests(unittest.TestCase):
@@ -71,6 +74,42 @@ class BuildOutputRecipeTests(unittest.TestCase):
                         path.write_text('<Project><PropertyGroup><OutputPath>../../data</OutputPath></PropertyGroup></Project>')
                     with self.assertRaisesRegex(ValueError, 'PKV003'):
                         outputs.recipe(root, parent, graph)
+
+    def test_feature_ownership_schema_and_direct_reader_preserve_distinct_build_edges(self):
+        graph = self.graph(); parent = 'src/Owned.Provider/Owned.Provider.csproj'; producer = 'src/Owned.Tool/Owned.Tool.csproj'
+        graph.pop('tests/Consumer/Consumer.csproj')
+        graph[producer].update(role='helper', packageReferences=[])
+        graph[parent].update(role='implementation', featureIdentities=['Owned.Provider'], packageReferences=[])
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve(); (root / '.specify').mkdir()
+            feature = root / 'specs/owned'; feature.mkdir(parents=True)
+            authority = 'docs/architecture/owned.md'; (root / authority).parent.mkdir(parents=True)
+            (root / authority).write_text('Fictional accepted owner/tool placement. No human authority.')
+            for path in graph:
+                (root / path).parent.mkdir(parents=True)
+                (root / path).write_text('<Project Sdk="Microsoft.NET.Sdk" />')
+            manifest = {'schemaVersion': 1, 'feature': 'owned', 'profiles': ['dotnet'],
+                'artifacts': [{'path': path, 'ownership': 'consumer-owned', 'classification': 'internal', 'lifecycle': 'source'} for path in graph],
+                'runtimeComposition': {'authorities': [authority], 'projects': list(graph.values()), 'bindings': [], 'coreReferences': []}}
+            schema_path = ROOT / 'extensions/program-kit-governance/references/artifact-ownership.schema.json'
+            schema = json.loads(schema_path.read_text())
+            self.assertTrue(json_schema.validate_value(manifest, schema, location=schema_path)['valid'])
+            for metadata in ('ReferenceOutputAssembly="false"', '', 'OutputItemType="Analyzer"'):
+                child = '<ReferenceOutputAssembly>false</ReferenceOutputAssembly>' if not metadata else ''
+                (root / parent).write_text('<Project><ItemGroup><ProjectReference Include="../Owned.Tool/Owned.Tool.csproj" '
+                                          + metadata + '>' + child + '</ProjectReference></ItemGroup></Project>')
+                ownership.validate_runtime_composition(feature, manifest)
+            graph[parent]['projectReferences'] = [producer]
+            with self.assertRaisesRegex(ValueError, 'overlapping CLR/build'):
+                ownership.validate_runtime_composition(feature, manifest)
+            graph[parent]['projectReferences'] = []
+            graph[producer]['buildProjectReferences'] = [parent]
+            with self.assertRaisesRegex(ValueError, '[Cc]ycle'):
+                ownership.validate_runtime_composition(feature, manifest, design_only=True)
+            graph[producer].pop('buildProjectReferences')
+            graph[parent]['buildOutputCopies'][0]['directory'] = 'tools/../data'
+            with self.assertRaisesRegex(ValueError, 'owned tools'):
+                ownership.validate_runtime_composition(feature, manifest, design_only=True)
 
     def test_native_sdk_complete_outputs_incremental_freshness_removal_propagation_pack_and_pe(self):
         evidence = ROOT / 'artifacts/tests/build-output-copy' / uuid.uuid4().hex

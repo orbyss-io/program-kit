@@ -385,3 +385,27 @@ not consumer acceptance or a Release receipt. Preserve the sandbox-TEMP permissi
 the mistaken native test invocation and the first full-prepare/isolation assertion failure
 separately. The latter conflated full prepared-host activation with selective-update isolation;
 the corrected integration exercises and asserts both behaviors independently.
+
+The complete two-host native run now passes at source `d04f540599bdf4706199a22ce0bdd9db74ad1d63`:
+fixture `artifacts/tests/composition-start/9e97c15a508045b291b96113bfe13fd1`, with independent
+hash/image/retained-byte details in `artifacts/tests/ds01-repair/ds02-native-verification.json`.
+It exercises ordinary provider registration, a selected host leaving another bundle pending,
+plain update of that pending bundle, a later changed prepared operation actually returning
+`consumer-prepared-ready`, prerequisite identity retention, private restart retention/isolation,
+frontend revision retention, identity reconciliation and existing architecture/privacy refusals.
+It uses the selected historical0.3.3 Host; it does not qualify adoption of0.3.4 or the real product.
+
+Final review found the feature ownership reader/schema also conflated build-only references.
+The follow-up admits separate optional build edges/closed output declarations there, keeps CLR
+role restrictions and checks union cycles, undeclared producers and source metadata separately.
+All29 architecture/output cases now pass in `ds02-build-ownership-final.log`; the unchanged
+feature-ownership baseline passes separately. These later ownership changes do not alter the
+native composition helpers above and are qualified separately, with no altered native receipt.
+
+All101 bounded Development checks pass in the retained working-tree run
+`artifacts/validation-runs/20261015T074255Z-3c7651d7` (`ds02-development-working-tree.log`).
+Its original journal records the precommit837b23a HEAD and spans final edits; it is not rewritten
+as an exact new-commit receipt. Late ownership/schema changes have the separate passing focused
+checks above. Final local packaging still has492 entries below512. Latest-source CI and mandatory
+dependency qualification remain due; the previous failed migration is not adopted. The user's
+publication hold remains in force, with no new version/tag or consumer changes.

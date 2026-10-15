@@ -17,6 +17,7 @@ LIFECYCLE = {"source", "generated", "ephemeral", "retained", "replaced", "deploy
 _engine = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/eng'
 sys.path.insert(0, str(_engine))
 from architecture_rules import *
+from repository_architecture import is_build_reference, validate_cycles
 
 CONVENTIONS = {
     "program-kit": {"spec.md", "plan.md", "tasks.md", "research.md", "data-model.md", "quickstart.md"},
@@ -290,12 +291,13 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
     validate_runtime_composition(feature_dir, manifest, design_only=design_only)
 
 
-def direct_msbuild_references(project: Path, root: Path) -> tuple[set[str], set[str]]:
+def direct_msbuild_references(project: Path, root: Path) -> tuple[set[str], set[str], set[str]]:
     try:
         document = ET.parse(project)
     except (ET.ParseError, OSError) as error:
         raise ValueError(f"PKA015 cannot inspect project references in {project}: {error}") from error
     project_references: set[str] = set()
+    build_references: set[str] = set()
     package_references: set[str] = set()
     for element in document.iter():
         kind = element.tag.rsplit("}", 1)[-1]
@@ -303,16 +305,25 @@ def direct_msbuild_references(project: Path, root: Path) -> tuple[set[str], set[
         if not include:
             continue
         if kind == "ProjectReference":
+            metadata = {}
+            for field in ('ReferenceOutputAssembly', 'OutputItemType'):
+                children = [child for child in element if child.tag.rsplit('}', 1)[-1] == field]
+                if len(children) > 1 or any(child.get('Condition') for child in children):
+                    raise ValueError('PKA015 conditional/duplicate reference metadata needs evaluated verification')
+                item = (children[0].text or '') if children else element.get(field, '')
+                if any(char in item for char in '$@%*?') or (field == 'ReferenceOutputAssembly' and item.casefold() not in ('', 'true', 'false')):
+                    raise ValueError('PKA015 dynamic reference metadata needs evaluated verification')
+                metadata[field] = item
             target = (project.parent / include.replace("\\", "/")).resolve()
             try:
-                project_references.add(target.relative_to(root.resolve()).as_posix())
+                (build_references if is_build_reference(metadata) else project_references).add(target.relative_to(root.resolve()).as_posix())
             except ValueError as error:
                 raise ValueError(
                     f"PKA015 {project} references a project outside the repository: {include}"
                 ) from error
         elif kind == "PackageReference":
             package_references.add(include)
-    return project_references, package_references
+    return project_references, package_references, build_references
 
 
 def activated_feature_identities(root: Path) -> set[str]:
@@ -404,21 +415,26 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict, *, design_on
                 ".Core project or name the implementation, provider, protocol, bridge, helper, or composition capability"
             )
         project_refs = project.get("projectReferences")
+        build_refs = project.get('buildProjectReferences', [])
         package_refs = project.get("packageReferences")
-        if not isinstance(project_refs, list) or not isinstance(package_refs, list):
+        if not isinstance(project_refs, list) or not isinstance(package_refs, list) or not isinstance(build_refs, list):
             errors.append(f"PKA015 {path} must declare projectReferences and packageReferences arrays")
             continue
         try:
             expected_project_refs = {normalize(str(value)) for value in project_refs}
+            expected_build_refs = {normalize(str(value)) for value in build_refs}
         except ValueError as error:
             errors.append(str(error).replace("PKA001", "PKA015", 1))
             continue
         if len(expected_project_refs) != len(project_refs) or len({str(value) for value in package_refs}) != len(package_refs):
             errors.append(f"PKA015 {path} contains duplicate direct references")
+        if len(expected_build_refs) != len(build_refs) or expected_project_refs & expected_build_refs:
+            errors.append(f'PKA015 {path} has duplicate or overlapping CLR/build references')
         normalized_project = {
             **project,
             "path": path,
             "projectReferences": expected_project_refs,
+            "buildProjectReferences": expected_build_refs,
             "packageReferences": {str(value) for value in package_refs},
         }
         declared_projects[path] = normalized_project
@@ -548,7 +564,19 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict, *, design_on
             errors.append(f"PKA015 direct Core reference verification is not owned by the manifest: {verification}")
 
     actual_core_edges: set[tuple[str, str]] = set()
+    build_edges: set[tuple[str, str]] = set()
     for path, project in declared_projects.items():
+        for target in project['buildProjectReferences']:
+            if target not in declared_projects or target == path:
+                errors.append(f'PKA015 build reference needs a distinct declared owner: {path} -> {target}')
+            else:
+                build_edges.add((path, target))
+        if 'buildOutputCopies' in project:
+            from build_output_recipe import declarations
+            try:
+                declarations(root, path, declared_projects)
+            except ValueError as error:
+                errors.append('PKA015 ' + str(error))
         role = str(project.get("role", ""))
         allowed = ALLOWED_ROLE_REFERENCES.get(role, set())
         for reference in project["projectReferences"]:
@@ -575,11 +603,20 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict, *, design_on
     for source, target in stale_core_decisions:
         errors.append(f"PKA015 stale direct Core reference decision has no graph edge: {source} -> {target}")
 
+    try:
+        validate_cycles(declared_projects, build_edges | {(path, target) for path, row in declared_projects.items()
+                                                        for target in row['projectReferences'] if target in declared_projects})
+    except ValueError as error:
+        errors.append('PKA015 ' + str(error))
+
     for path, project in declared_projects.items():
         project_path = root / path
         if design_only or not project_path.is_file():
             continue
-        actual_projects, actual_packages = direct_msbuild_references(project_path, root)
+        actual_projects, actual_packages, actual_build = direct_msbuild_references(project_path, root)
+        if actual_build != project['buildProjectReferences']:
+            errors.append(f"PKA015 {path} direct build ProjectReference graph differs; expected "
+                          f"{sorted(project['buildProjectReferences'])}, actual {sorted(actual_build)}")
         if actual_projects != project["projectReferences"]:
             errors.append(
                 f"PKA015 {path} direct ProjectReference graph differs from its accepted runtimeComposition entry; "
