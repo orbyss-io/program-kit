@@ -142,10 +142,33 @@ failed; its available outer logs are preserved, and inner-cause acceptance await
 fresh coordinated closure verification. No assertion was loosened. The full CI
 artifact and log remain under `artifacts/tests/patch-0.13.2/ci-38728301173*`.
 
-The dependency run is still executing its own coordinated deterministic checks;
-its final outcome remains to be recorded. Its Foundation 0.3.5 proposal may be
-adopted under the subsequent owner decision above only after its mandatory tests
-and both image scans pass.
+Dependency run 38728296943 completed with 140/140 PullRequest inventory checks
+passing on Chromium, Firefox and WebKit. Both exact public Host platform scans
+passed with zero High/Critical findings and no identity/platform validation errors.
+The retained scan reports were independently hashed and compared with the result
+manifest and the separately inspected public platform manifests. Their SHA-256:
+amd64 `65c7e55d68a4cf6ea510c4469a966a0db92553c087ac1acf864168b1710186a4`;
+arm64 `13033e302e5d57853b7d096bba66e4cbe76cea564c7438980272846915a1c1d4`.
+Every deterministic log hash was checked. The overall workflow remains failed:
+only PR creation failed because repository policy prohibits Actions from creating
+or approving pull requests. Its pushed tested commit is
+`9584849edf5533a8e9b9646242887aee0ff046f2`; the full artifact, failed log and
+metadata remain preserved. This delivery failure is repaired by integration into
+the existing owner-approved PR 41, without weakening a test or security gate.
+
+The exact tested profile/locks/knowledge were merged at
+`ee31dabd08d513e9a689b787869c589b3fccf9fe`, under the subsequent owner decision
+above. All seven historical profile entries remain identical; all downloaded new
+registry files equal the tested Git blobs. The selected profile is
+`foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2`.
+Profile SHA-256 `28eb7119acd0b76ceb0a91dd4051c1ec1da60c7a830bb0d36503878ce821eee5`;
+qualification SHA-256 `bd3af5514eac92b5e1f84d51f963fda19de19978d7a895231ec92676a7d9c3a9`;
+native lock SHA-256 `6215afb4d02c02fcc181e5358a8cb0043609ebf099e9d1c107257158bcff773e`;
+captured knowledge index SHA-256
+`b1204a5658c6107c17cb84705f1b45ab65cac0bb28cc0fde6a7d360f5c011f7e`.
+Independent verification summary: `artifacts/tests/patch-0.13.2/qualification-verification.json`.
+Fresh current combined-source CI and local Release remain mandatory; this earlier
+qualification is not presented as final acceptance of later source edits.
 
 The user installed Spec Kit 1.2.0, Node 26.12.0 and npm 12.2.0 in their own
 terminal. The maintained readiness wrapper subsequently passed with the actual
