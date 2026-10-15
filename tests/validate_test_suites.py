@@ -5,7 +5,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from release_workflow_contracts import validate_ci_selection, validate_inventory, validate_workflows
+from release_workflow_contracts import (shared_inventory_invocation, validate_ci_selection,
+                                        validate_inventory, validate_workflows)
 
 ROOT = Path(__file__).resolve().parents[1]
 

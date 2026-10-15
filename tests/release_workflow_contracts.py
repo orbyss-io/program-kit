@@ -16,11 +16,19 @@ def workflow(name):
     return yaml.safe_load((ROOT / '.github/workflows' / name).read_text(encoding='utf-8'))
 
 
-def validate_ci_selection():
-    steps = workflow('ci.yml')['jobs']['validate']['steps']
-    step = next(s for s in steps if 'scripts/run_validation.py' in s.get('run', ''))
-    assert step['env']['PUSH_BEFORE'] == '${{ github.event.before }}'
-    assert step['env']['PUSH_AFTER'] == '${{ github.sha }}'
+def shared_inventory_invocation(steps, label):
+    invocations = [s for s in steps if 'scripts/run_validation.py' in s.get('run', '')]
+    assert len(invocations) == 1, label + ' must run the shared inventory exactly once'
+    return invocations[0]
+
+
+def validate_ci_selection(step=None):
+    if step is None:
+        step = shared_inventory_invocation(workflow('ci.yml')['jobs']['validate']['steps'], 'CI')
+    expected_env = {'PUSH_BEFORE': '${{ github.event.before }}', 'PUSH_AFTER': '${{ github.sha }}',
+                    'EVENT_NAME': '${{ github.event_name }}', 'BASE_SHA': '${{ github.event.pull_request.base.sha }}',
+                    'VALIDATION_SELECTION': '${{ inputs.validation }}'}
+    assert all(step['env'].get(k) == v for k, v in expected_env.items()), 'CI selection must obtain environment data'
     lines = step['run'].splitlines()
     assert lines[0] == "python - <<'PY'" and lines[-1] == 'PY'
     code = '\n'.join(lines[1:-1])
@@ -37,7 +45,7 @@ def validate_ci_selection():
     for selection in ('unknown', '--suite Release --receipt', 'full; echo injected'):
         with patch.dict(os.environ, {'EVENT_NAME': 'workflow_dispatch', 'VALIDATION_SELECTION': selection}, clear=True), patch.object(subprocess, 'run') as run:
             try: exec(code, {})
-            except SystemExit: pass
+            except SystemExit as error: assert error.code not in (0, None), 'Unknown selection cannot succeed'
             else: raise AssertionError('Unknown manual selection must fail')
             run.assert_not_called()
 

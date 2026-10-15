@@ -39,7 +39,9 @@ class UpdateTests(unittest.TestCase):
         policy = SimpleNamespace(contributor=lambda root: ready.append(root),
                                  executable=lambda name, root: npm)
         fake_spec = SimpleNamespace(loader=SimpleNamespace(exec_module=lambda module: None))
-        inherited = os.environ.get('PATH', '') + os.pathsep + 'X' * 8500
+        original_path = os.environ.get('PATH', '')
+        inherited = original_path + os.pathsep + 'X' * max(0, 8500 - len(original_path))
+        self.assertGreater(len(inherited), 8191)
         with patch.dict(os.environ, {'PATH': inherited}), patch.object(sys, 'argv', ['update_dependencies', '--development']), \
                 patch.object(importlib.util, 'spec_from_file_location', return_value=fake_spec), \
                 patch.object(importlib.util, 'module_from_spec', return_value=policy), \

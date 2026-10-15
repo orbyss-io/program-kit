@@ -146,10 +146,10 @@ class WorkflowTests(unittest.TestCase):
                 ('workflow_dispatch','full',['--suite','PullRequest']),
                 ('workflow_dispatch','qualify_reusable_foundations',['--check','qualify_reusable_foundations']),
                 ('pull_request','qualify_reusable_foundations',['--suite','PullRequest','--changed-from','base-commit']),
-                ('push','qualify_reusable_foundations',['--suite','Development']),
-                ('push','unknown',['--suite','Development'])]
+                ('push','qualify_reusable_foundations',['--suite','PullRequest','--changed-before','push-before','--changed-to','push-after']),
+                ('push','unknown',['--suite','PullRequest','--changed-before','push-before','--changed-to','push-after'])]
         for event,value,expected in routes:
-            environment={'EVENT_NAME':event,'BASE_SHA':'base-commit'}
+            environment={'EVENT_NAME':event,'BASE_SHA':'base-commit','PUSH_BEFORE':'push-before','PUSH_AFTER':'push-after'}
             if value is not None: environment['VALIDATION_SELECTION']=value
             with self.subTest(event=event,selection=value),patch.dict(os.environ,environment,clear=True), \
                     patch.object(subprocess,'run') as observed:
@@ -171,7 +171,7 @@ class WorkflowTests(unittest.TestCase):
         for forbidden in (['--receipt'],['--suite','Release']):
             rejected=subprocess.run(runner+forbidden,cwd=ROOT,capture_output=True,text=True)
             self.assertEqual(2,rejected.returncode)
-            self.assertIn('cannot claim Release coverage',rejected.stderr)
+            self.assertIn('retired' if 'Release' in forbidden else 'cannot claim Release coverage',rejected.stderr)
 
     def test_suite_boundary_rejects_missing_duplicate_and_erased_ci_inventory_routes(self):
         import copy
@@ -186,7 +186,7 @@ class WorkflowTests(unittest.TestCase):
                 suites.shared_inventory_invocation(altered,'CI')
         for before,after in (("'scripts/run_validation.py'","'scripts/other_runner.py'"),
                 ("['--suite', 'PullRequest']","['--check', 'qualify_reusable_foundations']"),
-                ("['--suite', 'Development']","['--check', 'qualify_reusable_foundations']"),
+                ("'--changed-before', os.environ.get('PUSH_BEFORE', '')","'--check', 'qualify_reusable_foundations'"),
                 ("'--changed-from', os.environ['BASE_SHA']","'--check', 'qualify_reusable_foundations'"),
                 ("'--workers', '4'","'--workers', '1'"),
                 ('check=True','check=False'),
@@ -202,10 +202,11 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError,'environment data'): suites.validate_ci_selection(altered)
         release=yaml.safe_load((ROOT/'.github/workflows/release.yml').read_text())
         release_steps=next(iter(release['jobs'].values()))['steps']
-        tagged=suites.shared_inventory_invocation(release_steps,'Release workflow')
-        self.assertIn('--receipt',tagged['run'])
-        self.assertLess(release_steps.index(tagged),next(index for index,step in enumerate(release_steps)
-            if step.get('name')=='Publish GitHub release'))
+        scripts='\n'.join(step.get('run','') for step in release_steps)
+        self.assertNotIn('run_validation.py',scripts)
+        self.assertNotIn('build_release.py',scripts)
+        from release_workflow_contracts import validate_workflows
+        validate_workflows()
 
     def test_readme_updates_only_successfully_published_stable_release_examples(self):
         spec = importlib.util.spec_from_file_location('published_readme', ROOT / '.github/scripts/update_published_readme.py')
