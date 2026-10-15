@@ -63,11 +63,15 @@ def recipe_projection(graph, shell_id, env_name=None):
     host_id = next(row['hostRef'] for row in model.bindings(graph, 'shellHost') if row['shellRef'] == shell_id)
     selected = [graph['resources'][name] for name in model.shell_features(graph, shell_id)]
     projects = [{key: row[key] for key in ('path', 'packageId', 'featureIdentity', 'role')} for row in selected]
+    database_features = {row['featureRef'] for row in model.bindings(graph, 'databaseProvider') if row['shellRef'] == shell_id}
+    for name, project in zip(model.shell_features(graph, shell_id), projects):
+        if project['role'] == 'provider' and name not in database_features:
+            project['responsibility'] = 'runtime'
     session = authority.get('session', {'idleMinutes': 20, 'absoluteMinutes': 480})
     issuer = urlsplit(authority_issuer(graph, authority_id, env_name))
     public_origin = assigned.get('publicOrigin', issuer.scheme + '://' + issuer.netloc)
     value = {'schemaVersion': 1, 'compositionId': 'foundation-bff-keycloak' +
-        ('-postgresql' if any(row['role'] == 'provider' for row in selected) else ''),
+        ('-postgresql' if database_features else ''),
         'application': {'publicOrigin': env[host_id]['publicOrigin'], 'callbackPath': client.get('callbackPath', '/signin-oidc'),
                         'signedOutCallbackPath': client.get('signedOutCallbackPath', '/signout-callback-oidc'), 'localDevelopment': True},
         'identity': {'publicOrigin': public_origin, 'administrationOrigin': assigned.get('administrationOrigin', assigned.get('backchannelOrigin', public_origin)),
@@ -302,6 +306,9 @@ def validate_realm(graph, authority_id, document, contracts, template, env_name=
 def provider_scaffold(project, registrations, contract):
     """Reuse native preparation per named context/policy; product schema stays owned."""
     files = foundation.scaffold_project(project, contract)
+    if project['responsibility'] == 'runtime':
+        require(not registrations, 'runtime-only provider cannot acquire database preparation')
+        return files
     folder = PurePosixPath(project['path']).parent
     feature_path = str(folder / 'ProviderFeature.cs')
     feature = files[feature_path].decode()
@@ -310,7 +317,7 @@ def provider_scaffold(project, registrations, contract):
         key = row['context']
         require(key not in declarations or declarations[key] == row['policy'], 'context policy compilation conflict')
         declarations[key] = row['policy']
-    require(declarations, 'provider feature requires a declared database binding')
+    require(declarations, 'persistence provider requires a database binding; declare runtime responsibility for ordinary adapters')
     registration_lines = []
     for context, policy in sorted(declarations.items()):
         registration_lines.extend([
@@ -457,7 +464,7 @@ def materialize(repository, graph, template, env_name=None):
         {'path': row['path'], 'role': row['role'], 'projectReferences': [],
          'responsibilities': definition.get('responsibilities') or [{'name': row['featureIdentity'], 'kind': definition['responsibility'],
                               'effects': ['owned endpoint registration'] if definition['responsibility'] == 'http' else
-                                         ['named provider connectivity admission'] if row['role'] == 'provider' else ['owned runtime capability registration']}]}
+                                         ['named provider connectivity admission'] if definition['responsibility'] == 'persistence' else ['owned runtime capability registration']}]}
         for row in model.resources(graph, 'feature').values()
         for definition in [model.project_definition(row, repository)]], 'coreReferences': [], 'bindings': []}}
     outputs['eng/architecture.json'] = (encoded(architecture), 'scaffold')

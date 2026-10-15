@@ -147,6 +147,13 @@ engineering/human dispositions, reviewer, presentation, decisions, basis and ela
 outputs stay in ignored artifacts. `task_draft.py current` exposes this readable state on resume.
 No second ledger or approval dossier is required. Never edit the marker to fabricate human decisions.
 
+The current progress summary is bounded to 8 KiB independently of the 1-MiB retained delivery
+state. Storage version 3 interns identical review bases by verified SHA-256 reference inside
+that same checkpoint; `current` expands them into independent readable objects. Legacy inline
+history remains readable and migrates only through the normal atomic save. Repeated review and
+deferral cycles preserve every original decision and basis. Missing/tampered references or a
+full retained-state budget stop the write; never delete provenance to fit another decision.
+
 Submit a small JSON request with `python .specify/extensions/program-kit-governance/scripts/task_draft.py
 delivery --feature-dir specs/<feature> --content-file artifacts/<request>.json`. These are scoped
 workflow transitions, not engineering prerequisites for independently runnable builds/tests.
@@ -203,6 +210,13 @@ review. Unknown/deleted inputs, unsupported projections and unprovable legacy hi
 An `engineering` transition renews raw-input freshness only with actual successful relevant artifacts;
 tests never create acceptance. Original decision objects and their raw basis remain unchanged.
 
+An owner's existing explicit deferral can retain permission for the same named operations while
+changed engineering or review evidence remains due. Refresh preserves that scoped permission;
+it does not turn a stale decision into acceptance. The original owner identity, assignment,
+presentation and permits remain bound. Changed operation meaning invalidates affected permits.
+Other operations, unmet enabling tasks, recorded technical failures and feature closure stay
+guarded. Requester deferral does not acquire the owner's broader continuation authority.
+
 A parser dependency pin alone does not identify the executing runtime. Qualification evidence names
 the actual runtime, packaged closure, configuration and exercised deferred paths, and proves only
 the demonstrated admission and resource guarantees.
@@ -214,6 +228,11 @@ start another ID to erase effort. Report once at 60 active operation minutes/120
 what works, what remains, cause and smallest corrective action. Materially changed diagnosis/scope
 merits an update, not a warning on every command. Owner budget revisions are explicit. Time alone
 never blocks implementation; real technical, authority and human progression gates still do.
+
+A deferral permitting the active operation is authorized work, so its clock keeps accruing when
+all other checkpoints and enabling tasks permit it. A genuinely blocked operation is human waiting;
+an explicit suspension stays suspended. Resume restores accounting only for permitted work and
+grants no new authority. Preserve accumulated effort, budget revisions and original corrections.
 
 ### Optional authenticated GitHub decisions
 

@@ -148,6 +148,20 @@ public sealed class OwnedRuntimeService : IDisposable {
         runtime_refs = {item.get('Include') for item in ET.fromstring(runtime_files[runtime['path']]).iter('PackageReference')}
         assert runtime_refs == {'CShells.Abstractions'}
         assert b'IWebShellFeature' not in runtime_files['src/Activation.Runtime/ActivationRuntimeFeature.cs']
+        ordinary = {'path': 'src/Activation.Files/Activation.Files.csproj', 'packageId': 'Activation.Files',
+                    'featureIdentity': 'Existing.AdapterIdentity', 'role': 'provider', 'responsibility': 'runtime'}
+        ordinary_files = foundation_composition.scaffold_project(ordinary, {'packages': {}})
+        for path, payload in ordinary_files.items():
+            target = root / path; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(payload)
+        ordinary_source = root / 'src/Activation.Files/ProviderFeature.cs'
+        ordinary_source.write_text(ordinary_source.read_text().replace(
+            'public void ConfigureServices(IServiceCollection services) { }',
+            'public void ConfigureServices(IServiceCollection services) { services.AddSingleton<OwnedAdapterMarker>(); }'))
+        (ordinary_source.parent / 'OwnedAdapterMarker.cs').write_text('''namespace Activation.Files;
+public sealed class OwnedAdapterMarker;
+''')
+        assert {row.get('Include') for row in ET.fromstring(ordinary_files[ordinary['path']]).iter('PackageReference')} == {'CShells.Abstractions'}
+        assert not any(path.endswith('Prepare.cs') for path in ordinary_files)
         central = ET.parse(root / 'Directory.Packages.props').getroot()
         ET.SubElement(central.find('ItemGroup'), 'PackageVersion', Include='CShells.AspNetCore', Version=pins['CShells.AspNetCore.Abstractions'])
         (root / 'Directory.Packages.props').write_bytes(ET.tostring(central))
@@ -157,6 +171,7 @@ public sealed class OwnedRuntimeService : IDisposable {
   <ItemGroup><PackageReference Include="CShells.AspNetCore" />
     <ProjectReference Include="../../src/Activation.Api/Activation.Api.csproj" />
     <ProjectReference Include="../../src/Activation.Runtime/Activation.Runtime.csproj" />
+    <ProjectReference Include="../../src/Activation.Files/Activation.Files.csproj" />
   </ItemGroup>
 </Project>''')
         (mixed / 'Program.cs').write_text('''using CShells.AspNetCore.Configuration;
@@ -168,15 +183,19 @@ var builder = WebApplication.CreateBuilder();
 builder.Logging.ClearProviders();
 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
     ["CShells:Shells:mixed:Features:Activation.Api"] = "true",
-    ["CShells:Shells:mixed:Features:Existing.RuntimeIdentity"] = "true"
+    ["CShells:Shells:mixed:Features:Existing.RuntimeIdentity"] = "true",
+    ["CShells:Shells:mixed:Features:Existing.AdapterIdentity"] = "true"
 });
 builder.Services.AddCShells(shells => shells.WithAssemblies(typeof(Program).Assembly,
-    typeof(Activation.Api.ApiFeature).Assembly, typeof(ActivationRuntimeFeature).Assembly)
+    typeof(Activation.Api.ApiFeature).Assembly, typeof(ActivationRuntimeFeature).Assembly,
+    typeof(Activation.Files.ProviderFeature).Assembly)
     .WithConfigurationProvider(builder.Configuration));
 await using var host = builder.Build();
 var registry = host.Services.GetRequiredService<IShellRegistry>();
 var shell = await registry.GetOrActivateAsync("mixed");
 if (shell.State != ShellLifecycleState.Active) throw new InvalidOperationException("Mixed shell did not activate.");
+if (shell.ServiceProvider.GetRequiredService<Activation.Files.OwnedAdapterMarker>() is null)
+    throw new InvalidOperationException("Ordinary provider did not register its inert owned capability.");
 OwnedRuntimeService first;
 using (var scope = shell.ServiceProvider.CreateScope()) {
     first = scope.ServiceProvider.GetRequiredService<OwnedRuntimeService>();

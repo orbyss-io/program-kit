@@ -201,6 +201,10 @@
       "ownership": "managed"
     },
     {
+      "path": "eng/build_output_recipe.py",
+      "ownership": "managed"
+    },
+    {
       "path": ".github/workflows/application-ci.yml",
       "ownership": "managed"
     },

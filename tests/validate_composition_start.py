@@ -129,6 +129,9 @@ def main():
     (root / 'eng').mkdir(parents=True)
     started = time.monotonic()
     graph = two_apps(ROOT, dynamic_ports=True)
+    graph['resources']['ordinary-provider'] = {'kind': 'feature', 'role': 'provider', 'responsibility': 'runtime',
+        'path': 'src/Owned.Files/Owned.Files.csproj', 'packageId': 'Owned.Files', 'featureIdentity': 'Owned.Files'}
+    graph['bindings'].append({'kind': 'featureShell', 'featureRef': 'ordinary-provider', 'shellRef': 'application-shell'})
     if args.single_host:
         removed = {name for name in graph['resources'] if name.startswith('assessment-')}
         for name in removed:
@@ -173,6 +176,12 @@ def main():
     command(sync, ROOT, directory / 'product-plan-scaffold')
     command([*sync, '--check'], ROOT, directory / 'product-plan-scaffold-check')
     command([*native, 'check', *options], ROOT, directory / 'product-plan-native-check')
+    ordinary = root / 'src/Owned.Files/ProviderFeature.cs'
+    ordinary_source = ordinary.read_text()
+    if 'IWebShellFeature' in ordinary_source or 'AddFoundationPostgreSql' in ordinary_source:
+        raise ValueError('ordinary provider acquired a foreign HTTP/database responsibility')
+    ordinary.write_text(ordinary_source.replace('public void ConfigureServices(IServiceCollection services) { }',
+        'public void ConfigureServices(IServiceCollection services) { System.Console.WriteLine("ORDINARY_PROVIDER_REGISTERED"); }'), encoding='utf-8')
     # Model admission is item-specific, never a blanket project/pin exemption.
     project = root / 'src/Application.Api/Application.Api.csproj'
     original_project = project.read_bytes()
@@ -211,12 +220,23 @@ def main():
             cold = containers(preparation['project'])
             if args.single_host is False and 'r-' + __import__('hashlib').sha256(b'assessment-host').hexdigest()[:16] in cold:
                 raise ValueError('cold selected update activated an unrelated host')
+            pending = json.loads((root / 'artifacts/composition/prepared.json').read_text()).get('pendingActivationHosts', [])
+            if ('assessment-host' in pending) != (not args.single_host) or 'application-host' in pending:
+                raise ValueError('selected activation cleared another host or retained its own pending marker')
+            # No source change follows preparation. Plain update must activate
+            # the remaining prepared bundle rather than report unchanged.
+            command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'pending-plain-update')
+            if json.loads((root / 'artifacts/composition/prepared.json').read_text()).get('pendingActivationHosts'):
+                raise ValueError('ready prepared bundles still have pending activation')
             command([sys.executable, 'eng/composition_run.py', 'run'], root, directory / 'run')
             preparation = json.loads((root / 'artifacts/composition/prepared.json').read_text())
             private_root = root / graph['environments']['development']['resources']['private-evidence']['directory']
             active = containers(preparation['project'])
             application_service = 'r-' + __import__('hashlib').sha256(b'application-host').hexdigest()[:16]
             application_container = active[application_service]
+            command(['docker', 'logs', application_container], root, directory / 'ordinary-provider-activation')
+            if 'ORDINARY_PROVIDER_REGISTERED' not in (directory / 'ordinary-provider-activation/stdout.log').read_text():
+                raise ValueError('published Host did not activate the ordinary IShellFeature provider')
             # Write as the immutable Host's actual non-root identity, and verify
             # bytes independently through the retained host directory.
             command(['docker', 'exec', application_container, 'sh', '-c',
@@ -285,6 +305,30 @@ public sealed class ProbeService
             if json.loads(product_result.read_text())['status'] != 'ready':
                 raise ValueError('first consumer feature did not pass actual authenticated HTTP')
             edit_elapsed = round(time.monotonic() - edit_started, 3)
+            # Separately prepare changed content. Preparation marks every staged
+            # host pending, so plain update must activate that full prepared set.
+            probe = feature.with_name('ProbeService.cs')
+            probe.write_text(probe.read_text().replace('consumer-ready', 'consumer-prepared-ready'), encoding='utf-8')
+            prepared_before = containers(preparation['project'])
+            command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'consumer-edit-prepare')
+            prepared_edit = json.loads((root / 'artifacts/composition/prepared.json').read_text())
+            if 'application-host' not in prepared_edit.get('pendingActivationHosts', []):
+                raise ValueError('changed prepared bundle did not retain activation intent')
+            command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'consumer-prepared-update')
+            prepared_after = containers(preparation['project'])
+            host_services = {'r-' + hashlib.sha256(name.encode()).hexdigest()[:16]
+                             for name in prepared_edit['pendingActivationHosts']}
+            if set(prepared_before) != set(prepared_after) or any(
+                    prepared_before[name] != prepared_after[name] for name in prepared_before if name not in host_services):
+                raise ValueError('prepared update recreated retained non-host prerequisites')
+            if any(prepared_before[name] == prepared_after[name] for name in host_services):
+                raise ValueError('plain update did not activate every prepared host bundle')
+            first['productResponse'] = {'policy': 'consumer-prepared-ready'}
+            plan_path.write_text(json.dumps(plan), encoding='utf-8')
+            command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-prepared-feature')
+            if json.loads(product_result.read_text())['status'] != 'ready':
+                raise ValueError('prepared content was not served by the activated published Host')
+            after = prepared_after
             verify_build_stages(root, feature, directory)
             if args.tooling:
                 import shutil
@@ -404,6 +448,7 @@ public sealed class ProbeService
                           retainedPrivateHostBytes=65536, privateRestartRetention=True, privatePublicIsolation=True,
                           missingPrivateVolumeRejected=True, coldSelectedUpdate=True, stoppedDependencyUpdate=True,
                           pendingProductBindingPreserved=True, completeProductArchitectureStillRequired=True,
+                          ordinaryRuntimeProviderActivated=True, preparedPlainUpdateActivated=True,
                           measurement='Deterministic edit/build/authenticated operation; no agent reasoning-time claim')
         finally:
             model_file = root / 'eng/foundation-composition.json'

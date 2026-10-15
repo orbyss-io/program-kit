@@ -190,15 +190,14 @@ def project_definition(feature, repository=None):
                 kinds = {row.get('kind') for row in owned.get('responsibilities', [])} & {'runtime', 'http', 'persistence'}
                 if feature['role'] == 'provider':
                     require('http' not in kinds, 'provider cannot own HTTP source responsibility: ' + feature['path'])
-                    kinds = {'persistence'} if kinds else set()
                 require(len(kinds) <= 1, 'conflicting source responsibilities: ' + feature['path'])
                 if kinds:
                     actual = next(iter(kinds))
                     require(declared is None or declared == actual, 'feature responsibility conflicts with source authority: ' + feature['path'])
                     declared = actual
     if feature['role'] == 'provider':
-        require(declared in (None, 'persistence'), 'provider requires persistence responsibility: ' + feature['path'])
-        declared = 'persistence'
+        require(declared in (None, 'persistence', 'runtime'), 'provider requires runtime or persistence responsibility: ' + feature['path'])
+        declared = declared or 'persistence'  # Historical database providers retain their interpretation.
     else:
         require(declared in ('runtime', 'http'), 'declare runtime or HTTP source responsibility before scaffolding: ' + feature['path'])
     project['responsibility'] = declared
@@ -262,8 +261,7 @@ def validate(model, repository=None):
             require(row['role'] in ('implementation', 'provider'),
                     'resource composition does not introduce an aggregate source project')
             if 'responsibility' in row:
-                require(row['responsibility'] in ('runtime', 'http', 'persistence') and
-                        (row['role'] == 'provider') == (row['responsibility'] == 'persistence'),
+                require(row['responsibility'] in ({'runtime', 'persistence'} if row['role'] == 'provider' else {'runtime', 'http'}),
                         'feature responsibility conflicts with source role')
             consumed = row.get('capabilityPackages', [])
             require(isinstance(consumed, list) and
@@ -347,6 +345,8 @@ def validate(model, repository=None):
             require(re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,127}', str(row['context'])), 'invalid context type')
             identifier(row['policy'], 'database policy')
             require(reference(model, row['featureRef'], 'feature')['role'] == 'provider', 'database binding requires provider ownership')
+            require(project_definition(reference(model, row['featureRef'], 'feature'), repository)['responsibility'] == 'persistence',
+                    'database binding conflicts with runtime-only provider responsibility')
             require(row['featureRef'] in shell_features(model, row['shellRef']), 'database provider not selected in its shell')
         elif row['kind'] == 'authentication':
             client = reference(model, row['clientRef'], 'clientRegistration')
@@ -553,9 +553,13 @@ def legacy_view(model, shell_id, env_name=None):
     require(client['profile'] == 'browser-bff', 'adapter capability missing for selected browser profile')
     features = [model['resources'][name] for name in shell_features(model, shell_id)]
     projects = [{key: row[key] for key in ('path', 'packageId', 'featureIdentity', 'role')} for row in features]
+    database_features = {row['featureRef'] for row in bindings(model, 'databaseProvider') if row['shellRef'] == shell_id}
+    for name, project in zip(shell_features(model, shell_id), projects):
+        if project['role'] == 'provider' and name not in database_features:
+            project['responsibility'] = 'runtime'
     session = authority.get('session', {'idleMinutes': 20, 'absoluteMinutes': 480})
     return {'schemaVersion': 1, 'compositionId': 'foundation-bff-keycloak' +
-            ('-postgresql' if any(row['role'] == 'provider' for row in features) else ''),
+            ('-postgresql' if database_features else ''),
             'application': {'publicOrigin': env[host_id]['publicOrigin'], 'callbackPath': client.get('callbackPath', '/signin-oidc'),
                             'signedOutCallbackPath': client.get('signedOutCallbackPath', '/signout-callback-oidc'), 'localDevelopment': True},
             'identity': {'publicOrigin': assigned['publicOrigin'], 'administrationOrigin': assigned.get('administrationOrigin', assigned['backchannelOrigin']),
@@ -617,7 +621,7 @@ def from_legacy(value, repository=None):
                     raise
                 nodes[name]['responsibility'] = 'http'
         edges.append({'kind': 'featureShell', 'featureRef': name, 'shellRef': 'application-shell'})
-        if project['role'] == 'provider':
+        if project['role'] == 'provider' and project.get('responsibility', 'persistence') == 'persistence':
             nodes.setdefault('postgresql', {'kind': 'databaseServer', 'engine': 'postgresql'})
             env.setdefault('postgresql', {'mode': 'managed'})
             database = 'database-' + str(index)

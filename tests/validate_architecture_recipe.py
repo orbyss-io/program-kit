@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 from architecture_verify import validate_graph, execute
 import repository_architecture as recipe
+from build_output_recipe_cases import BuildOutputRecipeTests
 
 
 class RecipeTests(unittest.TestCase):
@@ -92,6 +93,29 @@ class RecipeTests(unittest.TestCase):
 
     def test_compiled_capability_and_evaluated_graph(self):
         self.assertEqual(2, len(self.check()))
+
+    def test_build_only_project_edge_has_no_clr_role_or_compiled_reference(self):
+        worker = {'path': 'Build/OwnedTool.csproj', 'role': 'implementation', 'projectReferences': [], 'packageReferences': []}
+        self.manifest['runtimeComposition']['projects'].append(worker)
+        parent = self.manifest['runtimeComposition']['projects'][1]
+        parent['buildProjectReferences'] = [worker['path']]
+        self.evaluated[worker['path']] = {'Properties': {'AssemblyName': 'OwnedTool'}, 'Items': {'ProjectReference': [], 'PackageReference': []}}
+        self.evaluated[parent['path']]['Items']['ProjectReference'].append({'Identity': worker['path'],
+            'FullPath': str(self.root / worker['path']), 'ReferenceOutputAssembly': 'false'})
+        self.compiled.append({'name': 'OwnedTool', 'references': ['System.Runtime'], 'types': []})
+        self.assertEqual(2, len(self.check()))
+        self.compiled[1]['references'].append('OwnedTool')
+        with self.assertRaisesRegex(ValueError, 'Compiled project edge'):
+            self.check()
+
+    def test_unknown_or_cyclic_build_edges_are_not_hidden_as_non_clr_dependencies(self):
+        core, provider = self.manifest['runtimeComposition']['projects']
+        core['buildProjectReferences'] = ['missing.csproj']
+        with self.assertRaisesRegex(ValueError, 'declared project owner'):
+            recipe.validate_manifest(self.root, self.manifest)
+        core['buildProjectReferences'] = [provider['path']]
+        with self.assertRaisesRegex(ValueError, 'dependency cycle'):
+            recipe.validate_manifest(self.root, self.manifest)
 
     def test_friend_access_from_evaluated_items_and_compiled_attributes_is_rejected(self):
         items = self.evaluated['Core/Slots.Core.csproj']['Items']

@@ -46,6 +46,16 @@ the original receipt. Retain rollback, conflict, concurrency, ownership and canc
 Never substitute a mocked successful commit for this uncertainty regression. Keep implementation
 classes, entities and DbSets private; remove friend declarations instead of exposing them for tests.
 
+Replacing the admitted EF options is not an interceptor contribution: Foundation intentionally
+rejects that replacement. If the selected older capture lacks additive interception, qualify an
+exact-version, fixture-owned EF transaction-completion diagnostic subscription instead. Filter the
+exact context/transaction, arm a single postcommit fault, isolate concurrent fixtures and dispose
+the subscription. Prove the fault escapes the actual commit path after durable commit; logging
+observation alone proves neither. Independently query durable rows and discover the receipt before
+replay, then prove the original receipt and exactly one effect. Retain the failed options-replacement
+attempt as evidence. A consumer's diagnostic fallback is separate from adopting Foundation 0.3.4
+and does not justify a new production forwarding wrapper or friend assembly.
+
 Keep admission, replay, expiry and result decisions application-owned. Foundation provider failure
 classification and execution deadlines supply mechanisms, not a generic domain outcome or proof of
 rollback. Review each operation's permitted results: a completed value-returning operation requires

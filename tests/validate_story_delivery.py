@@ -128,6 +128,203 @@ class DeliveryTests(unittest.TestCase):
             entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
         self.accept()
 
+    def large_presentation(self):
+        self.complete('T001', 'T002')
+        paths = []
+        for index in range(121):
+            name = 'src/review/' + str(index).zfill(3) + '-' + 'owned-' * 7 + '.txt'
+            target = self.root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text('Fictional original source ' + str(index))
+            paths.append(name)
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'], basisPaths=paths,
+                 entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
+        return paths
+
+    def stored_checkpoint(self):
+        return json.loads(delivery.CURRENT.search((self.feature / 'tasks.md').read_text())[1])
+
+    def replace_stored_checkpoint(self, saved):
+        path = self.feature / 'tasks.md'
+        path.write_text(delivery.CURRENT.sub(lambda _: '<!-- program-kit:current-checkpoint '
+                       + json.dumps(saved, separators=(',', ':')) + ' -->', path.read_text(), count=1))
+
+    def test_repeated_large_bases_are_interned_without_losing_human_provenance(self):
+        paths = self.large_presentation()
+        for index in range(60):
+            self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'],
+                     source='simulated explicit owner continuation ' + str(index))
+        expanded = delivery.current(self.feature)
+        original = copy.deepcopy(expanded['delivery']['checkpoints']['US1']['decisions'])
+        stored = self.stored_checkpoint()
+        self.assertEqual(3, stored['version'])
+        self.assertLess(len(json.dumps(stored).encode()), 65536)
+        self.assertGreater(len(json.dumps(expanded).encode()), 65536)
+        self.assertEqual(2, len(stored['delivery']['basisStorage']['values']))
+        self.assertEqual(60, len(original))
+        self.assertEqual(121, len(original[0]['basis']))
+        (self.root / paths[0]).write_text('changed material fixture')
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'], basisPaths=paths,
+                 entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated changed review')
+        self.assertEqual(original, delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'][:60])
+        self.assertEqual(3, len(self.stored_checkpoint()['delivery']['basisStorage']['values']))
+        self.assertEqual('original-commit', delivery.current(self.feature)['baseline'])
+
+    def test_expanded_bases_are_independent_and_legacy_state_migrates_atomically(self):
+        self.large_presentation()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated owner')
+        saved = delivery.current(self.feature)
+        review = saved['delivery']['checkpoints']['US1']
+        review['decisions'] *= 8
+        saved['delivery']['clock']['accountingCorrections'] = [{'identity': 'retained-fixture-correction', 'seconds': 936.331586}]
+        self.replace_stored_checkpoint(saved)  # Legacy inline state larger than the old limit.
+        before = (self.feature / 'tasks.md').read_bytes()
+        self.assertGreater(len(before), 65536)
+        state = delivery.load_delivery(self.feature)
+        with patch.object(delivery.os, 'replace', side_effect=OSError('fixture interrupted atomic migration')):
+            with self.assertRaisesRegex(OSError, 'interrupted'):
+                delivery.persist(self.feature, state)
+        self.assertEqual(before, (self.feature / 'tasks.md').read_bytes())
+        delivery.persist(self.feature, state)
+        self.assertEqual(state, delivery.load_delivery(self.feature))
+        independently_expanded = delivery.load_delivery(self.feature)
+        basis = independently_expanded['checkpoints']['US1']['presentation']['basis']
+        basis[next(iter(basis))] = 'fixture changed copy'
+        self.assertNotEqual(basis, independently_expanded['checkpoints']['US1']['decisions'][0]['basis'])
+
+    def test_missing_tampered_or_mixed_stored_bases_are_refused_without_writes(self):
+        self.present(); self.accept()
+        original = self.stored_checkpoint()
+        for corruption in ('missing', 'tampered', 'mixed'):
+            with self.subTest(corruption=corruption):
+                saved = copy.deepcopy(original)
+                site = saved['delivery']['checkpoints']['US1']['presentation']
+                if corruption == 'missing':
+                    site['basisRef'] = '0' * 64
+                elif corruption == 'tampered':
+                    saved['delivery']['basisStorage']['values'][site['basisRef']]['src/Create.txt'] = 'changed hash'
+                else:
+                    site['basis'] = {'src/Create.txt': 'ambiguous inline basis'}
+                self.replace_stored_checkpoint(saved)
+                before = (self.feature / 'tasks.md').read_bytes()
+                with self.assertRaisesRegex(ValueError, 'retained basis|inline/reference'):
+                    delivery.current(self.feature)
+                self.assertEqual(before, (self.feature / 'tasks.md').read_bytes())
+
+    def test_summary_and_retained_history_limits_refuse_without_discarding_state(self):
+        before = (self.feature / 'tasks.md').read_bytes()
+        saved = delivery.current(self.feature)
+        saved['outcome'] = 'x' * 8192
+        with self.assertRaisesRegex(ValueError, '8192'):
+            delivery.save_current(self.feature, saved)
+        state = delivery.load_delivery(self.feature)
+        state['clock']['retainedFixtureHistory'] = 'x' * delivery.RETAINED_LIMIT
+        with self.assertRaisesRegex(ValueError, '1048576'):
+            delivery.persist(self.feature, state)
+        self.assertEqual(before, (self.feature / 'tasks.md').read_bytes())
+
+    def test_basis_expansion_is_bounded_even_when_stored_state_is_small(self):
+        self.present(); self.accept()
+        saved = delivery.current(self.feature)
+        review = saved['delivery']['checkpoints']['US1']
+        huge = {'fixture': 'x' * 500000}
+        review['presentation']['basis'] = huge
+        review['decisions'] = [dict(review['decisions'][0], basis=huge) for _ in range(40)]
+        stored = delivery._store_bases(saved)
+        self.assertLess(len(json.dumps(stored).encode()), delivery.RETAINED_LIMIT)
+        self.replace_stored_checkpoint(stored)
+        with self.assertRaisesRegex(ValueError, 'expansion exceeds'):
+            delivery.current(self.feature)
+
+    def test_owner_named_continuation_survives_material_changes_but_not_acceptance(self):
+        self.present()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated owner continue export')
+        decisions = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+        (self.root / 'src/Create.txt').write_text('changed shared implementation')
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual(('deferred', 'pending', True), (review['human'], review['engineering'], review['stale']))
+        self.assertEqual(decisions, review['decisions'])
+        self.act('start', operation='export')
+        for operation in ('integrate', 'unknown-operation'):
+            with self.assertRaises(ValueError):
+                self.act('start', operation=operation)
+        with self.assertRaisesRegex(ValueError, 'remain due'):
+            delivery.guard(self.root, self.feature, closure=True)
+        with self.assertRaisesRegex(ValueError, 'fresh checkpoint'):
+            self.accept()
+
+    def test_owner_can_defer_an_existing_stale_review_but_requester_cannot(self):
+        self.present(); self.accept()
+        (self.root / 'src/Create.txt').write_text('changed original basis')
+        self.act('status')
+        with self.assertRaisesRegex(ValueError, 'fresh checkpoint'):
+            self.act('decision', checkpoint='US1', verdict='deferred', actor='requester', permits=['export'], source='simulated requester')
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated explicit stale owner deferral')
+        self.act('start', operation='export')
+
+    def test_requester_deferral_loses_fresh_authority_after_source_changes(self):
+        self.present()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='requester', permits=['export'], source='simulated requester')
+        (self.root / 'src/Create.txt').write_text('changed')
+        with self.assertRaisesRegex(ValueError, 'Pause'):
+            self.act('start', operation='export')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_owner_continuation_preserves_scoped_raw_freshness_and_rejects_failed_checks(self):
+        self.scoped_presentation()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated owner')
+        self.graph['resources']['assessment-shell']['name'] = 'changed sibling'
+        self.composition.write_text(json.dumps(self.graph))
+        self.act('start', operation='export')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['engineering'])
+        (self.root / 'artifacts/passing.json').write_text('{"status":"failed","exitCode":1}')
+        with self.assertRaisesRegex(ValueError, 'cannot be waived'):
+            self.act('start', operation='export')
+
+    def test_changed_operation_meaning_revokes_only_relevant_active_permits(self):
+        self.present()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated owner')
+        self.act('start', operation='export'); self.now = 10; self.act('status')
+        target = self.feature / 'tasks.md'
+        target.write_text(target.read_text().replace('Export record |', 'Export a changed approved record |', 1))
+        with self.assertRaisesRegex(ValueError, 'scope decision'):
+            self.act('start', operation='export')
+        self.act('scope', actor='owner', source='simulated changed operation meaning', stories=['US2'])
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual([], review['permits'])
+        self.assertEqual(['export'], review['decisions'][-1]['permits'])
+        self.assertTrue(delivery.load_delivery(self.feature)['clock']['waiting'])
+        self.now = 70; self.act('status')
+        self.assertEqual(10, delivery.load_delivery(self.feature)['stories']['US2']['seconds'])
+        with self.assertRaisesRegex(ValueError, 'Pause'):
+            self.act('start', operation='export')
+
+    def test_permitted_active_work_counts_once_and_explicit_wait_and_suspend_do_not(self):
+        self.act('start', operation='create'); self.complete('T001'); self.act('start', operation='integrate')
+        self.now = 10; self.present()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['integrate'], source='simulated owner continue active work')
+        self.assertFalse(delivery.load_delivery(self.feature)['clock']['waiting'])
+        self.now = 70; self.act('status'); self.act('status')
+        self.assertEqual(70, delivery.load_delivery(self.feature)['stories']['US1']['seconds'])
+        self.act('wait'); self.now = 170; self.act('resume')
+        self.now = 200; self.act('suspend'); self.now = 400; self.act('resume')
+        self.assertEqual(100, delivery.load_delivery(self.feature)['stories']['US1']['seconds'])
+        (self.root / 'src/Create.txt').write_text('changed while still permitted')
+        self.now = 410; self.act('status')
+        self.assertEqual(110, delivery.load_delivery(self.feature)['stories']['US1']['seconds'])
+
+    def test_other_due_checkpoint_still_blocks_active_work_and_clock(self):
+        self.act('start', operation='create'); self.complete('T001'); self.act('start', operation='integrate'); self.present()
+        self.act('early-checkpoint', actor='owner', source='simulated owner early review', checkpoint='early', story='US1', taskIds=['T001'])
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['integrate'], source='simulated owner')
+        self.assertTrue(delivery.load_delivery(self.feature)['clock']['waiting'])
+        self.now = 60; self.act('resume'); self.now = 120; self.act('status')
+        self.assertEqual(0, delivery.load_delivery(self.feature)['stories']['US1']['seconds'])
+        with self.assertRaisesRegex(ValueError, 'early'):
+            self.act('start', operation='integrate')
+
     def test_scoped_sibling_host_change_retains_human_decision_but_blocks_stale_engineering(self):
         self.scoped_presentation()
         decision = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])

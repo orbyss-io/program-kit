@@ -19,6 +19,89 @@ PREFIX = '<!-- program-kit:tasks-draft '
 MARKER = re.compile(r'^<!-- program-kit:tasks-draft (.+) -->$', re.M)
 CURRENT = re.compile(r'^<!-- program-kit:current-checkpoint (.+) -->$', re.M)
 CURRENT_LIMIT = 8192
+RETAINED_LIMIT = 1024 * 1024
+EXPANDED_LIMIT = 16 * RETAINED_LIMIT
+
+
+def _basis_sites(value):
+    """Only owned review fields are interned; arbitrary history remains untouched."""
+    delivery = value.get('delivery', {})
+    require(isinstance(delivery, dict) and isinstance(delivery.get('checkpoints', {}), dict), 'Malformed retained delivery state')
+    for review in delivery.get('checkpoints', {}).values():
+        require(isinstance(review, dict) and isinstance(review.get('decisions', []), list), 'Malformed retained review history')
+        for field in ('engineeringInputBasis', 'checkBasis'):
+            yield review, field
+        if isinstance(review.get('presentation'), dict):
+            for field in ('basis', 'materialBasis'):
+                yield review['presentation'], field
+        for decision in review.get('decisions', []):
+            require(isinstance(decision, dict), 'Malformed retained human decision')
+            for field in ('basis', 'materialBasis'):
+                yield decision, field
+
+
+def _basis_bytes(value):
+    return json.dumps(value, sort_keys=True, ensure_ascii=True,
+                      separators=(',', ':'), allow_nan=False).encode('utf-8')
+
+
+def _store_bases(value):
+    saved = copy.deepcopy(value)
+    if 'delivery' not in saved:
+        return saved
+    require('basisStorage' not in saved['delivery'], 'Expanded state cannot contain a second basis store')
+    pool = {}
+    for site, field in _basis_sites(saved):
+        require(field + 'Ref' not in site, 'Supply expanded review provenance, not mixed basis references')
+        if field not in site:
+            continue
+        content = site.pop(field)
+        require(isinstance(content, dict) and content, 'Review basis must be a nonempty object')
+        identity = hashlib.sha256(_basis_bytes(content)).hexdigest()
+        require(identity not in pool or pool[identity] == content, 'Conflicting retained basis identity')
+        pool[identity] = content
+        site[field + 'Ref'] = identity
+    saved['delivery']['basisStorage'] = {'version': 1, 'values': pool}
+    saved['version'] = 3  # Storage format only; normal readers return expanded v2.
+    return saved
+
+
+def _expand_bases(value):
+    saved = copy.deepcopy(value)
+    require(isinstance(saved.get('delivery'), dict), 'Missing retained delivery state')
+    storage = saved.get('delivery', {}).pop('basisStorage', None)
+    require(isinstance(storage, dict) and set(storage) == {'version', 'values'}
+            and storage['version'] == 1 and isinstance(storage['values'], dict),
+            'Unsupported retained basis storage; preserve the checkpoint')
+    pool, sizes, used = storage['values'], {}, set()
+    for identity, content in pool.items():
+        require(isinstance(identity, str) and re.fullmatch(r'[0-9a-f]{64}', identity)
+                and isinstance(content, dict) and content, 'Malformed retained basis identity')
+        encoded = _basis_bytes(content)
+        require(hashlib.sha256(encoded).hexdigest() == identity, 'Tampered retained basis')
+        sizes[identity] = len(encoded)
+    expanded_size = len(_basis_bytes(saved))
+    for site, field in _basis_sites(saved):
+        require(field not in site, 'Mixed inline/reference review provenance')
+        if field + 'Ref' not in site:
+            continue
+        identity = site.pop(field + 'Ref')
+        require(isinstance(identity, str) and identity in pool, 'Missing retained basis reference')
+        expanded_size += sizes[identity]
+        require(expanded_size <= EXPANDED_LIMIT, 'Retained basis expansion exceeds its bounded reader limit')
+        site[field] = copy.deepcopy(pool[identity])
+        used.add(identity)
+    require(used == set(pool), 'Unreferenced retained basis; preserve and review the checkpoint')
+    saved['version'] = 2
+    return saved
+
+
+def _checkpoint_object(pairs):
+    value = {}
+    for key, item in pairs:
+        require(key not in value, 'Duplicate checkpoint field; preserve retained provenance')
+        value[key] = item
+    return value
 
 
 def inputs(root, feature):
@@ -69,9 +152,14 @@ def current(feature):
         raise ValueError('Duplicate or malformed current checkpoints; review without discarding retained state')
     if not markers:
         return None
-    value = json.loads(markers[0][1])
-    if not isinstance(value, dict) or value.get('version') not in (1, 2):
+    require(len(markers[0][1].encode('utf-8')) <= RETAINED_LIMIT, 'Retained checkpoint exceeds its bounded state limit')
+    value = json.loads(markers[0][1], object_pairs_hook=_checkpoint_object)
+    if not isinstance(value, dict) or value.get('version') not in (1, 2, 3):
         raise ValueError('Unsupported current checkpoint; preserve and review retained state')
+    if value['version'] == 3:
+        value = _expand_bases(value)
+    else:
+        require('basisStorage' not in value.get('delivery', {}), 'Basis storage requires its explicit checkpoint version')
     for field in ('baseline', 'outcome', 'next'):
         if not isinstance(value.get(field), str) or not value[field].strip():
             raise ValueError('Malformed current checkpoint: ' + field)
@@ -87,9 +175,10 @@ def save_current(feature, value):
     path = feature / 'tasks.md'
     content = path.read_text(encoding='utf-8')
     summary = {key: item for key, item in value.items() if key != 'delivery'}
-    serialized = json.dumps(value, ensure_ascii=True, separators=(',', ':'))
-    if '-->' in serialized or len(json.dumps(summary).encode()) > CURRENT_LIMIT or len(serialized.encode()) > 65536:
-        raise ValueError('Checkpoint summary must be at most 8192 bytes and retained story state 65536 bytes; use concise references, never discard unresolved decisions/failures')
+    require(len(_basis_bytes(value)) <= EXPANDED_LIMIT, 'Expanded checkpoint exceeds its bounded reader limit')
+    serialized = json.dumps(_store_bases(value), ensure_ascii=True, separators=(',', ':'), allow_nan=False)
+    if '-->' in serialized or len(json.dumps(summary).encode()) > CURRENT_LIMIT or len(serialized.encode()) > RETAINED_LIMIT:
+        raise ValueError('Checkpoint summary must be at most 8192 bytes and retained state 1048576 bytes; never discard unresolved decisions/failures')
     marker = '<!-- program-kit:current-checkpoint ' + serialized + ' -->'
     content = CURRENT.sub(lambda _: marker, content, count=1) if CURRENT.search(content) else content.rstrip() + '\n\n' + marker + '\n'
     atomic_write(path, content)
@@ -456,7 +545,7 @@ def basis(root, paths):
     return result
 
 
-def check_artifacts(root, references):
+def check_artifacts(root, references, *, freshness=True):
     require(isinstance(references, list) and references and all(nonempty(ref) for ref in references),
             'Supply actual relevant successful check artifact references')
     hashes = {}
@@ -476,7 +565,7 @@ def check_artifacts(root, references):
                 sys.path.insert(0, str(_engineering))
                 from repository_verification import evidence_valid
                 for outcome in record['outcomes']:
-                    if outcome.get('fingerprint'):
+                    if freshness and outcome.get('fingerprint'):
                         require(evidence_valid(root, target, outcome), 'Stale/corrupt technical evidence: ' + ref)
         elif target.suffix in ('.trx', '.xml'):
             from phase_obligations import test_results
@@ -542,6 +631,25 @@ def plan(content, required=True):
     return result
 
 
+def owner_continuation(review, value, operation=None):
+    """The latest owner deferral supplies authority; freshness supplies no authority."""
+    decisions = review.get('decisions', [])
+    presented = review.get('presentation')
+    if not decisions or not isinstance(presented, dict) or review.get('human') != 'deferred':
+        return False
+    decision = decisions[-1]
+    permits = review.get('permits', [])
+    operations = {op for row in value.get('stories', {}).values() for op in row.get('operations', [])}
+    return (decision.get('verdict') == 'deferred' and decision.get('reviewer') == 'owner'
+            and decision.get('assignment') == value.get('roles', {}).get('owner')
+            and nonempty(decision.get('source')) and isinstance(permits, list) and bool(permits)
+            and all(isinstance(permit, str) for permit in permits)
+            and len(set(permits)) == len(permits) and set(permits) <= operations
+            and permits == decision.get('permits') and decision.get('basis') == presented.get('basis')
+            and decision.get('materialBasis') == presented.get('materialBasis')
+            and (operation is None or operation in permits))
+
+
 def validate(value):
     require(isinstance(value, dict) and value.get('version') == 1, 'Malformed story delivery state')
     require(isinstance(value.get('roles'), dict) and 'owner' in value['roles'] and 'requester' in value['roles'], 'Missing review roles')
@@ -573,7 +681,8 @@ def validate(value):
                               review['presentation'].get('materialBasis') and review.get('engineeringInputBasis') and
                               review['decisions'] and review['decisions'][-1].get('materialBasis') == review['presentation']['materialBasis'] and
                               not review.get('stale'))
-            require((review.get('engineering') == 'complete' or scoped_retained) and isinstance(review.get('presentation'), dict) and review['decisions'],
+            require((review.get('engineering') == 'complete' or scoped_retained or owner_continuation(review, value))
+                    and isinstance(review.get('presentation'), dict) and review['decisions'],
                     'Decision requires complete engineering, presented basis and provenance')
             require(review['decisions'][-1]['verdict'] == review['human'] and
                     review['decisions'][-1]['basis'] == review['presentation'].get('basis'),
@@ -634,11 +743,16 @@ def refresh(root, value):
             except (ValueError, OSError, KeyError, TypeError):
                 fresh = False
                 material_fresh = False
+            try:
+                fresh = fresh and check_artifacts(root, review['checks']) == review['checkBasis']
+            except (ValueError, OSError, KeyError, TypeError):
+                fresh = False
             if not fresh:
                 if material_fresh:
                     review.update(engineering='pending')
                 else:
-                    review.update(human='pending', engineering='pending', stale=True)
+                    review.update(human='deferred' if owner_continuation(review, value) else 'pending',
+                                  engineering='pending', stale=True)
     return value
 
 
@@ -672,8 +786,13 @@ def guard(root, feature, operation=None, closure=False, repair=False):
     require(plan(content) == value['plan'],
             'Story plan changed; obtain a scope decision and update the affected artifacts/state')
     persist(feature, value)
+    return _review_guard(root, feature, value, operation, closure=closure, repair=repair)
+
+
+def _review_guard(root, feature, value, operation=None, closure=False, repair=False):
     if operation is None and value.get('active'):
         operation = value['active']['operation']
+    content = (feature / 'tasks.md').read_text(encoding='utf-8')
     completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
     rows = _table(content, 'Task dependency map', 5)
     repairable = repair and any(operation == row[1] and row[0] in completed and
@@ -685,19 +804,47 @@ def guard(root, feature, operation=None, closure=False, repair=False):
         require(not unresolved, 'Required human reviews remain due before feature acceptance: ' + ', '.join(unresolved))
         require(not load_failures(feature), 'Required technical failures cannot be waived by human approval')
         for review in value['checkpoints'].values():
+            require(not review.get('stale'), 'Current human review remains due after material changes')
             require(review['engineering'] == 'complete', 'Current engineering checks remain due after changed review inputs')
             require(check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
         return value
     for key, review in value['checkpoints'].items():
+        continuation = owner_continuation(review, value, operation)
         if review.get('presentation') and review['human'] in ('accepted', 'deferred'):
-            require(repairable or review['engineering'] == 'complete', 'Current engineering checks remain due: ' + key)
-            require(repairable or check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
+            require(repairable or continuation or review['engineering'] == 'complete', 'Current engineering checks remain due: ' + key)
+            if continuation and not repairable:
+                require(not load_failures(feature), 'Human continuation cannot waive required technical failures')
+                check_artifacts(root, review['checks'], freshness=False)
+            else:
+                require(repairable or check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
         tasks = review.get('taskIds', value['stories'][review['story']]['taskIds'])
         due = review['human'] in ('ready for review', 'changes requested', 'deferred') or review.get('stale') or (set(tasks) <= completed and review['human'] == 'pending')
         if due:
             permitted = review['human'] == 'deferred' and operation in review.get('permits', [])
             require(permitted or repairable, 'Pause for required human review: ' + key + '; only repair/diagnosis or explicit scoped deferral may proceed')
     return value
+
+
+def _active_permitted(root, feature, value):
+    active = value.get('active')
+    if not active:
+        return False
+    try:
+        content = (feature / 'tasks.md').read_text(encoding='utf-8')
+        require(plan(content) == value['plan'], 'Changed operation scope')
+        _review_guard(root, feature, value, active['operation'], repair=active.get('purpose') in ('repair', 'diagnose'))
+        _enabling_tasks(content, active['operation'])
+    except (ValueError, OSError, KeyError):
+        return False
+    return True
+
+
+def _enabling_tasks(content, operation):
+    completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
+    dependencies = {row[0]: _items(row[1]) for row in _table(content, 'Operation dependency map', 2)}
+    tasks = _table(content, 'Task dependency map', 5)
+    require(operation in dependencies and all(row[0] in completed for row in tasks if row[1] in dependencies[operation]),
+            'Complete the operation actual enabling prerequisites before dependent work')
 
 
 def load_failures(feature):
@@ -774,17 +921,15 @@ def transition(root, feature, request, now=None, reader=github_read):
         require(story, 'Unknown operation; renaming cannot reset effort')
         from task_draft import _table, _items
         content = (feature / 'tasks.md').read_text(encoding='utf-8')
-        completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
-        dependencies = {row[0]: _items(row[1]) for row in _table(content, 'Operation dependency map', 2)}
-        tasks = _table(content, 'Task dependency map', 5)
-        require(all(row[0] in completed for row in tasks if row[1] in dependencies[operation]),
-                'Complete the operation actual enabling prerequisites before dependent work')
+        _enabling_tasks(content, operation)
         active = value.get('active')
         if active and active['story'] != story:
             review = value['checkpoints'][active['story']]
             require(request.get('purpose') in ('repair', 'diagnose') or review['human'] == 'accepted' or (review['human'] == 'deferred' and operation in review.get('permits', [])),
                     'Present and resolve the current story before starting another story')
         value.update(active={'story': story, 'operation': operation})
+        if request.get('purpose') in ('repair', 'diagnose'):
+            value['active']['purpose'] = request['purpose']
         value['clock'].update(waiting=False, suspended=False)
     elif action in ('present', 'engineering'):
         key = request['checkpoint']
@@ -825,7 +970,10 @@ def transition(root, feature, request, now=None, reader=github_read):
         key = request['checkpoint']
         review = value['checkpoints'][key]
         verdict = request.get('verdict')
-        require(review['human'] in ('ready for review', 'changes requested', 'deferred') and not review.get('stale'),
+        if verdict in ('accepted', 'deferred') and isinstance(review.get('presentation'), dict):
+            check_artifacts(root, review['checks'], freshness=False)
+        owner_deferral = owner and verdict == 'deferred' and isinstance(review.get('presentation'), dict)
+        require(owner_deferral or (review['human'] in ('ready for review', 'changes requested', 'deferred') and not review.get('stale')),
                 'Present a fresh checkpoint before recording a decision')
         require(verdict in ('accepted', 'changes requested', 'deferred'), 'Ambiguous decision remains pending')
         role = value['roles'][review['reviewer']]
@@ -850,8 +998,10 @@ def transition(root, feature, request, now=None, reader=github_read):
                     (owner and verdict == 'deferred'), 'Wrong reviewer; delegated GitHub reviewers supply an authenticated decision reference')
             require(nonempty(source), 'Record actual explicit human decision source; silence/tests grant no authority')
         if verdict in ('accepted', 'deferred'):
-            require(review['engineering'] == 'complete' and not load_failures(feature), 'Human approval cannot waive required technical failures')
-            require(check_artifacts(root, review['checks']) == review['checkBasis'], 'Technical evidence changed after story presentation')
+            require((owner_deferral or review['engineering'] == 'complete') and not load_failures(feature),
+                    'Human approval cannot waive required technical failures')
+            actual_checks = check_artifacts(root, review['checks'], freshness=not owner_deferral)
+            require(owner_deferral or actual_checks == review['checkBasis'], 'Technical evidence changed after story presentation')
         permits = request.get('permits', [])
         if verdict == 'deferred':
             all_ops = {op for row in value['stories'].values() for op in row['operations']}
@@ -865,7 +1015,7 @@ def transition(root, feature, request, now=None, reader=github_read):
             'source': source, 'basis': review['presentation']['basis'], 'permits': review['permits'], 'at': now})
         if review['presentation'].get('materialBasis'):
             review['decisions'][-1]['materialBasis'] = copy.deepcopy(review['presentation']['materialBasis'])
-        value['clock']['waiting'] = verdict != 'changes requested'
+        value['clock']['waiting'] = (not _active_permitted(root, feature, value)) if verdict == 'deferred' else verdict != 'changes requested'
     elif action in ('verify-reviewer', 'assign'):
         require(owner and nonempty(request.get('source')), 'Only an explicit owner decision may reassign review')
         if request.get('login'):
@@ -925,7 +1075,13 @@ def transition(root, feature, request, now=None, reader=github_read):
             for review in value['checkpoints'].values():
                 if review['story'] == key:
                     review.update(human='pending', engineering='pending', stale=True, scopeSource=request['source'])
+        changed_operations = {op for key in affected for op in updated[key]['operations']}
+        for review in value['checkpoints'].values():
+            if set(review.get('permits', [])) & changed_operations:
+                review.update(human='pending', engineering='pending', stale=True, permits=[], scopeSource=request['source'])
         value['plan'] = updated
+        if not _active_permitted(root, feature, value):
+            value['clock']['waiting'] = True
     elif action == 'reuse-review':
         source = value['checkpoints'][request['from']]
         target = value['checkpoints'][request['checkpoint']]
@@ -943,7 +1099,7 @@ def transition(root, feature, request, now=None, reader=github_read):
                 target[field] = copy.deepcopy(source[field])
     elif action in ('wait', 'resume', 'suspend', 'status'):
         if action != 'status':
-            value['clock']['waiting'] = action == 'wait'
+            value['clock']['waiting'] = action == 'wait' or (action == 'resume' and not _active_permitted(root, feature, value))
             value['clock']['suspended'] = action == 'suspend'
     else:
         raise ValueError('Unknown story delivery transition')

@@ -102,7 +102,10 @@ def validate_configuration(value):
     require(isinstance(projects, list) and projects, 'declare actual application feature projects')
     identities = set()
     for project in projects:
-        require(isinstance(project, dict) and set(project) == {'path', 'packageId', 'featureIdentity', 'role'}, 'project fields are invalid')
+        require(isinstance(project, dict) and {'path', 'packageId', 'featureIdentity', 'role'} <= set(project)
+                <= {'path', 'packageId', 'featureIdentity', 'role', 'responsibility'}, 'project fields are invalid')
+        require('responsibility' not in project or (project['role'] == 'provider' and project['responsibility'] == 'runtime'),
+                'finite recipe admits only the typed ordinary-provider runtime projection')
         relative(project['path'], 'project.path')
         require(project['path'].endswith('.csproj'), 'project path must name a .csproj')
         require(project['role'] in {'implementation', 'provider'}, 'only owned API and provider responsibilities can be scaffolded')
@@ -116,7 +119,8 @@ def validate_configuration(value):
     require(len({p['path'].casefold() for p in projects}) == len(projects), 'duplicate project path')
     require(len({p['featureIdentity'] for p in projects}) == len(projects), 'independent projects require distinct feature identities')
     postgres = value['compositionId'].endswith('-postgresql')
-    require(any(p['role'] == 'provider' for p in projects) == postgres, 'PostgreSQL variant requires a provider; base variant does not')
+    require(any(p['role'] == 'provider' and p.get('responsibility', 'persistence') == 'persistence' for p in projects) == postgres,
+            'PostgreSQL variant requires a database provider; ordinary runtime providers do not select it')
     theme = value['theme']
     require(isinstance(theme, dict) and set(theme) == {'selection', 'branding'} and theme['selection'] == 'program-kit', 'only the maintained program-kit theme is admitted')
     require(isinstance(theme['branding'], dict) and not set(theme['branding']) - {'displayName', 'accentColor'}, 'branding admits only displayName/accentColor')
@@ -455,7 +459,7 @@ public sealed class ApiFeature : IWebShellFeature
 }}
 '''
     elif not provider:
-        type_name = namespace.replace('.', '') + 'Feature'
+        type_name = 'ProviderFeature' if project['role'] == 'provider' else namespace.replace('.', '') + 'Feature'
         source = f'''using CShells.Features;
 using Microsoft.Extensions.DependencyInjection;
 

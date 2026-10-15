@@ -608,8 +608,15 @@ def run(root, selected_hosts=None, update=False):
     require(receipt['topologyFingerprint'] == topology_fingerprint(root, graph, contract), 'composition/dependency inputs changed; reconcile and prepare their affected resources')
     if selected_hosts:
         require(set(selected_hosts) <= set(resolved['hosts']), 'unknown selected host')
+    pending = receipt.get('pendingActivationHosts', [])
+    require(isinstance(pending, list) and all(isinstance(name, str) for name in pending)
+            and len(set(pending)) == len(pending) and set(pending) <= set(resolved['hosts']),
+            'prepared activation identities differ from the selected hosts; prepare again')
+    build_hosts = []
     if update:
-        selected_hosts = affected_hosts(root, graph, resolved, selected_hosts)
+        requested = set(selected_hosts) if selected_hosts else set(resolved['hosts'])
+        build_hosts = affected_hosts(root, graph, resolved, selected_hosts)
+        selected_hosts = sorted(set(build_hosts) | (set(pending) & requested))
         if not selected_hosts:
             print(json.dumps({'status': 'unchanged', 'updatedHosts': [], 'productAcceptance': False}))
             return
@@ -620,8 +627,13 @@ def run(root, selected_hosts=None, update=False):
     result = {'schemaVersion': 2, 'status': 'running', 'startedAtUtc': utc(), 'productAcceptance': False}
     write(directory / 'result.json', result)
     try:
-        if update:
-            build(root, graph, resolved, command, selected_hosts=selected_hosts)
+        if update and build_hosts:
+            build(root, graph, resolved, command, selected_hosts=build_hosts)
+            # A successful build now matches current source even if activation
+            # subsequently fails. Retain that distinct work for a plain retry.
+            pending = sorted(set(pending) | set(build_hosts))
+            receipt['pendingActivationHosts'] = pending
+            write(root / STATE, receipt)
         for name, host in resolved['hosts'].items():
             if not selected_hosts or name in selected_hosts:
                 runtime_closure.validate(root, root / host['runtimeStage'], root / 'artifacts/composition/closures' / (name + '.json'), PROGRAM_KIT_VERSION)
@@ -644,14 +656,14 @@ def run(root, selected_hosts=None, update=False):
         if selected_hosts or update or pending_activation:
             arguments += [service(name) for name in hosts]
         command.run(arguments, environment=process_env, timeout=210)
-        receipt['pendingActivationHosts'] = [name for name in receipt.get('pendingActivationHosts', []) if name not in hosts]
-        write(root / STATE, receipt)
         checks = {}
         for name in hosts:
             origin = resolved['hosts'][name]['publicOrigin']
             foundation_fixture.poll(lambda: qualification.ready(origin, '/bff/user'), timeout=60)
             checks[name] = {'hostActivation': True, 'selectedProviderPrepare': 'required by selected feature activation', 'bffAnonymousStatus': 200}
         browser = browser_check(root, graph, resolved, command, directory, selected_hosts=hosts)
+        receipt['pendingActivationHosts'] = [name for name in pending if name not in hosts]
+        write(root / STATE, receipt)
         result.update(status='ready', elapsedSeconds=round(time.monotonic() - started, 3), checks=checks,
                       updatedHosts=hosts if update else [],
                       authentication=browser['checks'], scope='Native configured foundation readiness; consumer journey acceptance remains separate')

@@ -352,3 +352,36 @@ consumer overrides were not changed. Bounded classification/privacy contracts al
 The added fixed `uncertain-session-before-dispatch` checkpoint exposes ordering without retaining
 page/provider data. Fresh CI and complete required qualification are still mandatory; no claim of
 new-source Firefox acceptance or patch publication is made here.
+
+## Approved DS02 follow-on batch; publication held
+
+The owner's later instruction pauses publication and authorizes the remaining DS02 repairs.
+The separate execution matrix is `ds02-program-kit-repair-batch-2026-10-14.json` (items34–41).
+Earlier DS01 findings, approvals and original evidence above remain intact; the real consumer
+checkout is read-only. No dependency selection, lock, migration or baseline changes in this batch.
+
+| Item | Root cause and disposition | Reusable repair and focused evidence |
+| --- | --- | --- |
+|34 Review capacity | Confirmed checkpoint persistence defect; must fix | Intern verified distinct bases inside existing retained state; 8-KiB current summary and 1-MiB retained state; atomic legacy migration. Sixty decisions over121 files retain every original basis, with overflow/tamper/expansion refusal. |
+|35 Scoped continuation | Confirmed workflow transition defect; must fix | Preserve existing owner's named permits independently of engineering freshness. Changed operation meaning revokes affected permits; technical failures, enabling prerequisites, stale acceptance and closure remain guarded. No new approval ledger. |
+|36 Active effort | Confirmed clock transition defect; must fix | A permitted active operation keeps accruing; actual human waiting and suspension stop it. Scope revocation stops future accrual while preserving accumulated effort and original corrections. Synthetic-time regressions cover multiple checkpoints and exact-once accrual. |
+|37 Ordinary providers | Confirmed model/scaffold defect; must fix | Explicit runtime providers use IShellFeature/retained ProviderFeature identity; database bindings select persistence, packages and Prepare. Historical implicit persistence captures keep their meaning. Model34 and real CShells activation pass; published-Host qualification is separately retained. |
+|38 Prepared activation | Confirmed runner defect; must fix | Pending activation is separate from source freshness. Plain update activates fresh prepared bundles; selected update retains others; clear only after real readiness. Newly rebuilt bundles retain pending intent across readiness failure. Eight focused transitions include failed-boundary retries. |
+|39 Runtime PdfPig loading | Verified Nuplane.Loading defect; external handoff, excluded from Program Kit repair | [Nuplane issue132](https://github.com/valence-works/nuplane/issues/132) includes exact package/assembly/version/source evidence. Ordinary runtime dependencies need not be isolated. No parser replacement, worker runtime or package/pin workaround is introduced. |
+|40 Build-only dependencies | Confirmed architecture/freshness defect plus missing qualified output guidance; must fix | Distinct buildProjectReferences participate in source/affected closure without permitting CLR edges. A closed owned-output recipe uses SDK Publish before content enumeration, exact nested copy/pack paths and current PE metadata. Real executable clean/incremental/rename-removal/copy/pack checks pass; unknown tasks remain refused. |
+|41 EF test seam | Consumer test integration mistake; guidance and separate handoff | Replacing admitted options is intentionally rejected. Select the published0.3.4 additive interceptor seam only through qualified adoption, or independently qualify an exact-version fixture-owned completion diagnostic. Require postcommit fault propagation, isolated subscription disposal, independent receipt discovery before replay and one durable effect. No production wrapper or friend-access addition. |
+
+The output-recipe qualification caught two real recipe errors before acceptance: copying after
+Build missed cold transitive content enumeration, and a directory-only PackagePath duplicated
+nested resource paths. Both failed attempts remain under `artifacts/tests/ds01-repair`; neither
+was treated as success. The final executable proof also checks runtime configuration, notices,
+actual execution and the absence of a CLR reference to the build-only producer.
+
+Current focused logs include `ds02-review-final-scope-effort.log` (44 cases),
+`ds02-provider-source-scope-final.log` (34), `ds02-native-start-retry-qualified.log` (46,
+two known Windows platform skips), `ds02-scoped-verification-final.log` (50) and
+`ds02-build-output-executable-final.log` (28). Logs and fixtures are ignored local evidence,
+not consumer acceptance or a Release receipt. Preserve the sandbox-TEMP permission failure,
+the mistaken native test invocation and the first full-prepare/isolation assertion failure
+separately. The latter conflated full prepared-host activation with selective-update isolation;
+the corrected integration exercises and asserts both behaviors independently.

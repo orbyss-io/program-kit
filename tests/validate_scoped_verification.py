@@ -35,6 +35,51 @@ class SelectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unknown verification input'):
             self.select(['docs/unowned.json'])
 
+    def add_build_dependency(self):
+        producer = 'src/OwnedTool/OwnedTool.csproj'
+        target = self.root / producer; target.parent.mkdir()
+        target.write_text('<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>')
+        (target.parent / 'Owned.cs').write_text('class OwnedTool {}')
+        self.manifest['runtimeComposition']['projects'].append({'path': producer, 'role': 'implementation', 'projectReferences': []})
+        parent = next(row for row in self.manifest['runtimeComposition']['projects'] if row['path'] == 'src/Notes/Notes.csproj')
+        parent['buildProjectReferences'] = [producer]
+        path = self.root / parent['path']
+        path.write_text(path.read_text().replace('</ItemGroup>', '<ProjectReference Include="../OwnedTool/OwnedTool.csproj" ReferenceOutputAssembly="false" /></ItemGroup>'))
+        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        return producer, parent
+
+    def test_build_only_sources_select_dependent_tests_and_invalidate_their_fingerprints(self):
+        producer, parent = self.add_build_dependency()
+        selected = self.select(['src/OwnedTool/Owned.cs'])
+        self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], selected['projects'])
+        graph = verification.validate_planned(self.root, self.manifest)
+        before = verification.input_snapshot(self.root, selected['projects'][0], graph, stable_sources=True)
+        (self.root / 'src/OwnedTool/Owned.cs').write_text('class ChangedOwnedTool {}')
+        self.assertNotEqual(before, verification.input_snapshot(self.root, selected['projects'][0], graph, stable_sources=True))
+        parent.pop('buildProjectReferences')
+        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ValueError, 'buildProjectReferences differ'):
+            self.select(['src/OwnedTool/Owned.cs'])
+
+    def test_declared_output_copy_uses_one_closed_recipe_for_items_and_input_ownership(self):
+        producer, parent = self.add_build_dependency()
+        import build_output_recipe
+        import xml.etree.ElementTree as ET
+        parent['buildOutputCopies'] = [{'project': producer, 'directory': 'tools/owned-tool'}]
+        path = self.root / parent['path']
+        source = ET.fromstring(path.read_text())
+        for node in build_output_recipe.recipe(self.root, parent['path'], {row['path']: row for row in self.manifest['runtimeComposition']['projects']}):
+            source.append(node)
+        path.write_bytes(ET.tostring(source))
+        (self.root / 'eng/architecture.json').write_text(json.dumps(self.manifest))
+        self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], self.select(['src/OwnedTool/Owned.cs'])['projects'])
+        snapshot = verification.input_snapshot(self.root, 'tests/Notes.Tests/Notes.Tests.csproj',
+                                                verification.validate_planned(self.root, self.manifest), stable_sources=True)
+        self.assertIn(producer, snapshot)
+        path.write_text(path.read_text().replace('tools/owned-tool', 'tools/undeclared-output'))
+        with self.assertRaisesRegex(ValueError, 'qualified recipe'):
+            self.select(['src/OwnedTool/Owned.cs'])
+
     def test_semicolon_file_items_and_split_items_select_identical_tests(self):
         project = self.root / 'src/Notes/Notes.csproj'
         guide = self.root / 'docs/notes.json'

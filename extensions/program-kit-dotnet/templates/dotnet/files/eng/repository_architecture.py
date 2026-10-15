@@ -29,6 +29,17 @@ def read(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
+def is_build_reference(item):
+    """Evaluated build/analyzer edges do not create consumer CLR references."""
+    return (str(item.get('ReferenceOutputAssembly', '')).casefold() == 'false'
+            or str(item.get('OutputItemType', '')).casefold() == 'analyzer')
+
+
+def project_dependencies(project):
+    """Both edge kinds participate in build, source freshness and affected selection."""
+    return set(project.get('projectReferences', [])) | set(project.get('buildProjectReferences', []))
+
+
 TEST_SEAM_CONTRACTS = {
     'pure-core': (),
     'shell-lifecycle': ('CShells.Abstractions',),
@@ -223,14 +234,25 @@ def validate_manifest(root, manifest):
         if project['role'] == 'core':
             require(not any(p.lower().startswith(FORBIDDEN_CORE_PACKAGE_PREFIXES) for p in packages), 'Planned Core leaks a runtime/provider dependency: ' + path)
         references = project.get('projectReferences', [])
-        require(isinstance(references, list), 'Project references must be a list')
+        build_references = project.get('buildProjectReferences', [])
+        require(all(isinstance(items, list) and all(isinstance(item, str) for item in items)
+                    and len(set(items)) == len(items) for items in (references, build_references)),
+                'Project and build references must be distinct lists of project identities')
+        require(not set(references) & set(build_references), 'A project edge cannot be both CLR and build-only: ' + path)
         for target in references:
             require(target in projects and projects[target]['role'] in ALLOWED_ROLE_REFERENCES[project['role']],
                     f'Forbidden dependency: {path} -> {target}')
             require(project['role'] != projects[target]['role'] or project['role'] != 'core'
                     or (path, target) in authorized, 'Undecided Core-to-Core dependency')
             edges.add((path, target))
+        for target in build_references:
+            require(target in projects and target != path, 'Build dependency needs a distinct declared project owner: ' + path)
+            edges.add((path, target))
     validate_cycles(projects, edges)
+    from build_output_recipe import declarations
+    for path, project in projects.items():
+        if 'buildOutputCopies' in project:
+            declarations(root, path, projects)
     return projects
 
 
@@ -292,12 +314,14 @@ def validate_graph(root, manifest, evaluated, compiled):
         require(friend_type not in assemblies[data['Properties']['AssemblyName']].get('attributes', []),
                 'PKA021 compiled friend access is forbidden: ' + relative
                 + '; keep implementation state private and exercise public capabilities')
-        refs = set()
+        refs, build_refs = set(), set()
         for item in data['Items'].get('ProjectReference', []):
             path = Path(item.get('FullPath') or inside(root, relative).parent / item['Identity']).resolve()
             require(path.is_relative_to(root), 'Evaluated project reference escapes repository')
-            refs.add(path.relative_to(root).as_posix())
+            (build_refs if is_build_reference(item) else refs).add(path.relative_to(root).as_posix())
         require('projectReferences' not in project or refs == set(project['projectReferences']), f'Evaluated references differ from accepted graph: {relative}')
+        require(build_refs == set(project.get('buildProjectReferences', [])), f'Evaluated build references differ from accepted graph: {relative}')
+        edges.update((relative, target) for target in build_refs)
         packages = set()
         for item in data['Items'].get('PackageReference', []):
             # Verified private engineering imports are outside the consumer runtime graph.

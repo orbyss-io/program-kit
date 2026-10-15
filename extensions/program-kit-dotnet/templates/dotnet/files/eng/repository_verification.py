@@ -20,7 +20,7 @@ import time
 import uuid
 import xml.etree.ElementTree as ET
 
-from repository_architecture import inside, read, require, validate_planned
+from repository_architecture import inside, read, require, validate_planned, is_build_reference, project_dependencies
 
 SHARED_INPUTS = ('global.json', '.editorconfig', 'NuGet.config', 'NuGet.Config',
                  '.globalconfig', '*.ruleset', '.config/**',
@@ -247,7 +247,7 @@ def literal_edges(root, projects):
         if not path.exists():
             continue  # Deleted project identity still selects its former callers.
         source = ET.parse(path).getroot()
-        references = set()
+        references, build_references = set(), set()
         for node in source.iter():
             kind = node.tag.rsplit('}', 1)[-1]
             require(kind != 'Import', 'PKV003 imported project graphs need a consumer evaluated graph adapter')
@@ -256,12 +256,24 @@ def literal_edges(root, projects):
             value = node.get('Include', '')
             require(value and not any(c in value for c in '$@%*?') and not node.get('Condition'),
                     'PKV003 dynamic project references need a consumer evaluated graph adapter')
+            metadata = {}
+            for field in ('ReferenceOutputAssembly', 'OutputItemType'):
+                children = [child for child in node if child.tag.rsplit('}', 1)[-1] == field]
+                require(len(children) <= 1 and not any(child.get('Condition') for child in children),
+                        'PKV003 conditional reference metadata needs an evaluated graph adapter')
+                item = (children[0].text or '') if children else node.get(field, '')
+                require(not any(char in item for char in '$@%*?') and
+                        (field != 'ReferenceOutputAssembly' or item.casefold() in ('', 'true', 'false')),
+                        'PKV003 dynamic reference metadata needs an evaluated graph adapter')
+                metadata[field] = item
             for item in filter(None, (part.strip() for part in value.split(';'))):
                 target = (path.parent / item.replace('\\', '/')).resolve()
                 require(target.is_relative_to(root), 'PKV001 project reference escapes repository')
-                references.add(target.relative_to(root).as_posix())
+                (build_references if is_build_reference(metadata) else references).add(target.relative_to(root).as_posix())
         require(references == set(project['projectReferences']),
                 'PKV003 projectReferences differ from source; update or evaluate the graph before narrowing tests: ' + relative)
+        require(build_references == set(project.get('buildProjectReferences', [])),
+                'PKV003 buildProjectReferences differ from source; update or evaluate the graph: ' + relative)
     ancestors = {root}
     for relative in projects:
         ancestors.update(p for p in inside(root, relative).parents if p.is_relative_to(root))
@@ -410,7 +422,7 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
                 matched = True
             require(matched, 'PKV003 unknown verification input ' + path + '; map its tests or use a deliberate acceptance boundary')
         while True:
-            expanded = affected | {p for p, row in graph.items() if set(row['projectReferences']) & affected}
+            expanded = affected | {p for p, row in graph.items() if project_dependencies(row) & affected}
             if expanded == affected:
                 break
             affected = expanded
@@ -454,16 +466,24 @@ def literal_items(value):
     return items
 
 
-def file_items(root, path):
+def file_items(root, path, graph=None):
     result = set()
     allowed_target_nodes = {'Target', 'PropertyGroup', 'ItemGroup', 'Error', 'Warning', 'Message'}
     tree = ET.parse(path).getroot()
+    if graph is None:
+        graph = {row['path']: row for row in read(root / 'eng/architecture.json')['runtimeComposition']['projects']}
+    from build_output_recipe import derived_nodes
+    derived = derived_nodes(root, path, tree, graph)
     for target in tree.iter():
+        if id(target) in derived:
+            continue
         if target.tag.rsplit('}', 1)[-1] == 'Target':
             for child in target:
                 require(child.tag.rsplit('}', 1)[-1] in allowed_target_nodes,
                         'PKV003 custom build tasks need an evaluated graph adapter')
     for node in tree.iter():
+        if id(node) in derived:
+            continue
         kind = node.tag.rsplit('}', 1)[-1]
         if kind not in {'Compile', 'Content', 'None', 'AdditionalFiles', 'EmbeddedResource', 'Analyzer'}:
             continue
@@ -502,8 +522,13 @@ def input_owners(root, graph):
             owners.append((path.relative_to(root).as_posix(), project))
             if not path.is_file():
                 continue
-            file_items(root, path)  # Fail closed before assuming complete literal ownership.
-            for node in ET.parse(path).getroot().iter():
+            file_items(root, path, graph)  # Fail closed before assuming complete literal ownership.
+            tree = ET.parse(path).getroot()
+            from build_output_recipe import derived_nodes
+            derived = derived_nodes(root, path, tree, graph)
+            for node in tree.iter():
+                if id(node) in derived:
+                    continue
                 if node.tag.rsplit('}', 1)[-1] not in {'Compile', 'Content', 'None', 'AdditionalFiles', 'EmbeddedResource', 'Analyzer'}:
                     continue
                 for key in ('Include', 'Update'):
@@ -528,7 +553,7 @@ def input_snapshot(root, project, graph, observation=None, stable_sources=False)
         return file_hashes[path]
     closure = {project}
     while True:
-        expanded = closure | {edge for p in closure for edge in graph[p]['projectReferences']}
+        expanded = closure | {edge for p in closure for edge in project_dependencies(graph[p])}
         if expanded == closure:
             break
         closure = expanded
@@ -544,7 +569,7 @@ def input_snapshot(root, project, graph, observation=None, stable_sources=False)
             paths.update(p for p in directory.rglob('*') if p.is_file() and
                          not EXCLUDED_PARTS & set(p.relative_to(root).parts))
         if target.is_file():
-            paths.update(file_items(root, target))
+            paths.update(file_items(root, target, graph))
         # Restore assets and generated source are real build inputs, even when ignored.
         if not stable_sources:
             for name in ('project.assets.json', 'project.nuget.cache'):

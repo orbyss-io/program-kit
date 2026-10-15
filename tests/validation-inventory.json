@@ -1292,6 +1292,7 @@
         "THIRD-PARTY-NOTICES.md",
         ".github/**",
         "tests/validate_architecture_recipe.py",
+        "tests/build_output_recipe_cases.py",
         "tests/fixtures/foundation-consumer-contracts/baseline/mixed-workbench-architecture.json",
         "docs/**",
         "releases/**"

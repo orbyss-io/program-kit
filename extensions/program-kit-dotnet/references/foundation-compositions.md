@@ -165,3 +165,14 @@ Run and update wait for only the selected hosts' managed database/identity servi
 without recreating their containers before host activation. External endpoints retain
 their qualified readiness obligations. A source-only no-op `update` remains a no-op;
 select `--host <id>` explicitly to recover a stopped host/dependency without source changes.
+Prepared bundles recorded in `pendingActivationHosts` are separate activation work:
+plain `update` activates them even when source and prepared closure already match. A selected
+host update retains other pending entries. Readiness clears an entry only after actual HTTP
+and browser checks pass; failed activation remains due for retry.
+
+Provider placement alone does not select persistence. An explicit `responsibility: runtime`
+provider registers its owner services through `IShellFeature`, using the retained `ProviderFeature`
+CLR name and exact `ShellFeature` identity. Database bindings require a persistence owner and
+select its context, packages and Prepare contribution. An ordinary file/decoder provider must
+not acquire a database context, database Prepare work or HTTP/authentication packages. Historical
+captures without an explicit provider responsibility retain their original persistence meaning.
