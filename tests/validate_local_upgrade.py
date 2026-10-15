@@ -92,6 +92,34 @@ def validate_uv_launcher_bridge() -> None:
         require_success(probe, "sandbox-compatible uv Specify bridge")
 
 
+def validate_read_only_module_loading() -> None:
+    import py_compile
+    updater = load_updater()
+    with tempfile.TemporaryDirectory(prefix='program-kit-readonly-adapter-') as directory:
+        adapter = Path(directory) / 'adapter.py'
+        adapter.write_text('value = 1\n', encoding='utf-8')
+        previous = sys.dont_write_bytecode
+        updater.load_release_module(adapter, 'readonly_upgrade_adapter')
+        if list(adapter.parent.glob('__pycache__/*')) or sys.dont_write_bytecode != previous:
+            raise AssertionError('Adapter inspection created consumer bytecode or changed interpreter policy')
+        cache = Path(py_compile.compile(str(adapter), doraise=True))
+        cached = cache.read_bytes()
+        adapter.write_text("value = 'updated adapter without cache writes'\n", encoding='utf-8')
+        module = updater.load_release_module(adapter, 'readonly_upgrade_adapter')
+        if module.value != 'updated adapter without cache writes' or cache.read_bytes() != cached:
+            raise AssertionError('Read-only adapter loading executed stale code or rewrote consumer bytecode')
+        adapter.write_text("raise RuntimeError('adapter admission failure fixture')\n", encoding='utf-8')
+        try:
+            updater.load_release_module(adapter, 'readonly_upgrade_adapter')
+        except RuntimeError as error:
+            if str(error) != 'adapter admission failure fixture':
+                raise
+        else:
+            raise AssertionError('Adapter admission failure was hidden')
+        if cache.read_bytes() != cached or sys.dont_write_bytecode != previous:
+            raise AssertionError('Failed adapter inspection rewrote consumer bytecode or interpreter policy')
+
+
 def run(*command: str, cwd: Path) -> subprocess.CompletedProcess[str]:
     started = time.perf_counter()
     result = subprocess.run(command, cwd=cwd, text=True, encoding='utf-8', errors='replace',
@@ -460,6 +488,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
 def main() -> int:
     timings = ROOT / 'artifacts/maintenance-flow/local-upgrade-timings.json'
     timings.unlink(missing_ok=True)
+    validate_read_only_module_loading()
     validate_uv_launcher_bridge()
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     with tempfile.TemporaryDirectory(prefix="program-kit-local-upgrade-") as directory, tempfile.TemporaryDirectory(prefix='program-kit-fictional-source-') as fixture_directory:

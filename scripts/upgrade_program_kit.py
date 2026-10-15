@@ -287,7 +287,14 @@ def load_release_module(path: Path, name: str):
         raise UpgradeError(f'PKU101 missing release adapter: {path}')
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
-    spec.loader.exec_module(module)
+    # Admission reads installed consumer adapters before destination permissions
+    # are checked. Even a stale .pyc must remain unchanged during that inspection.
+    previous = sys.dont_write_bytecode
+    try:
+        sys.dont_write_bytecode = True
+        spec.loader.exec_module(module)
+    finally:
+        sys.dont_write_bytecode = previous
     return module
 
 
