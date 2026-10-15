@@ -54,13 +54,13 @@ class CandidateTests(unittest.TestCase):
                      for name in self.rules['requiredJobs']]
 
     def security(self, **changes):
-        value = {'schemaVersion': 1, 'candidate': self.digest, 'targets': ['image@sha256:' + '1' * 64],
+        value = {'schemaVersion': 1, 'candidate': self.digest, 'source': self.identity, 'payloadSha256': 'f'*64, 'targets': ['image@sha256:' + '1' * 64],
                  'status': 'passed', 'observedAt': rc.now().isoformat(), 'runId': 5, 'attempt': 1,
                  'identity': '5/1', 'scanner': 'fixture scanner', 'report': {'scans': [dict(platform=p, exitCode=0, validationErrors=[], image='image@sha256:'+'1'*64, reportedPlatform=p, imageID='sha256:'+'2'*64, configDigest='sha256:'+'2'*64, manifestDigest='sha256:'+'3'*64, sha256='4'*64) for p in ('linux/amd64','linux/arm64')]}, 'supersedes': []}
         return dict(value, **changes)
 
     def assessment(self, **changes):
-        value = {'schemaVersion': 1, 'candidate': self.digest, 'recordedAt': rc.now().isoformat(),
+        value = {'schemaVersion': 1, 'candidate': self.digest, 'source': self.identity, 'payloadSha256': 'f'*64, 'recordedAt': rc.now().isoformat(),
                  'runId': 10, 'attempt': 1, 'ready': True, 'review': {'actor': 'human', 'reference': 'review/10'},
                  'summary': 'No AI trial run; no AI acceptance claim.', 'recommendations': [],
                  'selectedTrials': [], 'trials': [], 'findings': [], 'supersedes': []}
@@ -204,6 +204,24 @@ class CandidateTests(unittest.TestCase):
             'provenance': 'human-attested', 'manifest': {'reference': 'internal/run.json', 'sha256': '1'*64}, 'disposition': ''}])
         with self.assertRaises(ValueError): rc.select_assessment([claimed], self.digest)
 
+    def test_requalification_cannot_erase_same_source_payload_failures_or_findings(self):
+        old = self.assessment(candidate='9'*64, ready=False, findings=[{'id': 'bug-1', 'kind': 'product-defect',
+            'status': 'open', 'description': 'Confirmed on identical bytes under another qualification', 'resolution': ''}])
+        new = self.assessment(runId=12)
+        binding = {'identity': self.identity, 'payload_sha': 'f'*64}
+        with self.assertRaisesRegex(ValueError, 'Unresolved confirmed'):
+            rc.select_assessment([old, new], self.digest, **binding)
+        resolved = dict(new, findings=[dict(old['findings'][0], status='resolved', resolution='Exact repair/disposition reference')])
+        self.assertEqual(resolved, rc.select_assessment([old, resolved], self.digest, **binding))
+        failed = self.security(candidate='9'*64, status='failed', identity='6/1')
+        passed = self.security(runId=7, identity='7/1')
+        with self.assertRaisesRegex(ValueError, 'failed security'):
+            rc.select_security([failed, passed], self.digest, failed['targets'], self.rules, **binding)
+        self.assertEqual('7/1', rc.select_security([failed, dict(passed, supersedes=['6/1'])], self.digest,
+                                                 failed['targets'], self.rules, **binding)['identity'])
+        with self.assertRaisesRegex(ValueError, 'source/payload'):
+            rc.select_assessment([dict(new, payloadSha256='0'*64)], self.digest, **binding)
+
     def test_publication_retries_identical_assets_and_refuses_clobber(self):
         record = {'name': 'archive.zip', 'size': 3, 'sha256': hashlib.sha256(b'abc').hexdigest()}
         self.assertEqual(['archive.zip'], publication_plan([record], [], lambda _: b'abc'))
@@ -230,6 +248,7 @@ class CandidateTests(unittest.TestCase):
         rc.write(payload_path, payload)
         qualification = self.qualification()
         qualification['payloadSha256'] = rc.sha256(payload_path)
+        qualification['security'].update(candidate=rc.sha256(payload_path), payloadSha256=rc.sha256(payload_path))
         final = self.root / 'artifacts/ci/qualification.json'
         rc.write(final, qualification)
         log = self.root / 'artifacts/preparation.log'; log.write_text('actual installation preparation')
@@ -290,7 +309,7 @@ class CandidateTests(unittest.TestCase):
         worker.assert_not_called()
 
     def test_later_failed_history_cannot_be_hidden_by_selecting_older_run(self):
-        run = dict(self.run, path=self.rules['workflows']['security'], display_title='Refresh candidate security ' + self.digest,
+        run = dict(self.run, path=self.rules['workflows']['security'], display_title='Refresh candidate security ' + self.identity['commit'] + ' ' + self.digest,
                    conclusion='failure')
         with patch.object(rc, 'matching_runs', return_value=[run]), self.assertRaisesRegex(ValueError, 'supersession'):
             rc.history_for('security', self.digest, self.identity['commit'], self.root / 'history')
@@ -310,8 +329,9 @@ class CandidateTests(unittest.TestCase):
         value = self.assessment(trials=[{'phase': 'bootstrap-checkpoint', 'scope': 'fictional', 'outcome': 'passed',
                     'provenance': 'verified-internal', 'manifest': {'reference': 'internal/run.json', 'sha256': '1'*64}, 'disposition': ''}])
         path = self.root / 'submitted.json'; rc.write(path, value)
-        args = ['release_candidate.py', 'record-assessment', '--candidate', self.digest, '--input', str(path), '--output', str(self.root/'record.json')]
-        with patch.object(sys, 'argv', args), patch.dict(os.environ, {'GITHUB_RUN_ID': '10', 'GITHUB_RUN_ATTEMPT': '1', 'GITHUB_ACTOR': 'human'}):
+        qualification = self.root / 'qualification.json'; rc.write(qualification, self.qualification())
+        args = ['release_candidate.py', 'record-assessment', '--qualification', str(qualification), '--candidate', rc.sha256(qualification), '--input', str(path), '--output', str(self.root/'record.json')]
+        with patch.object(rc, 'source', return_value=self.identity), patch.object(sys, 'argv', args), patch.dict(os.environ, {'GITHUB_RUN_ID': '10', 'GITHUB_RUN_ATTEMPT': '1', 'GITHUB_ACTOR': 'human'}):
             self.assertEqual(2, rc.main())
         self.assertFalse((self.root/'record.json').exists())
 

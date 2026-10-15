@@ -52,6 +52,43 @@
     },
     "report": {
       "type": "object"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tree": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policySha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "inventorySha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "commit",
+        "tree",
+        "version",
+        "policySha256",
+        "inventorySha256"
+      ]
+    },
+    "payloadSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
     }
   },
   "required": [
@@ -65,6 +102,8 @@
     "identity",
     "scanner",
     "supersedes",
-    "report"
+    "report",
+    "source",
+    "payloadSha256"
   ]
 }

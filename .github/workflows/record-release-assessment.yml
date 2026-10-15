@@ -1,5 +1,5 @@
 name: Record release assessment
-run-name: Record release assessment ${{ inputs.candidate }}
+run-name: Record release assessment ${{ inputs.expected_commit }} ${{ inputs.candidate }}
 on:
   workflow_dispatch:
     inputs:
@@ -58,7 +58,7 @@ jobs:
         shell: bash
         run: |
           python -c "import os,pathlib; pathlib.Path('artifacts/submitted.json').write_text(os.environ['ASSESSMENT_JSON'])"
-          python scripts/release_candidate.py record-assessment --candidate "$CANDIDATE" --input artifacts/submitted.json --output artifacts/record/assessment.json
+          python scripts/release_candidate.py record-assessment --qualification artifacts/verified/qualification/qualification.json --candidate "$CANDIDATE" --input artifacts/submitted.json --output artifacts/record/assessment.json
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: artifacts/record/assessment.json

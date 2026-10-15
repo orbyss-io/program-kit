@@ -68,7 +68,7 @@ def publish(tag, directory):
     if not assessment['trials']:
         notes += '\nNo AI trial was run; no AI acceptance is claimed.\n'
     for trial in assessment['trials']:
-        notes += '\n- ' + trial['phase'] + ': ' + trial['outcome'] + ' (' + trial['provenance'] + '). ' + trial['scope'] + '\n'
+        notes += '\n- ' + trial['phase'] + ': ' + trial['outcome'] + ' (' + trial['provenance'] + '). ' + trial['scope'] + ' ' + trial['disposition'] + '\n'
     for finding in assessment['findings']:
         notes += '\n- ' + finding['kind'] + ': ' + finding['description'] + ' — ' + finding['status'] + '. ' + finding['resolution'] + '\n'
     notes_path = directory / 'publication-notes.md'

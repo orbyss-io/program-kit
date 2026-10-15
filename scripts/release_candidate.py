@@ -188,6 +188,9 @@ def verify_run(run, jobs, expected, rules, workflow='qualification', complete=Tr
 def verify_qualification(value, identity, run, jobs, rules):
     schema(value, 'candidate-qualification')
     require(value['source'] == identity, 'Qualification exact source/tree/version/policy/inventory mismatch')
+    require(value['security']['status'] == 'passed' and value['security']['candidate'] == value['payloadSha256'] and
+            value['security']['source'] == identity and value['security']['payloadSha256'] == value['payloadSha256'],
+            'Original qualification security must bind the same source/payload and pass')
     producer = value['producer']
     require(str(producer['runId']) == str(run['id']), 'Qualification run mismatch')
     verify_run(run, jobs, {'commit': identity['commit'], 'attempt': producer['attempt']}, rules)
@@ -222,14 +225,22 @@ def verify_security_content(record, targets):
                     re.fullmatch('[a-f0-9]{64}', scan['sha256']), 'Incomplete scanner evidence')
 
 
-def select_security(history, candidate, targets, rules, at=None, original_payload=None):
+def candidate_binding(record, candidate, identity=None, payload_sha=None, original_payload=None):
+    if identity is not None:
+        require(record['source'] == identity and record['payloadSha256'] == payload_sha, 'History source/payload identity mismatch')
+    else:
+        require(record['candidate'] in (candidate, original_payload), 'History candidate mismatch')
+
+
+def select_security(history, candidate, targets, rules, at=None, original_payload=None, identity=None, payload_sha=None):
     require(history, 'Missing security evidence; run refresh-candidate-security.yml')
     ordered = sorted(history, key=lambda r: (timestamp(r['observedAt']), r['runId'], r['attempt']))
     current = at or now()
     previous_failures = set()
     for record in ordered:
         schema(record, 'candidate-security')
-        require(record['candidate'] in (candidate, original_payload) and record['targets'] == targets, 'Security candidate/immutable target mismatch')
+        candidate_binding(record, candidate, identity, payload_sha, original_payload)
+        require(record['targets'] == targets, 'Security candidate/immutable target mismatch')
         verify_security_content(record, targets)
         require(timestamp(record['observedAt']) <= current, 'Security timestamp is in the future')
         if record['status'] != 'passed':
@@ -243,13 +254,26 @@ def select_security(history, candidate, targets, rules, at=None, original_payloa
     return latest
 
 
-def select_assessment(history, candidate):
+def validate_assessment_record(assessment):
+    schema(assessment, 'release-assessment')
+    require(assessment['review']['actor'] and assessment['review']['reference'], 'Attributable review required')
+    for trial in assessment['trials']:
+        require(trial['provenance'] in ('human-attested', 'verified-internal'), 'Invalid trial provenance')
+        require(trial['manifest']['reference'] and re.fullmatch('[a-f0-9]{64}', trial['manifest']['sha256']), 'Internal trial manifest reference/digest required')
+        if trial['outcome'] in ('inconclusive', 'harness-failure'):
+            require(trial['disposition'], 'Inconclusive/harness outcome requires disposition')
+    for finding in assessment['findings']:
+        if finding['kind'] == 'harness':
+            require(finding['resolution'], 'Harness finding requires explicit disposition')
+
+
+def select_assessment(history, candidate, identity=None, payload_sha=None):
     require(history, 'Missing reviewed readiness disposition; run record-release-assessment.yml')
     unresolved = {}
     ordered = sorted(history, key=lambda a: (timestamp(a['recordedAt']), a['runId'], a['attempt']))
     for assessment in ordered:
-        schema(assessment, 'release-assessment')
-        require(assessment['candidate'] == candidate, 'Assessment candidate mismatch')
+        validate_assessment_record(assessment)
+        candidate_binding(assessment, candidate, identity, payload_sha)
         require(timestamp(assessment['recordedAt']) <= now(), 'Assessment timestamp is in the future')
         require(assessment['review']['actor'] and assessment['review']['reference'], 'Attributable review required')
         for finding in assessment['findings']:
@@ -258,11 +282,6 @@ def select_assessment(history, candidate):
             elif finding['status'] == 'resolved':
                 require(finding['resolution'], 'Explicit finding resolution required')
                 unresolved.pop(finding['id'], None)
-        for trial in assessment['trials']:
-            require(trial['provenance'] in ('human-attested', 'verified-internal'), 'Invalid trial provenance')
-            require(trial['manifest']['reference'] and re.fullmatch('[a-f0-9]{64}', trial['manifest']['sha256']), 'Internal trial manifest reference/digest required')
-            if trial['outcome'] in ('inconclusive', 'harness-failure'):
-                require(trial['disposition'], 'Inconclusive/harness outcome requires disposition')
     require(not unresolved and ordered[-1]['ready'], 'Unresolved confirmed product defect or non-ready assessment blocks promotion')
     return ordered[-1]
 
@@ -409,7 +428,7 @@ def find_candidate():
     raise ValueError('No successful complete matching qualification. ' + RECOVERY)
 
 
-def history_for(kind, candidate, commit, destination):
+def history_for(kind, candidate, commit, destination, identity=None, payload_sha=None):
     """Enumerate all applicable attempts; failed/in-flight later records fail closed.
 
     workflow_dispatch inputs cannot be filtered via run-list API. Each run records
@@ -422,21 +441,24 @@ def history_for(kind, candidate, commit, destination):
         for attempt in range(1, int(latest['run_attempt']) + 1):
             runs.append(latest if attempt == latest['run_attempt'] else run_metadata(latest['id'], attempt)[0])
     for run in runs:
-        title = {'security': 'Refresh candidate security ', 'assessment': 'Record release assessment '}[kind] + candidate
-        if run.get('display_title') != title:
+        prefix = {'security': 'Refresh candidate security ', 'assessment': 'Record release assessment '}[kind] + commit + ' '
+        title = run.get('display_title', '')
+        if not title.startswith(prefix) or not re.fullmatch('[a-f0-9]{64}', title[len(prefix):]):
             continue
+        bound_qualification = title[len(prefix):]
         verify_run(run, [], {'commit': run['head_sha'], 'attempt': run['run_attempt']}, rules, workflow=kind, complete=False)
         require(run['status'] == 'completed', f'Applicable {kind} run {run["id"]} is incomplete')
         if run['conclusion'] != 'success':
             failed_runs.append((str(run['id']) + '/' + str(run['run_attempt']), run.get('updated_at', run.get('created_at'))))
             continue
         artifact = artifact_metadata(run['id'], f'{kind}-{run["run_attempt"]}')
-        directory = destination / str(run['id'])
+        directory = destination / (str(run['id']) + '-' + str(run['run_attempt']))
         download(artifact, directory)
         path = directory / ('security.json' if kind == 'security' else 'assessment.json')
         attest_verify(path, kind, run['head_sha'], run['id'], run['run_attempt'])
         record = read(path)
-        require(record['candidate'] == candidate and record['runId'] == run['id'] and record['attempt'] == run['run_attempt'], 'History identity mismatch')
+        require(record['candidate'] == bound_qualification and record['runId'] == run['id'] and record['attempt'] == run['run_attempt'], 'History identity mismatch')
+        candidate_binding(record, candidate, identity, payload_sha)
         records.append(record)
     unresolved = [identity for identity, failed_at in failed_runs if not any(identity in record['supersedes'] and
                   failed_at is not None and timestamp(record.get('observedAt', record.get('recordedAt'))) >= timestamp(failed_at)
@@ -464,6 +486,7 @@ def qualification_security_failures(value, candidate):
                     continue
                 require(job.get('status') == 'completed', 'Applicable qualification security job is still running')
                 failures.append({'schemaVersion': 1, 'candidate': candidate, 'targets': value['security']['targets'],
+                    'source': value['source'], 'payloadSha256': value['payloadSha256'],
                     'status': 'failed', 'observedAt': job.get('completed_at') or run['updated_at'],
                     'runId': run['id'], 'attempt': attempt, 'identity': str(run['id']) + '/' + str(attempt),
                     'scanner': 'Qualification security job failed/inconclusive; inspect original run evidence',
@@ -478,10 +501,11 @@ def verify_promotion(run_id, destination, tag=None):
     from dependency_maintenance import default_host
     targets = [default_host(ROOT, read(ROOT / 'maintenance-policy.json'))]
     require(value['security']['targets'] == targets, 'Qualification scanned different candidate images')
+    binding = {'identity': value['source'], 'payload_sha': value['payloadSha256']}
     security = [value['security'], *qualification_security_failures(value, digest),
-                *history_for('security', digest, value['source']['commit'], destination / 'security-history')]
-    select_security(security, digest, value['security']['targets'], policy(), original_payload=value['payloadSha256'])
-    assessment = select_assessment(history_for('assessment', digest, value['source']['commit'], destination / 'assessments'), digest)
+                *history_for('security', digest, value['source']['commit'], destination / 'security-history', **binding)]
+    select_security(security, digest, value['security']['targets'], policy(), original_payload=value['payloadSha256'], **binding)
+    assessment = select_assessment(history_for('assessment', digest, value['source']['commit'], destination / 'assessments', **binding), digest, **binding)
     write(destination / 'promotion.json', {'candidate': digest, 'runId': int(run_id), 'source': value['source'],
                                         'assets': read(destination / 'payload/candidate-payload.json')['assets'], 'assessment': assessment})
     return value, digest
@@ -505,9 +529,10 @@ def collect_lane(lane, manifest, output):
     write(output / 'lane.json', value)
 
 
-def scan_security(candidate, output, supersedes):
+def scan_security(candidate, output, supersedes, manifest):
     from dependency_maintenance import default_host, scan
     image = default_host(ROOT, read(ROOT / 'maintenance-policy.json'))
+    verify_payload(read(manifest), manifest.parent, source())
     status = 'failed'
     try:
         scan(ROOT, image)
@@ -515,6 +540,7 @@ def scan_security(candidate, output, supersedes):
     finally:
         report = ROOT / 'artifacts/dependency-security/result.json'
         value = {'schemaVersion': 1, 'candidate': candidate, 'targets': [image], 'status': status,
+                 'source': source(), 'payloadSha256': sha256(manifest),
                  'observedAt': now().isoformat(), 'runId': int(os.environ['GITHUB_RUN_ID']),
                  'attempt': int(os.environ['GITHUB_RUN_ATTEMPT']),
                  'identity': os.environ['GITHUB_RUN_ID'] + '/' + os.environ['GITHUB_RUN_ATTEMPT'],
@@ -585,8 +611,8 @@ def main():
         p = sub.add_parser(name); p.add_argument('--run-id', required=True); p.add_argument('--output', type=Path, required=True)
         if name == 'verify-promotion': p.add_argument('--tag')
         if name == 'download': p.add_argument('--candidate')
-    p = sub.add_parser('security'); p.add_argument('--candidate', required=True); p.add_argument('--output', type=Path, required=True); p.add_argument('--supersedes', default='')
-    p = sub.add_parser('record-assessment'); p.add_argument('--candidate', required=True); p.add_argument('--input', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
+    p = sub.add_parser('security'); p.add_argument('--candidate', required=True); p.add_argument('--output', type=Path, required=True); p.add_argument('--supersedes', default=''); p.add_argument('--payload-manifest', type=Path, default=ROOT / 'artifacts/candidate-payload.json')
+    p = sub.add_parser('record-assessment'); p.add_argument('--candidate', required=True); p.add_argument('--input', type=Path, required=True); p.add_argument('--output', type=Path, required=True); p.add_argument('--qualification', type=Path, required=True)
     p = sub.add_parser('recommend'); p.add_argument('--base', required=True)
     args = parser.parse_args()
     try:
@@ -617,13 +643,16 @@ def main():
         elif args.command == 'verify-promotion':
             _, digest = verify_promotion(args.run_id, args.output, args.tag)
             print('Non-publishing promotion verification passed: ' + digest)
-        elif args.command == 'security': scan_security(args.candidate, args.output, args.supersedes.split(',') if args.supersedes else [])
+        elif args.command == 'security': scan_security(args.candidate, args.output, args.supersedes.split(',') if args.supersedes else [], args.payload_manifest)
         elif args.command == 'record-assessment':
             value = read(args.input)
+            qualification = read(args.qualification)
+            require(sha256(args.qualification) == args.candidate and qualification['source'] == source(), 'Assessment must bind the verified qualification/source')
             value.update(candidate=args.candidate, recordedAt=now().isoformat(), runId=int(os.environ['GITHUB_RUN_ID']), attempt=int(os.environ['GITHUB_RUN_ATTEMPT']))
+            value.update(source=source(), payloadSha256=qualification['payloadSha256'])
             require(value['review']['actor'] == os.environ['GITHUB_ACTOR'], 'Review actor must be the authenticated dispatch actor')
             require(all(t['provenance'] == 'human-attested' for t in value['trials']), 'Submitted JSON cannot prove independently verified trial execution')
-            schema(value, 'release-assessment')
+            validate_assessment_record(value)
             write(args.output, value)
         elif args.command == 'recommend': print(json.dumps(recommendation(git(ROOT, 'diff', '--name-only', args.base + '..HEAD').splitlines()), indent=2))
         elif args.command == 'prepare-trial':

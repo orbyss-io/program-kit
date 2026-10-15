@@ -74,7 +74,8 @@ findings and attributable human review via `record-release-assessment.yml`. Subm
 outcomes are human-attested, not independently verified by the recorder. No trial means
 no AI acceptance claim. Confirmed product defects block readiness until explicitly resolved;
 harness failures/inconclusive outcomes need disposition. Later unresolved findings supersede
-older readiness passes. The recorder changes no candidate commit or payload bytes and
+older readiness passes. Histories bind exact source and payload as well as qualification
+identity: requalifying unchanged bytes cannot erase a failure or finding. The recorder changes no candidate commit or payload bytes and
 uploads no full worker evidence automatically.
 
 ## Verify promotion and publish only when authorized

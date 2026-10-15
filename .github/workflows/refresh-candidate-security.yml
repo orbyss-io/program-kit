@@ -1,5 +1,5 @@
 name: Refresh candidate security
-run-name: Refresh candidate security ${{ inputs.candidate }}
+run-name: Refresh candidate security ${{ inputs.expected_commit }} ${{ inputs.candidate }}
 on:
   workflow_dispatch:
     inputs:
@@ -61,7 +61,7 @@ jobs:
         env:
           CANDIDATE: ${{ inputs.candidate }}
           SUPERSEDES: ${{ inputs.supersedes }}
-        run: python scripts/release_candidate.py security --candidate "$CANDIDATE" --supersedes "$SUPERSEDES" --output artifacts/record
+        run: python scripts/release_candidate.py security --payload-manifest artifacts/verified/payload/candidate-payload.json --candidate "$CANDIDATE" --supersedes "$SUPERSEDES" --output artifacts/record
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: artifacts/record/security.json
