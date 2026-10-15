@@ -165,8 +165,8 @@ jobs:
       - name: Prepare real uv-managed Windows Spec Kit launcher
         shell: pwsh
         env:
-          UV_TOOL_DIR: ${{ github.workspace }}/artifacts/ci-tools/uv
-          UV_TOOL_BIN_DIR: ${{ github.workspace }}/artifacts/ci-tools/bin
+          UV_TOOL_DIR: ${{ runner.temp }}/program-kit-ci-tools/uv
+          UV_TOOL_BIN_DIR: ${{ runner.temp }}/program-kit-ci-tools/bin
         run: |
           python -m pip install --disable-pip-version-check -r tests/ci-tool-requirements.txt
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
