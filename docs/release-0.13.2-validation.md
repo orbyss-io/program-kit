@@ -123,6 +123,31 @@ artifact and log remain under `artifacts/tests/patch-0.13.2/ci-38728301173*`.
 The dependency run is still executing its own coordinated deterministic checks;
 its final outcome remains to be recorded. Its Foundation 0.3.5 proposal cannot
 be adopted because of the independently reproduced regression above, regardless
-of its test outcome. Current device readiness requires user-terminal Spec Kit 1.2.0
-and Node 26.12.0; installed .NET 10.0.402 was observed. No local Release receipt
-has been created for 0.13.2 at this point.
+of its test outcome.
+
+The user installed Spec Kit 1.2.0, Node 26.12.0 and npm 12.2.0 in their own
+terminal. The maintained readiness wrapper subsequently passed with the actual
+shared selections; installed .NET 10.0.402 was independently observed. No agent
+installed device software. All three maintained npm locks were refreshed natively;
+historical profiles and consumer locks remain unchanged.
+
+Focused tests with the updated shared toolchain pass: 48 story/reset cases,
+21 task cases and 10 migration-guidance cases. The updater's obsolete generic
+continuation message now routes consumers to the verified migration plan and its
+selected method. The patch guide includes exact reset preview/apply commands.
+
+An explicitly unpublished package built under
+`artifacts/tests/patch-0.13.2/pre-upstream-bundle/` passed the real sequential
+consumer updater/reset/destination activation exercise. New evidence is in
+`artifacts/consumer-upgrade-package-runs/fd909174fa414fe1b9dac4df74a97259/` and
+`artifacts/tests/patch-0.13.2/packaged-restart-updated-tools.log`. It retains
+confirmed fictional intake/shared inputs, deletes selected old work without a
+content archive, consumes fresh installed phase contracts, refreshes installed
+integrations, and proves destination failure recovery and later activation.
+The prior 0.13.1 summary was copied unchanged before the maintained summary path
+was updated. No coding agents or actual ClaimEvaluator changes occurred.
+
+This is a pre-upstream rehearsal, not final-profile acceptance or a Release
+receipt. Fresh bounded Development, final-source CI and the complete local
+Release remain due after corrected public upstream adoption. No local Release
+receipt has been created for 0.13.2 at this point.

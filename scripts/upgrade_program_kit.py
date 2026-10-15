@@ -1588,7 +1588,8 @@ def main() -> int:
             remediation = remediation_module.assess(target, report.get('deferredPersistenceAdmissions', []))
         finally:
             sys.path.remove(str(sync_source.parent))
-        print('Application correctness and release readiness were not asserted by this tooling upgrade. Continue unfinished features normally.')
+        print('Follow the verified migration plan and its selected method before continuing feature work. '
+              'Application correctness and release readiness remain unestablished by this tooling upgrade.')
         migration = guidance.completion(guidance_plan, {
             'installation-coherence': True, 'dependency-verification': not renewal_required})
         migration['applicationReady'] = None

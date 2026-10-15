@@ -53,6 +53,20 @@ Deletion has no toolkit-created content backup. Scope stays inside the consumer
 workspace and excludes unrelated work and live data. Confirmed intake/bootstrap is
 retained. New phase execution grants no paid-worker authority.
 
+The consumer agent supplies a reviewed JSON request with `method` set to
+`fresh-feature-delete-v1`, the selected `feature`, real `reviewSource` and
+`selectionSource`, every owned file's `path`, `owner` and current `sha256`, and a
+`preserve` list including confirmed intake and designated shared/dependency inputs.
+Run preview before applying that same unchanged request:
+
+```powershell
+python .specify/extensions/program-kit-governance/scripts/task_draft.py reset --feature-dir specs/<feature> --content-file <reviewed-delete-request.json>
+python .specify/extensions/program-kit-governance/scripts/task_draft.py reset --feature-dir specs/<feature> --content-file <reviewed-delete-request.json> --apply
+```
+
+This deletes the selected source inventory. Reconcile shared contributions and
+clear derived outputs separately through their maintained owners before fresh specify.
+
 ## Diagnostics and native ownership
 
 Use installed `consumer_upgrade.py assess` for affected owners and dispositions. The
