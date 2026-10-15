@@ -463,7 +463,7 @@ def main() -> int:
     validate_uv_launcher_bridge()
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     with tempfile.TemporaryDirectory(prefix="program-kit-local-upgrade-") as directory, tempfile.TemporaryDirectory(prefix='program-kit-fictional-source-') as fixture_directory:
-        project = Path(directory)
+        project = Path(directory).resolve()
         initialized = run(
             "specify", "init", ".", "--force", "--non-interactive",
             "--integration", "codex", "--script", "py", "--ignore-agent-tools",
@@ -522,7 +522,7 @@ def main() -> int:
         (project / ".specify/bundle-records.json").write_text(
             json.dumps(bundle_records), encoding="utf-8"
         )
-        release = authenticate_fictional_native_sources(project, Path(fixture_directory))
+        release = authenticate_fictional_native_sources(project, Path(fixture_directory).resolve())
         from upgrade_selection_cases import validate_selection_upgrades
         validate_selection_upgrades(project, sys.modules[__name__], release=release)
         managed = project / ".program-kit/managed.json"
@@ -646,7 +646,9 @@ def main() -> int:
         if "Resolve bundle composition record" in destination_blocked.stdout:
             raise AssertionError("destination permission preflight began component mutation")
         if before_destination_preflight != after_destination_preflight:
-            raise AssertionError("destination permission preflight changed consumer file content")
+            changed = sorted(name for name in before_destination_preflight.keys() | after_destination_preflight.keys()
+                             if before_destination_preflight.get(name) != after_destination_preflight.get(name))
+            raise AssertionError("destination permission preflight changed consumer file content: " + ', '.join(changed))
         if "outside this sandbox" not in destination_blocked.stderr or "SKILL.md" not in destination_blocked.stderr:
             raise AssertionError("PKU115 omitted the blocked destination or copyable recovery route")
 

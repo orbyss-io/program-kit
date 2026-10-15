@@ -297,7 +297,8 @@ def main() -> int:
         if result["packageCount"] != 18 or result["activationCount"] < 10:
             raise AssertionError(f"Internal Forms oracle coverage is incomplete: {result}")
 
-        request = restore.restore_request(project, lock_path, plan, "renew")
+        from windows_path_alias import short_path
+        request = restore.restore_request(short_path(project), short_path(lock_path), plan, "renew")
         validate(request, load_object(SCHEMAS / "restore-request.schema.json"))
         if request["lockSha256"] != sha256_file(lock_path) or not request["commands"]:
             raise AssertionError("Restore request is not bound to the native restore plan")

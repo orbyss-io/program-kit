@@ -41,6 +41,7 @@ def safe_path(repository: Path, relative: str) -> Path:
 
 
 def solution_projects(repository: Path, relative: str) -> set[str]:
+    repository = repository.resolve()
     path = safe_path(repository, relative)
     if path.suffix.casefold() == '.slnx':
         values = [node.get('Path', '') for node in ET.parse(path).iter('Project')]
@@ -62,6 +63,7 @@ def solution_projects(repository: Path, relative: str) -> set[str]:
 
 
 def reference_free_imports(repository: Path, path: Path, seen: set[Path]) -> None:
+    repository = repository.resolve()
     path = path.resolve()
     if not path.is_relative_to(repository) or not path.is_file():
         raise RestoreError('PKB621 imported graph is external/missing; use an evaluated graph adapter')
@@ -91,6 +93,7 @@ def reference_free_imports(repository: Path, path: Path, seen: set[Path]) -> Non
 
 def nuget_project_graph(repository: Path, subjects: set[str]) -> dict[str, set[str]]:
     """Read the complete active literal graph, without admitting scratch history."""
+    repository = repository.resolve()
     manifest = repository / 'eng/architecture.json'
     rows = load_json(manifest).get('runtimeComposition', {}).get('projects', []) if manifest.is_file() else []
     declared = {row['path']: row for row in rows}
@@ -162,6 +165,7 @@ def nuget_subjects_with_reverse_closure(repository: Path, subjects: set[str]) ->
 
 
 def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
+    repository = repository.resolve()
     commands: list[dict] = []
     nuget_subjects: set[str] = set()
     tool_manifests: set[str] = set()
@@ -300,6 +304,7 @@ def verify_evidence(repository: Path, lock: dict, evidence: dict) -> None:
 
 
 def subject_outputs(repository: Path, lock: dict, command: dict, mode: str) -> dict:
+    repository = repository.resolve()
     paths = set()
     if command['ecosystem'] == 'npm':
         paths.add(Path(command['cwd']) / 'package-lock.json')
@@ -330,6 +335,8 @@ def write_json_atomic(path: Path, value: dict) -> None:
 
 
 def restore_request(repository: Path, lock_path: Path, lock: dict, mode: str) -> dict:
+    repository = repository.resolve()
+    lock_path = lock_path.resolve()
     commands = []
     for command in restore_commands(repository, lock, mode):
         portable = dict(command)
