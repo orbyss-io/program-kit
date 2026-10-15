@@ -353,6 +353,7 @@ def artifact_ref(record):
 
 
 def fetch_candidate(run_id, destination, expected=None):
+    require(not git(ROOT, 'status', '--porcelain=v1', '--untracked-files=normal'), 'Candidate verification requires committed clean source')
     require(not destination.exists(), 'Preserve existing candidate evidence; choose a fresh output directory')
     rules = policy()
     run, jobs = run_metadata(run_id)
@@ -527,6 +528,7 @@ def scan_security(candidate, output, supersedes):
 def finalize(output):
     from run_validation import require_release_authority
     require_release_authority('Qualification', False, False, os.environ, os.name)
+    require(not git(ROOT, 'status', '--porcelain=v1', '--untracked-files=normal'), 'Qualification finalization requires unchanged clean source')
     rules = policy()
     run_id, attempt = int(os.environ['GITHUB_RUN_ID']), int(os.environ['GITHUB_RUN_ATTEMPT'])
     run, jobs = run_metadata(run_id)
