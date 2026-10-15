@@ -1,6 +1,6 @@
 @echo off
 setlocal DisableDelayedExpansion
-set "PROGRAM_KIT_REF=v0.13.1"
+set "PROGRAM_KIT_REF=v0.13.2"
 
 rem Program Kit consumer bootstrap for a repository that does not already contain Program Kit.
 rem Run this file from a normal user-owned PowerShell prompt in the repository root.
