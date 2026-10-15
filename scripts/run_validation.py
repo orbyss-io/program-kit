@@ -1,6 +1,6 @@
 """Shared deterministic validation inventory and failure-preserving execution.
 
-Never starts a coding agent. Full local Release requires explicit user authority.
+Never starts a coding agent. Complete candidate qualification is CI-owned.
 """
 from __future__ import annotations
 
@@ -46,6 +46,37 @@ def selected(suite, system=None):
             ((suite == 'Maintenance' and c['group'] == 'maintenance') or
              (suite != 'Maintenance' and c['group'] != 'maintenance' and
               (suite != 'Development' or c['group'] == 'development')))]
+
+
+def changed_checks(checks, base, head='HEAD', push=False):
+    """A push uses its whole before..after range; unknown history selects all."""
+    from write_release_receipt import git
+    try:
+        if not base or set(base) == {'0'}:
+            return checks
+        git(ROOT, 'rev-parse', '--verify', base + '^{commit}')
+        git(ROOT, 'rev-parse', '--verify', head + '^{commit}')
+        if push:
+            git(ROOT, 'merge-base', '--is-ancestor', base, head)
+        paths = git(ROOT, 'diff', '--no-renames', '--name-only', base + ('..' if push else '...') + head).splitlines()
+        return affected_checks(checks, paths)
+    except (RuntimeError, ValueError, OSError):
+        print('Cannot establish complete changed range; selecting full deterministic coverage.', flush=True)
+        return checks
+
+
+def qualification_checks(lane):
+    from release_candidate import required_checks
+    available = selected('PullRequest')
+    required = required_checks(lane)
+    checks = [dict(c, needs=[d for d in c['needs'] if d != 'build-release']) for c in available if c['id'] in required]
+    preparation = {'id': 'prepare-qualified-packages', 'command': ['{python}', 'scripts/release_candidate.py',
+                   'verify-payload', '--manifest', 'artifacts/candidate-payload.json'],
+                   'needs': [], 'resources': ['release-artifacts'], 'group': 'preparation'}
+    for check in checks:
+        if check['group'] == 'package':
+            check['needs'] = list(dict.fromkeys([*check['needs'], preparation['id']]))
+    return [preparation, *checks]
 
 
 def affected_checks(checks, paths):
@@ -118,7 +149,10 @@ def schedule_checks(checks, workers, execute, before=None, after=None):
 def command(check, engines):
     values = {'python': sys.executable, 'engines': engines,
               'powershell': os.environ.get('PROGRAM_KIT_POWERSHELL_EXECUTABLE') or shutil.which('pwsh') or shutil.which('powershell.exe') or 'pwsh'}
-    return [part.format(**values) for part in check['command']]
+    result = [part.format(**values) for part in check['command']]
+    if check['id'] == 'validate_workflow_runtimes' and os.environ.get('PROGRAM_KIT_MIXED_PYTHON'):
+        result += ['--mixed-python', os.environ['PROGRAM_KIT_MIXED_PYTHON']]
+    return result
 
 
 def require_unchanged_release_source(value, boundary):
@@ -179,13 +213,17 @@ def validate_journal(value, suite='Release'):
 
 
 def require_release_authority(suite, approved, authorized_codex_task, environment, system):
-    if suite == 'Release' and not approved:
-        raise ValueError('Release requires explicit publication approval (--approved)')
-    if authorized_codex_task and (suite != 'Release' or not approved):
-        raise ValueError('--authorized-codex-task requires Release and explicit publication approval')
-    if suite == 'Release' and system == 'nt' and any(environment.get(k) for k in
-            ('CODEX_THREAD_ID', 'CODEX_SESSION_ID', 'CODEX_INTERNAL_ORIGINATOR_OVERRIDE')) and not authorized_codex_task:
-        raise ValueError('Run complete local Release from a user-owned terminal, not a Codex task')
+    if suite == 'Release' or authorized_codex_task:
+        raise ValueError('Local Release is retired. Run qualify-candidate.yml with expected_commit=<SHA> on main; '
+                         'use release_candidate.py find/download for verified CI evidence. Historical receipts remain read-only.')
+    if suite in ('Qualification', 'WindowsCompatibility'):
+        expected = environment.get('GITHUB_SHA')
+        if (environment.get('GITHUB_ACTIONS') != 'true' or environment.get('GITHUB_EVENT_NAME') != 'workflow_dispatch'
+                or environment.get('GITHUB_REF') != 'refs/heads/main'
+                or environment.get('GITHUB_WORKFLOW_REF') != 'orbyss-io/program-kit/.github/workflows/qualify-candidate.yml@refs/heads/main'
+                or not expected):
+            raise ValueError('Complete qualification runs only in trusted qualify-candidate.yml on main')
+
 
 
 def main():
@@ -193,27 +231,43 @@ def main():
         if hasattr(stream, 'reconfigure'):
             stream.reconfigure(encoding='utf-8', errors='backslashreplace')
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--suite', choices=['Development', 'PullRequest', 'Release', 'Maintenance'], default='Development')
+    parser.add_argument('--suite', choices=['Development', 'PullRequest', 'Release', 'Qualification', 'WindowsCompatibility', 'Maintenance'], default='Development')
     parser.add_argument('--workers', type=int, default=1, help='Linux concurrency; Windows remains sequential')
+    parser.add_argument('--changed-before', help='Whole push before SHA; invalid/missing bases select full')
+    parser.add_argument('--changed-to', default='HEAD')
+    parser.add_argument('--packages-manifest', type=Path, help='Import verified CI packages; never execute a builder')
     parser.add_argument('--changed-from', help='Git base ref for conservative PullRequest selection')
     parser.add_argument('--engines', default='chromium,firefox,webkit')
     parser.add_argument('--list', action='store_true')
     parser.add_argument('--approved', action='store_true')
     parser.add_argument('--authorized-codex-task', action='store_true',
-                        help='User explicitly authorized this Codex task to run local Release')
+                        help='Retired local Release switch; returns CI migration guidance')
     parser.add_argument('--receipt', action='store_true')
     parser.add_argument('--check', help='Run one declared check without claiming suite coverage')
     args = parser.parse_args()
+    try:
+        require_release_authority(args.suite, args.approved, args.authorized_codex_task, os.environ, os.name)
+    except ValueError as error:
+        parser.error(str(error))
+    if args.suite in ('Qualification', 'WindowsCompatibility') and platform.system() != {'Qualification': 'Linux', 'WindowsCompatibility': 'Windows'}[args.suite]:
+        parser.error('CI qualification lane platform mismatch')
     if args.workers < 1 or args.workers > 4:
         parser.error('--workers must be between 1 and 4')
     if args.workers != 1 and os.name == 'nt':
         parser.error('Windows validation remains sequential')
     checks = selected(args.suite)
-    if args.changed_from:
-        if args.suite != 'PullRequest': parser.error('--changed-from requires PullRequest')
-        from write_release_receipt import git
-        paths = git(ROOT, 'diff', '--name-only', args.changed_from + '...HEAD').splitlines()
-        checks = affected_checks(checks, paths)
+    if args.changed_from is not None or args.changed_before is not None:
+        if args.suite != 'PullRequest': parser.error('Changed-range selection requires PullRequest')
+        checks = changed_checks(checks, args.changed_before if args.changed_before is not None else args.changed_from,
+                                args.changed_to, push=args.changed_before is not None)
+    if args.suite in ('Qualification', 'WindowsCompatibility'):
+        if args.changed_from or args.changed_before or args.check or args.receipt or not args.packages_manifest:
+            parser.error('Complete CI lanes require imported packages and cannot use targeted selection or legacy receipts')
+        checks = qualification_checks('linux' if args.suite == 'Qualification' else 'windows')
+    if args.packages_manifest:
+        from release_candidate import read, source, verify_payload
+        imported_payload = read(args.packages_manifest)
+        verify_payload(imported_payload, ROOT / 'artifacts', source())
     if args.check:
         available = selected('Release')
         by_id = {c['id']: c for c in available}
@@ -230,19 +284,15 @@ def main():
         for check in checks:
             print(check['id'] + ': ' + ' '.join(command(check, args.engines)))
         return 0
-    try:
-        require_release_authority(args.suite, args.approved, args.authorized_codex_task, os.environ, os.name)
-    except ValueError as error:
-        parser.error(str(error))
-    if args.receipt and args.suite != 'Release':
-        parser.error('Only Release can create a release receipt')
+    if args.receipt:
+        parser.error('Legacy receipt creation is retired; complete CI creates authenticated candidate qualification')
     if not args.check:
         try:
             require_device_toolchain()
         except (ValueError, OSError) as error:
             parser.error(str(error))
     from write_release_receipt import git, sha256
-    if args.suite == 'Release' and git(ROOT, 'status', '--porcelain=v1', '--untracked-files=normal'):
+    if args.suite in ('Qualification', 'WindowsCompatibility') and git(ROOT, 'status', '--porcelain=v1', '--untracked-files=normal'):
         parser.error('Commit the candidate before Release validation')
     missing = sorted({c['credentials'] for c in checks if c.get('credentials') and not os.environ.get(c['credentials'])})
     if missing:
@@ -252,10 +302,15 @@ def main():
     journal = {'schemaVersion': 1, 'suite': args.suite, 'platform': platform.system(),
                'source': {'commit': git(ROOT, 'rev-parse', 'HEAD'), 'tree': git(ROOT, 'rev-parse', 'HEAD^{tree}')},
                'inventorySha256': sha256(INVENTORY), 'browserEngines': args.engines,
+               'executables': {'python': sys.executable, 'powershell': os.environ.get('PROGRAM_KIT_POWERSHELL_EXECUTABLE') or shutil.which('pwsh') or shutil.which('powershell.exe') or 'pwsh', 'mixedPython': os.environ.get('PROGRAM_KIT_MIXED_PYTHON')},
                'startedAt': now(), 'authorizedCodexTask': args.authorized_codex_task, 'steps': []}
+    if args.packages_manifest:
+        journal['packageInput'] = {'manifestSha256': sha256(args.packages_manifest), 'assetsBefore': imported_payload['assets']}
     path = output / 'journal.json'
     environment = os.environ.copy()
     environment['PYTHONUTF8'] = '1'
+    if args.packages_manifest:
+        environment['PROGRAM_KIT_IMPORTED_PACKAGES'] = str(args.packages_manifest)
     sys.path.insert(0, str(ROOT / 'tests'))
     from live.v2.supervisor import run_supervised
     results = {}
@@ -307,8 +362,22 @@ def main():
                                  'startedAt': started, 'finishedAt': now(),
                                  'log': log.relative_to(ROOT).as_posix(), 'logSha256': sha256(log)}
 
+    def package_boundary(boundary):
+        if not args.packages_manifest:
+            return True
+        try:
+            if sha256(args.packages_manifest) != journal['packageInput']['manifestSha256']:
+                raise ValueError('Imported package manifest changed')
+            verify_payload(imported_payload, ROOT / 'artifacts', source())
+            return True
+        except (ValueError, OSError, RuntimeError) as error:
+            journal.update(status='payload-changed', finishedAt=now(), diagnostic=boundary + ': ' + str(error))
+            path.write_text(json.dumps(journal, indent=2) + '\n', encoding='utf-8')
+            print(journal['diagnostic'], flush=True)
+            return False
+
     def before(check):
-        return args.suite != 'Release' or guard_release_source(journal, path, 'before ' + check['id'])
+        return package_boundary('before ' + check['id']) and (args.suite not in ('Qualification', 'WindowsCompatibility') or guard_release_source(journal, path, 'before ' + check['id']))
 
     def after(check, result):
         journal['steps'].append(result)
@@ -316,24 +385,23 @@ def main():
         print(('Passed: ' if result['exitCode'] == 0 else 'FAILED: ') + check['id'], flush=True)
         if result['exitCode']:
             print((ROOT / result['log']).read_text(encoding='utf-8', errors='replace')[-6000:], flush=True)
-        return args.suite != 'Release' or guard_release_source(journal, path, 'after ' + check['id'])
+        return package_boundary('after ' + check['id']) and (args.suite not in ('Qualification', 'WindowsCompatibility') or guard_release_source(journal, path, 'after ' + check['id']))
 
     results, stopped = schedule_checks(checks, args.workers, execute, before, after)
     if stopped: return 1
     failed = [name for name, code in results.items() if code]
     if failed:
+        journal.update(status='failed', finishedAt=now())
+        path.write_text(json.dumps(journal, indent=2) + '\n', encoding='utf-8')
         print('Validation failed: ' + ', '.join(failed) + '\nEvidence: ' + str(path))
         return 1
-    if args.suite == 'Release':
+    journal.update(status='failed' if failed else 'passed', finishedAt=now())
+    path.write_text(json.dumps(journal, indent=2) + '\n', encoding='utf-8')
+    if args.suite in ('Qualification', 'WindowsCompatibility'):
         if not guard_release_source(journal, path, 'before receipt validation'):
             return 1
-        validate_journal(journal)
-    if args.receipt:
-        subprocess.run([sys.executable, str(ROOT / 'scripts/write_release_receipt.py'), '--root', str(ROOT),
-                        '--journal', str(path), '--browser-engines', args.engines,
-                        '--started-at', journal['startedAt']], cwd=ROOT, check=True)
     print(('Program Kit targeted check passed: ' + args.check) if args.check else
-          'Program Kit ' + ('complete deterministic Release' if args.suite == 'Release' else 'development') + ' suite passed.')
+          'Program Kit ' + args.suite + ' suite passed.')
     return 0
 
 

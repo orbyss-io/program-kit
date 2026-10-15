@@ -1,19 +1,21 @@
 name: Release
-
 on:
   push:
-    tags:
-      - "v*.*.*"
-
+    tags: ['v*.*.*']
 permissions:
   contents: write
+  actions: read
   packages: read
   id-token: write
   attestations: write
-
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Check out tagged source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -25,107 +27,40 @@ jobs:
         with:
           python-version-file: .python-version
 
-      - name: Set up Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "26.12.0"
-
-      - name: Set up pinned npm
-        run: npm install --global npm@12.2.0 --ignore-scripts --no-audit --no-fund
-
-      - name: Verify tag matches VERSION
+      - name: Prepare publication and public installation tools
+        run: |
+          python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
+          python extensions/program-kit-governance/scripts/schema_runtime.py setup
+      - name: Resolve exact qualified source; verify trust, payload, security and readiness
         shell: bash
         run: |
-          expected="v$(tr -d '\r\n' < VERSION)"
-          [[ "$GITHUB_REF_NAME" == "$expected" ]] || { echo "Tag $GITHUB_REF_NAME does not match $expected." >&2; exit 1; }
-
-      - name: Set up pinned vulnerability scanner
-        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
-        with:
-          version: v0.76.0
-
-      - name: Scan the default profile's published Host before kit publication
-        shell: bash
-        run: |
-          image=$(python scripts/dependency_maintenance.py host-image)
-          python scripts/dependency_maintenance.py scan --image "$image"
-
-      - name: Preserve dependency security evidence
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: dependency-security-${{ github.sha }}
-          path: artifacts/dependency-security/
-          if-no-files-found: warn
-
-      - name: Install pinned Spec Kit
-        run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
-
-      - name: Prepare project-local JSON Schema runtime
-        run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
-
-      - name: Set up managed .NET SDK
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
-
-      - name: Run shared deterministic inventory and write its receipt
-        env:
-          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
-        run: python scripts/run_validation.py --suite Release --approved --receipt --workers 4 --engines=chromium,firefox,webkit
-
-      - name: Preserve validation evidence
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: release-validation-${{ github.sha }}
-          path: artifacts/validation-runs/
-          if-no-files-found: warn
-
-      - name: Attest release assets
+          run_id=$(python scripts/release_candidate.py find)
+          python scripts/release_candidate.py verify-promotion --run-id "$run_id" --output artifacts/promotion --tag "$GITHUB_REF_NAME"
+      - name: Attest publication of previously built assets
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-path: |
-            artifacts/*.zip
-            artifacts/*.cmd
-            artifacts/*.sh
-            artifacts/SHA256SUMS
-            artifacts/release-receipt-*.json
-            artifacts/RELEASE-NOTES-*.md
-            artifacts/MIGRATIONS-*.md
-            artifacts/migration-index-*.json
-            artifacts/consumer-changes-*.json
-            artifacts/migration-*.md
-            artifacts/dependency-profile-*.json
-            artifacts/dependency-qualification-*.json
-
-      - name: Publish GitHub release
+          subject-path: artifacts/promotion/payload/*
+      - name: Publish exactly the qualified GitHub assets and supplemental assessment
+        run: python scripts/publish_candidate.py --tag "$GITHUB_REF_NAME" --directory artifacts/promotion
+      - name: Validate newly public installation and upgrade
         env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          assets=(artifacts/*.zip artifacts/*.cmd artifacts/*.sh artifacts/SHA256SUMS artifacts/release-receipt-*.json artifacts/RELEASE-NOTES-*.md artifacts/MIGRATIONS-*.md artifacts/migration-index-*.json artifacts/consumer-changes-*.json artifacts/migration-*.md artifacts/dependency-profile-*.json artifacts/dependency-qualification-*.json)
-          notes="artifacts/RELEASE-NOTES-$(tr -d '\r\n' < VERSION).md"
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
-            gh release edit "$GITHUB_REF_NAME" --notes-file "$notes"
-          elif ! gh release create "$GITHUB_REF_NAME" "${assets[@]}" --verify-tag --title "Program Kit $GITHUB_REF_NAME" --notes-file "$notes"; then
-            for attempt in {1..12}; do
-              if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-                gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
-                exit 0
-              fi
-              sleep 5
-            done
-            echo "release creation failed and no concurrent release became visible" >&2
-            exit 1
-          fi
-
-      - name: Validate public installation and upgrade
+          PROGRAM_KIT_PUBLIC_REF: ${{ github.ref_name }}
         run: |
           python tests/validate_public_install.py
           python tests/validate_public_upgrade.py
-
-      - name: Report partial publication after a failed public smoke test
+          python scripts/publish_candidate.py --tag "$GITHUB_REF_NAME" --directory artifacts/promotion --verify-public-only
+      - name: Preserve promotion diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: promotion-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/promotion/promotion.json
+            artifacts/promotion/qualification/
+            artifacts/promotion/assessments/
+            artifacts/promotion/security-history/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Report partial publication after failure
         if: failure()
-        run: echo "If the publication step succeeded, assets are already public. Preserve this run and follow failed-release recovery; do not silently move the tag." >> "$GITHUB_STEP_SUMMARY"
+        run: echo "If assets became public, preserve this run, disclose partial publication and require exact corrected-commit/same-tag approval. Never clobber differing assets or silently move a tag." >> "$GITHUB_STEP_SUMMARY"

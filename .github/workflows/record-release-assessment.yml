@@ -1,0 +1,70 @@
+name: Record release assessment
+run-name: Record release assessment ${{ inputs.candidate }}
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        required: true
+        type: string
+      run_id:
+        description: Complete original qualification run
+        required: true
+        type: string
+      candidate:
+        description: SHA256 of authenticated qualification.json
+        required: true
+        type: string
+      assessment_json:
+        description: Minimal reviewed assessment; internal trial references only
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  attestations: write
+  id-token: write
+env:
+  GH_TOKEN: ${{ github.token }}
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.expected_commit }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+      - name: Assert exact candidate in trusted main recorder
+        env:
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+        run: python scripts/release_candidate.py assert-recorder --expected-commit "$EXPECTED_COMMIT"
+        shell: bash
+      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
+      - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
+      - name: Read configurable retention policy
+        shell: bash
+        run: python -c "import json,os; open(os.environ['GITHUB_ENV'],'a').write('RETENTION_DAYS=' + str(json.load(open('release-policy.json'))['artifactRetentionDays']) + '\n')"
+      - name: Verify the complete unchanged candidate
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+          CANDIDATE: ${{ inputs.candidate }}
+        run: python scripts/release_candidate.py download --run-id "$RUN_ID" --output artifacts/verified --candidate "$CANDIDATE"
+      - name: Validate attributable human-attested assessment
+        env:
+          ASSESSMENT_JSON: ${{ inputs.assessment_json }}
+          CANDIDATE: ${{ inputs.candidate }}
+        shell: bash
+        run: |
+          python -c "import os,pathlib; pathlib.Path('artifacts/submitted.json').write_text(os.environ['ASSESSMENT_JSON'])"
+          python scripts/release_candidate.py record-assessment --candidate "$CANDIDATE" --input artifacts/submitted.json --output artifacts/record/assessment.json
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: artifacts/record/assessment.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: assessment-${{ github.run_attempt }}
+          path: artifacts/record/
+          if-no-files-found: error
+          retention-days: ${{ env.RETENTION_DAYS }}

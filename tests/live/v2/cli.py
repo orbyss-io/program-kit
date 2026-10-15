@@ -162,6 +162,11 @@ def preflight(root: Path, receipt: dict[str, Any]) -> None:
     missing = [name for name in ("git", "specify", "codex") if shutil.which(name) is None]
     if missing:
         raise LiveContractError(f"LIVE_ACCEPTANCE_TOOL_MISSING: {missing}")
+    if receipt.get('status') == 'ci-trial-prepared':
+        sys.path.insert(0, str(root / 'scripts'))
+        from release_trial import host
+        if receipt['host'] != host():
+            raise LiveContractError('LIVE_CI_PREPARATION_HOST_MISMATCH')
     current_platform = {"system": platform.system(), "release": platform.release(), "machine": platform.machine()}
     if receipt["platform"] != current_platform:
         raise LiveContractError(f"LIVE_RELEASE_RECEIPT_PLATFORM_MISMATCH: receipt={receipt['platform']} current={current_platform}")
@@ -678,7 +683,7 @@ def parser() -> argparse.ArgumentParser:
     authorize.add_argument("--release-root")
     authorize.add_argument("--baseline-report")
     authorize.add_argument("--release-receipt", required=True)
-    authorize.add_argument('--receipt-kind', choices=('release','development-trial'), default='release')
+    authorize.add_argument('--receipt-kind', choices=('release','development-trial','ci-prepared'), default='release')
     authorize.add_argument('--displayed-session-limit', type=int, required=True)
     authorize.add_argument("--scenario")
     authorize.add_argument("--checkpoint")
@@ -693,7 +698,7 @@ def parser() -> argparse.ArgumentParser:
     preview.add_argument('--phase', required=True, choices=sorted(AUTHORIZATION_PHASES))
     preview.add_argument('--release-root')
     preview.add_argument('--release-receipt', required=True)
-    preview.add_argument('--receipt-kind', choices=('release','development-trial'), default='release')
+    preview.add_argument('--receipt-kind', choices=('release','development-trial','ci-prepared'), default='release')
     bootstrap_parser = commands.add_parser("bootstrap")
     bootstrap_parser.add_argument("--authorization", required=True)
     bootstrap_parser.add_argument("--scenario")

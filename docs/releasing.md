@@ -1,80 +1,113 @@
-# Program Kit release procedure
+# Releasing Program Kit
 
-Develop with targeted checks and the bounded Development suite. PR CI selects
-checks conservatively from the shared inventory; unknown inputs select full
-coverage. Main runs Development and Windows integration. Tagged Release runs all
-required deterministic checks with exact-source evidence before publication.
-Linux may run four workers; resource locks serialize shared fixtures and services.
-Windows remains sequential. Firefox acceptance belongs to CI on this host.
+Ordinary work uses focused validators and `./scripts/Test-ProgramKit.ps1` Development.
+Main CI selects Development plus affected expensive checks across the entire push and
+prerequisites; unknown history/inputs select full coverage. PR coverage is preserved.
+Local Release wrappers are retired and fail with migration guidance. Historical
+receipts, profiles, logs and consumer locks remain read-only.
 
-Write reviewed release notes and migration entries under `releases/`. Each entry
-states affected versions, prerequisites, automatic changes, review decisions,
-validation and recovery, including an explicit no-action statement where relevant.
-Verify offline guidance and immutable links in the installed extension and bundle.
-Historical operational runbooks are retained in Git history; extract durable
-recovery guidance before retiring them.
+## Qualify an exact candidate in CI
 
-Keep the candidate checkout frozen throughout Release validation. Concurrent edits
-produce `PROGRAM_KIT_RELEASE_SOURCE_CHANGED`; preserve the failed journal and log.
-Passing individual checks does not authorize synthesizing a clean receipt for mixed
-source revisions. Never invoke the receipt writer alone to replace a failed suite.
-On this Windows host, `./scripts/Invoke-LocalRelease.ps1 -PrepareOnly` verifies
-the selected shared device tools without starting validation. In the user's
-terminal, the same helper without `-PrepareOnly` runs the required Release command.
-It does not substitute cached SDK/Node/npm distributions or modify DOTNET_ROOT.
-If an inherited PATH is too long for CMD/npm exec, it verifies readiness first,
-retains exactly the same active executable selections in a bounded process PATH,
-then verifies those selections and pins again. It restores the caller's PATH
-on completion; this cannot hide an outdated device selection.
-Missing or outdated tools require user-terminal remediation and fresh-session
-verification under the device toolchain policy.
-When the user explicitly authorizes this Codex task to run local Release, use
-`./scripts/Invoke-LocalRelease.ps1 -AuthorizedCodexTask`; it retains the normal
-approval gate and records that authorization in the validation journal.
-The helper checks Docker's Linux engine before starting the suite; unavailable container
-infrastructure fails immediately instead of after the remaining validation has run.
+Complete dependency maintenance under [the existing procedure](maintenance/dependency-review.md)
+before selecting a release candidate. This maintenance change does not itself request
+unrelated dependency upgrades. Freeze committed source on main and inspect the actual
+changes since the previous successful public release.
 
-When the user decides the candidate should proceed toward publication, freeze clean
-committed source and ask them to run in a user-owned terminal:
+Use the repository-only `$program-kit-release-readiness` skill or deterministic helpers:
 
 ```powershell
-./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
+python scripts/release_candidate.py find
+# If no complete matching qualification exists:
+gh workflow run qualify-candidate.yml --ref main -f expected_commit=<exact-main-SHA>
+python scripts/release_candidate.py download --run-id <run-id> --output artifacts/verified/<unique-name>
+python scripts/release_candidate.py recommend --base <previous-successful-release-commit>
 ```
 
-Inspect the preserved transcript, per-check journal, receipt and asset hashes.
-Require green candidate CI and complete tagged Release, including public install
-and upgrade checks, before reporting availability. Any publication failure must
-disclose already-public assets. Paid workers are separately authorized.
+Dispatch asserts that the expected commit, workflow source and checkout agree. Reuse
+an already-successful complete matching run; partial CI runs are not combined. The
+workflow builds one authoritative payload, runs full Linux deterministic acceptance
+with Chromium/Firefox/WebKit, focused Windows installation/upgrade/launcher/workflow/
+worker compatibility, and scans the selected immutable Host image identities. Windows
+imports those exact verified bytes and records preparation rather than a Windows build.
+Fixtures never start paid coding agents. Browser/container acceptance remains in Linux.
 
-Follow [the evidence reuse policy](../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes).
-Preserve the original receipt unchanged. The tagged Release workflow still runs in full.
-Failed-tag reuse requires proof that nothing was published from the failed candidate.
-Exact corrected-commit and same-tag approval is still required.
-If any reuse condition is unproven, obtain fresh local Release evidence.
+Payload plus its file manifest and original build/Linux/Windows/security evidence are
+uploaded first. A separate authenticated final qualification binds their immutable IDs
+and digests, exact commit/tree/VERSION, inventory/policy, actual successful required jobs,
+platform/browser coverage and original logs. It never contains its own enclosing upload
+digest. SHA256SUMS alone does not authenticate a payload. Every indexed profile, evidence,
+migration guide and release Markdown asset belongs to the complete hashed inventory.
 
-Review GitHub release permissions and protected publication environments in the
-repository that owns each component. Foundation, Forms and Localization own their
-registries and immutable component versions. NuGet trusted-publishing policies
-must name the actual publisher repository, workflow and environment; credentials
-must not be copied between repositories. Program Kit's tagged Release keeps its
-component availability gates and downstream publication jobs.
+The verifier checks GitHub run/attempt/job metadata, exact producer workflow/revision,
+GitHub attestations and archive digests before extraction, then extracted asset hashes.
+Digest mismatches are hard failures in the implemented downloader. Missing, expired,
+incomplete, mismatched or untrusted evidence blocks publication: qualify the exact
+candidate in CI again before tagging; no local or tagged-workflow fallback exists.
+Artifact retention defaults to 14 days in `release-policy.json`.
 
-`scripts/build_release.py` produces reviewed release notes, cumulative migrations
-and a migration index alongside the archives. Their exact bytes appear in
-`SHA256SUMS` and the Release receipt. The governance archive and bundle also
-contain the verified index and guides under `references/release-guidance`.
-The release workflow uses the reviewed notes as the GitHub release body and
-uploads each indexed guide. Verify those assets and immutable release URLs
-before declaring availability. Do not edit assets from a successful published
-release. Consumers can inspect applicable guidance with the updater's `--plan`
-mode; a plan grants no approval or migration-completion authority.
+## Security and reviewed local readiness
 
-Scoped dependency qualification assets also ship beside the bundle: a dependency
-profile index, exact profiles and their qualification receipts. The Release receipt
-verifies their bytes against the index and `SHA256SUMS`. Native consumer qualification
-does not substitute for full Program Kit Release validation or consumer Delivery.
-Preserve the source bundle commit and original evidence; do not relabel them to a
-later shipping commit. Keep untested activations outside the qualified profile scope.
+Security freshness defaults to 24 hours, independently of storage retention. A stale
+scan needs only `refresh-candidate-security.yml` with the original qualification run,
+exact candidate commit and SHA256 of authenticated qualification.json. It scans unchanged
+immutable inputs and never builds packages or runs product acceptance. Later applicable
+failed scans block promotion until a successful refresh explicitly supersedes their
+run/attempt identity. Future timestamps and wrong target/candidate identities fail.
+Recorders may run from newer trusted main while checking out the exact older candidate;
+their attestation authenticates that recorder revision and their statement binds the
+unchanged qualification. Main advancing does not invalidate an older exact qualified tag.
+
+A candidate can require no local execution. Change-based recommendations identify relevant
+optional trials and missing scenario/oracle coverage. The user selects trials. Release
+preparation never automatically requests or starts paid runs. For an explicitly selected
+trial, `release_candidate.py prepare-trial --run-id <id> --output artifacts/trial-preparation/<unique>`
+verifies CI packages, checks actual local prerequisites and installs a disposable consumer.
+It records a separate host/toolchain/preparation binding; it does not rebuild or repeat
+acceptance. `New-LiveAcceptanceAuthorization.ps1 -CiPreparation <record>` retains exact
+one-use phase/model/checkpoint/source/artifact/host bindings and workspace-write workers.
+Development-learning `-TrialReceipt` remains separate. Preserve Windows Job Object cleanup,
+stream draining/redaction and supervisor-only credentials.
+
+Keep full trial manifests/logs/checkpoints internally. Record a concise versioned
+assessment with recommendations, selection, scope, outcomes, manifest references/digests,
+findings and attributable human review via `record-release-assessment.yml`. Submitted
+outcomes are human-attested, not independently verified by the recorder. No trial means
+no AI acceptance claim. Confirmed product defects block readiness until explicitly resolved;
+harness failures/inconclusive outcomes need disposition. Later unresolved findings supersede
+older readiness passes. The recorder changes no candidate commit or payload bytes and
+uploads no full worker evidence automatically.
+
+## Verify promotion and publish only when authorized
+
+```powershell
+python scripts/release_candidate.py verify-promotion --run-id <qualification-run> --output artifacts/promotion/<unique> --tag v<VERSION>
+```
+
+This command performs no publication. It requires the complete exact qualification,
+authoritative fresh security history and reviewed readiness disposition. A successful
+non-publishing check does not establish real publication/public-smoke acceptance.
+
+After explicit approval of the exact commit and tag, tagged Release downloads the already
+qualified payload and performs trust, source/tag/version, inventory, provenance, payload,
+security and readiness checks. It never invokes the deterministic inventory or builder.
+It attests publication, publishes exactly qualified asset bytes, appends the concise
+assessment only as supplemental release-body information, and verifies newly public asset
+hashes plus real public installation/upgrade using the tag's catalogs. Existing identical
+assets can be retried; differing or unexpected public assets fail without clobbering.
+
+Do not advertise availability until promotion and public installation/upgrade succeed.
+Component registries belong to their publisher repositories. Credentials and publishing
+authority remain scoped; this workflow grants no independent stable-tag publication route.
+
+## Failed-tag recovery
+
+Preserve failed-run evidence and inspect all public assets and immutable registries before
+recovery. Disclose partial publication explicitly. Repair the failure and obtain complete
+CI qualification for the exact corrected commit and verify promotion. Exact corrected-commit
+and same-tag approval is still required before deleting/recreating/pushing a failed stable
+tag. Never hide differing escaped assets, rewrite receipts or increment merely because a
+failed candidate tag existed. A changed source cannot borrow another commit's qualification.
+A pushed stable tag is a candidate until its promotion and public smoke succeed.
 
 Routine upgrades use the release-owned updater's inspectable plan and deterministic
 retry. They never restart completed bootstrap or dispatch architecture authoring.
@@ -114,4 +147,4 @@ and excludes unexpected consumer-specific fields. Register the new profile with
 the resulting hashes and scope only after these checks pass. Run the profile
 regressions and Development suite before review. Changing the default affects new
 projects only; existing projects use the separate reviewed dependency transition.
-This qualification does not replace the full local and tagged Release gates.
+This scoped profile qualification does not replace complete Program Kit CI candidate qualification or consumer Delivery.

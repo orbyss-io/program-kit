@@ -63,6 +63,8 @@ jobs:
         env:
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
           EVENT_NAME: ${{ github.event_name }}
           VALIDATION_SELECTION: ${{ inputs.validation }}
         shell: bash
@@ -85,7 +87,7 @@ jobs:
               else:
                   raise SystemExit('Unknown manual CI validation selection')
           else:
-              arguments = ['--suite', 'Development']
+              arguments = ['--suite', 'PullRequest', '--changed-before', os.environ.get('PUSH_BEFORE', ''), '--changed-to', os.environ['PUSH_AFTER']]
           subprocess.run(command + arguments + common, check=True)
           PY
 

@@ -1,7 +1,7 @@
 # Live acceptance v2
 
 Live acceptance v2 is an optional, paid, local diagnostic for a packaged Program Kit candidate. It
-does not replace the deterministic Development or Release suites, is never a publication
+does not replace the deterministic Development or complete CI qualification, is never a publication
 prerequisite, and must never run in CI or from an unattended hook.
 
 The protocol separates bootstrap from later diagnostics. A successfully bootstrapped consumer is
@@ -33,24 +33,17 @@ existing-consumer intake, other agent providers, and POSIX qualification are als
 
 ## Candidate receipt
 
-The complete deterministic Release suite creates
-`artifacts/release-receipt-<version>.json`. The receipt binds the clean Git commit and tree,
-platform and observed toolchains, successful Release steps, browser engines, catalog and
-public-availability hashes,
-and the exact current-version release artifacts. The live harness installs those artifacts and
-never builds a candidate itself. A phase refuses the receipt if the source commit, platform, or any
-toolchain actually observed by Release has changed. An `unavailable` receipt value is explicitly
-unbound: the live preflight still requires every live tool to execute successfully, and the one-use
-authorization independently pins the exact Codex launcher version shown to the operator.
-
-On this Windows host, run Release only after the candidate has been approved for publication and
-from a normal user-owned terminal:
-
-```powershell
-./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
-```
-
-Firefox remains in CI and is the authority for that browser leg.
+Release-oriented preparation downloads verified complete CI qualification via
+`scripts/release_candidate.py prepare-trial`. Its separate local `ci-trial-preparation.json`
+is selected with `-CiPreparation`; it records actual host/toolchain/install operations,
+not a claim that this host executed CI acceptance. Historical `-ReleaseReceipt` records
+remain read-only. New preparation binds the clean source, actual local host and toolchains,
+CI qualification digest, exact package hashes and original preparation logs. The live
+harness installs those packages and never builds a candidate itself. Authorization and
+execution recheck the source, host, packages and tools. An unavailable historical tool
+observation remains unbound, while current live preflight still requires all live tools
+to execute and each one-use authorization pins the displayed Codex launcher version.
+Firefox acceptance stays in Linux CI; it is unavailable on this local Windows host.
 
 ## One-use authorization
 
@@ -66,7 +59,7 @@ Issue and run a bootstrap checkpoint:
 ```powershell
 ./scripts/New-LiveAcceptanceAuthorization.ps1 `
   -Phase bootstrap-checkpoint `
-  -ReleaseReceipt artifacts/release-receipt-0.10.0.json `
+  -CiPreparation artifacts/trial-preparation/<unique>/ci-trial-preparation.json `
   -Model gpt-5.6-sol `
   -ReasoningEffort high
 
@@ -80,7 +73,7 @@ checkpoint, then run the single-session building-block consumer phase:
 ```powershell
 ./scripts/New-LiveAcceptanceAuthorization.ps1 `
   -Phase building-block-consumer `
-  -ReleaseReceipt artifacts/release-receipt-0.10.0.json `
+  -CiPreparation artifacts/trial-preparation/<unique>/ci-trial-preparation.json `
   -Checkpoint artifacts/live-acceptance/v2/checkpoints/<checkpoint>.json `
   -Model gpt-5.6-sol `
   -ReasoningEffort high

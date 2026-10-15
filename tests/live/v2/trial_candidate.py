@@ -1,4 +1,6 @@
-"""Prepare exact development candidates for paid learning trials, without Release acceptance."""
+"""Development-learning only; release-oriented preparation uses scripts/release_candidate.py prepare-trial.
+
+Prepare exact development candidates for paid learning trials, without Release acceptance."""
 from __future__ import annotations
 
 import argparse

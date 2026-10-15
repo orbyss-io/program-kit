@@ -152,25 +152,19 @@ class SourceGuardTests(unittest.TestCase):
         self.assertIn('cannot create a Release receipt', result['diagnostic'])
 
     def test_edit_during_check_stops_next_check_and_receipt(self):
-        def check(command, *, evidence_directory, **kwargs):
-            evidence_directory.mkdir(parents=True)
-            for name in ('workflow.stdout.log', 'workflow.stderr.log'):
-                (evidence_directory / name).write_text('')
+        journal = self.root / 'journal.json'
+        executed = []
+        def execute(check, blocked):
+            executed.append(check['id'])
             self.state['dirty'] = ' M scripts/other-agent-fix.py'
-            return SimpleNamespace(exitCode=0, timedOut=False, cleanupComplete=True,
-                                   logsDrained=True, as_dict=lambda: {})
-        with patch.object(sys, 'argv', ['run_validation.py', '--suite', 'Release', '--approved', '--receipt']), \
-                patch.dict(runner.os.environ, {}, clear=True), \
-                patch('live.v2.supervisor.run_supervised', side_effect=check) as supervised, \
-                patch.object(runner, 'require_device_toolchain'), \
-                patch.object(runner.subprocess, 'run') as receipt, \
-                contextlib.redirect_stdout(io.StringIO()):
-            self.assertEqual(1, runner.main())
-        supervised.assert_called_once()
-        receipt.assert_not_called()
-        journal = next((self.root / 'artifacts/validation-runs').glob('*/journal.json'))
+            return {'exitCode': 0}
+        def after(check, result):
+            return runner.guard_release_source(self.value, journal, 'after ' + check['id'])
+        with contextlib.redirect_stdout(io.StringIO()):
+            _, stopped = runner.schedule_checks(self.checks, 1, execute, after=after)
+        self.assertTrue(stopped)
+        self.assertEqual(['first'], executed)
         result = json.loads(journal.read_text())
-        self.assertEqual(['first'], [step['id'] for step in result['steps']])
         self.assertEqual('source-changed', result['status'])
 
 

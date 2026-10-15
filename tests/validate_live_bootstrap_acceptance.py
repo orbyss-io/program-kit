@@ -366,6 +366,17 @@ def main() -> int:
         if "top-secret-token" in (temp / "process/workflow.stdout.log").read_text(encoding="utf-8"):
             raise AssertionError("Supervisor retained a raw secret")
 
+        descendants = run_supervised(
+            [sys.executable, '-u', '-c',
+             "import subprocess,sys,time; child=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); "
+             "print('fixture-child=' + str(child.pid),flush=True); time.sleep(60)"],
+            cwd=temp, environment=os.environ.copy(), evidence_directory=temp / 'descendants', timeout_seconds=1,
+        )
+        if not descendants.timedOut or not descendants.cleanupComplete or not descendants.logsDrained:
+            raise AssertionError(f'Fixture descendants escaped timeout cleanup/draining: {descendants}')
+        if 'fixture-child=' not in (temp / 'descendants/workflow.stdout.log').read_text(encoding='utf-8'):
+            raise AssertionError('Cleanup fixture never started its real child process')
+
         workflow_project = temp / "workflow-failure"
         workflow_run = workflow_project / ".specify/workflows/runs/failure-run"
         workflow_run.mkdir(parents=True)
@@ -448,13 +459,10 @@ def main() -> int:
         raise AssertionError("Live worker evidence is no longer drained incrementally")
     if any(marker not in cli_text for marker in ("class WorkflowProgress", "Live workflow: starting", "still running", "progress.stop()")):
         raise AssertionError("Bootstrap live progress is no longer visible in the invoking terminal")
-    aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
-    runner = (ROOT / "scripts/run_validation.py").read_text(encoding="utf-8")
-    if "--receipt" not in aggregate or "write_release_receipt.py" not in runner:
-        raise AssertionError("The deterministic Release suite does not emit a machine-bound receipt")
-    release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
-    if "Test-Live" in release or "live.v2.cli" in release:
-        raise AssertionError("A paid live phase was added to CI")
+    # Exercise the maintained workflow contracts; qualification is portable CI
+    # evidence, while optional paid execution retains separate host preparation.
+    from release_workflow_contracts import validate_workflows
+    validate_workflows()
 
     print("Live acceptance v2 authorization, scenario, checkpoint, redaction, supervision, and restore contracts passed.")
     return 0

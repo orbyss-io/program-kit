@@ -5,7 +5,7 @@ param(
 
     [switch]$Approved,
 
-    # Use only when the user explicitly authorizes this task to run local Release.
+    # Retired local Release switch, retained for actionable migration diagnostics.
     [switch]$AuthorizedCodexTask,
 
     [switch]$List,
@@ -23,25 +23,8 @@ function Invoke-ProgramKitNative {
     if ($LASTEXITCODE -ne 0) { throw $FailureMessage }
 }
 
-if ($Suite -eq 'Release' -and $Host.Name -eq 'Windows PowerShell ISE Host') {
-    throw @'
-PROGRAM_KIT_RELEASE_VALIDATION_ISE_UNSUPPORTED
-
-Do not run the complete Release suite in Windows PowerShell ISE. Long-running native-process
-validation can terminate the ISE host without allowing the transcript or cleanup blocks to finish.
-Open a standalone Windows PowerShell console or a Windows Terminal Windows PowerShell profile, then
-run the approved Release command there.
-'@
-}
-
-if ($Suite -eq 'Release' -and -not $Approved -and -not $List) {
-    throw @'
-PROGRAM_KIT_RELEASE_VALIDATION_APPROVAL_REQUIRED
-
-The Release suite is the complete deterministic publication gate and can run for a long time.
-Run it only when the user has decided the candidate is ready for publication, then pass -Approved.
-During development, omit -Suite Release and run focused validators for the files being changed.
-'@
+if ($Suite -eq 'Release' -or $Approved -or $AuthorizedCodexTask) {
+    throw 'PROGRAM_KIT_LOCAL_RELEASE_RETIRED: Use qualify-candidate.yml on main with expected_commit=<exact SHA>. Verify/download its CI qualification with scripts/release_candidate.py. Use Development for local work; historical receipts remain read-only. See docs/releasing.md.'
 }
 
 $previousConsoleOutputEncoding = [Console]::OutputEncoding
@@ -59,23 +42,6 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = $utf8NoBom
 $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'
-
-$transcribing = $false
-if ($Suite -eq 'Release' -and -not $List) {
-    if (-not $EvidencePath) {
-        $version = (Get-Content -Raw -LiteralPath (Join-Path $projectRoot 'VERSION')).Trim()
-        $EvidencePath = Join-Path $projectRoot "artifacts\release-validation-$version.log"
-    }
-    $EvidencePath = [System.IO.Path]::GetFullPath($EvidencePath)
-    New-Item -ItemType Directory -Force -Path ([System.IO.Path]::GetDirectoryName($EvidencePath)) | Out-Null
-    if (Test-Path -LiteralPath $EvidencePath) {
-        $archivePath = $EvidencePath + '.' + [DateTimeOffset]::UtcNow.ToString('yyyyMMddTHHmmssfff') + '.previous'
-        Move-Item -LiteralPath $EvidencePath -Destination $archivePath
-    }
-    Start-Transcript -LiteralPath $EvidencePath | Out-Null
-    $transcribing = $true
-    Write-Host "Release validation evidence: $EvidencePath"
-}
 
 try {
     if (-not $List) {
@@ -119,9 +85,6 @@ try {
 
     $arguments = @((Join-Path $projectRoot 'scripts/run_validation.py'), '--suite', $Suite, "--engines=$BrowserEngines")
     if ($List) { $arguments += '--list' }
-    if ($Approved) { $arguments += '--approved' }
-    if ($AuthorizedCodexTask) { $arguments += '--authorized-codex-task' }
-    if ($Suite -eq 'Release' -and -not $List) { $arguments += '--receipt' }
     & $python @arguments
     if ($LASTEXITCODE -ne 0) { throw 'Program Kit validation failed. Inspect the preserved per-check journal and logs.' }
 
@@ -131,9 +94,6 @@ finally {
         Remove-Item Env:PROGRAM_KIT_POWERSHELL_EXECUTABLE -ErrorAction SilentlyContinue
     } else {
         $env:PROGRAM_KIT_POWERSHELL_EXECUTABLE = $previousValidationPowerShell
-    }
-    if ($transcribing) {
-        Stop-Transcript | Out-Null
     }
     [Console]::OutputEncoding = $previousConsoleOutputEncoding
     $OutputEncoding = $previousPowerShellOutputEncoding

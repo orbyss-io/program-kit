@@ -3,6 +3,14 @@
   "profileRegistry": "extensions/program-kit-building-blocks/references/dependency-profiles",
   "optionalTools": [
     {
+      "name": "GitHub CLI qualification and attestation verification",
+      "command": "gh api / gh attestation verify",
+      "usedBy": "scripts/release_candidate.py",
+      "scope": "Required CI artifact metadata, hard-failing archive downloads and exact producer attestations; local candidate inspection and explicitly authorized workflow dispatch.",
+      "updatePolicy": "Use the runner/device GitHub CLI; fail closed if required attestation flags or APIs are unavailable. No automatic device installation or unrelated pin update.",
+      "source": "https://cli.github.com/manual/gh_attestation_verify"
+    },
+    {
       "name": "GitHub CLI",
       "command": "gh api",
       "usedBy": "extensions/program-kit-governance/scripts/task_draft.py",

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "candidate": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    },
+    "observedAt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scanner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "report": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "candidate",
+    "targets",
+    "status",
+    "observedAt",
+    "runId",
+    "attempt",
+    "identity",
+    "scanner",
+    "supersedes",
+    "report"
+  ]
+}

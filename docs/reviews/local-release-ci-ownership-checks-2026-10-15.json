@@ -1,0 +1,2937 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-10-15",
+  "sourceCommit": "2b21be892719cac1fdcaeb1a9ea1746a1d56c29d",
+  "inventorySha256": "00e2dbd80405daffe225f314d35111851e4e38850319d312addde720f8ae86f4",
+  "method": "Static inventory and workflow source audit; no test execution",
+  "counts": {
+    "inventory": 142,
+    "development": 101,
+    "windowsRelease": 141,
+    "linuxRelease": 140,
+    "mandatoryLocalOnly": 0
+  },
+  "checks": [
+    {
+      "id": "validate_authentication_presentation",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_authentication_presentation.py",
+        "--unit"
+      ],
+      "needs": [],
+      "purpose": "Qualified selected-profile resolution and exact archive/version/native-byte admission for the application-owned authentication presentation example.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_label_validation",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_label_validation.py",
+        "--unit"
+      ],
+      "needs": [],
+      "purpose": "Closed normalization-aware label descriptor/generator admission and deterministic staleness checks; preserves Core ownership and UTF-16 semantics.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_native_phase_ownership",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_native_phase_ownership.py"
+      ],
+      "needs": [],
+      "purpose": "Exact native extension/preset source and generated output ownership, customization refusal, secondary integrations and immutable archived-source witnesses before upgrade mutation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_operation_recovery",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_operation_recovery.py"
+      ],
+      "needs": [],
+      "purpose": "Maintained recovery example retains server identity through missing receipts/response loss and admits correction only for owner-defined confirmed no-effect outcomes; validation parity.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_test_dependencies",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_test_dependencies.py"
+      ],
+      "needs": [],
+      "purpose": "Responsibility-derived selected direct test contracts, pure Core exclusions and reviewed new-project scaffolding with selected-pin admission before source creation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_phase_refresh",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_phase_refresh.py"
+      ],
+      "needs": [],
+      "purpose": "Native all-phase integration refresh in four pre-implementation states, secondary integration composition and customization refusal without artifact or authority reset.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_wire_capabilities",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_wire_capabilities.py"
+      ],
+      "needs": [],
+      "purpose": "Selected immutable capability projection, planned error coverage, closed problem fields, numeric binding diagnostics and producer admission constraints.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_web_identity",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_web_identity.py"
+      ],
+      "needs": [],
+      "purpose": "Actual persona loader and validated canonical identity resolution with alternate resources/realms, legacy consumer-root fallback and private diagnostics.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_composition_tooling",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_composition_tooling.py"
+      ],
+      "needs": [],
+      "purpose": "Migrated typed consumers preserve branding and provider metadata; select per-host OpenAPI stages and evidence, reject unknown/ambiguous/stale bindings and retain legacy routing.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_numeric_schema",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_numeric_schema.py"
+      ],
+      "needs": [],
+      "purpose": "Reproduce numeric-schema mismatch, execute exact selected official exporter, bounded problem writer and strict parser, generate actual TypeScript, and block unsupported nullable numeric promises without changing baselines or approval.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_composition_activation",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_composition_activation.py"
+      ],
+      "needs": [],
+      "purpose": "Build and execute consumer-owned activation tests against generated feature contracts; reject missing direct CShells references using existing central pins.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_story_delivery",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_story_delivery.py"
+      ],
+      "needs": [],
+      "purpose": "Bounded story/early review progression, scoped deferrals, roles and authenticated reference shapes, freshness, no-hook closure/handoff and deterministic active clocks; simulated humans only.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "qualify_reusable_foundations_contracts",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/qualify_reusable_foundations.py",
+        "--contract-tests"
+      ],
+      "needs": [],
+      "purpose": "Bounded setup failure-contract checks; no container, package restore or runtime acceptance claim.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_foundation_composition",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_foundation_composition.py"
+      ],
+      "needs": [],
+      "purpose": "Bounded typed-model managed sync preview/apply, public publisher constraints, source preservation/retirement and managed security conflicts. Actual runtime acceptance is the golden and retained provider/product qualifiers.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_foundation_setup",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_foundation_setup.py"
+      ],
+      "needs": [],
+      "purpose": "Maintained readiness adapter rejection, source/configuration evidence invalidation, redaction and actual bounded child cleanup; no synthetic result establishes Host/provider acceptance.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "qualify_reusable_foundations",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/qualify_reusable_foundations.py",
+        "--shape",
+        "all",
+        "--prepared",
+        "--engines={engines}"
+      ],
+      "needs": [
+        "validate_foundation_composition",
+        "validate_foundation_setup"
+      ],
+      "purpose": "Actual selected public composition activation, maintained authentication/provider checks, disposable product ownership, migration and fresh/prepared acquisition measurements; no coding agent.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_consumer_upgrade",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_consumer_upgrade.py"
+      ],
+      "needs": [],
+      "purpose": "Cumulative consumer semantics, selective phase repair, local migration recovery, sanitized export and owned ignored installation reproduction; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_effective_dependency_context",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_effective_dependency_context.py"
+      ],
+      "needs": [],
+      "purpose": "Selected dependency authority, scaffold continuity, both ownership audits and both actual consumer recipe preparation paths.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_consumer_provider_runtime",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_consumer_provider_runtime.py"
+      ],
+      "needs": [
+        "validate_effective_dependency_context"
+      ],
+      "purpose": "Separately execute activation and BFF/Keycloak using the consumer recipe generator and exact verified profile; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_lifecycle_design",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_lifecycle_design.py"
+      ],
+      "needs": [],
+      "purpose": "Exact selected lifecycle knowledge and concrete composition ownership review findings.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_application_lifecycle",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_application_lifecycle.py"
+      ],
+      "needs": [],
+      "purpose": "Real selected CShells and Foundation startup admission, scopes and cancellation/drain without a composition project.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_knowledge_application",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_knowledge_application.py"
+      ],
+      "needs": [],
+      "purpose": "Scoped adopted knowledge before design, canonical constraints in installed briefs, responsibility contradictions and semantic scope; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_standalone_engineering",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_standalone_engineering.py"
+      ],
+      "needs": [],
+      "purpose": "Ordinary flow and engineering independence with real negative controls; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_normal_development",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_normal_development.py"
+      ],
+      "needs": [],
+      "purpose": "Ordinary flow and engineering independence with real negative controls; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_scoped_verification",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_scoped_verification.py"
+      ],
+      "needs": [],
+      "purpose": "Focused/affected test selection, shared dependencies, complete worktree delta, zero-test and scope guards; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_task_generation",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_task_generation.py"
+      ],
+      "needs": [],
+      "purpose": "Bounded phase guidance, active reference consistency and interrupted task drafting; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_maintenance_flow",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_maintenance_flow.py"
+      ],
+      "needs": [],
+      "purpose": "Ordinary flow and engineering independence with real negative controls; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_test_suites",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_test_suites.py"
+      ],
+      "needs": [],
+      "purpose": "Test suites contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dependency_profiles",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dependency_profiles.py"
+      ],
+      "needs": [],
+      "purpose": "Exact independent profiles, review authority, preservation and interrupted transition recovery.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_validation_runner",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_validation_runner.py"
+      ],
+      "needs": [],
+      "purpose": "Receipt coverage and dependency-selection regressions; no external execution.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_release_guidance",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_release_guidance.py"
+      ],
+      "needs": [],
+      "purpose": "validate release guidance",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_repository_toolchain",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_repository_toolchain.py"
+      ],
+      "needs": [],
+      "purpose": "validate repository toolchain",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_components",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_components.py"
+      ],
+      "needs": [],
+      "purpose": "Components contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_json_schema",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_json_schema.py"
+      ],
+      "needs": [],
+      "purpose": "Offline behavior tests for shipped JSON Schema tools and independent installations.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_exporter_upgrade",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_exporter_upgrade.py"
+      ],
+      "needs": [],
+      "purpose": "Exporter-only catalog transition, immutable accepted history, exact tool/runtime pins and rejection boundaries; no coding workers.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "test_workflow_shell_preflight",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/test_workflow_shell_preflight.py"
+      ],
+      "needs": [],
+      "purpose": "Automatic Windows PATH preparation, native shell/npm launcher lookup, recorded interpreter, scoped restoration and pre-dispatch immutable history; no coding workers.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_upgrade_boundaries",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_upgrade_boundaries.py"
+      ],
+      "needs": [],
+      "purpose": "Offline persistence admission, original retry provenance, CLI runtime discovery and safe staging; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_python_consistency",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_public_core_compatibility.py"
+      ],
+      "needs": [],
+      "purpose": "Public Spec Kit compatibility, Program Kit native interpreter and resolver probes; no modified core or coding agent.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_codex_worker_policy",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_codex_worker_policy.py"
+      ],
+      "needs": [],
+      "purpose": "Explicit scoped Codex workspace writes and early diagnostics; fixture subprocesses only, no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_proxy_intake",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_proxy_intake.py"
+      ],
+      "needs": [],
+      "purpose": "Proxy provenance and authority boundary regressions; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_handoffs",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_handoffs.py"
+      ],
+      "needs": [],
+      "purpose": "Deterministic default/decision/maintained-recipe integration; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_provider_context",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_provider_context.py"
+      ],
+      "needs": [],
+      "purpose": "Provider handoff and source visibility regressions; no network or coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_profiles",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_profiles.py"
+      ],
+      "needs": [],
+      "purpose": "Regression coverage for managed sign-in adopted after technology-neutral intake.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dependency_audit",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dependency_audit.py"
+      ],
+      "needs": [],
+      "purpose": "Dependency evidence stays immutable and cannot become a hidden application target.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_phase_obligations",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_phase_obligations.py"
+      ],
+      "needs": [],
+      "purpose": "Offline negative controls for missing, stale and incomplete knowledge evidence.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_api_proof",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_api_proof.py"
+      ],
+      "needs": [],
+      "purpose": "API ownership gates reject missing, stale and mismatched contract evidence.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_persistence_selection",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_persistence_selection.py"
+      ],
+      "needs": [],
+      "purpose": "Exercise consumer persistence intent, multiple owners and non-destructive shared sync.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_postgresql_service",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_postgresql_service.py"
+      ],
+      "needs": [],
+      "purpose": "Bounded lifecycle, secret isolation and failure cleanup for the trial database supervisor.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_knowledge_inventory",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_knowledge_inventory.py"
+      ],
+      "needs": [],
+      "purpose": "Knowledge inventory coverage; this is bookkeeping, not semantic correctness proof.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_feature_knowledge",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_feature_knowledge.py"
+      ],
+      "needs": [],
+      "purpose": "Scoped canonical knowledge, ownership inheritance and lifecycle-view freshness.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_architecture_recipe",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_architecture_recipe.py"
+      ],
+      "needs": [],
+      "purpose": "Architecture recipe regression inputs, including evaluated/imported and compiled-only edges.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_capability_proof",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_capability_proof.py"
+      ],
+      "needs": [],
+      "purpose": "Missing runtime/adoption proof must fail even with a plausible architecture plan.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_learning_metrics",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_learning_metrics.py"
+      ],
+      "needs": [],
+      "purpose": "No model calls: usage completeness, cache semantics and avoidability accounting.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_learning_report",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_learning_report.py"
+      ],
+      "needs": [],
+      "purpose": "Whole-exercise report rejects missing/tampered usage and retains failed attempts.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_lending_oracle",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_lending_oracle.py"
+      ],
+      "needs": [],
+      "purpose": "Real loopback/process-restart calibration; never a coding agent or reference admission.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_reference_baseline",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_reference_baseline.py"
+      ],
+      "needs": [],
+      "purpose": "Reference provenance, human admission and parent-type guards; no agents or real approvals.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_specification_intake",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_specification_intake.py"
+      ],
+      "needs": [],
+      "purpose": "Bounded offline feature-grilling gate regressions; no coding agent is started.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_sync_live_fixtures",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_sync_live_fixtures.py"
+      ],
+      "needs": [],
+      "purpose": "Sync live fixtures contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_package_execution",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_package_execution.py"
+      ],
+      "needs": [],
+      "purpose": "Package execution contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_repository_sync",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_repository_sync.py"
+      ],
+      "needs": [],
+      "purpose": "Repository sync contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_sync_readiness",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_sync_readiness.py"
+      ],
+      "needs": [],
+      "purpose": "Sync readiness contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_sync_stages",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_sync_stages.py"
+      ],
+      "needs": [],
+      "purpose": "Deterministic stage authorization and checkpoint contracts; no paid processes.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_live_trial_candidate",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_live_trial_candidate.py"
+      ],
+      "needs": [],
+      "purpose": "Development trial receipts never imply Release validation or authorize a paid worker.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_retired_sync",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_retired_sync.py"
+      ],
+      "needs": [],
+      "purpose": "Exercise actual Spec Kit registration/removal with consumer-edit protection.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_scoped_materialization",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_scoped_materialization.py"
+      ],
+      "needs": [],
+      "purpose": "Scoped materialization contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_intake_session",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_intake_session.py"
+      ],
+      "needs": [],
+      "purpose": "Bounded offline launcher tests. No installation or coding agent is started.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_discovery_fixture",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_discovery_fixture.py"
+      ],
+      "needs": [],
+      "purpose": "Protect discovery-input isolation; optionally inspect real PrepareOnly evidence.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_intake_handoff",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_intake_handoff.py"
+      ],
+      "needs": [],
+      "purpose": "Synthetic handoff contract tests; no human session or paid acceptance is claimed.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_intake_authoring",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_intake_authoring.py"
+      ],
+      "needs": [],
+      "purpose": "Offline authoring regression tests; optional replay of a preserved human intake.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_orbyss_building_blocks",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_orbyss_building_blocks.py"
+      ],
+      "needs": [],
+      "purpose": "Orbyss building blocks contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_building_blocks",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_building_blocks.py"
+      ],
+      "needs": [],
+      "purpose": "Building blocks contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_architecture_placement",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_architecture_placement.py"
+      ],
+      "needs": [],
+      "purpose": "Offline greenfield placement and recovery regressions; starts no agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_placement_contract",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_placement_contract.py"
+      ],
+      "needs": [],
+      "purpose": "Producer-visible placement contracts reject the real bootstrap's failed path forms.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_lifecycle",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_lifecycle.py"
+      ],
+      "needs": [],
+      "purpose": "Deterministic fresh approval and accepted/aborted recovery regression tests (no agents).",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_readiness_scope",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_readiness_scope.py"
+      ],
+      "needs": [],
+      "purpose": "Enforce accepted slice scope without treating proposal prose as lifecycle state.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_readiness_projection",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_readiness_projection.py"
+      ],
+      "needs": [],
+      "purpose": "Native terminal readiness is a state projection, without an agent verdict.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_phase_readiness",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_phase_readiness.py"
+      ],
+      "needs": [],
+      "purpose": "Phase-local eligibility with incomplete knowledge; real validators, no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_handoff_quality",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_handoff_quality.py"
+      ],
+      "needs": [],
+      "purpose": "Consumer quality authority and batched authoring diagnostics; no agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_proof_plan",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_proof_plan.py"
+      ],
+      "needs": [],
+      "purpose": "Native shell proof-stage regressions; real Python probes, no coding agent.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_post_bootstrap_continuation",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_post_bootstrap_continuation.py"
+      ],
+      "needs": [],
+      "purpose": "Completed-bootstrap review, evidence preservation and Active lifecycle regressions; mocked dispatch, no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_workflow_resumption",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_workflow_resumption.py"
+      ],
+      "needs": [],
+      "purpose": "Native engine regression: stage retry, NOT READY, preserved history and completion.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_workflow_runtimes",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_workflow_runtimes.py"
+      ],
+      "needs": [],
+      "purpose": "Workflow entry runtime preflight; no coding-agent sessions.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_live_fixture_catalog",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_live_fixture_catalog.py"
+      ],
+      "needs": [],
+      "purpose": "Verify selectable committed live inputs, approval binding and tamper rejection.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_live_workflow_acceptance",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_live_workflow_acceptance.py"
+      ],
+      "needs": [],
+      "purpose": "Deterministic paid-workflow guards; never starts a coding agent.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_building_block_availability",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_building_block_availability.py"
+      ],
+      "needs": [],
+      "purpose": "Building block availability contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_legacy_programkit_nuget",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_legacy_programkit_nuget.py"
+      ],
+      "needs": [],
+      "purpose": "Legacy programkit nuget contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_generated_contract_schemas",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_generated_contract_schemas.py"
+      ],
+      "needs": [],
+      "purpose": "Generated contract schemas contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_governance_config",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_governance_config.py"
+      ],
+      "needs": [],
+      "purpose": "Shipped governance configuration and malformed input without PyYAML.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_governance_state",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_governance_state.py"
+      ],
+      "needs": [],
+      "purpose": "Governance state contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_runnable_host_pins",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_runnable_host_pins.py"
+      ],
+      "needs": [],
+      "purpose": "Offline central-package resolution and fail-closed runnable-host staging regressions.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_release_bundle",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_release_bundle.py"
+      ],
+      "needs": [],
+      "purpose": "Offline bundle production/admission and published-runtime boundary checks; no agent.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "bundle-validate",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "specify",
+        "bundle",
+        "validate",
+        "--path",
+        ".",
+        "--offline"
+      ],
+      "needs": [],
+      "purpose": "Validate Spec Kit bundle metadata.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_codex_bootstrap",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_codex_bootstrap.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Codex bootstrap contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "source-install",
+      "group": "release",
+      "platforms": [
+        "Windows"
+      ],
+      "command": [
+        "{powershell}",
+        "-NoProfile",
+        "-File",
+        "scripts/Test-LocalInstall.ps1"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Install source components and verify registered skills, hooks and view-only behavior on Windows.",
+      "windowsRelease": true,
+      "linuxRelease": false,
+      "ciRoute": "CI windows-bootstrap job: explicit --check source-install",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "public-availability",
+      "group": "registry",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "extensions/program-kit-building-blocks/scripts/public_availability.py",
+        "--target",
+        ".",
+        "--catalog",
+        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        "--all",
+        "--evidence",
+        "artifacts/building-block-public-availability.json",
+        "--profile",
+        "default"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Public-availability contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "legacy-public",
+      "group": "maintenance",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "scripts/verify_legacy_programkit_nuget.py",
+        "--verify-public"
+      ],
+      "needs": [],
+      "purpose": "Legacy-public contract validation.",
+      "windowsRelease": false,
+      "linuxRelease": false,
+      "ciRoute": "legacy-maintenance workflow, separate from Release",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_public_component_use",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_public_component_use.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Actual released .NET component integration through the shared restore executor; no agent.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dotnet_engineering",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_engineering.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Compile with the published analyzer and selected SDK; execute runtime counterexamples.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_persistence_runtime",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_persistence_runtime.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Execute pinned EF/Npgsql against a real disposable PostgreSQL, including database restart.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_ui_experience",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_ui_experience.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Ui experience contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_local_upgrade",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_local_upgrade.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Local upgrade contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_context",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_context.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Bootstrap context contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_intake",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_intake.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Bootstrap intake contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_semantics",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_semantics.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Bootstrap semantics contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_c4_view",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_c4_view.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "C4 view contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_live_bootstrap_acceptance",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_live_bootstrap_acceptance.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Live bootstrap acceptance contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_lifecycle_profiles",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_lifecycle_profiles.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Lifecycle profiles contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_js_toolchain",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_js_toolchain.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Js toolchain contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dotnet_scaffold",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_scaffold.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Dotnet scaffold contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_consumer_descriptor_builder",
+      "group": "integration",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_consumer_descriptor_builder.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Pack consumer features against the public canonical descriptor builder; verify private tooling and negative packing contracts.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_default_dependency_profile",
+      "group": "integration",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_default_dependency_profile.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Qualify canonical publisher metadata, 47 activation closures and public exporter admission for the exact new-project profile.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dotnet_build_contract",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_build_contract.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Dotnet build contract contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dotnet_test_discovery",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dotnet_test_discovery.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Dotnet test discovery contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_repository_verification_hook",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_repository_verification_hook.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Repository verification hook contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "build-release",
+      "group": "package",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "scripts/build_release.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Build-release contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_consumer_upgrade_install",
+      "group": "package",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_consumer_upgrade_install.py"
+      ],
+      "needs": [
+        "build-release"
+      ],
+      "purpose": "Real packaged primitive installation, isolated updater/destination recovery, resolved commands and one deterministic fresh-story reset with normal ratification; simulated humans and no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_installed_bootstrap_flow",
+      "group": "package",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_installed_bootstrap_flow.py"
+      ],
+      "needs": [
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "All shipped bootstrap steps, real shell validators, fictional authoring/reviews.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_consistency_e2e",
+      "group": "package",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_consistency_e2e.py"
+      ],
+      "needs": [
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Bootstrap consistency e2e contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_packaged_ui",
+      "group": "package",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_packaged_ui.py"
+      ],
+      "needs": [
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Packaged ui contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_release_install",
+      "group": "package",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_release_install.py"
+      ],
+      "needs": [
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Release install contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "candidate-upgrade",
+      "group": "package",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_public_upgrade.py",
+        "--candidate-dir",
+        "artifacts"
+      ],
+      "needs": [
+        "build-release",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Candidate-upgrade contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_runtime",
+      "group": "integration",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_runtime.py"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Real published host compatibility. No coding agent or consumer mutation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "ui-browser",
+      "group": "integration",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_ui_browser.py",
+        "--install",
+        "--install-browser",
+        "--engines={engines}"
+      ],
+      "needs": [
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Ui-browser contract validation.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_authentication_presentation_native",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_authentication_presentation.py",
+        "--execute",
+        "--engines={engines}"
+      ],
+      "needs": [
+        "validate_authentication_presentation",
+        "ui-browser"
+      ],
+      "purpose": "Compile the owner error/landing example against current qualified exact Foundation pins, verify machine problem compatibility, and exercise branded/focused keyboard recovery in actual browsers.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_label_validation_native",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_label_validation.py",
+        "--execute",
+        "--engines={engines}"
+      ],
+      "needs": [
+        "validate_label_validation",
+        "ui-browser"
+      ],
+      "purpose": "Actual Core/exported-descriptor/generated-JS parity, native API rejection and real clipboard input preservation, error and zero-request regression under selected engines.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_compatibility",
+      "group": "integration",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_compatibility.py"
+      ],
+      "needs": [
+        "ui-browser",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Deterministic scratch provisioning protocol; Python stand-in, never a coding agent.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_published_forms_browser",
+      "group": "integration",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_published_forms_browser.py",
+        "--engines={engines}"
+      ],
+      "needs": [
+        "ui-browser",
+        "validate_components",
+        "validate_test_suites",
+        "validate_json_schema",
+        "validate_validation_runner"
+      ],
+      "purpose": "Published Forms package/renderer integration. Never invokes a coding agent.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_foundation_contracts_development_profile",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_foundation_contracts_development_profile.py"
+      ],
+      "needs": [],
+      "purpose": "Explicit private candidate overlays reject stale F6 artifacts and public-default promotion claims; no coding agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_foundation_notes",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_foundation_notes.py",
+        "--self-test"
+      ],
+      "needs": [],
+      "purpose": "Versioned Notes source/negative preparation and scenario oracle routing; no database or coding-agent execution.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dependency_profile_catalogs",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dependency_profile_catalogs.py"
+      ],
+      "needs": [],
+      "purpose": "Immutable additive profile catalogs and exact named qualification inputs preserve historical public qualification guards.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_foundation_published_tools",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_foundation_published_tools.py",
+        "--self-test"
+      ],
+      "needs": [],
+      "purpose": "Independent public Build/exporter compatibility fixture rejects source authority and boundary violations before actual packaged qualification.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_bootstrap_runtime_bindings",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_bootstrap_runtime_bindings.py"
+      ],
+      "needs": [],
+      "purpose": "Neutral public Host capture, exact shared archive bindings, native provenance, retained inputs and owned timeout cleanup guards; no public image or container execution.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_settings_authorities",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_settings_authorities.py"
+      ],
+      "needs": [],
+      "purpose": "Independent package and OCI Host settings authority, applicable scope/import completeness, bounded source provenance and receiver-ready rejection guards; no registry or runtime qualification claim.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_application_handoff",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_application_handoff.py"
+      ],
+      "needs": [],
+      "purpose": "Stable/historical identity, multi-API offline receiver assembly, real HTTP/settings behavior, exact publisher package/assembly settings bindings, rejection checks and independent consumption; no agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dependency_updates",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dependency_updates.py"
+      ],
+      "needs": [],
+      "purpose": "Automatic upgrade rollback, exact knowledge and promotion guards; no network or agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_dependency_workflows",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_dependency_workflows.py"
+      ],
+      "needs": [],
+      "purpose": "Automatic upgrade rollback, exact knowledge and promotion guards; no network or agents.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_composition_model",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_composition_model.py"
+      ],
+      "needs": [],
+      "purpose": "Typed resource cardinality, provider-neutral authority placement, named databases, exact renderer and native source dependency scopes.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_native_start_repairs",
+      "group": "development",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_native_start_repairs.py"
+      ],
+      "needs": [],
+      "purpose": "Preserved selected-shell, exact singleton version and public-content regressions with real archive inventory, freshness guards and generated Vite incremental builds retaining prior assets.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "qualify_composition_start",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_composition_start.py",
+        "--execute",
+        "--engines={engines}"
+      ],
+      "needs": [
+        "validate_composition_model",
+        "validate_native_start_repairs",
+        "validate_foundation_composition"
+      ],
+      "purpose": "Golden native consumer: two apps, three databases, one authority, real frontend/authentication; first consumer code after readiness and incremental update preserving other services, with separated timings.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_browser_launch",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_browser_launch.py",
+        "--engines={engines}"
+      ],
+      "needs": [
+        "ui-browser"
+      ],
+      "purpose": "Actual selected engine launch/close evidence, exact plan/cache binding, failure before readiness and bounded redacted diagnostics.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_hosted_palette",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_hosted_palette.py",
+        "--engines={engines}"
+      ],
+      "needs": [
+        "ui-browser"
+      ],
+      "purpose": "Hash-verified selected Foundation renderer and native Vite CSS contrast/focus in all themes/modes/states; axe in enabled-script states, actual no-script semantics and scoped before/after timings.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    },
+    {
+      "id": "validate_schema_role_grants",
+      "group": "release",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_schema_role_grants.py"
+      ],
+      "needs": [
+        "validate_postgresql_service"
+      ],
+      "purpose": "Reproduce application-role schema/journal denial and exact scoped administrator grants; unrelated tables stay denied and owned cleanup must complete.",
+      "windowsRelease": true,
+      "linuxRelease": true,
+      "ciRoute": "Tagged Ubuntu Release; manual full CI; PR selection when affected",
+      "mandatoryLocalOnly": false,
+      "coverageCaveat": "CI route declares scheduling capability, not a successful exact-candidate run or equivalent Windows/Linux behavior"
+    }
+  ]
+}

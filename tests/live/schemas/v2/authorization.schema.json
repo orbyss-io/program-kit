@@ -97,7 +97,8 @@
         "receiptKind": {
           "enum": [
             "release",
-            "development-trial"
+            "development-trial",
+            "ci-prepared"
           ]
         },
         "baselineReport": {

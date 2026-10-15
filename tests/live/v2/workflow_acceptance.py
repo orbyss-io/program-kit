@@ -372,7 +372,7 @@ def main() -> int:
         auth.add_argument('--' + name, required=True)
     auth.add_argument('--fixture', default='price-calculator-approved-intake')
     auth.add_argument('--fixture-version', default='1')
-    auth.add_argument('--receipt-kind', choices=('release', 'development-trial'), default='release')
+    auth.add_argument('--receipt-kind', choices=('release', 'development-trial', 'ci-prepared'), default='release')
     auth.add_argument('--release-root')
     auth.add_argument('--displayed-session-limit', type=int, required=True)
     auth.add_argument('--checkpoint')

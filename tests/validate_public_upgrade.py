@@ -21,7 +21,7 @@ import yaml
 
 
 REPOSITORY = "https://raw.githubusercontent.com/orbyss-io/program-kit"
-CURRENT = f"{REPOSITORY}/main/catalogs"
+CURRENT = f"{REPOSITORY}/{os.environ.get('PROGRAM_KIT_PUBLIC_REF', 'main')}/catalogs"
 EXPECTED_HOOKS = {
     "before_constitution",
     "after_constitution",

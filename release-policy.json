@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "repository": "orbyss-io/program-kit",
+  "workflows": {
+    "qualification": ".github/workflows/qualify-candidate.yml",
+    "security": ".github/workflows/refresh-candidate-security.yml",
+    "assessment": ".github/workflows/record-release-assessment.yml"
+  },
+  "requiredJobs": [
+    "build",
+    "linux",
+    "windows",
+    "security",
+    "finalize"
+  ],
+  "browsers": [
+    "chromium",
+    "firefox",
+    "webkit"
+  ],
+  "securityMaxAgeHours": 24,
+  "artifactRetentionDays": 14,
+  "windowsRoots": [
+    "source-install",
+    "validate_codex_bootstrap",
+    "test_workflow_shell_preflight",
+    "validate_js_toolchain",
+    "validate_local_upgrade",
+    "validate_release_install",
+    "validate_consumer_upgrade_install",
+    "candidate-upgrade",
+    "validate_workflow_resumption",
+    "validate_workflow_runtimes",
+    "validate_codex_worker_policy",
+    "validate_live_bootstrap_acceptance"
+  ],
+  "recommendations": [
+    {
+      "family": "bootstrap",
+      "inputs": [
+        "workflows/**",
+        "extensions/program-kit-governance/commands/*intake*",
+        "extensions/program-kit-governance/commands/*bootstrap*"
+      ],
+      "trials": [
+        "bootstrap-checkpoint"
+      ],
+      "reason": "Intake/bootstrap instructions or native handoffs changed. Preserve individually authorized command sessions.",
+      "gaps": [
+        "Fresh/failure/resume journey must match an existing scenario and oracle."
+      ]
+    },
+    {
+      "family": "building-blocks",
+      "inputs": [
+        "extensions/program-kit-building-blocks/**"
+      ],
+      "trials": [
+        "building-block-consumer"
+      ],
+      "reason": "Building-block selection or application changed; requires an exact parent bootstrap checkpoint.",
+      "gaps": []
+    },
+    {
+      "family": "lifecycle",
+      "inputs": [
+        "presets/**",
+        "extensions/program-kit-governance/commands/**"
+      ],
+      "trials": [
+        "feature-intake",
+        "feature-planning",
+        "feature-plan-tasks",
+        "feature-setup",
+        "feature-delivery"
+      ],
+      "reason": "Recommend only applicable implemented phase/scenario combinations.",
+      "gaps": [
+        "An absent phase/scenario is a coverage gap, never passing evidence."
+      ]
+    },
+    {
+      "family": "migration",
+      "inputs": [
+        "scripts/upgrade*",
+        "releases/**",
+        "extensions/program-kit-governance/references/*upgrade*",
+        "extensions/program-kit-governance/scripts/consumer_upgrade.py"
+      ],
+      "trials": [
+        "upgrade-consumer",
+        "upgrade-continuation"
+      ],
+      "reason": "Use knowledge-application/v3, actual human governance handoff and separately authorized continuation.",
+      "gaps": []
+    },
+    {
+      "family": "ci",
+      "inputs": [
+        ".github/**",
+        "scripts/release_candidate.py",
+        "release-policy.json"
+      ],
+      "trials": [],
+      "reason": "Deterministic CI and promotion verification apply; no unrelated paid trial is recommended.",
+      "gaps": []
+    }
+  ]
+}

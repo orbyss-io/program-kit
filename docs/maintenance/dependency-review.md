@@ -33,9 +33,10 @@ The unattended CI workflow continues provisioning its own toolchains. Metadata c
 pin editing in `dependency_maintenance.py` do not install software; `update_dependencies.py`
 owns the qualification gate. Preserve failed update observations and resume only after actual
 device versions and persistent executable selection pass verification.
-Complete update validation runs in Linux CI, including Firefox. Local Windows
-Release validation retains the contributor instructions in AGENTS.md. Publication
-still uses the tagged Release workflow.
+Complete update validation runs in Linux CI, including Firefox. Candidate qualification runs in the separate untagged CI workflow; no mandatory local
+Release repeats CI. Tagged Release promotes those exact qualified bytes and requires
+fresh security evidence. A scan-only refresh does not rerun dependency updates or product
+acceptance. See [releasing](../releasing.md).
 
 Sources: [.NET image maintenance](https://github.com/dotnet/dotnet-docker/blob/main/documentation/vulnerability-reporting.md),
 [Dependabot configuration](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference),

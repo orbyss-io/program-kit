@@ -20,60 +20,46 @@ Keep update work out of ordinary Spec Kit hooks and implementation loops. Test, 
 security failures block the update and identify the repair; they are never treated as success.
 
 Ordinary development uses targeted validators plus the bounded default
-`./scripts/Test-ProgramKit.ps1` Development suite. Do not run the complete deterministic suite after
-each change and do not imply that it was skipped; it is a publication gate, not an edit-loop gate.
+`./scripts/Test-ProgramKit.ps1` Development suite. Main pushes run Development plus
+checks affected by the whole push range and prerequisite closure. Unknown selection
+inputs select the full deterministic inventory. PR coverage remains enabled.
 
-Run `./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines
-'chromium,webkit'` only after the user explicitly decides the candidate should proceed toward
-publication. On this Windows host, do not start the complete Release suite from a Codex Desktop task;
-give the command to the user, let it finish in their user-owned terminal, then inspect the preserved
-`artifacts/release-validation-<version>.log` and generated artifacts. CI remains authoritative for
-the Firefox leg. If the user explicitly overrides this terminal restriction and
-authorizes the current task to run local Release, use
-`Invoke-LocalRelease.ps1 -AuthorizedCodexTask`. The opt-in retains `-Approved`,
-records the authorization in the journal, and does not remove Codex environment
-metadata or change any deterministic, publication or live-worker gate.
+CI owns complete deterministic release qualification. Use the untagged
+`qualify-candidate.yml` workflow with the exact expected main commit. It builds one
+publication payload, runs complete Linux acceptance with Chromium/Firefox/WebKit,
+focused Windows compatibility and security checks. Reuse a complete matching
+successful qualification; partial CI runs cannot be merged into qualification.
+No mandatory local Release suite repeats CI-capable checks. A candidate may need no
+local acceptance execution. Retired local Release entry points provide migration
+guidance and cannot mint new legacy receipts. Historical receipts remain read-only.
 
-The deterministic Development and Release suites do not invoke a coding agent. Tests whose names
-contain `codex` validate integration files, preflight behavior, and guarded harness contracts. Only
-an explicitly authorized live-acceptance v2 phase starts automated coding-agent sessions, and it remains
-governed by the separate optional-live-acceptance rules below.
+Tagged Release verifies exact source, trusted producer/job/coverage provenance and
+all payload hashes, a reviewed readiness disposition and fresh security evidence.
+It promotes the qualified CI artifacts without rebuilding or rerunning deterministic
+acceptance. Missing/expired/incomplete/untrusted evidence blocks publication and
+identifies the pre-tag CI recovery command. Security defaults to 24 hours; refresh
+only the scan against the unchanged candidate with `refresh-candidate-security.yml`.
+Artifact retention defaults to 14 days and is independent of scan freshness.
+Policy and required variants are enforced in `release-policy.json` and
+`scripts/release_candidate.py`; see [releasing](docs/releasing.md).
 
-`Start-IntakeSession.ps1` is a separate human-owned interactive intake exercise, not an automated
-acceptance phase. The user runs it in a normal foreground terminal and answers the installed skill.
+Deterministic validation never invokes a coding agent. Only an explicitly authorized
+live-acceptance v2 phase starts automated coding-agent sessions. The repository-only
+`.agents/skills/program-kit-release-readiness/SKILL.md` recommends optional trials
+from actual changes; it grants no paid-worker or publication authority. Confirmed
+product defects block readiness until repaired; harness failures/inconclusive trials
+need explicit disposition. No trial run means no AI acceptance claim.
+
+`Start-IntakeSession.ps1` is a separate human-owned interactive intake exercise.
 Never launch its interactive mode from an agent, CI, a deterministic suite, or an unattended hook.
-Its `-PrepareOnly` setup/evidence smoke test starts no coding agent. It never launches bootstrap.
+Its `-PrepareOnly` setup/evidence smoke test starts no coding agent and never launches bootstrap.
 
-### Reusing local Release evidence after non-shipping changes
-
-During release preparation or eligible failed-tag recovery, a different commit SHA alone does not require another local
-Release run or a new local receipt. Reuse the existing successful local Release evidence when all
-of the following are verified and recorded in the PR or release review:
-
-- The original receipt and log are valid, and the recorded artifact hashes still match.
-- The complete diff from the receipt commit to the candidate contains only test-only corrections,
-  non-shipped contributor/release documentation, or CI-only validation changes. CI-only changes must
-  preserve or add coverage and must not alter release build, packaging or publication behavior.
-  Check actual packaging inputs, not filename
-  conventions: shipped skills, references and README content are product changes even if Markdown.
-- Shipped content and its build inputs are unchanged, including generators, installers, schemas,
-  package/catalog/version pins and release packaging. The correction does not mask a product
-  failure, remove coverage, or weaken a validation gate.
-- Relevant targeted checks pass, and CI is green for the latest candidate commit.
-
-Record both commit IDs, changed files, the non-shipping assessment and supplementary check results.
-Do not ask the user to repeat the complete local Release suite merely to refresh the commit SHA.
-If shipped content/build inputs changed, a relevant product failure was uncovered, or unchanged
-payloads cannot be established, this exception does not apply: obtain fresh local Release evidence.
-
-Preserve the original receipt unchanged. Never rewrite its commit, tree, timestamps or hashes, or
-invoke the receipt writer alone to imply the complete suite ran on a newer commit. This is reuse
-of documented evidence, not a claim that the old receipt validates all later source changes.
-The tagged Release workflow still runs in full and creates its own exact-commit receipt before
-publication is considered successful. Live-acceptance receipt consumption retains its exact source,
-toolchain, platform and artifact checks; this exception cannot authorize a stale receipt for a paid
-run. For failed-tag recovery, also satisfy the additional safeguards below; evidence reuse never
-authorizes moving a tag by itself.
+Release-oriented optional trials use `release_candidate.py prepare-trial` to verify
+CI packages, check actual local prerequisites and install a disposable consumer.
+The separate local preparation record binds the actual host/toolchains, original
+CI qualification digest and exact packages. It is preparation, not local execution
+of Linux qualification. Historical local-evidence reuse cannot authorize borrowing
+qualification from another commit or rewriting a receipt.
 
 ## Optional live acceptance
 
@@ -96,8 +82,7 @@ use ordinary outer Codex bootstrap for a proxy or promote its results to consume
 Stop before feature implementation. The paid-worker manifest rules still apply to actual workers.
 
 Paid live acceptance is entirely user-invoked. Do not ask whether to run it during publication, and
-do not report it as skipped when it was not requested. Deterministic local and CI-compatible Release
-tests remain mandatory.
+do not report it as skipped when it was not requested. Complete deterministic CI qualification remains mandatory before publication.
 
 When the user requests paid learning trials before release preparation, use an explicitly selected
 development-trial receipt from `tests/live/v2/trial_candidate.py`. It binds clean source, platform,
@@ -133,21 +118,17 @@ those irreversible publication workflows.
 If the Release workflow fails for a stable tag:
 
 1. Preserve and inspect the failed run evidence.
-2. Repair the failure and complete the deterministic local release validation, or reuse existing
-   successful local Release evidence under the non-shipping policy above. Failed-tag reuse is allowed
-   only when the failure is demonstrated to be a test/assertion or CI-only validation defect, not a
-   product failure, and nothing was published from the failed candidate. Preserve the failed run
-   evidence, verify publication steps did not run and no release assets or immutable registry artifacts
-   escaped, and record the diagnosis, original receipt commit, corrected commit, complete diff,
-   artifact hash verification, targeted checks and green CI for the latest candidate. If any condition
-   cannot be established, obtain fresh local Release evidence. Do not require another local receipt
-   merely because a non-shipping correction follows a failed stable tag.
+2. Repair the failure and obtain valid complete CI qualification for the exact corrected
+   commit, then verify promotion without publication. Preserve failed-run evidence,
+   confirm whether publication steps ran and inspect public assets/immutable registries.
+   Never conceal partial publication, rewrite old evidence or reuse another source's
+   qualification. A different candidate requires its own complete qualification.
 3. Obtain or confirm the user's approval for the exact corrected commit and same stable tag.
 4. Delete the failed tag locally and remotely, recreate it at the approved corrected commit, and push
    the corrected commit and recreated tag. Do not increment the stable version merely because the
    failed candidate tag existed.
 5. Do not tell consumers that the version is available, or unblock dependent work, until the recreated
-   tag's complete Release workflow succeeds.
+   tag's promotion and public installation/upgrade workflow succeeds.
 
 Before repointing, verify whether any immutable registry artifact escaped the gate. Disclose any
 partial publication explicitly; a tag correction must never conceal that an artifact was produced

@@ -366,6 +366,8 @@ def validate_metadata(root: Path, version: str) -> None:
 
 
 def main() -> int:
+    if os.environ.get('PROGRAM_KIT_IMPORTED_PACKAGES'):
+        raise ValueError('Imported candidate packages are immutable; builder dispatch is forbidden')
     parser = argparse.ArgumentParser(description="Build deterministic Program Kit release assets.")
     parser.add_argument("--output", default="artifacts", help="Output directory inside the repository")
     args = parser.parse_args()

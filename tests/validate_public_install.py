@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -10,19 +11,19 @@ import yaml
 
 EXTENSION_CATALOG = (
     "https://raw.githubusercontent.com/orbyss-io/program-kit/"
-    "main/catalogs/extensions.json"
+    f"{os.environ.get('PROGRAM_KIT_PUBLIC_REF', 'main')}/catalogs/extensions.json"
 )
 WORKFLOW_CATALOG = (
     "https://raw.githubusercontent.com/orbyss-io/program-kit/"
-    "main/catalogs/workflows.json"
+    f"{os.environ.get('PROGRAM_KIT_PUBLIC_REF', 'main')}/catalogs/workflows.json"
 )
 PRESET_CATALOG = (
     "https://raw.githubusercontent.com/orbyss-io/program-kit/"
-    "main/catalogs/presets.json"
+    f"{os.environ.get('PROGRAM_KIT_PUBLIC_REF', 'main')}/catalogs/presets.json"
 )
 BUNDLE_CATALOG = (
     "https://raw.githubusercontent.com/orbyss-io/program-kit/"
-    "main/catalogs/bundles.json"
+    f"{os.environ.get('PROGRAM_KIT_PUBLIC_REF', 'main')}/catalogs/bundles.json"
 )
 EXPECTED_HOOKS = {
     "before_constitution",

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workflows": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "qualification": {
+          "type": "string",
+          "minLength": 1
+        },
+        "security": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assessment": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "qualification",
+        "security",
+        "assessment"
+      ]
+    },
+    "requiredJobs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "browsers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "securityMaxAgeHours": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "artifactRetentionDays": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 90
+    },
+    "windowsRoots": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "trials": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "gaps": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "family",
+          "inputs",
+          "trials",
+          "reason",
+          "gaps"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "repository",
+    "workflows",
+    "requiredJobs",
+    "browsers",
+    "securityMaxAgeHours",
+    "artifactRetentionDays",
+    "windowsRoots",
+    "recommendations"
+  ]
+}

@@ -13,7 +13,7 @@ Implementation keeps focused test-first feedback: run the operation's tests, exp
 dependencies when shared contracts or inputs change, and reserve complete application acceptance for
 feature/domain closure or formal review handoff. Progress checkpoints do not trigger full acceptance.
 One combined implementation preflight supplies concise applicable guidance; detailed references are
-available on demand. The separate publication Release gate remains unchanged.
+available on demand. Publication promotes a complete CI-qualified candidate; see the release procedure.
 
 Application engineering lives in visible `eng/`, native project configuration and deployment
 inputs. Builds, tests, contract generation and packaging do not need AI, installed extensions or
@@ -547,47 +547,39 @@ packaging, clean-install, upgrade, and public-registry release gates:
 ./scripts/Test-ProgramKit.ps1
 ```
 
-When the candidate is explicitly ready to proceed toward publication, run the complete deterministic
-suite from a normal user-owned terminal. On this Windows host Firefox remains CI-owned:
+CI owns deterministic release qualification. Main pushes run Development plus affected
+expensive checks and prerequisite closure across the whole push. For a candidate,
+run the untagged **Qualify candidate** workflow with its exact expected main commit.
+It builds one immutable payload and qualifies Linux, all three browsers, focused
+Windows compatibility and security in one run. Reuse an existing complete matching
+qualification; affected-only CI cannot claim complete acceptance.
 
-```powershell
-./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
-```
+Tagged Release verifies and publishes those exact CI-built assets. It performs no
+package build or deterministic suite. Security evidence defaults to a maximum age of
+24 hours; a separate scan-only CI refresh handles stale evidence. Missing or expired
+artifacts require a new complete CI qualification. A candidate can need no local
+execution. The old local Release commands now return migration guidance.
 
-The Release suite records its complete transcript under
-`artifacts/release-validation-<version>.log`, so a Codex task can inspect the human-run result without
-owning the long-running process.
+Optional AI trials remain individually authorized local work. Release-oriented trials
+use `python scripts/release_candidate.py prepare-trial --run-id <qualification-run>
+--output artifacts/trial-preparation/<unique-name>` to download verified CI packages,
+check this host and prepare a disposable consumer. Supply the resulting record with
+`New-LiveAcceptanceAuthorization.ps1 -CiPreparation <record>` for the exact selected
+phase. Development-learning trials retain their separately labeled `-TrialReceipt`
+path. Historical `-ReleaseReceipt` evidence is read-only and retains its original
+host/source/toolchain checks. No preparation or readiness command starts paid work.
 
-The deterministic suites do not invoke a coding agent. Tests named for Codex validate integration
-contracts and guarded harness behavior only. Paid live acceptance v2 is a separate, completely
-optional local diagnostic: publishing must not prompt for it or record it as skipped.
+The repository-only `$program-kit-release-readiness` skill recommends relevant trials
+from actual changes. Full trial evidence stays internal; a reviewed concise assessment
+records scope, outcomes, provenance and unresolved findings. Confirmed product defects
+block readiness. No trial run means no AI acceptance claim. Recording a human-attested
+statement does not independently verify a trial ran. The assessment is supplemental
+release information and never changes qualified package bytes.
 
-V2 starts from the machine-bound receipt produced by the complete Release suite. A phase-specific,
-interactive one-use authorization can run the real bootstrap once and seal a content-addressed
-checkpoint. A separately authorized building-block phase copies that checkpoint and uses one Codex
-session to adopt the reviewed Internal Forms Workspace selection; the supervisor owns registry
-availability, restore, build, and deterministic validation. Repeating that diagnostic does not
-repeat bootstrap. The worker never receives registry credentials.
-
-See [`docs/live-bootstrap-acceptance.md`](docs/live-bootstrap-acceptance.md) for the authorization
-and execution commands, evidence model, Windows Job Object isolation, and current scope. The legacy
-combined `Test-LiveBootstrap.ps1 -Approved` entry point is retired.
-
-Build all release artifacts:
-
-```powershell
-uv run --with "specify-cli==1.1.3" python ./scripts/build_release.py
-```
-
-Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-the maintained [release procedure](docs/releasing.md).
-
-```powershell
-git tag v0.12.11
-git push origin v0.12.11
-```
-
-The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
+Follow the maintained [release procedure](docs/releasing.md). Creating tags or
+publishing still requires explicit user authority. Qualification alone creates no
+public release. Deterministic fixtures never start a coding agent; human interactive
+intake remains a foreground user-owned exercise.
 
 ## Release assets
 
@@ -605,9 +597,9 @@ The release workflow validates all manifests and catalog metadata, creates deter
 - `RELEASE-NOTES-<version>.md`, `MIGRATIONS-<version>.md`, and
   `migration-index-<version>.json`: reviewed release guidance and cumulative
   migration applicability. The same guidance is available offline in the governance extension.
-- `release-receipt-<version>.json`: clean source, successful deterministic Release steps,
-  toolchains, browser matrix, public-availability proof, and exact candidate artifact hashes used by
-  optional live acceptance.
+- The separate authenticated CI `qualification.json` binds exact source, successful job/platform/browser
+  coverage, original validation evidence and immutable payload IDs/digests. It remains a CI artifact;
+  historical published `release-receipt-<version>.json` files retain their original claims.
 
 Verify a downloaded artifact:
 

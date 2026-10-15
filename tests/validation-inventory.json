@@ -2,7 +2,40 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_release_candidate",
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_release_candidate.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Adversarial producer, source, payload, coverage, security, readiness, local preparation and promotion contracts; no publication or agents.",
+      "owner": "program-kit",
+      "inputs": [
+        "release-policy.json",
+        "scripts/release_candidate.py",
+        "scripts/release_trial.py",
+        "scripts/publish_candidate.py",
+        "tests/schemas/**",
+        "tests/validate_release_candidate.py",
+        ".github/workflows/**"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Temporary immutable payload fixtures and mocked network authentication boundaries."
+    },
+    {
       "id": "validate_authentication_presentation",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_authentication_presentation.py", "--unit"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Qualified selected-profile resolution and exact archive/version/native-byte admission for the application-owned authentication presentation example.",
@@ -12,6 +45,7 @@
     },
     {
       "id": "validate_label_validation",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_label_validation.py", "--unit"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Closed normalization-aware label descriptor/generator admission and deterministic staleness checks; preserves Core ownership and UTF-16 semantics.",
@@ -21,6 +55,7 @@
     },
     {
       "id": "validate_native_phase_ownership",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_native_phase_ownership.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Exact native extension/preset source and generated output ownership, customization refusal, secondary integrations and immutable archived-source witnesses before upgrade mutation.",
@@ -29,6 +64,7 @@
     },
     {
       "id": "validate_operation_recovery",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_operation_recovery.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Maintained recovery example retains server identity through missing receipts/response loss and admits correction only for owner-defined confirmed no-effect outcomes; validation parity.",
@@ -37,6 +73,7 @@
     },
     {
       "id": "validate_test_dependencies",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_test_dependencies.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Responsibility-derived selected direct test contracts, pure Core exclusions and reviewed new-project scaffolding with selected-pin admission before source creation.",
@@ -45,6 +82,7 @@
     },
     {
       "id": "validate_phase_refresh",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_phase_refresh.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Native all-phase integration refresh in four pre-implementation states, secondary integration composition and customization refusal without artifact or authority reset.",
@@ -54,6 +92,7 @@
     },
     {
       "id": "validate_wire_capabilities",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_wire_capabilities.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Selected immutable capability projection, planned error coverage, closed problem fields, numeric binding diagnostics and producer admission constraints.",
@@ -63,6 +102,7 @@
     },
     {
       "id": "validate_web_identity",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_web_identity.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Actual persona loader and validated canonical identity resolution with alternate resources/realms, legacy consumer-root fallback and private diagnostics.",
@@ -72,6 +112,7 @@
     },
     {
       "id": "validate_composition_tooling",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_composition_tooling.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Migrated typed consumers preserve branding and provider metadata; select per-host OpenAPI stages and evidence, reject unknown/ambiguous/stale bindings and retain legacy routing.",
@@ -82,6 +123,7 @@
     },
     {
       "id": "validate_numeric_schema",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_numeric_schema.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Reproduce numeric-schema mismatch, execute exact selected official exporter, bounded problem writer and strict parser, generate actual TypeScript, and block unsupported nullable numeric promises without changing baselines or approval.",
@@ -92,6 +134,7 @@
     },
     {
       "id": "validate_composition_activation",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_composition_activation.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Build and execute consumer-owned activation tests against generated feature contracts; reject missing direct CShells references using existing central pins.",
@@ -102,6 +145,7 @@
     },
     {
       "id": "validate_story_delivery",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_story_delivery.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Bounded story/early review progression, scoped deferrals, roles and authenticated reference shapes, freshness, no-hook closure/handoff and deterministic active clocks; simulated humans only.",
@@ -112,6 +156,7 @@
     },
     {
       "id": "qualify_reusable_foundations_contracts",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/qualify_reusable_foundations.py", "--contract-tests"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Bounded setup failure-contract checks; no container, package restore or runtime acceptance claim.",
@@ -121,6 +166,7 @@
     },
     {
       "id": "validate_foundation_composition",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_foundation_composition.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Bounded typed-model managed sync preview/apply, public publisher constraints, source preservation/retirement and managed security conflicts. Actual runtime acceptance is the golden and retained provider/product qualifiers.",
@@ -131,6 +177,7 @@
     },
     {
       "id": "validate_foundation_setup",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_foundation_setup.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Maintained readiness adapter rejection, source/configuration evidence invalidation, redaction and actual bounded child cleanup; no synthetic result establishes Host/provider acceptance.",
@@ -141,6 +188,7 @@
     },
     {
       "id": "qualify_reusable_foundations",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/qualify_reusable_foundations.py", "--shape", "all", "--prepared", "--engines={engines}"],
       "group": "release", "needs": ["validate_foundation_composition", "validate_foundation_setup"],
       "platforms": ["Windows", "Linux"],
@@ -151,6 +199,7 @@
     },
     {
       "id": "validate_consumer_upgrade",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_consumer_upgrade.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Cumulative consumer semantics, selective phase repair, local migration recovery, sanitized export and owned ignored installation reproduction; no coding agents.",
@@ -160,6 +209,7 @@
     },
     {
       "id": "validate_effective_dependency_context",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_effective_dependency_context.py"
@@ -183,6 +233,7 @@
     },
     {
       "id": "validate_consumer_provider_runtime",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_consumer_provider_runtime.py"
@@ -213,6 +264,7 @@
     },
     {
       "id": "validate_lifecycle_design",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_lifecycle_design.py"],
       "group": "development",
       "needs": [],
@@ -226,6 +278,7 @@
     },
     {
       "id": "validate_application_lifecycle",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_application_lifecycle.py"],
       "group": "development",
       "needs": [],
@@ -239,6 +292,7 @@
     },
     {
       "id": "validate_knowledge_application",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_knowledge_application.py"],
       "group": "development",
       "needs": [],
@@ -252,6 +306,7 @@
     },
     {
       "id": "validate_standalone_engineering",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_standalone_engineering.py"
@@ -277,6 +332,7 @@
     },
     {
       "id": "validate_normal_development",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_normal_development.py"
@@ -302,6 +358,7 @@
     },
     {
       "id": "validate_scoped_verification",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_scoped_verification.py"
@@ -328,6 +385,7 @@
     },
     {
       "id": "validate_task_generation",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_task_generation.py"
@@ -353,6 +411,7 @@
     },
     {
       "id": "validate_maintenance_flow",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_maintenance_flow.py"
@@ -378,6 +437,7 @@
     },
     {
       "id": "validate_test_suites",
+      "qualification": {"linux": true, "windows": true, "build": true},
       "command": [
         "{python}",
         "tests/validate_test_suites.py"
@@ -416,6 +476,7 @@
     },
     {
       "id": "validate_dependency_profiles",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dependency_profiles.py"
@@ -454,6 +515,7 @@
     },
     {
       "id": "validate_validation_runner",
+      "qualification": {"linux": true, "windows": true, "build": true},
       "command": [
         "{python}",
         "tests/validate_validation_runner.py"
@@ -492,6 +554,7 @@
     },
     {
       "id": "validate_release_guidance",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_release_guidance.py"
@@ -530,6 +593,7 @@
     },
     {
       "id": "validate_repository_toolchain",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_repository_toolchain.py"
@@ -568,6 +632,7 @@
     },
     {
       "id": "validate_components",
+      "qualification": {"linux": true, "windows": true, "build": true},
       "command": [
         "{python}",
         "tests/validate_components.py"
@@ -606,6 +671,7 @@
     },
     {
       "id": "validate_json_schema",
+      "qualification": {"linux": true, "windows": true, "build": true},
       "command": [
         "{python}",
         "tests/validate_json_schema.py"
@@ -645,6 +711,7 @@
     },
     {
       "id": "validate_exporter_upgrade",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_exporter_upgrade.py"
@@ -683,6 +750,7 @@
     },
     {
       "id": "test_workflow_shell_preflight",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/test_workflow_shell_preflight.py"
@@ -722,6 +790,7 @@
     },
     {
       "id": "validate_upgrade_boundaries",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_upgrade_boundaries.py"
@@ -761,6 +830,7 @@
     },
     {
       "id": "validate_python_consistency",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_public_core_compatibility.py"
@@ -800,6 +870,7 @@
     },
     {
       "id": "validate_codex_worker_policy",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_codex_worker_policy.py"
@@ -839,6 +910,7 @@
     },
     {
       "id": "validate_proxy_intake",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_proxy_intake.py"
@@ -878,6 +950,7 @@
     },
     {
       "id": "validate_bootstrap_handoffs",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_handoffs.py"
@@ -916,6 +989,7 @@
     },
     {
       "id": "validate_bootstrap_provider_context",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_provider_context.py"
@@ -955,6 +1029,7 @@
     },
     {
       "id": "validate_bootstrap_profiles",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_profiles.py"
@@ -993,6 +1068,7 @@
     },
     {
       "id": "validate_dependency_audit",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dependency_audit.py"
@@ -1032,6 +1108,7 @@
     },
     {
       "id": "validate_phase_obligations",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_phase_obligations.py"
@@ -1071,6 +1148,7 @@
     },
     {
       "id": "validate_api_proof",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_api_proof.py"
@@ -1109,6 +1187,7 @@
     },
     {
       "id": "validate_persistence_selection",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_persistence_selection.py"
@@ -1148,6 +1227,7 @@
     },
     {
       "id": "validate_postgresql_service",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_postgresql_service.py"
@@ -1187,6 +1267,7 @@
     },
     {
       "id": "validate_knowledge_inventory",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_knowledge_inventory.py"
@@ -1226,6 +1307,7 @@
     },
     {
       "id": "validate_feature_knowledge",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_feature_knowledge.py"
@@ -1265,6 +1347,7 @@
     },
     {
       "id": "validate_architecture_recipe",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_architecture_recipe.py"
@@ -1305,6 +1388,7 @@
     },
     {
       "id": "validate_capability_proof",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_capability_proof.py"
@@ -1343,6 +1427,7 @@
     },
     {
       "id": "validate_learning_metrics",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_learning_metrics.py"
@@ -1382,6 +1467,7 @@
     },
     {
       "id": "validate_learning_report",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_learning_report.py"
@@ -1421,6 +1507,7 @@
     },
     {
       "id": "validate_lending_oracle",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_lending_oracle.py"
@@ -1460,6 +1547,7 @@
     },
     {
       "id": "validate_reference_baseline",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_reference_baseline.py"
@@ -1499,6 +1587,7 @@
     },
     {
       "id": "validate_specification_intake",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_specification_intake.py"
@@ -1538,6 +1627,7 @@
     },
     {
       "id": "validate_sync_live_fixtures",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_sync_live_fixtures.py"
@@ -1577,6 +1667,7 @@
     },
     {
       "id": "validate_package_execution",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_package_execution.py"
@@ -1616,6 +1707,7 @@
     },
     {
       "id": "validate_repository_sync",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_repository_sync.py"
@@ -1655,6 +1747,7 @@
     },
     {
       "id": "validate_sync_readiness",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_sync_readiness.py"
@@ -1694,6 +1787,7 @@
     },
     {
       "id": "validate_sync_stages",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_sync_stages.py"
@@ -1733,6 +1827,7 @@
     },
     {
       "id": "validate_live_trial_candidate",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_live_trial_candidate.py"
@@ -1772,6 +1867,7 @@
     },
     {
       "id": "validate_retired_sync",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_retired_sync.py"
@@ -1811,6 +1907,7 @@
     },
     {
       "id": "validate_scoped_materialization",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_scoped_materialization.py"
@@ -1850,6 +1947,7 @@
     },
     {
       "id": "validate_intake_session",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_intake_session.py"
@@ -1889,6 +1987,7 @@
     },
     {
       "id": "validate_discovery_fixture",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_discovery_fixture.py"
@@ -1928,6 +2027,7 @@
     },
     {
       "id": "validate_intake_handoff",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_intake_handoff.py"
@@ -1967,6 +2067,7 @@
     },
     {
       "id": "validate_intake_authoring",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_intake_authoring.py"
@@ -2006,6 +2107,7 @@
     },
     {
       "id": "validate_orbyss_building_blocks",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_orbyss_building_blocks.py"
@@ -2045,6 +2147,7 @@
     },
     {
       "id": "validate_building_blocks",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_building_blocks.py"
@@ -2083,6 +2186,7 @@
     },
     {
       "id": "validate_architecture_placement",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_architecture_placement.py"
@@ -2121,6 +2225,7 @@
     },
     {
       "id": "validate_placement_contract",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_placement_contract.py"
@@ -2160,6 +2265,7 @@
     },
     {
       "id": "validate_bootstrap_lifecycle",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_lifecycle.py"
@@ -2199,6 +2305,7 @@
     },
     {
       "id": "validate_readiness_scope",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_readiness_scope.py"
@@ -2238,6 +2345,7 @@
     },
     {
       "id": "validate_readiness_projection",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_readiness_projection.py"
@@ -2277,6 +2385,7 @@
     },
     {
       "id": "validate_phase_readiness",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_phase_readiness.py"
@@ -2316,6 +2425,7 @@
     },
     {
       "id": "validate_bootstrap_handoff_quality",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_handoff_quality.py"
@@ -2355,6 +2465,7 @@
     },
     {
       "id": "validate_bootstrap_proof_plan",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_proof_plan.py"
@@ -2394,6 +2505,7 @@
     },
     {
       "id": "validate_post_bootstrap_continuation",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_post_bootstrap_continuation.py"
@@ -2433,6 +2545,7 @@
     },
     {
       "id": "validate_workflow_resumption",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_workflow_resumption.py"
@@ -2472,6 +2585,7 @@
     },
     {
       "id": "validate_workflow_runtimes",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_workflow_runtimes.py"
@@ -2511,6 +2625,7 @@
     },
     {
       "id": "validate_live_fixture_catalog",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_live_fixture_catalog.py"
@@ -2550,6 +2665,7 @@
     },
     {
       "id": "validate_live_workflow_acceptance",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_live_workflow_acceptance.py"
@@ -2589,6 +2705,7 @@
     },
     {
       "id": "validate_building_block_availability",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_building_block_availability.py"
@@ -2628,6 +2745,7 @@
     },
     {
       "id": "validate_legacy_programkit_nuget",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_legacy_programkit_nuget.py"
@@ -2667,6 +2785,7 @@
     },
     {
       "id": "validate_generated_contract_schemas",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_generated_contract_schemas.py"
@@ -2706,6 +2825,7 @@
     },
     {
       "id": "validate_governance_config",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_governance_config.py"
@@ -2745,6 +2865,7 @@
     },
     {
       "id": "validate_governance_state",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_governance_state.py"
@@ -2783,6 +2904,7 @@
     },
     {
       "id": "validate_runnable_host_pins",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_runnable_host_pins.py"
@@ -2822,6 +2944,7 @@
     },
     {
       "id": "validate_release_bundle",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_release_bundle.py"
@@ -2861,6 +2984,7 @@
     },
     {
       "id": "bundle-validate",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "specify",
         "bundle",
@@ -2903,6 +3027,7 @@
     },
     {
       "id": "validate_codex_bootstrap",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_codex_bootstrap.py"
@@ -2944,6 +3069,7 @@
     },
     {
       "id": "source-install",
+      "qualification": {"linux": false, "windows": true, "build": false},
       "command": [
         "{powershell}",
         "-NoProfile",
@@ -2986,6 +3112,7 @@
     },
     {
       "id": "public-availability",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "extensions/program-kit-building-blocks/scripts/public_availability.py",
@@ -3038,6 +3165,7 @@
     },
     {
       "id": "legacy-public",
+      "qualification": {"linux": false, "windows": false, "build": false},
       "command": [
         "{python}",
         "scripts/verify_legacy_programkit_nuget.py",
@@ -3062,6 +3190,7 @@
     },
     {
       "id": "validate_public_component_use",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_public_component_use.py"
@@ -3104,6 +3233,7 @@
     },
     {
       "id": "validate_dotnet_engineering",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dotnet_engineering.py"
@@ -3146,6 +3276,7 @@
     },
     {
       "id": "validate_persistence_runtime",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_persistence_runtime.py"
@@ -3188,6 +3319,7 @@
     },
     {
       "id": "validate_ui_experience",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_ui_experience.py"
@@ -3229,6 +3361,7 @@
     },
     {
       "id": "validate_local_upgrade",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_local_upgrade.py"
@@ -3271,6 +3404,7 @@
     },
     {
       "id": "validate_bootstrap_context",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_context.py"
@@ -3312,6 +3446,7 @@
     },
     {
       "id": "validate_bootstrap_intake",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_intake.py"
@@ -3353,6 +3488,7 @@
     },
     {
       "id": "validate_bootstrap_semantics",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_semantics.py"
@@ -3394,6 +3530,7 @@
     },
     {
       "id": "validate_c4_view",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_c4_view.py"
@@ -3435,6 +3572,7 @@
     },
     {
       "id": "validate_live_bootstrap_acceptance",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_live_bootstrap_acceptance.py"
@@ -3477,6 +3615,7 @@
     },
     {
       "id": "validate_lifecycle_profiles",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_lifecycle_profiles.py"
@@ -3518,6 +3657,7 @@
     },
     {
       "id": "validate_js_toolchain",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_js_toolchain.py"
@@ -3559,6 +3699,7 @@
     },
     {
       "id": "validate_dotnet_scaffold",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dotnet_scaffold.py"
@@ -3600,6 +3741,7 @@
     },
     {
       "id": "validate_consumer_descriptor_builder",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_consumer_descriptor_builder.py"
@@ -3631,6 +3773,7 @@
     },
     {
       "id": "validate_default_dependency_profile",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_default_dependency_profile.py"
@@ -3664,6 +3807,7 @@
     },
     {
       "id": "validate_dotnet_build_contract",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dotnet_build_contract.py"
@@ -3705,6 +3849,7 @@
     },
     {
       "id": "validate_dotnet_test_discovery",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dotnet_test_discovery.py"
@@ -3746,6 +3891,7 @@
     },
     {
       "id": "validate_repository_verification_hook",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_repository_verification_hook.py"
@@ -3787,6 +3933,7 @@
     },
     {
       "id": "build-release",
+      "qualification": {"linux": false, "windows": false, "build": true},
       "command": [
         "{python}",
         "scripts/build_release.py"
@@ -3829,6 +3976,7 @@
     },
     {
       "id": "validate_consumer_upgrade_install",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": ["{python}", "tests/validate_consumer_upgrade_install.py"],
       "group": "package", "needs": ["build-release"], "platforms": ["Windows", "Linux"],
       "purpose": "Real packaged primitive installation, isolated updater/destination recovery, resolved commands and one deterministic fresh-story reset with normal ratification; simulated humans and no coding agents.",
@@ -3838,6 +3986,7 @@
     },
     {
       "id": "validate_installed_bootstrap_flow",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_installed_bootstrap_flow.py"
@@ -3881,6 +4030,7 @@
     },
     {
       "id": "validate_bootstrap_consistency_e2e",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_consistency_e2e.py"
@@ -3924,6 +4074,7 @@
     },
     {
       "id": "validate_packaged_ui",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_packaged_ui.py"
@@ -3968,6 +4119,7 @@
     },
     {
       "id": "validate_release_install",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_release_install.py"
@@ -4011,6 +4163,7 @@
     },
     {
       "id": "candidate-upgrade",
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_public_upgrade.py",
@@ -4056,6 +4209,7 @@
     },
     {
       "id": "validate_bootstrap_runtime",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_runtime.py"
@@ -4099,6 +4253,7 @@
     },
     {
       "id": "ui-browser",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_ui_browser.py",
@@ -4145,6 +4300,7 @@
     },
     {
       "id": "validate_authentication_presentation_native",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_authentication_presentation.py", "--execute", "--engines={engines}"],
       "group": "release", "needs": ["validate_authentication_presentation", "ui-browser"], "platforms": ["Windows", "Linux"],
       "purpose": "Compile the owner error/landing example against current qualified exact Foundation pins, verify machine problem compatibility, and exercise branded/focused keyboard recovery in actual browsers.",
@@ -4154,6 +4310,7 @@
     },
     {
       "id": "validate_label_validation_native",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_label_validation.py", "--execute", "--engines={engines}"],
       "group": "release", "needs": ["validate_label_validation", "ui-browser"], "platforms": ["Windows", "Linux"],
       "purpose": "Actual Core/exported-descriptor/generated-JS parity, native API rejection and real clipboard input preservation, error and zero-request regression under selected engines.",
@@ -4163,6 +4320,7 @@
     },
     {
       "id": "validate_bootstrap_compatibility",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_compatibility.py"
@@ -4206,6 +4364,7 @@
     },
     {
       "id": "validate_published_forms_browser",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_published_forms_browser.py",
@@ -4252,6 +4411,7 @@
     },
     {
       "id": "validate_foundation_contracts_development_profile",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_foundation_contracts_development_profile.py"
@@ -4277,6 +4437,7 @@
     },
     {
       "id": "validate_foundation_notes",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_foundation_notes.py",
@@ -4304,6 +4465,7 @@
     },
     {
       "id": "validate_dependency_profile_catalogs",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dependency_profile_catalogs.py"
@@ -4336,6 +4498,7 @@
     },
     {
       "id": "validate_foundation_published_tools",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_foundation_published_tools.py",
@@ -4359,6 +4522,7 @@
     },
     {
       "id": "validate_bootstrap_runtime_bindings",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_runtime_bindings.py"
@@ -4383,6 +4547,7 @@
     },
     {
       "id": "validate_settings_authorities",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_settings_authorities.py"
@@ -4412,6 +4577,7 @@
     },
     {
       "id": "validate_application_handoff",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_application_handoff.py"
@@ -4439,6 +4605,7 @@
     },
     {
       "id": "validate_dependency_updates",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dependency_updates.py"
@@ -4469,6 +4636,7 @@
     },
     {
       "id": "validate_dependency_workflows",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_dependency_workflows.py"
@@ -4496,6 +4664,7 @@
     },
     {
       "id": "validate_composition_model",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_composition_model.py"
@@ -4523,6 +4692,7 @@
     },
     {
       "id": "validate_native_start_repairs",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_native_start_repairs.py"
@@ -4549,6 +4719,7 @@
     },
     {
       "id": "qualify_composition_start",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": [
         "{python}",
         "tests/validate_composition_start.py",
@@ -4585,6 +4756,7 @@
     },
     {
       "id": "validate_browser_launch",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_browser_launch.py", "--engines={engines}"],
       "group": "release", "needs": ["ui-browser"], "platforms": ["Windows", "Linux"],
       "purpose": "Actual selected engine launch/close evidence, exact plan/cache binding, failure before readiness and bounded redacted diagnostics.",
@@ -4593,6 +4765,7 @@
     },
     {
       "id": "validate_hosted_palette",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_hosted_palette.py", "--engines={engines}"],
       "group": "release", "needs": ["ui-browser"], "platforms": ["Windows", "Linux"],
       "purpose": "Hash-verified selected Foundation renderer and native Vite CSS contrast/focus in all themes/modes/states; axe in enabled-script states, actual no-script semantics and scoped before/after timings.",
@@ -4601,6 +4774,7 @@
     },
     {
       "id": "validate_schema_role_grants",
+      "qualification": {"linux": true, "windows": false, "build": false},
       "command": ["{python}", "tests/validate_schema_role_grants.py"],
       "group": "release", "needs": ["validate_postgresql_service"], "platforms": ["Windows", "Linux"],
       "purpose": "Reproduce application-role schema/journal denial and exact scoped administrator grants; unrelated tables stay denied and owned cleanup must complete.",

@@ -5,6 +5,7 @@ param(
     [string]$Phase,
     [string]$ReleaseReceipt = '',
     [string]$TrialReceipt = '',
+    [string]$CiPreparation = '',
     [string]$Checkpoint = '',
     [string]$ReferenceAdmission = '',
     [ValidateSet('', 'fresh-baseline', 'fresh-candidate', 'upgrade-candidate')]
@@ -26,9 +27,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-if ([bool]$ReleaseReceipt -eq [bool]$TrialReceipt) { throw 'Select exactly one -ReleaseReceipt or -TrialReceipt.' }
-$receiptKind = if ($TrialReceipt) { 'development-trial' } else { 'release' }
-$receiptPath = (Resolve-Path -LiteralPath $(if ($TrialReceipt) { $TrialReceipt } else { $ReleaseReceipt })).Path
+if (@(@($ReleaseReceipt, $TrialReceipt, $CiPreparation) | Where-Object { $_ }).Count -ne 1) { throw 'Select exactly one -CiPreparation, -ReleaseReceipt (historical), or -TrialReceipt (development learning).' }
+$receiptKind = if ($CiPreparation) { 'ci-prepared' } elseif ($TrialReceipt) { 'development-trial' } else { 'release' }
+$receiptPath = (Resolve-Path -LiteralPath $(if ($CiPreparation) { $CiPreparation } elseif ($TrialReceipt) { $TrialReceipt } else { $ReleaseReceipt })).Path
 $receiptDetails = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json
 if (-not $Phase.StartsWith('workflow-') -and $Phase -notin @('bootstrap-checkpoint', 'building-block-consumer') -and -not $Case) { throw 'LIVE_SYNC_CASE_REQUIRED: select the exact baseline, candidate or upgrade case.' }
 if ($ReferenceAdmission) {

@@ -33,6 +33,11 @@ def bootstrap_session_limit(root: Path, receipt: dict) -> int:
 
 
 def validate_candidate_receipt(root: Path, receipt_path: Path, schema_root: Path, kind: str = 'release') -> tuple[dict, str]:
+    if kind == 'ci-prepared':
+        import sys
+        sys.path.insert(0, str(root / 'scripts'))
+        from release_trial import validate_preparation
+        return validate_preparation(root, receipt_path, schema_root)
     if kind == 'development-trial':
         from live.v2.trial_candidate import validate_trial_receipt
         return validate_trial_receipt(root, receipt_path, schema_root)

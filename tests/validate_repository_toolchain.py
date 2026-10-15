@@ -252,7 +252,11 @@ class NativeNpmChildTests(unittest.TestCase):
         (repository / 'package.json').write_text(json.dumps({'scripts': {'probe': 'node probe.cjs'}}))
         (repository / 'probe.cjs').write_text('require("node:fs").writeFileSync("child.json", JSON.stringify({node:process.execPath,version:process.version}));')
         inherited = str(node.parent) + ';' + os.environ.get('PATH', '')
-        inherited += (';' + str(node.parent)) * (24000 // (len(str(node.parent)) + 1) + 1)
+        # Reach a long-path target instead of adding another 24K to an already
+        # long device PATH and exceeding Windows' 32767-character variable limit.
+        inherited += (';' + str(node.parent)) * (max(0, 24000 - len(inherited)) // (len(str(node.parent)) + 1) + 1)
+        self.assertGreater(len(inherited), 8191, 'Fixture must exceed CMD PATH capacity')
+        self.assertLess(len(inherited), 32767, 'Fixture must remain a valid Windows environment variable')
         with patch.dict(os.environ, {'PATH': inherited}):
             parent = dict(os.environ)
             result = js_toolchain.run_npm(repository, evidence, ['run', 'probe'], repository, 30, capture_stdout=True)
