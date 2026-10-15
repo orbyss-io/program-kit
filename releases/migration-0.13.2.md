@@ -95,9 +95,10 @@ inspection. Preserve meaningful consumer isolation and existing dispatch blocks.
 
 ## Public Foundation adoption and verification
 
-The default binds public Foundation 0.3.5, its immutable Host, exact packages/locks,
-required exporter and frozen knowledge together. The Host consumes Nuplane
-1.0.0-preview.109, containing the preceding multi-assembly runtime dependency repair.
+The default must bind the corrected public Foundation release, its immutable Host,
+exact packages/locks, required exporter and frozen knowledge together. Foundation
+0.3.5 / Nuplane 1.0.0-preview.109 contains the original multi-assembly fix but also
+its satellite-resource regression; this closure is not accepted for publication.
 Ordinary dependency loading needs no worker or package-byte workaround. The shipped
 profile/qualification assets give exact digests and knowledge hashes. Existing profiles
 and consumer locks remain unchanged until an accepted transition.
