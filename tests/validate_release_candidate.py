@@ -337,6 +337,15 @@ class CandidateTests(unittest.TestCase):
 
 
 class RoutingTests(unittest.TestCase):
+    def test_trial_recommendations_follow_actual_runtime_and_migration_changes(self):
+        ci = rc.recommendation(['.github/workflows/ci.yml'])
+        self.assertFalse([trial for row in ci for trial in row['trials']])
+        runtime = rc.recommendation(['extensions/program-kit-governance/scripts/workflow_lifecycle.py'])
+        self.assertTrue({'bootstrap-checkpoint', 'workflow-failure', 'workflow-resume'} <=
+                        {trial for row in runtime for trial in row['trials']})
+        upgrade = rc.recommendation(['scripts/upgrade_program_kit.py'])
+        self.assertTrue({'upgrade-consumer', 'upgrade-continuation'} <= {trial for row in upgrade for trial in row['trials']})
+
     def test_push_whole_range_and_conservative_missing_history(self):
         checks = [dict(id='dev', group='development', needs=[], inputs=['docs/**']),
                   dict(id='build', group='package', needs=[], inputs=['bundle.yml']),

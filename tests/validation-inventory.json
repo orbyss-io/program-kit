@@ -1003,6 +1003,7 @@
       "purpose": "Provider handoff and source visibility regressions; no network or coding agents.",
       "owner": "program-kit",
       "inputs": [
+        "tests/windows_path_alias.py",
         "scripts/**",
         "extensions/**",
         "presets/**",
@@ -2559,6 +2560,7 @@
       "purpose": "Native engine regression: stage retry, NOT READY, preserved history and completion.",
       "owner": "program-kit",
       "inputs": [
+        "tests/windows_path_alias.py",
         "scripts/**",
         "extensions/**",
         "presets/**",

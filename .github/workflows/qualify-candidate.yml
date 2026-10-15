@@ -162,6 +162,17 @@ jobs:
       - name: Preserve engine Python before selecting a distinct shell interpreter
         shell: pwsh
         run: python -c "import sys; print('PK_ENGINE_PYTHON=' + sys.executable); print('PROGRAMKIT_DEVICE_PYTHON=' + sys.executable)" >> $env:GITHUB_ENV
+      - name: Prepare real uv-managed Windows Spec Kit launcher
+        shell: pwsh
+        env:
+          UV_TOOL_DIR: ${{ github.workspace }}/artifacts/ci-tools/uv
+          UV_TOOL_BIN_DIR: ${{ github.workspace }}/artifacts/ci-tools/bin
+        run: |
+          python -m pip install --disable-pip-version-check -r tests/ci-tool-requirements.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv tool install specify-cli==1.2.0 --python $env:PK_ENGINE_PYTHON --no-python-downloads
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:UV_TOOL_BIN_DIR >> $env:GITHUB_PATH
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-compat-version

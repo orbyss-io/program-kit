@@ -15,15 +15,16 @@ NPM_GRAPH = ROOT / "extensions/program-kit-governance/scripts/npm_graph.py"
 
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-js-toolchain-") as value:
-        repository = Path(value) / 'consumer'
+        fixture_root = Path(value).resolve()
+        repository = fixture_root / 'consumer'
         repository.mkdir()
         managed = repository / "eng"
         managed.mkdir(parents=True)
         (managed / "js_toolchain.py").write_bytes(JS_TOOLCHAIN.read_bytes())
         (managed / "device_toolchain.py").write_bytes(JS_TOOLCHAIN.with_name("device_toolchain.py").read_bytes())
         (managed / 'windows_workflow_path.py').write_bytes((ROOT / 'extensions/program-kit-governance/scripts/windows_workflow_path.py').read_bytes())
-        exact = Path(value) / "shared-exact"
-        wrong = Path(value) / "shared-wrong"
+        exact = fixture_root / "shared-exact"
+        wrong = fixture_root / "shared-wrong"
         exact.mkdir()
         wrong.mkdir()
         invocation_log = repository / "npm-invocations.txt"
@@ -118,7 +119,7 @@ def main() -> int:
             '--repository', str(repository), '--evidence', str(evidence), 'npm', '--', 'test'],
             cwd=repository, env=environment, capture_output=True, text=True)
         if wrapper.returncode != 0 or (wrong / 'used.txt').exists():
-            raise AssertionError(f"refreshed shared npm wrapper failed cache/system trust: {wrapper.stderr}")
+            raise AssertionError(f"refreshed shared npm wrapper failed cache/system trust (exit={wrapper.returncode}): {wrapper.stdout}{wrapper.stderr}")
 
         candidate = repository / "candidate-package.json"
         candidate.write_text(

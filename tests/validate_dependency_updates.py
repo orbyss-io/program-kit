@@ -20,6 +20,20 @@ spec.loader.exec_module(m)
 
 
 class UpdateTests(unittest.TestCase):
+    def test_ci_tool_pins_are_discovered_and_updated_without_other_dependency_changes(self):
+        requirement = self.root / 'ci-tool-requirements.txt'
+        requirement.write_text('uv==0.13.1\n')
+        self.policy['inputs'].append(requirement.name)
+        original_package = (self.root / 'package.json').read_bytes()
+        observed = m.collect(self.root, self.policy, lambda pin, _: {
+            'latest': '0.13.2' if pin['name'] == 'uv' else pin['current'], 'source': 'fixture'})
+        pin = next(p for p in observed['pins'] if p['name'] == 'uv')
+        self.assertEqual('pypi', pin['kind'])
+        self.assertEqual(['ci-tool-requirements.txt'], pin['paths'])
+        m.upgrade(self.root, self.policy, observed)
+        self.assertEqual('uv==0.13.2\n', requirement.read_text())
+        self.assertEqual(original_package, (self.root / 'package.json').read_bytes())
+
     def test_npm_lookup_uses_bounded_stable_manifest_and_checks_identity(self):
         pin = {'kind': 'npm', 'name': 'vite', 'current': '8.3.4', 'channel': 'stable'}
         with patch.object(m, 'fetch', return_value={'name': 'vite', 'version': '8.3.4'}) as fetched:

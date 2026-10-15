@@ -1615,6 +1615,7 @@ def compact_json(value: dict) -> str:
 
 
 def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path, dict, Path, dict]:
+    project_root = project_root.resolve()
     run_directory = safe_run_directory(project_root, run_id)
     if not (run_directory / "inputs.json").is_file():
         raise ContextError(f"Spec Kit workflow inputs are missing for run {run_id}")

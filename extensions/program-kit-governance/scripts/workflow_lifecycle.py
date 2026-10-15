@@ -670,6 +670,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
 
 
 def resume(root: Path, run_id: str, inputs: dict | None = None, *, reuse_proven_closure: bool = False, reuse_prepared_recovery: bool = False, post_bootstrap: bool = False) -> RunState:
+    root = root.resolve()
     with execution_lock(root):
         return resume_unlocked(root, run_id, inputs or {}, reuse_proven_closure=reuse_proven_closure,
                                reuse_prepared_recovery=reuse_prepared_recovery, post_bootstrap=post_bootstrap)

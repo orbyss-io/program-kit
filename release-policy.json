@@ -40,12 +40,17 @@
       "inputs": [
         "workflows/**",
         "extensions/program-kit-governance/commands/*intake*",
-        "extensions/program-kit-governance/commands/*bootstrap*"
+        "extensions/program-kit-governance/commands/*bootstrap*",
+        "extensions/program-kit-governance/scripts/workflow_lifecycle.py",
+        "extensions/program-kit-governance/scripts/bootstrap_context.py"
       ],
       "trials": [
-        "bootstrap-checkpoint"
+        "bootstrap-checkpoint",
+        "workflow-fresh",
+        "workflow-failure",
+        "workflow-resume"
       ],
-      "reason": "Intake/bootstrap instructions or native handoffs changed. Preserve individually authorized command sessions.",
+      "reason": "Intake/bootstrap instructions or native workflow handoffs changed. Select applicable implemented fixtures; each command session/continuation retains its own human gate and one-use authorization.",
       "gaps": [
         "Fresh/failure/resume journey must match an existing scenario and oracle."
       ]

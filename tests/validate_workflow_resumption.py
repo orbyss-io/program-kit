@@ -17,6 +17,7 @@ from specify_cli.workflows.step.command import CommandStep
 from specify_cli.workflows.step.shell import ShellStep
 
 import workflow_lifecycle as workflow
+from windows_path_alias import short_path
 
 g, life = fixture.governance, fixture.lifecycle
 
@@ -147,7 +148,7 @@ def main():
         return original_shell(self, config, context)
     previous = Path.cwd()
     with tempfile.TemporaryDirectory(prefix='program-kit-workflow-resume-') as temporary:
-        root = Path(temporary)
+        root = short_path(Path(temporary))
         os.chdir(root)
         try:
             with patch.object(ShellStep, 'execute', execute), patch.object(sys.stdin, 'isatty', return_value=False):

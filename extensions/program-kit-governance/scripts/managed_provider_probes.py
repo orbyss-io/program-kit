@@ -20,6 +20,7 @@ CASES = {
 
 
 def render(root, kind, identity, host_image):
+    root = root.resolve()
     decisions = json.loads((root / 'docs/architecture/bootstrap-decisions.json').read_text(encoding='utf-8'))
     selected = project(root, decisions)
     if kind == 'ef-postgresql':
@@ -118,6 +119,7 @@ def render(root, kind, identity, host_image):
 
 
 def render_postgresql(root, identity, selected):
+    root = root.resolve()
     runtime = next((p for p in selected['persistence_runtimes'] if p['profile'] == 'ef-postgresql'), None)
     if not runtime:
         raise ValueError('PostgreSQL recipe requires an explicitly selected ef-postgresql owner')

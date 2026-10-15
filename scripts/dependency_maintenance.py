@@ -117,7 +117,7 @@ def inventory(root, policy):
         elif path.name == "dotnet-tools.json":
             for name, tool in json.loads(text)["tools"].items():
                 add("nuget", name, tool["version"], path)
-        elif path.name == "json-schema-requirements.txt":
+        elif path.name in {"json-schema-requirements.txt", "ci-tool-requirements.txt"}:
             for name, version in re.findall(r"^([\w.-]+)==([^\s]+)$", text, re.M):
                 add("pypi", name, version, path)
         for image in re.findall(r"([a-zA-Z0-9][a-zA-Z0-9./:_-]*@sha256:[a-f0-9]{64})", text):

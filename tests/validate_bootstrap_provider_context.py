@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import bootstrap_provider_context as providers
 import bootstrap_context as context
 from validate_building_blocks import accepted_fixture, load_module, write_json, RESOLVER, CATALOG
+from windows_path_alias import short_path
 
 
 class ProviderContextTests(unittest.TestCase):
@@ -210,7 +211,7 @@ class ProviderContextTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'registry-verified'):
                 probes.render(self.root, 'bff-keycloak', 'bad-image', 'ghcr.io/orbyss-io/foundation-host:latest')
             for kind in probes.CASES:
-                plan = probes.render(self.root, kind, kind, image)
+                plan = probes.render(short_path(self.root), kind, kind, image)
                 _, _, contract, cases = validate_recipe(self.root, kind, plan['recipe'])
                 self.assertEqual(probes.CASES[kind], cases)
                 self.assertTrue(contract['dependencyTargets'])
