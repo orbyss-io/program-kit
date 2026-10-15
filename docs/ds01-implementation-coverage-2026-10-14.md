@@ -409,3 +409,25 @@ as an exact new-commit receipt. Late ownership/schema changes have the separate 
 checks above. Final local packaging still has492 entries below512. Latest-source CI and mandatory
 dependency qualification remain due; the previous failed migration is not adopted. The user's
 publication hold remains in force, with no new version/tag or consumer changes.
+
+## Owner-directed delete-only restart
+
+The owner subsequently selected a complete fresh attempt from the retained confirmed intake:
+specify itself and every following phase execute anew. This supersedes archiving or learning
+from the unfinished attempt for this patch. Recipe `fresh-feature-delete-v1` deletes the entire
+selected specification and its exclusively owned source/tests/frontend/contracts without making
+a content archive. Shared contributions and derived outputs are reconciled through their owners;
+unrelated shared work, dependencies and live data are outside deletion. Old source, archives,
+Git history and previous attempt transcripts are not supplied as new implementation inputs.
+The consumer agent performs its actual scoped reset; this Program Kit checkout changes no
+ClaimEvaluator files. Published migration history remains unchanged by this new decision.
+
+All48 story/reset regressions pass, including real CLI deletion, complete-inventory/path/staleness
+refusal and retained intake/shared bytes. All21 task and9 release-guidance checks pass. The actual
+packaged install/updater/destination exercise also passes with the delete-only reset and fresh
+installed phase contracts: `artifacts/tests/ds01-repair/delete-only-installed-restart.log` and
+`artifacts/consumer-upgrade-package-runs/8bdf7c944253412ba504ade3edcfb2fe`. This is a fictional
+consumer with simulated authoring, not a claim that a coding agent completed new feature phases.
+The old default archival helper remains solely for its separately preserved historical recipe;
+the current patch restart selects the new deletion method explicitly. New patch migration metadata
+must select that method and supersede unfinished-attempt continuation before publication.

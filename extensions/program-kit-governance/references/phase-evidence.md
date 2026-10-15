@@ -257,11 +257,17 @@ Posting requests, polling and monitoring need their own explicit authorization.
 
 ### Fresh-feature adoption
 
-Archive/checkpoint the abandoned attempt and failed evidence. Install the released toolkit through
-the supported updater. Amend and normally review/ratify the constitution for story-delivery-v1.
-Review/select an explicit owned reset inventory; shared outputs, migrations and data need clear
-ownership. Abandon old unfinished spec/plan/tasks/code/tests as active progress, preserving history.
-Rerun specify, clarification, plan, tasks, analysis and implement with hooks once at owning boundaries.
-Reuse unchanged confirmed bootstrap/intake intent, accepted architecture, foundations/tooling, locks
-and delivered features; do not restart the whole product interview. No partial feature continuation,
-real consumer/data migration or unrelated source/live-data deletion is authorized by installation.
+For the diagnostics-patch restart, use recipe `fresh-feature-delete-v1`. Keep the confirmed
+specification intake. Install the published toolkit through the supported updater and refresh all
+installed phase commands, skills, templates and hooks. Ratify any actually changed constitution
+policy through its normal route. Select the complete unfinished specification and its exclusively
+owned implementation, tests, frontend and contracts; reconcile its shared registrations separately.
+Delete the old attempt with `task_draft.py reset` and request `method: fresh-feature-delete-v1`.
+This route removes the entire selected specification directory and creates no content archive.
+Clear owned derived build/runtime outputs and stale phase evidence through their maintained owners.
+Do not consult old source, archives, Git history or old attempt transcripts to reconstruct the work.
+Execute **specify itself**, clarification, plan, tasks, analysis and implement anew, with hooks once
+at owning boundaries. The new attempt receives only retained confirmed intake, current accepted
+architecture and installed foundations/tooling/dependencies. Old checkmarks, reviews and receipts
+are not new progress. Unrelated shared work and live data are outside this reset. Historical
+`fresh-story-delivery-v1` remains a separate older recipe; it is not this patch's restart route.

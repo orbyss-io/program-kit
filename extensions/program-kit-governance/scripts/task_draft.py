@@ -497,7 +497,9 @@ def main():
         elif args.command == 'reset':
             if not args.content_file:
                 raise ValueError('reset requires the concrete reviewed inventory in --content-file')
-            result = reset(root, json.loads(Path(args.content_file).read_text(encoding='utf-8')), args.apply)
+            request = json.loads(Path(args.content_file).read_text(encoding='utf-8'))
+            require(path(root, request['feature']) == feature, 'Reset inventory must match --feature-dir')
+            result = reset(root, request, args.apply)
         elif args.command == 'delivery':
 
             if not args.content_file:
@@ -1111,7 +1113,7 @@ def transition(root, feature, request, now=None, reader=github_read):
 def reset_inventory(root, request):
 
     feature = path(root, request['feature'])
-    require(feature.is_relative_to(root / 'specs') and feature.is_dir(), 'Select an existing unfinished feature under specs')
+    require(feature.is_relative_to(root / 'specs') and feature != root / 'specs' and feature.is_dir(), 'Select an existing unfinished feature under specs')
     require(nonempty(request.get('reviewSource')), 'Review the concrete ownership/reset inventory first')
     rows = request.get('files', [])
     require(rows and len({row['path'] for row in rows}) == len(rows), 'Select a bounded unique file inventory')
@@ -1120,7 +1122,8 @@ def reset_inventory(root, request):
         target = path(root, row['path'])
         require(row.get('owner') == request['feature'] and target.is_file() and not target.is_symlink(), 'Every selected file needs exclusive unfinished-feature ownership')
         parts = Path(row['path']).parts
-        require(parts[0] in ('specs', 'src', 'tests') and not any(p.lower() in
+        allowed = ('specs', 'src', 'tests', 'web', 'contracts') if request.get('method') == 'fresh-feature-delete-v1' else ('specs', 'src', 'tests')
+        require(parts[0] in allowed and not any(p.lower() in
                 ('migrations', 'data', '.git', '.specify', '.program-kit') for p in parts),
                 'Reset does not authorize toolkit/bootstrap/shared inputs, migrations or data')
         require(not (parts[0] == 'specs' and not target.is_relative_to(feature)), 'Cannot reset another feature')
@@ -1136,9 +1139,55 @@ def reset_inventory(root, request):
     return selected, hashes
 
 
+def delete_feature_attempt(root, request, selected, preserved, apply):
+    """Delete an explicitly selected attempt without retaining its old contents."""
+    feature = path(root, request['feature'])
+    # Check lexical ancestors too: resolve() alone would hide an in-repository alias.
+    for relative in [request['feature'], *selected]:
+        require(Path(relative).as_posix() == relative and '..' not in Path(relative).parts,
+                'Delete-only reset needs canonical repository-relative paths')
+        target = root / relative
+        require(not any(part.is_symlink() or getattr(part, 'is_junction', lambda: False)()
+                        for part in (target, *target.parents) if part.is_relative_to(root)),
+                'Delete-only reset refuses linked files/directories')
+    directories = []
+    actual = set()
+    for directory, children, filenames in os.walk(feature, followlinks=False):
+        folder = Path(directory)
+        for name in children:
+            child = folder / name
+            require(not child.is_symlink() and not getattr(child, 'is_junction', lambda: False)(),
+                    'Delete-only reset refuses linked files/directories')
+            directories.append(child)
+        actual.update((folder / name).relative_to(root).as_posix() for name in filenames)
+    expected = {name for name in selected if path(root, name).is_relative_to(feature)}
+    require(actual == expected, 'Select every file in the old specification before deleting the complete attempt')
+    result = {'status': 'preview', 'method': request['method'], 'deleted': selected, 'preserved': preserved,
+              'instruction': 'Retain confirmed intake; execute specify itself, clarification, plan, tasks, analysis and implement anew with the installed release. Do not consult or reuse the old attempt, its archives or Git history as implementation input.'}
+    if not apply:
+        return result
+    require(nonempty(request.get('selectionSource')), 'Apply requires the actual human selection of this exact inventory')
+    # No content copies or archive are created. Check all inputs before the first deletion.
+    for relative, digest in {**selected, **preserved}.items():
+        require(hashlib.sha256(path(root, relative).read_bytes()).hexdigest() == digest, 'Reset input changed before deletion: ' + relative)
+    for relative in selected:
+        target = path(root, relative)
+        require(hashlib.sha256(target.read_bytes()).hexdigest() == selected[relative], 'Reset input changed during deletion: ' + relative)
+        target.unlink()
+    for directory in sorted(directories, key=lambda item: len(item.parts), reverse=True):
+        require(directory.resolve().is_relative_to(feature), 'Reset directory escapes selected specification')
+        directory.rmdir()  # Unknown/new files stop cleanup rather than being removed.
+    feature.rmdir()
+    result['status'] = 'deleted'
+    return result
+
+
 def reset(root, request, apply=False):
 
+    require(request.get('method') in (None, 'fresh-story-delivery-v1', 'fresh-feature-delete-v1'), 'Unknown reset method')
     selected, preserved = reset_inventory(root, request)
+    if request.get('method') == 'fresh-feature-delete-v1':
+        return delete_feature_attempt(root, request, selected, preserved, apply)
     result = {'status': 'preview', 'abandoned': selected, 'preserved': preserved,
               'instruction': 'Install released toolkit; amend/review/ratify constitution; rerun specify, clarification, plan, tasks, analysis and implement. No old partial progress may be reused.'}
     if not apply:

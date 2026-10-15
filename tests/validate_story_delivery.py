@@ -723,6 +723,75 @@ class DeliveryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'exclusive'):
             reset.reset(self.root, damaged)
 
+    def delete_request(self):
+        intake = self.root / '.program-kit/specification-intake/DS01/brief.json'
+        intake.parent.mkdir(parents=True); intake.write_text('{"request":"retained confirmed intent"}')
+        (self.feature / 'contracts').mkdir()
+        (self.feature / 'contracts/api.json').write_text('{"old":"phase output"}')
+        files = [*self.feature.rglob('*'), self.root / 'src/Create.txt', self.root / 'src/Export.txt']
+        return {'method': 'fresh-feature-delete-v1', 'feature': 'specs/001-record',
+            'reviewSource': 'simulated complete owned inventory', 'selectionSource': 'simulated user delete entire unfinished attempt',
+            'files': [{'path': target.relative_to(self.root).as_posix(), 'owner': 'specs/001-record',
+                       'sha256': hashlib.sha256(target.read_bytes()).hexdigest()} for target in files if target.is_file()],
+            'preserve': ['.program-kit/specification-intake/DS01/brief.json']}
+
+    def test_delete_only_restart_removes_entire_spec_and_owned_code_without_content_archive(self):
+        request = self.delete_request()
+        for name in ('web/record/ui.ts', 'tests/record/lifecycle.test.ts'):
+            target = self.root / name; target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text('old exclusively owned generated work')
+            request['files'].append({'path': name, 'owner': request['feature'],
+                                     'sha256': hashlib.sha256(target.read_bytes()).hexdigest()})
+        intake = self.root / request['preserve'][0]; before = intake.read_bytes()
+        shared = self.root / 'src/Shared.txt'; shared.write_text('shared owner')
+        preview = reset.reset(self.root, request)
+        self.assertEqual('preview', preview['status']); self.assertTrue(self.feature.is_dir())
+        with patch.object(reset.shutil, 'copyfile', side_effect=AssertionError('Must not retain old content')):
+            result = reset.reset(self.root, request, True)
+        self.assertEqual('deleted', result['status']); self.assertNotIn('archive', result)
+        self.assertFalse(self.feature.exists())
+        self.assertTrue(all(not (self.root / row['path']).exists() for row in request['files']))
+        self.assertFalse((self.root / '.program-kit/abandoned-features').exists())
+        self.assertEqual(before, intake.read_bytes()); self.assertEqual('shared owner', shared.read_text())
+        self.assertIn('execute specify itself', result['instruction'])
+        self.assertIn('Do not consult or reuse', result['instruction'])
+
+    def test_delete_only_restart_requires_complete_spec_inventory_and_unchanged_inputs(self):
+        request = self.delete_request()
+        alias = copy.deepcopy(request)
+        alias['files'].append({'path': 'specs/001-record/../001-record/spec.md', 'owner': 'specs/001-record',
+                              'sha256': hashlib.sha256((self.feature / 'spec.md').read_bytes()).hexdigest()})
+        with self.assertRaisesRegex(ValueError, 'canonical'):
+            reset.reset(self.root, alias, True)
+        omitted = copy.deepcopy(request); omitted['files'] = [row for row in request['files'] if not row['path'].endswith('api.json')]
+        with self.assertRaisesRegex(ValueError, 'every file'):
+            reset.reset(self.root, omitted, True)
+        self.assertTrue(self.feature.is_dir())
+        (self.root / 'src/Create.txt').write_text('changed after selection')
+        with self.assertRaisesRegex(ValueError, 'changed'):
+            reset.reset(self.root, request, True)
+        self.assertTrue((self.feature / 'spec.md').is_file())
+        self.assertFalse((self.root / '.program-kit/abandoned-features').exists())
+
+    def test_delete_only_cli_removes_attempt_without_an_archive(self):
+        request = self.delete_request()
+        content = self.root / 'delete-request.json'; content.write_text(json.dumps(request))
+        result = subprocess.run([sys.executable, str(Path(delivery.__file__).resolve()), 'reset',
+            '--repository', str(self.root), '--feature-dir', 'specs/001-record', '--content-file', str(content), '--apply'],
+            capture_output=True, text=True, encoding='utf-8', timeout=30)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertEqual('deleted', json.loads(result.stdout)['status'])
+        self.assertFalse(self.feature.exists())
+        self.assertFalse((self.root / '.program-kit/abandoned-features').exists())
+
+    def test_historical_archive_recipe_retains_its_original_behavior(self):
+        request = self.delete_request(); request['method'] = 'fresh-story-delivery-v1'
+        result = reset.reset(self.root, request, True)
+        self.assertEqual('abandoned', result['status'])
+        archive = self.root / result['archive']
+        self.assertTrue(all(hashlib.sha256((archive / row['path']).read_bytes()).hexdigest() == row['sha256']
+                            for row in request['files']))
+
 
 if __name__ == '__main__':
     unittest.main()

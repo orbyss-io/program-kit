@@ -18,6 +18,7 @@ def exercise(project, source_root):
              'docs/architecture/bootstrap-decisions.json', '.specify/integration.json',
              'docs/architecture/reviews/constitution-review.md', 'src/AbandonedStory.txt',
              'tests/AbandonedStory.txt', 'src/SharedStory.txt', 'docs/DeliveredStory.txt',
+             '.program-kit/specification-intake/RESET/brief.json',
              '.program-kit/consumer.lock', 'artifacts/story-reset-request.json', 'artifacts/story-reset-body.md']
     before = {name: (project / name).read_bytes() if (project / name).is_file() else None for name in names}
     feature = project / 'specs/998-fresh-story-reset'
@@ -45,6 +46,7 @@ def _exercise(project, source_root):
     feature = project / 'specs/998-fresh-story-reset'
     feature.mkdir(parents=True)
     relative = feature.relative_to(project).as_posix()
+    prior_archives = set((project / '.program-kit/abandoned-features').glob('998-fresh-story-reset-*'))
     def run(script, *arguments, fail=None):
         result = subprocess.run([sys.executable, '-X', 'utf8', str(scripts / script), *arguments],
                                 cwd=project, capture_output=True, text=True, encoding='utf-8')
@@ -70,6 +72,7 @@ def _exercise(project, source_root):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text('Old feature partial implementation/test; not new progress.', encoding='utf-8')
     preserved = ['docs/architecture/bootstrap-decisions.json', '.specify/extensions/program-kit-governance/extension.yml',
+                 '.program-kit/specification-intake/RESET/brief.json',
                  '.specify/integration.json', 'src/SharedStory.txt', 'docs/DeliveredStory.txt', '.program-kit/consumer.lock']
     for name in preserved:
         target = project / name
@@ -93,17 +96,18 @@ def _exercise(project, source_root):
     run('governance_state.py', 'ratify', '--verdict', 'ratify', '--approval-mode', 'automatic')
     run('task_draft.py', 'delivery', '--feature-dir', relative, '--content-file', str(request_file), fail='Fresh specification')
     selected = [relative + '/' + name for name in ('spec.md', 'plan.md', 'tasks.md')] + ['src/AbandonedStory.txt', 'tests/AbandonedStory.txt']
-    request = {'feature': relative, 'reviewSource': 'simulated explicit inventory review', 'selectionSource': 'simulated exact selected reset',
+    request = {'method': 'fresh-feature-delete-v1', 'feature': relative, 'reviewSource': 'simulated explicit inventory review', 'selectionSource': 'simulated exact selected reset',
         'files': [{'path': name, 'owner': relative, 'sha256': hashlib.sha256((project / name).read_bytes()).hexdigest()} for name in selected],
         'preserve': preserved}
     request_file.write_text(json.dumps(request), encoding='utf-8')
     run('task_draft.py', 'reset', '--feature-dir', relative, '--content-file', str(request_file))
     result = json.loads(run('task_draft.py', 'reset', '--feature-dir', relative, '--content-file', str(request_file), '--apply'))
-    archive = project / result['archive']
-    assert all(not (project / name).exists() and hashlib.sha256((archive / name).read_bytes()).hexdigest() == row['sha256']
-               for name, row in zip(selected, request['files']))
+    assert result['status'] == 'deleted' and 'archive' not in result
+    assert all(not (project / name).exists() for name in selected) and not feature.exists()
+    assert set((project / '.program-kit/abandoned-features').glob('998-fresh-story-reset-*')) == prior_archives
     assert before == {name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in preserved}
     # Fresh phases use the actual installed resolver and native validators, with fictional authoring.
+    feature.mkdir(parents=True)
     from validate_story_delivery import story_tasks
     policy = '<!-- program-kit:story-delivery-v1 -->\n'
     spec = PresetResolver(project).resolve_content('spec-template', 'template')
@@ -126,4 +130,4 @@ def _exercise(project, source_root):
     run('task_draft.py', 'delivery', '--feature-dir', relative, '--content-file', str(request_file))
     run('implementation_preflight.py', '--feature-dir', relative)
     assert not list(feature.glob('*Abandoned*')) and '[X]' not in (feature / 'tasks.md').read_text(encoding='utf-8')
-    print('Installed fresh-story reset: archived old partial work; normal constitution ratification; preserved designated inputs; fresh phase contracts consumed. Simulated humans only.', flush=True)
+    print('Installed fresh-story reset: deleted old partial work without an archive; normal constitution ratification; retained intake/designated inputs; fresh phase contracts consumed. Simulated humans only.', flush=True)

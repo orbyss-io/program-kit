@@ -2,6 +2,27 @@
   "schemaVersion": 1,
   "recipes": [
     {
+      "id": "fresh-feature-delete-v1",
+      "version": 1,
+      "applicability": "Unfinished feature restart adopting the diagnostics patch; execute specify itself and all following phases anew.",
+      "preservedBehavior": "Retain the confirmed specification intake, unchanged accepted product architecture, installed foundations/tooling, exact dependency history and unrelated shared work.",
+      "allowedScope": "Delete the complete selected unfinished specification and all exclusively owned generated implementation/test/frontend/contract files. Reconcile its contributions to shared projects/configuration without deleting other owners' work.",
+      "ordering": [
+        "Install the exact published patch through the supported updater and regenerate all installed Spec Kit phase contributions.",
+        "Inventory the complete old specification and its owned implementation, tests, frontend, contracts and derived build/runtime outputs; distinguish shared contributions and persistent data.",
+        "Use task_draft.py reset with method fresh-feature-delete-v1 and the selected file inventory to delete the complete old specification and owned source files without creating a content archive.",
+        "Remove the old attempt's owned derived outputs through their maintained owners and reconcile obsolete references/registrations; do not retain an active old application bundle or stale check receipt.",
+        "Start a fresh attempt from the retained confirmed intake and current accepted architecture; do not consult old source, archives, Git history or previous attempt transcripts to reconstruct its implementation.",
+        "Execute specify, clarify, plan, tasks, analyze and implement anew using the refreshed installed commands, templates and hooks. Old phase outputs, progress, reviews and test receipts supply no new-attempt authority."
+      ],
+      "verification": [
+        "Entire old specification directory and selected owned implementation files are absent; no content archive was created or supplied as new-attempt input.",
+        "Confirmed intake bytes and designated shared/toolkit/dependency inputs remain unchanged; incomplete inventories and changed/linked inputs fail before deletion.",
+        "New spec.md and all following phase outputs are freshly generated through the installed release; implementation starts with fresh progress and executed evidence."
+      ],
+      "recoveryLimits": "Deletion has no toolkit-created content backup. The concrete selected scope must stay inside the consumer workspace. It does not authorize deletion of unrelated shared work or live data, rewriting published migration history, a dependency transition or publication."
+    },
+    {
       "id": "preimplementation-diagnostics-v1",
       "version": 1,
       "applicability": "Consumers before specification, after specification/clarification, after planning, or after tasks/analysis awaiting implementation; retain supported existing mid-implementation mechanisms.",

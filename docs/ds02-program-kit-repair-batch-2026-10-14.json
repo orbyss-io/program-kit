@@ -115,5 +115,14 @@
     "currentCI": "Full CI38701561630 and mandatory dependency38701630051 were started on d04f540; final ownership-reader follow-up needs current-source validation. Never treat prior-source results as final batch acceptance.",
     "intermediatePackaging": "Final local bundle in artifacts/tests/ds01-repair/ds02-bundle-final contains492 entries below unchanged512 limit and includes the late schema/ownership correction. Packaging proof only, not a release."
   },
-  "consumerHandoff": "Consumer checkout stays read-only. Reconcile customized scaffold seams and test registrations through the separate consumer repair. Existing private executable decisions/edits are preserved; no new worker deployment choice is made here. Original EF lost-response test must independently prove durability/receipt discovery/replay through actual public registration."
+  "consumerHandoff": "Consumer checkout stays read-only. Reconcile customized scaffold seams and test registrations through the separate consumer repair. Existing private executable decisions/edits are preserved; no new worker deployment choice is made here. Original EF lost-response test must independently prove durability/receipt discovery/replay through actual public registration.",
+  "unfinishedFeatureRestart": {
+    "source": "User direction: retain specification intake; run specify itself again; delete the entire previous specification and its generated implementation instead of archiving; do not learn from the archive.",
+    "method": "fresh-feature-delete-v1",
+    "scope": "The consumer agent deletes the complete unfinished feature and all its exclusively owned implementation/test/frontend/contract files, removes owned derived outputs and reconciles shared contributions. This upstream repository does not mutate ClaimEvaluator.",
+    "preserve": "Confirmed intake, current accepted architecture, exact dependency history, unrelated shared work and live data.",
+    "freshInputsOnly": "Do not supply old phase outputs, source, archives, Git history or attempt transcripts as implementation inputs. New spec.md is generated from retained intake; all later phases execute anew with the installed release.",
+    "releaseGuide": "The next patch guide and its new semantic metadata must select fresh-feature-delete-v1, superseding the unfinished-attempt continuation/archiving recommendation. Move unpublished additions out of 0.13.1 and restore its published bytes unchanged. Historical recipes remain historical.",
+    "verification": "Passed: 48 story/reset cases in artifacts/tests/ds01-repair/delete-only-restart-source-ui-tests.log; 21 task-generation cases; 9 release-guidance cases; actual packaged installation, sequential updater, delete-only fresh-phase exercise and destination activation/recovery in delete-only-installed-restart.log and artifacts/consumer-upgrade-package-runs/8bdf7c944253412ba504ade3edcfb2fe. Simulated disposable consumers only; no ClaimEvaluator deletion."
+  }
 }
