@@ -214,6 +214,50 @@ def operation_fixture():
 
 
 class TaskTests(unittest.TestCase):
+    def test_broad_gate_waits_for_selected_test_materialization_preserving_task_graph(self):
+        body = '''# Tasks
+- [ ] T007 Run Affected prerequisite
+- [ ] T009 Produce owned behavior tests
+- [ ] T012 Run Affected story regression
+
+## Operation dependency map
+| Operation | Depends on operations |
+|-----------|-----------------------|
+| create | none |
+
+## Task dependency map
+| Task | Operation | Depends on tasks | Requires | Provides |
+|------|-----------|------------------|----------|----------|
+| T007 | create | none | none | none |
+| T009 | create | T007 | none | none |
+| T012 | create | T009 | none | none |
+
+## Verification obligations
+| Task | Scope | Baseline | Owners | Inputs |
+|------|-------|----------|--------|--------|
+| T007 | Affected | original-baseline | tests/Owned/Owned.csproj | Directory.Build.props |
+| T012 | Affected | original-baseline | tests/Owned/Owned.csproj | Directory.Build.props |
+
+## Test materialization map
+| Owner | Producer | Evidence |
+|-------|----------|----------|
+| tests/Owned/Owned.csproj | T009 | none |
+'''
+        with self.assertRaisesRegex(ValueError, 'premature Affected gate T007.*T009'):
+            draft.validate_operation_graph(body)
+        repaired = body.replace('T007 Run Affected prerequisite', 'T007 Run Focused activation prerequisite').replace(
+            '| T007 | Affected | original-baseline | tests/Owned/Owned.csproj | Directory.Build.props |\n', '')
+        self.assertTrue(draft.validate_operation_graph(repaired))
+        self.assertIn('| T009 | create | T007 |', repaired)
+        self.assertIn('| T012 | create | T009 |', repaired)
+        for damaged, diagnosis in (
+                (repaired.replace('T009 | none |\n', 'T012 | none |\n'), 'premature'),
+                (repaired.replace('T009 | none |\n', 'existing | none |\n'), 'native evidence'),
+                (repaired.replace('## Verification obligations', '## Retired obligations'), 'requires Verification obligations'),
+                (repaired.replace('T012 | Affected |', 'T012 | Focused |'), 'must retain its Affected')):
+            with self.subTest(diagnosis=diagnosis), self.assertRaisesRegex(ValueError, diagnosis):
+                draft.validate_operation_graph(damaged)
+
     def test_migrated_prerequisite_guidance_preserves_eventual_coverage_and_contract_review(self):
         template = ROOT / 'presets/program-kit-governance-preset/templates'
         tasks = (template / 'tasks-governance.md').read_text(encoding='utf-8')

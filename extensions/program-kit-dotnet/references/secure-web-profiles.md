@@ -404,6 +404,61 @@ an application feature.
 
 ## Review and non-claims
 
+Browser presentation is part of application acceptance. Keep authentication machine/API problems
+and `/bff/signed-out` typed JSON as protocol contracts. An application-owned presentation feature
+uses `IAuthenticationErrorWriter` for safe browser callback/access-denied output and provides public
+branded sign-out/recovery pages; Keycloak themes cannot render host callback failures. Use stable
+allowlisted codes, escaped text, accessible field/headings/focus and a validated local restart target.
+The [application presentation example](examples/ApplicationAuthenticationPresentation.cs) demonstrates
+the existing writer and independent cookie-session observation. Register it through the application's
+real HTTP feature and map its public session page separately; qualify against the selected publisher.
+Preserve final private/no-store/no-index/security policies; no route shadowing or private bootstrap
+for anonymous recovery. Inspect actual session state independently of a callback-error URL.
+Bundle the maintained `eng/web/authentication-recovery-focus.ts` into a public owner-local asset
+and pass its actually served shell-relative module path to the presentation example. External code
+preserves the selected CSP without inline scripts and must be available to anonymous recovery.
+Initial autofocus alone can fail behind a provider popup. The module handles pending heading focus
+on document activation/visibility without stealing a user's chosen control; dynamic owner pages
+dispose the previous `focusAuthenticationRecovery` selection before replacing content.
+Retain readable HTML/keyboard recovery without scripts. Test actual application-selected focus after
+returning to the owner window; a test-side heading focus call cannot establish that behavior.
+Where the exact selected publisher exposes initial-login availability recovery, include `/bff/login`
+in the writer's explicit browser-purpose paths. Published Foundation 0.3.4 keeps the writer interface
+and `TryAddSingleton` replacement seam, and additionally routes proven native provider transport,
+document-retrieval and PAR availability failures to 503 `identity_provider_unavailable`. This excludes
+caller cancellation, malformed/client/configuration errors and unmarked or opaque custom transports;
+do not infer availability from exception text or catch every challenge failure as a provider outage.
+
+The remote authentication timeout bounds the entire human flow, including credential entry, MFA
+and consent. Program Kit's omitted default is fifteen minutes; discovery/backchannel HTTP waits
+retain their separate short per-request limits, and native metadata retries can use more than one.
+Preserve explicit overrides and all protocol safeguards. Foundation 0.3.3's package fallback was ten
+seconds; Foundation 0.3.4 defaults to 900 seconds and aligns native nonce lifetime with
+the selected interaction timeout. Exact consumer selection is still required before relying on its contract.
+Test a fresh actual login with human-paced delay, expired-flow rejection/restart and independently
+bounded network failure. Immediate automated credential filling does not prove the interaction window.
+
+Invoke the managed BFF logout adapter from a trusted user gesture, with an explicit application-owned
+`signedOutPath` and a signal independent of cancelled private-view work. Clear private content through
+`onDispatched`. Inspect its `localTermination` result: a postdispatch `unconfirmed` observation needs
+public status/recovery, never restored private content or a claim that logout did not happen. The
+adapter's one monotonic budget bounds its fetches/body reads; provider navigation is separate. Confirmed
+local termination can show a signed-out page even if provider completion is unavailable; say which fact
+is known and offer explicit sign-in. Preserve the possibility that an existing provider session is reused.
+
+Use the selected publisher's supported browser logout destination setting when available and qualified;
+retain its root/non-root success/fallback coverage and JSON status contract. Before that capability is
+selected, a client-owned landing can control the application window but does not fix the publisher's
+hardcoded callback/fallback destinations. Preserve actual antiforgery and local-first session termination.
+Foundation 0.3.4 supplies `Foundation:Web:LogoutLandingPath`: its default remains the
+machine route, while `/` or an admitted application-owned public path selects browser presentation.
+It preserves the captured native authentication path base on success and initiation failure. This
+setting selects a local destination; reaching it or reading its query hint proves neither current
+local session state nor provider-wide termination. Select the exact published/qualified contract
+before relying on this option; do not retrofit it into the retained 0.3.3 profile or shadow its routes.
+Test actual controls/adapter, keyboard/focus/recovery and denied private access after provider failure;
+label raw JSON/status assertions as protocol evidence rather than complete browser acceptance.
+
 The profile must be reviewed when its standards or platform guidance changes, when the browser-app
 draft becomes final, when the runtime/provider/library/deployment model changes, after a relevant
 incident or advisory, for a security-sensitive override, and at least every twelve months. Review

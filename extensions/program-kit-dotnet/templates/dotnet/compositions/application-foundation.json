@@ -42,7 +42,8 @@
       "path": "src/Application.Api/Application.Api.csproj",
       "packageId": "Application.Api",
       "featureIdentity": "Application.Api",
-      "role": "implementation"
+      "role": "implementation",
+      "responsibility": "http"
     },
     "application-web": {
       "kind": "frontend",

@@ -6,6 +6,7 @@ import io
 import re
 from pathlib import Path
 import shlex
+import shutil
 import sys
 import tempfile
 import unittest
@@ -17,6 +18,110 @@ sys.path.insert(0,str(ROOT/'extensions/program-kit-building-blocks/scripts'))
 import update_dependency_profiles as profiles
 import publisher_knowledge as knowledge
 import dependency_maintenance as maintenance
+
+
+class ProfilePreparationTests(unittest.TestCase):
+    """Prepare isolated candidates; no public qualification or adoption is claimed."""
+    def setUp(self):
+        evidence=ROOT/'artifacts/tests/dependency-workflows'
+        evidence.mkdir(parents=True,exist_ok=True)
+        self.temporary=tempfile.TemporaryDirectory(dir=evidence)
+        self.addCleanup(self.temporary.cleanup)
+        self.registry=Path(self.temporary.name)/'registry'
+        shutil.copytree(profiles.REGISTRY,self.registry)
+        self.registry_patch=patch.object(profiles,'REGISTRY',self.registry)
+        self.registry_patch.start(); self.addCleanup(self.registry_patch.stop)
+        self.index=profiles.blocks.load_json(self.registry/'index.json')
+        self.base=profiles.blocks.default_catalog(Path(profiles.blocks.__file__))
+        self.current,self.selected=profiles.blocks.qualified_dependency_profile(
+            self.registry,self.index['default'],profiles.blocks.load_json(self.base))
+        self.historical={path.relative_to(self.registry):path.read_bytes()
+                         for path in self.registry.rglob('*') if path.is_file()}
+        self.latest={family:'99.0.0' for family in self.current['families']}
+        self.exporter='99.0.1'
+
+    def observed(self,pin,cache):
+        if pin['name']=='Orbyss.Foundation.OpenApi.Exporter': return {'latest':self.exporter}
+        family=next(family for family,details in maintenance.read_json(ROOT/'maintenance-policy.json')['families'].items()
+                    if details==pin['name'])
+        return {'latest':self.latest[family]}
+
+    def prepare(self):
+        with patch.object(profiles.maintenance,'observe',side_effect=self.observed), \
+                patch.object(profiles,'require_published_foundation',return_value={'commit':'a'*40,'workflow':'https://example.invalid/release'}), \
+                patch.object(profiles,'sync_publisher_engineering') as sync:
+            return profiles.prepare(),sync
+
+    def assert_history_preserved(self):
+        for relative,content in self.historical.items():
+            self.assertEqual(content,(self.registry/relative).read_bytes(),str(relative))
+
+    def test_update_preserves_admitted_rules_and_immutable_history(self):
+        directory,sync=self.prepare()
+        target=profiles.blocks.load_json(directory/'catalog.json')
+        selected=profiles.blocks.load_json(directory/'profile.json')
+        self.assertEqual(self.current['resolutionRevision']+1,target['resolutionRevision'])
+        for field in ('capabilities','compositions','sources'):
+            self.assertEqual(self.current[field],target[field],field)
+        self.assertEqual(set(self.current['packages']),set(target['packages']))
+        for key,package in self.current['packages'].items():
+            self.assertEqual({field:value for field,value in package.items() if field!='version'},
+                             {field:value for field,value in target['packages'][key].items() if field!='version'},key)
+            self.assertEqual(self.exporter if package['packageId']=='Orbyss.Foundation.OpenApi.Exporter'
+                             else self.latest[package['family']],target['packages'][key]['version'],key)
+        for key,family in self.current['families'].items():
+            self.assertEqual({field:value for field,value in family.items() if field not in {'releaseVersion','toolVersions'}},
+                             {field:value for field,value in target['families'][key].items() if field not in {'releaseVersion','toolVersions'}},key)
+        self.assertEqual(self.exporter,selected['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter'])
+        self.assert_history_preserved()
+        sync.assert_called_once_with(selected)
+        state=profiles.blocks.load_json(directory/'state.json')
+        self.assertEqual('prepared',state['status'])
+        self.assertEqual(self.base.read_bytes(),(self.registry/state['snapshot']['base']['path']).read_bytes())
+        # The new bound target must remain applicable from the maintained base.
+        admitted=profiles.blocks.dependency_profile_catalog(self.registry,{'catalogSnapshot':state['snapshot']},profiles.blocks.load_json(self.base))
+        self.assertEqual(target,profiles.blocks.materialize_dependency_profile(admitted,selected))
+
+    def test_current_public_versions_do_not_create_duplicate_candidate(self):
+        self.latest={family:details['releaseVersion'] for family,details in self.selected['families'].items()}
+        self.exporter=self.selected['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter']
+        directory,sync=self.prepare()
+        self.assertIsNone(directory)
+        sync.assert_called_once_with(self.selected)
+        self.assert_history_preserved()
+        self.assertEqual(set(self.historical),{path.relative_to(self.registry) for path in self.registry.rglob('*') if path.is_file()})
+
+    def test_retained_candidate_reuses_only_the_current_exact_contracts(self):
+        directory,_=self.prepare()
+        self.assertEqual(directory,self.prepare()[0])
+        catalog_bytes=(directory/'catalog.json').read_bytes()
+        retained=profiles.blocks.load_json(directory/'catalog.json')
+        retained['compositions']['hosted_pages']['notes'].append('unreviewed ownership change')
+        profiles.write(directory/'catalog.json',retained)
+        original=(directory/'catalog.json').read_bytes()
+        with self.assertRaisesRegex(profiles.blocks.ResolverError,'PKB610.*hosted_pages'):
+            self.prepare()
+        self.assertEqual(original,(directory/'catalog.json').read_bytes())
+        (directory/'catalog.json').write_bytes(catalog_bytes)
+        selected=profiles.blocks.load_json(directory/'profile.json')
+        selected['artifacts']['nuget:Orbyss.Foundation.Web.HostedPages']='99.0.2'
+        profiles.write(directory/'profile.json',selected)
+        original=(directory/'profile.json').read_bytes()
+        with self.assertRaisesRegex(ValueError,'conflicts with current contracts or publisher versions'):
+            self.prepare()
+        self.assertEqual(original,(directory/'profile.json').read_bytes())
+        self.assert_history_preserved()
+
+    def test_changed_qualified_history_blocks_before_observation_or_writes(self):
+        entry=self.index['profiles'][self.index['default']]
+        profile=self.registry/entry['path']
+        profile.write_bytes(profile.read_bytes()+b' ')
+        with patch.object(profiles.maintenance,'observe') as observe, \
+                patch.object(profiles,'sync_publisher_engineering') as sync:
+            with self.assertRaisesRegex(profiles.blocks.ResolverError,'PKB611.*qualified profile changed'):
+                profiles.prepare()
+        observe.assert_not_called(); sync.assert_not_called()
+        self.assertEqual(set(self.historical),{path.relative_to(self.registry) for path in self.registry.rglob('*') if path.is_file()})
 
 
 class WorkflowTests(unittest.TestCase):

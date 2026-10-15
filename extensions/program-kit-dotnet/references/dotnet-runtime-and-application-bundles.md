@@ -55,6 +55,32 @@ leaves runtime-closure evidence unsatisfied and retains any previous output unti
 
 ## Application release bundle
 
+### Owned build outputs
+
+Declare ordinary CLR edges in `projectReferences`. An evaluated `ReferenceOutputAssembly=false`
+or analyzer `OutputItemType` is a build edge, declared separately in `buildProjectReferences`.
+Both edge kinds participate in cycle checks, affected-project selection and source freshness;
+only CLR edges authorize compiled assembly references. Inspect actual PE metadata through the
+maintained `assembly_graph` reader; do not `Assembly.Load` private executable dependencies in an
+architecture test. Existing runtime-closure staging exclusions for build-only references remain.
+
+When an owner must carry an owned producer's derived files, declare `buildOutputCopies` on that
+owner in `eng/architecture.json`, with exact `project` and `directory: tools/<owned-subdirectory>`.
+Preview the closed XML with `python eng/build_output_recipe.py --project <owner.csproj>` and
+reconcile it through normal project editing. It publishes the declared build-only producer into
+an owner-private intermediate directory before SDK content enumeration, replaces only its owned
+output subtree, preserves nested payload/notices, exposes transitive content and includes the
+same bytes in the package. No extra task/property/item is exempt merely because a copy is declared.
+Custom output/RID layouts require a separately qualified evaluated adapter; do not broaden globs
+or waive unknown build tasks. Clean/incremental builds, source changes, renamed/removed files,
+transitive test output, package layout and compiled references require actual SDK evidence.
+
+This recipe does not choose a process boundary or provide a worker runtime. A normal application
+library may reference a PDF package directly. Multi-assembly runtime loading reported with PdfPig
+is tracked in [Nuplane issue 132](https://github.com/valence-works/nuplane/issues/132); do not force
+isolation, replace a parser or alter package bytes/pins to hide that loader failure. Untrusted-parser
+qualification remains the consumer owner's separate responsibility.
+
 One application release produces an application-bundle.zip, not a consumer Docker image.
 Run the unchanged, digest-pinned `ghcr.io/orbyss-io/foundation-host` published by Foundation.
 Only the Foundation publisher builds that image. Consumers build packable features, not a host

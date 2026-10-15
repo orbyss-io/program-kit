@@ -40,6 +40,7 @@ BUNDLE_RUNTIME_SCRIPTS = {
     "scripts/openapi_upgrade_reconciliation.py",
     "scripts/upgrade_program_kit.py",
     "scripts/retired_sync_integration.py",
+    "scripts/native_phase_ownership.py",
 }
 
 

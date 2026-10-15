@@ -23,7 +23,6 @@ import profile_catalogs
 import dependency_maintenance as maintenance
 
 REGISTRY = blocks.profile_registry()
-BLUEPRINT = REGISTRY/'catalogs/foundation-0-3-0-settings-v2/target-da6726d988f1dfdd912d2c0e28c56d4bf0498ae188dc45dda17c0f69b8893732.json'
 
 
 def write(path,value): maintenance.write_json(path,value)
@@ -75,7 +74,13 @@ def require_published_foundation(version):
 
 
 def prepare():
-    target=blocks.load_json(BLUEPRINT)
+    base=blocks.default_catalog(Path(blocks.__file__))
+    index=blocks.load_json(REGISTRY/'index.json')
+    current_entry=index['profiles'][index['default']]
+    current_catalog,current=blocks.qualified_dependency_profile(REGISTRY,index['default'],blocks.load_json(base))
+    # Evolve the admitted current contracts, not a historical release's rules.
+    # The qualifier also verifies the retained snapshot, profile and evidence.
+    target=copy.deepcopy(current_catalog)
     families={}
     representatives={'foundation':'Orbyss.Foundation.WebDefaults','foundation-build':'Orbyss.Foundation.Build',
                      'forms':'Orbyss.Forms.Abstractions','localization':'Orbyss.Localization.Abstractions'}
@@ -88,12 +93,10 @@ def prepare():
     for package in target['packages'].values():
         package['version']=exporter if package['packageId']=='Orbyss.Foundation.OpenApi.Exporter' else families[package['family']]
     target['resolutionRevision']+=1
-    blocks.validate_catalog(target)
+    blocks.validate_additive_profile_catalog(current_catalog,target)
+    blocks.validate_additive_profile_catalog(blocks.load_json(base),target)
     identity='foundation-'+families['foundation']+'-build-'+families['foundation-build']+'-exporter-'+exporter+'-forms-'+families['forms']+'-localization-'+families['localization']
     # A new qualification never replaces a registered historical identity.
-    index=blocks.load_json(REGISTRY/'index.json')
-    current_entry=index['profiles'][index['default']]
-    current=blocks.load_json(REGISTRY/current_entry['path'])
     if current['families']==profile_families(target) and current_entry.get('knowledge'):
         sync_publisher_engineering(current)
         blocks.qualified_dependency_profile(REGISTRY,current['id'],blocks.load_json(blocks.default_catalog(Path(blocks.__file__))))
@@ -103,11 +106,14 @@ def prepare():
     directory=REGISTRY/'candidates'/identity
     if directory.exists():
         existing=blocks.load_json(directory/'profile.json')
-        if existing['families']!=profile_families(target): raise ValueError('Existing candidate identity conflicts with publisher versions')
+        retained=blocks.load_json(directory/'catalog.json')
+        blocks.validate_additive_profile_catalog(current_catalog,retained)
+        if (existing!=blocks.dependency_profile_value(target,identity)
+                or retained!=target):
+            raise ValueError('Existing candidate identity conflicts with current contracts or publisher versions')
         sync_publisher_engineering(existing)
         return directory
     directory.mkdir(parents=True)
-    base=blocks.default_catalog(Path(blocks.__file__))
     target_path=directory/'catalog.json'; write(target_path,target)
     snapshot=profile_catalogs.prepare(base,target_path,REGISTRY,'candidate-'+uuid.uuid4().hex[:8])
     profile=blocks.dependency_profile_value(target,identity)

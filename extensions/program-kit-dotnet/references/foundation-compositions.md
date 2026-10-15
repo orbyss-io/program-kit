@@ -14,6 +14,22 @@ bind separate databases on a shared server, and multiple applications can use on
 authority with separate registrations and audiences. This supplies no aggregate C#
 project or consumer host. Feature and context sources are consumer-owned after scaffold.
 
+An `implementation` project may own runtime services or HTTP; the role alone does not select
+an endpoint seam. Feature resources use `responsibility: "runtime"` or `"http"` for explicit
+new intent. Retained projects may obtain that distinction from their accepted architecture
+responsibilities; conflicting or missing authority rejects before writes. Runtime gets a named
+`IShellFeature`, while HTTP gets `IWebShellFeature`. Providers retain their persistence seam.
+Changing the CLR name preserves the exact `featureIdentity`/ShellFeature string and package owner.
+
+Use optional `capabilityPackages` only for selected Foundation package IDs actually consumed by
+that feature. Accepted native per-project selections also contribute their packages. This field
+selects no version and cannot admit an unselected dependency; it does not copy every shell web
+package into each runtime project. An architecture package inventory containing obsolete scaffold
+references is not evidence of capability use. Preserve native pins, meaningful selected activations
+and consumer customizations. Untouched authenticated scaffold contributions reconcile through normal
+sync; a customized obsolete ApiFeature that would duplicate the identity requires scoped source
+correction before managed writes. Do not reset owned code or locks to force reconciliation.
+
 Branding is consumer-owned authoring data. During migration, retain the existing
 identity display name/accent in `identityAuthority.theme.branding` and each frontend's
 localized title, purpose, loading, failure, no-script and logo alternative text in
@@ -41,12 +57,33 @@ consumer tooling and build/execute the actual activation tests. Preserve unrelat
 locks; do not remove `PrivateAssets="all"` from feature projects to make tests compile.
 Native host readiness complements these consumer registration/preparation assertions.
 
+Record each planned test responsibility's actual direct uses in `testSeams` in
+`eng/architecture.json`: `shell-lifecycle` requires only CShells.Abstractions;
+`api-feature` and shell `activation` require both contracts; `pure-core` adds neither.
+This mapping is bounded to those public seams. Missing or unsupported selected test use
+is unresolved, not permission to add blanket dependencies. Keep production PrivateAssets.
+For a new declared test owner, `python eng/test_project.py --project <csproj>` previews
+the project and synchronized inventory, bound to the accepted central pins. Apply with
+`--apply-digest <reviewed digest>`. It creates no behavioral assertions and cannot replace
+an existing consumer project; actual restore, locked dependency review, build and tests
+remain required. Existing tests receive only reviewed demonstrably needed direct references.
+
 During task reconciliation, match planned test owners to actual projects. Reviewed unused
 empty scaffolds can be archived with their locks and declared successor ownership in
 `eng/verification.json`; do not create empty tests to make a broad gate green. Use named
 Focused activation and architecture tests plus real browser/build checks as prerequisites,
 then run Affected from the retained implementation baseline once descendant behavior tests
 exist. Preserve task IDs, effort, historical failures and story human reviews.
+
+After reviewed archival, preview `python eng/repository_verification.py --reconcile-owners`.
+Its explicit `testOwnershipReplacements` resolve stale owners in verification.json,
+verification.setup.json and authored verification-inputs.json rules. Missing, active,
+ambiguous or cyclic replacements fail. Apply only the reviewed plan with
+`--reconcile-owners --apply-digest <digest>` through the installed native sync transaction.
+Authored input/check rules, archive bytes, planned project identities and failed-run evidence
+remain intact; fresh unfiltered successor regression must repay retained failure obligations.
+Runtime selection also normalizes setup/testGroups through these same explicit successors.
+Neither reconciliation nor a Focused prerequisite proves eventual broad acceptance.
 
 Offline OpenAPI export composes metadata, not provider initialization. Effect-only provider
 scaffolds emit `FoundationComposeForOpenApi=false`; apply the same reviewed metadata to
@@ -107,3 +144,35 @@ Local insecure BFF applications require distinct browser hostnames because ports
 not isolate the pinned publisher's cookies. HTTP/TLS routing/certificate capabilities
 must be qualified for the actual environment. Private imports/personas are synthetic
 Development inputs, not production authority provisioning.
+
+Retained private Development/Test filesystem storage uses a `privateFiles` resource
+with its architecture `ownerRef`, an environment `directory` outside source, runtime,
+package and public asset trees, and a binding with `filesRef`, `hostRef`, `shellRef`,
+`featureRef` and `setting`. Optional `section` defaults to `EvidenceFiles` for retained
+consumers. It supplies owner configuration through normal CShells configuration and
+a writable `/private-evidence/<resource-id>` bind with `create_host_path: false`.
+It creates no storage capability port or production/cloud policy; the selected owner
+implements its accepted port and validates writable availability at activation.
+Explicit `prepare` first provisions a dedicated directory and records its identity in
+existing lifecycle state. Repeated preparation, updates and restarts retain it. A lost
+or relocated previously bound directory stops setup; restore it or perform an explicit
+owned data migration. Existing operator-provisioned permissions are preserved. On
+POSIX, only a newly created empty directory is initialized for the selected immutable
+Host's actual UID and the provisioning user's group; existing data is never recursively
+chowned. Private bytes never enter package stages, public manifests or archives.
+
+Run and update wait for only the selected hosts' managed database/identity services
+without recreating their containers before host activation. External endpoints retain
+their qualified readiness obligations. A source-only no-op `update` remains a no-op;
+select `--host <id>` explicitly to recover a stopped host/dependency without source changes.
+Prepared bundles recorded in `pendingActivationHosts` are separate activation work:
+plain `update` activates them even when source and prepared closure already match. A selected
+host update retains other pending entries. Readiness clears an entry only after actual HTTP
+and browser checks pass; failed activation remains due for retry.
+
+Provider placement alone does not select persistence. An explicit `responsibility: runtime`
+provider registers its owner services through `IShellFeature`, using the retained `ProviderFeature`
+CLR name and exact `ShellFeature` identity. Database bindings require a persistence owner and
+select its context, packages and Prepare contribution. An ordinary file/decoder provider must
+not acquire a database context, database Prepare work or HTTP/authentication packages. Historical
+captures without an explicit provider responsibility retain their original persistence meaning.

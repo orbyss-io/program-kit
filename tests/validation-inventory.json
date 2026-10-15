@@ -2,14 +2,73 @@
   "schemaVersion": 1,
   "checks": [
     {
-      "id": "validate_schema_role_grants",
-      "command": ["{python}", "tests/validate_schema_role_grants.py"],
-      "group": "release", "needs": ["validate_postgresql_service"], "platforms": ["Windows", "Linux"],
-      "purpose": "Reproduce application-role schema/journal denial and exact scoped administrator grants; unrelated tables stay denied and owned cleanup must complete.",
-      "owner": "program-kit",
-      "inputs": ["extensions/program-kit-dotnet/references/persistence-runtimes.json", "extensions/program-kit-dotnet/references/persistence-profiles.md", "tests/validate_schema_role_grants.py"],
-      "outputs": ["artifacts/tests/schema-role-grants"], "resources": ["docker"],
-      "isolation": "Unique disposable exact-image PostgreSQL container; no consumer data, startup schema creation or coding agent."
+      "id": "validate_authentication_presentation",
+      "command": ["{python}", "tests/validate_authentication_presentation.py", "--unit"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Qualified selected-profile resolution and exact archive/version/native-byte admission for the application-owned authentication presentation example.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_authentication_presentation.py", "tests/fixtures/authentication-presentation/**", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/authentication-recovery-focus.ts", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication-recovery-focus.spec.ts"],
+      "outputs": ["artifacts/tests/authentication-presentation"], "resources": [],
+      "isolation": "Synthetic archive admission only; no package restore, browser launch, coding agent or consumer authority."
+    },
+    {
+      "id": "validate_label_validation",
+      "command": ["{python}", "tests/validate_label_validation.py", "--unit"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Closed normalization-aware label descriptor/generator admission and deterministic staleness checks; preserves Core ownership and UTF-16 semantics.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/label_validation.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json", "tests/validate_label_validation.py", "tests/fixtures/label-validation/**"],
+      "outputs": ["artifacts/tests/validation-parity"], "resources": [],
+      "isolation": "Synthetic owned metadata and generated code; no consumer edits, runtime package changes or coding agents."
+    },
+    {
+      "id": "validate_native_phase_ownership",
+      "command": ["{python}", "tests/validate_native_phase_ownership.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Exact native extension/preset source and generated output ownership, customization refusal, secondary integrations and immutable archived-source witnesses before upgrade mutation.",
+      "owner": "program-kit", "inputs": ["scripts/native_phase_ownership.py", "scripts/upgrade_program_kit.py", "extensions/program-kit-governance/references/native-phase-source-baselines.json", "tests/validate_native_phase_ownership.py"],
+      "outputs": ["artifacts/tests/phase-refresh"], "resources": [], "isolation": "Disposable real native Spec Kit installations; no user customizations overwritten or consumer authority created."
+    },
+    {
+      "id": "validate_operation_recovery",
+      "command": ["{python}", "tests/validate_operation_recovery.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Maintained recovery example retains server identity through missing receipts/response loss and admits correction only for owner-defined confirmed no-effect outcomes; validation parity.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-governance/references/operation-recovery-example.mjs", "extensions/program-kit-governance/references/ui-feedback-and-recovery.md", "tests/validate_operation_recovery.py"],
+      "outputs": [], "resources": [], "isolation": "Actual semantic transition example; no consumer server/browser acceptance or coding agent."
+    },
+    {
+      "id": "validate_test_dependencies",
+      "command": ["{python}", "tests/validate_test_dependencies.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Responsibility-derived selected direct test contracts, pure Core exclusions and reviewed new-project scaffolding with selected-pin admission before source creation.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_project.py", "tests/validate_test_dependencies.py"],
+      "outputs": [], "resources": [], "isolation": "Disposable test-owner inventories and new project previews; no consumer source overwrite or lock/pin change."
+    },
+    {
+      "id": "validate_phase_refresh",
+      "command": ["{python}", "tests/validate_phase_refresh.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Native all-phase integration refresh in four pre-implementation states, secondary integration composition and customization refusal without artifact or authority reset.",
+      "owner": "program-kit", "inputs": ["scripts/upgrade_program_kit.py", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "presets/**", "tests/validate_phase_refresh.py"],
+      "outputs": ["artifacts/tests/phase-refresh"], "resources": [],
+      "isolation": "Disposable native Spec Kit consumers and fictional retained phase artifacts; no agent, services or real consumer edits."
+    },
+    {
+      "id": "validate_wire_capabilities",
+      "command": ["{python}", "tests/validate_wire_capabilities.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Selected immutable capability projection, planned error coverage, closed problem fields, numeric binding diagnostics and producer admission constraints.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-building-blocks/scripts/wire_capabilities.py", "extensions/program-kit-building-blocks/scripts/building_blocks.py", "extensions/program-kit-building-blocks/scripts/dependency_context.py", "extensions/program-kit-building-blocks/references/**", "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi*", "tests/validate_wire_capabilities.py"],
+      "outputs": ["artifacts/tests/wire-capabilities"], "resources": [],
+      "isolation": "Bounded selected-profile and structural validator fixtures; planning does not claim runtime proof."
+    },
+    {
+      "id": "validate_web_identity",
+      "command": ["{python}", "tests/validate_web_identity.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Actual persona loader and validated canonical identity resolution with alternate resources/realms, legacy consumer-root fallback and private diagnostics.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/web_identity.py", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/**", "tests/validate_web_identity.py"],
+      "outputs": ["artifacts/tests/composition-tooling"], "resources": [],
+      "isolation": "Disposable typed compositions and actual Node loader; no credentials or live identity server."
     },
     {
       "id": "validate_composition_tooling",
@@ -25,9 +84,9 @@
       "id": "validate_numeric_schema",
       "command": ["{python}", "tests/validate_numeric_schema.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
-      "purpose": "Reproduce ASP.NET default numeric-schema mismatch, retain Foundation numeric-string rejection and verify profile/scoped DTO schema candidates without changing baselines or approval.",
+      "purpose": "Reproduce numeric-schema mismatch, execute exact selected official exporter, bounded problem writer and strict parser, generate actual TypeScript, and block unsupported nullable numeric promises without changing baselines or approval.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_numeric_schema.py", "tests/fixtures/composition-numeric/**"],
+      "inputs": ["extensions/program-kit-building-blocks/references/dependency-profiles/**", "extensions/program-kit-dotnet/templates/dotnet/files/global.json", "extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc", "extensions/program-kit-dotnet/templates/dotnet/files/.npm-version", "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi-defaults.json", "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolchain.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_qualification.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/oasdiff_cli.py", "extensions/program-kit-governance/scripts/windows_workflow_path.py", ".python-version", "tests/validate_numeric_schema.py", "tests/fixtures/composition-numeric/**"],
       "outputs": ["artifacts/tests/numeric-schema"], "resources": [],
       "isolation": "Unique disposable compiler probe and loopback ASP.NET schema producer with existing selected public pins; no Foundation host/provider or product contract approval."
     },
@@ -47,7 +106,7 @@
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Bounded story/early review progression, scoped deferrals, roles and authenticated reference shapes, freshness, no-hook closure/handoff and deterministic active clocks; simulated humans only.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-governance/**", "presets/program-kit-governance-preset/**", "tests/validate_story_delivery.py"],
+      "inputs": ["extensions/program-kit-governance/**", "extensions/program-kit-dotnet/scripts/composition_model.py", "presets/program-kit-governance-preset/**", "tests/validate_story_delivery.py", "tests/composition_fixture.py"],
       "outputs": [], "resources": [],
       "isolation": "Temporary fictional consumers and recorded GitHub response shapes; no real human acceptance, coding agents, posting, monitoring or real consumer reset."
     },
@@ -1233,6 +1292,7 @@
         "THIRD-PARTY-NOTICES.md",
         ".github/**",
         "tests/validate_architecture_recipe.py",
+        "tests/build_output_recipe_cases.py",
         "tests/fixtures/foundation-consumer-contracts/baseline/mixed-workbench-architecture.json",
         "docs/**",
         "releases/**"
@@ -4084,6 +4144,24 @@
       ]
     },
     {
+      "id": "validate_authentication_presentation_native",
+      "command": ["{python}", "tests/validate_authentication_presentation.py", "--execute", "--engines={engines}"],
+      "group": "release", "needs": ["validate_authentication_presentation", "ui-browser"], "platforms": ["Windows", "Linux"],
+      "purpose": "Compile the owner error/landing example against current qualified exact Foundation pins, verify machine problem compatibility, and exercise branded/focused keyboard recovery in actual browsers.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_authentication_presentation.py", "tests/fixtures/authentication-presentation/**", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/authentication-recovery-focus.ts", "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication-recovery-focus.spec.ts"],
+      "outputs": ["artifacts/tests/authentication-presentation"], "resources": ["browser-runtime"],
+      "isolation": "Disposable selected-package restore and compiled provider-free presentation/cookie-service fixture. No selected Host, provider login, correlation-expiry or consumer UI acceptance claim."
+    },
+    {
+      "id": "validate_label_validation_native",
+      "command": ["{python}", "tests/validate_label_validation.py", "--execute", "--engines={engines}"],
+      "group": "release", "needs": ["validate_label_validation", "ui-browser"], "platforms": ["Windows", "Linux"],
+      "purpose": "Actual Core/exported-descriptor/generated-JS parity, native API rejection and real clipboard input preservation, error and zero-request regression under selected engines.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/label_validation.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json", "tests/validate_label_validation.py", "tests/fixtures/label-validation/**"],
+      "outputs": ["artifacts/tests/validation-parity"], "resources": ["browser-runtime"],
+      "isolation": "Disposable compiled fixture/server and synthetic browser input; no real consumer acceptance claim, paid provider or coding agent."
+    },
+    {
       "id": "validate_bootstrap_compatibility",
       "command": [
         "{python}",
@@ -4504,6 +4582,32 @@
         "browser-runtime"
       ],
       "isolation": "Unique fictional consumer/Compose project and retained owned volumes; zero paid providers or coding agents. Prepared host evidence is not a clean OS claim."
+    },
+    {
+      "id": "validate_browser_launch",
+      "command": ["{python}", "tests/validate_browser_launch.py", "--engines={engines}"],
+      "group": "release", "needs": ["ui-browser"], "platforms": ["Windows", "Linux"],
+      "purpose": "Actual selected engine launch/close evidence, exact plan/cache binding, failure before readiness and bounded redacted diagnostics.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/web/composition-readiness.mjs", "tests/validate_browser_launch.py"],
+      "outputs": ["artifacts/tests/browser-launch"], "resources": ["browser-runtime"], "isolation": "Actual installed browser engines and a disposable nonlaunchable executable; no product or agent sessions."
+    },
+    {
+      "id": "validate_hosted_palette",
+      "command": ["{python}", "tests/validate_hosted_palette.py", "--engines={engines}"],
+      "group": "release", "needs": ["ui-browser"], "platforms": ["Windows", "Linux"],
+      "purpose": "Hash-verified selected Foundation renderer and native Vite CSS contrast/focus in all themes/modes/states; axe in enabled-script states, actual no-script semantics and scoped before/after timings.",
+      "owner": "program-kit", "inputs": ["extensions/program-kit-dotnet/templates/dotnet/hosted-pages/**", "extensions/program-kit-building-blocks/references/dependency-profiles/**", "tests/validate_hosted_palette.py", "tests/fixtures/hosted-palette/**"],
+      "outputs": ["artifacts/tests/hosted-palette"], "resources": ["browser-runtime"], "isolation": "Disposable exact selected renderer build, native Vite and real browsers; renderer seam only, no full package-host activation or consumer acceptance."
+    },
+    {
+      "id": "validate_schema_role_grants",
+      "command": ["{python}", "tests/validate_schema_role_grants.py"],
+      "group": "release", "needs": ["validate_postgresql_service"], "platforms": ["Windows", "Linux"],
+      "purpose": "Reproduce application-role schema/journal denial and exact scoped administrator grants; unrelated tables stay denied and owned cleanup must complete.",
+      "owner": "program-kit",
+      "inputs": ["extensions/program-kit-dotnet/references/persistence-runtimes.json", "extensions/program-kit-dotnet/references/persistence-profiles.md", "tests/validate_schema_role_grants.py"],
+      "outputs": ["artifacts/tests/schema-role-grants"], "resources": ["docker"],
+      "isolation": "Unique disposable exact-image PostgreSQL container; no consumer data, startup schema creation or coding agent."
     }
   ],
   "groups": {

@@ -18,6 +18,231 @@ def example():
 
 
 class ResourceModel(unittest.TestCase):
+    def ordinary_provider_graph(self, database=True, declared=True):
+        graph = example()
+        if not database:
+            removed = {name for name, row in graph['resources'].items() if row['kind'] in {'database', 'databaseServer'}
+                       or row['kind'] == 'feature' and row['role'] == 'provider'}
+            graph['resources'] = {name: row for name, row in graph['resources'].items() if name not in removed}
+            graph['bindings'] = [row for row in graph['bindings'] if not (set(row.values()) & removed)]
+            for env in graph['environments'].values():
+                for name in removed:
+                    env['resources'].pop(name, None)
+        graph['resources']['files-provider'] = {'kind': 'feature', 'path': 'src/Evidence.Files/Evidence.Files.csproj',
+            'packageId': 'Evidence.Files', 'featureIdentity': 'Existing.FilesIdentity', 'role': 'provider'}
+        if declared:
+            graph['resources']['files-provider']['responsibility'] = 'runtime'
+        graph['bindings'].append({'kind': 'featureShell', 'featureRef': 'files-provider', 'shellRef': 'application-shell'})
+        return graph
+
+    def test_non_database_provider_uses_native_shell_feature_without_foreign_dependencies(self):
+        import composition_render as renderer
+        import xml.etree.ElementTree as ET
+        with tempfile.TemporaryDirectory() as temporary:
+            files = renderer.materialize(Path(temporary), self.ordinary_provider_graph(database=False),
+                                         ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+        source = files['src/Evidence.Files/ProviderFeature.cs'][0].decode()
+        self.assertIn('ProviderFeature : IShellFeature', source)
+        self.assertIn('ShellFeature("Existing.FilesIdentity")', source)
+        self.assertNotIn('Prepare', source); self.assertNotIn('DbContext', source); self.assertNotIn('MapEndpoints', source)
+        project = ET.fromstring(files['src/Evidence.Files/Evidence.Files.csproj'][0])
+        self.assertEqual({'CShells.Abstractions'}, {row.get('Include') for row in project.iter('PackageReference')})
+        self.assertFalse(list(project.iter('FrameworkReference')))
+        self.assertFalse(any(name.endswith('Prepare.cs') for name in files))
+        contract = json.loads(files['eng/foundation-settings.contract.json'][0])
+        self.assertNotIn('Orbyss.Foundation.PostgreSql', contract['packages'])
+
+    def test_mixed_database_and_ordinary_provider_select_only_actual_capabilities(self):
+        import composition_render as renderer
+        import xml.etree.ElementTree as ET
+        graph = self.ordinary_provider_graph()
+        graph['resources']['files-provider']['capabilityPackages'] = ['Orbyss.Foundation.Execution']
+        with tempfile.TemporaryDirectory() as temporary:
+            files = renderer.materialize(Path(temporary), graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+        provider = files['src/Evidence.Files/ProviderFeature.cs'][0].decode()
+        self.assertIn('DependsOn = ["Orbyss.Foundation.Execution"]', provider)
+        self.assertNotIn('PostgreSql', provider)
+        self.assertEqual({'CShells.Abstractions', 'Orbyss.Foundation.Execution'},
+                         {row.get('Include') for row in ET.fromstring(files['src/Evidence.Files/Evidence.Files.csproj'][0]).iter('PackageReference')})
+        database_project = next(row['path'] for name, row in graph['resources'].items()
+                                if row['kind'] == 'feature' and row['role'] == 'provider' and name != 'files-provider')
+        self.assertIn('AddFoundationPostgreSql', files[(Path(database_project).parent / 'ProviderFeature.cs').as_posix()][0].decode())
+        ownership = json.loads(files['eng/architecture.json'][0])['runtimeComposition']['projects']
+        self.assertEqual(['owned runtime capability registration'], next(row for row in ownership if row['path'] ==
+                         'src/Evidence.Files/Evidence.Files.csproj')['responsibilities'][0]['effects'])
+
+    def test_reviewed_runtime_provider_is_not_coerced_to_persistence(self):
+        graph = self.ordinary_provider_graph(declared=False)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); (root / 'eng').mkdir()
+            (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [{
+                'path': 'src/Evidence.Files/Evidence.Files.csproj', 'role': 'provider',
+                'responsibilities': [{'name': 'Owned files adapter', 'kind': 'runtime', 'effects': ['owned file access']}]}]}}))
+            self.assertEqual('runtime', model.project_definition(graph['resources']['files-provider'], root)['responsibility'])
+
+    def test_database_binding_cannot_silently_convert_runtime_provider(self):
+        graph = self.ordinary_provider_graph()
+        graph['bindings'].append(dict(next(row for row in graph['bindings'] if row['kind'] == 'databaseProvider'),
+                                      featureRef='files-provider', context='FilesContext', policy='files'))
+        with self.assertRaisesRegex(ValueError, 'runtime-only'):
+            model.validate(graph)
+
+    def test_mixed_runtime_and_http_follow_source_responsibilities_and_preserve_identities(self):
+        import composition_render as renderer
+        import xml.etree.ElementTree as ET
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); graph = example()
+            runtime = {'kind': 'feature', 'path': 'src/PolicyPortfolio/PolicyPortfolio.csproj',
+                       'packageId': 'PolicyPortfolio', 'featureIdentity': 'Existing.PolicyIdentity',
+                       'role': 'implementation', 'capabilityPackages': ['Orbyss.Foundation.Execution']}
+            graph['resources']['policy-runtime'] = runtime
+            graph['bindings'].append({'kind': 'featureShell', 'featureRef': 'policy-runtime', 'shellRef': 'application-shell'})
+            (root / 'eng').mkdir()
+            owned = {'path': runtime['path'], 'role': 'implementation', 'projectReferences': [],
+                     'packageReferences': ['CShells.Abstractions', 'Orbyss.Foundation.Execution'],
+                     'responsibilities': [{'name': 'PolicyPortfolio.Lifecycle', 'kind': 'runtime',
+                                           'effects': ['owned policy effects']}]}
+            (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [owned]}}))
+            files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            source = files['src/PolicyPortfolio/PolicyPortfolioFeature.cs'][0].decode()
+            self.assertIn('PolicyPortfolioFeature : IShellFeature', source)
+            self.assertIn('ShellFeature("Existing.PolicyIdentity", DependsOn = ["Orbyss.Foundation.Execution"])', source)
+            self.assertNotIn('IWebShellFeature', source); self.assertNotIn('MapEndpoints', source)
+            project = ET.fromstring(files[runtime['path']][0])
+            self.assertEqual(project.findtext('./PropertyGroup/FoundationFeatureIdentity'), runtime['featureIdentity'])
+            self.assertEqual(project.findtext('./PropertyGroup/FoundationComposeForOpenApi'), 'false')
+            references = {row.get('Include') for row in project.iter('PackageReference')}
+            self.assertEqual(references, {'CShells.Abstractions', 'Orbyss.Foundation.Execution'})
+            self.assertFalse(list(project.iter('FrameworkReference')))
+            api = files['src/Application.Api/ApiFeature.cs'][0].decode()
+            self.assertIn('ApiFeature : IWebShellFeature', api)
+            api_refs = {row.get('Include') for row in ET.fromstring(files['src/Application.Api/Application.Api.csproj'][0]).iter('PackageReference')}
+            self.assertNotIn('Orbyss.Foundation.Authentication.BffCookie', api_refs)
+            self.assertNotIn('Orbyss.Foundation.Web.HostedPages', api_refs)
+            generated = json.loads(files['eng/architecture.json'][0])['runtimeComposition']['projects']
+            self.assertEqual(next(row for row in generated if row['path'] == runtime['path'])['responsibilities'], owned['responsibilities'])
+            activations = json.loads(files['eng/web-profile.shells.json'][0])['CShells']['Shells']['default']['Features']
+            self.assertIn(runtime['featureIdentity'], activations)
+            obsolete = root / 'src/PolicyPortfolio/ApiFeature.cs'
+            obsolete.parent.mkdir(parents=True)
+            previous = b'[ShellFeature("Existing.PolicyIdentity")] public sealed class ApiFeature : IWebShellFeature { /* owned registration */ }'
+            obsolete.write_bytes(previous)
+            with self.assertRaisesRegex(ValueError, 'retained customized API seam'):
+                renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            self.assertEqual(obsolete.read_bytes(), previous)
+            obsolete.write_bytes(previous.replace(b'IWebShellFeature', b'IShellFeature'))
+            with self.assertRaisesRegex(ValueError, 'retained customized API seam'):
+                renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            obsolete.write_bytes(previous)
+            state = root / '.program-kit/managed.json'; state.parent.mkdir()
+            import hashlib
+            state.write_text(json.dumps({'files': {'src/PolicyPortfolio/ApiFeature.cs': {
+                'ownership': 'scaffold', 'contribution': 'foundation',
+                'sourceIdentity': '../../scripts/foundation_composition.py',
+                'baselineHash': hashlib.sha256(previous).hexdigest()}}}))
+            renderer.admit_runtime_reconciliation(root, model.project_definition(runtime, root))
+            state.unlink(); obsolete.unlink()
+            runtime['capabilityPackages'] = ['Orbyss.Foundation.Unselected']
+            with self.assertRaisesRegex(ValueError, 'absent from selected shell'):
+                renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            runtime['capabilityPackages'] = ['Orbyss.Foundation.Execution']
+            runtime['responsibility'] = 'http'
+            with self.assertRaisesRegex(ValueError, 'conflicts with source authority'):
+                renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+
+    def test_missing_responsibility_does_not_guess_from_api_filename(self):
+        feature = {'path': 'src/Guessed.Api/Guessed.Api.csproj', 'packageId': 'Guessed.Api',
+                   'featureIdentity': 'Unchanged', 'role': 'implementation'}
+        with self.assertRaisesRegex(ValueError, 'declare runtime or HTTP'):
+            model.project_definition(feature)
+        feature['responsibility'] = 'runtime'
+        self.assertEqual(model.project_definition(feature)['responsibility'], 'runtime')
+
+    def test_typed_interactive_window_preserves_override_and_short_network_budget(self):
+        import composition_render as renderer
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); graph = example()
+            def web():
+                files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+                return json.loads(files['eng/web-profile.shells.json'][0])['CShells']['Shells']['default']['Configuration']['Foundation']['Web']
+            defaults = web()
+            self.assertEqual(defaults['RemoteAuthenticationTimeoutSeconds'], 900)
+            self.assertEqual(defaults['DiscoveryTimeoutSeconds'], 3)
+            graph['resources']['application-shell']['settings'].update(RemoteAuthenticationTimeoutSeconds=120, DiscoveryTimeoutSeconds=4)
+            overridden = web()
+            self.assertEqual(overridden['RemoteAuthenticationTimeoutSeconds'], 120)
+            self.assertEqual(overridden['DiscoveryTimeoutSeconds'], 4)
+
+    def test_activation_package_owners_come_from_drift_checked_capture(self):
+        import composition_render as renderer
+        import shutil
+        sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+        import release_bundle
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); graph = example()
+            graph['resources']['page'] = {'kind': 'frontend', 'directory': 'web/page', 'entry': 'src/app.ts'}
+            graph['bindings'].append({'kind': 'frontend', 'frontendRef': 'page', 'shellRef': 'application-shell', 'routeId': 'page', 'path': '/'})
+            shutil.copytree(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng', root / 'eng')
+            (root / model.INPUT).write_text(json.dumps(graph))
+            files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            for path, (payload, _) in files.items():
+                target = root / path; target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(payload)
+            identity = 'Orbyss.Foundation.Web.HostedPages'
+            self.assertNotIn(identity, release_bundle.BUILT_IN_FEATURE_PACKAGES)
+            owners = release_bundle.typed_publisher_features(root, {identity})
+            import dependency_profile
+            selected = dependency_profile.resolver().effective_dependency_context(root)
+            version = selected['catalog']['packages']['nuget:Orbyss.Foundation.Web.HostedPages']['version']
+            self.assertEqual(owners, {identity: ('Orbyss.Foundation.Web.HostedPages', version)})
+            self.assertEqual(release_bundle.typed_publisher_features(root, {'Unselected.Consumer'}), {})
+            profile = root / 'eng/web-profile.shells.json'; profile.write_bytes(profile.read_bytes() + b'\n')
+            with self.assertRaisesRegex(ValueError, 'managed composition output changed'):
+                release_bundle.typed_publisher_features(root, {identity})
+
+    def test_native_sync_reconciles_untouched_runtime_scaffold_and_preserves_custom_project(self):
+        import subprocess
+        import xml.etree.ElementTree as ET
+        scratch = ROOT / 'artifacts/tests/composition-model'; scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary); graph = example(); (root / 'eng').mkdir()
+            input_path = root / model.INPUT; input_path.write_text(json.dumps(graph))
+            command = [sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                       '--target', str(root), '--profile-selected', '--foundation-host-accepted',
+                       '--building-block-sources-approved', '--web-profile', 'bff-cookie', '--json']
+            def sync():
+                result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, encoding='utf-8', timeout=90)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            sync()
+            pins = {path: (root / path).read_bytes() for path in ('eng/ProgramKit.Foundation.props', 'eng/ProgramKit.Packages.props')}
+            project = graph['resources']['feature-0']
+            project['capabilityPackages'] = ['Orbyss.Foundation.Execution']
+            input_path.write_text(json.dumps(graph)); sync()
+            self.assertIn('Orbyss.Foundation.Execution', (root / Path(project['path']).parent / 'ApiFeature.cs').read_text())
+            project['capabilityPackages'] = []; project['responsibility'] = 'runtime'
+            input_path.write_text(json.dumps(graph))
+            architecture_path = root / 'eng/architecture.json'
+            architecture = json.loads(architecture_path.read_text())
+            for owner in architecture['runtimeComposition']['projects']:
+                if owner['path'] == project['path']:
+                    owner['responsibilities'][0]['kind'] = 'runtime'
+            architecture_path.write_text(json.dumps(architecture))
+            sync()
+            folder = root / Path(project['path']).parent
+            self.assertFalse((folder / 'ApiFeature.cs').exists())
+            # The explicit runtime responsibility wins even with an .Api path.
+            self.assertIn('ApplicationApiFeature : IShellFeature', (folder / 'ApplicationApiFeature.cs').read_text())
+            runtime_project = root / project['path']
+            document = ET.fromstring(runtime_project.read_bytes())
+            self.assertEqual({row.get('Include') for row in document.iter('PackageReference')}, {'CShells.Abstractions'})
+            self.assertEqual(document.findtext('./PropertyGroup/FoundationFeatureIdentity'), project['featureIdentity'])
+            for path, original in pins.items(): self.assertEqual((root / path).read_bytes(), original)
+            custom = runtime_project.read_bytes().replace(b'</Project>', b'<!-- owned customization --></Project>')
+            runtime_project.write_bytes(custom)
+            sync(); self.assertEqual(runtime_project.read_bytes(), custom)
+
     def test_accepted_selection_keeps_native_pins_and_activation_with_its_owner(self):
         from composition_fixture import two_apps, accept_fixture
         import composition_render as renderer
@@ -346,19 +571,27 @@ class ResourceModel(unittest.TestCase):
             projects = [{'path': row['path'], 'projectReferences': []} for row in model.resources(graph, 'feature').values()]
             core = 'src/Shared.Core/Shared.Core.csproj'
             projects.append({'path': core, 'projectReferences': []})
+            build_only = 'src/Owned.Tool/Owned.Tool.csproj'
+            projects.append({'path': build_only, 'projectReferences': []})
             for row in projects:
                 if row['path'].endswith('.Api.csproj'):
                     row['projectReferences'] = [core]
+                if row['path'].startswith('src/Assessment.Api/'):
+                    row['buildProjectReferences'] = [build_only]
             (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': projects}}))
             captured = {'src/Application.Api/ApiFeature.cs': 'before',
                         'src/Assessment.Api/ApiFeature.cs': 'same',
-                        'src/Shared.Core/Contract.cs': 'shared', 'global.json': 'sdk'}
+                        'src/Shared.Core/Contract.cs': 'shared', 'src/Owned.Tool/Program.cs': 'owned tool', 'global.json': 'sdk'}
             edited = {**captured, 'src/Application.Api/ApiFeature.cs': 'after'}
             stage = root / 'artifacts/runtime/assessments'
             self.assertEqual(runtime_closure.source_scope(root, stage, captured), runtime_closure.source_scope(root, stage, edited))
             changed_core = {**captured, 'src/Shared.Core/Contract.cs': 'changed'}
             self.assertNotEqual(runtime_closure.source_scope(root, stage, captured), runtime_closure.source_scope(root, stage, changed_core))
             self.assertIn('global.json', runtime_closure.source_scope(root, stage, captured))
+            changed_tool = {**captured, 'src/Owned.Tool/Program.cs': 'changed build-only source'}
+            self.assertNotEqual(runtime_closure.source_scope(root, stage, captured), runtime_closure.source_scope(root, stage, changed_tool))
+            application_stage = root / 'artifacts/runtime/policies'
+            self.assertEqual(runtime_closure.source_scope(root, application_stage, captured), runtime_closure.source_scope(root, application_stage, changed_tool))
             # The runner expands an explicit host selection to every actual
             # compilation dependant of a changed shared source.
             import composition_run
@@ -372,6 +605,8 @@ class ResourceModel(unittest.TestCase):
                 self.assertEqual(composition_run.affected_hosts(root, graph, resolved, ['application-host']), ['application-host'])
             with patch.object(runtime_closure, 'source_inputs', return_value=changed_core):
                 self.assertEqual(composition_run.affected_hosts(root, graph, resolved, ['application-host']), ['application-host', 'assessment-host'])
+            with patch.object(runtime_closure, 'source_inputs', return_value=changed_tool):
+                self.assertEqual(composition_run.affected_hosts(root, graph, resolved, []), ['assessment-host'])
 
     def test_reviewed_proposal_population_preserves_product_and_delivery_inputs(self):
         import composition_migrate as migration

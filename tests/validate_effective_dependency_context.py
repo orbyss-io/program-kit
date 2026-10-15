@@ -162,13 +162,20 @@ class EffectiveContextTests(unittest.TestCase):
         accepted = self.blocks.effective_dependency_context(self.root)
         for key in ('catalog', 'profile', 'sharedAbi', 'resolutionSha256'):
             self.assertEqual(draft[key], accepted[key])
-        self.assertEqual('0.2.5', catalog['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'])
+        tool_manifest = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json').read_text())
+        self.assertEqual(tool_manifest['tools']['orbyss.foundation.openapi.exporter']['version'],
+                         catalog['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'])
         self.assertEqual('0.2.1', catalog['families']['forms']['releaseVersion'])
         # An upgraded installation with an uncaptured historical selection keeps its exact base.
         (self.root / '.program-kit/dependency-profile.json').unlink()
         selected['catalog'] = self.blocks.catalog_binding(self.blocks.load_json(CATALOG))
         write_json(self.selection, selected)
         self.assertEqual('0.2.2', self.blocks.effective_dependency_context(self.root)['catalog']['packages'][HOST]['version'])
+
+    def test_retained_033_profile_keeps_independent_025_exporter(self):
+        catalog = self.selected('foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2')
+        self.assertEqual('0.3.3', catalog['packages'][HOST]['version'])
+        self.assertEqual('0.2.5', catalog['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version'])
 
     def test_projections_and_both_ownership_audits_use_new_catalog(self):
         catalog = self.selected()

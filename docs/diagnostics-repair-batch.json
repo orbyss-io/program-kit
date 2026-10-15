@@ -1,0 +1,2104 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-13T20:52:08.362387+00:00",
+  "baselineCommit": "711293b2dda187616891df11fe760a3d5d0cf5f5",
+  "branch": "codex/diagnostics-repair-batch",
+  "scope": "Program Kit upstream repair and disposable native qualification; Claim Evaluator remained read-only.",
+  "evidenceIdentity": "Working-tree candidate bound by file hashes and actual recorded baseline. This report is not a clean-commit Release or publication receipt. Original evidence and failed attempts are preserved unchanged.",
+  "items": [
+    {
+      "item": 1,
+      "title": "Mutable frontend asset names",
+      "researchClassification": "Confirmed upstream scaffold defect already repaired on main; retained legacy consumer configuration requires explicit reconciliation.",
+      "responsibleOwner": {
+        "template": "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/vite.config.mjs",
+        "tool": "prepare_hosted_pages.py preserves immutable revision bytes and rejects same-path changed content; Foundation owns semantic HostedPages admission.",
+        "publisherChangeRequired": false
+      },
+      "rootCause": "The old scaffold used Vite library build mode (build.lib), which has library-specific asset naming behavior despite output hash patterns. Mutable emitted asset paths cannot coexist with previously admitted revision bytes. Switching to explicit ES entry input and retaining public entry signatures makes the hosted mount seam and content-hashed assets explicit. A migrated consumer may retain its old consumer-owned Vite contribution, so updating the shipped scaffold alone does not repair that configuration.",
+      "implementation": {
+        "item": 1,
+        "owner": "Program Kit hosted frontend scaffold and immutable build adapter",
+        "rootCause": "Old Vite library recipe emitted mutable paths.",
+        "fix": "Existing main repair preserved; no architecture rewrite.",
+        "verification": "Native before/after Vite builds in palette fixture used maintained immutable manifest adapter; original JS byte identity confirmed. Complete asset-retention regressions run by root native repairs suite.",
+        "migration": "Ownership-aware reconcile obsolete Vite contribution and preserve prior assets/revisions/customizations."
+      }
+    },
+    {
+      "item": 2,
+      "title": "Missing direct test dependencies",
+      "researchClassification": "Consumer test scaffold/planning dependency ownership gap; no Foundation or CShells defect established",
+      "responsibleOwner": [
+        {
+          "path": "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+          "line": 401,
+          "role": "Generated production seam chooses both contracts for API implementations and CShells.Abstractions for providers; marks CShells references private at line 402. Scaffold accepts implementation/provider only (line 108), not tests."
+        },
+        {
+          "path": "extensions/program-kit-dotnet/references/foundation-compositions.md",
+          "line": 29,
+          "role": "Existing direct activation test reference guidance, preserving accepted pins and inventory."
+        },
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py",
+          "line": 265,
+          "role": "Evaluated package inventory equality; does not infer missing compile contracts from planned test responsibility."
+        },
+        {
+          "path": "tests/validate_composition_activation.py",
+          "line": 78,
+          "role": "Fixture declares both contracts; negative removal yields CS0246, restored contracts build and execute one assertion."
+        }
+      ],
+      "rootCause": "Source implementation/API projects deliberately mark CShells contracts PrivateAssets=all. Their consumer test projects directly use those contracts, so project references cannot supply the compile assets transitively. PackageReferences must follow test responsibilities, not only tested-project references.",
+      "disposition": "new repair",
+      "change": "Actual testSeams drive direct selected contract references in new test projects; pure Core receives none. Existing projects and locks require reviewed reconciliation.",
+      "maintainedValidators": [
+        "tests/validate_test_dependencies.py",
+        "tests/validate_composition_activation.py"
+      ]
+    },
+    {
+      "item": 3,
+      "title": "Empty test projects and verification ordering",
+      "researchClassification": "Consumer correction applied; upstream guidance repaired; executable prevention gap remains",
+      "responsibleOwner": [
+        {
+          "path": "presets/program-kit-governance-preset/templates/tasks-governance.md",
+          "line": 91,
+          "role": "Task-generation guidance now explicitly reconciles owners, schedules Focused prerequisites and eventual Affected after behavior creation"
+        },
+        {
+          "path": "presets/program-kit-governance-preset/commands/speckit.tasks.md",
+          "line": 65,
+          "role": "Actual generation command delegates risk ordering to agent review"
+        },
+        {
+          "path": "extensions/program-kit-governance/scripts/task_draft.py",
+          "line": 168,
+          "role": "Executable topology validator verifies declared edges and gates, not test-materialization ordering"
+        },
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
+          "line": 275,
+          "role": "Scoped Affected selection; shared inputs select all tests; no empty-pass waiver"
+        },
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
+          "line": 77,
+          "role": "Retired test ownership replacements and pending failure obligations"
+        },
+        {
+          "path": "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
+          "line": 609,
+          "role": "Managed verification.setup.json generation"
+        }
+      ],
+      "rootCause": "Broad Affected from retained implementation baseline selects every declared test for shared inputs and reverse dependents. Prerequisite T007 was scheduled before descendant T009 behavior tests existed. Two unused scaffold owners were left in solution/inventory. Zero-test rejection is correct and must remain.",
+      "disposition": "new repair",
+      "change": "Retired owners require explicit reviewed successors in managed and authored mappings; pending failures survive. Broad Affected tasks follow all selected test producers and cannot accept zero meaningful tests.",
+      "maintainedValidators": [
+        "tests/validate_scoped_verification.py",
+        "tests/validate_task_generation.py"
+      ]
+    },
+    {
+      "item": 4,
+      "title": "Standalone PostgreSQL compatibility probe conflicts with CPM",
+      "researchClassification": "Confirmed maintained probe/fixture ownership defect; repaired on synced main",
+      "responsibleOwner": "program-kit-governance managed_provider_probes.py and shared runtime_fixture.py/fixture_readiness.py preparation; NuGet behavior is expected, not a Foundation package defect",
+      "rootCause": "A standalone scratch project declared exact PackageReference versions but inherited the consumer's Central Package Management setting. NuGet correctly rejected the combination with NU1008. Removing exact versions changes executable fixture/dependency authority and triggers the intended freshness gate; it is not a valid repair.",
+      "implementation": {
+        "item": 4,
+        "owner": "Program Kit standalone provider fixture recipes",
+        "rootCause": "Explicit exact package versions inherited consumer CPM.",
+        "fix": "Existing unconditional fixture CPM=false and new-identity pickup preserved.",
+        "verification": "Root owns current effective dependency/fixture regressions; no new duplicate fixture edits by this workstream.",
+        "migration": "Use reviewed current fixture pickup with archived historical bytes; never edit original fixture, exact versions or consumer locks."
+      }
+    },
+    {
+      "item": 5,
+      "title": "Obsolete authentication fixture path",
+      "researchClassification": "Confirmed generator defect, partly repaired on main; residual environment resolution and fallback defect",
+      "responsibleOwner": "program-kit-dotnet common web-profile template and Test-Web entry point; Foundation publisher package is not responsible",
+      "rootCause": "The common web package test:fixture parsed a hard-coded shared realm instead of importing the maintained persona loader. Typed composition owns deploy/keycloak/<identity-resource>/<realm>-realm.json. The selected persona loader already accepts PROGRAMKIT_IDENTITY_REALM_FILE; bypassing it discarded that authority and fixture validation.",
+      "implementation": {
+        "item": 5,
+        "owner": "Program Kit common web fixture and Test-Web entrypoint",
+        "rootCause": "Generated ../../../deploy fallback escaped consumer; direct browser runner did not resolve typed authority/realm.",
+        "fix": "Correct ../../deploy legacy fallback; typed loader requires both selected inputs; sanitized missing/malformed fixture diagnostic; new web_identity.py verifies composition output and resolves exact shell/client/managed Keycloak authority/realm/profile; Test-Web supplies both inputs before restore/test.",
+        "verification": "validate_web_identity.py passed 4 real Node/disposable native composition cases; alternate IDs/nondefault realms, exact authority, ambiguous/stale/unsupported selection, sanitized credential sentinel, legacy root fallback. Existing persona extra-user/credential nondisclosure passed composition-tooling.",
+        "migration": "Native managed refresh helper/Test-Web/loader; select -Shell resource ID or unique name; preserve canonical authority, realm, branding, personas, authored tests and pins."
+      }
+    },
+    {
+      "item": 6,
+      "title": "Legacy runtime-stage assumptions",
+      "researchClassification": "Confirmed Program Kit template/tool defect; upstream repair already present on researched main",
+      "responsibleOwner": "program-kit-dotnet generated eng/Build.ps1 and eng/openapi_pipeline.py; composition_render/composition_model own canonical stage and binding authority; runtime_closure owns host-scoped freshness",
+      "rootCause": "Legacy tooling assumed artifacts/release-bundle/packages and global runtime-closure evidence. Typed composition supports distinct runtimeDirectory stages and root package sets per host. Export and staging therefore targeted the wrong package/configuration closure, causing PKC009 and blocking producer generation.",
+      "implementation": {
+        "item": 6,
+        "owner": "Program Kit native build/OpenAPI stage resolution and closure freshness",
+        "rootCause": "Legacy global stage/evidence was applied to typed multi-host composition.",
+        "fix": "Existing canonical host-scoped resolution preserved.",
+        "verification": "validate_composition_tooling.py passed unique multi-host/legacy, unknown/ambiguous/stale bindings and producer prevented on rejected closure. Root native suite provides real build freshness coverage.",
+        "migration": "Refresh verified native helpers; preserve canonical runtime stages and roots; rebuild affected host closure without relabeling historical evidence."
+      }
+    },
+    {
+      "item": 7,
+      "title": "Stale OpenAPI tool default",
+      "researchClassification": "Confirmed Program Kit initializer defect; upstream repair is already in synced main. Consumer retains old initializer and needs maintained-tool migration.",
+      "responsibleOwner": [
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_init.py",
+          "lines": "35-42,85-88",
+          "role": "initializer; fixed in 711293b"
+        },
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi-defaults.json",
+          "lines": "3-5",
+          "role": "stale duplicate remains at 1.29.1; no longer consumed for compatibility version"
+        },
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version",
+          "lines": "1",
+          "role": "authoritative accepted 1.33.0 pin"
+        },
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_pipeline.py",
+          "lines": "145-151,410-424",
+          "role": "exact pin and verified command enforcement"
+        },
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolchain.py",
+          "lines": "48-60,196-209,275-283",
+          "role": "stages reviewed binary and verifies exact reported version"
+        }
+      ],
+      "rootCause": "openapi_init.py took oasdiff version from eng/openapi-defaults.json (1.29.1) although .oasdiff-version authoritatively pins 1.33.0. Initialization therefore generated contracts rejected later by pipeline's exact managed-pin check.",
+      "implementation": {
+        "item": 7,
+        "owner": "Program Kit OpenAPI initializer",
+        "rootCause": "Initializer previously read stale default instead of authoritative .oasdiff-version.",
+        "fix": "Existing repaired initializer preserved; added real missing/blank/malformed/multiple-line pin no-partial-write test.",
+        "verification": "Adopted1.33.0/stale1.29.1 test passed; new focused initializer negative test passed1 case4 subcases, registry unchanged and no contract/generator created.",
+        "migration": "Refresh initializer through native ownership-aware install; preserve existing contract/pin/baseline/generator lock; never reinitialize existing contract."
+      }
+    },
+    {
+      "item": 8,
+      "title": "Branding input gap",
+      "researchClassification": "Consumer setup gap repaired; preservation guidance and regression coverage already on main. No demonstrated remaining generator defect from generic defaults alone.",
+      "responsibleOwner": [
+        {
+          "path": "extensions/program-kit-dotnet/scripts/composition_model.py",
+          "lines": [
+            89,
+            196,
+            219,
+            476
+          ],
+          "responsibility": "Generic defaults, bounded branding validation, and preservation of explicit legacy identity theme."
+        },
+        {
+          "path": "extensions/program-kit-dotnet/scripts/composition_migrate.py",
+          "lines": [
+            19,
+            51,
+            77
+          ],
+          "responsibility": "Validated proposal import, explicit branding next step, content-addressed original archive and stale-plan protection."
+        },
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/files/eng/prepare_hosted_pages.py",
+          "lines": [
+            95,
+            97,
+            104
+          ],
+          "responsibility": "Pass canonical supplied branding through to actual selected Foundation 0.3.3 manifest producer; bind branding into revision identity."
+        },
+        {
+          "path": "extensions/program-kit-dotnet/scripts/composition_render.py",
+          "lines": [
+            183,
+            184,
+            425
+          ],
+          "responsibility": "Identity realm display name and theme accent generation."
+        },
+        {
+          "path": "extensions/program-kit-governance/commands/speckit.program-kit-governance.ui.md",
+          "lines": [
+            17
+          ],
+          "responsibility": "Gather consequential branding choices and preserve confirmed intent."
+        },
+        {
+          "path": "extensions/program-kit-governance/scripts/intake_authoring.py",
+          "lines": [
+            35
+          ],
+          "responsibility": "Preserve intake configuration branding bucket; no demonstrated automatic mapping into canonical composition."
+        }
+      ],
+      "rootCause": "The canonical composition lacked consumer-specific identity and frontend presentation inputs, so supported generic defaults were used. Branding belongs to the consumer-owned composition. Legacy version 1 has identity theme but no frontend resource, so migration cannot recover frontend copy from that input. A reviewed version 2 proposal must carry settled frontend branding explicitly.",
+      "implementation": {
+        "item": 8,
+        "owner": "Consumer canonical branding authoring; Program Kit preservation handoff",
+        "rootCause": "Unspecified canonical identity/frontend inputs produced generic defaults; no proved exporter loss.",
+        "fix": "Existing preservation guidance retained; no invented consumer branding.",
+        "verification": "Composition-tooling preserved canonical localized frontend branding and realm display name; palette exercised every supported theme. Root native suite owns actual producer branding/retention.",
+        "migration": "Carry settled identity/frontend copy verbatim in reviewed canonical proposal; legacy identity-only import cannot infer missing frontend copy."
+      }
+    },
+    {
+      "item": 9,
+      "title": "Offline OpenAPI composition guidance",
+      "researchClassification": "Existing repair on main; consumer application metadata/configuration misuse exposed a scaffold/guidance gap. No exporter product defect established.",
+      "responsibleOwner": [
+        {
+          "path": "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+          "line": 411,
+          "responsibility": "Emit false for scaffold provider roles, true for API implementation roles."
+        },
+        {
+          "path": "extensions/program-kit-dotnet/references/foundation-compositions.md",
+          "line": 51,
+          "responsibility": "Effect-only feature exclusion, complete API route/dependency metadata, explicit FromServices, real activation, no fake configuration guidance."
+        },
+        {
+          "path": "C:/Users/tech_/Code/Orbyss/dotnet-foundation/src/Orbyss.Foundation.Build/buildTransitive/Orbyss.Foundation.Build.targets",
+          "line": 8,
+          "responsibility": "Supported default true and metadata emission; accepted package Build 0.3.1."
+        },
+        {
+          "path": "C:/Users/tech_/Code/Orbyss/dotnet-foundation/src/Orbyss.Foundation.OpenApi.Exporter/Exporter.cs",
+          "line": 96,
+          "responsibility": "Descriptor-filtered registration; ConfigureServices at 113, remove hosted services at 114, NoopServer at 116, map endpoints at 123."
+        }
+      ],
+      "rootCause": "Foundation.Build defaults FoundationComposeForOpenApi to true. Offline export filters by descriptor composeForOpenApi, then invokes ConfigureServices for composed features; registering the effect-only PostgreSQL feature demands real provider binding. Offline no-listener/no-lifecycle guarantees do not make arbitrary registration side effects safe. Omitting explicit FromServices when the effect-only service registrations are excluded lets ASP.NET infer service types as wire bodies. Incomplete route/dependency descriptors also violate actual export coverage.",
+      "implementation": {
+        "item": 9,
+        "owner": "Program Kit effect-only scaffold metadata; consumer API descriptors/service binding",
+        "rootCause": "Effect-only ConfigureServices was selected offline, and omitted FromServices leaked service types into wire shape.",
+        "fix": "Existing provider composeForOpenApi=false and explicit service guidance preserved.",
+        "verification": "Composition-tooling passed provider false metadata plus actual PostgreSQL registration preservation. Root/A own actual official exporter fixture; this workstream does not claim new exporter runtime proof or numeric parity.",
+        "migration": "Preserve false provider metadata, explicit FromServices and complete routes/dependencies. Export selected closure without fake connection inputs; retain baseline."
+      },
+      "additionalExecutedProof": "Selected effect-only ConfigureServices trap excluded by actual official exporter. Controlled composeForOpenApi=true snapshot fails before document/evidence output. Complete routes, dependencies and explicit FromServices preserved."
+    },
+    {
+      "item": 10,
+      "title": "Owned-schema application-role grants",
+      "researchClassification": "Consumer deployment defect with upstream deployment guidance gap; already repaired on synced main. No evidence of Foundation or Npgsql package defect.",
+      "responsibleOwner": [
+        "Consumer administrator-owned deployment script eng/Apply-PolicyMetadata.ps1 and PolicyPortfolio.Persistence/Schema/20261013_ds01_metadata.sql own exact application table grants.",
+        "Program Kit .NET persistence guidance extensions/program-kit-dotnet/references/persistence-profiles.md owns deployment/startup guidance.",
+        "PolicyPortfolioDbContextPrepare.cs owns read-only startup admission; it correctly rejects inability to read the schema revision."
+      ],
+      "rootCause": "Administrator-created schema and tables remain owned by the deployment administrator. The separate managed application role lacks schema USAGE and table SELECT until explicitly granted; connectivity alone therefore does not establish read-only schema admission.",
+      "implementation": {
+        "item": 10,
+        "owner": "Consumer administrator deployment SQL; Program Kit persistence guidance",
+        "rootCause": "Connectivity did not grant managed app role access to administrator-owned schema/tables.",
+        "fix": "Existing scoped deployment/read-only startup guidance preserved.",
+        "verification": "Root expanded and executed exact-image PostgreSQL real app login/idempotent grants/denied CREATE+unrelated access; no duplicate production changes by this workstream.",
+        "migration": "Apply administrator-owned exact role/table grants idempotently; never widen grants or create schema at runtime."
+      }
+    },
+    {
+      "item": 11,
+      "title": "Browser preparation versus actual launch",
+      "researchClassification": "Historical preparation/readiness gap substantially repaired upstream; prior stale consumer cache is an environment/setup failure, not sufficient evidence of a Foundation defect. Current local Firefox spawn UNKNOWN is a separately documented host limitation.",
+      "responsibleOwner": [
+        "Program Kit dotnet template eng/composition_run.py: exact-runtime npm restore, selected engine download, shared owned cache and launch prerequisite",
+        "Program Kit dotnet template eng/web/composition-readiness.mjs: real library launch/close and allowlisted evidence",
+        "Program Kit governance scripts/fixture_readiness.py: required browser launch before container creation",
+        "Consumer/operator: stale externally prepared cache and actual admitted journey validation",
+        "Host/CI: operating-system browser execution support; Firefox acceptance remains CI"
+      ],
+      "rootCause": "Executable discovery or a completed Playwright download does not prove the actual headless executable/support libraries can launch. A separate confirmed generated-path problem used a 266-character Windows executable path; upstream now shares a shorter owned cache between preparation and launch. The supplied old-Firefox-cache diagnosis has not been independently established from an original failed log in this read-only review.",
+      "implementation": {
+        "item": 11,
+        "owner": "Program Kit browser preparation/launch/admission adapters",
+        "rootCause": "Launch-only results had empty checks without explicit per-engine close evidence; discovery is not launch.",
+        "fix": "Add allowlisted launches[], raw selected-plan hash; native admission requires each exact selected engine launched/closed and matching plan; plan binds observed toolchain hash+owned cache.",
+        "verification": "validate_browser_launch.py passed real Chromium/WebKit launch/close, real OS rejection of existing invalid executable with no sentinel disclosure, exact engine/cache/no-retry boundary and stale/incomplete receipt rejection. Evidence artifacts/tests/browser-launch/f0223659 includes positive/negative plans/results and supervised process.json.",
+        "limits": "Local Firefox known host restriction; preserved CI default includes Firefox. Boundary installer check is mocked separately from real launch; no clean-host claim.",
+        "migration": "Native adapter refresh then normal prepare using owned cache; historical launch results remain historical and cannot satisfy strengthened current admission."
+      }
+    },
+    {
+      "item": 12,
+      "title": "Priority: prevent selected-writer/problem-contract mismatch",
+      "researchClassification": "Confirmed upstream planning/preimplementation enforcement gap; Foundation closed writer is intentional supported behavior, not a demonstrated publisher defect.",
+      "responsibleOwner": [
+        "Program Kit governance plan template and phase-obligations planning/check projection",
+        "Program Kit dependency-context/publisher-knowledge adapter should supply derived selected-profile capability facts, preserving current authority",
+        "Program Kit producer-first OpenAPI pipeline should reject demonstrated parser/writer/schema divergence",
+        "Foundation Web.ProblemDetails supplies the intentional closed bounded writer; do not loosen it",
+        "Consumer retains operation ownership/authorization/idempotency/reconciliation semantics"
+      ],
+      "rootCause": "Exact-version publisher knowledge is captured and available, but the Foundation applicability projection selects response-policy/authentication/hosted-page facts only. Contract planning has a recent hard-coded Foundation 0.3.3 warning, while after-plan checks validate upgrade compatibility and architecture without validating proposed wire fields against selected writer/parser capabilities. Therefore an approved contract can promise arbitrary extensions that the selected writer deliberately discards.",
+      "disposition": "new repair",
+      "change": "Exact selected immutable publisher knowledge constrains the one registered OpenAPI authority at planning, after-plan and raw producer admission. Complete errors and closed Foundation problem/fieldErrors shapes are required before client or baseline writes.",
+      "maintainedValidators": [
+        "tests/validate_wire_capabilities.py",
+        "tests/validate_numeric_schema.py"
+      ]
+    },
+    {
+      "item": 13,
+      "title": "Numeric OpenAPI/parser mismatch",
+      "researchClassification": "General exporter/profile parity remains unresolved. A scoped consumer DTO correction is observed in current read-only files; its acceptance and compatibility review were not rerun.",
+      "responsibleOwner": [
+        {
+          "owner": "Orbyss.Foundation.Json 0.3.3",
+          "role": "Parser authority; strict numeric tokens work as specified"
+        },
+        {
+          "owner": "Orbyss.Foundation.Json.AspNetCore 0.3.3",
+          "role": "Potential publisher enhancement owner for selected-profile schema integration"
+        },
+        {
+          "owner": "Microsoft.AspNetCore.OpenApi 10.0.12 / Orbyss.Foundation.Web.OpenApi 0.3.3",
+          "role": "Default metadata producer emits integer|string/number|string absent scoped strict metadata"
+        },
+        {
+          "owner": "Orbyss.Foundation.OpenApi.Exporter 0.2.5",
+          "role": "Composes producer and delegates generation; no selected-number-profile transform observed"
+        },
+        {
+          "owner": "Program Kit contract planning/generation",
+          "role": "Preimplementation capability/parity admission gap; should diagnose profile/schema conflict"
+        }
+      ],
+      "rootCause": "ASP.NET AddOpenApi uses default web JSON metadata that admits numeric strings; selected Foundation JsonProfile uses JsonNumberHandling.Strict. Foundation Json.AspNetCore exports profile requirements only as an operation extension and does not replace schema metadata with selected profile TypeInfo. The exporter delegates document generation to ASP.NET; openapi-typescript accurately propagates the resulting number|string schema.",
+      "disposition": "new scoped admission; publisher limitation remains",
+      "change": "Real writer, parser, official exporter and generated client qualify supported scoped Strict DTO numbers/nested arrays. Nullable int still exports integer|string|null despite class and property Strict while parser rejects strings; PKO222 blocks. Unsupported converters, shared profile use and missing knowledge remain unresolved.",
+      "maintainedValidators": [
+        "tests/validate_numeric_schema.py",
+        "tests/validate_wire_capabilities.py"
+      ]
+    },
+    {
+      "item": 14,
+      "title": "Ordinary consumer UI recovery defects",
+      "researchClassification": "consumer-implementation-defect; no confirmed scaffold defect",
+      "responsibleOwner": {
+        "consumer": "web/src/policies/collection.ts:39,66-108",
+        "serverValidation": "src/PolicyPortfolio/PolicyPortfolio.Core/PolicyCreationInput.cs:11-15",
+        "serverOutcomeMapping": "src/PolicyPortfolio/PolicyPortfolio.Api/PolicyEndpoints.cs:155-161",
+        "upstreamGuidance": "extensions/program-kit-governance/references/ui-feedback-and-recovery.md:79-101",
+        "upstreamRouting": "extensions/program-kit-governance/commands/speckit.program-kit-governance.ui.md:6; extensions/program-kit-governance/references/capability-index.json:6"
+      },
+      "rootCause": "The consumer retained its action object after outcomes contractually guaranteeing no effect. Its busy() function makes inputs readOnly and disables Create whenever that object exists, so recovery could not correct input or prepare a new action. The consumer validator also omitted C1 controls rejected by server char.IsControl.",
+      "disposition": "new guidance and maintained semantic example",
+      "change": "Recovery uses typed operation responses and UI metadata. Unknown effects and missing receipts retain server-issued identity. Owner-proven no-effect permits correction/new preparation; arbitrary 400/409 is insufficient. No live consumer recovery flow was implemented or accepted.",
+      "maintainedValidators": [
+        "tests/validate_operation_recovery.py"
+      ]
+    },
+    {
+      "item": 15,
+      "title": "Hosted-page dark-mode interaction",
+      "researchClassification": "Confirmed scaffold/publisher integration gap; consumer repair present; upstream repair still pending",
+      "responsibleOwner": [
+        {
+          "path": "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/src/styles.css",
+          "lines": "1-3",
+          "responsibility": "Program Kit .NET hosted frontend scaffold"
+        },
+        {
+          "path": "extensions/program-kit-dotnet/scripts/composition_render.py",
+          "lines": "380 onward",
+          "responsibility": "Materializes hosted frontend template"
+        },
+        {
+          "path": "Foundation selected source src/Orbyss.Foundation.Web.HostedPages/HostedPageRendering.cs",
+          "lines": "31-35,86-89",
+          "responsibility": "Fixed publisher light palette; admitted runtime CSS is linked after built-in CSS"
+        }
+      ],
+      "rootCause": "Generated hosted frontend declares color-scheme: light dark without defining a coordinated palette. Foundation 0.3.3 fixed semantic envelope hard-codes a white main surface and light text, heading and alert colors. UA dark link colors can therefore render on the white publisher surface. The reported #9e9eff / #ffffff ratio 2.38 is consistent with this pairing, but was not remeasured during research.",
+      "implementation": {
+        "item": 15,
+        "owner": "Program Kit hosted runtime CSS contribution",
+        "rootCause": "Uncoordinated UA dark palette mixed with fixed selected Foundation white main and themed headings.",
+        "fix": "Complete light/dark text/page/surface/link/visited/heading/alert/border/control/focus palette through admitted runtime CSS, with matching green/slate specificity and320px envelope reflow.",
+        "verification": "Exact unmodified hash-verified selected0.3.3 renderer/descriptor/loader sources compiled with SDK; native Vite before+after builds; Chromium/WebKit48 theme/mode/state cases passed computed contrast/focus/reflow.36 enabled states passed serious/critical axe;12 real disabled-script states passed semantics/contrast/focus. Baseline defect reproduced in all6 dark theme/engine cases.",
+        "evidence": "artifacts/tests/hosted-palette/fcc18c25/provenance.json; rendered/result.json; browser-process-cf248ff7/process.json exit0 cleanupComplete/logsDrained true.",
+        "limits": "Renderer source seam, not full package-host activation or consumer acceptance. Browser visited privacy masks history computed color; authored visited rule/token tested against actual rendered surface. Async axe is not claimed for disabled-script states.",
+        "migration": "Ownership-aware update obsolete scaffold CSS while preserving authored accessible consumer palettes; native rebuild generates new admitted CSS revision and retains previous assets."
+      }
+    }
+  ],
+  "development": {
+    "journal": "artifacts/validation-runs/20261013T203031Z-52e39f67/journal.json",
+    "suite": "Development",
+    "startedAt": "2026-10-13T20:30:31.876770+00:00",
+    "finishedAt": "2026-10-13T20:47:10.730504+00:00",
+    "status": "completed; two integration failures corrected and targeted reruns passed",
+    "completedChecks": 99,
+    "originalFailedChecks": [
+      "validate_validation_runner",
+      "validate_components"
+    ],
+    "supplementaryCorrections": [
+      {
+        "id": "validate_validation_runner",
+        "repair": "Move Release-only browser and PostgreSQL qualifiers after native prerequisites in inventory.",
+        "exitCode": 0,
+        "log": "artifacts/diagnostics/repair-batch/validation-runner-final.log"
+      },
+      {
+        "id": "validate_components",
+        "repair": "Stage new versioned scaffold sources; production validation requirement unchanged.",
+        "exitCode": 0,
+        "log": "artifacts/diagnostics/repair-batch/components-final.log"
+      }
+    ],
+    "steps": [
+      {
+        "id": "validate_native_phase_ownership",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_native_phase_ownership.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:30:31.895715+00:00",
+        "finishedAt": "2026-10-13T20:32:09.045905+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_native_phase_ownership.log",
+        "logSha256": "cfde18d0fa466ddf903fae6d154ab0422c5045598565f3836a8574df31790c3f"
+      },
+      {
+        "id": "validate_operation_recovery",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_operation_recovery.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:32:09.046883+00:00",
+        "finishedAt": "2026-10-13T20:32:09.830386+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_operation_recovery.log",
+        "logSha256": "5829b381b6537e0385710a24410875b9a66908b4c593ed7d2d0f1d1ca1886630"
+      },
+      {
+        "id": "validate_test_dependencies",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_test_dependencies.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:32:09.831844+00:00",
+        "finishedAt": "2026-10-13T20:32:10.026158+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_test_dependencies.log",
+        "logSha256": "f10476baa6e5cdbce82fddfb34970582a23f1811f4b9b3951d2f4c2104444639"
+      },
+      {
+        "id": "validate_phase_refresh",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_phase_refresh.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:32:10.027269+00:00",
+        "finishedAt": "2026-10-13T20:33:57.725489+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_phase_refresh.log",
+        "logSha256": "3c585cbcf7a21ef110ccb1dcfeab0dc8ec61a3323c74e9762563db64a142a612"
+      },
+      {
+        "id": "validate_wire_capabilities",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_wire_capabilities.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:33:57.726445+00:00",
+        "finishedAt": "2026-10-13T20:33:58.303194+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_wire_capabilities.log",
+        "logSha256": "d38d2f5a699bbea8c505e9037853b3167dc87f7d9d400312809a3ddf7436eea4"
+      },
+      {
+        "id": "validate_web_identity",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_web_identity.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:33:58.304358+00:00",
+        "finishedAt": "2026-10-13T20:34:07.379773+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_web_identity.log",
+        "logSha256": "571c4bf5f049fd194c7b9dee0bc7fbb42236a16b528074255f4fc6e5d0c01140"
+      },
+      {
+        "id": "validate_composition_tooling",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_composition_tooling.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:34:07.380689+00:00",
+        "finishedAt": "2026-10-13T20:34:15.266346+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_composition_tooling.log",
+        "logSha256": "b953371c06b2670c711e8278c90f03f4d089de861e5d62103ce8f797c41c1c68"
+      },
+      {
+        "id": "validate_numeric_schema",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_numeric_schema.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:34:15.267436+00:00",
+        "finishedAt": "2026-10-13T20:34:32.798564+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_numeric_schema.log",
+        "logSha256": "c1d048b98326664e644b90a82e7e44f5ed3a079647af38f1e2b4af979359cde7"
+      },
+      {
+        "id": "validate_composition_activation",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_composition_activation.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:34:32.799435+00:00",
+        "finishedAt": "2026-10-13T20:34:55.055050+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_composition_activation.log",
+        "logSha256": "a82a95f747627805790e6e0fa2e1d21f67143a66949814a75baf2dbef884b6aa"
+      },
+      {
+        "id": "validate_story_delivery",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_story_delivery.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:34:55.055929+00:00",
+        "finishedAt": "2026-10-13T20:34:55.668442+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_story_delivery.log",
+        "logSha256": "e6f390c7bc5f7c904659bb03c76b860fcb88001a74d297e455cab6cecf91409b"
+      },
+      {
+        "id": "qualify_reusable_foundations_contracts",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/qualify_reusable_foundations.py",
+          "--contract-tests"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:34:55.669326+00:00",
+        "finishedAt": "2026-10-13T20:35:00.555175+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/qualify_reusable_foundations_contracts.log",
+        "logSha256": "ffa603f1dcf6a8a3245ada5e9cc9f818d35da162bd47d486200fffa6eb96df9e"
+      },
+      {
+        "id": "validate_foundation_composition",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_foundation_composition.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:35:00.556125+00:00",
+        "finishedAt": "2026-10-13T20:36:16.626269+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_foundation_composition.log",
+        "logSha256": "4c4575c7f36049b05d2ec8706b93a19a62f6bbf563fa0d038381fd708f93209b"
+      },
+      {
+        "id": "validate_foundation_setup",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_foundation_setup.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:36:16.627194+00:00",
+        "finishedAt": "2026-10-13T20:36:39.001902+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_foundation_setup.log",
+        "logSha256": "e61bd5c589cf492afda9114ad8bcb5754bfa978fe53bbd543e62866c752212f9"
+      },
+      {
+        "id": "validate_consumer_upgrade",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_consumer_upgrade.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:36:39.002844+00:00",
+        "finishedAt": "2026-10-13T20:37:20.546824+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_consumer_upgrade.log",
+        "logSha256": "8a8e7e2338ba8350eee93121b831c1dc4f79b6de86f6d14996797b5ced4af3da"
+      },
+      {
+        "id": "validate_effective_dependency_context",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_effective_dependency_context.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:37:20.547679+00:00",
+        "finishedAt": "2026-10-13T20:37:52.937438+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_effective_dependency_context.log",
+        "logSha256": "6cdd00bb8cda9e137621cbb21b95d4eb892446cba8d10557e83eafe9d413ebb3"
+      },
+      {
+        "id": "validate_lifecycle_design",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_lifecycle_design.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:37:52.938598+00:00",
+        "finishedAt": "2026-10-13T20:37:56.925114+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_lifecycle_design.log",
+        "logSha256": "29ff58e4f6528378745a200f0b34a3ce449cf5966b63b434c8aa77b6686991c4"
+      },
+      {
+        "id": "validate_application_lifecycle",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_application_lifecycle.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:37:56.926010+00:00",
+        "finishedAt": "2026-10-13T20:38:03.433534+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_application_lifecycle.log",
+        "logSha256": "da48cc0961f99675261c02f569d16c1bed5643e186817a5737a184a05de43b94"
+      },
+      {
+        "id": "validate_knowledge_application",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_knowledge_application.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:38:03.434504+00:00",
+        "finishedAt": "2026-10-13T20:38:07.481769+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_knowledge_application.log",
+        "logSha256": "c417e9c2639649fe75812412bdfb0a3ac8b580e5c41b8ee445937b8ac8b5c1ed"
+      },
+      {
+        "id": "validate_standalone_engineering",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_standalone_engineering.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:38:07.482704+00:00",
+        "finishedAt": "2026-10-13T20:38:45.478584+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_standalone_engineering.log",
+        "logSha256": "e5f6984aa3aa2ef01ea00882ef005ab7115fa55d6c0cc2ca46c67fe5dbff558f"
+      },
+      {
+        "id": "validate_normal_development",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_normal_development.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:38:45.479788+00:00",
+        "finishedAt": "2026-10-13T20:38:47.708734+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_normal_development.log",
+        "logSha256": "6781899654bfcf25ede47d175e72a6260135e44c29a3590dab2df408553f1290"
+      },
+      {
+        "id": "validate_scoped_verification",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_scoped_verification.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:38:47.709583+00:00",
+        "finishedAt": "2026-10-13T20:38:55.149108+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_scoped_verification.log",
+        "logSha256": "0a2a22d17f3be265b9316e929b18e1ddf472d3be2b4195416d8b324315bad09f"
+      },
+      {
+        "id": "validate_task_generation",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_task_generation.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:38:55.150161+00:00",
+        "finishedAt": "2026-10-13T20:38:56.064445+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_task_generation.log",
+        "logSha256": "06b680bc01e31d631a95bae84eff18c84dcc1b5e54ba241d0d34776688c12c92"
+      },
+      {
+        "id": "validate_maintenance_flow",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_maintenance_flow.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:38:56.065451+00:00",
+        "finishedAt": "2026-10-13T20:39:06.859357+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_maintenance_flow.log",
+        "logSha256": "1e2f4ff81aac10b69b724d3e8dfea209b4540a47602c02352d694d3a6262631f"
+      },
+      {
+        "id": "validate_test_suites",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_test_suites.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:39:06.860330+00:00",
+        "finishedAt": "2026-10-13T20:39:09.552608+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_test_suites.log",
+        "logSha256": "a17a1b3273bac5b86dd8acfca9ba8d33ce99ea368e438bcdaf0f8eef7ba41ebc"
+      },
+      {
+        "id": "validate_dependency_profiles",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_dependency_profiles.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:39:09.553602+00:00",
+        "finishedAt": "2026-10-13T20:39:39.005332+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_dependency_profiles.log",
+        "logSha256": "8f6b527ddb66823c86f173d3c0c237a6aec8b7fb0d74f025df15830979b5b0f0"
+      },
+      {
+        "id": "validate_validation_runner",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_validation_runner.py"
+        ],
+        "exitCode": 1,
+        "startedAt": "2026-10-13T20:39:39.006779+00:00",
+        "finishedAt": "2026-10-13T20:39:39.313609+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_validation_runner.log",
+        "logSha256": "d47cc6fa62fd9c495af20e8668f00475f4de5760f143b44d2238951a82fd0fab"
+      },
+      {
+        "id": "validate_release_guidance",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_release_guidance.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:39:39.314794+00:00",
+        "finishedAt": "2026-10-13T20:39:40.844130+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_release_guidance.log",
+        "logSha256": "fabdd28f32a549029e023a7af51b71ead3c92393cfd6b26ca9ce1e22174351b4"
+      },
+      {
+        "id": "validate_repository_toolchain",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_repository_toolchain.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:39:40.845125+00:00",
+        "finishedAt": "2026-10-13T20:39:50.817960+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_repository_toolchain.log",
+        "logSha256": "515e7ab39591371e398c46162f62c949232bb69cafc1ca6b594e1e758e89a3cf"
+      },
+      {
+        "id": "validate_components",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_components.py"
+        ],
+        "exitCode": 1,
+        "startedAt": "2026-10-13T20:39:50.818851+00:00",
+        "finishedAt": "2026-10-13T20:39:51.383958+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_components.log",
+        "logSha256": "8e98680627dec3e0a816878ae15cc8bedf48c5821bdc24c5730b1c97f0af6480"
+      },
+      {
+        "id": "validate_json_schema",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_json_schema.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:39:51.385065+00:00",
+        "finishedAt": "2026-10-13T20:39:53.327030+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_json_schema.log",
+        "logSha256": "f1e93ca6b2a163d43c00853bd8dbcb259b0c274755d39f9f568a30a631122e08"
+      },
+      {
+        "id": "validate_exporter_upgrade",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_exporter_upgrade.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:39:53.327981+00:00",
+        "finishedAt": "2026-10-13T20:39:55.114416+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_exporter_upgrade.log",
+        "logSha256": "649b91e3c678452d20729d99e303fd31f3ac524ab10c8c68ae8451d9e24045cf"
+      },
+      {
+        "id": "test_workflow_shell_preflight",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/test_workflow_shell_preflight.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:39:55.115437+00:00",
+        "finishedAt": "2026-10-13T20:40:01.956310+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/test_workflow_shell_preflight.log",
+        "logSha256": "244cfe8e2c524e6f446a993f9b3069bf837d3870892578353c88b17731510ad9"
+      },
+      {
+        "id": "validate_upgrade_boundaries",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_upgrade_boundaries.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:01.957360+00:00",
+        "finishedAt": "2026-10-13T20:40:07.240392+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_upgrade_boundaries.log",
+        "logSha256": "95ad9b93b550a2e8d861a721548ffca49fa53594a7b75250a26612414bfee260"
+      },
+      {
+        "id": "validate_python_consistency",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_public_core_compatibility.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:07.241312+00:00",
+        "finishedAt": "2026-10-13T20:40:10.455718+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_python_consistency.log",
+        "logSha256": "0fcb161e1bf373be887006b8cf56e060b1d3936aa9e51fcf37c888e809dd4c6d"
+      },
+      {
+        "id": "validate_codex_worker_policy",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_codex_worker_policy.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:10.456854+00:00",
+        "finishedAt": "2026-10-13T20:40:11.292484+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_codex_worker_policy.log",
+        "logSha256": "7548133078716950ec48f7c5cbadd7cfee5e5fa2fc6420c0f9c9c58b52909726"
+      },
+      {
+        "id": "validate_proxy_intake",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_proxy_intake.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:11.293434+00:00",
+        "finishedAt": "2026-10-13T20:40:12.918014+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_proxy_intake.log",
+        "logSha256": "e04c779f8f7249f297b5057b066398abec36b85f5b6750d5a03128ce05a44765"
+      },
+      {
+        "id": "validate_bootstrap_handoffs",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_bootstrap_handoffs.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:12.918925+00:00",
+        "finishedAt": "2026-10-13T20:40:16.273659+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_bootstrap_handoffs.log",
+        "logSha256": "47bdc60dc9a3cf009532c55c9f70547e540984380da1c5c60b2faf7b4c02d108"
+      },
+      {
+        "id": "validate_bootstrap_provider_context",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_bootstrap_provider_context.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:16.274678+00:00",
+        "finishedAt": "2026-10-13T20:40:22.477323+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_bootstrap_provider_context.log",
+        "logSha256": "d864dd6074d43b4c49c6dbeac373e48ee6f41302d3ee3633054b5ee70dd72f02"
+      },
+      {
+        "id": "validate_bootstrap_profiles",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_bootstrap_profiles.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:22.478353+00:00",
+        "finishedAt": "2026-10-13T20:40:28.647771+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_bootstrap_profiles.log",
+        "logSha256": "240d95cf5b6f05098b07382c422c948a3953bb52d8070bac32c995aeea5da84a"
+      },
+      {
+        "id": "validate_dependency_audit",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_dependency_audit.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:28.648739+00:00",
+        "finishedAt": "2026-10-13T20:40:30.511962+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_dependency_audit.log",
+        "logSha256": "20da03318849514e707a8689a95a12886482da4f82dbe59a333f06af20f776c4"
+      },
+      {
+        "id": "validate_phase_obligations",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_phase_obligations.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:30.512916+00:00",
+        "finishedAt": "2026-10-13T20:40:36.278656+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_phase_obligations.log",
+        "logSha256": "599fde262f2c4baf6b5cc1c5f7d5b668bd19de9d752bc990ff3f3b1037c3360f"
+      },
+      {
+        "id": "validate_api_proof",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_api_proof.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:36.279641+00:00",
+        "finishedAt": "2026-10-13T20:40:36.601839+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_api_proof.log",
+        "logSha256": "cb0642b66c4a725c21dff3cd238a9bb87a809c16f2551d50a77b5cb49fa58cea"
+      },
+      {
+        "id": "validate_persistence_selection",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_persistence_selection.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:36.602915+00:00",
+        "finishedAt": "2026-10-13T20:40:50.996279+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_persistence_selection.log",
+        "logSha256": "2f265524c5a3c33fe810fc6e5275a43d2e0c90122f00510868f1bc22b6717f69"
+      },
+      {
+        "id": "validate_postgresql_service",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_postgresql_service.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:50.997267+00:00",
+        "finishedAt": "2026-10-13T20:40:51.260168+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_postgresql_service.log",
+        "logSha256": "5cf72ca145078314eb8611993fd224374b702fbd3a6692dfd5f1f0fb0b458fe9"
+      },
+      {
+        "id": "validate_knowledge_inventory",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_knowledge_inventory.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:51.261141+00:00",
+        "finishedAt": "2026-10-13T20:40:51.495417+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_knowledge_inventory.log",
+        "logSha256": "5b52c8094e879124661e537cbf44aea298cb155a1eac99263b7272886d650021"
+      },
+      {
+        "id": "validate_feature_knowledge",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_feature_knowledge.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:51.496374+00:00",
+        "finishedAt": "2026-10-13T20:40:51.670076+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_feature_knowledge.log",
+        "logSha256": "54a73bf16fd07f2db7fbf52bc3623b02623ea379cd3593dafb419c6dace04af4"
+      },
+      {
+        "id": "validate_architecture_recipe",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_architecture_recipe.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:40:51.671054+00:00",
+        "finishedAt": "2026-10-13T20:41:03.474760+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_architecture_recipe.log",
+        "logSha256": "b2031a69f3945dadea8d2c5e8337840deb83301871f0fea016dec220714ddde4"
+      },
+      {
+        "id": "validate_capability_proof",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_capability_proof.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:03.475762+00:00",
+        "finishedAt": "2026-10-13T20:41:03.763173+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_capability_proof.log",
+        "logSha256": "27cf7777c161be0a18f54c9ff9c44ebf28511968b8a1213078aea50bee70842f"
+      },
+      {
+        "id": "validate_learning_metrics",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_learning_metrics.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:03.764210+00:00",
+        "finishedAt": "2026-10-13T20:41:03.957109+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_learning_metrics.log",
+        "logSha256": "b17cee1766e2f32c6f61c9d5ef4d0cbf38a08a9150af946e4f7a96f89fddf8a1"
+      },
+      {
+        "id": "validate_learning_report",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_learning_report.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:03.958175+00:00",
+        "finishedAt": "2026-10-13T20:41:04.195378+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_learning_report.log",
+        "logSha256": "f4ffce8052077b82290c4bc98dadb93899d2f7f9ade3c670d9a70caa479535fd"
+      },
+      {
+        "id": "validate_lending_oracle",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_lending_oracle.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:04.196437+00:00",
+        "finishedAt": "2026-10-13T20:41:11.644812+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_lending_oracle.log",
+        "logSha256": "a4bacbf5f1dec6b2b891dd7d781061de4734fb8f494450f4a7ac3d674d44dc3a"
+      },
+      {
+        "id": "validate_reference_baseline",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_reference_baseline.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:11.645761+00:00",
+        "finishedAt": "2026-10-13T20:41:11.997089+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_reference_baseline.log",
+        "logSha256": "235cc2b311493ab85bc8e3aba50344453b6ad7fc180936d46f7f4c3cb5d3a5f4"
+      },
+      {
+        "id": "validate_specification_intake",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_specification_intake.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:11.998270+00:00",
+        "finishedAt": "2026-10-13T20:41:16.253054+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_specification_intake.log",
+        "logSha256": "861039a1003cde06fe0bc236d59cd8dba43bc921b97a71361cd41550cae71a16"
+      },
+      {
+        "id": "validate_sync_live_fixtures",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_sync_live_fixtures.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:16.254071+00:00",
+        "finishedAt": "2026-10-13T20:41:16.593197+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_sync_live_fixtures.log",
+        "logSha256": "22b8bbfccbe95c35cab2b348b509173d290d0aec9933476751e523444fbcee92"
+      },
+      {
+        "id": "validate_package_execution",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_package_execution.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:16.594154+00:00",
+        "finishedAt": "2026-10-13T20:41:17.226114+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_package_execution.log",
+        "logSha256": "c15e4b9efc647a74f7036397a382c1d33a4c9e352e5e1da21fe4fa30a2099ab8"
+      },
+      {
+        "id": "validate_repository_sync",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_repository_sync.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:17.227174+00:00",
+        "finishedAt": "2026-10-13T20:41:21.820333+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_repository_sync.log",
+        "logSha256": "95eef8f1b774e25087d70ab920f72e588899f19283885472a15790b2a452c767"
+      },
+      {
+        "id": "validate_sync_readiness",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_sync_readiness.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:21.821290+00:00",
+        "finishedAt": "2026-10-13T20:41:22.191346+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_sync_readiness.log",
+        "logSha256": "86efb141cf0edc09e742150d45835a481e03ac72900a3eaa785811b71bfca204"
+      },
+      {
+        "id": "validate_sync_stages",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_sync_stages.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:22.192425+00:00",
+        "finishedAt": "2026-10-13T20:41:22.597724+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_sync_stages.log",
+        "logSha256": "ca07ea31725ec5932c1bd36cf07d78e6b2adcd2f7d86429db31e5352c9105b1e"
+      },
+      {
+        "id": "validate_live_trial_candidate",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_live_trial_candidate.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:22.598816+00:00",
+        "finishedAt": "2026-10-13T20:41:23.090742+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_live_trial_candidate.log",
+        "logSha256": "0cf983cb109ab0c99d49dcf8d5c10ee5fbd37c3d32ddd7c9f9bb7ef46a905487"
+      },
+      {
+        "id": "validate_retired_sync",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_retired_sync.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:23.091724+00:00",
+        "finishedAt": "2026-10-13T20:41:28.126620+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_retired_sync.log",
+        "logSha256": "7e7765ab90cbdbb1d7f2ce0622164502f9ddefdd1a3409939a745b1362d4ce65"
+      },
+      {
+        "id": "validate_scoped_materialization",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_scoped_materialization.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:28.127594+00:00",
+        "finishedAt": "2026-10-13T20:41:28.413742+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_scoped_materialization.log",
+        "logSha256": "d0f9f12bb857698976426e92cf9a969e49c4058b08fdcbb0d91f51a5b653ea24"
+      },
+      {
+        "id": "validate_intake_session",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_intake_session.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:28.414923+00:00",
+        "finishedAt": "2026-10-13T20:41:28.836719+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_intake_session.log",
+        "logSha256": "2289654ff1c79a26a9ee7890dfe97c8b4f303eb9829be172105eb2fe8d9b1231"
+      },
+      {
+        "id": "validate_discovery_fixture",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_discovery_fixture.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:28.837705+00:00",
+        "finishedAt": "2026-10-13T20:41:28.986773+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_discovery_fixture.log",
+        "logSha256": "69b8ac8fdd12da827aa2ceca72223e7231f6bbd60aadd5b7a7a8da279c2d138a"
+      },
+      {
+        "id": "validate_intake_handoff",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_intake_handoff.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:28.987833+00:00",
+        "finishedAt": "2026-10-13T20:41:29.885474+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_intake_handoff.log",
+        "logSha256": "264294460d8543dff45fac2887b40a96e51238c28333c385c3ecd7b09403f687"
+      },
+      {
+        "id": "validate_intake_authoring",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_intake_authoring.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:29.886650+00:00",
+        "finishedAt": "2026-10-13T20:41:37.804622+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_intake_authoring.log",
+        "logSha256": "39b542980579183873845b379e4d01c9094a981c2c2c152acb46bdc9ba0dc1cd"
+      },
+      {
+        "id": "validate_orbyss_building_blocks",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_orbyss_building_blocks.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:37.805593+00:00",
+        "finishedAt": "2026-10-13T20:41:37.972616+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_orbyss_building_blocks.log",
+        "logSha256": "24a59f4867641dca79609d43e642f934f6b62a995cfd9ff513ebea8184717b21"
+      },
+      {
+        "id": "validate_building_blocks",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_building_blocks.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:37.973712+00:00",
+        "finishedAt": "2026-10-13T20:41:42.310976+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_building_blocks.log",
+        "logSha256": "1a590d7924e44ffb85bdb59a2073b96789e2fa151fede6de081e6fdfc2bd85a7"
+      },
+      {
+        "id": "validate_architecture_placement",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_architecture_placement.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:42.311960+00:00",
+        "finishedAt": "2026-10-13T20:41:49.666710+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_architecture_placement.log",
+        "logSha256": "3fa7f90069b003006b4a1ca146a769a9852889288e24412ba9730a6a10bfe263"
+      },
+      {
+        "id": "validate_placement_contract",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_placement_contract.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:49.667730+00:00",
+        "finishedAt": "2026-10-13T20:41:52.265383+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_placement_contract.log",
+        "logSha256": "d46d49cdd7636388bcda1a8b0a81a418a9fb57fdaac9b333b936ad314037b07a"
+      },
+      {
+        "id": "validate_bootstrap_lifecycle",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_bootstrap_lifecycle.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:41:52.266462+00:00",
+        "finishedAt": "2026-10-13T20:42:05.144423+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_bootstrap_lifecycle.log",
+        "logSha256": "9036068115a8af6ba67f975636a049e5739ba6d0f838bcc78e4f3095f0f1dde6"
+      },
+      {
+        "id": "validate_readiness_scope",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_readiness_scope.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:42:05.145454+00:00",
+        "finishedAt": "2026-10-13T20:42:16.105119+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_readiness_scope.log",
+        "logSha256": "f162c1bb0f13c56a0a80a2809fc9e1ae9eeaf6a6296acc21c512984d42f2d3e2"
+      },
+      {
+        "id": "validate_readiness_projection",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_readiness_projection.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:42:16.106192+00:00",
+        "finishedAt": "2026-10-13T20:42:25.695187+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_readiness_projection.log",
+        "logSha256": "140e8c1ec01eecf88d6bfde0f78c092286852374a0cfe1ecbc8d1fde67d6c52a"
+      },
+      {
+        "id": "validate_phase_readiness",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_phase_readiness.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:42:25.696303+00:00",
+        "finishedAt": "2026-10-13T20:42:51.429152+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_phase_readiness.log",
+        "logSha256": "049c266b98e7264c70e8bf47b92d2c8f12ceb45d182bc38624fb089c5e3f3826"
+      },
+      {
+        "id": "validate_bootstrap_handoff_quality",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_bootstrap_handoff_quality.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:42:51.430424+00:00",
+        "finishedAt": "2026-10-13T20:42:51.729864+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_bootstrap_handoff_quality.log",
+        "logSha256": "a6d9df753d464d374df6a4ae46208b49a82fc48553a9076b420ce749f0956132"
+      },
+      {
+        "id": "validate_bootstrap_proof_plan",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_bootstrap_proof_plan.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:42:51.730965+00:00",
+        "finishedAt": "2026-10-13T20:42:56.389268+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_bootstrap_proof_plan.log",
+        "logSha256": "9ebea53261143b2a727cabe1c1860ddf801741e7a421c40001303bef7d23313b"
+      },
+      {
+        "id": "validate_post_bootstrap_continuation",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_post_bootstrap_continuation.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:42:56.390351+00:00",
+        "finishedAt": "2026-10-13T20:44:09.393890+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_post_bootstrap_continuation.log",
+        "logSha256": "3fd7da0ea71a1c009eebd182f13790acdc5b9466cd21285174cdb4aa9d7ed1a9"
+      },
+      {
+        "id": "validate_workflow_resumption",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_workflow_resumption.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:09.394960+00:00",
+        "finishedAt": "2026-10-13T20:44:52.447952+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_workflow_resumption.log",
+        "logSha256": "4b5912fbdbfe671443cadfb6c4afdd132837d349a67abc36f516b467c222a2bf"
+      },
+      {
+        "id": "validate_workflow_runtimes",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_workflow_runtimes.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:52.449116+00:00",
+        "finishedAt": "2026-10-13T20:44:52.991679+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_workflow_runtimes.log",
+        "logSha256": "45c108b8354c88b4b75a885633d9a4026be8f62a24cda87bc0aec560d0c6edab"
+      },
+      {
+        "id": "validate_live_fixture_catalog",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_live_fixture_catalog.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:52.992710+00:00",
+        "finishedAt": "2026-10-13T20:44:53.304163+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_live_fixture_catalog.log",
+        "logSha256": "65622fca35a20f4525631e628b744679aa5f0de57beb07d671bcda7162df976d"
+      },
+      {
+        "id": "validate_live_workflow_acceptance",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_live_workflow_acceptance.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:53.305245+00:00",
+        "finishedAt": "2026-10-13T20:44:56.148443+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_live_workflow_acceptance.log",
+        "logSha256": "bcbfaea7e466cf5dc3cd9dc68caf216d9b841b310e54c7ae7055cb734b4680d0"
+      },
+      {
+        "id": "validate_building_block_availability",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_building_block_availability.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:56.149641+00:00",
+        "finishedAt": "2026-10-13T20:44:56.415653+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_building_block_availability.log",
+        "logSha256": "c2047c51f4d699a8a84ec8c41ece0013238e554498ea415f52e2f6bc869a7187"
+      },
+      {
+        "id": "validate_legacy_programkit_nuget",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_legacy_programkit_nuget.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:56.416642+00:00",
+        "finishedAt": "2026-10-13T20:44:56.616914+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_legacy_programkit_nuget.log",
+        "logSha256": "1bfca6d7a0c3e53174e7932e17bd739e2dd32eb20768c756b9598eb80be2b998"
+      },
+      {
+        "id": "validate_generated_contract_schemas",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_generated_contract_schemas.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:56.617977+00:00",
+        "finishedAt": "2026-10-13T20:44:56.841303+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_generated_contract_schemas.log",
+        "logSha256": "03afbfaad53def01660db16c366c37de553153b1e8185bb1bcd521f378b0112a"
+      },
+      {
+        "id": "validate_governance_config",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_governance_config.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:56.842332+00:00",
+        "finishedAt": "2026-10-13T20:44:57.831280+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_governance_config.log",
+        "logSha256": "ab85e631f95e0329234d52c804e1af5f59c53dee6d2467066c2ad5e499a831e0"
+      },
+      {
+        "id": "validate_governance_state",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_governance_state.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:57.832375+00:00",
+        "finishedAt": "2026-10-13T20:44:59.144660+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_governance_state.log",
+        "logSha256": "e8878cbbbb44aaf8e6a984fba1b02bc453c7132dd37b229e7fdf389e87d15f36"
+      },
+      {
+        "id": "validate_runnable_host_pins",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_runnable_host_pins.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:59.145650+00:00",
+        "finishedAt": "2026-10-13T20:44:59.602938+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_runnable_host_pins.log",
+        "logSha256": "7a1ae81152651a890fb389a206e1fd3c4f8c3f5c4d14f037fdcf95cc7a4c03c9"
+      },
+      {
+        "id": "validate_release_bundle",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_release_bundle.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:44:59.603929+00:00",
+        "finishedAt": "2026-10-13T20:45:45.854440+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_release_bundle.log",
+        "logSha256": "36272b156fd1c6f3cd0a38cef51f702ad5ea61fd36308c69a370b5aadc346abc"
+      },
+      {
+        "id": "bundle-validate",
+        "command": [
+          "specify",
+          "bundle",
+          "validate",
+          "--path",
+          ".",
+          "--offline"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:45:45.855474+00:00",
+        "finishedAt": "2026-10-13T20:45:46.413834+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/bundle-validate.log",
+        "logSha256": "ef64dbaa5a01e76d07b3904fd488aeb8a014f13656f8124d0ecf878e3f30b185"
+      },
+      {
+        "id": "validate_foundation_contracts_development_profile",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_foundation_contracts_development_profile.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:45:46.414914+00:00",
+        "finishedAt": "2026-10-13T20:45:51.322614+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_foundation_contracts_development_profile.log",
+        "logSha256": "4cd8a645e124141bb65e56edd005e44d50c3c77875551a0011f6cc5fb71e0e57"
+      },
+      {
+        "id": "validate_foundation_notes",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_foundation_notes.py",
+          "--self-test"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:45:51.323657+00:00",
+        "finishedAt": "2026-10-13T20:45:52.581176+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_foundation_notes.log",
+        "logSha256": "2011ff03334ebdb7737eb592c164f6e2d90d1b43ef6830bdd8bf987eff0c0367"
+      },
+      {
+        "id": "validate_dependency_profile_catalogs",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_dependency_profile_catalogs.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:45:52.582191+00:00",
+        "finishedAt": "2026-10-13T20:45:58.719480+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_dependency_profile_catalogs.log",
+        "logSha256": "6b975e90527d6bad02555f18505c9156869ffb8f62dc3eb73d8c0e99b212bdae"
+      },
+      {
+        "id": "validate_foundation_published_tools",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_foundation_published_tools.py",
+          "--self-test"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:45:58.720600+00:00",
+        "finishedAt": "2026-10-13T20:45:58.920054+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_foundation_published_tools.log",
+        "logSha256": "8027c009205056bbd85b203adb0c281f7407a845984bbc678d77dedb64c28915"
+      },
+      {
+        "id": "validate_bootstrap_runtime_bindings",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_bootstrap_runtime_bindings.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:45:58.921250+00:00",
+        "finishedAt": "2026-10-13T20:46:01.264852+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_bootstrap_runtime_bindings.log",
+        "logSha256": "b5809cc16662f35270126ceee2035542835569c3bc1dc4bcaa87d9adb4db8dc9"
+      },
+      {
+        "id": "validate_settings_authorities",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_settings_authorities.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:46:01.266017+00:00",
+        "finishedAt": "2026-10-13T20:46:13.791136+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_settings_authorities.log",
+        "logSha256": "3fcd58616b8f02eee21edd7ba8a358c7f22826fbc763cd982e58adb6c575afff"
+      },
+      {
+        "id": "validate_application_handoff",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_application_handoff.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:46:13.792253+00:00",
+        "finishedAt": "2026-10-13T20:46:23.212230+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_application_handoff.log",
+        "logSha256": "3ad5f6c7243cf1507dca8a1c835332bc4533d9130194ad3ccd5abbaf4ddfd572"
+      },
+      {
+        "id": "validate_dependency_updates",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_dependency_updates.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:46:23.213305+00:00",
+        "finishedAt": "2026-10-13T20:46:23.678846+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_dependency_updates.log",
+        "logSha256": "6cec000c398e50df227309ecac8c9cf377cc719de5aa6c0c7cd0d5d96d7ad423"
+      },
+      {
+        "id": "validate_dependency_workflows",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_dependency_workflows.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:46:23.679917+00:00",
+        "finishedAt": "2026-10-13T20:46:24.664963+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_dependency_workflows.log",
+        "logSha256": "7186d0459083751731ec92ac17fbfd00b643d4e0250624124927e4e39cda9eff"
+      },
+      {
+        "id": "validate_composition_model",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_composition_model.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:46:24.666122+00:00",
+        "finishedAt": "2026-10-13T20:46:29.446422+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_composition_model.log",
+        "logSha256": "81cef0233ab3f96f068f165fe38e43f94747a9c60d5faf9177a8c8790a793e4d"
+      },
+      {
+        "id": "validate_native_start_repairs",
+        "command": [
+          "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Scripts\\python.exe",
+          "tests/validate_native_start_repairs.py"
+        ],
+        "exitCode": 0,
+        "startedAt": "2026-10-13T20:46:29.447633+00:00",
+        "finishedAt": "2026-10-13T20:47:10.730504+00:00",
+        "log": "artifacts/validation-runs/20261013T203031Z-52e39f67/validate_native_start_repairs.log",
+        "logSha256": "77387e21573570e9479cbfa29b2529e51d891b582c6c42fe48abfa8c00ce53c9"
+      }
+    ]
+  },
+  "migration": {
+    "guide": "releases/migration-0.13.1.md",
+    "recipe": "preimplementation-diagnostics-v1",
+    "qualification": {
+      "schemaVersion": 1,
+      "scenarios": [
+        {
+          "phase": "before-specification",
+          "preparationSeconds": 4.413,
+          "nativeRefreshSeconds": 10.161,
+          "retainedHashes": {
+            "docs/architecture/building-block-selection.json": "60c9338fed40906f2cfcb19fa3a602bddbbaa2b61885296f5d79af3922a3b41f",
+            "packages.lock.json": "184d7a47c610aae996876510ddb3c08e259fb05112ce5631e194303534a7d449",
+            "contracts/openapi/fixture.baseline.json": "887c7b2f304fb1cc1dff6b9b642bed4e8e5b487d9db5ce52cc38eb8a3b5d499a",
+            "artifacts/history/failed-proof.log": "0011553319a90a9938d4e0876b32f1e1473fd940d899629be3fe4024b8f9965e"
+          },
+          "receipt": "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\phase-refresh\\fa91733a943548539dbefc692fb3d3ab\\before-specification\\phase-refresh.json"
+        },
+        {
+          "phase": "after-specification-clarification",
+          "preparationSeconds": 4.509,
+          "nativeRefreshSeconds": 9.443,
+          "retainedHashes": {
+            "docs/architecture/building-block-selection.json": "60c9338fed40906f2cfcb19fa3a602bddbbaa2b61885296f5d79af3922a3b41f",
+            "packages.lock.json": "184d7a47c610aae996876510ddb3c08e259fb05112ce5631e194303534a7d449",
+            "contracts/openapi/fixture.baseline.json": "887c7b2f304fb1cc1dff6b9b642bed4e8e5b487d9db5ce52cc38eb8a3b5d499a",
+            "artifacts/history/failed-proof.log": "0011553319a90a9938d4e0876b32f1e1473fd940d899629be3fe4024b8f9965e",
+            "specs/001-example/spec.md": "f86ebc6ab07eeff6d7d4f4ad9cbc5b323b2125ece576ba1ec902ae11a7fe008d",
+            "specs/001-example/clarifications.md": "4d74fa6e1856354372a9733eeeffefbcebfe95bc30a94465bbef870346ec00a5"
+          },
+          "receipt": "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\phase-refresh\\fa91733a943548539dbefc692fb3d3ab\\after-specification-clarification\\phase-refresh.json"
+        },
+        {
+          "phase": "after-plan",
+          "preparationSeconds": 4.328,
+          "nativeRefreshSeconds": 9.456,
+          "retainedHashes": {
+            "docs/architecture/building-block-selection.json": "60c9338fed40906f2cfcb19fa3a602bddbbaa2b61885296f5d79af3922a3b41f",
+            "packages.lock.json": "184d7a47c610aae996876510ddb3c08e259fb05112ce5631e194303534a7d449",
+            "contracts/openapi/fixture.baseline.json": "887c7b2f304fb1cc1dff6b9b642bed4e8e5b487d9db5ce52cc38eb8a3b5d499a",
+            "artifacts/history/failed-proof.log": "0011553319a90a9938d4e0876b32f1e1473fd940d899629be3fe4024b8f9965e",
+            "specs/001-example/spec.md": "f86ebc6ab07eeff6d7d4f4ad9cbc5b323b2125ece576ba1ec902ae11a7fe008d",
+            "specs/001-example/clarifications.md": "4d74fa6e1856354372a9733eeeffefbcebfe95bc30a94465bbef870346ec00a5",
+            "specs/001-example/plan.md": "104dd60fff8b65a91c9d431f7d5e0aa9d2bf8a6d32bfe41214db881b8dbec57f"
+          },
+          "receipt": "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\phase-refresh\\fa91733a943548539dbefc692fb3d3ab\\after-plan\\phase-refresh.json"
+        },
+        {
+          "phase": "after-tasks-analysis",
+          "preparationSeconds": 4.225,
+          "nativeRefreshSeconds": 9.129,
+          "retainedHashes": {
+            "docs/architecture/building-block-selection.json": "60c9338fed40906f2cfcb19fa3a602bddbbaa2b61885296f5d79af3922a3b41f",
+            "packages.lock.json": "184d7a47c610aae996876510ddb3c08e259fb05112ce5631e194303534a7d449",
+            "contracts/openapi/fixture.baseline.json": "887c7b2f304fb1cc1dff6b9b642bed4e8e5b487d9db5ce52cc38eb8a3b5d499a",
+            "artifacts/history/failed-proof.log": "0011553319a90a9938d4e0876b32f1e1473fd940d899629be3fe4024b8f9965e",
+            "specs/001-example/spec.md": "f86ebc6ab07eeff6d7d4f4ad9cbc5b323b2125ece576ba1ec902ae11a7fe008d",
+            "specs/001-example/clarifications.md": "4d74fa6e1856354372a9733eeeffefbcebfe95bc30a94465bbef870346ec00a5",
+            "specs/001-example/plan.md": "104dd60fff8b65a91c9d431f7d5e0aa9d2bf8a6d32bfe41214db881b8dbec57f",
+            "specs/001-example/tasks.md": "0c1e80d7674e62c8df91267dd21649a597ff81f7636b46739357bb8b0d2c6707",
+            "specs/001-example/analysis.md": "fb8addd4538067e89c5754860789dd918f40177773f8c3c726681d9d5b26fea8"
+          },
+          "receipt": "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\phase-refresh\\fa91733a943548539dbefc692fb3d3ab\\after-tasks-analysis\\phase-refresh.json"
+        }
+      ],
+      "scope": "Native installed command/skill refresh and byte retention; fictional pre-implementation artifacts",
+      "caches": "Existing installed Spec Kit and native bundled templates; no package restores or services",
+      "businessBuildToOperationMeasured": false,
+      "codingAgentReasoningMeasured": false
+    },
+    "ownership": "Before writes, native rendered outputs for every installed/recorded integration are compared to authenticated whole-component source witnesses and original native manifest hashes. Manual command, skill, hook, template and phase-reference edits fail read-only. Archived installers use immutable shipped history witnesses; generated release guides retain their separate verified version authority.",
+    "semanticReconciliation": "Existing assess/scan/reconcile/verify/integrate/activate transaction is reused. Four fictional pre-implementation milestone fixtures prove command refresh and retained bytes. Existing local-upgrade scenarios additionally exercise real historical 0.12.7, reviewed stale planned/materialized obligations, failure recovery, and preserved selections. Consumer intent/task edges and human acceptance still need owner review."
+  },
+  "packagedQualification": {
+    "status": "passed",
+    "log": "artifacts/diagnostics/repair-batch/packaged-upgrade-final.log",
+    "scope": "Final locally built archive: real native sequential updater, disposable consumer preparation, destination activation, source helper/catalog byte equality. No publication or clean-host acceptance."
+  },
+  "numericQualification": {
+    "status": "passed",
+    "foundationJson": "0.3.3",
+    "aspnetDefaultMismatchReproduced": true,
+    "profileMetadataTruthful": true,
+    "numericStringsRejected": true,
+    "actualOpenApiProducerVerified": true,
+    "scopedDtoCandidateVerified": true,
+    "contractApproval": "pending-consumer-review",
+    "sourceCommit": "711293b2dda187616891df11fe760a3d5d0cf5f5",
+    "recipeSha256": "041585e4d00baaa56fb06b75761180370f752587e26243cd4e13ee980c697637",
+    "capabilityValidatorSha256": "1dd8673946d0df837ef15f4b2380b21edce44c7b81b80d352ffe3d89b7554c02",
+    "selectedCapabilityProjectorSha256": "4fd64d234cf9472333c7138c3a36c501f559c509a9b31d2f92563e69fa7984d0",
+    "sdk": "10.0.401",
+    "cacheScope": "Fresh disposable fixture and npm ci; user NuGet/tool/npm caches may be warm. Prepared metadata export timing excludes preparation, business operation execution and agent reasoning.",
+    "sourceState": "Working-tree candidate at recorded HEAD plus exact recipe/fixture/validator hashes; not a clean-commit publication receipt.",
+    "fixtureSha256": {
+      "NumericFeature.cs": "64bfae9a289761fa7e3f31f7054f827baa0ee5c38265ff76bce788dcc80cad8b",
+      "Program.cs": "13b3bfa8740dca2d2ace3100bc03c1efaa26f13f1acdee4e2e68262a22026b52"
+    },
+    "actualClosedProblemWriter": true,
+    "nestedArraysAndOverflow": true,
+    "actualEffectOnlyRegistrationExcluded": true,
+    "controlledEffectOnlyTrueRejectedBeforeOutput": true,
+    "nullableNumericDisposition": "parser accepts number/null and rejects numeric strings; actual selected producer still promises nullable integer|string despite scoped Strict metadata; admission correctly blocks; publisher integration remains separate",
+    "officialExporter": "0.2.5",
+    "maintainedGeneratedClient": {
+      "generator": {
+        "package": "openapi-typescript",
+        "version": "7.13.0",
+        "isolation": "separate-package-and-lockfile"
+      },
+      "lockSha256": "1f9ba72b3359a168bc66a27112e349dd79248e3172e149cf3337b144b0508f0b",
+      "typesSha256": "79e433773b48b16c4ba71bb7cfbc63e050f12443cd84249501e4afc6b6b59a77"
+    },
+    "preparedMetadataExportTiming": {
+      "command": [
+        "dotnet",
+        "tool",
+        "run",
+        "orbyss-foundation-openapi-export",
+        "--",
+        "--repository",
+        "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\numeric-schema\\5e288a0124b24170b4e2814e3fb18954\\official-exporter",
+        "--packages",
+        "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\numeric-schema\\5e288a0124b24170b4e2814e3fb18954\\closure",
+        "--shells",
+        "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\numeric-schema\\5e288a0124b24170b4e2814e3fb18954\\official-exporter\\shells.json",
+        "--hostsettings",
+        "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\numeric-schema\\5e288a0124b24170b4e2814e3fb18954\\official-exporter\\hostsettings.json",
+        "--contract",
+        "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\numeric-schema\\5e288a0124b24170b4e2814e3fb18954\\official-exporter\\contract.json",
+        "--output",
+        "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\numeric-schema\\5e288a0124b24170b4e2814e3fb18954\\official-exporter\\document.json",
+        "--evidence",
+        "C:\\Users\\tech_\\Code\\program-kit\\artifacts\\tests\\numeric-schema\\5e288a0124b24170b4e2814e3fb18954\\official-exporter\\export.json"
+      ],
+      "seconds": 0.575
+    },
+    "scope": "Scoped strict DTO defaults under selected unmodified pins, native typed bindings and selected parser/writer/producer/client parity. Custom converters/shared types under different profiles remain explicit unresolved. No consumer baseline or approval changed; fixture timings exclude agent reasoning."
+  },
+  "nativeOwnershipQualification": {
+    "scope": "Authorized native migration ownership repairs in disposable consumers",
+    "rootCause": "Native integration upgrade re-registers extension phase outputs and can overwrite generated consumer edits outside the core integration manifest.",
+    "responsibleOwner": "Program Kit updater pre-install admission; Spec Kit maintained native renderers retain generation authority.",
+    "existingBehavior": "Core/preset output ownership and native default restoration were already handled by the new phase refresh implementation.",
+    "newRepair": [
+      "Read-only admission of every installed/registered native extension command, alias and skill against exact maintained native rendering.",
+      "Native manifest integrity plus a single authenticated source-component witness protect commands, scripts, templates, ordinary references, docs and README from silent replacement.",
+      "Historical source catalog works without a Git checkout; source hybrids cannot combine per-file witnesses.",
+      "Generated packaged release guides retain their existing index/checksum validator. Selected versioned dependency evidence retains its separate authority.",
+      "Independent Program Kit preset source customizations are rejected before native component writes. Unsupported registry/API/source bindings remain unresolved."
+    ],
+    "executed": [
+      {
+        "validator": "tests/validate_native_phase_ownership.py",
+        "status": "passed",
+        "tests": 8,
+        "seconds": 132.029,
+        "log": "artifacts/diagnostics/repair-batch/native-phase-ownership-final.log"
+      },
+      {
+        "validator": "tests/validate_local_upgrade.py",
+        "status": "passed",
+        "log": "artifacts/diagnostics/repair-batch/local-upgrade-owned-sources.log",
+        "scope": "Actual historical 0.12.7 plus explicitly fictional version-zero planned/materialized sequential migration, preflight, interruption, convergence, retry and OpenAPI lifecycle fixtures."
+      },
+      {
+        "validator": "artifacts/diagnostics/repair-batch/probe-authenticated-synthetic.py",
+        "status": "passed",
+        "evidence": "artifacts/diagnostics/repair-batch/probe-authenticated-synthetic.json",
+        "scope": "Subsequent fixture-source strengthening proves native registry integrity against actual immutable raw Git objects without host text filters; 25 native outputs admitted."
+      }
+    ],
+    "migration": "Updater source/output admission runs before component installation. Preserve and explicitly reconcile any diagnosed consumer customization, then retry the maintained updater; no force bypass or manual generated-skill copying is authorized.",
+    "limits": [
+      "Fictional source witnesses exist only in staged disposable test releases and never enter the production source catalog.",
+      "Integrated local-upgrade passed before the final fictional fixture Git-object strengthening; the subsequent bounded factory proof exercises that changed helper directly.",
+      "Working-tree targeted validation is not an exact-commit Release or consumer acceptance receipt.",
+      "Scripted validation time does not measure coding-agent reasoning or application startup.",
+      "No real consumer changes, publication, Release or live coding workers were invoked."
+    ]
+  },
+  "effectOnlyQualification": {
+    "effectOnlyFeature": "Numeric.EffectOnly",
+    "selectedInShellAndContract": true,
+    "declaredApiDependency": true,
+    "composeForOpenApi": false,
+    "registrationExcludedByActualExporter": true,
+    "controlledTrueRegistrationRejected": true,
+    "failureBeforeDocumentOrEvidence": true,
+    "connectionInputsSupplied": false,
+    "positiveClosureUnchanged": {
+      "cshells.abstractions.0.0.30.nupkg": "68a0c292132a507c4b9392bef611a1a94c2999ab5fe7c544def1a2e3c071e717",
+      "cshells.aspnetcore.abstractions.0.0.30.nupkg": "2b0673c92c5084a7833535c279612f60fe5b3bb8bc86c2f5e66108925aa5bce6",
+      "jetbrains.annotations.2025.2.4.nupkg": "609a52efb507f6d4c44c2287af933e6d039ac7504b3c5a88aff8be28b37db442",
+      "microsoft.aspnetcore.openapi.10.0.12.nupkg": "c20150e4528d04748bd911ff99768e2db2cc74bd88af20f20bd6ca0d72f7c3e5",
+      "microsoft.openapi.2.12.0.nupkg": "078d87e1d8566727b81080fe5ebe97f238799f45dc3709dc5fa892864ca22a27",
+      "Numeric.Contract.Api.1.0.0-fixture.2.nupkg": "86fb1ba20ead609fe9e9e3c56b646f8fb10254dfa8e0af59a8fbf5ad10754b81",
+      "orbyss.foundation.build.0.3.1.nupkg": "fe8fc9335c82c309a82a9ceefd0fc03a4be429825a7ebd697e88006237157e8a",
+      "orbyss.foundation.collections.core.0.3.3.nupkg": "02866301f74cb5d57a698af52de83362fbb4d0005c0c8a41f443d10343721f4f",
+      "orbyss.foundation.json.0.3.3.nupkg": "38e22f6cb330cdc82ec5e6f3662232d9051d5926c51fcfa723995727d5c348a5",
+      "orbyss.foundation.json.aspnetcore.0.3.3.nupkg": "838bee5457e74f9e45b785e508be28db05ce108f84f085d1349779ffea114a3f",
+      "orbyss.foundation.web.openapi.0.3.3.nupkg": "b683833fbabf8f14eef2cd7e26b0467604e8a425287d1b043c33a8c75211e144",
+      "orbyss.foundation.web.problemdetails.0.3.3.nupkg": "f7f0b185a6d0539923be41786f1a6addb8072e00b94394719f496f194c6f27ea",
+      "orbyss.foundation.web.problemdetails.core.0.3.3.nupkg": "03f1ff0e18a29a3c358ba72f35f1608e9f8efee3c88deab10d5b6f85efe44924"
+    }
+  },
+  "schemaGrantQualification": {
+    "status": "passed",
+    "image": "postgres@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336",
+    "schemaUsageRequired": true,
+    "journalSelectRequired": true,
+    "exactRoleReadAdmitted": true,
+    "unrelatedTableStillDenied": true,
+    "cleanupComplete": true,
+    "actualApplicationLogin": true,
+    "idempotentDeploymentReplay": true,
+    "exactOperationInsertUpdateAdmitted": true,
+    "runtimeCreateDenied": true,
+    "ungrantedDeleteDenied": true,
+    "scope": "Synthetic deployment guidance; no consumer schema, startup creation or reset."
+  },
+  "performance": {
+    "disposableFixture": "artifacts/tests/hosted-palette/fcc18c25",
+    "preparationSeconds": 8.503,
+    "beforePreparedBuildSeconds": 5.073,
+    "afterPreparedBuildSeconds": 3.683,
+    "beforeMountedMedianMs": 108.263,
+    "afterMountedMedianMs": 110.352,
+    "browserMatrixSeconds": 16.736,
+    "infrastructureRepairSeconds": 0,
+    "qualification": "Single ordered observations on same disposable/cache; no statistical speedup or coding-agent reasoning claim. SDK10.0.401 Node26.11.1 npm12.2.0 Playwright1.64.0 axe4.13.0; operator browser cache; full host/infrastructure not measured."
+  },
+  "palette": {
+    "cases": 48,
+    "engines": [
+      "chromium",
+      "webkit"
+    ],
+    "themes": [
+      "blue",
+      "green",
+      "slate"
+    ],
+    "schemes": [
+      "light",
+      "dark"
+    ],
+    "states": [
+      "loading",
+      "mounted",
+      "failed",
+      "no-script"
+    ],
+    "baselineDarkFailuresReproduced": 6,
+    "axeEnabledCases": 36,
+    "disabledScriptCases": 12,
+    "scope": "Unmodified selected hash-verified Foundation 0.3.3 renderer seam and actual native Vite assets; no full package-host or consumer acceptance. Authored visited token/rule checked because browser history colors are masked."
+  },
+  "limitations": [
+    "Nullable numeric producer/parser mismatch remains blocked, rather than falsely repaired by Strict metadata or handwritten schema/client edits.",
+    "Custom converters, unsupported bindings and profile reuse require exact further proof; the global default profile is not substituted.",
+    "Single ordered timing observations establish no statistical speedup. Mounted median rose from 108.263ms to 110.352ms. Full host/infrastructure, business effects and coding-agent reasoning were not measured.",
+    "Local Windows Firefox launch is unavailable; CI keeps Firefox. Chromium/WebKit qualification does not imply Firefox acceptance.",
+    "Disposable tests do not accept Claim Evaluator behavior or human journeys. Raw local artifacts are not shipped; their paths/hashes and substantive results are recorded here.",
+    "Initial sandbox temp/Python/DNS failures and negative browser/ownership/producer attempts remain failed evidence. Successful reruns used installed tools and supervised owned processes.",
+    "This development repair branch has no release selection, publication or paid-worker authority."
+  ],
+  "evidenceFiles": [
+    {
+      "path": "artifacts/program-kit-0.13.1.zip",
+      "sha256": "74b000c29bb9ad576981b7190222a04586814b9f8e2ec5a3845f52b94af88439"
+    },
+    {
+      "path": "artifacts/validation-runs/20261013T203031Z-52e39f67/journal.json",
+      "sha256": "2699a65f01086eaaef7f8eda5d3b23516ad8a6c166d9c939e4cfae6f54675f01"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/development.log",
+      "sha256": "d5bdde9ce1d3ae3d3b24736ff58665fdb6f0b7c4d4f0ca1d9b84c6fa57fd3fa6"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/item-02-03-evidence.json",
+      "sha256": "e6b8191e04fc2f60edb19d7064f8bd5095549d980a88aa883a12a6e50738a75b"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/native-ownership-evidence.json",
+      "sha256": "423d49ba090fbb0440f2539a0e7714e76cabee13b0d43a62882d66e9ccfe88c7"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/probe-authenticated-synthetic.json",
+      "sha256": "f265d4ae165fff22dba9ba8d716b2f3ee6d5993e414ccbf92def713f3449e956"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/local-upgrade-owned-sources.log",
+      "sha256": "58a77a92985ab0ac89a6105eac71aa71a68cd61a45679c6a81f6ac8a51c82e3a"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/package-final.log",
+      "sha256": "dc08dccebb97d5c2f562f8ebba099bc4b58bd8b1bdeb0cd34960c4a7a94a8418"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/packaged-upgrade-final.log",
+      "sha256": "944abd2e236735bb27588e928303d6651636cb409f1685551e22ebc4fc173a12"
+    },
+    {
+      "path": "artifacts/tests/phase-refresh/fa91733a943548539dbefc692fb3d3ab/matrix.json",
+      "sha256": "de26c32063f1a886d87f9e627ac23b21b26fd669c35bf9812526759b11bc54c3"
+    },
+    {
+      "path": "artifacts/tests/numeric-schema/5e288a0124b24170b4e2814e3fb18954/result.json",
+      "sha256": "60829e823e680ec658137881ba34d3c4aca60ca623a42b2df41df9257cded352"
+    },
+    {
+      "path": "artifacts/tests/numeric-schema/5e288a0124b24170b4e2814e3fb18954/effect-only-proof.json",
+      "sha256": "b640158209fdd6badd8c9bd6ef3a636a22993c0d4f6d356cfb2915947a0323db"
+    },
+    {
+      "path": "artifacts/tests/schema-role-grants/71e7eea384ef427e80206d73c08aef89/result.json",
+      "sha256": "61a3285dc041d0b782772a88edbd50a39225e2a84399b39019abc0138a77433a"
+    },
+    {
+      "path": "artifacts/tests/composition-activation/f264f69b70c14f36950665d07520bf48/status.json",
+      "sha256": "e529617dde9449ebc687ec59575529024d82886d09e4007c07b84f6f81b777ef"
+    },
+    {
+      "path": "artifacts/tests/hosted-palette/fcc18c25/provenance.json",
+      "sha256": "da60d325b0baa48f85375460284b7114be7d6ea41bcd88e55c3a5ccc5533d4be"
+    },
+    {
+      "path": "artifacts/tests/hosted-palette/fcc18c25/rendered/result.json",
+      "sha256": "00bcbd8bca00f0573108becaa7bb2a9397a6b20673b364d17796a2f3f9ba72f8"
+    },
+    {
+      "path": "artifacts/tests/hosted-palette/fcc18c25/browser-process-cf248ff7/process.json",
+      "sha256": "ed7ccc944e2d51717bf331993af80f2f8d596ebe24e81532c62d6e42e7348812"
+    },
+    {
+      "path": "artifacts/tests/browser-launch/f0223659/positive-result.json",
+      "sha256": "475c07d620e6ab4358fabd79e33f62c336d3beef77a00885585110464928a214"
+    },
+    {
+      "path": "artifacts/diagnostics/claim-evaluator-research/native-repairs-implementation.log",
+      "sha256": "cce2fb765f5b56861ba07ec708bff85387881b87800561d8c23109df80dac190"
+    },
+    {
+      "path": "artifacts/diagnostics/claim-evaluator-research/effective-dependency-implementation.log",
+      "sha256": "0ca9fda67a8c2294ff95a56b9552adac0671f305820f27b226faa97bafbd8844"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/components-final.log",
+      "sha256": "96ffda2ce71739dcd4eb5d7f1f6fa40c6869e4c8b48c5bfb8d9771482f06de0e"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/native-phase-ownership-final.log",
+      "sha256": "7163609275fc52f0b6806462d64bdf91d615557c64e90f687bc8418de41b350b"
+    },
+    {
+      "path": "artifacts/diagnostics/repair-batch/validation-runner-final.log",
+      "sha256": "0b23098dbd10acdb3da6fe995a268068c613ab0d150dfe75e54817bb1388b743"
+    }
+  ],
+  "sourceFileSha256": {
+    "extensions/program-kit-building-blocks/scripts/wire_capabilities.py": "4fd64d234cf9472333c7138c3a36c501f559c509a9b31d2f92563e69fa7984d0",
+    "extensions/program-kit-dotnet/references/foundation-compositions.md": "e012eb36c9f836aa9b1f8526728d8ea0df258e40b8f81c900c13c5b82be906a5",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py": "5dfe7eed166d3fbe706e0bdac3edeb330b2dc176f38dc367552e6c0a926353ed",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_capabilities.py": "1dd8673946d0df837ef15f4b2380b21edce44c7b81b80d352ffe3d89b7554c02",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_pipeline.py": "ee9cf8d98ec2ae249c8721d6ee113c72c668128acba63562b6464a5e9a20d606",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py": "41ab2b30336abccaba361c8c6ec6d6c09fd9556c89ee08f2c9a63d98e62a62b9",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py": "0073302115959904fad2593f83d5cc5075a6d18c6aed3ffd8cc85f2ee4443d55",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_project.py": "e60003db90a1df45d3cbcc258fc7ddf854f5814fa5acc4b3dd1d4163e6fa3efc",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/web/composition-readiness.mjs": "740e8413e9f249556cef7a4069fb37feba1c7f04243456ec796d3f34df26f20f",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/web_identity.py": "08672141319d1e3637c15b5a64de3b85dfcd19f146ab273687236e7cd520c417",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/src/styles.css": "366c582b65ac0b5d64b2e42e5f75e8322956c325cd39c8676170b2341e931efb",
+    "extensions/program-kit-dotnet/templates/dotnet/managed-files.json": "33a8cae5f61dee228897633d8e1006aa4d0c549a9abc97c4d68226ee161317d4",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Test-Web.ps1": "b80de4f575b615510802bb1ad5fa317f2360db3032e16bca1371313a123d657f",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/persona-fixture.ts": "66de07c709fc304bc65ac2e8b3e24b0a1e6201100ed6d1074c6bbbb13c9a2c1f",
+    "extensions/program-kit-governance/references/consumer-migration-recipes.json": "1d7ddd525356639cdb7107dead31796c1bdd7463902e76690f670a3eb2404ba1",
+    "extensions/program-kit-governance/references/native-phase-source-baselines.json": "01536fa6962d463fb3321cad3ef3d75c292208f2b819bfadf5c562bc9b5e3b97",
+    "extensions/program-kit-governance/references/operation-recovery-example.mjs": "274c3cd698f2ebe231c7eae3d47d41aff9e338946cf0f436de33842c2868ccd4",
+    "extensions/program-kit-governance/references/ui-feedback-and-recovery.md": "5bb6192a8e2c5302ad43605cd191975af21e9b6fdf47bce80ba85afd9d2f4a34",
+    "extensions/program-kit-governance/scripts/phase_obligations.py": "1623e52b3df3203443566597305a945464dd07955f37b5edbd742b19de8515e2",
+    "extensions/program-kit-governance/scripts/task_draft.py": "5a87bb392c80d2d16eae82859e483982bce84296d936b2d5ff99028de8ab1645",
+    "presets/program-kit-governance-preset/templates/plan-governance.md": "f744ec5934a57b8125eccc27af589b2a0da712cfa05d2ed3103d6224c15b95a6",
+    "presets/program-kit-governance-preset/templates/tasks-governance.md": "ede77a53b7c803f152301441c0ec9c6798e8e5c6debf2703f7a8a723ce0873a3",
+    "releases/consumer-changes.json": "44960cde7ac741ed151a7d50e808332a4fa211ec1b684537e762a9da0fb18f38",
+    "releases/migration-0.13.1.md": "653b212a85d9b2492856bdf130e1171075dfb82935d7bbfef4d5653832a67b9c",
+    "scripts/build_native_phase_baselines.py": "f116c6389516d30e93660332c7c27b3c31e3a9f0da3709f3a8b53a29aa7c99f0",
+    "scripts/build_release.py": "12b9d32a7c10dd3e79c3f28ce4dc7c5f7c2b8d4e540154727b18fb68d0116a3b",
+    "scripts/native_phase_ownership.py": "f280a1807a94582033e226579febd5ec1857a13734dd770f980641a98c6c0b57",
+    "scripts/upgrade_program_kit.py": "80914e583726c0ede77ffe5eab224ad4223f742af3053ef21abc6826e3f25e48",
+    "tests/fixtures/composition-numeric/NumericFeature.cs": "64bfae9a289761fa7e3f31f7054f827baa0ee5c38265ff76bce788dcc80cad8b",
+    "tests/fixtures/composition-numeric/Program.cs": "13b3bfa8740dca2d2ace3100bc03c1efaa26f13f1acdee4e2e68262a22026b52",
+    "tests/fixtures/hosted-palette/Program.cs": "a8e8a3785d2546f24b1733419804eae99767cfa06482db4dd830d6ae82e2cdf2",
+    "tests/fixtures/hosted-palette/browser.mjs": "a7ce2c5713b2c2e8cd7ab820bd1c9aad87cdef8fe049723ad5309b4980785536",
+    "tests/upgrade_selection_cases.py": "ce4b0a742e1153c184042692efec43a87cb82ef2ca8d9ed6450d18c6a3c27625",
+    "tests/validate_browser_launch.py": "fc7dce7065ed4dd4739a8a4a3390c3f5fb9bf31d4defa2600b414e071f7d4333",
+    "tests/validate_composition_activation.py": "6ff18353e9b7234814592f5a73282102bfeca54b72bae4a0f375665853e83a0f",
+    "tests/validate_composition_tooling.py": "22875d51b4ef67ce81688dd214a2745aa3b34d63cc9c4f6f46c94071a5157d6f",
+    "tests/validate_hosted_palette.py": "3c0de0afd9c2f93ae70e9574158c434be9702b4ba1fecd732de369b62749f303",
+    "tests/validate_local_upgrade.py": "fb4a9f388fd4a25b4ad9913a9e2c0886c14812cb4e62102c2ae98974a62b9b01",
+    "tests/validate_native_phase_ownership.py": "fa52dc7fb207b0db4d0078ccd11d33f1a808a0f7d41618ca9c37e9265e52f8d2",
+    "tests/validate_numeric_schema.py": "041585e4d00baaa56fb06b75761180370f752587e26243cd4e13ee980c697637",
+    "tests/validate_operation_recovery.py": "11499462161f535a227357ae95544c6b1244cedc7eef9820eacf2d7c90ff32a3",
+    "tests/validate_phase_refresh.py": "2f340594dc8fc8a7fe565f54af7d4d6acad534ea05c42a8fdfed7505e1d14850",
+    "tests/validate_schema_role_grants.py": "dd4070a747b8648e9bba7de35348b2445bb7ac24564563dc1ea019974072207b",
+    "tests/validate_scoped_verification.py": "166afef954666b470b48ae77e83b3e76f292929edc7b05584b474ca389567d36",
+    "tests/validate_task_generation.py": "abdb337a4095217d65d76fe3e0c2e9db93e90249cb17b2cb3463e4f0a09d4321",
+    "tests/validate_test_dependencies.py": "46db384c7300369dcaffa8c05783e42cad35e5232d4227a0e24a51ad39e17dd9",
+    "tests/validate_web_identity.py": "35aece25f39cf16ccf053496c871fdc8545026b5bc900ffdf42e43c3c6de0fcb",
+    "tests/validate_wire_capabilities.py": "df654910b3335176def2b8ee76032f4a3f659a532acf8664fb7ae0122ff0f2c6",
+    "tests/validation-inventory.json": "4204c4a3bef83f51316145cd900af97a2bec5140d2a7edc73d86a2181c573abd"
+  },
+  "additionalResearch": {
+    "report": "docs/ds01-implementation-diagnostics-research-2026-10-13.md",
+    "status": "Prior repair source 2cb8560 passed full and repeated three-engine CI; a198f38 passed101 Development checks. The user approved additional items29–33. Their upstream code and guidance are implemented and under focused/native validation. Mandatory update38526051812 failed a stale exporter assertion; its exact evidence is preserved, no pins were adopted, and the assertion now compares the independently maintained tool manifest. Complete dependency/security adoption and patch qualification remain mandatory; actual consumer corrections remain separate.",
+    "additionalBatchReport": "docs/ds01-additional-repairs-2026-10-14.md",
+    "items": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33
+    ],
+    "originalEvidence": "Original items, timestamps, baseline and artifact hashes above remain historical evidence unchanged.",
+    "implementation": "docs/ds01-implementation-coverage-2026-10-14.md"
+  }
+}

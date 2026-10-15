@@ -2,6 +2,49 @@
   "schemaVersion": 1,
   "recipes": [
     {
+      "id": "fresh-feature-delete-v1",
+      "version": 1,
+      "applicability": "Unfinished feature restart adopting the diagnostics patch; execute specify itself and all following phases anew.",
+      "preservedBehavior": "Retain the confirmed specification intake, unchanged accepted product architecture, installed foundations/tooling, exact dependency history and unrelated shared work.",
+      "allowedScope": "Delete the complete selected unfinished specification and all exclusively owned generated implementation/test/frontend/contract files. Reconcile its contributions to shared projects/configuration without deleting other owners' work.",
+      "ordering": [
+        "Install the exact published patch through the supported updater and regenerate all installed Spec Kit phase contributions.",
+        "Inventory the complete old specification and its owned implementation, tests, frontend, contracts and derived build/runtime outputs; distinguish shared contributions and persistent data.",
+        "Use task_draft.py reset with method fresh-feature-delete-v1 and the selected file inventory to delete the complete old specification and owned source files without creating a content archive.",
+        "Remove the old attempt's owned derived outputs through their maintained owners and reconcile obsolete references/registrations; do not retain an active old application bundle or stale check receipt.",
+        "Start a fresh attempt from the retained confirmed intake and current accepted architecture; do not consult old source, archives, Git history or previous attempt transcripts to reconstruct its implementation.",
+        "Execute specify, clarify, plan, tasks, analyze and implement anew using the refreshed installed commands, templates and hooks. Old phase outputs, progress, reviews and test receipts supply no new-attempt authority."
+      ],
+      "verification": [
+        "Entire old specification directory and selected owned implementation files are absent; no content archive was created or supplied as new-attempt input.",
+        "Confirmed intake bytes and designated shared/toolkit/dependency inputs remain unchanged; incomplete inventories and changed/linked inputs fail before deletion.",
+        "New spec.md and all following phase outputs are freshly generated through the installed release; implementation starts with fresh progress and executed evidence."
+      ],
+      "recoveryLimits": "Deletion has no toolkit-created content backup. The concrete selected scope must stay inside the consumer workspace. It does not authorize deletion of unrelated shared work or live data, rewriting published migration history, a dependency transition or publication."
+    },
+    {
+      "id": "preimplementation-diagnostics-v1",
+      "version": 1,
+      "applicability": "Consumers before specification, after specification/clarification, after planning, or after tasks/analysis awaiting implementation; retain supported existing mid-implementation mechanisms.",
+      "preservedBehavior": "Accepted intent, original baselines/effort, task identities/edges, pending failure and retired-owner obligations, accepted profiles/pins/locks, local repairs, reviews and historical artifacts.",
+      "allowedScope": "Native installed phase machinery and affected existing spec/plan/tasks, selected OpenAPI producer/client outputs, explicit verification successors and obsolete scaffold contributions; real consumer implementation stays consumer-owned.",
+      "ordering": [
+        "Inventory ownership/customizations and checkpoint the consumer through consumer_upgrade_workspace.py prepare.",
+        "Install the exact reviewed candidate in isolation; native integration upgrade/use refreshes every installed integration and restores the default without force-overwriting customizations.",
+        "Assess all fifteen diagnostics through consumer_upgrade.py; missing selected capability/binding knowledge remains a scoped unresolved finding.",
+        "Reconcile affected retained artifacts in place; preserve intent and task identities, use explicit reviewed successors for retired verification owners.",
+        "Regenerate the existing single OpenAPI document from earliest producer metadata and regenerate its client with maintained tools; retain the compatibility baseline and existing DTO annotations.",
+        "Verify relevant selected behavior, phase obligations, meaningful test-owner dependencies, installed machinery and retained historical bytes, then reassess intervening edits before integrate/activate."
+      ],
+      "verification": [
+        "Native four-stage pre-implementation refresh and actual customization refusal.",
+        "Selected closed problem/error coverage and scoped numeric producer/parser/writer/client parity; unsupported nullable/shared-profile/converter cases are unresolved rather than admitted.",
+        "Hash-bound retired-owner reconciliation, task-producer ancestor ordering and actual selected CShells compiler/locked restore proof.",
+        "Canonical persona identity, immutable frontend updates and selected renderer light/dark palette; product behavior/human review remain separate."
+      ],
+      "recoveryLimits": "No intake/bootstrap restart, abandoned phase history, automatic task completion, pin transition, compatibility-baseline reset, live-worker authority, data rollback or publication authority. Native updater/activation recovery remains the maintained route."
+    },
+    {
       "id": "fresh-story-delivery-v1",
       "version": 1,
       "applicability": "Adoption of story-delivery-v1 for an affected unfinished feature; no partial-feature continuation.",

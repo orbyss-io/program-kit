@@ -63,10 +63,10 @@ def npm_candidates(node: Path, requested: str, repository: Path | None = None, r
     return [[str(node), str(selected)] if selected.suffix.casefold() == '.js' else [str(selected)]]
 
 
-def resolve_npm(repository: Path, node: Path, required: str, requested: str) -> tuple[list[str] | None, str | None]:
+def resolve_npm(repository: Path, node: Path, required: str, requested: str, environment=None) -> tuple[list[str] | None, str | None]:
     candidates = npm_candidates(node, requested, repository, required)
     command = candidates[0] if candidates else None
-    actual = version(command, repository) if command else None
+    actual = version(command, repository, environment) if command else None
     return (command if actual == required else None), actual
 
 
@@ -171,7 +171,16 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
     if not isinstance(node_command, list) or len(node_command) != 1 or not Path(node_command[0]).is_file():
         raise ValueError("PKT016 recorded Node command is invalid or missing.")
     active_node, actual_node = resolve_node(repository, required.get('node'), 'node', 'auto')
-    active_npm, actual_npm = resolve_npm(repository, active_node, required.get('npm'), '') if active_node else (None, None)
+    # npm lifecycle commands resolve node through a child shell even when the
+    # recorded executable itself can run with an oversized Windows PATH.
+    child_environment = os.environ.copy()
+    if os.name == 'nt' and active_node:
+        from windows_workflow_path import prepare_path, WindowsPathError
+        try:
+            child_environment['PATH'] = prepare_path(child_environment.get('PATH', ''), str(active_node))
+        except WindowsPathError as error:
+            raise ValueError('PKT018 npm child PATH cannot fit safely; reduce redundant device PATH entries in your terminal. ' + str(error)) from error
+    active_npm, actual_npm = resolve_npm(repository, active_node, required.get('npm'), '', child_environment) if active_node else (None, None)
     if active_node is None or [str(active_node)] != node_command or active_npm != npm:
         raise ValueError('PKT017 device selection changed or PATH is stale; re-run eng/toolchain.py. ' + device.REFRESH)
     if actual_node != required.get('node') or actual_npm != required.get('npm'):
@@ -188,6 +197,8 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
         str(recorded_environment.get("trustMode", "")),
         str(recorded_environment.get("extraCaCertificates", "")),
     )
+    if os.name == 'nt':
+        environment['PATH'] = child_environment['PATH']
     return list(npm), environment
 
 

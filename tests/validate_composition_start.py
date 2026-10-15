@@ -35,6 +35,29 @@ def containers(project):
     return {line.split()[1]: line.split()[0] for line in result.stdout.splitlines() if line.strip()}
 
 
+def dispose_fixture(root, preparation, evidence):
+    """Remove only this generated fixture's containers/network; retain all data.
+
+    Use the shipping credential and output-hash checks, keeping secrets in its
+    redacted child environment. Never prune Docker or remove named volumes.
+    """
+    script = '''import json,sys
+from pathlib import Path
+root=Path.cwd(); sys.path.insert(0,str(root/'eng'))
+import composition_run as run
+graph=run.read(root/'eng/foundation-composition.json')
+receipt=run.read(root/run.STATE)
+credentials=run.private_credentials(root,graph)
+contract=run.read(root/run.render.CONTRACT)
+resolved=run.read(root/run.render.RESOLVED)
+document,environment=run.compose_model(root,graph,contract,resolved,credentials)
+command=run.Commands(root,root/'artifacts/composition/runs/test-disposal')
+command.secrets=tuple({*credentials.values(),*environment.values()})
+command.run([*run.compose_arguments(root,receipt),'down'],environment=environment,timeout=120)
+'''
+    command([sys.executable, '-c', script], root, evidence)
+
+
 def add_unimplemented_product_plan(root):
     """Planning may name future product bindings before foundation startup."""
     core = 'src/Planned.Core/Planned.Core.csproj'
@@ -106,6 +129,9 @@ def main():
     (root / 'eng').mkdir(parents=True)
     started = time.monotonic()
     graph = two_apps(ROOT, dynamic_ports=True)
+    graph['resources']['ordinary-provider'] = {'kind': 'feature', 'role': 'provider', 'responsibility': 'runtime',
+        'path': 'src/Owned.Files/Owned.Files.csproj', 'packageId': 'Owned.Files', 'featureIdentity': 'Owned.Files'}
+    graph['bindings'].append({'kind': 'featureShell', 'featureRef': 'ordinary-provider', 'shellRef': 'application-shell'})
     if args.single_host:
         removed = {name for name in graph['resources'] if name.startswith('assessment-')}
         for name in removed:
@@ -116,6 +142,10 @@ def main():
     graph['bindings'].extend([
         {**page_binding, 'routeId': 'second-page', 'path': '/second-page'},
         {**page_binding, 'routeId': 'restricted-page', 'path': '/restricted-page', 'pagePermission': 'restricted.read'}])
+    graph['resources']['private-evidence'] = {'kind': 'privateFiles', 'ownerRef': 'application'}
+    graph['environments']['development']['resources']['private-evidence'] = {'directory': 'artifacts/private-evidence/policies'}
+    graph['bindings'].append({'kind': 'privateFiles', 'filesRef': 'private-evidence', 'hostRef': 'application-host',
+        'shellRef': 'application-shell', 'featureRef': 'feature-0', 'setting': 'Root'})
     selection, catalog = accept_fixture(root, graph, ROOT)
     # Exercise reviewed adoption, preserving a source/lock/task history sentinel.
     (root / 'composition-proposal.json').write_text(json.dumps(graph, indent=2) + '\n', encoding='utf-8')
@@ -146,6 +176,12 @@ def main():
     command(sync, ROOT, directory / 'product-plan-scaffold')
     command([*sync, '--check'], ROOT, directory / 'product-plan-scaffold-check')
     command([*native, 'check', *options], ROOT, directory / 'product-plan-native-check')
+    ordinary = root / 'src/Owned.Files/ProviderFeature.cs'
+    ordinary_source = ordinary.read_text()
+    if 'IWebShellFeature' in ordinary_source or 'AddFoundationPostgreSql' in ordinary_source:
+        raise ValueError('ordinary provider acquired a foreign HTTP/database responsibility')
+    ordinary.write_text(ordinary_source.replace('public void ConfigureServices(IServiceCollection services) { }',
+        'public void ConfigureServices(IServiceCollection services) { System.Console.WriteLine("ORDINARY_PROVIDER_REGISTERED"); }'), encoding='utf-8')
     # Model admission is item-specific, never a blanket project/pin exemption.
     project = root / 'src/Application.Api/Application.Api.csproj'
     original_project = project.read_bytes()
@@ -178,8 +214,47 @@ def main():
         prepared_assets = {asset['file']: (frontend_output / asset['file']).read_bytes()
                            for asset in prepared_revision['assets']}
         try:
+            # Preparation can leave managed prerequisites stopped. Update must
+            # admit just this host's dependencies before its --no-deps activation.
+            command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'cold-update')
+            cold = containers(preparation['project'])
+            if args.single_host is False and 'r-' + __import__('hashlib').sha256(b'assessment-host').hexdigest()[:16] in cold:
+                raise ValueError('cold selected update activated an unrelated host')
+            pending = json.loads((root / 'artifacts/composition/prepared.json').read_text()).get('pendingActivationHosts', [])
+            if ('assessment-host' in pending) != (not args.single_host) or 'application-host' in pending:
+                raise ValueError('selected activation cleared another host or retained its own pending marker')
+            # No source change follows preparation. Plain update must activate
+            # the remaining prepared bundle rather than report unchanged.
+            command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'pending-plain-update')
+            if json.loads((root / 'artifacts/composition/prepared.json').read_text()).get('pendingActivationHosts'):
+                raise ValueError('ready prepared bundles still have pending activation')
             command([sys.executable, 'eng/composition_run.py', 'run'], root, directory / 'run')
             preparation = json.loads((root / 'artifacts/composition/prepared.json').read_text())
+            private_root = root / graph['environments']['development']['resources']['private-evidence']['directory']
+            active = containers(preparation['project'])
+            application_service = 'r-' + __import__('hashlib').sha256(b'application-host').hexdigest()[:16]
+            application_container = active[application_service]
+            command(['docker', 'logs', application_container], root, directory / 'ordinary-provider-activation')
+            if 'ORDINARY_PROVIDER_REGISTERED' not in (directory / 'ordinary-provider-activation/stdout.log').read_text():
+                raise ValueError('published Host did not activate the ordinary IShellFeature provider')
+            # Write as the immutable Host's actual non-root identity, and verify
+            # bytes independently through the retained host directory.
+            command(['docker', 'exec', application_container, 'sh', '-c',
+                     'head -c 65536 /dev/zero > /private-evidence/private-evidence/retained.bin'], root, directory / 'private-host-write')
+            private_bytes = (private_root / 'retained.bin').read_bytes()
+            if private_bytes != bytes(65536):
+                raise ValueError('private Host write did not reach the selected retained directory')
+            command(['docker', 'restart', application_container], root, directory / 'private-host-restart')
+            command([sys.executable, 'eng/composition_run.py', 'run', '--host', 'application-host'], root, directory / 'private-restart-readiness')
+            if (private_root / 'retained.bin').read_bytes() != private_bytes:
+                raise ValueError('Host restart lost retained private bytes')
+            # Stop a real shared prerequisite and update the selected host. Its
+            # existing container must be restarted, never recreated.
+            database_service = 'r-' + __import__('hashlib').sha256(b'postgresql').hexdigest()[:16]
+            command(['docker', 'stop', active[database_service]], root, directory / 'dependency-stop')
+            command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'stopped-dependency-update')
+            if containers(preparation['project'])[database_service] != active[database_service]:
+                raise ValueError('selected update recreated the retained database prerequisite')
             before = containers(preparation['project'])
             edit_started = time.monotonic()
             feature = root / 'src/Application.Api/ApiFeature.cs'
@@ -221,7 +296,8 @@ public sealed class ProbeService
             first = next(host for host in plan['hosts'] if host['id'] == 'application-host')
             first.update(productPath='/api/first-policy', productResponse={'policy': 'consumer-ready'})
             first['pageChecks'] = [{'path': '/second-page', 'status': 200},
-                                  {'path': '/restricted-page', 'status': 302, 'denialPath': '/bff/access-denied'}]
+                                  {'path': '/restricted-page', 'status': 302, 'denialPath': '/bff/access-denied'},
+                                  {'path': '/private-evidence/private-evidence/retained.bin', 'status': 404}]
             plan_path = directory / 'consumer-feature-plan.json'
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
             product_result = directory / 'consumer-feature-result.json'
@@ -229,6 +305,30 @@ public sealed class ProbeService
             if json.loads(product_result.read_text())['status'] != 'ready':
                 raise ValueError('first consumer feature did not pass actual authenticated HTTP')
             edit_elapsed = round(time.monotonic() - edit_started, 3)
+            # Separately prepare changed content. Preparation marks every staged
+            # host pending, so plain update must activate that full prepared set.
+            probe = feature.with_name('ProbeService.cs')
+            probe.write_text(probe.read_text().replace('consumer-ready', 'consumer-prepared-ready'), encoding='utf-8')
+            prepared_before = containers(preparation['project'])
+            command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'consumer-edit-prepare')
+            prepared_edit = json.loads((root / 'artifacts/composition/prepared.json').read_text())
+            if 'application-host' not in prepared_edit.get('pendingActivationHosts', []):
+                raise ValueError('changed prepared bundle did not retain activation intent')
+            command([sys.executable, 'eng/composition_run.py', 'update'], root, directory / 'consumer-prepared-update')
+            prepared_after = containers(preparation['project'])
+            host_services = {'r-' + hashlib.sha256(name.encode()).hexdigest()[:16]
+                             for name in prepared_edit['pendingActivationHosts']}
+            if set(prepared_before) != set(prepared_after) or any(
+                    prepared_before[name] != prepared_after[name] for name in prepared_before if name not in host_services):
+                raise ValueError('prepared update recreated retained non-host prerequisites')
+            if any(prepared_before[name] == prepared_after[name] for name in host_services):
+                raise ValueError('plain update did not activate every prepared host bundle')
+            first['productResponse'] = {'policy': 'consumer-prepared-ready'}
+            plan_path.write_text(json.dumps(plan), encoding='utf-8')
+            command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-prepared-feature')
+            if json.loads(product_result.read_text())['status'] != 'ready':
+                raise ValueError('prepared content was not served by the activated published Host')
+            after = prepared_after
             verify_build_stages(root, feature, directory)
             if args.tooling:
                 import shutil
@@ -319,6 +419,16 @@ public sealed class ProbeService
             if 'reports-api' not in current_identity['clients']:
                 raise ValueError('new protected resource was not provisioned into the existing identity authority')
             command([sys.executable, 'eng/composition_run.py', 'run'], root, directory / 'identity-reconcile-run')
+            command([sys.executable, 'eng/composition_run.py', 'stop', '--host', 'application-host'], root, directory / 'private-unavailable-stop')
+            retained_root = private_root.with_name(private_root.name + '-retained-test')
+            private_root.rename(retained_root)
+            try:
+                command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'private-unavailable', expected=2)
+                if private_root.exists() or 'private storage is unavailable' not in (directory / 'private-unavailable/stderr.log').read_text():
+                    raise ValueError('missing retained storage was recreated or accepted')
+            finally:
+                retained_root.rename(private_root)
+            command([sys.executable, 'eng/composition_run.py', 'run', '--host', 'application-host'], root, directory / 'private-volume-recovery')
             command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(directory / 'post-reconcile-feature-result.json')], root, directory / 'post-reconcile-feature')
             # The ordinary product gate still rejects the incomplete binding.
             # Run this last: its metadata-helper restore legitimately adds lock
@@ -335,7 +445,10 @@ public sealed class ProbeService
                           editToWorkingConsumerSeconds=edit_elapsed, authenticatedPrivacyFailureChecked=True,
                           unchangedServiceCount=len(before) - 1, infrastructureRepairsAfterReadiness=0,
                           frontendIncrementalUpdate=True, persistentIdentityReconciliation=True,
+                          retainedPrivateHostBytes=65536, privateRestartRetention=True, privatePublicIsolation=True,
+                          missingPrivateVolumeRejected=True, coldSelectedUpdate=True, stoppedDependencyUpdate=True,
                           pendingProductBindingPreserved=True, completeProductArchitectureStillRequired=True,
+                          ordinaryRuntimeProviderActivated=True, preparedPlainUpdateActivated=True,
                           measurement='Deterministic edit/build/authenticated operation; no agent reasoning-time claim')
         finally:
             model_file = root / 'eng/foundation-composition.json'
@@ -347,6 +460,7 @@ public sealed class ProbeService
                     raise ValueError('owned shutdown left running services after a pending model edit')
             finally:
                 model_file.write_bytes(original)
+            dispose_fixture(root, preparation, directory / 'dispose-fixture')
     (directory / 'result.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(result))
     return 0

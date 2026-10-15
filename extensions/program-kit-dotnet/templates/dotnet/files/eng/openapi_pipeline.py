@@ -357,6 +357,16 @@ def execute_contract(
         f"OpenAPI export for {identity}",
         nuget_environment,
     )
+    # Admit untouched real producer bytes before normalizing, changing artifacts
+    # or baselines, or generating the client. A planning proposal is no substitute.
+    import openapi_capabilities
+    producer_shell = load_json(effective_shells, 'effective producer shells')['CShells']['Shells'].get(contract['shell'])
+    if not producer_shell:
+        raise ValueError('PKO220 unresolved exact selected producer shell binding: ' + str(contract['shell']))
+    selected_profiles = producer_shell.get('Configuration', {}).get('Foundation', {}).get('Json', {}).get('Profiles', {})
+    capability_admission = openapi_capabilities.require(
+        load_json(paths['raw'], 'raw producer OpenAPI'),
+        openapi_capabilities.selected(repository), 'producer', selected_profiles)
     normalizer = repository / "eng/openapi_contracts.py"
     normalize_command = [
         sys.executable,
@@ -382,6 +392,7 @@ def execute_contract(
         "rawDocumentSha256": sha256(paths["raw"]),
         "artifactSha256": sha256(paths["artifact"]),
         "baselineSha256": sha256(paths["baseline"]),
+        "capabilityAdmission": capability_admission,
         "generator": generator,
         "application": application,
     }

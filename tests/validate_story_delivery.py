@@ -18,6 +18,9 @@ sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import task_draft as delivery
 import task_draft as draft
 import phase_obligations as phases
+sys.path.insert(0, str(ROOT / 'tests'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
+from composition_fixture import two_apps
 import task_draft as reset
 
 
@@ -109,6 +112,327 @@ class DeliveryTests(unittest.TestCase):
 
     def accept(self, key='US1'):
         return self.act('decision', checkpoint=key, verdict='accepted', actor='requester', source='simulated explicit acceptance')
+
+    def scoped_presentation(self):
+        self.complete('T001', 'T002')
+        (self.root / 'eng').mkdir(exist_ok=True)
+        self.graph = two_apps(ROOT)
+        self.composition = self.root / 'eng/foundation-composition.json'
+        self.composition.write_text(json.dumps(self.graph))
+        self.scope = {'schemaVersion': 1, 'inputs': [
+            {'path': 'src/Create.txt', 'kind': 'file'},
+            {'path': 'eng/foundation-composition.json', 'kind': 'foundation-composition', 'version': 1,
+             'hosts': ['application-host'], 'environments': ['development']}]}
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+            basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
+            entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
+        self.accept()
+
+    def large_presentation(self):
+        self.complete('T001', 'T002')
+        paths = []
+        for index in range(121):
+            name = 'src/review/' + str(index).zfill(3) + '-' + 'owned-' * 7 + '.txt'
+            target = self.root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text('Fictional original source ' + str(index))
+            paths.append(name)
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'], basisPaths=paths,
+                 entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
+        return paths
+
+    def stored_checkpoint(self):
+        return json.loads(delivery.CURRENT.search((self.feature / 'tasks.md').read_text())[1])
+
+    def replace_stored_checkpoint(self, saved):
+        path = self.feature / 'tasks.md'
+        path.write_text(delivery.CURRENT.sub(lambda _: '<!-- program-kit:current-checkpoint '
+                       + json.dumps(saved, separators=(',', ':')) + ' -->', path.read_text(), count=1))
+
+    def test_repeated_large_bases_are_interned_without_losing_human_provenance(self):
+        paths = self.large_presentation()
+        for index in range(60):
+            self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'],
+                     source='simulated explicit owner continuation ' + str(index))
+        expanded = delivery.current(self.feature)
+        original = copy.deepcopy(expanded['delivery']['checkpoints']['US1']['decisions'])
+        stored = self.stored_checkpoint()
+        self.assertEqual(3, stored['version'])
+        self.assertLess(len(json.dumps(stored).encode()), 65536)
+        self.assertGreater(len(json.dumps(expanded).encode()), 65536)
+        self.assertEqual(2, len(stored['delivery']['basisStorage']['values']))
+        self.assertEqual(60, len(original))
+        self.assertEqual(121, len(original[0]['basis']))
+        (self.root / paths[0]).write_text('changed material fixture')
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'], basisPaths=paths,
+                 entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated changed review')
+        self.assertEqual(original, delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'][:60])
+        self.assertEqual(3, len(self.stored_checkpoint()['delivery']['basisStorage']['values']))
+        self.assertEqual('original-commit', delivery.current(self.feature)['baseline'])
+
+    def test_expanded_bases_are_independent_and_legacy_state_migrates_atomically(self):
+        self.large_presentation()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated owner')
+        saved = delivery.current(self.feature)
+        review = saved['delivery']['checkpoints']['US1']
+        review['decisions'] *= 8
+        saved['delivery']['clock']['accountingCorrections'] = [{'identity': 'retained-fixture-correction', 'seconds': 936.331586}]
+        self.replace_stored_checkpoint(saved)  # Legacy inline state larger than the old limit.
+        before = (self.feature / 'tasks.md').read_bytes()
+        self.assertGreater(len(before), 65536)
+        state = delivery.load_delivery(self.feature)
+        with patch.object(delivery.os, 'replace', side_effect=OSError('fixture interrupted atomic migration')):
+            with self.assertRaisesRegex(OSError, 'interrupted'):
+                delivery.persist(self.feature, state)
+        self.assertEqual(before, (self.feature / 'tasks.md').read_bytes())
+        delivery.persist(self.feature, state)
+        self.assertEqual(state, delivery.load_delivery(self.feature))
+        independently_expanded = delivery.load_delivery(self.feature)
+        basis = independently_expanded['checkpoints']['US1']['presentation']['basis']
+        basis[next(iter(basis))] = 'fixture changed copy'
+        self.assertNotEqual(basis, independently_expanded['checkpoints']['US1']['decisions'][0]['basis'])
+
+    def test_missing_tampered_or_mixed_stored_bases_are_refused_without_writes(self):
+        self.present(); self.accept()
+        original = self.stored_checkpoint()
+        for corruption in ('missing', 'tampered', 'mixed'):
+            with self.subTest(corruption=corruption):
+                saved = copy.deepcopy(original)
+                site = saved['delivery']['checkpoints']['US1']['presentation']
+                if corruption == 'missing':
+                    site['basisRef'] = '0' * 64
+                elif corruption == 'tampered':
+                    saved['delivery']['basisStorage']['values'][site['basisRef']]['src/Create.txt'] = 'changed hash'
+                else:
+                    site['basis'] = {'src/Create.txt': 'ambiguous inline basis'}
+                self.replace_stored_checkpoint(saved)
+                before = (self.feature / 'tasks.md').read_bytes()
+                with self.assertRaisesRegex(ValueError, 'retained basis|inline/reference'):
+                    delivery.current(self.feature)
+                self.assertEqual(before, (self.feature / 'tasks.md').read_bytes())
+
+    def test_summary_and_retained_history_limits_refuse_without_discarding_state(self):
+        before = (self.feature / 'tasks.md').read_bytes()
+        saved = delivery.current(self.feature)
+        saved['outcome'] = 'x' * 8192
+        with self.assertRaisesRegex(ValueError, '8192'):
+            delivery.save_current(self.feature, saved)
+        state = delivery.load_delivery(self.feature)
+        state['clock']['retainedFixtureHistory'] = 'x' * delivery.RETAINED_LIMIT
+        with self.assertRaisesRegex(ValueError, '1048576'):
+            delivery.persist(self.feature, state)
+        self.assertEqual(before, (self.feature / 'tasks.md').read_bytes())
+
+    def test_basis_expansion_is_bounded_even_when_stored_state_is_small(self):
+        self.present(); self.accept()
+        saved = delivery.current(self.feature)
+        review = saved['delivery']['checkpoints']['US1']
+        huge = {'fixture': 'x' * 500000}
+        review['presentation']['basis'] = huge
+        review['decisions'] = [dict(review['decisions'][0], basis=huge) for _ in range(40)]
+        stored = delivery._store_bases(saved)
+        self.assertLess(len(json.dumps(stored).encode()), delivery.RETAINED_LIMIT)
+        self.replace_stored_checkpoint(stored)
+        with self.assertRaisesRegex(ValueError, 'expansion exceeds'):
+            delivery.current(self.feature)
+
+    def test_owner_named_continuation_survives_material_changes_but_not_acceptance(self):
+        self.present()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated owner continue export')
+        decisions = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+        (self.root / 'src/Create.txt').write_text('changed shared implementation')
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual(('deferred', 'pending', True), (review['human'], review['engineering'], review['stale']))
+        self.assertEqual(decisions, review['decisions'])
+        self.act('start', operation='export')
+        for operation in ('integrate', 'unknown-operation'):
+            with self.assertRaises(ValueError):
+                self.act('start', operation=operation)
+        with self.assertRaisesRegex(ValueError, 'remain due'):
+            delivery.guard(self.root, self.feature, closure=True)
+        with self.assertRaisesRegex(ValueError, 'fresh checkpoint'):
+            self.accept()
+
+    def test_owner_can_defer_an_existing_stale_review_but_requester_cannot(self):
+        self.present(); self.accept()
+        (self.root / 'src/Create.txt').write_text('changed original basis')
+        self.act('status')
+        with self.assertRaisesRegex(ValueError, 'fresh checkpoint'):
+            self.act('decision', checkpoint='US1', verdict='deferred', actor='requester', permits=['export'], source='simulated requester')
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated explicit stale owner deferral')
+        self.act('start', operation='export')
+
+    def test_requester_deferral_loses_fresh_authority_after_source_changes(self):
+        self.present()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='requester', permits=['export'], source='simulated requester')
+        (self.root / 'src/Create.txt').write_text('changed')
+        with self.assertRaisesRegex(ValueError, 'Pause'):
+            self.act('start', operation='export')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_owner_continuation_preserves_scoped_raw_freshness_and_rejects_failed_checks(self):
+        self.scoped_presentation()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated owner')
+        self.graph['resources']['assessment-shell']['name'] = 'changed sibling'
+        self.composition.write_text(json.dumps(self.graph))
+        self.act('start', operation='export')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['engineering'])
+        (self.root / 'artifacts/passing.json').write_text('{"status":"failed","exitCode":1}')
+        with self.assertRaisesRegex(ValueError, 'cannot be waived'):
+            self.act('start', operation='export')
+
+    def test_changed_operation_meaning_revokes_only_relevant_active_permits(self):
+        self.present()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated owner')
+        self.act('start', operation='export'); self.now = 10; self.act('status')
+        target = self.feature / 'tasks.md'
+        target.write_text(target.read_text().replace('Export record |', 'Export a changed approved record |', 1))
+        with self.assertRaisesRegex(ValueError, 'scope decision'):
+            self.act('start', operation='export')
+        self.act('scope', actor='owner', source='simulated changed operation meaning', stories=['US2'])
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual([], review['permits'])
+        self.assertEqual(['export'], review['decisions'][-1]['permits'])
+        self.assertTrue(delivery.load_delivery(self.feature)['clock']['waiting'])
+        self.now = 70; self.act('status')
+        self.assertEqual(10, delivery.load_delivery(self.feature)['stories']['US2']['seconds'])
+        with self.assertRaisesRegex(ValueError, 'Pause'):
+            self.act('start', operation='export')
+
+    def test_permitted_active_work_counts_once_and_explicit_wait_and_suspend_do_not(self):
+        self.act('start', operation='create'); self.complete('T001'); self.act('start', operation='integrate')
+        self.now = 10; self.present()
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['integrate'], source='simulated owner continue active work')
+        self.assertFalse(delivery.load_delivery(self.feature)['clock']['waiting'])
+        self.now = 70; self.act('status'); self.act('status')
+        self.assertEqual(70, delivery.load_delivery(self.feature)['stories']['US1']['seconds'])
+        self.act('wait'); self.now = 170; self.act('resume')
+        self.now = 200; self.act('suspend'); self.now = 400; self.act('resume')
+        self.assertEqual(100, delivery.load_delivery(self.feature)['stories']['US1']['seconds'])
+        (self.root / 'src/Create.txt').write_text('changed while still permitted')
+        self.now = 410; self.act('status')
+        self.assertEqual(110, delivery.load_delivery(self.feature)['stories']['US1']['seconds'])
+
+    def test_other_due_checkpoint_still_blocks_active_work_and_clock(self):
+        self.act('start', operation='create'); self.complete('T001'); self.act('start', operation='integrate'); self.present()
+        self.act('early-checkpoint', actor='owner', source='simulated owner early review', checkpoint='early', story='US1', taskIds=['T001'])
+        self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['integrate'], source='simulated owner')
+        self.assertTrue(delivery.load_delivery(self.feature)['clock']['waiting'])
+        self.now = 60; self.act('resume'); self.now = 120; self.act('status')
+        self.assertEqual(0, delivery.load_delivery(self.feature)['stories']['US1']['seconds'])
+        with self.assertRaisesRegex(ValueError, 'early'):
+            self.act('start', operation='integrate')
+
+    def test_scoped_sibling_host_change_retains_human_decision_but_blocks_stale_engineering(self):
+        self.scoped_presentation()
+        decision = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+        self.graph['resources']['assessment-shell']['name'] = 'changed-assessment'
+        self.composition.write_text(json.dumps(self.graph, indent=2))
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('accepted', review['human']); self.assertEqual('pending', review['engineering'])
+        self.assertEqual(decision, review['decisions'])
+        with self.assertRaisesRegex(ValueError, 'engineering checks remain due'):
+            self.act('start', operation='export')
+        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('start', operation='export')
+        self.assertEqual(decision, delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+
+    def test_canonical_formatting_change_retains_acceptance_without_rewriting_approval(self):
+        self.scoped_presentation()
+        prior = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+        self.composition.write_text(json.dumps(self.graph, indent=4))
+        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+            basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
+            entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('accepted', review['human']); self.assertEqual(prior, review['decisions'])
+
+    def test_material_shared_host_authentication_change_reopens_only_affected_review(self):
+        self.scoped_presentation()
+        self.graph['resources']['product-identity']['session'] = {'idleMinutes': 25, 'absoluteMinutes': 480}
+        self.composition.write_text(json.dumps(self.graph))
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('pending', review['human']); self.assertTrue(review['stale'])
+        self.assertEqual('accepted', review['decisions'][-1]['verdict'])
+
+    def test_unknown_duplicate_or_deleted_shared_input_cannot_claim_unchanged(self):
+        for content in ('{"schemaVersion":2,"schemaVersion":2}', '{"schemaVersion":999}', None):
+            with self.subTest(content=content):
+                self.scoped_presentation()
+                if content is None:
+                    self.composition.unlink()
+                else:
+                    self.composition.write_text(content)
+                self.act('status')
+                self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_changed_scope_does_not_promote_historical_acceptance(self):
+        self.scoped_presentation()
+        value = delivery.load_delivery(self.feature)
+        value['checkpoints']['US1']['materialScope']['inputs'][1]['hosts'] = ['assessment-host']
+        delivery.persist(self.feature, value)
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_shared_private_mount_is_material_even_without_business_source_change(self):
+        self.scoped_presentation()
+        self.graph['authority'] = {'architectureMap': 'docs/architecture/map.json', 'decisionIds': ['fixture']}
+        self.graph['resources']['private-store'] = {'kind': 'privateFiles', 'ownerRef': 'application'}
+        self.graph['environments']['development']['resources']['private-store'] = {'directory': 'artifacts/private-evidence/policies'}
+        self.graph['bindings'].append({'kind': 'privateFiles', 'filesRef': 'private-store', 'hostRef': 'application-host',
+            'shellRef': 'application-shell', 'featureRef': 'feature-0', 'setting': 'Root'})
+        self.composition.write_text(json.dumps(self.graph))
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_verification_sibling_group_requires_current_checks_without_new_human_decision(self):
+        import review_material
+        file = self.root / 'eng/verification.json'; file.parent.mkdir(exist_ok=True)
+        value = {'schemaVersion': 1, 'testGroups': [{'id': 'create', 'projects': ['tests/Create.csproj'], 'inputs': ['src/Create/**']}]}
+        file.write_text(json.dumps(value))
+        scope = {'schemaVersion': 1, 'inputs': [{'path': 'eng/verification.json', 'kind': 'verification', 'version': 1,
+                                               'projects': ['tests/Create.csproj']}]}
+        original = review_material.basis(self.root, scope, ['eng/verification.json'])
+        value['testGroups'].append({'id': 'export', 'projects': ['tests/Export.csproj'], 'inputs': ['src/Export/**']})
+        file.write_text(json.dumps(value))
+        self.assertEqual(original, review_material.basis(self.root, scope, ['eng/verification.json']))
+        value['testGroups'][0]['reuse'] = False; file.write_text(json.dumps(value))
+        self.assertNotEqual(original, review_material.basis(self.root, scope, ['eng/verification.json']))
+        value['unknownFutureBehavior'] = True; file.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError, 'unknown verification'):
+            review_material.basis(self.root, scope, ['eng/verification.json'])
+
+    def test_failed_checks_cannot_renew_scoped_engineering(self):
+        self.scoped_presentation()
+        self.composition.write_text(json.dumps(self.graph, indent=2))
+        (self.root / 'artifacts/passing.json').write_text('{"status":"failed","exitCode":1}')
+        with self.assertRaisesRegex(ValueError, 'Failed/incomplete'):
+            self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['engineering'])
+
+    def test_projection_implementation_change_reopens_review(self):
+        self.scoped_presentation()
+        import review_material
+        prior = review_material.basis
+        def changed(*arguments):
+            result = prior(*arguments); result['implementationSha256'] = 'changed-fixture'; return result
+        with patch.object(review_material, 'basis', side_effect=changed):
+            self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_active_environment_switch_cannot_hide_behind_old_environment_projection(self):
+        self.scoped_presentation()
+        self.graph['environments']['test'] = copy.deepcopy(self.graph['environments']['development'])
+        self.graph['defaultEnvironment'] = 'test'
+        self.composition.write_text(json.dumps(self.graph))
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
 
     def test_operations_progress_without_review_and_actual_dependencies_remain(self):
         self.act('start', operation='create')
@@ -398,6 +722,75 @@ class DeliveryTests(unittest.TestCase):
         damaged = copy.deepcopy(request); damaged['files'][0]['owner'] = 'shared'
         with self.assertRaisesRegex(ValueError, 'exclusive'):
             reset.reset(self.root, damaged)
+
+    def delete_request(self):
+        intake = self.root / '.program-kit/specification-intake/DS01/brief.json'
+        intake.parent.mkdir(parents=True); intake.write_text('{"request":"retained confirmed intent"}')
+        (self.feature / 'contracts').mkdir()
+        (self.feature / 'contracts/api.json').write_text('{"old":"phase output"}')
+        files = [*self.feature.rglob('*'), self.root / 'src/Create.txt', self.root / 'src/Export.txt']
+        return {'method': 'fresh-feature-delete-v1', 'feature': 'specs/001-record',
+            'reviewSource': 'simulated complete owned inventory', 'selectionSource': 'simulated user delete entire unfinished attempt',
+            'files': [{'path': target.relative_to(self.root).as_posix(), 'owner': 'specs/001-record',
+                       'sha256': hashlib.sha256(target.read_bytes()).hexdigest()} for target in files if target.is_file()],
+            'preserve': ['.program-kit/specification-intake/DS01/brief.json']}
+
+    def test_delete_only_restart_removes_entire_spec_and_owned_code_without_content_archive(self):
+        request = self.delete_request()
+        for name in ('web/record/ui.ts', 'tests/record/lifecycle.test.ts'):
+            target = self.root / name; target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text('old exclusively owned generated work')
+            request['files'].append({'path': name, 'owner': request['feature'],
+                                     'sha256': hashlib.sha256(target.read_bytes()).hexdigest()})
+        intake = self.root / request['preserve'][0]; before = intake.read_bytes()
+        shared = self.root / 'src/Shared.txt'; shared.write_text('shared owner')
+        preview = reset.reset(self.root, request)
+        self.assertEqual('preview', preview['status']); self.assertTrue(self.feature.is_dir())
+        with patch.object(reset.shutil, 'copyfile', side_effect=AssertionError('Must not retain old content')):
+            result = reset.reset(self.root, request, True)
+        self.assertEqual('deleted', result['status']); self.assertNotIn('archive', result)
+        self.assertFalse(self.feature.exists())
+        self.assertTrue(all(not (self.root / row['path']).exists() for row in request['files']))
+        self.assertFalse((self.root / '.program-kit/abandoned-features').exists())
+        self.assertEqual(before, intake.read_bytes()); self.assertEqual('shared owner', shared.read_text())
+        self.assertIn('execute specify itself', result['instruction'])
+        self.assertIn('Do not consult or reuse', result['instruction'])
+
+    def test_delete_only_restart_requires_complete_spec_inventory_and_unchanged_inputs(self):
+        request = self.delete_request()
+        alias = copy.deepcopy(request)
+        alias['files'].append({'path': 'specs/001-record/../001-record/spec.md', 'owner': 'specs/001-record',
+                              'sha256': hashlib.sha256((self.feature / 'spec.md').read_bytes()).hexdigest()})
+        with self.assertRaisesRegex(ValueError, 'canonical'):
+            reset.reset(self.root, alias, True)
+        omitted = copy.deepcopy(request); omitted['files'] = [row for row in request['files'] if not row['path'].endswith('api.json')]
+        with self.assertRaisesRegex(ValueError, 'every file'):
+            reset.reset(self.root, omitted, True)
+        self.assertTrue(self.feature.is_dir())
+        (self.root / 'src/Create.txt').write_text('changed after selection')
+        with self.assertRaisesRegex(ValueError, 'changed'):
+            reset.reset(self.root, request, True)
+        self.assertTrue((self.feature / 'spec.md').is_file())
+        self.assertFalse((self.root / '.program-kit/abandoned-features').exists())
+
+    def test_delete_only_cli_removes_attempt_without_an_archive(self):
+        request = self.delete_request()
+        content = self.root / 'delete-request.json'; content.write_text(json.dumps(request))
+        result = subprocess.run([sys.executable, str(Path(delivery.__file__).resolve()), 'reset',
+            '--repository', str(self.root), '--feature-dir', 'specs/001-record', '--content-file', str(content), '--apply'],
+            capture_output=True, text=True, encoding='utf-8', timeout=30)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertEqual('deleted', json.loads(result.stdout)['status'])
+        self.assertFalse(self.feature.exists())
+        self.assertFalse((self.root / '.program-kit/abandoned-features').exists())
+
+    def test_historical_archive_recipe_retains_its_original_behavior(self):
+        request = self.delete_request(); request['method'] = 'fresh-story-delivery-v1'
+        result = reset.reset(self.root, request, True)
+        self.assertEqual('abandoned', result['status'])
+        archive = self.root / result['archive']
+        self.assertTrue(all(hashlib.sha256((archive / row['path']).read_bytes()).hexdigest() == row['sha256']
+                            for row in request['files']))
 
 
 if __name__ == '__main__':

@@ -160,12 +160,18 @@ is an explicit consumer action; this workflow sends nothing.
 
 ## Fresh story-delivery adoption
 
-Story-delivery-v1 has a specific fresh-feature adoption route in `phase-evidence.md` and recipe
-`fresh-story-delivery-v1`. Archive the abandoned attempt and failures; install through the supported
-updater; amend/review/ratify the constitution; review/select a concrete exclusively owned reset
-inventory; abandon the old partial spec/plan/tasks/code/tests as active work; rerun specify,
-clarification, plan, tasks, analysis and implement. Partial feature code/checkmarks cannot be reused
-as new progress. Preserve unchanged confirmed bootstrap/intake, accepted architecture, installed
-foundations/tooling, consumer locks and delivered features. Installation does not authorize real
-consumer/shared source/migration/data deletion. Historical selective-repair recipes remain for their
-actual earlier changes; they do not offer partial-feature continuation under this amendment.
+Unfinished features adopting the diagnostics patch use `fresh-feature-delete-v1` and the current
+`phase-evidence.md` restart instructions. Preserve confirmed specification intake and unchanged
+accepted product architecture. Delete the complete old specification and all exclusively owned
+implementation/test/frontend/contract files, then reconcile obsolete shared registrations and clear
+owned derived outputs. Select the concrete complete inventory; the delete-only reset creates no
+content archive. Old code, archives, Git history and attempt transcripts are not learning or reuse
+inputs for the fresh attempt. Installation alone performs none of these consumer deletions.
+
+The supported updater regenerates every installed Spec Kit integration and its phase commands,
+skills, templates and hooks. Then execute specify itself, clarify, plan, tasks, analyze and implement
+from the retained intake. Reusing the old spec.md or merely resuming implement is not this route.
+Prior phase state, checkmarks, human reviews and test receipts cannot establish new progress.
+Keep unrelated shared work, foundations/tooling, dependency history and live data outside deletion.
+Historical recipes retain their earlier applicability; no mid-implementation continuation is offered
+for this fresh diagnostics-patch attempt.

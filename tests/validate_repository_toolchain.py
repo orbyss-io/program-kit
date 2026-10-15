@@ -11,6 +11,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 ENGINEERING = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
 sys.path.insert(0, str(ENGINEERING))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import toolchain
 import js_toolchain
 device = js_toolchain.device
@@ -189,12 +190,14 @@ class RepositoryToolchainTests(unittest.TestCase):
             value = device.diagnostic('specify', '1.1.1', 'bundle.yml compatibility baseline', None, str(shim), self.repo)
             self.assertIn(str(local.resolve()), value['ignoredExecutable'])
 
-    def test_project_dependency_restoration_keeps_inherited_path(self):
+    def test_project_dependency_restoration_preserves_parent_and_selected_child_tools(self):
         self.assertEqual(0, self.run_toolchain().returncode)
         evidence = self.repo / 'artifacts/program-kit/toolchain.json'
         with patch.dict(os.environ, self.env, clear=True):
+            before = dict(os.environ)
             npm, environment = js_toolchain.context(self.repo, evidence)
-            self.assertEqual(os.environ['PATH'], environment['PATH']); self.assertEqual('true', environment['NPM_CONFIG_STRICT_SSL'])
+            self.assertEqual(before, dict(os.environ)); self.assertEqual('true', environment['NPM_CONFIG_STRICT_SSL'])
+            self.assertEqual(str(self.shared), environment['PATH'].split(os.pathsep)[0])
             with patch.object(js_toolchain, 'context', return_value=(npm, environment)), patch.object(js_toolchain.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as run:
                 js_toolchain.run_npm(self.repo, evidence, ['ci'], self.repo, 30)
             self.assertIn('ci', run.call_args.args[0]); self.assertNotIn('--global', run.call_args.args[0])
@@ -228,6 +231,36 @@ class RepositoryToolchainTests(unittest.TestCase):
         for name in ('Initialize-ProgramKit.cmd', 'Initialize-ProgramKit.sh'):
             text = (ROOT / name).read_text(encoding='utf-8')
             self.assertLess(text.index('initialize_device.py'), text.index('init . --force'))
+
+
+@unittest.skipUnless(os.name == 'nt', 'Actual Windows npm child shell contract')
+class NativeNpmChildTests(unittest.TestCase):
+    def test_long_parent_path_executes_exact_recorded_node_in_npm_lifecycle_child(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        repository = Path(temporary.name).resolve()
+        required = {name: (ENGINEERING.parent / filename).read_text().strip().removeprefix('v')
+                    for name, filename in (('node', '.nvmrc'), ('npm', '.npm-version'))}
+        node, actual = js_toolchain.resolve_node(ROOT, required['node'], 'node', 'auto')
+        self.assertIsNotNone(node, 'Run this deterministic check on the accepted installed device tools')
+        npm_path = js_toolchain.executable('npm.cmd')
+        self.assertIsNotNone(npm_path)
+        evidence = repository / 'evidence.json'
+        evidence.write_text(json.dumps({'satisfied': True, 'required': required, 'resolved': required,
+            'commands': {'node': [str(node)], 'npm': [str(npm_path)]},
+            'environment': {'npmCache': str(repository / 'cache'), 'trustMode': 'system', 'extraCaCertificates': ''}}))
+        (repository / 'package.json').write_text(json.dumps({'scripts': {'probe': 'node probe.cjs'}}))
+        (repository / 'probe.cjs').write_text('require("node:fs").writeFileSync("child.json", JSON.stringify({node:process.execPath,version:process.version}));')
+        inherited = str(node.parent) + ';' + os.environ.get('PATH', '')
+        inherited += (';' + str(node.parent)) * (24000 // (len(str(node.parent)) + 1) + 1)
+        with patch.dict(os.environ, {'PATH': inherited}):
+            parent = dict(os.environ)
+            result = js_toolchain.run_npm(repository, evidence, ['run', 'probe'], repository, 30, capture_stdout=True)
+            self.assertEqual(0, result.returncode, result.stdout)
+            self.assertEqual(parent, dict(os.environ))
+        child = json.loads((repository / 'child.json').read_text())
+        self.assertTrue(Path(child['node']).samefile(node))
+        self.assertEqual('v' + required['node'], child['version'])
 
 
 if __name__ == '__main__': unittest.main()

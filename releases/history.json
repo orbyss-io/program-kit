@@ -216,6 +216,34 @@
         "Preserve original inputs/receipts/unknown outcomes and failed attempts; repair and resume the verified updater.",
         "No automatic paid retry/reset or external data/identity rollback."
       ]
+    },
+    {
+      "version": "0.13.2",
+      "previous": "0.13.1",
+      "guide": "migration-0.13.2.md",
+      "automatic": [
+        "Refresh installed commands, skills, templates and hooks for every installed Spec Kit integration through the supported updater.",
+        "Install diagnostics, review/effort, runtime provider, build ownership, private-file and prepared-activation repairs.",
+        "Offer the newly qualified public Foundation closure and exact versioned knowledge to new projects; preserve historical profiles and existing consumer locks."
+      ],
+      "review": [
+        "For the selected unfinished feature, use fresh-feature-delete-v1: retain confirmed specification intake, delete the complete old specification and exclusively owned implementation/tests/frontend/contracts, reconcile shared contributions and clear owned derived outputs.",
+        "Create no content archive and reconstruct nothing from old source, archives, Git history or attempt transcripts. Execute specify, clarify, plan, tasks, analyze and implement anew.",
+        "Preserve unrelated shared work, accepted product architecture, dependency history and live data. Review dependency adoption through the existing exact transition."
+      ],
+      "verification": [
+        "Verify installed coherence and all integrations, complete selected deletion, unchanged retained inputs and absence of an old active bundle.",
+        "Generate every new phase output using the installed patch. Old checkmarks, reviews, receipts and phase outputs confer no progress.",
+        "Run meaningful native checks, actual selected Foundation behavior and current human story reviews."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve updater failures and original dependency/installation evidence. Deletion creates no content backup and never authorizes deletion of unrelated work or live data.",
+        "Actual consumer deletion belongs to its consumer agent; this release does not mutate ClaimEvaluator or start paid workers."
+      ]
     }
   ]
 }

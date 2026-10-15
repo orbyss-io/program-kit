@@ -16,6 +16,27 @@ from release_guidance import plan, load_index, require_review, completion
 
 
 class GuidanceTests(unittest.TestCase):
+    def test_patch_routes_unfinished_features_to_delete_only_fresh_phases(self):
+        from release_guidance import semantic_changes
+        with tempfile.TemporaryDirectory() as name:
+            directory = build(ROOT, Path(name), '0.13.2')
+            for installed in ('0.12.5', '0.12.11', '0.13.0', '0.13.1'):
+                with self.subTest(installed=installed):
+                    changes = semantic_changes(directory, installed, '0.13.2')['changes']
+                    selected = {change['id']: change for change in changes}
+                    restart = selected['unfinished-feature-delete-restart']
+                    self.assertEqual('fresh-feature-delete-v1', restart['method'])
+                    self.assertEqual('specification', restart['duePhase'])
+                    self.assertFalse(set(restart['supersedes']) & selected.keys())
+                    self.assertIn('runnable-story-human-review', restart['supersedes'])
+                    self.assertIn('typed-executable-foundation', restart['supersedes'])
+                    self.assertIn('preimplementation-diagnostics-repair', restart['supersedes'])
+            # A historical target still exposes its original continuation/archival
+            # contract; only adoption of the new patch selects the replacement.
+            historical = semantic_changes(directory, '0.12.11', '0.13.1')['changes']
+            self.assertIn('runnable-story-human-review', {c['id'] for c in historical})
+            self.assertNotIn('unfinished-feature-delete-restart', {c['id'] for c in historical})
+
     def test_install_payload_preserves_every_registered_profile_and_knowledge(self):
         import zipfile
         from build_release import deterministic_zip

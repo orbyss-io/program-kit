@@ -297,12 +297,12 @@
     {
       "id": "WEB-D03",
       "setting": "Foundation:Web:RemoteAuthenticationTimeoutSeconds",
-      "default": 10,
+      "default": 900,
       "unit": "seconds",
       "classification": "risk-based-operational-default",
-      "rationale": "Bounds server-controlled protocol work without pretending to bound time spent on an external provider page.",
-      "overrideWhen": "Provider measurements and the product login SLO justify a different bound.",
-      "requiredEvidence": "Provider latency evidence, login SLO, failure UX, and regression test."
+      "rationale": "Bounds the complete interactive authentication flow, including credential entry, MFA and consent; discovery/backchannel HTTP work retains its separate short budget.",
+      "overrideWhen": "The product interaction and authentication-risk policy justify a different finite window.",
+      "requiredEvidence": "Human-paced fresh login, expired-flow rejection and explicit restart, actual correlation/option binding, and independently bounded backchannel failure."
     },
     {
       "id": "WEB-D04",

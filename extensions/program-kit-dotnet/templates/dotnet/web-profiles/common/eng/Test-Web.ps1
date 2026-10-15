@@ -4,7 +4,8 @@ param(
     [string]$PermissionProbePath = $env:PROGRAMKIT_PERMISSION_PROBE_PATH,
     [string]$SpaUrl = $env:PROGRAMKIT_SPA_URL,
     [string]$SpaLoginPath = $env:PROGRAMKIT_SPA_LOGIN_PATH,
-    [string]$ViteConfig = $env:PROGRAMKIT_VITE_CONFIG
+    [string]$ViteConfig = $env:PROGRAMKIT_VITE_CONFIG,
+    [string]$Shell
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,7 +16,17 @@ $profileRecord = Join-Path $repository 'eng\web-profile.json'
 if (-not (Test-Path -LiteralPath $profileRecord -PathType Leaf)) {
     throw 'The synchronized web-profile record is missing.'
 }
+$selectionArguments = @('--repository', $repository)
+if ($Shell) { $selectionArguments += @('--shell', $Shell) }
+$identityJson = python (Join-Path $PSScriptRoot 'web_identity.py') @selectionArguments
+if ($LASTEXITCODE -ne 0) { throw 'The composition-selected browser identity fixture is unavailable.' }
+$identity = $identityJson | ConvertFrom-Json
 $selectedWebProfile = (Get-Content -LiteralPath $profileRecord -Raw | ConvertFrom-Json).profile
+if ($identity.realmFile) {
+    $selectedWebProfile = $identity.profile
+    $env:PROGRAMKIT_IDENTITY_REALM_FILE = $identity.realmFile
+    $env:PROGRAMKIT_IDENTITY_AUTHORITY = $identity.authority
+}
 if ($selectedWebProfile -notin @('bff-cookie-v1', 'spa-pkce-v1')) {
     throw "The synchronized web profile '$selectedWebProfile' is unsupported by Test-Web.ps1."
 }

@@ -64,7 +64,7 @@ def source_scope(repository: Path, staged: Path, values: dict[str, str]) -> dict
         path = pending.pop()
         if path not in declared:
             raise ValueError('PKR023 source project lacks a declared compilation graph: ' + path)
-        for dependency in declared[path].get('projectReferences', []):
+        for dependency in set(declared[path].get('projectReferences', [])) | set(declared[path].get('buildProjectReferences', [])):
             if dependency not in projects:
                 projects.add(dependency); pending.append(dependency)
     folders = [Path(path).parent.as_posix() + '/' for path in projects]

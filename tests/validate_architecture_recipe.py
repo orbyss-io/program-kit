@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 from architecture_verify import validate_graph, execute
 import repository_architecture as recipe
+from build_output_recipe_cases import BuildOutputRecipeTests
 
 
 class RecipeTests(unittest.TestCase):
@@ -69,6 +70,19 @@ class RecipeTests(unittest.TestCase):
                        cwd=self.root, capture_output=True, check=True, timeout=60)
         with self.assertRaisesRegex(ValueError, 'include every declared'):
             recipe.execute(self.root, self.manifest, 'Debug', build_subject=solution.name)
+        core = self.root / 'Core/Slots.Core.csproj'
+        original_core = core.read_text(encoding='utf-8')
+        core.write_text(original_core.replace('</Project>',
+            '<ItemGroup><InternalsVisibleTo Include="Slots.Tests" /></ItemGroup></Project>'), encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'PKA021 friend access'):
+            execute(self.root, self.manifest, 'Debug')
+        core.write_text(original_core, encoding='utf-8')
+        friend_source = self.root / 'Core/Friend.cs'
+        friend_source.write_text('using Friend = System.Runtime.CompilerServices.InternalsVisibleToAttribute; '
+                                '[assembly: Friend("Slots.Tests")]', encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'PKA021 compiled friend access'):
+            execute(self.root, self.manifest, 'Debug')
+        friend_source.unlink()
         rogue = self.root / 'Rogue/Rogue.csproj'
         rogue.parent.mkdir()
         rogue.write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><NuGetAudit>false</NuGetAudit></PropertyGroup></Project>', encoding='utf-8')
@@ -79,6 +93,40 @@ class RecipeTests(unittest.TestCase):
 
     def test_compiled_capability_and_evaluated_graph(self):
         self.assertEqual(2, len(self.check()))
+
+    def test_build_only_project_edge_has_no_clr_role_or_compiled_reference(self):
+        worker = {'path': 'Build/OwnedTool.csproj', 'role': 'implementation', 'projectReferences': [], 'packageReferences': []}
+        self.manifest['runtimeComposition']['projects'].append(worker)
+        parent = self.manifest['runtimeComposition']['projects'][1]
+        parent['buildProjectReferences'] = [worker['path']]
+        self.evaluated[worker['path']] = {'Properties': {'AssemblyName': 'OwnedTool'}, 'Items': {'ProjectReference': [], 'PackageReference': []}}
+        self.evaluated[parent['path']]['Items']['ProjectReference'].append({'Identity': worker['path'],
+            'FullPath': str(self.root / worker['path']), 'ReferenceOutputAssembly': 'false'})
+        self.compiled.append({'name': 'OwnedTool', 'references': ['System.Runtime'], 'types': []})
+        self.assertEqual(2, len(self.check()))
+        self.compiled[1]['references'].append('OwnedTool')
+        with self.assertRaisesRegex(ValueError, 'Compiled project edge'):
+            self.check()
+
+    def test_unknown_or_cyclic_build_edges_are_not_hidden_as_non_clr_dependencies(self):
+        core, provider = self.manifest['runtimeComposition']['projects']
+        core['buildProjectReferences'] = ['missing.csproj']
+        with self.assertRaisesRegex(ValueError, 'declared project owner'):
+            recipe.validate_manifest(self.root, self.manifest)
+        core['buildProjectReferences'] = [provider['path']]
+        with self.assertRaisesRegex(ValueError, 'dependency cycle'):
+            recipe.validate_manifest(self.root, self.manifest)
+
+    def test_friend_access_from_evaluated_items_and_compiled_attributes_is_rejected(self):
+        items = self.evaluated['Core/Slots.Core.csproj']['Items']
+        for key, identity in (('InternalsVisibleTo', 'Slots.Tests'),
+                              ('AssemblyAttribute', 'System.Runtime.CompilerServices.InternalsVisibleToAttribute')):
+            with self.subTest(key=key):
+                items[key] = [{'Identity': identity}]
+                with self.assertRaisesRegex(ValueError, 'PKA021 friend access'): self.check()
+                del items[key]
+        self.compiled[0]['attributes'] = ['System.Runtime.CompilerServices.InternalsVisibleToAttribute']
+        with self.assertRaisesRegex(ValueError, 'PKA021 compiled friend access'): self.check()
 
     def test_binding_roles_and_physical_separation_are_mandatory(self):
         for index, role, message in ((0, 'composition', 'capability.*Core'),

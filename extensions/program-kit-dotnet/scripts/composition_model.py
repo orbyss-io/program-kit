@@ -18,13 +18,14 @@ VERSION = 2
 RESOURCE_FIELDS = {
     'host': ({'kind', 'runtimeDirectory'}, {'ownerRef'}),
     'shell': ({'kind', 'name', 'source'}, {'ownerRef', 'settings'}),
-    'feature': ({'kind', 'path', 'packageId', 'featureIdentity', 'role'}, {'ownerRef'}),
+    'feature': ({'kind', 'path', 'packageId', 'featureIdentity', 'role'}, {'ownerRef', 'responsibility', 'capabilityPackages'}),
     'databaseServer': ({'kind', 'engine'}, {'ownerRef'}),
     'database': ({'kind', 'engine', 'name'}, {'ownerRef'}),
     'identityAuthority': ({'kind', 'protocol'}, {'ownerRef', 'session', 'theme'}),
     'clientRegistration': ({'kind', 'authorityRef', 'profile'}, {'ownerRef', 'callbackPath', 'signedOutCallbackPath'}),
     'protectedResource': ({'kind', 'authorityRef'}, {'ownerRef', 'permissions'}),
     'frontend': ({'kind', 'directory', 'entry'}, {'ownerRef', 'branding'}),
+    'privateFiles': ({'kind', 'ownerRef'}, set()),
 }
 BINDING_FIELDS = {
     'shellHost': {'kind', 'shellRef', 'hostRef'},
@@ -34,11 +35,12 @@ BINDING_FIELDS = {
     'authentication': {'kind', 'shellRef', 'clientRef', 'resourceRef'},
     'frontend': {'kind', 'frontendRef', 'shellRef', 'routeId', 'path'},
     'apiCall': {'kind', 'clientRef', 'resourceRef', 'intent', 'permissions'},
+    'privateFiles': {'kind', 'filesRef', 'hostRef', 'shellRef', 'featureRef', 'setting'},
 }
 REFERENCE_KINDS = {'shellRef': 'shell', 'hostRef': 'host', 'featureRef': 'feature',
                    'databaseRef': 'database', 'serverRef': 'databaseServer',
                    'clientRef': 'clientRegistration', 'resourceRef': 'protectedResource',
-                   'authorityRef': 'identityAuthority', 'frontendRef': 'frontend'}
+                   'authorityRef': 'identityAuthority', 'frontendRef': 'frontend', 'filesRef': 'privateFiles'}
 
 
 def require(condition, message):
@@ -126,6 +128,87 @@ def project_list(model):
             for row in resources(model, 'feature').values()]
 
 
+def private_directories(model, env_name=None, repository=None):
+    """Private roots are outside every source, stage and public asset tree.
+
+    Resolve existing aliases as well as lexical paths; nested roots are not
+    distinct stores. This validates placement without creating any directory.
+    """
+    env = environment(model, env_name)
+    base = Path(repository or '.').resolve()
+    forbidden = [base / name for name in ('src', 'tests', 'tools', 'web', 'eng', 'docs', 'deploy', 'packages',
+                 'scripts', 'extensions', 'presets', 'catalogs', 'workflows', '.git', '.specify', '.program-kit',
+                 '.agents', '.codex', '.github', 'release-bundle', 'artifacts/composition')]
+    forbidden += [base / row['directory'] for row in resources(model, 'frontend').values()]
+    forbidden += [base / ('release-bundle' if row['runtimeDirectory'] == '.' else row['runtimeDirectory'])
+                  for row in resources(model, 'host').values()]
+    forbidden += [base / ('artifacts/release-bundle' if row['runtimeDirectory'] == '.' else 'artifacts/' + row['runtimeDirectory'])
+                  for row in resources(model, 'host').values()]
+    forbidden += [(base / row['path']).parent for row in resources(model, 'feature').values()]
+    architecture = base / 'eng/architecture.json'
+    if repository is not None and architecture.is_file():
+        graph = json.loads(architecture.read_text(encoding='utf-8'))
+        for row in graph.get('runtimeComposition', {}).get('projects', []):
+            local_path(row['path'], 'owned source project')
+            forbidden.append((base / row['path']).parent)
+    def parts(path):
+        return tuple(part.casefold() for part in path.resolve().parts)
+    def overlap(left, right):
+        return left[:len(right)] == right or right[:len(left)] == left
+    selected = {}
+    for name in resources(model, 'privateFiles'):
+        directory = base / env[name]['directory']
+        resolved = directory.resolve()
+        require(resolved.is_relative_to(base) and resolved != base, 'private storage escapes repository')
+        identity = parts(directory)
+        require(not any(overlap(identity, parts(other)) for other in forbidden), 'private storage overlaps source, runtime or public assets')
+        require(not any(overlap(identity, parts(other)) for other in selected.values()), 'private storage roots overlap or alias')
+        selected[name] = directory
+    return selected
+
+
+def project_definition(feature, repository=None):
+    """Project source responsibilities, never a role or filename guess.
+
+    Existing reviewed engineering responsibilities remain authoritative. The
+    explicit discriminator supplies greenfield intent before source exists.
+    """
+    project = {key: feature[key] for key in ('path', 'packageId', 'featureIdentity', 'role')}
+    declared = feature.get('responsibility')
+    require(declared is None or declared in ('runtime', 'http', 'persistence'), 'unsupported feature responsibility')
+    owned = None
+    if repository is not None:
+        path = Path(repository) / 'eng/architecture.json'
+        if path.is_file():
+            graph = json.loads(path.read_text(encoding='utf-8'))
+            matches = [row for row in graph.get('runtimeComposition', {}).get('projects', [])
+                       if row.get('path') == feature['path']]
+            require(len(matches) <= 1, 'duplicate source responsibility authority: ' + feature['path'])
+            if matches:
+                owned = matches[0]
+                require(owned.get('role') in (None, feature['role']), 'source role conflicts with composition: ' + feature['path'])
+                kinds = {row.get('kind') for row in owned.get('responsibilities', [])} & {'runtime', 'http', 'persistence'}
+                if feature['role'] == 'provider':
+                    require('http' not in kinds, 'provider cannot own HTTP source responsibility: ' + feature['path'])
+                require(len(kinds) <= 1, 'conflicting source responsibilities: ' + feature['path'])
+                if kinds:
+                    actual = next(iter(kinds))
+                    require(declared is None or declared == actual, 'feature responsibility conflicts with source authority: ' + feature['path'])
+                    declared = actual
+    if feature['role'] == 'provider':
+        require(declared in (None, 'persistence', 'runtime'), 'provider requires runtime or persistence responsibility: ' + feature['path'])
+        declared = declared or 'persistence'  # Historical database providers retain their interpretation.
+    else:
+        require(declared in ('runtime', 'http'), 'declare runtime or HTTP source responsibility before scaffolding: ' + feature['path'])
+    project['responsibility'] = declared
+    # A resolved package inventory may include the old scaffold's erroneous
+    # web references; it is not evidence of capability consumption.
+    project['capabilityPackages'] = list(feature.get('capabilityPackages', []))
+    if owned:
+        project['responsibilities'] = deepcopy(owned.get('responsibilities', []))
+    return project
+
+
 def validate(model, repository=None):
     object_fields(model, {'schemaVersion', 'compositionId', 'resources', 'bindings', 'environments',
                          'defaultEnvironment', 'runner'}, {'developmentCandidate', 'authority'}, 'composition')
@@ -177,6 +260,14 @@ def validate(model, repository=None):
             require(row['path'].endswith('.csproj'), 'feature path must name a .csproj')
             require(row['role'] in ('implementation', 'provider'),
                     'resource composition does not introduce an aggregate source project')
+            if 'responsibility' in row:
+                require(row['responsibility'] in ({'runtime', 'persistence'} if row['role'] == 'provider' else {'runtime', 'http'}),
+                        'feature responsibility conflicts with source role')
+            consumed = row.get('capabilityPackages', [])
+            require(isinstance(consumed, list) and
+                    all(isinstance(item, str) and re.fullmatch(r'Orbyss\.Foundation\.[A-Za-z0-9_.]+', item) for item in consumed) and
+                    len(consumed) == len(set(consumed)),
+                    'feature capability packages require distinct selected Foundation package identities')
             for field, seen in (('path', paths), ('packageId', packages), ('featureIdentity', feature_names)):
                 item = row[field].casefold()
                 require(item not in seen, 'duplicate feature ' + field)
@@ -233,7 +324,7 @@ def validate(model, repository=None):
     unique = set()
     for row in model['bindings']:
         require(isinstance(row, dict) and row.get('kind') in BINDING_FIELDS, 'unknown binding type')
-        optional = {'pagePermission', 'bootstrapPermission'} if row['kind'] == 'frontend' else set()
+        optional = {'pagePermission', 'bootstrapPermission'} if row['kind'] == 'frontend' else ({'section'} if row['kind'] == 'privateFiles' else set())
         object_fields(row, BINDING_FIELDS[row['kind']], optional, label='binding')
         key = json.dumps(row, sort_keys=True)
         require(key not in unique, 'duplicate binding')
@@ -241,10 +332,21 @@ def validate(model, repository=None):
         for field, kind in REFERENCE_KINDS.items():
             if field in row:
                 reference(model, row[field], kind)
-        if row['kind'] == 'databaseProvider':
+        if row['kind'] == 'privateFiles':
+            for field in ('setting', 'section'):
+                value = row.get(field, 'EvidenceFiles')
+                require(isinstance(value, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,127}', value) and '__' not in value,
+                        'invalid private storage configuration target')
+            require(row.get('section', 'EvidenceFiles').casefold() not in ('foundation', 'hostedpages', 'web', 'postgresql'),
+                    'private storage must use owner configuration')
+            require(row['featureRef'] in shell_features(model, row['shellRef']) and
+                    row['shellRef'] in host_shells(model, row['hostRef']), 'private storage binding has foreign placement')
+        elif row['kind'] == 'databaseProvider':
             require(re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,127}', str(row['context'])), 'invalid context type')
             identifier(row['policy'], 'database policy')
             require(reference(model, row['featureRef'], 'feature')['role'] == 'provider', 'database binding requires provider ownership')
+            require(project_definition(reference(model, row['featureRef'], 'feature'), repository)['responsibility'] == 'persistence',
+                    'database binding conflicts with runtime-only provider responsibility')
             require(row['featureRef'] in shell_features(model, row['shellRef']), 'database provider not selected in its shell')
         elif row['kind'] == 'authentication':
             client = reference(model, row['clientRef'], 'clientRegistration')
@@ -275,6 +377,14 @@ def validate(model, repository=None):
         require(host_shells(model, name), 'host has no selected shell')
     for name in resources(model, 'feature'):
         require(any(row['featureRef'] == name for row in bindings(model, 'featureShell')), 'feature has no shell placement')
+    storage_targets = set()
+    for name in resources(model, 'privateFiles'):
+        rows = [row for row in bindings(model, 'privateFiles') if row['filesRef'] == name]
+        require(len(rows) == 1, 'private storage requires exactly one owning binding')
+        row = rows[0]
+        target = (row['shellRef'], row.get('section', 'EvidenceFiles').casefold(), row['setting'].casefold())
+        require(target not in storage_targets, 'duplicate private storage configuration target')
+        storage_targets.add(target)
     database_names = set()
     for name, row in resources(model, 'database').items():
         placement = [item for item in bindings(model, 'databaseServer') if item['databaseRef'] == name]
@@ -291,7 +401,7 @@ def validate(model, repository=None):
         require(key not in policies or policies[key] == row['databaseRef'], 'shared policy name has conflicting database configuration')
         policies[key] = row['databaseRef']
     require(isinstance(model['environments'], dict) and model['defaultEnvironment'] in model['environments'], 'missing default environment')
-    supplied = {'host', 'databaseServer', 'database', 'identityAuthority', 'clientRegistration', 'protectedResource'}
+    supplied = {'host', 'databaseServer', 'database', 'identityAuthority', 'clientRegistration', 'protectedResource', 'privateFiles'}
     needed = {name for name, row in model['resources'].items() if row['kind'] in supplied}
     for env_name, env in model['environments'].items():
         identifier(env_name, 'environment name')
@@ -300,7 +410,11 @@ def validate(model, repository=None):
         listeners = set()
         for name, binding in env['resources'].items():
             kind = model['resources'][name]['kind']
-            if kind == 'host':
+            if kind == 'privateFiles':
+                require(env_name.casefold() in ('development', 'test'), 'private filesystem adapter is qualified only for Development/Test')
+                object_fields(binding, {'directory'}, label=name)
+                local_path(binding['directory'], name + '.directory')
+            elif kind == 'host':
                 object_fields(binding, {'mode', 'publicOrigin'}, {'certificateRef'}, name)
                 require(binding['mode'] == 'managed', 'external application-host execution adapter is not qualified')
                 uri = origin(binding['publicOrigin'], name)
@@ -355,6 +469,7 @@ def validate(model, repository=None):
                 object_fields(binding, {'audience'}, label=name)
                 require(isinstance(binding['audience'], str) and binding['audience'], 'empty assigned audience')
         roles = {}
+        private_directories(model, env_name, repository)
         for name, row in resources(model, 'database').items():
             server = next(item['serverRef'] for item in bindings(model, 'databaseServer') if item['databaseRef'] == name)
             assigned = env['resources'][name]
@@ -381,6 +496,8 @@ def validate(model, repository=None):
                 if key in row:
                     require((repository / row[key]).resolve().is_relative_to(repository), 'linked resource path escapes repository')
         validate_authority(model, repository)
+        for feature in resources(model, 'feature').values():
+            project_definition(feature, repository)
     return model
 
 
@@ -436,9 +553,13 @@ def legacy_view(model, shell_id, env_name=None):
     require(client['profile'] == 'browser-bff', 'adapter capability missing for selected browser profile')
     features = [model['resources'][name] for name in shell_features(model, shell_id)]
     projects = [{key: row[key] for key in ('path', 'packageId', 'featureIdentity', 'role')} for row in features]
+    database_features = {row['featureRef'] for row in bindings(model, 'databaseProvider') if row['shellRef'] == shell_id}
+    for name, project in zip(shell_features(model, shell_id), projects):
+        if project['role'] == 'provider' and name not in database_features:
+            project['responsibility'] = 'runtime'
     session = authority.get('session', {'idleMinutes': 20, 'absoluteMinutes': 480})
     return {'schemaVersion': 1, 'compositionId': 'foundation-bff-keycloak' +
-            ('-postgresql' if any(row['role'] == 'provider' for row in features) else ''),
+            ('-postgresql' if database_features else ''),
             'application': {'publicOrigin': env[host_id]['publicOrigin'], 'callbackPath': client.get('callbackPath', '/signin-oidc'),
                             'signedOutCallbackPath': client.get('signedOutCallbackPath', '/signout-callback-oidc'), 'localDevelopment': True},
             'identity': {'publicOrigin': assigned['publicOrigin'], 'administrationOrigin': assigned.get('administrationOrigin', assigned['backchannelOrigin']),
@@ -490,8 +611,17 @@ def from_legacy(value, repository=None):
     for index, project in enumerate(value['projects']):
         name = 'feature-' + str(index)
         nodes[name] = {'kind': 'feature', **project}
+        if project['role'] == 'implementation':
+            # The retired finite recipe explicitly supported API seams only.
+            # Existing engineering ownership can correct that historical input.
+            try:
+                nodes[name]['responsibility'] = project_definition(nodes[name], repository)['responsibility']
+            except ValueError as error:
+                if 'declare runtime or HTTP' not in str(error):
+                    raise
+                nodes[name]['responsibility'] = 'http'
         edges.append({'kind': 'featureShell', 'featureRef': name, 'shellRef': 'application-shell'})
-        if project['role'] == 'provider':
+        if project['role'] == 'provider' and project.get('responsibility', 'persistence') == 'persistence':
             nodes.setdefault('postgresql', {'kind': 'databaseServer', 'engine': 'postgresql'})
             env.setdefault('postgresql', {'mode': 'managed'})
             database = 'database-' + str(index)

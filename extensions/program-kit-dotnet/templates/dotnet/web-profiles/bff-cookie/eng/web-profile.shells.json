@@ -28,7 +28,7 @@
               "AccessDeniedPath": "/bff/access-denied",
               "CookieName": "__Host-program-kit-session",
               "DiscoveryTimeoutSeconds": 3,
-              "RemoteAuthenticationTimeoutSeconds": 10,
+              "RemoteAuthenticationTimeoutSeconds": 900,
               "SessionIdleMinutes": 30,
               "SessionAbsoluteMinutes": 480,
               "AllowHttpForLocalDevelopment": true,

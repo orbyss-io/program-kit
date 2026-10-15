@@ -147,6 +147,13 @@ engineering/human dispositions, reviewer, presentation, decisions, basis and ela
 outputs stay in ignored artifacts. `task_draft.py current` exposes this readable state on resume.
 No second ledger or approval dossier is required. Never edit the marker to fabricate human decisions.
 
+The current progress summary is bounded to 8 KiB independently of the 1-MiB retained delivery
+state. Storage version 3 interns identical review bases by verified SHA-256 reference inside
+that same checkpoint; `current` expands them into independent readable objects. Legacy inline
+history remains readable and migrates only through the normal atomic save. Repeated review and
+deferral cycles preserve every original decision and basis. Missing/tampered references or a
+full retained-state budget stop the write; never delete provenance to fit another decision.
+
 Submit a small JSON request with `python .specify/extensions/program-kit-governance/scripts/task_draft.py
 delivery --feature-dir specs/<feature> --content-file artifacts/<request>.json`. These are scoped
 workflow transitions, not engineering prerequisites for independently runnable builds/tests.
@@ -183,9 +190,36 @@ outside its workflow and claims no agent-supervisor control.
 
 Name actual implementation/configuration inputs covering user meaning, workflow, authorization,
 persistence and effects in `basisPaths`; include relevant generated/build/policy inputs. Presentation
-binds their exact bytes. Changed/deleted inputs reopen only that checkpoint and retain prior decisions.
+binds their exact bytes. Legacy changed/deleted inputs reopen only that checkpoint and retain prior decisions.
 Unrelated test corrections/new commits do not invalidate every story. Re-present the repaired outcome
 and retain valid prior acceptance; a fresh generic check result is not a human decision.
+
+New presentations may provide `materialScope` version 1 alongside `basisPaths`. Every raw input must
+be classified exactly once: `file` binds exact bytes; `json` binds the complete canonical JSON;
+`foundation-composition` version 1 selects named `hosts` and `environments` and includes the whole
+shared host startup closure; `verification` version 1 selects relevant test `projects` and retains
+global verification policy plus every group touching those projects. Use the maintained
+`review_material.py` projection; arbitrary JSON pointers or path exclusions are unsupported.
+Include selected source, generated activation/settings, project/build/dependency closure and public
+contracts in the other basis inputs. Architecture and resolved output use full `json`/`file` bindings
+until a supported narrower projection exists; do not discard their provenance hashes manually.
+The projection definition and executable implementation are hash-bound. Raw-only changes retain the
+actual human decision but require renewed engineering checks before progression or closure. Material
+host mounts, authentication, provider settings, outcome/expected results or limitations reopen human
+review. Unknown/deleted inputs, unsupported projections and unprovable legacy history remain pending.
+An `engineering` transition renews raw-input freshness only with actual successful relevant artifacts;
+tests never create acceptance. Original decision objects and their raw basis remain unchanged.
+
+An owner's existing explicit deferral can retain permission for the same named operations while
+changed engineering or review evidence remains due. Refresh preserves that scoped permission;
+it does not turn a stale decision into acceptance. The original owner identity, assignment,
+presentation and permits remain bound. Changed operation meaning invalidates affected permits.
+Other operations, unmet enabling tasks, recorded technical failures and feature closure stay
+guarded. Requester deferral does not acquire the owner's broader continuation authority.
+
+A parser dependency pin alone does not identify the executing runtime. Qualification evidence names
+the actual runtime, packaged closure, configuration and exercised deferred paths, and proves only
+the demonstrated admission and resource guarantees.
 
 Use stable story/operation IDs. Elapsed wall time accrues once for the active operation and story,
 including preparation, planning, builds, integration, tests and repairs, rather than summing commands.
@@ -194,6 +228,11 @@ start another ID to erase effort. Report once at 60 active operation minutes/120
 what works, what remains, cause and smallest corrective action. Materially changed diagnosis/scope
 merits an update, not a warning on every command. Owner budget revisions are explicit. Time alone
 never blocks implementation; real technical, authority and human progression gates still do.
+
+A deferral permitting the active operation is authorized work, so its clock keeps accruing when
+all other checkpoints and enabling tasks permit it. A genuinely blocked operation is human waiting;
+an explicit suspension stays suspended. Resume restores accounting only for permitted work and
+grants no new authority. Preserve accumulated effort, budget revisions and original corrections.
 
 ### Optional authenticated GitHub decisions
 
@@ -218,11 +257,17 @@ Posting requests, polling and monitoring need their own explicit authorization.
 
 ### Fresh-feature adoption
 
-Archive/checkpoint the abandoned attempt and failed evidence. Install the released toolkit through
-the supported updater. Amend and normally review/ratify the constitution for story-delivery-v1.
-Review/select an explicit owned reset inventory; shared outputs, migrations and data need clear
-ownership. Abandon old unfinished spec/plan/tasks/code/tests as active progress, preserving history.
-Rerun specify, clarification, plan, tasks, analysis and implement with hooks once at owning boundaries.
-Reuse unchanged confirmed bootstrap/intake intent, accepted architecture, foundations/tooling, locks
-and delivered features; do not restart the whole product interview. No partial feature continuation,
-real consumer/data migration or unrelated source/live-data deletion is authorized by installation.
+For the diagnostics-patch restart, use recipe `fresh-feature-delete-v1`. Keep the confirmed
+specification intake. Install the published toolkit through the supported updater and refresh all
+installed phase commands, skills, templates and hooks. Ratify any actually changed constitution
+policy through its normal route. Select the complete unfinished specification and its exclusively
+owned implementation, tests, frontend and contracts; reconcile its shared registrations separately.
+Delete the old attempt with `task_draft.py reset` and request `method: fresh-feature-delete-v1`.
+This route removes the entire selected specification directory and creates no content archive.
+Clear owned derived build/runtime outputs and stale phase evidence through their maintained owners.
+Do not consult old source, archives, Git history or old attempt transcripts to reconstruct the work.
+Execute **specify itself**, clarification, plan, tasks, analysis and implement anew, with hooks once
+at owning boundaries. The new attempt receives only retained confirmed intake, current accepted
+architecture and installed foundations/tooling/dependencies. Old checkmarks, reviews and receipts
+are not new progress. Unrelated shared work and live data are outside this reset. Historical
+`fresh-story-delivery-v1` remains a separate older recipe; it is not this patch's restart route.

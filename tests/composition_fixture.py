@@ -34,7 +34,7 @@ def two_apps(root, dynamic_ports=False, frontends=True):
     nodes['assessment-host'] = {'kind': 'host', 'runtimeDirectory': 'runtime/assessments'}
     nodes['assessment-shell'] = {'kind': 'shell', 'name': 'assessments', 'source': 'runtime/assessments/shells.json'}
     nodes['assessment-api-feature'] = {'kind': 'feature', 'role': 'implementation', 'path': 'src/Assessment.Api/Assessment.Api.csproj',
-                                        'packageId': 'Assessment.Api', 'featureIdentity': 'Assessment.Api'}
+                                        'packageId': 'Assessment.Api', 'featureIdentity': 'Assessment.Api', 'responsibility': 'http'}
     nodes['assessment-provider'] = {'kind': 'feature', 'role': 'provider', 'path': 'src/Assessment.PostgreSql/Assessment.PostgreSql.csproj',
                                     'packageId': 'Assessment.PostgreSql', 'featureIdentity': 'Assessment.PostgreSql'}
     nodes['assessment-db'] = {'kind': 'database', 'engine': 'postgresql', 'name': 'assessments'}

@@ -21,6 +21,7 @@ def main() -> int:
         managed.mkdir(parents=True)
         (managed / "js_toolchain.py").write_bytes(JS_TOOLCHAIN.read_bytes())
         (managed / "device_toolchain.py").write_bytes(JS_TOOLCHAIN.with_name("device_toolchain.py").read_bytes())
+        (managed / 'windows_workflow_path.py').write_bytes((ROOT / 'extensions/program-kit-governance/scripts/windows_workflow_path.py').read_bytes())
         exact = Path(value) / "shared-exact"
         wrong = Path(value) / "shared-wrong"
         exact.mkdir()

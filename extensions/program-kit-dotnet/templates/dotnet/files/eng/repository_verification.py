@@ -20,7 +20,7 @@ import time
 import uuid
 import xml.etree.ElementTree as ET
 
-from repository_architecture import inside, read, require, validate_planned
+from repository_architecture import inside, read, require, validate_planned, is_build_reference, project_dependencies
 
 SHARED_INPUTS = ('global.json', '.editorconfig', 'NuGet.config', 'NuGet.Config',
                  '.globalconfig', '*.ruleset', '.config/**',
@@ -43,7 +43,7 @@ def digest(value):
     return hashlib.sha256(value).hexdigest()
 
 
-def configuration(root):
+def configuration(root, normalize_owners=True):
     path = root / 'eng/verification.json'
     value = read(path) if path.is_file() else {'schemaVersion': 1, 'testGroups': []}
     setup_path = root / 'eng/verification.setup.json'
@@ -60,6 +60,10 @@ def configuration(root):
         require(isinstance(group, dict), 'PKV003 testGroup must be an object')
         require(all(key not in group or isinstance(group[key], bool) for key in ('reuse', 'externalState')),
                 'PKV003 reuse and externalState must be booleans')
+    if normalize_owners and value.get('testOwnershipReplacements'):
+        replacements = ownership_replacements(root)
+        value = {**value, 'testGroups': [{**group, 'projects': replacement_projects(root,
+                  group.get('projects', []), replacements)} for group in value.get('testGroups', [])]}
     return value
 
 
@@ -76,7 +80,7 @@ def normalize(root, path):
 
 def ownership_replacements(root, graph=None):
     """Explicit migration of retired test owners; no aliases for still-active tests."""
-    rows = configuration(root).get('testOwnershipReplacements', [])
+    rows = configuration(root, normalize_owners=False).get('testOwnershipReplacements', [])
     require(isinstance(rows, list), 'PKV003 testOwnershipReplacements must be an array')
     if not rows:
         return {}
@@ -103,6 +107,78 @@ def ownership_replacements(root, graph=None):
             return {project}
         return set().union(*(leaves(p, active | {project}) for p in mappings[project]))
     return {p: sorted(leaves(p, set())) for p in mappings}
+
+
+def replacement_projects(root, projects, replacements):
+    require(isinstance(projects, list) and all(isinstance(p, str) for p in projects),
+            'PKV003 verification projects must be an array of owner paths')
+    return sorted({successor for project in projects
+                   for successor in replacements.get(normalize(root, project), [normalize(root, project)])})
+
+
+def ownership_reconciliation(root):
+    """Preview only explicit successor substitutions; preserve authored checks and archives."""
+    graph = validate_planned(root, read(root / 'eng/architecture.json'))
+    replacements = ownership_replacements(root, graph)
+    tests = {p for p, row in graph.items() if row['role'] == 'test'}
+    changes, basis = {}, {}
+    for relative, field in (('eng/verification.json', 'testGroups'),
+                            ('eng/verification.setup.json', 'testGroups'),
+                            ('eng/verification-inputs.json', 'rules')):
+        path = root / relative
+        if not path.is_file():
+            continue
+        source = path.read_bytes(); value = json.loads(source)
+        require(value.get('schemaVersion') == 1 and isinstance(value.get(field, []), list),
+                'PKV003 unsupported ownership mappings: ' + relative)
+        changed = False
+        for group in value.get(field, []):
+            require(isinstance(group, dict), 'PKV003 invalid ownership row: ' + relative)
+            projects = group.get('projects', [])
+            normalized = replacement_projects(root, projects, replacements)
+            require(set(normalized) <= tests, 'PKV003 unresolved verification owner: ' + relative + '; ' + ', '.join(sorted(set(normalized) - tests)))
+            if set(normalized) != set(projects):
+                group['projects'] = normalized; changed = True
+        basis[relative] = digest(source)
+        if changed:
+            changes[relative] = json.dumps(value, indent=2) + '\n'
+    basis['eng/architecture.json'] = digest((root / 'eng/architecture.json').read_bytes())
+    managed = root / '.program-kit/managed.json'
+    basis['.program-kit/managed.json'] = digest(managed.read_bytes()) if managed.is_file() else None
+    identity = {'basis': basis, 'replacements': replacements, 'changes': changes}
+    return {**identity, 'planDigest': digest(json.dumps(identity, sort_keys=True).encode()),
+            'unresolved': unresolved_failures(root), 'acceptanceEstablished': False}
+
+
+def reconcile_ownership(root, approved_digest=None):
+    plan = ownership_reconciliation(root)
+    if approved_digest is None:
+        return plan
+    require(plan['planDigest'] == approved_digest, 'PKV003 ownership inputs changed; review a fresh reconciliation preview')
+    # The native .NET sync transaction owns writes and preserves consumer customizations.
+    # Expose a hash-bound reviewed proposal for that existing reconciliation adapter.
+    import importlib.util
+    adapter = root / '.specify/extensions/program-kit-dotnet/scripts/reconciliation.py'
+    require(adapter.is_file(), 'PKV003 supported installed reconciliation adapter required; run native .NET installation/sync')
+    spec = importlib.util.spec_from_file_location('verification_owned_reconciliation', adapter)
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    operations = [{'kind': 'write', 'path': relative, 'content': content.encode('utf-8')}
+                  for relative, content in plan['changes'].items()]
+    require(not module.pending_transactions(root), 'PKV003 recover the pending native sync transaction before ownership reconciliation')
+    state_path = root / '.program-kit/managed.json'
+    require(state_path.is_file(), 'PKV003 installed native sync state required before ownership reconciliation')
+    state = read(state_path)
+    for relative, content in plan['changes'].items():
+        row = state.get('files', {}).get(relative)
+        if row is not None:
+            require(isinstance(row, dict), 'PKV003 invalid installed ownership state: ' + relative)
+            row.update(installedHash=digest(content.encode()), lastWrittenHash=digest(content.encode()))
+    state['verificationOwnershipReconciliation'] = {'planDigest': plan['planDigest'],
+                                                  'replacements': plan['replacements']}
+    next_state = (json.dumps(state, indent=2, sort_keys=True) + '\n').encode('utf-8')
+    # Adapter API is shared with ordinary sync; writes retain its existing rollback journal.
+    transaction = module.apply_plan(root, operations, next_state)
+    return {**plan, 'transactionId': transaction, 'applied': True}
 
 
 def changed_inputs(root, baseline):
@@ -171,7 +247,7 @@ def literal_edges(root, projects):
         if not path.exists():
             continue  # Deleted project identity still selects its former callers.
         source = ET.parse(path).getroot()
-        references = set()
+        references, build_references = set(), set()
         for node in source.iter():
             kind = node.tag.rsplit('}', 1)[-1]
             require(kind != 'Import', 'PKV003 imported project graphs need a consumer evaluated graph adapter')
@@ -180,12 +256,24 @@ def literal_edges(root, projects):
             value = node.get('Include', '')
             require(value and not any(c in value for c in '$@%*?') and not node.get('Condition'),
                     'PKV003 dynamic project references need a consumer evaluated graph adapter')
+            metadata = {}
+            for field in ('ReferenceOutputAssembly', 'OutputItemType'):
+                children = [child for child in node if child.tag.rsplit('}', 1)[-1] == field]
+                require(len(children) <= 1 and not any(child.get('Condition') for child in children),
+                        'PKV003 conditional reference metadata needs an evaluated graph adapter')
+                item = (children[0].text or '') if children else node.get(field, '')
+                require(not any(char in item for char in '$@%*?') and
+                        (field != 'ReferenceOutputAssembly' or item.casefold() in ('', 'true', 'false')),
+                        'PKV003 dynamic reference metadata needs an evaluated graph adapter')
+                metadata[field] = item
             for item in filter(None, (part.strip() for part in value.split(';'))):
                 target = (path.parent / item.replace('\\', '/')).resolve()
                 require(target.is_relative_to(root), 'PKV001 project reference escapes repository')
-                references.add(target.relative_to(root).as_posix())
+                (build_references if is_build_reference(metadata) else references).add(target.relative_to(root).as_posix())
         require(references == set(project['projectReferences']),
                 'PKV003 projectReferences differ from source; update or evaluate the graph before narrowing tests: ' + relative)
+        require(build_references == set(project.get('buildProjectReferences', [])),
+                'PKV003 buildProjectReferences differ from source; update or evaluate the graph: ' + relative)
     ancestors = {root}
     for relative in projects:
         ancestors.update(p for p in inside(root, relative).parents if p.is_relative_to(root))
@@ -334,7 +422,7 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
                 matched = True
             require(matched, 'PKV003 unknown verification input ' + path + '; map its tests or use a deliberate acceptance boundary')
         while True:
-            expanded = affected | {p for p, row in graph.items() if set(row['projectReferences']) & affected}
+            expanded = affected | {p for p, row in graph.items() if project_dependencies(row) & affected}
             if expanded == affected:
                 break
             affected = expanded
@@ -378,16 +466,24 @@ def literal_items(value):
     return items
 
 
-def file_items(root, path):
+def file_items(root, path, graph=None):
     result = set()
     allowed_target_nodes = {'Target', 'PropertyGroup', 'ItemGroup', 'Error', 'Warning', 'Message'}
     tree = ET.parse(path).getroot()
+    if graph is None:
+        graph = {row['path']: row for row in read(root / 'eng/architecture.json')['runtimeComposition']['projects']}
+    from build_output_recipe import derived_nodes
+    derived = derived_nodes(root, path, tree, graph)
     for target in tree.iter():
+        if id(target) in derived:
+            continue
         if target.tag.rsplit('}', 1)[-1] == 'Target':
             for child in target:
                 require(child.tag.rsplit('}', 1)[-1] in allowed_target_nodes,
                         'PKV003 custom build tasks need an evaluated graph adapter')
     for node in tree.iter():
+        if id(node) in derived:
+            continue
         kind = node.tag.rsplit('}', 1)[-1]
         if kind not in {'Compile', 'Content', 'None', 'AdditionalFiles', 'EmbeddedResource', 'Analyzer'}:
             continue
@@ -426,8 +522,13 @@ def input_owners(root, graph):
             owners.append((path.relative_to(root).as_posix(), project))
             if not path.is_file():
                 continue
-            file_items(root, path)  # Fail closed before assuming complete literal ownership.
-            for node in ET.parse(path).getroot().iter():
+            file_items(root, path, graph)  # Fail closed before assuming complete literal ownership.
+            tree = ET.parse(path).getroot()
+            from build_output_recipe import derived_nodes
+            derived = derived_nodes(root, path, tree, graph)
+            for node in tree.iter():
+                if id(node) in derived:
+                    continue
                 if node.tag.rsplit('}', 1)[-1] not in {'Compile', 'Content', 'None', 'AdditionalFiles', 'EmbeddedResource', 'Analyzer'}:
                     continue
                 for key in ('Include', 'Update'):
@@ -452,7 +553,7 @@ def input_snapshot(root, project, graph, observation=None, stable_sources=False)
         return file_hashes[path]
     closure = {project}
     while True:
-        expanded = closure | {edge for p in closure for edge in graph[p]['projectReferences']}
+        expanded = closure | {edge for p in closure for edge in project_dependencies(graph[p])}
         if expanded == closure:
             break
         closure = expanded
@@ -468,7 +569,7 @@ def input_snapshot(root, project, graph, observation=None, stable_sources=False)
             paths.update(p for p in directory.rglob('*') if p.is_file() and
                          not EXCLUDED_PARTS & set(p.relative_to(root).parts))
         if target.is_file():
-            paths.update(file_items(root, target))
+            paths.update(file_items(root, target, graph))
         # Restore assets and generated source are real build inputs, even when ignored.
         if not stable_sources:
             for name in ('project.assets.json', 'project.nuget.cache'):
@@ -817,7 +918,9 @@ def execute(root, selection, arguments, configuration='Debug', restore=False, re
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', default='.')
-    parser.add_argument('--scope', choices=('Focused', 'Affected'), required=True)
+    parser.add_argument('--scope', choices=('Focused', 'Affected'))
+    parser.add_argument('--reconcile-owners', action='store_true', help='Preview successor substitutions in setup and authored verification mappings')
+    parser.add_argument('--apply-digest', help='Apply only the reviewed --reconcile-owners plan through the native sync transaction')
     parser.add_argument('--project', action='append', default=[])
     parser.add_argument('--changed-path', action='append', default=[])
     parser.add_argument('--changed-from')
@@ -832,6 +935,13 @@ def main():
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
+        if args.reconcile_owners:
+            require(not args.scope and not args.project and not args.changed_path and not args.test_argument,
+                    'PKV003 ownership reconciliation is separate from test execution')
+            print(json.dumps(reconcile_ownership(root, args.apply_digest)))
+            return 0
+        require(args.scope is not None and args.apply_digest is None,
+                'PKV002 test execution requires --scope; apply-digest belongs to --reconcile-owners')
         selection = select(root, args.scope, args.project, args.changed_path, args.changed_from)
         if args.feature_dir:
             selection['feature'] = normalize(root, args.feature_dir)

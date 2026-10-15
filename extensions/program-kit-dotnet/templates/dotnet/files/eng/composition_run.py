@@ -116,10 +116,18 @@ def browser_check(root, graph, resolved, command, directory, launch_only=False, 
                           'realm': str(root / ('deploy/keycloak/' + client['authorityRef'] + '/' + authority['realm'] + '-realm.json'))})
     plan = directory / ('browser-launch.json' if launch_only else 'browser-plan.json')
     result = directory / ('browser-launch-result.json' if launch_only else 'browser-result.json')
-    write(plan, {'engines': browser_engines(), 'hosts': hosts, 'launchOnly': launch_only})
+    toolchain = root / 'artifacts/program-kit/toolchain.json'
+    require(toolchain.is_file(), 'browser launch requires the observed exact toolchain')
+    write(plan, {'engines': browser_engines(), 'hosts': hosts, 'launchOnly': launch_only,
+                 'toolchainSha256': runtime_closure.sha256(toolchain),
+                 'browserCache': command.environment['PLAYWRIGHT_BROWSERS_PATH']})
     command.run(['node', 'eng/web/composition-readiness.mjs', str(plan), str(result)], timeout=180)
-    require(read(result)['status'] == 'ready', 'authentication readiness did not pass')
-    return read(result)
+    observed = read(result)
+    require(observed['status'] == 'ready' and observed.get('planSha256') == runtime_closure.sha256(plan),
+            'authentication readiness did not pass or differs from its selected plan')
+    require(observed.get('launches') == [{'engine': engine, 'launched': True, 'closed': True} for engine in browser_engines()],
+            'each selected browser must launch and close before readiness')
+    return observed
 
 
 def prepare_browsers(root, graph, resolved, command, directory):
@@ -199,6 +207,7 @@ def connection(database, binding, server_id, server_binding, password):
 
 def compose_model(root, graph, contract, resolved, credentials):
     env = model.environment(graph)
+    private_roots = model.private_directories(graph, repository=root)
     document = {'name': project(root, graph), 'services': {}, 'networks': {'foundation': {}}, 'volumes': {}}
     process_environment = {}
     for name in model.resources(graph, 'databaseServer'):
@@ -212,7 +221,7 @@ def compose_model(root, graph, contract, resolved, credentials):
             'environment': {'POSTGRES_USER': '_programkit', 'POSTGRES_PASSWORD': '${' + admin + ':?Prepare owned database credentials}',
                             'POSTGRES_DB': 'postgres'}, 'networks': ['foundation'],
             'volumes': [{'type': 'volume', 'source': service(name), 'target': '/var/lib/postgresql'}],
-            'healthcheck': {'test': ['CMD-SHELL', 'pg_isready -U _programkit -d postgres'],
+            'healthcheck': {'test': ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U _programkit -d postgres'],
                             'interval': '2s', 'timeout': '3s', 'retries': 30}}
     for name in model.resources(graph, 'identityAuthority'):
         binding = env[name]
@@ -269,6 +278,14 @@ def compose_model(root, graph, contract, resolved, credentials):
                 values[prefix + 'PostgreSql__Policies__' + row['policy'] + '__ConnectionString'] = '${' + key + ':?Prepare the database binding}'
         volumes = [{'type': 'bind', 'source': str(stage / file), 'target': '/app/' + file, 'read_only': True,
                     'bind': {'create_host_path': False}} for file in ('hostsettings.json', 'shells.json', 'nuplane.settings.json', 'packages')]
+        for row in model.bindings(graph, 'privateFiles'):
+            if row['hostRef'] != name:
+                continue
+            target = '/private-evidence/' + row['filesRef']
+            volumes.append({'type': 'bind', 'source': str(private_roots[row['filesRef']]), 'target': target,
+                            'read_only': False, 'bind': {'create_host_path': False}})
+            shell = graph['resources'][row['shellRef']]['name']
+            values['CShells__Shells__' + shell + '__Configuration__' + row.get('section', 'EvidenceFiles') + '__' + row['setting']] = target
         if (stage / 'shells.json').is_file():
             import hosted_bundle
             staged_shells = shell_composition.load(stage / 'shells.json', True)
@@ -405,8 +422,106 @@ def provision_identities(root, graph, command, compose, environment, credentials
             command.run([*compose, 'stop', *started], environment=environment)
 
 
+def provision_private_files(root, graph, create=True):
+    """First preparation provisions; subsequent operations require retained data.
+
+    Lifecycle state survives failed preparation and temporarily removed resources.
+    A previously bound root is never silently replaced or recreated.
+    """
+    expected_project = project(root, graph)
+    lifecycle_path = root / LIFECYCLE
+    record = read(lifecycle_path) if lifecycle_path.is_file() else {
+        'compositionId': graph['compositionId'], 'project': expected_project, 'services': [], 'hosts': []}
+    require(record['project'] == expected_project and record['compositionId'] == graph['compositionId'],
+            'private storage lifecycle belongs to a different composition')
+    history = dict(record.get('privateFiles', {}))
+    # Retain existing consumers that already had explicit private bind mounts.
+    # Only a hash-verified owned preparation may establish their old identities.
+    state_path = root / STATE
+    if state_path.is_file():
+        receipt = read(state_path)
+        if receipt.get('compose'):
+            require(receipt.get('project') == expected_project, 'previous preparation belongs to a different composition')
+            compose_arguments(root, receipt)
+            previous = read(root / receipt['compose'])
+            require(previous['name'] == expected_project, 'previous Compose output has foreign ownership')
+            for entry in previous['services'].values():
+                for mount in entry.get('volumes', []):
+                    target = mount.get('target', '')
+                    if mount.get('type') == 'bind' and target.startswith('/private-evidence/'):
+                        name = target.removeprefix('/private-evidence/')
+                        model.identifier(name, 'retained private storage identity')
+                        directory = Path(mount['source']).resolve()
+                        require(directory.is_relative_to(root.resolve()), 'retained storage escaped repository')
+                        relative = directory.relative_to(root.resolve()).as_posix()
+                        require(name not in history or (root / history[name]).absolute().as_posix().casefold() == directory.as_posix().casefold(),
+                                'retained storage history conflicts')
+                        history[name] = relative
+    roots = model.private_directories(graph, repository=root)
+    for name, directory in roots.items():
+        if name in history:
+            require((root / history[name]).absolute().as_posix().casefold() == directory.resolve().as_posix().casefold(),
+                    'retained private storage location changed; migrate it explicitly before preparation: ' + name)
+            require(directory.is_dir(), 'retained private storage is unavailable; restore its volume before preparation: ' + name)
+        else:
+            require(create, 'private storage is not provisioned; run explicit preparation: ' + name)
+            existed = directory.exists()
+            directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+            history[name] = directory.resolve().relative_to(root.resolve()).as_posix()
+            record['privateFiles'] = history
+            if os.name != 'nt' and not existed:
+                record.setdefault('privateFilesPermissionPending', []).append(name)
+            write(lifecycle_path, record)
+    require(create or not set(record.get('privateFilesPermissionPending', [])) & set(roots),
+            'private storage permissions are not prepared; run explicit preparation')
+    if create and history:
+        record['privateFiles'] = history
+        write(lifecycle_path, record)
+    return history
+
+
+def prepare_private_permissions(root, graph, image, command):
+    """Initialize only new empty POSIX roots for the selected Host's actual UID.
+
+    Preserve operator-provisioned roots and all existing data/permissions. The
+    ephemeral helper runs the immutable image's shell instead of activating features.
+    Host owner and the provisioning user's group can access the directory; others
+    cannot. No recursive ownership change or production storage policy is implied.
+    """
+    record = read(root / LIFECYCLE) if (root / LIFECYCLE).is_file() else {}
+    roots = model.private_directories(graph, repository=root)
+    pending = set(record.get('privateFilesPermissionPending', [])) & set(roots)
+    if not pending:
+        return
+    uid = command.output(['docker', 'run', '--rm', '--pull', 'never', '--entrypoint', 'id', image, '-u']).strip()
+    require(re.fullmatch(r'\d{1,10}', uid), 'selected Host did not identify its filesystem user')
+    for name in sorted(pending):
+        directory = roots[name].resolve()
+        require(directory.is_dir() and not any(directory.iterdir()),
+                'new private storage received data before permission preparation; preserve it and reconcile explicitly: ' + name)
+        require(',' not in str(directory), 'private storage mount path contains an unsupported Docker delimiter')
+        command.run(['docker', 'run', '--rm', '--pull', 'never', '--user', '0', '--entrypoint', 'sh',
+                     '--mount', 'type=bind,src=' + str(directory) + ',dst=/programkit-private', image,
+                     '-c', 'chown "$1:$2" /programkit-private && chmod 2770 /programkit-private',
+                     'private-provision', uid, str(os.getgid())])
+        record['privateFilesPermissionPending'].remove(name)
+        write(root / LIFECYCLE, record)
+
+
+def ensure_dependencies(command, compose, document, hosts, environment):
+    """Admit only the selected hosts' managed prerequisites, preserving containers."""
+    dependencies = sorted({dependency for host in hosts
+                           for dependency in document['services'][service(host)]['depends_on']})
+    require(set(dependencies) <= set(document['services']), 'selected host has an unresolved managed prerequisite')
+    if dependencies:
+        command.run([*compose, 'up', '-d', '--pull', 'never', '--no-recreate', '--wait', '--wait-timeout', '150', *dependencies],
+                    environment=environment, timeout=210)
+
+
 def prepare(root):
     graph, contract, resolved = selected(root, check_frontends=False)
+    # Capture retained bindings before replacing any previous preparation output.
+    private_history = provision_private_files(root, graph)
     directory = root / 'artifacts/composition/runs' / ('prepare-' + uuid.uuid4().hex)
     directory.mkdir(parents=True)
     started = time.monotonic()
@@ -428,6 +543,8 @@ def prepare(root):
         for image in sorted(set(images)):
             require(re.fullmatch(r'[a-z0-9][a-z0-9._/:+-]*@sha256:[a-f0-9]{64}', image), 'selected image is not immutable')
             command.run(['docker', 'pull', image], timeout=600)
+        host_image = resolved['hostImage']
+        prepare_private_permissions(root, graph, host_image['reference'] if isinstance(host_image, dict) else host_image, command)
         timings['imagePreparationSeconds'] = round(time.monotonic() - before, 3)
         before = time.monotonic(); build(root, graph, resolved, command, restore=True); timings['restoreBuildStageSeconds'] = round(time.monotonic() - before, 3)
         credentials = private_credentials(root, graph, create=True)
@@ -437,8 +554,10 @@ def prepare(root):
         write(compose_file, document)
         compose = ['docker', 'compose', '-p', document['name'], '-f', str(compose_file)]
         command.run([*compose, 'config', '--quiet'], environment=process_env)
-        write(root / LIFECYCLE, {'compositionId': graph['compositionId'], 'project': document['name'],
-                                'services': list(document['services']), 'hosts': list(resolved['hosts'])})
+        lifecycle = read(root / LIFECYCLE) if (root / LIFECYCLE).is_file() else {}
+        write(root / LIFECYCLE, {**lifecycle, 'compositionId': graph['compositionId'], 'project': document['name'],
+                                'services': list(document['services']), 'hosts': list(resolved['hosts']),
+                                'privateFiles': private_history})
         prior_running = set(command.output([*compose, 'ps', '--services', '--status', 'running'], environment=process_env).split())
         before = time.monotonic(); provision_databases(root, graph, command, compose, process_env)
         timings['ownedDatabaseProvisioningSeconds'] = round(time.monotonic() - before, 3)
@@ -489,8 +608,15 @@ def run(root, selected_hosts=None, update=False):
     require(receipt['topologyFingerprint'] == topology_fingerprint(root, graph, contract), 'composition/dependency inputs changed; reconcile and prepare their affected resources')
     if selected_hosts:
         require(set(selected_hosts) <= set(resolved['hosts']), 'unknown selected host')
+    pending = receipt.get('pendingActivationHosts', [])
+    require(isinstance(pending, list) and all(isinstance(name, str) for name in pending)
+            and len(set(pending)) == len(pending) and set(pending) <= set(resolved['hosts']),
+            'prepared activation identities differ from the selected hosts; prepare again')
+    build_hosts = []
     if update:
-        selected_hosts = affected_hosts(root, graph, resolved, selected_hosts)
+        requested = set(selected_hosts) if selected_hosts else set(resolved['hosts'])
+        build_hosts = affected_hosts(root, graph, resolved, selected_hosts)
+        selected_hosts = sorted(set(build_hosts) | (set(pending) & requested))
         if not selected_hosts:
             print(json.dumps({'status': 'unchanged', 'updatedHosts': [], 'productAcceptance': False}))
             return
@@ -501,12 +627,18 @@ def run(root, selected_hosts=None, update=False):
     result = {'schemaVersion': 2, 'status': 'running', 'startedAtUtc': utc(), 'productAcceptance': False}
     write(directory / 'result.json', result)
     try:
-        if update:
-            build(root, graph, resolved, command, selected_hosts=selected_hosts)
+        if update and build_hosts:
+            build(root, graph, resolved, command, selected_hosts=build_hosts)
+            # A successful build now matches current source even if activation
+            # subsequently fails. Retain that distinct work for a plain retry.
+            pending = sorted(set(pending) | set(build_hosts))
+            receipt['pendingActivationHosts'] = pending
+            write(root / STATE, receipt)
         for name, host in resolved['hosts'].items():
             if not selected_hosts or name in selected_hosts:
                 runtime_closure.validate(root, root / host['runtimeStage'], root / 'artifacts/composition/closures' / (name + '.json'), PROGRAM_KIT_VERSION)
         credentials = private_credentials(root, graph)
+        provision_private_files(root, graph, create=False)
         document, process_env = compose_model(root, graph, contract, resolved, credentials)
         command.secrets = tuple({*credentials.values(), *process_env.values()})
         if update:
@@ -516,24 +648,22 @@ def run(root, selected_hosts=None, update=False):
         hosts = selected_hosts or list(resolved['hosts'])
         arguments = [*compose, 'up', '-d', '--pull', 'never', '--wait', '--wait-timeout', '150']
         pending_activation = set(receipt.get('pendingActivationHosts', [])) & set(hosts)
+        ensure_dependencies(command, compose, document, hosts, process_env)
         if not update and pending_activation:
-            infrastructure = [name for name in document['services'] if name not in {service(host) for host in resolved['hosts']}]
-            if infrastructure:
-                command.run([*arguments, *infrastructure], environment=process_env, timeout=210)
             arguments += ['--force-recreate', '--no-deps']
         if update:
             arguments += ['--force-recreate', '--no-deps']
         if selected_hosts or update or pending_activation:
             arguments += [service(name) for name in hosts]
         command.run(arguments, environment=process_env, timeout=210)
-        receipt['pendingActivationHosts'] = [name for name in receipt.get('pendingActivationHosts', []) if name not in hosts]
-        write(root / STATE, receipt)
         checks = {}
         for name in hosts:
             origin = resolved['hosts'][name]['publicOrigin']
             foundation_fixture.poll(lambda: qualification.ready(origin, '/bff/user'), timeout=60)
             checks[name] = {'hostActivation': True, 'selectedProviderPrepare': 'required by selected feature activation', 'bffAnonymousStatus': 200}
         browser = browser_check(root, graph, resolved, command, directory, selected_hosts=hosts)
+        receipt['pendingActivationHosts'] = [name for name in pending if name not in hosts]
+        write(root / STATE, receipt)
         result.update(status='ready', elapsedSeconds=round(time.monotonic() - started, 3), checks=checks,
                       updatedHosts=hosts if update else [],
                       authentication=browser['checks'], scope='Native configured foundation readiness; consumer journey acceptance remains separate')

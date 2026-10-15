@@ -99,6 +99,18 @@ def validate_0127_upgrade(installed: Path, upgrade_test) -> None:
             assert not (registry / 'engineering-contracts.json').exists()
             snapshot.write_bytes(immutable[snapshot])
         result = upgrade_test.run(*command, cwd=target)
+        if result.returncode == 2 and 'PKU134' in result.stderr:
+            evidence = release / 'artifacts/tests/historical-phase-refresh'
+            evidence.mkdir(parents=True, exist_ok=True)
+            for relative in ('.agents/skills/speckit-analyze/SKILL.md', '.specify/init-options.json',
+                             '.specify/integration.json', '.specify/integrations/codex.manifest.json'):
+                source = target / relative
+                if source.is_file():
+                    shutil.copyfile(source, evidence / (source.parent.name + '-' + source.name))
+            for relative in ('.agents/skills/speckit-analyze/SKILL.md',):
+                value = {'actual': updater.hashlib.sha256((target / relative).read_bytes()).hexdigest(),
+                         'restored': updater.restored_core_baseline(target, relative, 'codex')}
+                (evidence / 'ownership.json').write_text(json.dumps(value, indent=2), encoding='utf-8')
         upgrade_test.require_offline_setup(result, 'direct qualified 0.12.7 upgrade')
         assert 'Validate cross-component version coherence' in result.stdout
         assert 'Optional software update review:' in result.stdout
@@ -115,12 +127,12 @@ def validate_0127_upgrade(installed: Path, upgrade_test) -> None:
         print('Historical 0.12.7 qualified consumer upgraded coherently with unchanged pins, intake, constitution and bootstrap history.')
 
 
-def validate_selection_upgrades(installed: Path, upgrade_test) -> None:
+def validate_selection_upgrades(installed: Path, upgrade_test, release: Path | None = None) -> None:
     validate_0127_upgrade(installed, upgrade_test)
     updater = upgrade_test.load_updater()
     blocks = blocks_test.load_module(blocks_test.RESOLVER)
     catalog = blocks.load_json(blocks_test.CATALOG)
-    release = upgrade_test.ROOT
+    release = release or upgrade_test.ROOT
     with tempfile.TemporaryDirectory(prefix="program-kit-selection-upgrade-") as temporary:
         target = Path(temporary) / "planned"
         shutil.copytree(installed, target)

@@ -38,6 +38,13 @@ dynamic schemas and lexical/canonical JSON processing remain legitimate exceptio
 and tested. A DTO alone does not establish validation, authorization or deep immutability.
 <!-- /program-kit:decision-rule -->
 
+For .NET labels shared with browser forms, consult the supported
+[owner-backed normalized label path](../../program-kit-dotnet/references/label-validation.md).
+Export actual pure Core rules through an owner build tool and generate matching client validation;
+keep the server authoritative and verify raw-input preservation, character sets, length units,
+normalization order and digest parity. This applies to relevant label contracts, not every model or
+implementation phase, and adds no approval or automatic model-enforcement step.
+
 Evaluate SOLID against changed responsibilities and actual consumers:
 
 - SRP: separate unrelated reasons to change, especially policy from transport/configuration/I/O.
@@ -56,6 +63,49 @@ Review the responsibilities changed by the diff, with source and behavioral evid
 an entire SOLID inventory for each trivial edit, invent interfaces for private pure helpers, or add
 new review approvals. Keep one named type per file and purposeful XML documentation as explicit
 Orbyss source policy; these choices do not replace runtime correctness or architectural ownership.
+
+## Review of effects and test boundaries
+
+Review the changed operation with concrete source locations and its relevant regressions. Record findings
+in existing tasks and delivery output; a passing graph or generic SOLID statement cannot close them.
+
+- A production interface, virtual method or forwarding type needs an actual capability, policy,
+  invariant, lifecycle or replacement responsibility. A test-only substitution does not supply that
+  responsibility. Prefer supported native test instrumentation without publishing implementation state.
+- Require the payload promised by a completed result. Unresolved effects carry established operation
+  metadata, not a fabricated durable receipt. Restrict construction and mutation of invalid result
+  combinations. Provider classification and cancellation mechanisms inform consumer-owned decisions;
+  they do not decide domain outcomes or commit certainty.
+- Read time where the effect owner makes its decision after asynchronous waits. Propagate the owned
+  complete deadline into bounded stages; a new timeout per layer must not restart the budget. Verify
+  actual DI clock replacement, exact boundaries and cancellation before/after effect dispatch.
+- Classify literals by owner and lifecycle: current schema/protocol identity, frozen migration history,
+  accepted application constraint or configurable operational setting. Trace operational defaults and
+  limits through activated options, omitted request input, admission and execution. Consolidating a
+  literal into a constant does not make it configurable. Preserve frozen migration bytes and independent
+  consistency assertions.
+- Tests resolve production capabilities through actual feature registration and lifecycle. Observe
+  durable effects independently when certainty, rollback or replay matters. Keep implementation
+  types/ORM state private and enforce the existing prohibition on friend access; do not introduce
+  a public facade solely to rescue privileged tests.
+- Browser acceptance exercises the actual controls and client adapter through readable, accessible
+  recovery. Protocol JSON/status assertions remain protocol evidence. Independently observe session
+  state, distinguish local from provider logout, and test human interaction windows separately from
+  bounded application-controlled network work.
+
+Apply these checks only to relevant changed responsibilities. They introduce no additional approval
+stage, proof dossier or full-acceptance run during ordinary implementation.
+
+Before external processing of untrusted input, define what successful local inspection establishes.
+Inspect the selected dependency's failure, fallback and deferred-execution semantics. A strict option,
+successful return or top-level traversal can leave corrupt, unsupported or lazy work unvalidated.
+Complete the application admission contract through supported native seams, reject inconclusive
+results before dispatch, and preserve the identity of admitted bytes through submission.
+Qualify the actual packaged runtime and dependency closure with malformed, truncated, expansion,
+timeout and cancellation cases. Distinguish enforced resource bounds from monitored limits;
+account for concurrent work and cleanup. Rejection must produce no downstream processing effect.
+Keep failure observations bounded and free of input contents, sensitive paths and raw parser messages.
+Record remaining uncertainty in ordinary tasks; happy-path checks prove only exercised guarantees.
 
 ## Maintained application handoff
 

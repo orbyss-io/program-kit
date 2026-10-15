@@ -29,6 +29,52 @@ def read(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
+def is_build_reference(item):
+    """Evaluated build/analyzer edges do not create consumer CLR references."""
+    return (str(item.get('ReferenceOutputAssembly', '')).casefold() == 'false'
+            or str(item.get('OutputItemType', '')).casefold() == 'analyzer')
+
+
+def project_dependencies(project):
+    """Both edge kinds participate in build, source freshness and affected selection."""
+    return set(project.get('projectReferences', [])) | set(project.get('buildProjectReferences', []))
+
+
+TEST_SEAM_CONTRACTS = {
+    'pure-core': (),
+    'shell-lifecycle': ('CShells.Abstractions',),
+    'api-feature': ('CShells.Abstractions', 'CShells.AspNetCore.Abstractions'),
+    'activation': ('CShells.Abstractions', 'CShells.AspNetCore.Abstractions'),
+}
+
+
+def test_compile_contracts(project, required=False):
+    """Derive direct references from reviewed test use, never the tested project's role."""
+    if project.get('role') != 'test':
+        return set()
+    contracts = set()
+    rows = project.get('responsibilities', [])
+    require(isinstance(rows, list) and all(isinstance(row, dict) for row in rows),
+            'PKA020 invalid test responsibilities: ' + project['path'])
+    require(not required or any(row.get('kind') == 'test' for row in rows),
+            'PKA020 unresolved test responsibility: ' + project['path'] + '; declare meaningful test ownership and testSeams')
+    for row in rows:
+        if row.get('kind') != 'test':
+            continue
+        seams = row.get('testSeams')
+        require(seams is not None or not required,
+                'PKA020 unresolved test compile responsibilities: ' + project['path'] + ' / ' + row['name'] + '; declare testSeams')
+        if seams is None:
+            continue  # Retained manifests have only their previously declared structural scope.
+        require(isinstance(seams, list) and seams and all(isinstance(s, str) for s in seams),
+                'PKA020 testSeams must name actual direct test uses: ' + project['path'])
+        require(set(seams) <= set(TEST_SEAM_CONTRACTS),
+                'PKA020 unsupported test seam: ' + project['path'] + '; ' + ', '.join(sorted(set(seams) - set(TEST_SEAM_CONTRACTS))))
+        for seam in seams:
+            contracts.update(TEST_SEAM_CONTRACTS[seam])
+    return contracts
+
+
 def lifecycle_findings(root, manifest, affected=None):
     """Concrete source/owner prompts for normal review, never semantic certification.
 
@@ -120,6 +166,9 @@ def validate_responsibilities(projects, bindings, required=False):
                 require(any(b['implementationProject'] == path and b['capability'] == capability
                             and b['implementation'] == row['name'] for b in bindings),
                         'Missing planned capability binding: ' + capability + ' -> ' + row['name'])
+        contracts = test_compile_contracts(project, requires_review)
+        missing = contracts - set(project.get('packageReferences', []))
+        require(not missing, 'PKA020 missing direct test compile contracts: ' + path + '; add ' + ', '.join(sorted(missing)) + ' from selected central pins and synchronize packageReferences')
 
 
 def validate_manifest(root, manifest):
@@ -185,14 +234,25 @@ def validate_manifest(root, manifest):
         if project['role'] == 'core':
             require(not any(p.lower().startswith(FORBIDDEN_CORE_PACKAGE_PREFIXES) for p in packages), 'Planned Core leaks a runtime/provider dependency: ' + path)
         references = project.get('projectReferences', [])
-        require(isinstance(references, list), 'Project references must be a list')
+        build_references = project.get('buildProjectReferences', [])
+        require(all(isinstance(items, list) and all(isinstance(item, str) for item in items)
+                    and len(set(items)) == len(items) for items in (references, build_references)),
+                'Project and build references must be distinct lists of project identities')
+        require(not set(references) & set(build_references), 'A project edge cannot be both CLR and build-only: ' + path)
         for target in references:
             require(target in projects and projects[target]['role'] in ALLOWED_ROLE_REFERENCES[project['role']],
                     f'Forbidden dependency: {path} -> {target}')
             require(project['role'] != projects[target]['role'] or project['role'] != 'core'
                     or (path, target) in authorized, 'Undecided Core-to-Core dependency')
             edges.add((path, target))
+        for target in build_references:
+            require(target in projects and target != path, 'Build dependency needs a distinct declared project owner: ' + path)
+            edges.add((path, target))
     validate_cycles(projects, edges)
+    from build_output_recipe import declarations
+    for path, project in projects.items():
+        if 'buildOutputCopies' in project:
+            declarations(root, path, projects)
     return projects
 
 
@@ -215,6 +275,14 @@ def validate_cycles(projects, edges):
 def validate_planned(root, manifest, require_responsibilities=False):
     projects = validate_manifest(root, manifest)
     validate_responsibilities(projects, manifest['runtimeComposition'].get('bindings', []), require_responsibilities)
+    required_contracts = {p: test_compile_contracts(row) for p, row in projects.items()
+                          if test_compile_contracts(row)}
+    if required_contracts:
+        from central_packages import central_package_versions
+        pins = central_package_versions(root)
+        for path, contracts in required_contracts.items():
+            missing = {c for c in contracts if c.casefold() not in pins}
+            require(not missing, 'PKA020 missing selected central test contract pins: ' + path + '; ' + ', '.join(sorted(missing)))
     physical = {p.relative_to(root).as_posix() for directory in ('src', 'tests')
                 for p in (root / directory).rglob('*.csproj') if not {'obj', 'bin'} & set(p.parts)}
     require(physical <= set(projects), 'Assign an architectural role to new projects in eng/architecture.json: '
@@ -237,12 +305,23 @@ def validate_graph(root, manifest, evaluated, compiled):
         authorized.add((edge['fromProject'], edge['toProject']))
     for relative, project in projects.items():
         data = evaluated[relative]
-        refs = set()
+        friend_type = 'System.Runtime.CompilerServices.InternalsVisibleToAttribute'
+        require(not data['Items'].get('InternalsVisibleTo')
+                and not any(item.get('Identity') in {friend_type, friend_type.removesuffix('Attribute')}
+                            for item in data['Items'].get('AssemblyAttribute', [])),
+                'PKA021 friend access is forbidden: ' + relative
+                + '; test public capabilities through production registration')
+        require(friend_type not in assemblies[data['Properties']['AssemblyName']].get('attributes', []),
+                'PKA021 compiled friend access is forbidden: ' + relative
+                + '; keep implementation state private and exercise public capabilities')
+        refs, build_refs = set(), set()
         for item in data['Items'].get('ProjectReference', []):
             path = Path(item.get('FullPath') or inside(root, relative).parent / item['Identity']).resolve()
             require(path.is_relative_to(root), 'Evaluated project reference escapes repository')
-            refs.add(path.relative_to(root).as_posix())
+            (build_refs if is_build_reference(item) else refs).add(path.relative_to(root).as_posix())
         require('projectReferences' not in project or refs == set(project['projectReferences']), f'Evaluated references differ from accepted graph: {relative}')
+        require(build_refs == set(project.get('buildProjectReferences', [])), f'Evaluated build references differ from accepted graph: {relative}')
+        edges.update((relative, target) for target in build_refs)
         packages = set()
         for item in data['Items'].get('PackageReference', []):
             # Verified private engineering imports are outside the consumer runtime graph.
@@ -263,6 +342,8 @@ def validate_graph(root, manifest, evaluated, compiled):
                 continue
             packages.add(item['Identity'])
         require('packageReferences' not in project or packages == set(project['packageReferences']), f'Evaluated package references differ: {relative}')
+        require(test_compile_contracts(project) <= packages,
+                'PKA020 evaluated direct test compile contracts differ from responsibilities: ' + relative)
         persistence_packages = {name for name in packages if name.lower().startswith(PERSISTENCE_PACKAGE_PREFIXES)}
         require(not persistence_packages or project['role'] in {'provider', 'test'},
                 'Persistence packages must stay in their owning provider/tests: ' + relative)
@@ -376,7 +457,8 @@ def execute(root, manifest, configuration, feature=None, build_subject=None, ver
     for project in manifest['runtimeComposition']['projects']:
         path = inside(root, project['path'])
         command = ['dotnet', 'msbuild', str(path), '-nologo', f'-p:Configuration={configuration}',
-                   '-getProperty:AssemblyName,TargetPath,ManagePackageVersionsCentrally', '-getItem:ProjectReference,PackageReference,PackageVersion']
+                   '-getProperty:AssemblyName,TargetPath,ManagePackageVersionsCentrally',
+                   '-getItem:ProjectReference,PackageReference,PackageVersion,InternalsVisibleTo,AssemblyAttribute']
         if version:
             command.append('-p:Version=' + version)
         result = subprocess.run(command, cwd=root, capture_output=True, text=True, encoding='utf-8', check=True, timeout=120)

@@ -35,6 +35,17 @@
                 "items": { "type": "string", "minLength": 1 }
               },
               "projectReferences": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+              "buildProjectReferences": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+              "buildOutputCopies": {
+                "type": "array", "maxItems": 16,
+                "items": {
+                  "type": "object", "required": ["project", "directory"], "additionalProperties": false,
+                  "properties": {
+                    "project": { "type": "string", "minLength": 1 },
+                    "directory": { "type": "string", "pattern": "^tools/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$" }
+                  }
+                }
+              },
               "packageReferences": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
             },
             "additionalProperties": false

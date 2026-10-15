@@ -74,7 +74,7 @@
         "program-kit-governance/references/programming-guardrails.md",
         "program-kit-governance/references/vertical-slicing.md"
       ],
-      "requirement": "Use typed admitted envelopes with parser/schema/runtime parity, cohesive operation paths and mirrored tests. Substantiate relevant SRP/OCP/LSP/ISP/DIP conclusions against source and behavior, including internal helpers and owner-scoped constants. Review bounded dynamic JSON, pure static and small-operation exceptions; do not invent unused abstractions. Maintain affected application-owned guides, public/configuration contracts and runtime/data requirements with delivered behavior; downstream infrastructure and documentation workflows remain receiver-owned.",
+      "requirement": "Use typed admitted envelopes with parser/schema/runtime parity, cohesive operation paths and mirrored tests. Substantiate relevant SRP/OCP/LSP/ISP/DIP conclusions against source and behavior, including internal helpers and owner-scoped constants. Review relevant result invariants, purposeful production abstractions, fresh effect-boundary time, outer deadline propagation, configured operational limits and public production test seams with independent durable-effect evidence. Separate browser protocol checks from accessible recovery and actual session state. Review bounded dynamic JSON, pure static and small-operation exceptions; do not invent unused abstractions. Maintain affected application-owned guides, public/configuration contracts and runtime/data requirements with delivered behavior; downstream infrastructure and documentation workflows remain receiver-owned.",
       "phases": [
         "planning",
         "after-plan",
@@ -94,6 +94,7 @@
       "sections": {
         "program-kit-governance/references/programming-guardrails.md": [
           "Typed boundaries and design evidence",
+          "Review of effects and test boundaries",
           "Maintained application handoff"
         ],
         "program-kit-governance/references/vertical-slicing.md": [
@@ -106,8 +107,8 @@
         "after-plan": "Choose cohesive typed boundaries and existing extension points; identify affected delivery documentation.",
         "tasks": "Schedule boundary tests and affected guides/contracts without adding review dossiers.",
         "after-tasks": "Schedule boundary tests and affected guides/contracts without adding review dossiers.",
-        "implementation": "Review changed responsibilities, internal helpers and owner constants; avoid unused abstractions.",
-        "delivery": "Review relevant SOLID conclusions against changed source and behavior; maintain delivered guides and contracts."
+        "implementation": "Review changed responsibilities, result invariants, final time reads, outer deadlines and actual configured limits; exercise public registration and independent effects, avoiding test-only production abstractions.",
+        "delivery": "Review relevant SOLID/effect conclusions with source and behavior; distinguish complete browser recovery from protocol checks, resolve semantic findings and maintain delivered guides/contracts."
       },
       "decisionRules": [
         "typed-admission"
@@ -1010,6 +1011,30 @@
       }
     },
     {
+      "path": "program-kit-dotnet/references/implementation-boundaries.md",
+      "phases": ["planning", "implementation", "delivery"],
+      "enforcement": "Concrete .NET source and behavior review patterns; no automatic application semantic acceptance.",
+      "route": {
+        "kind": "routing",
+        "via": ["extensions/program-kit-governance/commands/speckit.program-kit-governance.implementation-check.md"],
+        "sections": ["Runtime and HTTP ownership", "Transactions, outcomes and public tests", "Time, deadlines and admission", "Identities and operational settings", "Browser journeys and validation"],
+        "requirements": [],
+        "review": "Changed .NET responsibilities use existing tasks and semantic review, with operation-specific public-port regressions."
+      }
+    },
+    {
+      "path": "program-kit-dotnet/references/label-validation.md",
+      "phases": ["planning", "implementation", "delivery"],
+      "enforcement": "Supported source-backed owner export, client generation and executable parity; server authority and consumer effects remain separate.",
+      "route": {
+        "kind": "routing",
+        "via": ["extensions/program-kit-dotnet/references/dotnet-engineering.md", "extensions/program-kit-dotnet/templates/dotnet/files/eng/label_validation.py"],
+        "sections": ["Export and generation", "Browser use and input preservation", "Focused verification"],
+        "requirements": [],
+        "review": "Generate/check both source metadata and browser artifacts; disposable fixtures do not supply consumer or durable database acceptance."
+      }
+    },
+    {
       "path": "program-kit-dotnet/references/dotnet-engineering.md",
       "phases": [
         "planning",
@@ -1618,6 +1643,7 @@
         ],
         "sections": [
           "Typed boundaries and design evidence",
+          "Review of effects and test boundaries",
           "Maintained application handoff"
         ],
         "requirements": [

@@ -1,18 +1,21 @@
 // Direct library use retains only allowlisted evidence, including on failure.
 // No test-runner screenshots, DOM/error contexts, traces or token dumps exist.
 import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { chromium, webkit, firefox } from 'playwright';
 
 const [planPath, outputPath] = process.argv.slice(2);
 const plan = JSON.parse(readFileSync(planPath, 'utf8'));
 const engines = { chromium, webkit, firefox };
-const evidence = { schemaVersion: 2, status: 'checking', checks: [] };
+const evidence = { schemaVersion: 2, status: 'checking', planSha256: createHash('sha256').update(readFileSync(planPath)).digest('hex'), launches: [], checks: [] };
 let current = { phase: 'launch' };
 function require(value) { if (!value) throw new Error('contract check failed'); }
 try {
   for (const engine of plan.engines) {
     current = { engine, phase: 'launch' };
     const browser = await engines[engine].launch({ headless: true });
+    const launch = { engine, launched: true, closed: false };
+    evidence.launches.push(launch);
     try {
       if (plan.launchOnly) continue;
       const context = await browser.newContext();
@@ -129,7 +132,11 @@ try {
           } finally { await page.close(); }
         }
       } finally { await context.close(); }
-    } finally { await browser.close(); }
+    } finally {
+      try { await browser.close(); }
+      catch { current = { engine, phase: 'close' }; throw new Error('browser close failed'); }
+      launch.closed = true;
+    }
   }
   evidence.status = 'ready';
 } catch {

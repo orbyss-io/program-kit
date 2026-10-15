@@ -2,6 +2,45 @@
   "schemaVersion": 1,
   "changes": [
     {
+      "id": "preimplementation-diagnostics-repair",
+      "introduced": "0.13.2",
+      "kind": "contract",
+      "summary": "Refresh installed phase machinery and reconcile selected wire capabilities, verification ownership and obsolete scaffold contributions before implementation.",
+      "constraint": "OpenAPI owns wire shape and exact selected knowledge constrains admission. The unfinished-feature restart is governed by fresh-feature-delete-v1; no old phase completion is carried forward.",
+      "selectors": {
+        "paths": [
+          "eng/**",
+          "contracts/**",
+          "docs/architecture/**",
+          "specs/*/spec.md",
+          "specs/*/plan.md",
+          "specs/*/tasks.md"
+        ],
+        "selectedDependencies": true
+      },
+      "supportedRetention": [
+        "Retain exact selected profiles/pins/locks, accepted intent, repaired consumer code/annotations/styles, task identities and historical approvals/failures."
+      ],
+      "alternatives": [
+        "Retain supported selected behavior and reconcile affected retained artifacts in place",
+        "Resolve exact unsupported capability/binding obligations through ordinary owner review"
+      ],
+      "verification": [
+        "Native four-stage phase refresh, customization protection and recovery",
+        "Selected structural admission plus actual scoped producer/parser/writer/client proof",
+        "Meaningful tests, explicit retired-owner successors and task-producer prerequisites",
+        "Canonical identity and selected Foundation renderer accessible palette"
+      ],
+      "method": "preimplementation-diagnostics-v1",
+      "duePhase": "planning",
+      "supersedes": [],
+      "dependencies": [],
+      "review": {
+        "basis": "migration-0.13.2.md diagnostics repair batch and bounded disposable proofs",
+        "route": "Existing scoped consumer upgrade/reconcile, architecture/contract review and native workspace activation"
+      }
+    },
+    {
       "id": "canonical-consumer-descriptors",
       "introduced": "0.12.6",
       "kind": "contract",
@@ -428,6 +467,48 @@
       "review": {
         "basis": "migration-0.13.1.md and the two-app/three-database native golden",
         "route": "Scoped Accepted architecture/placement repair, maintained composition import and a fresh implementation invocation of the same feature."
+      }
+    },
+    {
+      "id": "unfinished-feature-delete-restart",
+      "introduced": "0.13.2",
+      "kind": "constraint",
+      "summary": "Restart the selected unfinished feature from retained confirmed intake with complete owned deletion and fresh Spec Kit phases.",
+      "constraint": "Use fresh-feature-delete-v1. Delete the entire old specification and all exclusively owned implementation, tests, frontend and contracts; reconcile obsolete shared contributions and clear owned derived outputs. Create no content archive. Do not reconstruct from old source, archives, Git history or attempt transcripts. Old phase outputs, checkmarks, reviews and receipts confer no new progress.",
+      "selectors": {
+        "paths": [
+          "specs/**",
+          "src/**",
+          "tests/**",
+          "contracts/**",
+          "eng/**",
+          "runtime/**",
+          ".specify/**"
+        ]
+      },
+      "supportedRetention": [
+        "Retain confirmed specification intake, accepted product architecture, exact dependency history, unrelated shared work and live data. Completed unrelated features require no reset."
+      ],
+      "alternatives": [
+        "For the selected unfinished feature use the complete delete-only restart; do not select older continuation or archival recipes.",
+        "Preserve unrelated delivered work; use normal scoped repair and exact dependency-transition authority where applicable."
+      ],
+      "verification": [
+        "Regenerate commands, skills, templates and hooks for every installed integration through the supported updater.",
+        "Verify complete owned deletion, no content archive, reconciled shared contributions and cleared owned outputs with retained intake/shared/data bytes.",
+        "Execute specify itself, clarify, plan, tasks, analyze and implement anew; require fresh phase outputs, engineering evidence and current human review."
+      ],
+      "method": "fresh-feature-delete-v1",
+      "duePhase": "specification",
+      "supersedes": [
+        "preimplementation-diagnostics-repair",
+        "runnable-story-human-review",
+        "typed-executable-foundation"
+      ],
+      "dependencies": [],
+      "review": {
+        "basis": "migration-0.13.2.md and owner-directed delete-only restart with packaged updater/activation evidence",
+        "route": "Consumer agent inventories and performs the selected restart; retain accepted architecture and use current installed phase guards and human story decisions."
       }
     }
   ]

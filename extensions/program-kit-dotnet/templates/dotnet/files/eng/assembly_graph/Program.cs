@@ -31,6 +31,18 @@ foreach (string path in args)
             ? Reference((TypeReferenceHandle)type.ResolutionScope) + "+" + reader.GetString(type.Name)
             : Join(reader.GetString(type.Namespace), reader.GetString(type.Name));
     }
+    string AttributeType(CustomAttributeHandle handle)
+    {
+        var attribute = reader.GetCustomAttribute(handle);
+        return attribute.Constructor.Kind switch
+        {
+            HandleKind.MemberReference => TypeName(reader.GetMemberReference(
+                (MemberReferenceHandle)attribute.Constructor).Parent),
+            HandleKind.MethodDefinition => TypeName(reader.GetMethodDefinition(
+                (MethodDefinitionHandle)attribute.Constructor).GetDeclaringType()),
+            _ => ""
+        };
+    }
     var types = reader.TypeDefinitions.Select(handle =>
     {
         TypeDefinition type = reader.GetTypeDefinition(handle);
@@ -49,6 +61,7 @@ foreach (string path in args)
     {
         path = Path.GetFullPath(path),
         name = reader.GetString(reader.GetAssemblyDefinition().Name),
+        attributes = reader.GetAssemblyDefinition().GetCustomAttributes().Select(AttributeType).ToArray(),
         references = reader.AssemblyReferences.Select(h => reader.GetString(reader.GetAssemblyReference(h).Name)).ToArray(),
         types
     });

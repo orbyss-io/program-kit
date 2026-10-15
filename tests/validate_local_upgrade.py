@@ -137,6 +137,92 @@ def set_manifest_version(path: Path, old: str, new: str) -> None:
     path.write_text(text.replace(marker, f'  version: "{new}"', 1), encoding="utf-8")
 
 
+def authenticate_fictional_native_sources(project: Path, fixture_root: Path) -> Path:
+    """Give synthetic version-zero fixtures real native integrity and isolated evidence.
+
+    This is deliberately fictional source history. The actual 0.12.7 regression
+    separately installs immutable historical components. No production catalog,
+    ownership guard or real consumer is altered to authorize the synthetic test.
+    """
+    from specify_cli.extensions import ExtensionManager, ExtensionManifest
+    from specify_cli.presets import PresetManifest, PresetRegistry
+    sys.path.insert(0, str(ROOT / 'scripts'))
+    try:
+        import native_phase_ownership
+    finally:
+        sys.path.remove(str(ROOT / 'scripts'))
+    staged = fixture_root / 'candidate-release'
+    for directory in ('scripts', 'extensions', 'presets', 'workflows', 'releases'):
+        shutil.copytree(ROOT / directory, staged / directory,
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'bin', 'obj', 'node_modules'))
+    for name in ('VERSION', 'bundle.yml', 'README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md'):
+        if (ROOT / name).is_file():
+            shutil.copyfile(ROOT / name, staged / name)
+    witness = fixture_root / 'fictional-original-source'
+    witness.mkdir()
+    rows = []
+    manager = ExtensionManager(project)
+    presets = PresetRegistry(project / '.specify/presets')
+    for kind, identity, filename, registry, manifest_type in (
+            ('extensions', 'program-kit-governance', 'extension.yml', manager.registry, ExtensionManifest),
+            ('extensions', 'program-kit-building-blocks', 'extension.yml', manager.registry, ExtensionManifest),
+            ('extensions', 'program-kit-dotnet', 'extension.yml', manager.registry, ExtensionManifest),
+            ('presets', 'program-kit-governance-preset', 'preset.yml', presets, PresetManifest)):
+        installed = project / '.specify' / kind / identity
+        manifest = manifest_type(installed / filename)
+        registry.update(identity, {'version': manifest.version, 'manifest_hash': manifest.get_hash()})
+        files = {}
+        for relative in sorted(native_phase_ownership.installed_source_files(installed)):
+            source = installed / relative
+            original = witness / kind / identity / relative
+            original.parent.mkdir(parents=True, exist_ok=True); original.write_bytes(source.read_bytes())
+            files[relative] = sha256(original)
+        rows.append({'kind': kind, 'id': identity, 'version': manifest.version,
+                     'manifestSha256': manifest.get_hash().removeprefix('sha256:'), 'files': files})
+    require_success(run('git', 'init', '--object-format=sha1', '-q', cwd=witness), 'fictional source evidence initialization')
+    # Ordinary add can apply the user's text attributes. Record the already
+    # captured fixture bytes with native Git plumbing, without transformations.
+    index = bytearray()
+    for row in rows:
+        for relative in row['files']:
+            name = row['kind'] + '/' + row['id'] + '/' + relative
+            hashed = subprocess.run(['git', 'hash-object', '-w', '--no-filters', '--stdin'],
+                                    cwd=witness, input=(witness / name).read_bytes(), capture_output=True, check=True)
+            blob = hashed.stdout.decode('ascii').strip()
+            index.extend(('100644 ' + blob + '\t' + name + '\0').encode())
+    subprocess.run(['git', 'update-index', '-z', '--index-info'], cwd=witness,
+                   input=bytes(index), capture_output=True, check=True)
+    require_success(run('git', '-c', 'user.name=Program Kit fixture', '-c', 'user.email=fixture@example.invalid',
+                        'commit', '-qm', 'Immutable fictional version-zero native source fixture', cwd=witness), 'fictional source evidence commit')
+    commit = run('git', 'rev-parse', 'HEAD', cwd=witness).stdout.strip()
+    if not re.fullmatch(r'[0-9a-f]{40}', commit):
+        raise AssertionError('Fictional source witness has no actual immutable commit')
+    # Archive checkout can apply global EOL attributes. Verify immutable raw Git
+    # objects instead, which is the exact byte authority of this fictional fixture.
+    requests = [(row['kind'] + '/' + row['id'] + '/' + relative, expected_hash)
+                for row in rows for relative, expected_hash in row['files'].items()]
+    objects = subprocess.run(['git', 'cat-file', '--batch'], cwd=witness,
+                             input=''.join(commit + ':' + path + '\n' for path, _ in requests).encode(),
+                             capture_output=True, check=True).stdout
+    position = 0
+    for relative, expected_hash in requests:
+        end = objects.index(b'\n', position)
+        header = objects[position:end].decode('ascii').split()
+        if len(header) != 3 or header[1] != 'blob':
+            raise AssertionError('Missing immutable fictional source object: ' + relative)
+        size = int(header[2]); position = end + 1
+        recorded = objects[position:position + size]; position += size + 1
+        if hashlib.sha256(recorded).hexdigest() != expected_hash:
+            raise AssertionError('Fictional source witness must bind exact immutable bytes: ' + relative)
+    for row in rows:
+        row.update(sourceCommit=commit, sourceScope='fictional disposable source fixture')
+    catalog = staged / 'extensions/program-kit-governance/references/native-phase-source-baselines.json'
+    value = json.loads(catalog.read_text(encoding='utf-8'))
+    value['components'].extend(rows)
+    catalog.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+    return staged
+
+
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -376,7 +462,7 @@ def main() -> int:
     timings.unlink(missing_ok=True)
     validate_uv_launcher_bridge()
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-    with tempfile.TemporaryDirectory(prefix="program-kit-local-upgrade-") as directory:
+    with tempfile.TemporaryDirectory(prefix="program-kit-local-upgrade-") as directory, tempfile.TemporaryDirectory(prefix='program-kit-fictional-source-') as fixture_directory:
         project = Path(directory)
         initialized = run(
             "specify", "init", ".", "--force", "--non-interactive",
@@ -436,8 +522,9 @@ def main() -> int:
         (project / ".specify/bundle-records.json").write_text(
             json.dumps(bundle_records), encoding="utf-8"
         )
+        release = authenticate_fictional_native_sources(project, Path(fixture_directory))
         from upgrade_selection_cases import validate_selection_upgrades
-        validate_selection_upgrades(project, sys.modules[__name__])
+        validate_selection_upgrades(project, sys.modules[__name__], release=release)
         managed = project / ".program-kit/managed.json"
         managed.parent.mkdir(parents=True, exist_ok=True)
         managed.write_text(
@@ -490,7 +577,7 @@ def main() -> int:
         immutable_probes = {path: path.read_bytes() for path in probe_inputs if path.is_file()}
         immutable_decisions = bootstrap_decisions.read_bytes()
         command = (
-            sys.executable, str(UPDATER), "--release-root", str(ROOT),
+            sys.executable, str(UPDATER), "--release-root", str(release),
             "--target", str(project), "--integration", "codex", "--offline",
         )
         installed_tool = project / '.specify/extensions/program-kit-governance/scripts/json_schema.py'
@@ -498,7 +585,8 @@ def main() -> int:
         edited_tool = original_tool + b'\n# consumer-owned edit\n'
         installed_tool.write_bytes(edited_tool)
         rejected_edit = run(*command, cwd=project)
-        if (rejected_edit.returncode != 2 or 'SCHEMA_TOOLS_LOCALLY_EDITED' not in rejected_edit.stderr
+        if (rejected_edit.returncode != 2 or not ('SCHEMA_TOOLS_LOCALLY_EDITED' in rejected_edit.stderr
+                or 'PKU135' in rejected_edit.stderr and 'json_schema.py' in rejected_edit.stderr)
                 or 'Resolve bundle composition record' in rejected_edit.stdout
                 or installed_tool.read_bytes() != edited_tool):
             raise AssertionError(f'Upgrade did not protect consumer tool edits: {rejected_edit.stdout}{rejected_edit.stderr}')
@@ -610,6 +698,16 @@ def main() -> int:
         failures = [json.loads(path.read_text()) for path in attempts]
         if not any(value.get('diagnostic', '').startswith('PKU116') and value['previousInstalledVersion'] == old for value in failures):
             raise AssertionError('Post-install failure lost its root diagnostic or original version')
+
+        # The injected source defect is deliberately local fixture code. The
+        # ownership admission now correctly refuses to erase an arbitrary source
+        # edit during retry, so repair this exact owned injection first.
+        injected_source = project / '.specify/extensions/program-kit-governance/scripts/repository_sync.py'
+        publisher_source = (release / 'extensions/program-kit-governance/scripts/repository_sync.py').read_bytes()
+        injection = '\ndef readiness(*args, **kwargs):\n    return {"ready": False, "blockers": ["deliberate post-install convergence failure"]}\n'
+        if injected_source.read_bytes() not in {publisher_source + injection.encode(), publisher_source + injection.replace('\n', '\r\n').encode()}:
+            raise AssertionError('Injected source changed independently; preserve it instead of replacing unknown edits')
+        injected_source.write_bytes(publisher_source)
 
         # Exercise the documented plain-Python entry point as well as the CLI-owned guards.
         plain_python = shutil.which('python') or sys.executable
