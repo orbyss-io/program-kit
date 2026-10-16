@@ -895,6 +895,10 @@ def application_identity(root: Path) -> str:
 def source_inputs(repository: Path) -> dict[str, str]:
     """Bind producer evidence to current native source, not agent state or generated caches."""
     generated = set()
+    # Receiver composition and required delivery scopes have their own handoff
+    # basis. They may change without recompiling the application package. The
+    # assembler still binds this declaration and enforces its settings/identity.
+    delivery_owned = {repository / 'eng/application-handoff.json'}
     registry = repository / 'eng/openapi-contracts.json'
     if registry.is_file():
         for name in read(registry).get('contracts', []):
@@ -911,7 +915,7 @@ def source_inputs(repository: Path) -> dict[str, str]:
                    if (repository / name).is_file()]
     # Engineering inputs include native sources, project/config files and data
     # assets used by the maintained tools. A language suffix list is incomplete.
-    candidates += [p for p in (repository / 'eng').rglob('*') if p.is_file() and p not in generated
+    candidates += [p for p in (repository / 'eng').rglob('*') if p.is_file() and p not in generated and p not in delivery_owned
                    and not {'bin', 'obj', 'node_modules', 'dist', '__pycache__'}.intersection(p.relative_to(repository).parts)
                    and p.suffix not in {'.pyc', '.pyo'}]
     candidates += [p for p in (repository / '.config').rglob('*') if p.is_file()]

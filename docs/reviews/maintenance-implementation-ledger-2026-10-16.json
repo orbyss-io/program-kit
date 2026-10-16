@@ -173,13 +173,70 @@
       "sourceDiagnosis": "Use selected shared interpreter and explicit preparation",
       "workPackages": "F",
       "closureRequired": "Recording wrapper proves routing/cache/no acquisition; real prepared browser check passes.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKitPython.psm1",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/README.md",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/web_readiness.py",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/managed-files.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Prepare-Web.ps1",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Test-Web.ps1",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/managed-files.json",
+        "extensions/program-kit-governance/scripts/python_runtime.py",
+        "tests/validate_dotnet_build_contract.py",
+        "tests/validate_repository_verification_hook.py",
+        "tests/validate_web_runtime.py",
+        "tests/validation-inventory.json"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "python tests/validate_web_runtime.py",
+          "status": "passed",
+          "scope": "6 tests: actual Windows PowerShell wrappers, child/grandchild identity, explicit preparation, restored environment; real isolated Python missing-yaml and Node missing-package negatives.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/web-runtime-routing.log",
+          "sha256": "02f4e3888a3f84397153bc760271dc5508ca759ff6d4422171ac5105db87cc74"
+        },
+        {
+          "command": "python tests/validate_repository_verification_hook.py",
+          "status": "passed",
+          "scope": "Actual Windows PowerShell routing, isolation, Plan stdout, failure and path guards.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/verification-hook-shared-python.log",
+          "sha256": "c600ca617ef132ced37b8951664f7b709144f2854dd1f2663bd30ac4d82911eb"
+        },
+        {
+          "command": "installed Specify Python tests/validate_workflow_runtimes.py",
+          "status": "passed",
+          "scope": "5 setup/dispatch-boundary tests; no coding agent.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/workflow-runtime-shared-contract.log",
+          "sha256": "0d687919487d6e19922cf03180ebc3d27a4ac7547b1937d16cae69902381d96f"
+        },
+        {
+          "command": "installed Specify Python tests/test_workflow_shell_preflight.py",
+          "status": "passed",
+          "scope": "20 actual shell/runtime/alias/PATH/failed-entry tests; no coding agent.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/workflow-shell-shared-contract.log",
+          "sha256": "4f185a4f187f03b1c8ef88230879465b0cc58d5989fa1b3233800fd42d1ef6ec"
+        },
+        {
+          "command": "python tests/validate_dotnet_build_contract.py",
+          "status": "passed",
+          "scope": "Maintained PowerShell build/verification with recording SDK; routing, input capture and command syntax only.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/build-wrapper-shared-python.log",
+          "sha256": "be8c524190634634d497b8d3fbab208d4c76fb1e542b93fe7aa1c8e6c986549d"
+        }
+      ],
+      "remainingDependencies": [
+        "Real emitted secure-web suite with its prepared selected runtime and configured application.",
+        "Complete matching CI qualification and released adoption."
+      ],
+      "closureEvidence": [
+        "One stdlib canonical Python identity/version/applicable dependency contract is used by engineering PowerShell and governance readiness. Only workflow requires PyYAML; engineering does not require optional workflow modules.",
+        "Test-Web no longer executes npm ci or browser install. Explicit Prepare-Web uses recorded Node/npm and the project browser cache without OS dependency installation.",
+        "No validation-time acquisition, global PATH change or device installation occurred."
+      ]
     },
     {
       "id": "R3",
@@ -248,12 +305,24 @@
           "scope": "Real native engineering reader restore/build/pack and source freshness; authored source and actual assets edits still fail.",
           "log": "artifacts/maintenance-implementation-2026-10-16/engineering-build-pack.log",
           "sha256": "4831f28d822d6212fa60c1f71ebbdc93992e6a62e652420ca3b76e4338cc942e"
+        },
+        {
+          "command": "python tests/validate_application_handoff.py",
+          "status": "passed",
+          "scope": "12 handoff tests pass after retaining handoff declarations under their separate identity/settings basis, rather than compiled-pack inputs.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/application-handoff-final-batch1.log",
+          "sha256": "8b268f08feb9805c7750079eb1afb987b5eb6f6043e9e98dd46c91ae4c6373e6"
         }
       ],
       "remainingDependencies": [
         "Full maintained Build.ps1 architecture/pack route in fresh bounded Development; final configured integration and exact-candidate qualification."
       ],
-      "closureEvidence": []
+      "closureEvidence": [
+        {
+          "scope": "Fresh Development checked the real maintained build/architecture and bundle routes; these checks passed while unrelated checks failed. No complete Development acceptance claimed.",
+          "journal": "artifacts/validation-runs/20261016T112335Z-762155a6/journal.json"
+        }
+      ]
     },
     {
       "id": "R6",
@@ -573,13 +642,70 @@
       "sourceDiagnosis": "Fix applicable readiness and shared adapter contract; preserve correct canonical interpreter launch",
       "workPackages": "F/G/I",
       "closureRequired": "Verified child-grandchild runtime plus applicable missing-dependency negatives.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKitPython.psm1",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/README.md",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/web_readiness.py",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/managed-files.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Prepare-Web.ps1",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Test-Web.ps1",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/managed-files.json",
+        "extensions/program-kit-governance/scripts/python_runtime.py",
+        "tests/validate_dotnet_build_contract.py",
+        "tests/validate_repository_verification_hook.py",
+        "tests/validate_web_runtime.py",
+        "tests/validation-inventory.json"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "python tests/validate_web_runtime.py",
+          "status": "passed",
+          "scope": "6 tests: actual Windows PowerShell wrappers, child/grandchild identity, explicit preparation, restored environment; real isolated Python missing-yaml and Node missing-package negatives.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/web-runtime-routing.log",
+          "sha256": "02f4e3888a3f84397153bc760271dc5508ca759ff6d4422171ac5105db87cc74"
+        },
+        {
+          "command": "python tests/validate_repository_verification_hook.py",
+          "status": "passed",
+          "scope": "Actual Windows PowerShell routing, isolation, Plan stdout, failure and path guards.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/verification-hook-shared-python.log",
+          "sha256": "c600ca617ef132ced37b8951664f7b709144f2854dd1f2663bd30ac4d82911eb"
+        },
+        {
+          "command": "installed Specify Python tests/validate_workflow_runtimes.py",
+          "status": "passed",
+          "scope": "5 setup/dispatch-boundary tests; no coding agent.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/workflow-runtime-shared-contract.log",
+          "sha256": "0d687919487d6e19922cf03180ebc3d27a4ac7547b1937d16cae69902381d96f"
+        },
+        {
+          "command": "installed Specify Python tests/test_workflow_shell_preflight.py",
+          "status": "passed",
+          "scope": "20 actual shell/runtime/alias/PATH/failed-entry tests; no coding agent.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/workflow-shell-shared-contract.log",
+          "sha256": "4f185a4f187f03b1c8ef88230879465b0cc58d5989fa1b3233800fd42d1ef6ec"
+        },
+        {
+          "command": "python tests/validate_dotnet_build_contract.py",
+          "status": "passed",
+          "scope": "Maintained PowerShell build/verification with recording SDK; routing, input capture and command syntax only.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/build-wrapper-shared-python.log",
+          "sha256": "be8c524190634634d497b8d3fbab208d4c76fb1e542b93fe7aa1c8e6c986549d"
+        }
+      ],
+      "remainingDependencies": [
+        "Real emitted secure-web suite with its prepared selected runtime and configured application.",
+        "Complete matching CI qualification and released adoption."
+      ],
+      "closureEvidence": [
+        "One stdlib canonical Python identity/version/applicable dependency contract is used by engineering PowerShell and governance readiness. Only workflow requires PyYAML; engineering does not require optional workflow modules.",
+        "Test-Web no longer executes npm ci or browser install. Explicit Prepare-Web uses recorded Node/npm and the project browser cache without OS dependency installation.",
+        "No validation-time acquisition, global PATH change or device installation occurred."
+      ]
     },
     {
       "id": "N2",
@@ -617,9 +743,19 @@
       "changedFiles": [],
       "validation": [],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired.",
+        "Include additive solution membership: distinguish actual build/dependency/package/runtime effects from unrelated additions; retain original review and record separately authorized transitions using real native checks and actor/source fields."
       ],
-      "closureEvidence": []
+      "closureEvidence": [],
+      "additionalEvidence": [
+        {
+          "source": {
+            "path": "docs/reviews/maintenance-followup-N3-N13-2026-10-16.md",
+            "sha256": "6341523857e0ea896d2367e58ba70eefeafa86abac56ab07dd36762cb37a18b0"
+          },
+          "scope": "Additional evidence only, not another finding or independent consumer acceptance."
+        }
+      ]
     },
     {
       "id": "N4",
@@ -641,11 +777,33 @@
       "sourceDiagnosis": "Bounded current projection plus complete retained history",
       "workPackages": "F/G/I",
       "closureRequired": "Repeated resume/growth/overflow; original authority/failures/history remain intact.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-governance/scripts/task_draft.py",
+        "extensions/program-kit-governance/scripts/phase_obligations.py",
+        "extensions/program-kit-governance/references/phase-evidence.md",
+        "presets/program-kit-governance-preset/templates/tasks-governance.md",
+        "presets/program-kit-governance-preset/commands/speckit.implement.md",
+        "tests/validate_task_generation.py"
+      ],
+      "validation": [
+        {
+          "command": "shared Specify Python tests/validate_task_generation.py",
+          "status": "passed",
+          "scope": "24 tests: growth, stable prefixes, full history, malformed reference, atomic overflow and actual installed current/history CLI",
+          "log": "artifacts/maintenance-implementation-2026-10-16/checkpoint-history-installed.log",
+          "sha256": "3b6f4e12ae1bb03b208ae1bcbb818b12b9f21a2827eac5d6bf3d1a19e2da4a11"
+        },
+        {
+          "command": "shared Specify Python tests/validate_story_delivery.py",
+          "status": "passed",
+          "scope": "48 existing story/human-authority, provenance, effort and continuation guard tests",
+          "log": "artifacts/maintenance-implementation-2026-10-16/checkpoint-story-guards.log",
+          "sha256": "a94cfe7746e78c490771fafa299a1673de06591bb1a167bc35f90edcedae7922"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Final current-source Development/CI qualification and normal consumer migration; no consumer history has been rewritten."
       ],
       "closureEvidence": []
     },
@@ -725,11 +883,23 @@
       "sourceDiagnosis": "Reuse joint selected-pair diagnosis and ordered user-owned recovery",
       "workPackages": "F/I/J",
       "closureRequired": "Missing installation/wrong bundled npm/fresh-shell cases; both pins valid before evidence renewal.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolchain.py",
+        "tests/validate_repository_toolchain.py"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_repository_toolchain.py (external temp outside Git)",
+          "status": "passed",
+          "scope": "16 recording fixtures, including vanished recorded path, wrong Node, correct Node/wrong bundled npm, both pins valid and unchanged evidence",
+          "log": "artifacts/maintenance-implementation-2026-10-16/node-npm-pair-recovery.log",
+          "sha256": "423e4e5269829def261bc348c21c7473c6c97f8962d45c61b6cf36fd4f5b9510"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Final current-source qualification and maintained configured update integration. Actual device installation/recovery remains user-owned; disappearance cause unproven."
       ],
       "closureEvidence": []
     },
@@ -776,6 +946,87 @@
         "Actual maintained composition update route; full current-source bounded Development and complete CI Linux/Windows checks; released consumer adoption. Original WinError 145 cause remains unproven without original logs."
       ],
       "closureEvidence": []
+    },
+    {
+      "id": "N13",
+      "finding": "N13 Selected PdfPig decoding/deferred-work and bounded-worker outcome claims",
+      "sourceDiagnosis": "Selected-library catch-and-return behavior is reported and source-reviewed in the handoff. An attributable Program Kit overclaim still requires inspection; no general PDF validator or consumer parser adoption is authorized.",
+      "workPackages": "I/J; publisher seams only if attributed",
+      "closureRequired": "Selected-package malformed/valid/unsupported/deferred and bounded-execution cases; precise envelope/traversal and operational versus invalid meanings; separate loader closure.",
+      "status": "adopted-for-attribution-and-bounded-shared-work; not-implemented",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Actual selected guidance attribution and source/package inspection",
+        "Bounded public-seam example and native execution/resource tests",
+        "No consumer or paid-provider acceptance inferred",
+        "Qualify cold startup and effective selected-runtime resource ceilings; no universal 64/256 descriptor recommendation. Abnormal startup/load/exit/resource/deadline remains unavailable/inconclusive; caller cancellation stays distinct."
+      ],
+      "closureEvidence": [],
+      "additionalEvidence": [
+        {
+          "source": {
+            "path": "docs/reviews/maintenance-followup-N3-N13-2026-10-16.md",
+            "sha256": "6341523857e0ea896d2367e58ba70eefeafa86abac56ab07dd36762cb37a18b0"
+          },
+          "scope": "Additional evidence only, not another finding or independent consumer acceptance."
+        }
+      ]
+    },
+    {
+      "id": "N14",
+      "finding": "N14 Discoverability of supported native output-copy recipe",
+      "sourceDiagnosis": "PKV003 custom-target refusal is correct. Existing buildProjectReferences/buildOutputCopies supply a supported bounded recipe; improve applicability and executable recovery, without guessing a conversion.",
+      "workPackages": "F/I/J",
+      "closureRequired": "Installed recipe instructions and actual native build/publish/pack/output proof; unknown/tampered/dynamic/external cases still fail.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/README.md",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/build_output_recipe.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
+        "extensions/program-kit-governance/scripts/phase_obligations.py",
+        "tests/build_output_recipe_cases.py",
+        "tests/validate_task_generation.py"
+      ],
+      "validation": [
+        {
+          "command": "shared Specify Python BuildOutputRecipeTests",
+          "status": "passed",
+          "scope": "4 tests: installed rejection/recovery and explicit preview/merge, native restore/build/incremental/remove/propagation/pack, actual output and PE inspection.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/build-recipe-discoverability-2.log",
+          "sha256": "92c7863cba15411fbe5cbe9e0da07ddaf14a45d1008c53883162a406617b7c03"
+        },
+        {
+          "command": "shared Specify Python tests/validate_task_generation.py",
+          "status": "passed",
+          "scope": "25 tests including scoped build-only edge guidance before task authoring.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/task-authoring-build-recipe.log",
+          "sha256": "8e797448d3bac8e24c03fca64591105ec684cfe3ff73f05583dbe701f97845f3"
+        }
+      ],
+      "remainingDependencies": [
+        "Complete matching CI qualification and published installation/adoption."
+      ],
+      "closureEvidence": [
+        "Custom-target guard stays strict. Installed diagnostics identify the applicable owner and preview. Only declared scoped build-only edges receive guidance; unsupported conversion is not guessed."
+      ]
+    },
+    {
+      "id": "N15",
+      "finding": "N15 Physical resource-side fencing for durable cross-resource effects",
+      "sourceDiagnosis": "Consumer stale publish/erase race and in-progress remedy are reported/inspected, not independently accepted. No upstream implementation/generator defect established. Adopt attribution, bounded guidance and reference-recipe work; do not copy domain storage code or create a storage framework.",
+      "workPackages": "I/J; native publisher only if attributable gap",
+      "closureRequired": "Actual cross-process stale publish AND erase, retained identity/barrier, restart, corruption, waiting/deadline, uncertain effect and storage-scope proof for each advertised recipe claim.",
+      "status": "adopted-for-attribution-and-bounded-shared-work; not-implemented",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Trace selected guidance/task provenance and any attributable example defect",
+        "Bounded synthetic recipe with explicit platform/storage/durability/retirement limits",
+        "Consumer SQL, lease policy, business semantics and tests remain consumer-owned"
+      ],
+      "closureEvidence": []
     }
   ],
   "scopeAdditions": [
@@ -785,9 +1036,54 @@
       "approval": "User explicitly approved N12 and implementation of all 44 findings. Existing publication and paid-execution boundaries unchanged.",
       "source": "docs/reviews/maintenance-repair-addendum-N12-2026-10-16.md",
       "sourceSha256": "67cc691a2bd4337324078dd230cc7e8932939469f7efb2c373310535dbd6e78f"
+    },
+    {
+      "id": "N13",
+      "adoptedOn": "2026-10-16",
+      "authority": {
+        "sourceThreadId": "01a14496-89a6-7740-838b-e03d8b17205f",
+        "sourceThreadTitle": "Create a repair feedback skill",
+        "userMessageId": "01a14496-9337-77b2-b6c0-0af107d0f847",
+        "verification": "Read the actual user message via read_thread. The user requested forwarding these follow-ups for inclusion, delegating incorporation and sequencing to this implementation owner. No publication, paid work or destructive authority added."
+      },
+      "source": {
+        "path": "docs/reviews/maintenance-repair-addendum-N13-N14-2026-10-16.md",
+        "sha256": "b08397ae7d68e4e2beb9644ae83736947b7ba8d84b17c2cf42969cedb67b6886"
+      },
+      "disposition": "Adopted as the bounded attribution/guidance/recipe work described in its ledger row; reported local repairs are not accepted implementation evidence."
+    },
+    {
+      "id": "N14",
+      "adoptedOn": "2026-10-16",
+      "authority": {
+        "sourceThreadId": "01a14496-89a6-7740-838b-e03d8b17205f",
+        "sourceThreadTitle": "Create a repair feedback skill",
+        "userMessageId": "01a14496-9337-77b2-b6c0-0af107d0f847",
+        "verification": "Read the actual user message via read_thread. The user requested forwarding these follow-ups for inclusion, delegating incorporation and sequencing to this implementation owner. No publication, paid work or destructive authority added."
+      },
+      "source": {
+        "path": "docs/reviews/maintenance-repair-addendum-N13-N14-2026-10-16.md",
+        "sha256": "b08397ae7d68e4e2beb9644ae83736947b7ba8d84b17c2cf42969cedb67b6886"
+      },
+      "disposition": "Adopted as the bounded attribution/guidance/recipe work described in its ledger row; reported local repairs are not accepted implementation evidence."
+    },
+    {
+      "id": "N15",
+      "adoptedOn": "2026-10-16",
+      "authority": {
+        "sourceThreadId": "01a14496-89a6-7740-838b-e03d8b17205f",
+        "sourceThreadTitle": "Create a repair feedback skill",
+        "userMessageId": "01a14496-9337-77b2-b6c0-0af107d0f847",
+        "verification": "Read the actual user message via read_thread. The user requested forwarding these follow-ups for inclusion, delegating incorporation and sequencing to this implementation owner. No publication, paid work or destructive authority added."
+      },
+      "source": {
+        "path": "docs/reviews/maintenance-repair-addendum-N15-2026-10-16.md",
+        "sha256": "07dc8c7aa13e0fa00c212475366cb9553d3020511b4e09478b45d64f95c4c9a3"
+      },
+      "disposition": "Adopted as the bounded attribution/guidance/recipe work described in its ledger row; reported local repairs are not accepted implementation evidence."
     }
   ],
-  "expectedFindings": 44,
+  "expectedFindings": 47,
   "guidanceRepairs": [
     {
       "file": "scripts/update_dependencies.py",
@@ -797,12 +1093,73 @@
   ],
   "inProgressValidation": {
     "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
-    "journal": "artifacts/validation-runs/20261016T110151Z-3b40f6c4",
+    "source": "cb99ff4",
+    "journal": "artifacts/validation-runs/20261016T112335Z-762155a6/journal.json",
     "status": "failed",
     "observations": [
-      "Sandbox denied native test host access; deep temporary root caused Windows path errors copying native fixtures and generating composition transactions. These failures are not acceptance. Preserve logs and repair/rerun affected checks with appropriate process access and owned short temporary paths.",
-      "Implementation advanced while this failed run continued. Its mixed working inputs are not final-source acceptance. A fresh short-temp external-process Development run is required."
-    ],
-    "journalStatus": "failed"
+      "103 steps: 78 passed and 25 failed. Deep Windows source/fixture copy paths remain; no complete acceptance claimed.",
+      "Repository-toolchain fixture passes all 15 baseline cases when simulated user tools are outside Git. With paired recovery it passes 16.",
+      "Maintenance interruption alias and overbroad handoff declaration input issues were repaired afterward; full targeted validators pass (5 and 12 tests). No third broad rerun yet.",
+      "Legacy validate_python_consistency.py requires exact Spec Kit 1.0.1 and cannot run against installed 1.2.0. Its guard was preserved. Current workflow-shell20, workflow-runtime5 and new runtime6 checks passed separately; this is not combined suite acceptance."
+    ]
+  },
+  "originalApprovedFindings": 43,
+  "directlyApprovedAdditionFindings": 1,
+  "delegatedAdoptedFindings": 3,
+  "attributionInvestigations": {
+    "sixCoreScripts": "Exact public source/native rendering/reversible UTF-8 attribution established; see V4.",
+    "packetScanner": {
+      "source": "<consumer>/artifacts/program-kit-upgrade-0.13.2/build_maintenance_packet.py",
+      "evidence": "artifacts/maintenance-implementation-2026-10-16/packet-scanner-attribution.json",
+      "finding": "Original generic scanner misses DSA/encrypted and serialized complete PEM markers, short user values and client secret collection. Consumer historical builders were not executed or edited.",
+      "changedFiles": [
+        "scripts/maintenance_packet.py",
+        "tests/validate_maintenance_packet.py",
+        "tests/validation-inventory.json"
+      ],
+      "validation": {
+        "command": "python tests/validate_maintenance_packet.py",
+        "status": "passed",
+        "scope": "6 bounded evidence-tool tests: complete PEM/source negative, known users/clients, personal paths, manifest and filenames, exact inventory/pinned identity, tampering and opaque input refusal.",
+        "log": "artifacts/maintenance-implementation-2026-10-16/maintenance-packet-checks-final.log",
+        "sha256": "f5acff06f9fd61dea3a90fc1391a4d9ebc4243f7a3d3da22e9a1fe54a4fa66de"
+      },
+      "actualPacket": "Read-only preserved latest packet: exact original b27a73f7... manifest, 77 members, four current supplied fixture values, no findings. No historical unknown-credential, production scan or sharing claim."
+    }
+  },
+  "sharedCapabilities": [
+    {
+      "id": "Foundation browser presentation / confirmation",
+      "status": "prototype-in-progress; not packaged, published or integrated",
+      "source": "artifacts/maintenance-implementation-2026-10-16/foundation-source",
+      "validation": [
+        {
+          "command": "node --test tests/browser/presentation.test.mjs",
+          "status": "passed",
+          "scope": "16 model/lifecycle/dual-failure checks.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-presentation-model-current.log",
+          "sha256": "e09b8b2b68ef8d2cae6e3a3cc18357afcc16c93fcbfda78de38897386bff49b4"
+        },
+        {
+          "command": "node tests/browser/presentation-browser.cjs --engines=chromium,webkit",
+          "status": "passed",
+          "scope": "Real dialog, keyboard, explicit trigger focus restoration, cancellation, shared controls, current reads, trusted popup gestures, measured 1024x768 viewport. Fixture-only protocol; native Host/auth and consumer acceptance false.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-presentation-browser-local.log",
+          "sha256": "3082eb6ebe6acd412f11d96b67b5183719d58cfff006469e62c56413295105e7"
+        }
+      ],
+      "remaining": [
+        "Native typed feature/options/routes and safe admitted representation seam",
+        "Actual packaged client assets/types and standard auth protocol integration",
+        "Neutral Host fallback, live browser matrix and all supported compositions",
+        "Publisher maintenance/locks/knowledge/security/review/publication before Program Kit adoption"
+      ],
+      "nativeModuleEvidence": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/module/result.json"
+    }
+  ],
+  "outOfScopeDesign": {
+    "sourceThreadId": "01a14496-89a6-7740-838b-e03d8b17205f",
+    "feature": "Reusable contributor feedback/evaluation skill",
+    "disposition": "Under design in its owning chat; no settled specification adopted or implemented here."
   }
 }

@@ -261,15 +261,19 @@ def main() -> int:
         )
         write_evidence(evidence, repository, required, installed, commands, False)
         diagnostics = []
+        pair_missing = any(name in missing for name in ('node', 'npm'))
+        if pair_missing:
+            print(js_toolchain.node_npm_recovery(repository, 'PKT002 selected Node/npm pair needs preparation.',
+                required=required, installed=installed, commands=commands), file=sys.stderr)
         authorities = {'dotnet': 'global.json sdk.version', 'node': '.nvmrc', 'npm': '.npm-version'}
         for name in missing:
-            if name in authorities:
+            if name in authorities and name not in ('node', 'npm'):
                 command = commands.get(name, [])
                 diagnostics.append(js_toolchain.device.diagnostic(name, required[name],
                     str(repository / authorities[name]), installed[name], command[0] if command else None, repository))
         for diagnostic in diagnostics:
             print(js_toolchain.device.render(diagnostic), file=sys.stderr)
-        if diagnostics:
+        if diagnostics or pair_missing:
             # No flag, approval, supplied installer, or prompt authorizes device mutation.
             return 3 if args.decline else 2
         # oasdiff is a reviewed project analysis binary, not an SDK/runtime. Retain its

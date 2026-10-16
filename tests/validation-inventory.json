@@ -2,6 +2,46 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_web_runtime",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_web_runtime.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Installed web runtime child/grandchild propagation, applicable Python dependencies and explicit preparation; verification acquires nothing.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKitPython.psm1",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/web_readiness.py",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/**",
+        "extensions/program-kit-governance/scripts/python_runtime.py",
+        "tests/validate_web_runtime.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Owned temporary wrappers; real isolated Python/Node missing-dependency checks, synthetic protocol recording only; no acquisition or agent."
+    },
+    {
+      "id": "validate_maintenance_packet",
+      "qualification": {"linux": true, "windows": true, "build": false},
+      "command": ["{python}", "tests/validate_maintenance_packet.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Read-only maintenance evidence-tool inventory and bounded privacy checks; no production credential-scan, publisher or sharing claim.",
+      "owner": "program-kit", "inputs": ["scripts/maintenance_packet.py", "tests/validate_maintenance_packet.py"],
+      "outputs": [], "resources": [], "isolation": "Only synthetic packets and credentials; no consumer packet building or sharing."
+    },
+    {
       "id": "validate_owned_scratch",
       "qualification": {"linux": true, "windows": true, "build": false},
       "command": ["{python}", "tests/validate_owned_scratch.py"],

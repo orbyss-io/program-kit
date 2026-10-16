@@ -144,15 +144,22 @@ progress provide evidence; no additional checkpoint receipt or approval dossier 
 Use the existing current-checkpoint marker in tasks.md. `task_draft.py checkpoint` replaces current
 progress while preserving the embedded `delivery` state: every story/explicit early checkpoint,
 engineering/human dispositions, reviewer, presentation, decisions, basis and elapsed effort. Detailed
-outputs stay in ignored artifacts. `task_draft.py current` exposes this readable state on resume.
+outputs stay in ignored artifacts. `task_draft.py current` exposes a bounded current projection on
+resume, including unresolved-failure counts and retained-history references. Use `current --history`
+for complete progress and delivery provenance; `--history-sha <reference>` selects an earlier
+progress-history prefix. These integrity references never renew human acceptance.
 No second ledger or approval dossier is required. Never edit the marker to fabricate human decisions.
 
 The current progress summary is bounded to 8 KiB independently of the 1-MiB retained delivery
 state. Storage version 3 interns identical review bases by verified SHA-256 reference inside
-that same checkpoint; `current` expands them into independent readable objects. Legacy inline
+that same checkpoint; `current --history` expands them into independent readable objects. Legacy inline
 history remains readable and migrates only through the normal atomic save. Repeated review and
 deferral cycles preserve every original decision and basis. Missing/tampered references or a
 full retained-state budget stop the write; never delete provenance to fit another decision.
+Current prose/checks replace their projection; decision, failure and resolution records remain
+retained without appending a journal for each resume. Overflow reports submitted, merged-current,
+retained-history and retained-state sizes plus their largest contributing fields, preserving the
+prior state atomically. Open failures remain binding in normal continuation guards.
 
 Submit a small JSON request with `python .specify/extensions/program-kit-governance/scripts/task_draft.py
 delivery --feature-dir specs/<feature> --content-file artifacts/<request>.json`. These are scoped

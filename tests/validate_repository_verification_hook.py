@@ -54,6 +54,8 @@ def main() -> int:
         managed.mkdir(parents=True)
         wrapper = managed / SOURCE.name
         shutil.copyfile(SOURCE, wrapper)
+        shutil.copyfile(SOURCE.with_name('ProgramKitPython.psm1'), managed / 'ProgramKitPython.psm1')
+        shutil.copyfile(SOURCE.with_name('python_runtime_contract.py'), managed / 'python_runtime_contract.py')
         shutil.copyfile(RESTORE_SOURCE, managed / RESTORE_SOURCE.name)
         shutil.copyfile(
             ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/NuGet.config",

@@ -2,6 +2,9 @@
   "schemaVersion": 1,
   "files": [
     { "path": "eng/test_project.py", "ownership": "managed" },
+    { "path": "eng/ProgramKitPython.psm1", "ownership": "managed" },
+    { "path": "eng/python_runtime_contract.py", "ownership": "managed" },
+    { "path": "eng/web_readiness.py", "ownership": "managed" },
     { "path": "eng/label_validation.py", "ownership": "managed" },
     { "path": "eng/label-validation.schema.json", "ownership": "managed" },
     { "path": "eng/web_identity.py", "ownership": "managed" },

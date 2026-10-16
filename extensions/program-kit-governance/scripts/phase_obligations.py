@@ -166,9 +166,13 @@ def model(root, feature, phase='planning', affected_paths=()):
         scoped.update(p['path'] for p in manifest.get('runtimeComposition', {}).get('projects', [])
                       if p['path'] in declarations or Path(p['path']).parent.as_posix() in declarations
                       or any(str(path).replace('\\', '/').startswith(Path(p['path']).parent.as_posix()+'/') for path in affected_paths))
+    from build_output_recipe import recovery_guidance
+    output_guidance = [recovery_guidance(row['path']) for row in (manifest or {}).get('runtimeComposition', {}).get('projects', [])
+                       if row['path'] in scoped and (row.get('buildProjectReferences') or row.get('buildOutputCopies'))]
     return {'schemaVersion': 1, 'feature': feature.relative_to(root).as_posix(), 'upgradeCompatibility': compatibility,
             'foundationApplicability': foundation_applicability(root, feature, inherited, tags),
             'lifecycleFindings': lifecycle_findings(root, manifest, scoped) if manifest and 'dotnet' in tags else [],
+            'buildOutputGuidance': output_guidance,
             'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
             'decisions': decisions(root, feature),
             'prerequisites': retained_proofs(root, feature, phase),
@@ -198,6 +202,9 @@ def render(value, phase, detailed=False):
         'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
     }
     lines += [actions[phase], '']
+    if value.get('buildOutputGuidance'):
+        lines += ['Owned SDK build outputs: review the selected build edge before inventing custom publish/copy tasks.',
+                  *value['buildOutputGuidance'], '']
     if value.get('foundationApplicability'):
         brief = value['foundationApplicability']
         lines += ['Selected Foundation ' + brief['version'] + '; profile ' + str(brief['profile'])
@@ -359,7 +366,7 @@ def finish(root, feature, handoff=False):
     pending = len(re.findall(r'^\s*-\s+\[ \]\s+', content, re.M))
     draft = '> Draft:' in content or bool(draft_state and draft_state.get('status') != 'complete')
     if not handoff and (pending or draft):
-        from task_draft import current
+        from task_draft import current, current_projection
         can_proceed, review_diagnostic = False, 'Initialize fresh story delivery before implementation; old partial progress grants no continuation authority.'
         if (current(feature) or {}).get('delivery'):
             from task_draft import guard
@@ -373,7 +380,7 @@ def finish(root, feature, handoff=False):
         return {'status': 'in-progress', 'pendingTasks': pending, 'draft': draft,
                 'applicationChecksPassed': False, 'acceptanceEstablished': False,
                 'canProceed': can_proceed, 'reviewDiagnostic': review_diagnostic,
-                'currentCheckpoint': current(feature),
+                'currentCheckpoint': current_projection(current(feature)),
                 'instruction': 'Replace the compact current checkpoint in tasks.md with task_draft.py checkpoint; preserve unresolved failures and the implementation baseline. Run only checks required by changed inputs. No full acceptance at this checkpoint.'}
     require(handoff or bool(re.search(r'^\s*-\s+\[[xX]\]\s+', content, re.M)),
             'Feature closure requires completed tasks or an explicit formal handoff')

@@ -63,3 +63,37 @@ template delivery. Native commands/configuration keep ordinary drive paths;
 Python staging I/O and cleanup use extended paths. Network scratch roots remain
 explicitly unsupported. Full composition-update integration and CI qualification
 remain outstanding; the original WinError 145 cause is not inferred from its code.
+
+## Delegated follow-up adoption
+
+The user's actual message in “Create a repair feedback skill” requested forwarding
+the newer repairs for this owner to incorporate and sequence. That message was
+inspected directly. N13, N14 and N15 are adopted separately as the bounded
+attribution/guidance/reference work in their ledger rows, bringing the queue to 47
+distinct findings. Adoption does not establish an upstream defect or validate the
+consumer's remedy. Additional N3/N13 evidence refines those rows without duplicate
+IDs. The original 43-item plan/audit and subsequent direct N12 approval remain intact.
+
+The separately discussed contributor evaluation skill is still under design in
+its own chat and is not a settled implementation requirement here. Publication,
+paid execution, device installation and destructive-operation boundaries remain
+unchanged. The active consumer has not been modified.
+
+## Second independent repair batch
+
+Checkpoint output now stays bounded while retaining hash-linked decision, failure
+and resolution history. Installed CLI/history and existing story-authority guards
+passed targeted checks. Paired Node/npm recovery is read-only and preserves failed
+evidence. Supported native build-output guidance is surfaced by the installed
+verifier and scoped task authoring; its real build/incremental/pack fixture passes.
+
+Engineering PowerShell and governance share applicable Python readiness. Browser
+verification uses the verified absolute interpreter through child adapters and
+performs no dependency/browser acquisition. `Prepare-Web.ps1` owns explicit project
+preparation. Targeted recording and real missing-dependency probes pass; the emitted
+secure-web application's complete browser suite remains a separate integration gate.
+
+The Foundation prototype passes sixteen model checks and actual Chromium/WebKit
+dialog, cancellation, focus-return and trusted popup-gesture probes. The protocol
+action is a fixture. Native Host/auth integration, packaging and configured
+composition acceptance are unfinished; these results do not certify them.

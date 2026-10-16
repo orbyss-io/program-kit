@@ -77,7 +77,7 @@ class MaintenanceTests(unittest.TestCase):
         class Interrupted(BaseException):pass
         def crash(path,payload,suffix):
             original_write(path,payload,suffix)
-            if path==destination:raise Interrupted()
+            if path.samefile(destination):raise Interrupted()
         with patch.object(recipe,'atomic_write',side_effect=crash),self.assertRaises(Interrupted):
             recipe.apply_plan(self.root,[{'kind':'update','path':'eng/policy.txt','content':b'candidate policy'}],b'{}')
         self.assertTrue(upgrade.pending_upgrade_transactions(self.root))

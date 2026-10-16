@@ -474,15 +474,17 @@ def file_items(root, path, graph=None):
     tree = ET.parse(path).getroot()
     if graph is None:
         graph = {row['path']: row for row in read(root / 'eng/architecture.json')['runtimeComposition']['projects']}
-    from build_output_recipe import derived_nodes
+    from build_output_recipe import derived_nodes, recovery_guidance
     derived = derived_nodes(root, path, tree, graph)
     for target in tree.iter():
         if id(target) in derived:
             continue
         if target.tag.rsplit('}', 1)[-1] == 'Target':
             for child in target:
+                relative = path.resolve().relative_to(root.resolve()).as_posix()
+                owner = relative if relative.endswith('.csproj') else '<owning-project.csproj>'
                 require(child.tag.rsplit('}', 1)[-1] in allowed_target_nodes,
-                        'PKV003 custom build tasks need an evaluated graph adapter')
+                        'PKV003 custom build tasks need an evaluated graph adapter. ' + recovery_guidance(owner))
     for node in tree.iter():
         if id(node) in derived:
             continue

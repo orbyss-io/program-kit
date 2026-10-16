@@ -125,6 +125,9 @@ class BuildOutputRecipeTests(unittest.TestCase):
         def inventory(directory):
             return {path.relative_to(directory).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
                     for path in directory.rglob('*') if path.is_file()}
+        command([sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
+                 '--target', str(root), '--profile-selected', '--foundation-host-accepted',
+                 '--building-block-sources-approved', '--web-profile', 'none'], 'installed-native-tools')
         shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/global.json', root / 'global.json')
         write('NuGet.Config', '<configuration><packageSources><clear /></packageSources></configuration>')
         write('Directory.Build.props', '<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework>'
@@ -140,8 +143,29 @@ class BuildOutputRecipeTests(unittest.TestCase):
         write(parent, '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><PackageId>Owned.Provider</PackageId>'
               '<PackageLicenseExpression>MIT</PackageLicenseExpression></PropertyGroup><ItemGroup>'
               '<ProjectReference Include="../Owned.Tool/Owned.Tool.csproj" ReferenceOutputAssembly="false" /></ItemGroup></Project>')
+        manifest = {'runtimeComposition': {'projects': list(graph.values()), 'bindings': []}}
+        original_intent = copy.deepcopy(manifest)
+        next(row for row in original_intent['runtimeComposition']['projects'] if row['path'] == parent).pop('buildOutputCopies')
+        write('eng/architecture.json', json.dumps(original_intent))
         document = ET.parse(root / parent).getroot()
-        for node in outputs.recipe(root, parent, graph):
+        bad = copy.deepcopy(document)
+        ET.SubElement(ET.SubElement(bad, 'Target', Name='UnreviewedCopy'), 'Exec', Command='must never execute')
+        (root / parent).write_bytes(ET.tostring(bad))
+        rejected = subprocess.run([sys.executable, str(root / 'eng/repository_verification.py'), '--repository', str(root),
+            '--scope', 'Affected', '--changed-path', parent, '--plan'], cwd=root, capture_output=True, text=True, timeout=60)
+        self.assertNotEqual(0, rejected.returncode)
+        diagnostic = rejected.stdout + rejected.stderr
+        self.assertIn('buildProjectReferences/buildOutputCopies', diagnostic)
+        self.assertIn('eng/build_output_recipe.py', diagnostic)
+        self.assertIn(parent, diagnostic)
+        (evidence / 'unsupported-target.log').write_text(diagnostic, encoding='utf-8')
+        # The fixture explicitly replaces only its own known unreviewed target;
+        # the product does not convert or waive arbitrary consumer customizations.
+        (root / parent).write_bytes(ET.tostring(document))
+        write('eng/architecture.json', json.dumps(manifest))
+        preview = command([sys.executable, str(root / 'eng/build_output_recipe.py'), '--repository', str(root),
+                           '--project', parent], 'installed-recipe-preview')
+        for node in ET.fromstring(preview):
             document.append(node)
         (root / parent).write_bytes(ET.tostring(document))
         write('src/Owned.Provider/Marker.cs', 'namespace Owned.Provider; public sealed class Marker;')
@@ -190,7 +214,10 @@ class BuildOutputRecipeTests(unittest.TestCase):
                        for name in archive.namelist() if name.startswith('tools/owned-tool/') and not name.endswith('/')}
         self.assertEqual(renamed, payload)
         architecture.execute(root, manifest, 'Debug')
-        assembly_project = ENG / 'assembly_graph/AssemblyGraph.csproj'
+        command([sys.executable, str(root / 'eng/repository_architecture.py'), '--repository', str(root),
+                 '--manifest', 'eng/architecture.json', '--configuration', 'Debug',
+                 '--output', 'artifacts/installed-architecture.xml'], 'installed-architecture')
+        assembly_project = root / 'eng/assembly_graph/AssemblyGraph.csproj'
         # The maintained inspector reads PE metadata; no producer assembly is loaded.
         metadata = json.loads(command(['dotnet', 'run', '--project', str(assembly_project), '--configuration', 'Release', '--no-build', '--',
             str(root / 'src/Owned.Provider/bin/Debug/net10.0/Owned.Provider.dll')], 'actual-pe-metadata'))

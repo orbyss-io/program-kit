@@ -171,24 +171,89 @@ def current(feature):
             raise ValueError('Malformed current checkpoint: ' + field)
     if 'delivery' in value:
         validate(value['delivery'])
+    _progress_history(value)
     return value
 
 
-def save_current(feature, value):
+def _history_event(sequence, previous, kind, value):
+    event = {'sequence': sequence, 'previous': previous, 'kind': kind, 'value': copy.deepcopy(value)}
+    return {**event, 'sha256': hashlib.sha256(_basis_bytes(event)).hexdigest()}
+
+
+def _progress_history(value):
+    """Progress references are integrity links, never renewed human authority."""
+    history = value.get('progressHistory')
+    if history is None:
+        snapshot = {key: value[key] for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures') if key in value}
+        return [_history_event(1, None, 'retained-snapshot', snapshot)]
+    require(isinstance(history, list) and history, 'Malformed retained progress history')
+    previous = None
+    for sequence, event in enumerate(history, 1):
+        require(isinstance(event, dict) and set(event) == {'sequence', 'previous', 'kind', 'value', 'sha256'}
+                and type(event['sequence']) is int and event['sequence'] == sequence and event['previous'] == previous
+                and (event['kind'] == 'checkpoint' or sequence == 1 and event['kind'] == 'retained-snapshot')
+                and isinstance(event['sha256'], str) and re.fullmatch(r'[0-9a-f]{64}', event['sha256'])
+                and isinstance(event['value'], dict),
+                'Malformed retained progress history link')
+        expected = _history_event(sequence, previous, event['kind'], event['value'])
+        require(expected == event, 'Tampered retained progress history reference')
+        previous = event['sha256']
+    return history
+
+
+def current_projection(value):
+    if value is None:
+        return None
+    events = _progress_history(value)
+    result = {key: copy.deepcopy(value[key]) for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks')}
+    result['history'] = {'sha256': events[-1]['sha256'], 'events': len(events),
+                         'decisions': len(value['decisions']), 'unresolvedFailures': len(value['failures']),
+                         'read': 'current --history', 'authority': 'progress only; retained human decisions are unchanged'}
+    if value['failures']:
+        result['failureState'] = 'unresolved; inspect retained failures before continuation'
+    if 'delivery' in value:
+        result['retainedDelivery'] = {'checkpoints': len(value['delivery'].get('checkpoints', {})),
+                                     'read': 'current --history; normal continuation guards still apply'}
+    return result
+
+
+def progress_history(feature, reference=None):
+    value = current(feature)
+    if value is None:
+        require(reference is None, 'Missing retained progress history reference')
+        return None
+    events = _progress_history(value)
+    if reference is not None:
+        matches = [index for index, event in enumerate(events) if event['sha256'] == reference]
+        require(len(matches) == 1, 'Missing or tampered retained progress history reference')
+        events = events[:matches[0] + 1]
+    return {'scope': 'retained progress; not renewed acceptance', 'sha256': events[-1]['sha256'],
+            'events': events, 'current': value if reference is None else None}
+
+
+def save_current(feature, value, submitted=None):
     path = feature / 'tasks.md'
     content = path.read_text(encoding='utf-8')
-    summary = {key: item for key, item in value.items() if key != 'delivery'}
+    summary = current_projection(value)
     require(len(_basis_bytes(value)) <= EXPANDED_LIMIT, 'Expanded checkpoint exceeds its bounded reader limit')
     serialized = json.dumps(_store_bases(value), ensure_ascii=True, separators=(',', ':'), allow_nan=False)
-    if '-->' in serialized or len(json.dumps(summary).encode()) > CURRENT_LIMIT or len(serialized.encode()) > RETAINED_LIMIT:
-        raise ValueError('Checkpoint summary must be at most 8192 bytes and retained state 1048576 bytes; never discard unresolved decisions/failures')
+    summary_size = len(_basis_bytes(summary))
+    retained_size = len(serialized.encode())
+    if '-->' in serialized or summary_size > CURRENT_LIMIT or retained_size > RETAINED_LIMIT:
+        submitted_size = len(_basis_bytes(submitted if submitted is not None else summary))
+        history_size = len(_basis_bytes(_progress_history(value)))
+        contributors = sorted(((key, len(_basis_bytes(item))) for key, item in value.items()), key=lambda row: row[1], reverse=True)[:4]
+        raise ValueError('Checkpoint summary must be at most 8192 bytes and retained state 1048576 bytes; '
+                         f'submitted={submitted_size}, merged-current={summary_size}, retained-history={history_size}, '
+                         f'retained-state={retained_size}, largest-fields={contributors}. '
+                         'Prior state is preserved; inspect current --history and shorten current prose/references, never discard unresolved failures or human decisions.')
     marker = '<!-- program-kit:current-checkpoint ' + serialized + ' -->'
     content = CURRENT.sub(lambda _: marker, content, count=1) if CURRENT.search(content) else content.rstrip() + '\n\n' + marker + '\n'
     atomic_write(path, content)
 
 
 def checkpoint(feature, update):
-    """Replace current state, never append journals or silently discard open failures."""
+    """Replace current prose/checks; retain decisions, open failures and their history."""
     path = feature / 'tasks.md'
     if not path.is_file():
         raise ValueError('Locate existing tasks.md before saving progress')
@@ -223,7 +288,20 @@ def checkpoint(feature, update):
                                          else retained + update.get(field, [])))
     if 'delivery' in prior:
         value.update(version=2, delivery=prior['delivery'])
-    save_current(feature, value)
+    history = _progress_history(prior) if prior else []
+    delta = {field: [item for item in update.get(field, []) if item not in prior.get(field, [])]
+             for field in ('decisions', 'failures')}
+    delta = {field: items for field, items in delta.items() if items}
+    if resolved:
+        delta['resolvedFailures'] = update['resolvedFailures']
+    if 'checks' in update and update['checks'] != prior.get('checks', []):
+        delta['checks'] = update['checks']
+    if not history or delta:
+        event_value = ({key: copy.deepcopy(value[key]) for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures')}
+                       if not history else {'baseline': value['baseline'], 'outcome': value['outcome'], 'taskIds': value['taskIds'], **delta})
+        history = [*history, _history_event(len(history) + 1, history[-1]['sha256'] if history else None, 'checkpoint', event_value)]
+    value['progressHistory'] = history
+    save_current(feature, value, submitted=update)
     return value
 
 
@@ -473,10 +551,14 @@ def main():
     parser.add_argument('--phase')
     parser.add_argument('--content-file')
     parser.add_argument('--apply', action='store_true', help='Apply only an explicitly human-selected unfinished-feature file inventory')
+    parser.add_argument('--history', action='store_true', help='Current: explicitly read retained progress and complete delivery provenance')
+    parser.add_argument('--history-sha', help='Current --history: resolve an exact retained progress reference')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     feature = (root / args.feature_dir).resolve()
     try:
+        require(not (args.history or args.history_sha) or args.command == 'current', 'History output applies only to current')
+        require(not args.history_sha or args.history, '--history-sha requires --history')
         if not feature.is_relative_to(root) or not feature.is_dir():
             raise ValueError('Feature must be an existing directory inside the repository')
         if not (feature / 'tasks.md').resolve().is_relative_to(feature):
@@ -494,9 +576,9 @@ def main():
         elif args.command == 'checkpoint':
             if not args.content_file:
                 raise ValueError('checkpoint requires --content-file with concise current state JSON')
-            result = checkpoint(feature, json.loads(Path(args.content_file).read_text(encoding='utf-8')))
+            result = current_projection(checkpoint(feature, json.loads(Path(args.content_file).read_text(encoding='utf-8'))))
         elif args.command == 'current':
-            result = current(feature)
+            result = progress_history(feature, args.history_sha) if args.history else current_projection(current(feature))
         elif args.command == 'reset':
             if not args.content_file:
                 raise ValueError('reset requires the concrete reviewed inventory in --content-file')

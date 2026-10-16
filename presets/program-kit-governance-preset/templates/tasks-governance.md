@@ -177,6 +177,11 @@ During implementation use `task_draft.py checkpoint` to replace one compact curr
 in tasks.md. Retain the original baseline, current outcome/task IDs, relevant check references,
 decision references, unresolved failures and next action. Do not append a progress journal.
 Use `task_draft.py current` on resume; it supplies current state without rereading the whole plan.
+Current prose and checks replace their previous projection. Decision/failure history and
+resolution evidence remain retained; use `current --history` for complete records, or add
+`--history-sha <reference>` to resolve a prior progress-history reference. These references
+prove retained progress consistency and never renew acceptance. Unresolved failures remain
+visible in the compact projection and binding in normal continuation guards.
 The same checkpoint retains all story/early-review decisions, role assignments, presented basis and
 cumulative active effort through replacement. Follow `phase-evidence.md` using `task_draft.py delivery`
 for initialize/start/present/decision and status/wait/resume; required entry/finish validators consume

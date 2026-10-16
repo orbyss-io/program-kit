@@ -215,6 +215,23 @@ def operation_fixture():
 
 
 class TaskTests(unittest.TestCase):
+    def test_selected_build_edges_project_the_supported_recipe_before_task_authoring(self):
+        parent = 'src/Owned.Provider/Owned.Provider.csproj'
+        producer = 'src/Owned.Tool/Owned.Tool.csproj'
+        (self.root / 'eng').mkdir(exist_ok=True)
+        (self.root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [
+            {'path': producer, 'role': 'helper', 'projectReferences': []},
+            {'path': parent, 'role': 'provider', 'projectReferences': [], 'buildProjectReferences': [producer]},
+            {'path': 'src/Unrelated/Unrelated.csproj', 'role': 'helper', 'projectReferences': [], 'buildProjectReferences': [producer]}
+        ], 'bindings': []}}))
+        plan = self.feature / 'plan.md'
+        plan.write_text(plan.read_text() + '\nOwned output boundary: ' + parent)
+        value = context.model(self.root, self.feature, 'tasks')
+        self.assertEqual(1, len(value['buildOutputGuidance']))
+        self.assertIn(parent, value['buildOutputGuidance'][0])
+        self.assertNotIn('Unrelated', value['buildOutputGuidance'][0])
+        self.assertIn('buildProjectReferences/buildOutputCopies', context.render(value, 'tasks'))
+
     def test_installed_cli_finalizes_future_graph_in_a_fresh_unrelated_process(self):
         installed = self.root / '.specify/extensions'
         for extension, folders in {'program-kit-governance': ['scripts'],
@@ -261,6 +278,22 @@ class TaskTests(unittest.TestCase):
         result = subprocess.run(command, cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertFalse(json.loads(result.stdout)['implementationExecuted'])
+        draft.checkpoint(self.feature, {'baseline': 'original-baseline', 'outcome': 'Owned behavior',
+            'next': 'Wait for implementation', 'decisions': ['Retain actual ownership'], 'failures': ['Owned check is still pending']})
+        current_command = [*command]
+        current_command[2] = 'current'
+        compact = subprocess.run(current_command, cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, compact.returncode, compact.stdout + compact.stderr)
+        projected = json.loads(compact.stdout)
+        self.assertEqual(1, projected['history']['unresolvedFailures'])
+        self.assertNotIn('progressHistory', projected)
+        full = subprocess.run([*current_command, '--history'], cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, full.returncode, full.stdout + full.stderr)
+        self.assertEqual(['Retain actual ownership'], json.loads(full.stdout)['current']['decisions'])
+        pinned = subprocess.run([*current_command, '--history', '--history-sha', projected['history']['sha256']],
+                                cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, pinned.returncode, pinned.stdout + pinned.stderr)
+        self.assertEqual(projected['history']['sha256'], json.loads(pinned.stdout)['sha256'])
         # Existing-evidence admission also loads the adapter, then preserves its guard.
         content = (self.feature / 'tasks.md').read_text().replace(
             '| tests/Owned/Owned.csproj | T001 | none |',
@@ -477,12 +510,55 @@ class TaskTests(unittest.TestCase):
         self.assertLess(path.stat().st_size, first_size + 80)
         progress = context.finish(self.root, self.feature)
         self.assertFalse(progress['acceptanceEstablished'])
-        self.assertEqual(current, progress['currentCheckpoint'])
+        self.assertEqual(draft.current_projection(current), progress['currentCheckpoint'])
         fixed = draft.checkpoint(self.feature, {'baseline': 'original-commit', 'outcome': 'Create policy',
             'next': 'Owned list', 'checks': ['green: artifacts/create-fixed.trx'],
             'resolvedFailures': initial['failures']})
         self.assertEqual([], fixed['failures'])
         self.assertEqual(['green: artifacts/create-fixed.trx'], fixed['checks'])
+
+    def test_current_projection_stays_bounded_while_complete_decision_failure_history_is_retained(self):
+        path = self.feature / 'tasks.md'
+        path.write_text(operation_fixture(), encoding='utf-8')
+        draft.checkpoint(self.feature, {'baseline': 'original', 'outcome': 'Owned work', 'next': 'Repair', 'failures': ['original unresolved failure']})
+        retained_reference = None
+        for index in range(80):
+            value = draft.checkpoint(self.feature, {'baseline': 'original', 'outcome': 'Owned work', 'next': 'Continue',
+                'decisions': [f'decision-{index}: ' + 'retained scoped reasoning ' * 6]})
+            if index == 20:
+                retained_reference = draft.current_projection(value)['history']['sha256']
+        projection = draft.current_projection(value)
+        self.assertLess(len(json.dumps(projection).encode()), draft.CURRENT_LIMIT)
+        self.assertEqual(80, projection['history']['decisions'])
+        self.assertEqual(1, projection['history']['unresolvedFailures'])
+        prefix = draft.progress_history(self.feature, retained_reference)
+        self.assertEqual(retained_reference, prefix['sha256'])
+        self.assertLess(len(prefix['events']), len(draft.progress_history(self.feature)['events']))
+        fixed = draft.checkpoint(self.feature, {'baseline': 'original', 'outcome': 'Owned work', 'next': 'Await review',
+            'checks': ['artifacts/actual-success.trx'], 'resolvedFailures': ['original unresolved failure']})
+        self.assertEqual([], fixed['failures'])
+        history = draft.progress_history(self.feature)
+        self.assertIn('original unresolved failure', json.dumps(history['events']))
+        self.assertIn('resolvedFailures', history['events'][-1]['value'])
+        with self.assertRaisesRegex(ValueError, 'Missing or tampered'):
+            draft.progress_history(self.feature, '0' * 64)
+
+    def test_history_tampering_and_retained_overflow_preserve_atomic_prior_state(self):
+        path = self.feature / 'tasks.md'
+        path.write_text(operation_fixture(), encoding='utf-8')
+        value = draft.checkpoint(self.feature, {'baseline': 'original', 'outcome': 'Owned', 'next': 'Continue', 'decisions': ['retained decision']})
+        saved = path.read_bytes()
+        tampered = copy.deepcopy(value)
+        tampered['progressHistory'][0]['value']['decisions'] = ['substituted decision']
+        with self.assertRaisesRegex(ValueError, 'Tampered retained progress history'):
+            draft.save_current(self.feature, tampered)
+        self.assertEqual(saved, path.read_bytes())
+        overflow = copy.deepcopy(value)
+        previous = overflow['progressHistory'][-1]['sha256']
+        overflow['progressHistory'].append(draft._history_event(2, previous, 'checkpoint', {'decisions': ['x' * draft.RETAINED_LIMIT]}))
+        with self.assertRaisesRegex(ValueError, 'submitted=.*merged-current=.*retained-history=.*largest-fields='):
+            draft.save_current(self.feature, overflow)
+        self.assertEqual(saved, path.read_bytes())
 
     def test_checkpoint_rejects_lossy_invalid_or_failed_updates_atomically(self):
         path = self.feature / 'tasks.md'

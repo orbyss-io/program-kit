@@ -13,6 +13,14 @@ def require(condition, message):
         raise ValueError('PKV003 ' + message)
 
 
+def recovery_guidance(project):
+    return ('For the specific case of copying a graph-owned SDK producer output, declare '
+            'buildProjectReferences/buildOutputCopies and preview the closed recipe with the verified Python: '
+            f'python eng/build_output_recipe.py --repository . --project "{project}". '
+            'See eng/README.md, Owned SDK build outputs. This is not an automatic conversion: '
+            'other custom behavior, dynamic inputs and nonstandard output layouts still require a qualified evaluated adapter.')
+
+
 def declarations(root, project, graph):
     rows = graph[project].get('buildOutputCopies', [])
     require(isinstance(rows, list) and len(rows) <= 16, 'buildOutputCopies must be a bounded list')
@@ -102,7 +110,7 @@ def derived_nodes(root, path, tree, graph):
             matches = [candidate for candidate in tree if candidate.tag == 'PropertyGroup'
                        and candidate.find('TargetsForTfmSpecificContentInPackage') is not None]
         require(len(matches) == 1 and shape(matches[0]) == shape(node),
-                'declared build output target differs from its qualified recipe; preview eng/build_output_recipe.py')
+                'declared build output target differs from its qualified recipe. ' + recovery_guidance(relative))
         approved.update(id(item) for item in matches[0].iter())
     # No unknown task/property/item is waived by declaring the producer or recipe.
     return approved

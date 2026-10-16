@@ -20,6 +20,30 @@ import initialize_device
 
 
 class RepositoryToolchainTests(unittest.TestCase):
+    def test_missing_recorded_command_reports_the_authoritative_pair_without_rewriting_evidence(self):
+        self.assertEqual(0, self.run_toolchain().returncode)
+        evidence = self.repo / 'artifacts/program-kit/toolchain.json'
+        value = json.loads(evidence.read_text())
+        value['commands']['npm'] = [str(self.base / 'vanished-node')]
+        evidence.write_text(json.dumps(value))
+        original = evidence.read_bytes()
+        for node_version, npm_version in (('22.19.0', '9.0.0'), (self.required['node'], '9.0.0'),
+                                           (self.required['node'], self.required['npm'])):
+            with self.subTest(node=node_version, npm=npm_version), patch.dict(os.environ, self.env, clear=True), \
+                    patch.object(js_toolchain, 'resolve_node', return_value=(self.shared / 'node', node_version)), \
+                    patch.object(js_toolchain, 'resolve_npm', return_value=([str(self.shared / 'npm')], npm_version)):
+                with self.assertRaisesRegex(ValueError, 'PKT016') as observed:
+                    js_toolchain.context(self.repo, evidence)
+                message = str(observed.exception)
+                self.assertIn('node=' + self.required['node'] + ' (.nvmrc)', message)
+                self.assertIn('npm=' + self.required['npm'] + ' (.npm-version)', message)
+                self.assertIn('bundled npm may differ', message)
+                self.assertIn('First select the required shared Node', message)
+                self.assertIn('fresh user shell', message)
+                if node_version == self.required['node'] and npm_version == self.required['npm']:
+                    self.assertIn('active pair matches both pins', message)
+                self.assertEqual(original, evidence.read_bytes())
+
     def test_explicit_device_python_is_validated_without_path_masking(self):
         selected = self.binary(self.shared, 'python', 'fixture')
         before = os.environ.get('PATH')

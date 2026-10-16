@@ -74,6 +74,10 @@ same bytes in the package. No extra task/property/item is exempt merely because 
 Custom output/RID layouts require a separately qualified evaluated adapter; do not broaden globs
 or waive unknown build tasks. Clean/incremental builds, source changes, renamed/removed files,
 transitive test output, package layout and compiled references require actual SDK evidence.
+The installed `eng/README.md` section **Owned SDK build outputs** gives the declaration and
+preview command at the point of use. PKV003 identifies this bounded alternative for the
+owned-output-copy case while retaining the evaluated-adapter requirement for other custom
+behavior. Treat the suggestion as applicability guidance, not automatic conversion authority.
 
 This recipe does not choose a process boundary or provide a worker runtime. A normal application
 library may reference a PDF package directly. Multi-assembly runtime loading reported with PdfPig

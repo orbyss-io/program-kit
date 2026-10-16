@@ -15,7 +15,7 @@ BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.p
 RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1"
 
 
-PACK_ENGINE_FILES = ('release_bundle.py', 'central_packages.py', 'handoff_contract.py',
+PACK_ENGINE_FILES = ('release_bundle.py', 'owned_scratch.py', 'central_packages.py', 'handoff_contract.py',
                      'shell_composition.py', 'runtime_closure.py', 'hosted_bundle.py', 'device_toolchain.py', 'program_kit_version.py')
 
 
@@ -234,6 +234,8 @@ def main() -> int:
             / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
             managed / "Invoke-RepositoryVerification.ps1",
         )
+        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKitPython.psm1', managed / 'ProgramKitPython.psm1')
+        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py', managed / 'python_runtime_contract.py')
         # This unit fixture isolates wrapper/environment routing. Actual compiled
         # architecture failures are exercised by validate_architecture_recipe and
         # validate_standalone_engineering, not by its fake dotnet command.
