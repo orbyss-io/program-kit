@@ -62,7 +62,7 @@
     ],
     "repositorySecretNames": [],
     "privateKeyValueAccessedByAgent": false,
-    "keyValidity": "pending operational check"
+    "keyValidity": "Actual App token mint and cleanup succeeded in all three hosted guardian runs"
   },
   "actions": {
     "allowlist": "Only the two approved SHA-pinned actions",
@@ -81,14 +81,34 @@
     "proofSha256": "7bc80a6698f82a4e987dfb638b9c2e0735dfb091cf206c76ce2fcfa12db81207",
     "priorFailure": "HTTP404 before user enabled the approved public App visibility; retained in provisioning journal"
   },
-  "status": "Provisioning complete; owner and anonymous consumer configuration verification passed; operational acceptance pending separate test-content approval",
-  "operationalAcceptance": "Not established; exact synthetic test contents prepared for separate approval",
+  "status": "Provisioned; owner/anonymous consumer configuration checks and all three approved guardian operational scenarios passed",
+  "operationalAcceptance": "Three approved synthetic guardian scenarios verified; valid accepted, invalid manifest rejected, same-name forgery rejected. No consumer or release acceptance claim.",
   "syntheticTestReview": "docs/reviews/repair-feedback-operational-test-proposal-2026-10-16.json",
   "journal": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/provisioning-journal.json",
   "administrativeReadback": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/completed-readback.json",
   "programKitMainOrReleaseChanges": [],
   "evidenceAcceptanceMerges": [],
-  "testPRsPublished": [],
+  "testPRsPublished": [
+    {
+      "url": "https://github.com/orbyss-io/program-kit-evidence/pull/1",
+      "state": "closed",
+      "merged": false,
+      "head": "03d1b5e3062329ec307e434393b350b72c85773e"
+    },
+    {
+      "url": "https://github.com/orbyss-io/program-kit-evidence/pull/2",
+      "state": "closed",
+      "merged": false,
+      "head": "1d7ca562520e07acd983cba52ff2173bb4c7b53e"
+    },
+    {
+      "url": "https://github.com/orbyss-io/program-kit-evidence/pull/3",
+      "state": "closed",
+      "merged": false,
+      "head": "c88c2490b6df48d6d07b81a2a02dd390628391a0"
+    }
+  ],
   "publicVerificationProof": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/public-read-only-verification.json",
-  "syntheticTestReviewSha256": "e5c228cc25bf5f70e44b0b3dba29a7870959a46a0e0ca9e15efc2822184e08a0"
+  "syntheticTestReviewSha256": "e5c228cc25bf5f70e44b0b3dba29a7870959a46a0e0ca9e15efc2822184e08a0",
+  "operationalTestResults": "docs/reviews/repair-feedback-operational-test-results-2026-10-16.json"
 }
