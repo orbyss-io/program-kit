@@ -262,3 +262,44 @@ typed architecture/solution projections, migration and the exact-candidate
 qualification/adoption gates remain open. No publication candidate was selected,
 and no new batch, paid execution, device installation or active-consumer change
 was started.
+
+## Continuation: native browser feature and development package proof
+
+Foundation commits `5bda709` and `7c209af` add the selectable presentation feature,
+typed settings/bootstrap, embedded versioned modules/types, safe native problem
+rendering, native BFF transport, combined shell/route-prefix handling and the
+neutral Host fallback. The first transport pass acquired antiforgery too early;
+`7c209af` corrects that gap. Its real browser regression asserts zero acquisition
+while confirmation is pending or cancelled, then exactly one admitted token GET
+and native logout POST. Controls stay serialized through navigation. Old passed
+and failed runs remain separate evidence scopes.
+
+Configured native checks cover root/prefixed shells, encoding/locales, anonymous
+assets, native antiforgery refusal, actual OIDC challenge and provider failure,
+independent local-session observation, local logout and unchanged machine JSON.
+Chromium and WebKit ran at measured 1280x720 and 390x844, including no-script forms.
+Real history navigation after server ticket revocation preserves cookie identity.
+Chromium observed a persisted restore with private DOM hidden until revalidation;
+WebKit used a fresh navigation and is recorded accordingly. Private no-store
+responses were preserved. A public static test shell contains no private response
+payload and adds synthetic private DOM only after native session observation.
+
+The portable neutral Host passed 18 browser/machine/HEAD/root/prefixed/unknown-shell
+HTTP cases without any selected Foundation runtime feature. This proof preceded
+an imports-only Host source change; current-source payload proof remains required.
+The native bounded-problem regressions and full BFF regressions passed separately.
+These are synthetic source/native scopes, without paid workers/provider execution
+or consumer acceptance. The active consumer and original Foundation checkout were
+not modified.
+
+A second owned disposable checkout at `artifacts/fdb-5bda709` builds commit
+`7c209af` with the explicit development-only version parameter
+`0.3.6-dev.maintenance.20261016`; its name is not source authority. The complete
+31-package runtime family builds/packs and passes package metadata validation.
+Cold installed WebDefaults/BFF/Presentation checks verify actual archive, native
+restore, settings and executed DLL hashes. This is development preparation, not
+public dependency closure or release qualification. Original source/consumer locks
+and historical receipts remain unchanged. Final public Nuplane/Build/Foundation
+closure, SPA-client integration, Program Kit composition/migration and the other
+pending ledger mechanisms still require implementation/qualification. Work
+continues within the same frozen 47 findings.

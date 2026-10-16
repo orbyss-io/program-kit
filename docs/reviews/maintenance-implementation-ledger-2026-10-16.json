@@ -517,11 +517,19 @@
       "sourceDiagnosis": "Correct withdrawn cause; retain measured assurance",
       "workPackages": "A/I/J",
       "closureRequired": "No false inheritance rule; central real tests assert effective viewports; no duplicate consumer Playwright tests.",
-      "status": "withdrawn-cause-disposition-recorded; measured-assurance-pending",
+      "status": "withdrawn-cause-disposition-retained; measured-central-native-viewports-verified; emitted-profile/CI pending",
       "changedFiles": [],
-      "validation": [],
+      "validation": [
+        {
+          "command": "configured-native-browser",
+          "status": "passed",
+          "scope": "Actual source-built BFF pages and combined native prefixes; measured 1280x720/390x844; zero acquisition pending/cancelled confirmation followed by one native GET/POST; independently observed local logout, no-script forms and synthetic provider. Real Chromium persisted restore after native ticket revocation; WebKit fresh history navigation. No packaged Host, SPA provider, public release or consumer acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/native/1792169903404-a3cf06e9-553c-46b4-aa2e-570bbf34522d/results.json",
+          "sha256": "38bc652bc5e0c5a7c1fbce1f17e0eb48c393c750e4cc1f698ad59e4eba638307"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Actual emitted selected-profile browser suite and CI acceptance remain. The original wrong-viewport cause remains withdrawn."
       ],
       "closureEvidence": []
     },
@@ -658,11 +666,20 @@
       "sourceDiagnosis": "Trace imports; align strict layout and real lifecycle",
       "workPackages": "A/C/D/I",
       "closureRequired": "Strict build/lint and real persisted-page/session/privacy recovery; original cause only claimed when substantiated.",
-      "status": "pending",
+      "status": "partially-implemented; shared native BFF transport and real persisted-page privacy recovery; frontend provenance/profile/adoption pending",
       "changedFiles": [],
-      "validation": [],
+      "validation": [
+        {
+          "command": "configured-native-browser",
+          "status": "passed",
+          "scope": "Actual source-built BFF pages and combined native prefixes; measured 1280x720/390x844; zero acquisition pending/cancelled confirmation followed by one native GET/POST; independently observed local logout, no-script forms and synthetic provider. Real Chromium persisted restore after native ticket revocation; WebKit fresh history navigation. No packaged Host, SPA provider, public release or consumer acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/native/1792169903404-a3cf06e9-553c-46b4-aa2e-570bbf34522d/results.json",
+          "sha256": "38bc652bc5e0c5a7c1fbce1f17e0eb48c393c750e4cc1f698ad59e4eba638307"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Original frontend typing/import provenance, strict emitted build/lint, selected SPA protocol client and original domain recovery obligations remain.",
+        "Public packaged native closure, supported migration, emitted profile qualification, CI and adoption remain. No consumer code or data was changed."
       ],
       "closureEvidence": []
     },
@@ -1551,7 +1568,7 @@
   "sharedCapabilities": [
     {
       "id": "Foundation browser presentation / confirmation",
-      "status": "partially-implemented; admitted native representation seam and browser module, no selectable presentation feature",
+      "status": "partially-implemented; selectable native presentation, BFF transport and private-page lifecycle; packaged/public/adoption closure pending",
       "source": "artifacts/maintenance-implementation-2026-10-16/foundation-source",
       "validation": [
         {
@@ -1616,18 +1633,48 @@
           "scope": "2 independent update/publication-order contracts pass.",
           "log": "artifacts/maintenance-implementation-2026-10-16/foundation-update-workflow-browser.log",
           "sha256": "6db5414056f12ab722eda33f0dbe6e60d33e9778d8f882a7dfcf8ecfb9e4c93b"
+        },
+        {
+          "command": "configured-native-browser",
+          "status": "passed",
+          "scope": "Actual source-built BFF pages and combined native prefixes; measured 1280x720/390x844; zero acquisition pending/cancelled confirmation followed by one native GET/POST; independently observed local logout, no-script forms and synthetic provider. Real Chromium persisted restore after native ticket revocation; WebKit fresh history navigation. No packaged Host, SPA provider, public release or consumer acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/native/1792169903404-a3cf06e9-553c-46b4-aa2e-570bbf34522d/results.json",
+          "sha256": "38bc652bc5e0c5a7c1fbce1f17e0eb48c393c750e4cc1f698ad59e4eba638307"
+        },
+        {
+          "command": "native-problem-regression",
+          "status": "passed",
+          "scope": "Native bounded closed-wire representation, privacy/cancellation, original endpoint and machine-wins metadata. Source/native scope.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/validation/892c0dcea9eb47c1b68a9288a6f7f1f7/problem-details.log",
+          "sha256": "8a8841507bb10c62a065ab4bfa62a618c2488e623c2fe449039c884f3221897c"
+        },
+        {
+          "command": "full-native-bff-regression",
+          "status": "passed",
+          "scope": "Native options, callbacks, discovery/JWKS/PAR, tickets, sessions, logout and configured pages; synthetic provider transport.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/validation/2834bce772e24b62815adef3188cdbff/bff-native.log",
+          "sha256": "41c9865a0e0a0b3f8d9a8cbb59c93187d0fea2ec01a7aa73ae489e6ee65001f6"
+        },
+        {
+          "command": "neutral-host",
+          "status": "passed",
+          "scope": "Actual portable development Host: 18 root/prefixed/unknown-shell browser/machine/HEAD cases with no selected Foundation feature. This preceded an imports-only Host source change; current-source packaged qualification remains.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/neutral-browser/18cfd56ece0e4c93b9c8792c719641d6/results.json",
+          "sha256": "f2cc0b424407f5d48932757b2cafa34c897f48a935b99490bb41e8036eab8986"
         }
       ],
       "remaining": [
-        "Selectable native presentation feature/options/routes with safe branding/locales and actual standard pages.",
-        "Native secure BFF/SPA browser transport integration, packaged assets/types and current knowledge.",
-        "Neutral Host browser fallback and actual fresh/upgraded emitted composition qualification; retain CI Firefox and native symlink legs.",
-        "Publisher dependency maintenance, locks, complete CI/security/readiness/publication before Program Kit adoption."
+        "Current-source packaged native Host and complete development package-family qualification remain; source probes are narrower evidence.",
+        "Selected native SPA client integration, accepted transport/lifecycle negatives, branding, migration and actual fresh/upgraded emitted Program Kit compositions remain.",
+        "Publisher dependency maintenance, fixed public Nuplane closure, independent Build release, current knowledge, CI/security/readiness and public publication precede final adoption.",
+        "Complete exact-candidate Program Kit qualification/adoption remain; retain CI Firefox and symlink legs."
       ],
       "nativeModuleEvidence": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/module/result.json",
       "implementationCommits": [
         "Foundation 8392075: purpose/admitted representation boundary and native endpoint metadata",
-        "Foundation 1890a74: shared confirmation module, strict TypeScript contracts and actual Chromium/WebKit module qualification"
+        "Foundation 1890a74: shared confirmation module, strict TypeScript contracts and actual Chromium/WebKit module qualification",
+        "Foundation 5bda709472c062741e08612960cc4d975b10e3f2: selectable native presentation, typed settings/bootstrap, embedded assets, native BFF/prefixes, neutral Host and private-page guard",
+        "Foundation 7c209af5d290c98914655b7c0cfb82146bf23efc: defer token acquisition until shared sign-out admission and serialize through native navigation"
       ]
     }
   ],
@@ -1741,6 +1788,52 @@
         "path": "artifacts/maintenance-implementation-2026-10-16/continuation-ledger-audit-final.json",
         "sha256": "17608165551ee8f89a51dc3fd220a035b9c49216989cea1057e6439d4bdbfc55",
         "status": "Current eligible references verified; one historical derived-output gap remains disclosed. No complete-batch acceptance claim."
+      }
+    },
+    {
+      "scope": "Frozen 47 and approved shared capability only; no later findings/transferred work adopted.",
+      "foundationCommits": [
+        "5bda709472c062741e08612960cc4d975b10e3f2",
+        "7c209af5d290c98914655b7c0cfb82146bf23efc"
+      ],
+      "validation": [
+        {
+          "command": "configured-native-browser",
+          "status": "passed",
+          "scope": "Actual source-built BFF pages and combined native prefixes; measured 1280x720/390x844; zero acquisition pending/cancelled confirmation followed by one native GET/POST; independently observed local logout, no-script forms and synthetic provider. Real Chromium persisted restore after native ticket revocation; WebKit fresh history navigation. No packaged Host, SPA provider, public release or consumer acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/native/1792169903404-a3cf06e9-553c-46b4-aa2e-570bbf34522d/results.json",
+          "sha256": "38bc652bc5e0c5a7c1fbce1f17e0eb48c393c750e4cc1f698ad59e4eba638307"
+        },
+        {
+          "command": "native-problem-regression",
+          "status": "passed",
+          "scope": "Native bounded closed-wire representation, privacy/cancellation, original endpoint and machine-wins metadata. Source/native scope.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/validation/892c0dcea9eb47c1b68a9288a6f7f1f7/problem-details.log",
+          "sha256": "8a8841507bb10c62a065ab4bfa62a618c2488e623c2fe449039c884f3221897c"
+        },
+        {
+          "command": "full-native-bff-regression",
+          "status": "passed",
+          "scope": "Native options, callbacks, discovery/JWKS/PAR, tickets, sessions, logout and configured pages; synthetic provider transport.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/validation/2834bce772e24b62815adef3188cdbff/bff-native.log",
+          "sha256": "41c9865a0e0a0b3f8d9a8cbb59c93187d0fea2ec01a7aa73ae489e6ee65001f6"
+        },
+        {
+          "command": "neutral-host",
+          "status": "passed",
+          "scope": "Actual portable development Host: 18 root/prefixed/unknown-shell browser/machine/HEAD cases with no selected Foundation feature. This preceded an imports-only Host source change; current-source packaged qualification remains.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/neutral-browser/18cfd56ece0e4c93b9c8792c719641d6/results.json",
+          "sha256": "f2cc0b424407f5d48932757b2cafa34c897f48a935b99490bb41e8036eab8986"
+        }
+      ],
+      "qualification": "Source/native scoped evidence; no complete batch/public acceptance",
+      "developmentBuildCheckout": "artifacts/fdb-5bda709",
+      "developmentBuildCommit": "7c209af5d290c98914655b7c0cfb82146bf23efc",
+      "developmentBuildStatus": "31 development runtime packages built/packed; metadata and cold installed owner checks passed; actual packaged Host and public closure remain",
+      "retention": "All unique failed/earlier browser runs remain under Foundation artifacts/browser-presentation/native; earlier source-built evidence remains historical.",
+      "developmentPackageProof": {
+        "path": "artifacts/maintenance-implementation-2026-10-16/continuation-07/development-package-proof.json",
+        "sha256": "ed938bdc9699ffc40a2ae23d2995572ca6231bae840fccf85bd82d56d6552d27"
       }
     }
   ]
