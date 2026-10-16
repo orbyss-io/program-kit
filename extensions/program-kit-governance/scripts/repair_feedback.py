@@ -358,8 +358,11 @@ def verify_deployment(api, base_commit, validator_commit):
             break
     else:
         raise ValueError('PKRF effective-rules-incomplete')
+    # Evidence is append-only. Requiring a rebase after another request merges
+    # would break immutable reviewed commits and response-loss retries. The
+    # guardian checks ancestry; GitHub merge conflicts still block collisions.
     c.require(any(r.get('type') == 'required_status_checks' and
-        r.get('parameters', {}).get('strict_required_status_checks_policy') is True and any(
+        r.get('parameters', {}).get('strict_required_status_checks_policy') is False and any(
         w.get('context') == 'program-kit-evidence/guardian' and w.get('integration_id') == config['githubAppId']
         for w in r.get('parameters', {}).get('required_status_checks', []))
         for r in effective) and any(r.get('type') == 'pull_request' and

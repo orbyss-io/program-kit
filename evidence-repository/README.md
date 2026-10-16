@@ -45,7 +45,7 @@ trusted source blobs with main and checks the App identity/permissions.
 
 Apply `repository-ruleset.template.json` to this repository after seeding and
 configuration. Replace `integration_id: 0` with the actual dedicated App ID.
-Require the exact check context **and** that App ID, strict latest-base checking,
+Require the exact check context **and** that App ID, without requiring rebasing,
 PRs, at least one approval, stale-review dismissal, code owner review, approval
 of the latest push, and resolved discussions. No bypass actors; block deletion
 and force pushes. `CODEOWNERS` names verified organization administrator
@@ -67,8 +67,11 @@ alone cannot prove these private settings.
 
 Dispatch the workflow from main after reviewing an incoming PR. A missing check,
 API failure, interrupted run or rejected inventory never establishes acceptance.
-A new head requires another dispatch and review. Strict status enforcement also
-requires a fresh check after updating the PR to a changed base. Merge only after
+A new head requires another dispatch and review. Accepted evidence and policy
+are immutable through this route, so an unrelated accepted request may advance
+main without forcing a rewrite of an already reviewed evidence commit. GitHub
+merge conflicts still block collisions. Each check records the base it inspected;
+the guardian verifies the submitted parent is an ancestor of that base. Merge only after
 the App check passes for the current head and a maintainer reviews the content.
 Same-name GitHub Actions jobs or checks from other Apps cannot satisfy the rule.
 

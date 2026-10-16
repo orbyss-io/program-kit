@@ -75,7 +75,7 @@ class RecordingGitHub:
         self.fail_read = False
         self.rules = {'enforcement': 'active', 'target': 'branch', 'bypass_actors': [], 'source_type': 'Repository', 'source': c.EVIDENCE,
             'conditions': {'ref_name': {'include': ['refs/heads/main'], 'exclude': []}},
-            'rules': [{'type': 'required_status_checks', 'parameters': {'strict_required_status_checks_policy': True,
+            'rules': [{'type': 'required_status_checks', 'parameters': {'strict_required_status_checks_policy': False,
                       'required_status_checks': [{'context': guardian_check.CHECK, 'integration_id': 123}]}},
                       {'type': 'pull_request', 'parameters': {'required_approving_review_count': 1, 'dismiss_stale_reviews_on_push': True,
                                                             'require_code_owner_review': True, 'require_last_push_approval': True,
@@ -354,7 +354,7 @@ class RepairTests(unittest.TestCase):
 
     def test_public_rejects_same_name_guardian_rules_and_wrong_destination_before_writes(self):
         rf.configure(self.consumer, 'consumer'); review = self.review()
-        for change in ('same-name-check', 'bypass', 'wrong-repository', 'source-moved', 'no-review', 'wrong-app', 'broad-app', 'wrong-owner', 'inactive-check'):
+        for change in ('same-name-check', 'bypass', 'wrong-repository', 'source-moved', 'no-review', 'wrong-app', 'broad-app', 'wrong-owner', 'inactive-check', 'base-rewrite-required'):
             api = RecordingGitHub()
             if change == 'same-name-check': api.rules['rules'][0] = {'type': 'required_status_checks', 'parameters': {'required_status_checks': [{'context': 'guardian'}]}}
             elif change == 'bypass': api.rules['bypass_actors'] = [{'actor_id': 1}]
@@ -364,6 +364,7 @@ class RepairTests(unittest.TestCase):
             elif change == 'broad-app': api.app['permissions']['contents'] = 'write'
             elif change == 'wrong-owner': api.app['owner']['login'] = 'untrusted'
             elif change == 'inactive-check': api.rules['enforcement'] = 'disabled'
+            elif change == 'base-rewrite-required': api.rules['rules'][0]['parameters']['strict_required_status_checks_policy'] = True
             else: api.rules['rules'][1]['parameters']['require_last_push_approval'] = False
             with self.assertRaises(ValueError): rf.public(self.consumer, self.packet, review, review['reviewDigest'], api)
             self.assertEqual([], api.writes)
@@ -543,7 +544,8 @@ class RepairTests(unittest.TestCase):
             if '/pulls/' in endpoint and '/files?' not in endpoint:
                 return {'head': {'sha': HEAD}, 'base': {'sha': BASE, 'ref': 'main', 'repo': {'full_name': c.EVIDENCE}}, 'changed_files': len(changes)}
             if '/files?' in endpoint: return changes
-            if '/git/commits/' in endpoint: return {'parents': [{'sha': BASE}]}
+            if '/git/commits/' in endpoint: return {'parents': [{'sha': 'd' * 40 if bad in ('ancestor', 'diverged') else BASE}]}
+            if '/compare/' in endpoint: return {'status': 'ahead', 'merge_base_commit': {'sha': 'd' * 40 if bad == 'ancestor' else 'e' * 40}}
             if '/git/trees/' in endpoint: return {'tree': tree, 'truncated': bad == 'truncated'}
             if '/git/blobs/' in endpoint: return blobs[endpoint.rsplit('/', 1)[-1]]
             raise AssertionError(endpoint)
@@ -554,13 +556,13 @@ class RepairTests(unittest.TestCase):
         with patch.object(subprocess, 'run', side_effect=AssertionError('guardian executed a subprocess')):
             proof = guardian.inspect(self.guardian_api(), c.EVIDENCE, 1, HEAD, BASE, TRUSTED)
         self.assertEqual(HEAD, proof['submittedCommit']); self.assertEqual(TRUSTED, proof['validatorCommit'])
-        for bad in ('policy', 'prior-evidence', 'symlink', 'extra-tree', 'truncated'):
+        for bad in ('policy', 'prior-evidence', 'symlink', 'extra-tree', 'truncated', 'diverged'):
             with self.subTest(bad=bad), self.assertRaises(ValueError): guardian.inspect(self.guardian_api(bad), c.EVIDENCE, 1, HEAD, BASE, TRUSTED)
         with self.assertRaises(ValueError): guardian.inspect(self.guardian_api(), 'consumer/default-remote', 1, HEAD, BASE, TRUSTED)
 
     def test_dedicated_app_check_binds_actual_head_and_never_passes_rejected_or_moved_data(self):
-        for bad in (None, 'policy', 'symlink', 'moved'):
-            reads, writes = self.guardian_api('policy' if bad == 'policy' else 'symlink' if bad == 'symlink' else None), []
+        for bad in (None, 'policy', 'symlink', 'moved', 'ancestor'):
+            reads, writes = self.guardian_api(bad), []
             count = 0
             def api(method, endpoint, payload=None):
                 nonlocal count
@@ -577,8 +579,8 @@ class RepairTests(unittest.TestCase):
             proof = guardian_check.run(api, c.EVIDENCE, 1, TRUSTED)
             self.assertEqual(HEAD, writes[0][2]['head_sha'])
             self.assertEqual(guardian_check.CHECK, writes[0][2]['name'])
-            self.assertEqual('success' if bad is None else 'failure', writes[-1][2]['conclusion'])
-            self.assertEqual(bad is None, proof is not None)
+            self.assertEqual('success' if bad in (None, 'ancestor') else 'failure', writes[-1][2]['conclusion'])
+            self.assertEqual(bad in (None, 'ancestor'), proof is not None)
             self.assertIn(TRUSTED, writes[-1][2]['output']['summary'])
         with self.assertRaises(ValueError): guardian_check.run(api, 'other/repo', 1, TRUSTED)
 
