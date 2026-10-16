@@ -657,6 +657,13 @@ class RepairTests(unittest.TestCase):
 class IntakeTests(unittest.TestCase):
     setUp = RepairTests.setUp
 
+    def test_cli_missing_owner_identifies_required_registration(self):
+        result = subprocess.run([sys.executable, str(ROOT / 'scripts/repair_evaluator.py'), '--root', str(self.owner),
+                                 'register-owner', '--ledger', 'docs/owner-ledger.json'], capture_output=True, text=True)
+        self.assertEqual(1, result.returncode)
+        self.assertIn('PKRF owner-required-register-and-configure-route', result.stderr)
+        self.assertEqual('', result.stdout)
+
     def queue(self, packets=None):
         rf.configure(self.consumer, 'contributor', self.owner, 'maintenance')
         for directory, _ in packets or [(self.packet, self.value)]:

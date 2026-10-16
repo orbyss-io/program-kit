@@ -281,8 +281,11 @@ def main():
         else: result = submit(args.root, intake.read(args.assessment))
         print(json.dumps(result, indent=2))
         return 0
-    except (ValueError, OSError, KeyError, TypeError):
-        print('PKRF assessment-invalid-or-queue-unavailable; original records preserved', file=sys.stderr)
+    except (ValueError, OSError, KeyError, TypeError) as error:
+        # Contract errors contain fixed diagnostic codes; platform/JSON errors
+        # may contain submitted data and are deliberately not echoed.
+        print(str(error) if isinstance(error, ValueError) and str(error).startswith('PKRF ') else
+              'PKRF assessment-invalid-or-queue-unavailable; original records preserved', file=sys.stderr)
         return 1
 
 
