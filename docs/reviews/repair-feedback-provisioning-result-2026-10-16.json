@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "approvedBy": "Explicit user approval to provision exact repository and GitHub App setup, 2026-10-16",
+  "approvedSetup": "docs/reviews/repair-feedback-evidence-setup-2026-10-16.json",
+  "approvedSetupSha256": "a2f39c6d26851b2fed088ca3aad6aed4b58466a88caddfc4d7ec1d6c36ecf6dd",
+  "repository": {
+    "name": "orbyss-io/program-kit-evidence",
+    "id": 1422311622,
+    "url": "https://github.com/orbyss-io/program-kit-evidence",
+    "mainCommit": "413b086a91c82d873a4aaa7163a1b3e339e49f27",
+    "validatorCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+    "source": "Exact 13 approved seed files; later change only approved deployment metadata substitutions"
+  },
+  "app": {
+    "id": 5346881,
+    "slug": "program-kit-evidence-guardian",
+    "html_url": "https://github.com/apps/program-kit-evidence-guardian",
+    "client_id": "Iv23liEC4gWtj41Vf5xm",
+    "permissions": {
+      "checks": "write",
+      "contents": "read",
+      "metadata": "read",
+      "pull_requests": "read"
+    },
+    "events": [],
+    "visibility": "Public; anonymous metadata read verified"
+  },
+  "installation": {
+    "id": 172120741,
+    "repository_selection": "selected",
+    "html_url": "https://github.com/organizations/orbyss-io/settings/installations/172120741",
+    "permissions": {
+      "checks": "write",
+      "contents": "read",
+      "metadata": "read",
+      "pull_requests": "read"
+    },
+    "events": []
+  },
+  "installationScopeEvidence": {
+    "freshAPI": "installation 172120741 is selected-repositories, active, with exact App permissions",
+    "humanScreenshot": "installation-scope-user-screenshot.png",
+    "screenshotSha256": "3c686f6ef2c32e3198ab670c30bbcc92a6b710e9f6a6ce88e5904954dd3b0a32",
+    "visibleScope": "Only select repositories; Selected 1 repository: orbyss-io/program-kit-evidence",
+    "source": "User supplied screenshot during this provisioning session"
+  },
+  "ruleset": {
+    "id": 25249325,
+    "enforcement": "active",
+    "bypassActors": [],
+    "requiredCheck": "program-kit-evidence/guardian",
+    "integrationId": 5346881,
+    "codeOwner": "@joey-orbyss",
+    "maintainerApprovalRequired": true
+  },
+  "environment": {
+    "name": "evidence-guardian",
+    "deploymentBranch": "main only; no tags",
+    "canAdminsBypass": false,
+    "secretNames": [
+      "GUARDIAN_APP_PRIVATE_KEY"
+    ],
+    "repositorySecretNames": [],
+    "privateKeyValueAccessedByAgent": false,
+    "keyValidity": "pending operational check"
+  },
+  "actions": {
+    "allowlist": "Only the two approved SHA-pinned actions",
+    "defaultWorkflowToken": "read",
+    "canApprovePullRequestReviews": false
+  },
+  "ownerVerification": "Passed fresh verify_deployment against actual API; it does not prove key validity or operational acceptance",
+  "publicConsumerVerification": {
+    "outcome": "passed",
+    "authentication": "none",
+    "retrievedAt": "2026-10-16T15:19:25.375797+00:00",
+    "rulesetId": 25249325,
+    "githubAppId": 5346881,
+    "bypassVisibility": "not-disclosed-by-GitHub-to-read-only-consumer",
+    "proof": "public-read-only-verification.json",
+    "proofSha256": "7bc80a6698f82a4e987dfb638b9c2e0735dfb091cf206c76ce2fcfa12db81207",
+    "priorFailure": "HTTP404 before user enabled the approved public App visibility; retained in provisioning journal"
+  },
+  "status": "Provisioning complete; owner and anonymous consumer configuration verification passed; operational acceptance pending separate test-content approval",
+  "operationalAcceptance": "Not established; exact synthetic test contents prepared for separate approval",
+  "syntheticTestReview": "docs/reviews/repair-feedback-operational-test-proposal-2026-10-16.json",
+  "journal": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/provisioning-journal.json",
+  "administrativeReadback": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/completed-readback.json",
+  "programKitMainOrReleaseChanges": [],
+  "evidenceAcceptanceMerges": [],
+  "testPRsPublished": [],
+  "publicVerificationProof": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/public-read-only-verification.json",
+  "syntheticTestReviewSha256": "e5c228cc25bf5f70e44b0b3dba29a7870959a46a0e0ca9e15efc2822184e08a0"
+}

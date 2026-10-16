@@ -377,6 +377,24 @@
         "artifacts/validation-runs/20261016T144202Z-b54e18fc/toolchain-normal-device-path-rerun.log",
         "artifacts/validation-runs/20261016T144545Z-9debc2ec/toolchain-normal-device-path-rerun.log"
       ]
+    },
+    {
+      "id": "actual-evidence-repository-owner-verification",
+      "outcome": "Owner and anonymous consumer verification passed after approved public visibility enabled. App key presence/scope verified, value never accessed; actual check execution pending.",
+      "repository": "orbyss-io/program-kit-evidence",
+      "mainCommit": "413b086a91c82d873a4aaa7163a1b3e339e49f27",
+      "validatorCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+      "githubAppId": 5346881,
+      "rulesetId": 25249325,
+      "evidence": "docs/reviews/repair-feedback-provisioning-result-2026-10-16.json"
+    },
+    {
+      "id": "actual-evidence-repository-anonymous-consumer-verification",
+      "outcome": "passed with no credentials, organization membership or repository write",
+      "repository": "orbyss-io/program-kit-evidence",
+      "mainCommit": "413b086a91c82d873a4aaa7163a1b3e339e49f27",
+      "validatorCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+      "evidence": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/public-read-only-verification.json"
     }
   ],
   "dependencies": [
@@ -387,13 +405,13 @@
     },
     {
       "id": "evidence-repository",
-      "disposition": "pending",
-      "evidence": "docs/reviews/repair-feedback-provisioning-inspection-2026-10-16.json"
+      "disposition": "provisioned; operational acceptance pending",
+      "evidence": "docs/reviews/repair-feedback-provisioning-result-2026-10-16.json"
     },
     {
       "id": "trusted-rules",
-      "disposition": "pending",
-      "evidence": "Pending exact setup approval, actual App-bound repository rules, main-only secret environment, verified code owner and operational checks; source/fakes cannot establish deployment."
+      "disposition": "active; owner and anonymous consumer configuration verification passed; operational acceptance pending",
+      "evidence": "docs/reviews/repair-feedback-provisioning-result-2026-10-16.json"
     }
   ],
   "closure": {
@@ -401,7 +419,7 @@
     "independentlyValidated": false,
     "released": false,
     "confirmedInConsumer": "unavailable",
-    "publicInfrastructure": "not-established; separate publication approval and actual provisioning/rules verification required",
+    "publicInfrastructure": "Provisioned and fresh owner/anonymous consumer configuration verification passed. Key value not accessed; operational acceptance requires separately approved synthetic tests.",
     "featureComplete": false,
     "deterministicFeatureChecks": true,
     "releaseGuidance": "releases/history.json -> migration-0.13.3.md (unreleased; VERSION not changed)",
@@ -410,16 +428,21 @@
     "preparedInventory": "docs/reviews/repair-feedback-evidence-source-manifest-2026-10-16.json",
     "development": "Full comparison: branch 83/103 passed; baseline 82/102 passed, same 20 failed checks and failing cases. Nineteen Windows deep-path/cleanup failures; device-toolchain launch selection corrected and 15 tests pass on both. Final feature correction validated at e4648f6 by standard runner (27 tests). No passed full Development or release claim.",
     "externalDependencies": [
-      "Approval of exact public source and dedicated public App registration",
-      "Actual evidence repository, App-only installation selection, main-only secret environment and effective rules verification",
-      "Separate approval of synthetic public operational PR contents, then actual acceptance checks",
+      "Separate approval of exact three synthetic public test commits, PR contents and guardian dispatches, then operational checks",
       "CI exact-candidate qualification before any release claim"
     ],
     "reviewableBranch": "codex/repair-feedback; local commits only",
-    "publicMutations": [],
+    "publicMutations": [
+      "Created orbyss-io/program-kit-evidence and pushed approved seed 1fee678a420d667c8e3fb07927cd593a011ab134",
+      "User registered App 5346881 and installed it only on the evidence repository; user entered key directly in evidence-guardian environment",
+      "Configured approved environment, variables and Actions restrictions",
+      "Published only approved deployment metadata at 413b086a91c82d873a4aaa7163a1b3e339e49f27 and activated ruleset 25249325"
+    ],
     "preparedSeedCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
     "developmentComparison": "docs/reviews/repair-feedback-development-comparison-2026-10-16.json",
-    "setupProposal": "docs/reviews/repair-feedback-evidence-setup-2026-10-16.json"
+    "setupProposal": "docs/reviews/repair-feedback-evidence-setup-2026-10-16.json",
+    "provisioningEvidence": "docs/reviews/repair-feedback-provisioning-result-2026-10-16.json",
+    "operationalTestProposal": "docs/reviews/repair-feedback-operational-test-proposal-2026-10-16.json"
   },
   "implementationCommit": "e4648f669b67fd7d6deb5967f4caa7ff0fd4d31a",
   "changedFiles": [
@@ -432,7 +455,9 @@
     "docs/reviews/repair-feedback-execution-ledger-2026-10-16.json",
     "docs/reviews/repair-feedback-feature-specification-2026-10-16.md",
     "docs/reviews/repair-feedback-implementation-handoff-2026-10-16.md",
+    "docs/reviews/repair-feedback-operational-test-proposal-2026-10-16.json",
     "docs/reviews/repair-feedback-provisioning-inspection-2026-10-16.json",
+    "docs/reviews/repair-feedback-provisioning-result-2026-10-16.json",
     "evidence-repository/.github/CODEOWNERS",
     "evidence-repository/.github/workflows/guardian.yml",
     "evidence-repository/README.md",
