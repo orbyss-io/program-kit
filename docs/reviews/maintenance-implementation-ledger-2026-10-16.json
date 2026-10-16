@@ -1130,15 +1130,18 @@
     {
       "id": "N3",
       "finding": "N3 Accepted story reopened",
-      "sourceDiagnosis": "Extend existing scoped material projections/diagnostics conservatively",
+      "sourceDiagnosis": "Retain exact historical whole-file decisions and separately authorized assessments. New explicitly reviewed scopes support story regions, native validated architecture/provider dependency closure, and bounded plain C# SDK solution/source/shared-policy closure. Unknown broader build shapes fail explicitly instead of being classified unrelated.",
       "workPackages": "D/G/I",
       "closureRequired": "Unrelated additions preserve approval; affecting shared changes and rule changes cannot fabricate acceptance.",
-      "status": "partially-implemented; exact retrospective assessment and native solution case verified",
+      "status": "implemented-conservative-story-architecture-and-plain-SDK-closure; current-integration-and-CI-pending",
       "changedFiles": [
         "extensions/program-kit-governance/references/phase-evidence.md",
         "extensions/program-kit-governance/scripts/review_material.py",
         "extensions/program-kit-governance/scripts/task_draft.py",
-        "tests/validate_story_delivery.py"
+        "tests/validate_story_delivery.py",
+        "extensions/program-kit-governance/scripts/material_closure.py",
+        "tests/validate_material_closure.py",
+        "tests/validation-inventory.json"
       ],
       "validation": [
         {
@@ -1168,11 +1171,24 @@
           "scope": "63 story-delivery cases, including actual native build/pack/runtime, exact context assessment, full earlier evidence chain, fresh human review after material change, archived original presentation/assessment/decision preservation and refusal to reuse its authority. Human decisions are synthetic.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-06/validate_story_delivery.log",
           "sha256": "f68da50a6389b6f30e93ff6d06b953e4ccfc8dd2ca35746383c4d6e28c49d38e"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Six final checks passed. Actual native two-story restore/build/pack/runtime leaves selected assembly and complete package payload unchanged after an unrelated private library addition; original fictional decision/checkpoint unchanged. Shared build policy changes native runtime/assembly and materiality. Architecture uses canonical native validation, fixed-point dependencies, provider/owner/global authority. New selected sources/forward dependencies bind; custom/package/target/solution/response-file shapes fail explicitly. Source begin/end and actual commands/streams retained. Human review is simulated; fresh engineering is independent.",
+          "log": "artifacts/material-closure/ec1ed3f647c14e8c8ef721e0c7c91b9c/results.json",
+          "sha256": "5c401b1196072f679fa718e3582b0052fa81d75ac41969ed3341acaf9206f110"
+        },
+        {
+          "command": "validate_story_delivery-material-closure.log",
+          "status": "passed",
+          "scope": "63 existing story delivery tests passed: original human review/history/assessment provenance and engineering freshness remain separate; no retrospective scope or policy change can manufacture acceptance.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/validate_story_delivery-material-closure.log",
+          "sha256": "83a6a0f5461d182b5c98ce94bc1ff5ed9262a847cfa84090d5d37641438b1ff6"
         }
       ],
       "remainingDependencies": [
-        "Automatic conservative typed architecture/solution closure projection remains unfinished; those files retain full bindings. The implemented retrospective transition binds an exact current conservative engineering context instead of granting a standing exclusion for future sibling changes.",
-        "Complete current-source Development, exact-candidate CI and released normal adoption remain. No real consumer material assessment has been requested or performed."
+        "Current complete installed/profile integration and exact-candidate CI qualification remain. Plain SDK projection deliberately excludes packages, custom imports/targets/conditions, alternate SDKs and configured solutions; existing whole-file bindings or an exact separately instructed native material assessment remain required there."
       ],
       "closureEvidence": [
         "New presentations can bind a finite reviewed story partition: shared prose and selected story closure remain material; only declared independent sibling bodies are omitted. Existing review records are not narrowed or rewritten. Native review-material diagnostics do not mutate checkpoints, renew engineering evidence or create acceptance.",

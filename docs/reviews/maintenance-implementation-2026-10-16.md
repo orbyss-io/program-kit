@@ -495,3 +495,29 @@ planned/materialized transitions. Updater boundary (23), device toolchain (16),
 knowledge inventory and validation-runner checks passed separately. One earlier
 run rejected a source file changed while the run was active; it remains failed.
 No historical execution/readiness, public release or consumer acceptance is inferred.
+
+## Continuation: conservative material dependency closure
+
+N3 now adds explicitly reviewed architecture and plain C# SDK solution projections
+alongside story regions and exact separate assessments. Canonical architecture
+validation follows relevant dependency/provider/ownership closure while retaining
+shared authority/configuration. A bounded plain SDK projection binds selected forward
+projects, all selected sources and shared root/build/SDK/configuration files. It
+admits only independent private nonpackable solution members; broader package,
+custom/conditional/import/target/response-file and solution configurations require
+their existing whole-file binding or a separately instructed native assessment.
+Unknown policy is never silently dropped. Earlier review scopes are unchanged.
+
+All six focused checks passed at
+`artifacts/material-closure/ec1ed3f647c14e8c8ef721e0c7c91b9c/results.json`.
+Actual native build, complete package payload and runtime remain identical after a
+private sibling addition; original simulated review/checkpoint bytes remain intact.
+A shared build-policy change alters the actual runtime/assembly and reopens the
+material scope. Provider/global authority changes remain material. Source begin/end
+hashes and real command streams are retained. A mutable returned snapshot was found
+by the architecture regression and corrected; earlier failed logs remain failed.
+All 63 existing story-delivery tests, inventory and validation-runner checks passed.
+This supplies no human/application acceptance and does not replace current engineering
+freshness. Main's separately approved changes were merged at 1aaaafa; the two
+previously untracked identical handoff files were preserved before integration.
+Held additions remain outside the frozen 47 findings.

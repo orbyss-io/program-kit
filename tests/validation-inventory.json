@@ -5091,6 +5091,45 @@
       ],
       "resources": [],
       "isolation": "Disposable Git consumers and deterministic recording API fakes; all submitted code treated as data."
+    },
+    {
+      "id": "validate_material_closure",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_material_closure.py"
+      ],
+      "group": "development",
+      "needs": [
+        "validate_story_delivery"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Reviewed conservative architecture dependency/provider closure and plain SDK solution projection; actual two-story build/package/runtime with preserved fictional human decision and shared policy reopening.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_material_closure.py",
+        "tests/validate_story_delivery.py",
+        "extensions/program-kit-governance/scripts/material_closure.py",
+        "extensions/program-kit-governance/scripts/review_material.py",
+        "extensions/program-kit-governance/scripts/feature_knowledge.py",
+        "extensions/program-kit-governance/scripts/architecture_map.py",
+        "extensions/program-kit-governance/scripts/task_draft.py",
+        "extensions/program-kit-governance/references/phase-evidence.md",
+        "extensions/program-kit-governance/references/architecture-map.schema.json",
+        "extensions/program-kit-dotnet/templates/dotnet/files/global.json"
+      ],
+      "outputs": [
+        "artifacts/material-closure/<unique>/results.json"
+      ],
+      "resources": [],
+      "isolation": "Synthetic SDK projects and canonical architecture, no package/provider/agent calls. Decisions are explicitly fictional. Unsupported build shapes remain fully bound or require an explicit native material assessment."
     }
   ],
   "groups": {

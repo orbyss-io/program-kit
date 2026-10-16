@@ -236,6 +236,25 @@ does not renew engineering evidence. Its output distinguishes a changed projecti
 changed reviewed material. Architecture/solution/build/package/runtime closure remains under its
 existing full bindings until a supported, reviewed projection/transition establishes that scope.
 
+New presentations can explicitly select `architecture-closure` version 1 for
+`docs/architecture/architecture-map.json` with an `elements` array. The native
+validated canonical projection follows actual ownership and boundary dependencies
+to a fixed point, retains decisions and complete shared authority/configuration,
+and includes relevant journeys/contracts/provider and failure ownership. Ancestors
+remain shared without automatically owning every sibling implementation. Projection
+and native model/schema implementation hashes remain part of the original policy.
+
+For a plain C# SDK solution, `solution-closure` version 1 names its `.slnx` `path`
+and original entry `projects`. It binds selected forward project dependencies,
+source files and shared build/SDK/configuration policy, including newly added selected
+source files. Only disconnected, explicitly nonpackable library members can be
+omitted. This bounded policy rejects packages, custom/conditional/imported/dynamic
+MSBuild, alternate SDKs, solution configurations/folders, external/aliased inputs
+and broader output policy. Retain those inputs whole or use a separate explicit
+native material assessment; do not infer independence from filenames.
+Shared or unknown policy remains material. Fresh native build, package and runtime
+evidence is still required independently of an unchanged human review projection.
+
 For an existing accepted review, a separately instructed owner may use the `delivery` action
 `assess-material`. This records an exact retrospective assessment; it never narrows the old
 `basisPaths` or changes the presentation, reviewer, decision or measured effort. It grants no

@@ -142,6 +142,21 @@ def basis(root, scope, paths):
             result[relative] = digest(read_json(path)) if kind == 'json' else hashlib.sha256(path.read_bytes()).hexdigest()
         elif kind == 'story-document':
             result[relative] = digest(story_document_projection(path, row))
+        elif kind in ('architecture-closure','solution-closure'):
+            import material_closure
+            implementation['material_closure.py']=hashlib.sha256(Path(material_closure.__file__).read_bytes()).hexdigest()
+            require(type(row.get('version')) is int and row['version']==1,'unsupported closure projection version')
+            if kind=='architecture-closure':
+                require(set(row)=={'path','kind','version','elements'} and relative=='docs/architecture/architecture-map.json',
+                        'unsupported architecture closure fields')
+                for name in ('architecture_map.py','feature_knowledge.py'):
+                    implementation[name]=hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
+                implementation['architecture-map.schema.json']=hashlib.sha256(
+                    Path(__file__).parents[1].joinpath('references/architecture-map.schema.json').read_bytes()).hexdigest()
+                result[relative]=digest(material_closure.architecture(root,read_json(path),row['elements']))
+            else:
+                require(set(row)=={'path','kind','version','projects'},'unsupported solution closure fields')
+                result[relative]=digest(material_closure.solution(root,path,row['projects']))
         elif kind == 'foundation-composition':
             require(set(row) == {'path', 'kind', 'version', 'hosts', 'environments'} and type(row['version']) is int and row['version'] == 1 and
                     relative == 'eng/foundation-composition.json', 'unsupported composition projection')
@@ -153,7 +168,8 @@ def basis(root, scope, paths):
                     relative in ('eng/verification.json', 'eng/verification.setup.json'), 'unsupported verification projection')
             value = read_json(path)
             require(isinstance(value, dict) and type(value.get('schemaVersion')) is int and value.get('schemaVersion') == 1 and
-                    set(value) <= {'schemaVersion', 'testGroups', 'runnerReuse', 'testOwnershipReplacements', 'owner'},
+                    set(value) <= {'schemaVersion', 'testGroups', 'runnerReuse', 'testOwnershipReplacements', 'owner',
+                                   'toolkitChecks','unmappedInputs','reason'},
                     'unknown verification version/fields')
             projects = row['projects']
             require(isinstance(projects, list) and projects and len(set(projects)) == len(projects) and
@@ -226,6 +242,8 @@ def explain(root, review):
         rows.append({'path': relative, 'kind': row['kind'], 'rawChanged': raw != engineering.get(relative),
                      'materialChanged': not unchanged, 'currentRawSha256': raw,
                      'reason': 'projection definition or implementation changed' if not policy_current else
+                               'selected architecture/build/package/runtime closure changed' if not unchanged
+                                   and row['kind'] in ('architecture-closure','solution-closure') else
                                'reviewed material input changed' if not unchanged else
                                'reviewed material projection unchanged; raw engineering freshness remains independent'})
     return {'readOnly': True, 'acceptanceEstablished': False, 'projectionPolicyCurrent': policy_current,
