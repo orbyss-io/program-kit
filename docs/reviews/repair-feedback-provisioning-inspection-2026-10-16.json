@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "inspectedOn": "2026-10-16",
+  "repository": "orbyss-io/program-kit-evidence",
+  "operation": "Installed GitHub CLI read-only API GET repos/orbyss-io/program-kit-evidence with Cache-Control: no-cache, no-store",
+  "executable": "C:/Program Files/GitHub CLI/gh.exe",
+  "outcome": "HTTP 404 Not Found",
+  "meaning": "Not provisioned or not accessible to this authenticated account. Existence, owner permissions, maintainer team, ruleset and deployed guardian are not established.",
+  "publicMutations": [],
+  "preparedSource": "evidence-repository/",
+  "recovery": "Review prepared repository source and organization ruleset template; separately authorize actual provisioning and inspect deployed workflow identity/rules/maintainer review before enabling public delivery.",
+  "fixturesAreDeploymentEvidence": false
+}

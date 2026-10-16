@@ -1,0 +1,115 @@
+{
+  "assessmentSchema": "assessment.schema.json",
+  "budgets": {
+    "allowedExtensions": [
+      ".cs",
+      ".diff",
+      ".js",
+      ".json",
+      ".log",
+      ".md",
+      ".patch",
+      ".pdf",
+      ".png",
+      ".ps1",
+      ".py",
+      ".sh",
+      ".ts",
+      ".txt",
+      ".yaml",
+      ".yml"
+    ],
+    "files": 24,
+    "perFileBytes": 262144,
+    "qualifiedBinaryExtensions": [
+      ".pdf",
+      ".png"
+    ],
+    "totalBytes": 1048576
+  },
+  "compatibility": "Unknown contract versions are preserved and explicitly mapped in separate assessments; never silently upgraded.",
+  "contractVersion": "1.0",
+  "enums": {
+    "assessmentCause": [
+      "program-kit-defect",
+      "guidance-gap",
+      "consumer-choice",
+      "domain-adaptation",
+      "mixed",
+      "unknown"
+    ],
+    "component": [
+      "governance",
+      "bootstrap",
+      "knowledge",
+      "building-blocks",
+      "dotnet",
+      "upgrade",
+      "tooling",
+      "unclassified"
+    ],
+    "evidenceClass": [
+      "reported",
+      "inspected",
+      "independently-reproduced",
+      "unknown"
+    ],
+    "explanationKind": [
+      "recorded",
+      "retrospective",
+      "unknown"
+    ],
+    "lifecycleFacts": [
+      "evidenceAccepted",
+      "assessed",
+      "confirmedRepair",
+      "implemented",
+      "validated",
+      "released",
+      "confirmedInConsumer"
+    ],
+    "proposedDisposition": [
+      "adopt",
+      "duplicate",
+      "defer",
+      "reject",
+      "needs-proof"
+    ]
+  },
+  "guardian": {
+    "limitations": "No assertion of truth, authenticated publisher, arbitrary personal/business safety or consumer acceptance.",
+    "meaning": "Contract validity only; maintainer acceptance required. No submitted code execution.",
+    "sensitiveChecks": [
+      "GitHub token patterns",
+      "AWS access key IDs",
+      "private key headers",
+      "Bearer headers",
+      "credential assignments"
+    ],
+    "version": "repair-guardian-1"
+  },
+  "questions": {
+    "context": "Which consumer, Program Kit/profile/knowledge versions, phase, task and triggering command? What source and dirty-state limits were observed?",
+    "decision": "What recorded decision explanation, constraints and considered alternatives explain the reported local choice? Mark later explanations retrospective; absent explanations unknown.",
+    "expectation": "What was expected and which exact requirement, guidance, task or tool contract supports it? Explicitly identify unsupported expectations.",
+    "lesson": "What upstream lesson is proposed, if any? Do not present a hypothesis, local remedy or domain adaptation as an established defect or accepted architecture.",
+    "observation": "What happened, under which triggers, with which observable consequences and available reproduction or counterexample?",
+    "remedy": "What local change or workaround was made, what did it preserve or bypass, and what was its scope?",
+    "resources": "Which knowledge, tools and skills were available, and which were actually consulted according to retained evidence? Availability is not use.",
+    "results": "What results, failures, uncertainty and remaining blockade are evidenced? Distinguish reported tests, inspected tests and independently executed proof."
+  },
+  "schema": "request.schema.json",
+  "vocabulary": {
+    "assessment": "Independent versioned evaluation; never a rewrite of the consumer account.",
+    "independently-reproduced": "The attributed result was independently executed under stated conditions.",
+    "inspected": "Retained evidence was directly inspected; this is not independent execution.",
+    "recorded": "Decision explanation retained from the original work.",
+    "repair": "Owner-selected shared change; several consumer requests may support one repair.",
+    "reported": "A source says an action/result happened; evaluator has not inspected its proof.",
+    "request": "Stable consumer observation identity; distinct from repair/finding identity.",
+    "retrospective": "Later explanation; not an original reasoning trace.",
+    "revision": "Immutable evidence account superseding an exact earlier request hash.",
+    "unclassified": "Original wording retained without forcing unknown concepts into canonical categories.",
+    "unknown": "Evidence does not establish this fact; do not fabricate it."
+  }
+}

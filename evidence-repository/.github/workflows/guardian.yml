@@ -1,0 +1,27 @@
+name: Trusted repair evidence guardian
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  guardian:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read trusted base only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # repository-qualified v7.0.1
+        with:
+          repository: orbyss-io/program-kit-evidence
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - name: Inspect submitted blobs as data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GUARDIAN_REPOSITORY: ${{ github.repository }}
+          GUARDIAN_PR: ${{ github.event.pull_request.number }}
+          GUARDIAN_HEAD: ${{ github.event.pull_request.head.sha }}
+          GUARDIAN_BASE: ${{ github.event.pull_request.base.sha }}
+          GUARDIAN_VALIDATOR: ${{ github.workflow_sha }}
+        run: python3 guardian.py

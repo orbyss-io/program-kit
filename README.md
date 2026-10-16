@@ -638,6 +638,16 @@ field meaning, business validation, authorization, persistence durability, workf
 policy. Program Kit compatibility changes therefore update only selection knowledge, templates, and
 consumer-facing checks; implementation and release tests remain in the owning component repository.
 
+## Consumer repair feedback (feature source, unreleased)
+
+`speckit.program-kit-governance.repair-request` installs a native consumer skill for
+comparable diagnostics, local contributor intake, reviewed GitHub issue/evidence
+submissions, follow-up evidence and freshly retrieved status/history. The evaluator
+remains repository-only. See the [operating contract](extensions/program-kit-governance/references/repair-feedback/operating.md)
+and [indexed unreleased guidance](releases/migration-0.13.3.md).
+The separate public evidence repository and trusted guardian enforcement still
+require provisioning; source and recording fakes do not establish a deployed route.
+
 ## License
 
 Program Kit is open source under the [MIT License](LICENSE).

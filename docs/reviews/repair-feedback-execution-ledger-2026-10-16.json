@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "feature": "consumer-repair-feedback",
+  "owner": "Separate repair-feedback implementation session",
+  "branch": "codex/repair-feedback",
+  "baseCommit": "02d772cecb064a96f6755637fbd1950eca8fb647",
+  "approval": "Create a repair feedback skill, 01a14496-89a6-7740-838b-e03d8b17205f; corrected separate-session ownership",
+  "specification": "docs/reviews/repair-feedback-feature-specification-2026-10-16.md",
+  "handoff": "docs/reviews/repair-feedback-implementation-handoff-2026-10-16.md",
+  "requirements": [
+    {
+      "id": "RF-01",
+      "changes": [
+        "extension.yml repair-request registration",
+        "native generated consumer skill",
+        ".agents/skills/program-kit-repair-evaluator"
+      ],
+      "validation": [
+        "InstalledRepairTests.test_native_command_skill_and_upgrade_preserve_personal_and_original_profile",
+        "test_prepared_repository_is_source_only_and_internal_evaluator_not_packaged"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-02",
+      "changes": [
+        "repair_contract.py",
+        "repair-feedback/contract.json",
+        "request.schema.json"
+      ],
+      "validation": [
+        "test_contract_schema_and_historical_answers_are_preserved"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-03",
+      "changes": [
+        "immutable requests and explicit evaluator terminologyMapping"
+      ],
+      "validation": [
+        "test_contract_schema_and_historical_answers_are_preserved",
+        "test_historical_unknown_contract_preserved_as_bytes_without_new_answers"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-04",
+      "changes": [
+        "request/revision/supersedes identities and assessment relationships"
+      ],
+      "validation": [
+        "test_queue_revisions_require_exact_predecessor",
+        "test_evaluator_multiple_requests_one_repair_owner_ledger_unchanged"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-05",
+      "changes": [
+        "configure/personal/remember and Git exclude proof",
+        "consumer_upgrade.inputs exclusion"
+      ],
+      "validation": [
+        "test_ignored_personal_state_is_outside_inputs_and_preserved_by_reconfigure",
+        "InstalledRepairTests.test_native_command_skill_and_upgrade_preserve_personal_and_original_profile"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-06",
+      "changes": [
+        "immutable local intake queue referencing owner ledger"
+      ],
+      "validation": [
+        "test_local_queue_durable_idempotent_zero_public_mutation_and_fresh_ledger"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-07",
+      "changes": [
+        "bounded search/inspection, reviewed create/comment destinations"
+      ],
+      "validation": [
+        "test_bounded_open_closed_search_refines_empty_and_excessive_and_inspects_comments",
+        "test_review_binds_destinations_all_content_and_exact_approval",
+        "test_public_new_and_duplicate_exact_inventory_and_idempotent_retries"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-08",
+      "changes": [
+        "review digest, fork Git Data API publication and recoverable PR cross-links",
+        "evidence-repository provisioning source"
+      ],
+      "validation": [
+        "test_public_new_and_duplicate_exact_inventory_and_idempotent_retries",
+        "test_public_response_loss_reconciles_issue_comment_fork_branch_pr_and_crosslink",
+        "test_public_retry_after_main_advances_keeps_reviewed_bytes_and_parent"
+      ],
+      "disposition": "source-tested-external-provisioning-pending"
+    },
+    {
+      "id": "RF-09",
+      "changes": [
+        "data-only guardian and enforceable evidence contract/budgets"
+      ],
+      "validation": [
+        "test_trusted_guardian_exact_head_bound_data_only_and_adversarial_inventory",
+        "test_guard_rejects_tamper_extra_policy_archive_secret_and_size_without_echo",
+        "test_public_rejects_same_name_guardian_rules_and_wrong_destination_before_writes"
+      ],
+      "disposition": "source-tested-external-provisioning-pending"
+    },
+    {
+      "id": "RF-10",
+      "changes": [
+        "repository-only independent assessments and owner intake"
+      ],
+      "validation": [
+        "test_evaluator_multiple_requests_one_repair_owner_ledger_unchanged",
+        "test_historical_unknown_contract_preserved_as_bytes_without_new_answers"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-11",
+      "changes": [
+        "fresh direct status, project/account discovery, superseding evidence"
+      ],
+      "validation": [
+        "test_fresh_status_changed_remote_and_failed_reads_never_fall_back",
+        "test_account_discovery_includes_commented_and_involved_project_provenance",
+        "test_recover_lost_index_and_link_known_implementation_and_release_objects"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-12",
+      "changes": [
+        "portable CLI prerequisite helpers, preserved packets and historical mutation journal"
+      ],
+      "validation": [
+        "test_actual_gh_adapter_disables_cache_and_suppresses_stderr",
+        "test_public_response_loss_reconciles_issue_comment_fork_branch_pr_and_crosslink"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-13",
+      "changes": [
+        "this owner ledger and indexed versioned migration guidance"
+      ],
+      "validation": [
+        "tests/validate_knowledge_inventory.py",
+        "tests/validate_components.py",
+        "releases/history.json -> migration-0.13.3.md"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    }
+  ],
+  "validation": [
+    {
+      "id": "feature-acceptance",
+      "command": "Specify Python tests/validate_repair_feedback.py",
+      "outcome": "24 tests passed, including real native installation and upgrade/regeneration; GitHub public operations were recording fakes",
+      "log": "artifacts/tests/repair-feedback/feature-acceptance.log"
+    },
+    {
+      "id": "knowledge-inventory",
+      "outcome": "7 tests passed after registering the optional manual route"
+    },
+    {
+      "id": "components",
+      "outcome": "Existing component validator passed after registering 25 commands in manifest/catalog"
+    },
+    {
+      "id": "skill-validation",
+      "outcome": "Repository evaluator skill-creator quick_validate passed"
+    },
+    {
+      "id": "prerequisites",
+      "outcome": "Actual PowerShell helper identified installed GitHub CLI outside PATH without install/login"
+    },
+    {
+      "id": "development-initial",
+      "journal": "artifacts/validation-runs/20261016T135434Z-3b0ec68a/journal.json",
+      "outcome": "failed; Windows source/destination path-length failures and new reference registration repaired"
+    },
+    {
+      "id": "development-extended-source",
+      "journal": "artifacts/validation-runs/20261016T140352Z-6f6715b6/journal.json",
+      "outcome": "failed; extended source paths exposed existing child-tool/path-normalization limits; reporter/catalog registration repaired"
+    },
+    {
+      "id": "native-ownership-rerun",
+      "outcome": "8 tests passed with extended source and temp paths"
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "maintenance-packet-helper",
+      "disposition": "not-required",
+      "evidence": "scripts/maintenance_packet.py absent on main baseline; independently implemented data guardian, no maintenance working-tree imports"
+    },
+    {
+      "id": "evidence-repository",
+      "disposition": "pending",
+      "evidence": "docs/reviews/repair-feedback-provisioning-inspection-2026-10-16.json"
+    },
+    {
+      "id": "trusted-rules",
+      "disposition": "pending",
+      "evidence": "Requires actual pinned workflow identity ruleset, verified maintainer team/review and operational acceptance; source templates/fakes cannot qualify deployment"
+    }
+  ],
+  "closure": {
+    "sourceImplemented": true,
+    "independentlyValidated": false,
+    "released": false,
+    "confirmedInConsumer": "unavailable",
+    "publicInfrastructure": "not-established; separate publication approval and actual provisioning/rules verification required",
+    "featureComplete": false,
+    "deterministicFeatureChecks": true,
+    "releaseGuidance": "releases/history.json -> migration-0.13.3.md (unreleased; VERSION not changed)",
+    "consumerChanges": "No required consumer migration; optional first-use routing only"
+  }
+}

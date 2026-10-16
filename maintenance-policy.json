@@ -3,6 +3,14 @@
   "profileRegistry": "extensions/program-kit-building-blocks/references/dependency-profiles",
   "optionalTools": [
     {
+      "name": "GitHub CLI repair feedback",
+      "command": "gh api",
+      "usedBy": "extensions/program-kit-governance/scripts/repair_feedback.py and scripts/verify_evidence_repository.py",
+      "scope": "Optional fresh read-only correlation/history/status and exact-content-approved issue, consumer-fork and evidence PR delivery to explicit Program Kit repositories.",
+      "updatePolicy": "Use the installed device CLI; no automatic installation or login. Public delivery fails closed on lookup, security, provisioning or authentication failure. Local queuing remains independent.",
+      "source": "https://cli.github.com/manual/gh_api"
+    },
+    {
       "name": "GitHub CLI qualification and attestation verification",
       "command": "gh api / gh attestation verify",
       "usedBy": "scripts/release_candidate.py",
@@ -20,6 +28,7 @@
     }
   ],
   "inputs": [
+    "evidence-repository/.github/workflows/*.yml",
     "maintenance-policy.json",
     "scripts/dependency_maintenance.py",
     "tests/ci-tool-requirements.txt",

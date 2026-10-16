@@ -244,6 +244,17 @@
         "Preserve updater failures and original dependency/installation evidence. Deletion creates no content backup and never authorizes deletion of unrelated work or live data.",
         "Actual consumer deletion belongs to its consumer agent; this release does not mutate ClaimEvaluator or start paid workers."
       ]
+    },
+    {
+      "version": "0.13.3",
+      "previous": "0.13.2",
+      "guide": "migration-0.13.3.md",
+      "status": "unreleased-feature-guidance",
+      "automatic": ["When released, install the native repair-request consumer command/skill and portable diagnostic/evidence tools; preserve existing selected versions and locks."],
+      "review": ["On optional first use choose consumer/contributor routing; review exact public content and destinations before real publication. Public infrastructure remains an explicit external dependency."],
+      "verification": ["Verify native installed reporter and ignored personal-state preservation; run repair-feedback deterministic fakes and bounded Development. CI qualifies exact release candidates."],
+      "verificationChecks": ["installation-coherence"],
+      "recovery": ["Keep prepared evidence and historical receipts on failure; reconcile actual remote objects before retrying the same approved identity. No public fallback for local delivery."]
     }
   ]
 }
