@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import importlib.util
 import zipfile
 from pathlib import Path
 
@@ -243,12 +244,41 @@ def pack_historical_package_facts(staging: Path) -> None:
 def build_bundle_from_source(root: Path, output: Path) -> None:
     """Build the composite bundle from source files, never local caches or build output."""
     with tempfile.TemporaryDirectory(prefix="program-kit-release-source-") as directory:
-        staging = Path(directory)
+        # Use the same owned Windows filesystem adapter as full installed fixtures;
+        # do not shorten or omit historical profile/package evidence paths.
+        specification=importlib.util.spec_from_file_location('bundle_owned_filesystem',
+            root/'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
+        filesystem=importlib.util.module_from_spec(specification);specification.loader.exec_module(filesystem)
+        staging = Path(filesystem.filesystem_path(Path(directory)))
         for relative in bundle_source_files(root):
             destination = staging / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
         pack_historical_package_facts(staging)
+        # Keep exact optional example/UI source bytes without spending one outer
+        # bundle entry per asset. Native component archives remain unchanged.
+        asset_spec=importlib.util.spec_from_file_location('bundle_asset_sources',
+            root/'extensions/program-kit-governance/scripts/asset_sources.py')
+        assets=importlib.util.module_from_spec(asset_spec);asset_spec.loader.exec_module(assets)
+        for name,roots in {'program-kit-governance':('examples','templates/ui-experience'),
+                           'program-kit-dotnet':('references/examples',)}.items():
+            component=staging/'extensions'/name
+            payloads={}
+            for relative_root in roots:
+                for file in (component/relative_root).rglob('*'):
+                    if file.is_file():
+                        relative=file.relative_to(component).as_posix()
+                        if relative in ('templates/ui-experience/acceptance/package.json','templates/ui-experience/acceptance/package-lock.json'):
+                            continue  # Existing native toolchain provenance consumes these physical inputs.
+                        payloads[relative]=file.read_bytes()
+            if payloads:
+                (component/assets.PACK).write_bytes(assets.encoded(payloads))
+                for relative,raw in payloads.items():
+                    file=component/relative
+                    if not file.resolve().is_relative_to(staging.resolve()) or file.read_bytes()!=raw:
+                        raise ValueError('Disposable bundle source changed before compaction')
+                    file.unlink()  # Exact verified disposable copies only; no recursive source deletion.
+                if assets.packed(component)!=payloads:raise ValueError('Compacted source asset bytes changed')
         build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
                        (root / 'VERSION').read_text().strip(), aggregates=False)
         specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")

@@ -5130,6 +5130,46 @@
       ],
       "resources": [],
       "isolation": "Synthetic SDK projects and canonical architecture, no package/provider/agent calls. Decisions are explicitly fictional. Unsupported build shapes remain fully bound or require an explicit native material assessment."
+    },
+    {
+      "id": "validate_asset_sources",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_asset_sources.py"
+      ],
+      "group": "package",
+      "needs": [
+        "build-release",
+        "validate_components",
+        "validate_validation_runner"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Actual native installed compacted source/UI/public SDK preparation and rehashed customization rejection within unchanged 512-entry native bundle bound. CI consumes verified imported publication payload without rebuilding.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/build_release.py",
+        "scripts/invoke_specify.py",
+        "scripts/initialize_device.py",
+        "scripts/native_phase_ownership.py",
+        "extensions/**",
+        "tests/validate_asset_sources.py",
+        "VERSION",
+        "bundle.yml",
+        "releases/**"
+      ],
+      "outputs": [
+        "artifacts/source-assets/<unique>/results.json"
+      ],
+      "resources": [],
+      "isolation": "Retained owned disposable native consumer and SDK recording HTTP only; exact source bytes, no provider/model/coding agent or publication. Imported CI archives are verified before/after and never rebuilt."
     }
   ],
   "groups": {

@@ -26,7 +26,8 @@ def scope(prepared, native):
 
 
 def read(root, path, prepared, native, execution, *, recovery=False):
-    from provider_operation import require, load, local, canonical, sha
+    from provider_operation import require, load, local, canonical, sha, root_path
+    root=root_path(root)
     require(execution in ('recording','provider'), 'select an explicit qualified execution mode')
     target = local(root,path)
     value = load(target)
@@ -65,7 +66,8 @@ def issue_recording(root, path, prepared, native):
 
 
 def _write(root, path, prepared, native, execution, issuer_kind, name):
-    from provider_operation import canonical, sha, local, require
+    from provider_operation import canonical, sha, local, require, root_path
+    root=root_path(root)
     now = time.time()
     require(execution=='recording' or execution=='provider' and sys.stdin.isatty() and sys.stdout.isatty(),
             'provider attestation issuance is human terminal owned; recording authority never enables provider transport')

@@ -206,7 +206,7 @@ def capture(root,arguments):
         choices=set()
         def observe(project_root=None):
             value=original(project_root)
-            require(project_root is None or Path(project_root).resolve()==root,'generation root differs from recorded native CLI root')
+            require(project_root is None or Path(project_root).samefile(root),'generation root differs from recorded native CLI root')
             choices.add(value)
             return value
         succeeded=False

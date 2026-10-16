@@ -139,6 +139,13 @@ For an explicitly authorized one-page OCR operation, use the optional
 [OCR-only operation boundary](../../program-kit-governance/references/ocr-only-operations.md).
 Its recording proof supplies no paid or combined provider acceptance.
 
+Optional source examples can be stored as a bounded source pack in the composite
+installation bundle. The logical filenames and bytes remain the publisher sources;
+native preparation reads them without unpacking into installed directories. To
+inspect/export one example, run `python .specify/extensions/program-kit-governance/scripts/asset_sources.py
+--repository . --component program-kit-dotnet --subtree references/examples/<name>`.
+This writes a new artifact directory and starts no provider, build or coding agent.
+
 - Central package management, locked restore, deterministic pack, and package-source mapping are mandatory.
 - `shells.json`, `hostsettings.json` and `nuplane.settings.json` remain scaffold-once consumer-owned inputs.
 - Managed OpenAPI production runs after package-closure staging through

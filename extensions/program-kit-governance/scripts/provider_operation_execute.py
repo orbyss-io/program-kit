@@ -10,7 +10,7 @@ import threading
 import time
 import uuid
 
-from provider_operation import Account, contract, canonical, sha, local, require
+from provider_operation import Account, contract, canonical, sha, local, require, root_path
 from provider_operation_prepare import verify as verify_adapter
 
 
@@ -175,7 +175,7 @@ def invoke(account, identity, value, executable, dll, action, timeout_ms, *, exe
 
 def run(root, relative, authorization, prerequisite, recipe, *, execution='recording',recording_outcome=None):
     started=time.monotonic()
-    root=Path(root).resolve()
+    root=root_path(root)
     prepared=contract(root,relative)
     adapter=prepared['value']['adapterPreparation']
     _,executable,dll=verify_adapter(root,adapter['path'],adapter['sha256'])

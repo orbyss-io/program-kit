@@ -30,6 +30,7 @@ class AccountingTests(unittest.TestCase):
         self.root = Path(temporary.name).resolve()
         self.resource = '/subscriptions/fictional/resourceGroups/test/providers/Microsoft.CognitiveServices/accounts/fictional'
         self.account = operation.Account(self.root,self.resource)
+        self.root=self.account.root
         self.identity = self.account.initialize(20_000,[])
         self.native = {'path':'fictional-proof.json','sha256':'e'*64,'kind':'compatibility'}
         self.admission = patch.object(operation,'native_admission',side_effect=lambda *_: dict(self.native))

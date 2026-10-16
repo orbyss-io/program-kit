@@ -52,7 +52,8 @@ def invoke_native(project,ref,release,launcher,arguments):
         if (release/'VERSION').read_text().strip()!=ref[1:]:raise ValueError('Initializer bridge release version differs')
         bridge=release/'scripts/invoke_specify.py'
         return subprocess.run([sys.executable,str(bridge),'--launcher',str(launcher),'--',*arguments],cwd=project).returncode
-    files=('scripts/invoke_specify.py','extensions/program-kit-governance/scripts/render_profile.py')
+    files=('scripts/invoke_specify.py','extensions/program-kit-governance/scripts/render_profile.py',
+           'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
     with tempfile.TemporaryDirectory(prefix='program-kit-native-capture-') as directory:
         root=Path(directory)
         for relative in files:

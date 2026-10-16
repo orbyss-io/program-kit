@@ -28,6 +28,17 @@ def digest(value):
     return hashlib.sha256(value).hexdigest()
 
 
+def asset_reader(release):
+    """Only the verified release supplies code; installed packs are bounded data."""
+    if release is None:return None
+    source=Path(release)/'extensions/program-kit-governance/scripts/asset_sources.py'
+    if not source.is_file():return None
+    import importlib.util
+    specification=importlib.util.spec_from_file_location('native_owned_asset_sources',source)
+    module=importlib.util.module_from_spec(specification);specification.loader.exec_module(module)
+    return module
+
+
 def contained(root, relative, label):
     path = Path(relative)
     require(not path.is_absolute() and '..' not in path.parts, 'unsafe ' + label + ': ' + str(relative))
@@ -84,6 +95,7 @@ def native_source_baselines(release, kind, name, metadata, manifest_hash):
 
 
 def source_guard(repository, release, name, metadata, manifest, sources, kind='extensions'):
+    reader=asset_reader(release)
     expected = metadata.get('manifest_hash')
     require(isinstance(expected, str) and re.fullmatch(r'(?:sha256:)?[0-9a-f]{64}', expected),
             'unresolved installed native manifest integrity: ' + name)
@@ -94,8 +106,10 @@ def source_guard(repository, release, name, metadata, manifest, sources, kind='e
     hashes, payloads = {}, {}
     for relative in sources:
         path = contained(repository, '.specify/' + kind + '/' + name + '/' + relative, 'installed native source')
-        require(path.is_file(), 'missing native source: ' + name + ' / ' + relative)
-        payloads[relative] = path.read_bytes(); hashes[relative] = digest(payloads[relative])
+        require(path.is_file() or reader is not None and reader.owner(path) is not None,
+                'missing native source: ' + name + ' / ' + relative)
+        payloads[relative] = reader.read(path) if reader else path.read_bytes()
+        hashes[relative] = digest(payloads[relative])
     if name.startswith('program-kit-'):
         verified, closest = False, set(sources)
         for witness, directory in witnesses:
@@ -105,7 +119,9 @@ def source_guard(repository, release, name, metadata, manifest, sources, kind='e
                     matches = directory.get(relative) == hashes[relative]
                 elif directory is not None:
                     publisher = directory / relative
-                    matches = publisher.is_file() and publisher.read_bytes() == payload
+                    try:original=reader.read(publisher) if reader else publisher.read_bytes()
+                    except FileNotFoundError:original=None
+                    matches = original == payload
                 else:
                     result = subprocess.run(['git', '-C', str(release), 'show', witness.removeprefix('git:') + ':' + kind + '/' + name + '/' + relative],
                                             capture_output=True, timeout=15)
@@ -121,18 +137,21 @@ def source_guard(repository, release, name, metadata, manifest, sources, kind='e
     return hashes
 
 
-def installed_source_files(installed):
+def installed_source_files(installed,release=None):
     """Machine sources; versioned package facts keep their separate immutable authority."""
     excluded = {'__pycache__', '.dev-cache', '.composed', '.git', 'bin', 'obj', 'node_modules'}
-    return {path.relative_to(installed).as_posix() for path in installed.rglob('*')
-            if path.is_file() and (path.relative_to(installed).parts[0] in {'commands', 'scripts', 'templates', 'config', 'references', 'docs'}
-                                  or path.name in {'extension.yml', 'preset.yml', 'README.md'})
-            and not (path.relative_to(installed).parts[0] == 'references'
-                     and (path.relative_to(installed).parts[1:2] in {('dependency-profiles',), ('release-guidance',)}
-                          or path.name in {'release-guidance.json', 'native-phase-source-baselines.json'}))
-            and not excluded & set(path.relative_to(installed).parts)
-            and path.suffix not in {'.pyc', '.pyo'} and path.name != '.keep-config'
-            and not (path.parent == installed and (path.name.endswith('-config.yml') or path.name.endswith('-config.local.yml')))}
+    reader=asset_reader(release)
+    paths={path.relative_to(installed).as_posix() for path in installed.rglob('*') if path.is_file()}
+    if reader:paths.update(reader.packed(installed))
+    return {relative for relative in paths
+            if (Path(relative).parts[0] in {'commands', 'scripts', 'templates', 'config', 'references', 'docs', 'examples'}
+                                  or Path(relative).name in {'extension.yml', 'preset.yml', 'README.md'})
+            and not (Path(relative).parts[0] == 'references'
+                     and (Path(relative).parts[1:2] in {('dependency-profiles',), ('release-guidance',)}
+                          or Path(relative).name in {'release-guidance.json', 'native-phase-source-baselines.json'}))
+            and not excluded & set(Path(relative).parts)
+            and Path(relative).suffix not in {'.pyc', '.pyo'} and Path(relative).name != '.keep-config'
+            and not (len(Path(relative).parts)==1 and (Path(relative).name.endswith('-config.yml') or Path(relative).name.endswith('-config.local.yml')))}
 
 
 def generated_guidance_guard(repository, release, metadata):
@@ -247,7 +266,7 @@ def _preflight(repository, release=None, integration_keys=None):
         sources = {command['file'] for command in manifest.commands}
         sources.update(script['file'] for script in manifest.scripts)
         if name.startswith('program-kit-'):
-            sources.update(installed_source_files(installed))
+            sources.update(installed_source_files(installed,release))
         sources = sorted(sources)
         hashes = source_guard(repository, release, name, metadata, manifest, sources)
         if name == 'program-kit-governance':
@@ -310,7 +329,7 @@ def _preflight(repository, release=None, integration_keys=None):
             manifest_path = contained(repository, '.specify/presets/' + name + '/preset.yml', 'installed preset manifest')
             manifest = PresetManifest(manifest_path)
             sources = {row['file'] for row in manifest.templates}
-            sources.update(installed_source_files(installed))
+            sources.update(installed_source_files(installed,release))
             preset_sources[name] = source_guard(repository, release, name, metadata, manifest, sorted(sources), 'presets')
     return {'schemaVersion': 1, 'outputs': checked, 'presetSourceSha256': preset_sources,
             'generatedReleaseGuidance': generated_guidance, 'readOnly': True,

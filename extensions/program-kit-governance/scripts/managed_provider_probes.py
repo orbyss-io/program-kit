@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 import re
+import asset_sources
 
 from bootstrap_provider_context import project
 
@@ -62,13 +63,16 @@ def render(root, kind, identity, host_image):
     generated = {}
 
     def fixture(destination, source):
-        if not source.is_file():
-            raise ValueError('Maintained provider fixture is missing: ' + str(source))
+        payload=asset_sources.read(source)
         if source.suffix == '.csproj':
             from runtime_fixture import retarget_project
             output = directory / (identity + '.fixtures') / destination
-            generated[output] = retarget_project(source.read_bytes(), catalog, effective['sharedAbi'])
+            generated[output] = retarget_project(payload, catalog, effective['sharedAbi'])
             sources[destination] = output.relative_to(root).as_posix()
+        elif not source.is_file():
+            output=directory/(identity+'.fixtures')/destination
+            generated[output]=payload
+            sources[destination]=output.relative_to(root).as_posix()
         else:
             sources[destination] = source.relative_to(root).as_posix()
 
@@ -137,8 +141,12 @@ def render_postgresql(root, identity, selected):
     sources['fixture_readiness.py'] = (governance / 'scripts/fixture_readiness.py').relative_to(root).as_posix()
     for target, path in {'Program.cs': fixture / 'Program.cs', 'postgresql_probe.py': fixture / 'postgresql_probe.py',
                          'bounded_process.py': governance / 'scripts/compatibility_process.py'}.items():
-        if not path.is_file(): raise ValueError('Maintained PostgreSQL fixture missing: ' + str(path))
-        sources[target] = path.relative_to(root).as_posix()
+        if path.is_file():sources[target] = path.relative_to(root).as_posix()
+        else:
+            output=directory/(identity+'.fixtures')/target
+            output.parent.mkdir(parents=True,exist_ok=True)
+            with output.open('xb') as stream:stream.write(asset_sources.read(path))
+            sources[target]=output.relative_to(root).as_posix()
     packages = runtime['packages']
     references = ''.join(f'<PackageReference Include="{name}" Version="{packages[name]}" />' for name in
                          ('Microsoft.EntityFrameworkCore', 'Npgsql.EntityFrameworkCore.PostgreSQL'))

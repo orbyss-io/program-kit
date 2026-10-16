@@ -22,6 +22,13 @@ MAX_JSON = 1_048_576
 ADAPTER = 'azure-document-intelligence-1.0.0-read-v1'
 
 
+def root_path(root):
+    from dotnet_adapter import bootstrap
+    bootstrap()
+    from owned_scratch import filesystem_path
+    return Path(filesystem_path(Path(root).resolve()))
+
+
 def require(condition, message):
     if not condition:
         raise ValueError('PKO001 ' + message)
@@ -60,6 +67,7 @@ def local(root, relative):
 
 def contract(root, relative):
     """Read exact non-secret scope; request limits cannot be broadened by a transport."""
+    root=root_path(root)
     path = local(root, relative)
     value = load(path)
     require(isinstance(value, dict) and set(value) == {'schemaVersion', 'operation', 'adapter', 'resourceIdentity',
@@ -141,7 +149,7 @@ class Account:
     store. This is not hostile-writer, backup-rollback or multi-host protection.
     """
     def __init__(self, root, resource):
-        self.root = Path(root).resolve()
+        self.root = root_path(root)
         self.resource = resource.casefold()
         self.directory = local(self.root, 'artifacts/provider-operations/private/' + sha(self.resource.encode()))
         self.path = self.directory / 'account.sqlite'

@@ -521,3 +521,34 @@ This supplies no human/application acceptance and does not replace current engin
 freshness. Main's separately approved changes were merged at 1aaaafa; the two
 previously untracked identical handoff files were preserved before integration.
 Held additions remain outside the frozen 47 findings.
+
+## Continuation: complete bounded source payload and actual installation
+
+The complete review payload first exposed a Windows temp-staging path failure,
+then correctly rejected 576 bundle entries against the unchanged native 512 limit.
+The shared Windows adapter now preserves deep historical names for staging/native
+directory copies; archive filenames retain the native workflow classifier's form.
+Optional examples/UI source assets use a finite checked data pack in the composite
+bundle. Every logical filename and original byte remains identical; standalone
+component archives and historical profiles/evidence are unchanged. Real preparers
+and UI generation consume these assets without modifying installed directories.
+An explicit export command writes a new artifact for inspection. Native ownership
+compares all logical publisher source bytes, including examples; rehashing a changed
+pack does not authenticate that change. CI consumes the single imported publication
+payload rather than dispatching this validator's local development builder.
+
+The final proof is `artifacts/source-assets/e28adb5944bc42ad8cde7675c2b3f54d/results.json`:
+508 entries, actual native installation, 54 byte-equal generated UI files, cold
+public SDK recording preparation, and refused/preserved rehashed customization.
+All four focused checks passed. Full component/bundle installation passed after
+using the existing owned-fixture cleanup. That run exposed a drifted installed task
+helper still expecting full failures in bounded current output; it now checks the
+original failure through both current counts and authenticated retained history.
+The original obligation was preserved. This does not complete R9's wider inventory.
+
+All 16 current OCR accounting/native process cases passed at
+`artifacts/t/op-native-9bd224dcfff546f7a41da6c2b3d3374c/results.json`.
+Four native phase refresh tests, 30 UI and 12 provider-context tests passed. Earlier
+failed payload/staging/cleanup/helper runs remain preserved as failed. None of these
+development payloads is a selected or published release. Remaining frozen mechanisms,
+Foundation public adoption and complete candidate qualification continue.

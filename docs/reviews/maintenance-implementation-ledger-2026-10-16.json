@@ -650,7 +650,9 @@
       "status": "partially-implemented; explicit shared obligation inventory pending",
       "changedFiles": [
         "tests/validate_public_core_compatibility.py",
-        "tests/validate_repository_toolchain.py"
+        "tests/validate_repository_toolchain.py",
+        "tests/validate_task_generation.py",
+        "tests/validate_release_install.py"
       ],
       "validation": [
         {
@@ -666,6 +668,13 @@
           "scope": "16 named cases pass with simulated user tools outside Git even when runner TEMP is inside the repository. Production repository-local tool refusal unchanged.",
           "log": "artifacts/maintenance-implementation-2026-10-16/device-fixtures-outside-checkout.log",
           "sha256": "659b01f7fc3fc091d4c0c3cb5d21a58baba26a6ec2680a032d37476fd91b7845"
+        },
+        {
+          "command": "packed-release-install-checkpoint-history.log",
+          "status": "passed",
+          "scope": "Actual packaged workflow helper preserves the original unresolved provider-failure obligation through bounded current failure counts plus exact retained history/head/complete event count. This fixes one drifted reusable installed helper; the complete explicit old-to-new shared obligation/module/case inventory remains open.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/packed-release-install-checkpoint-history.log",
+          "sha256": "d762f92988f88b6f0d71caff2c3b70eb1783eed7d1957a650501be8c29f6f868"
         }
       ],
       "remainingDependencies": [
@@ -956,7 +965,15 @@
         "tests/lock_renewal_cases.py",
         "tests/owned_fixture.py",
         "tests/validate_consumer_upgrade.py",
-        "tests/validation-inventory.json"
+        "tests/validation-inventory.json",
+        "scripts/build_release.py",
+        "scripts/native_phase_ownership.py",
+        "extensions/program-kit-governance/scripts/asset_sources.py",
+        "extensions/program-kit-governance/scripts/managed_provider_probes.py",
+        "extensions/program-kit-governance/scripts/ui_profile.py",
+        "extensions/program-kit-governance/scripts/ui_svg.py",
+        "extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+        "tests/validate_asset_sources.py"
       ],
       "validation": [
         {
@@ -972,6 +989,13 @@
           "scope": "Two actual maintained native building-block validator executions passed and created two independent results; all pre-existing result bytes remained unchanged. Historical fixed-name gap remains disclosed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-06/native-retention-result.json",
           "sha256": "27a4adcc416bd42426a139f77d53f46c38023882934faffa704cd68cc3d7d2f2"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual 508-entry native bundle, exact logical loose/packed source parity, native hidden-pack installation, 54 generated UI files byte-equal, actual installed public SDK cold recording preparation and publisher source guard refusing a rehashed virtual source edit without overwrite. All four focused tests passed. Standalone archives remain unchanged. CI checks consume verified imported publication archives before/after and never rebuild them. Full packaged component/bundle installation also passed separately.",
+          "log": "artifacts/source-assets/e28adb5944bc42ad8cde7675c2b3f54d/results.json",
+          "sha256": "b113c7e528404b43e18af52edb8c1e1aea58239ad3046355869d18aefd6a6a69"
         }
       ],
       "remainingDependencies": [
@@ -1111,7 +1135,11 @@
       "changedFiles": [
         "extensions/program-kit-dotnet/scripts/reconciliation.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
-        "tests/validate_owned_scratch.py"
+        "tests/validate_owned_scratch.py",
+        "scripts/build_release.py",
+        "scripts/invoke_specify.py",
+        "scripts/initialize_device.py",
+        "tests/validate_release_install.py"
       ],
       "validation": [
         {
@@ -1120,6 +1148,13 @@
           "scope": "12 tests: actual deep files, real junction, extended drive, entry/cleanup dual failure, exact ownership, transaction commit/rollback. UNC scratch remains unsupported.",
           "log": "artifacts/maintenance-implementation-2026-10-16/owned-scratch-final-batch1-2.log",
           "sha256": "0cd7c228d91eed43e55c2daefee03ec7870002e928152bb8c2e7e1e98d6a90db"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual full deep historical source tree builds via shared Windows filesystem adapter; real native CLI directory copies use that same physical spelling, preserving archive filename classification and all original source bytes. Owned fixture cleanup replaces ordinary temp cleanup. Durable authenticated witness closure remains separately outstanding.",
+          "log": "artifacts/source-assets/e28adb5944bc42ad8cde7675c2b3f54d/results.json",
+          "sha256": "b113c7e528404b43e18af52edb8c1e1aea58239ad3046355869d18aefd6a6a69"
         }
       ],
       "remainingDependencies": [
@@ -1260,6 +1295,13 @@
           "scope": "16 actual device/initializer readiness and npm child checks passed; no device installer ran.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/validate_repository_toolchain-render-profile.log",
           "sha256": "5a8b05d105b81362ac3fbd98b7fbe0cd03bf8d8d57ff7d68c03c19707a263e58"
+        },
+        {
+          "command": "native-phase-source-final.log",
+          "status": "passed",
+          "scope": "Four native all-phase/alias-loss/history/customization/secondary integration tests passed after the shared filesystem and packed-source integration.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/native-phase-source-final.log",
+          "sha256": "bbb1227cdbd2afbf016556ec091eb360c144051b22168aa7dcdba92e92a94667"
         }
       ],
       "remainingDependencies": [
@@ -1452,7 +1494,8 @@
         "tests/validation-inventory.json",
         "extensions/program-kit-governance/references/phase-obligations.json",
         "maintenance-policy.json",
-        "AGENTS.md"
+        "AGENTS.md",
+        "extensions/program-kit-governance/scripts/asset_sources.py"
       ],
       "validation": [
         {
@@ -1461,6 +1504,13 @@
           "scope": "16 tests, including 11 exact named integrated cases, actual native latest compatibility/JUnit admission, cold locked public Azure SDK 1.0.0, eight native competing processes with exactly one one-use reservation, four native cap refusals, original history, physical copied/lost store denial, SDK recording submit/poll/delete, separate absence, timeout/body/transport/process-exit uncertainty, immediate retained handle, original-contract recovery and no resubmission. Source begin/end, actual runtime/archive DLL and process/stream hashes retained. Local NTFS only; no provider socket, model, human attestation or paid worker.",
           "log": "artifacts/t/op-native-2d93baa173574acbaf45632926650df8/results.json",
           "sha256": "0a98a3fed5384debbd714a399dfde5118f28121f805cb83ca713991eca4c7a5c"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 16 tests passed through latest native admission, separate processes and actual public SDK recording. Preparation reads exact packed or loose source bytes; shared Windows filesystem roots preserve account/ticket/recovery paths. This is no provider, model or human acceptance.",
+          "log": "artifacts/t/op-native-9bd224dcfff546f7a41da6c2b3d3374c/results.json",
+          "sha256": "954ccc64d32f80228847346df158923e05644eaa7f253b98c0ff23a7b7be86ed"
         }
       ],
       "remainingDependencies": [

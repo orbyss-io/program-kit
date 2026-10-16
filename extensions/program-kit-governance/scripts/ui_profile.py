@@ -7,6 +7,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
+import asset_sources
 
 from ui_content import discovery, document, gallery, head
 from ui_contracts import public, validate
@@ -50,7 +51,7 @@ def read_json(path: Path) -> dict:
                 raise ValueError(f"Duplicate JSON key: {key}")
             result[key] = value
         return result
-    result = json.loads(path.read_text(encoding="utf-8-sig"), object_pairs_hook=unique)
+    result = json.loads(asset_sources.read(path).decode('utf-8-sig'), object_pairs_hook=unique)
     if not isinstance(result, dict):
         raise ValueError("Expected a JSON object")
     return result
@@ -111,13 +112,13 @@ def outputs(profile: dict, content: dict) -> dict[str, bytes]:
         add_resource(f"/assets/icons/{name}.svg", f"assets/icons/{name}.svg", source, "image/svg+xml")
     selected_icons = profile["brand"].get("icons", {"bundle": "lucide"})
     if selected_icons["bundle"] != "none":
-        license_text = (TEMPLATES / "icons/LICENSE.txt").read_text(encoding="utf-8") if selected_icons["bundle"] == "lucide" else selected_icons["license"] + "\nSource: " + selected_icons["source"]
+        license_text = asset_sources.read(TEMPLATES / "icons/LICENSE.txt").decode('utf-8') if selected_icons["bundle"] == "lucide" else selected_icons["license"] + "\nSource: " + selected_icons["source"]
         add_resource("/assets/icons/LICENSE.txt", "assets/icons/LICENSE.txt", license_text, "text/plain; charset=utf-8")
     for name in ("tokens.css",):
         add_resource("/assets/" + name, "assets/" + name, tokens.pop(name), "text/css; charset=utf-8")
     for name in ("layout.css", "interactions.mjs", "analytics.mjs"):
         source = 'layout-classic.css' if name == 'layout.css' and profile.get('presentation', 'classic-v1') == 'classic-v1' else name
-        text = (TEMPLATES / source).read_text(encoding="utf-8")
+        text = asset_sources.read(TEMPLATES / source).decode('utf-8')
         kind = "text/css; charset=utf-8" if name.endswith("css") else "text/javascript; charset=utf-8"
         add_resource("/assets/" + name, "assets/" + name, text, kind)
     for name, text in tokens.items():
@@ -150,9 +151,9 @@ def outputs(profile: dict, content: dict) -> dict[str, bytes]:
         example = copy.deepcopy(profile)
         example["archetype"] = archetype
         generated[f"{OUTPUT}/acceptance/archetypes/{archetype}.html"] = gallery(example).encode("utf-8")
-    for source in sorted((TEMPLATES / "acceptance").iterdir()):
-        if source.is_file() and source.name in {"package.json", "package-lock.json", ".npmrc", "analytics.test.mjs", "browser.mjs", "durability.mjs", "durability.test.mjs"}:
-            generated[f"{OUTPUT}/acceptance/tests/{source.name}"] = source.read_bytes()
+    for name,data in asset_sources.tree(TEMPLATES/'acceptance').items():
+        if name in {"package.json", "package-lock.json", ".npmrc", "analytics.test.mjs", "browser.mjs", "durability.mjs", "durability.test.mjs"}:
+            generated[f"{OUTPUT}/acceptance/tests/{name}"] = data
     tailwind_profile = {**profile, "css": "tailwind"}
     generated[f"{OUTPUT}/acceptance/tests/tailwind-theme.css"] = compile_tokens(tailwind_profile)["tailwind.css"].encode("utf-8")
     generated[f"{OUTPUT}/acceptance/tests/tailwind-input.css"] = (LAYERS + '@import "tailwindcss" source(none);\n@import "../../public/assets/tokens.css";\n@import "./tailwind-theme.css";\n@source inline("bg-primary text-on-primary rounded-brand font-sans");\n').encode("utf-8")
@@ -225,7 +226,7 @@ def execute(root: Path, command: str) -> dict:
             raise ValueError("UI sources already exist; init never overwrites consumer inputs")
         for name, path in targets.items():
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes((TEMPLATES / f"{name}.json").read_bytes())
+            path.write_bytes(asset_sources.read(TEMPLATES / f"{name}.json"))
         return {"created": [str(path.relative_to(root)) for path in targets.values()]}
     profile = read_json(safe_path(root, f"{SOURCE}/profile.json"))
     content = read_json(safe_path(root, f"{SOURCE}/content.json"))

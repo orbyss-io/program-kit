@@ -150,7 +150,11 @@ def validate_installed_workflow(project, fresh_reset=False):
             run(helper, 'prepare', *arguments)
             run(helper, 'checkpoint', *arguments, '--content-file', str(state_file))
         retained = json.loads(run(helper, 'current', *arguments))
-        if retained['failures'] != ['provider test failing: artifacts/provider.trx']:
+        history = json.loads(run(helper, 'current', *arguments, '--history'))
+        if (retained['history']['unresolvedFailures'] != 1
+                or history['current']['failures'] != ['provider test failing: artifacts/provider.trx']
+                or retained['history']['sha256'] != history['sha256']
+                or retained['history']['events'] != len(history['events'])):
             raise AssertionError('Installed checkpoint lost the unresolved provider failure on resume')
         if (feature / 'tasks.md').read_text(encoding='utf-8').count('program-kit:current-checkpoint') != 1:
             raise AssertionError('Installed current checkpoint accumulated a journal')

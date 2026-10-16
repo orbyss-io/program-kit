@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 import urllib.error
 import urllib.parse
@@ -109,6 +110,22 @@ def main() -> int:
     if {'--help','--version'}&set(arguments):
         result=specify_main()
         return result if isinstance(result,int) else 0
+    capture_root=Path.cwd()
+    if os.name=='nt':
+        # Native CLI filesystem operations receive the existing shared extended
+        # spelling. The physical project/source owners and persistent policy do
+        # not change, and no third-party implementation is patched.
+        adapter=Path(__file__).resolve().parents[1]/'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
+        if adapter.is_file():
+            adapter_spec=importlib.util.spec_from_file_location('native_cli_owned_filesystem',adapter)
+            filesystem=importlib.util.module_from_spec(adapter_spec);adapter_spec.loader.exec_module(filesystem)
+            capture_root=Path(filesystem.filesystem_path(capture_root))
+            if os.environ.get('SPECIFY_INIT_DIR'):
+                os.environ['SPECIFY_INIT_DIR']=filesystem.filesystem_path(Path(os.environ['SPECIFY_INIT_DIR']).resolve())
+            # Native archive-file classifiers parse their string as a URL (where
+            # '?' starts a query). Preserve file spellings; normalize directories.
+            arguments=[filesystem.filesystem_path(Path(value)) if Path(value).is_absolute() and Path(value).is_dir() else value for value in arguments]
+            sys.argv=['specify',*arguments]
     profile_source=Path(__file__).resolve().parents[1]/'extensions/program-kit-governance/scripts/render_profile.py'
     if not profile_source.is_file():
         print('PKU142 native CLI bridge lacks its release-owned generation profile recorder.',file=sys.stderr)
@@ -117,7 +134,7 @@ def main() -> int:
     profile=importlib.util.module_from_spec(profile_spec)
     profile_spec.loader.exec_module(profile)
 
-    with profile.capture(Path.cwd(),sys.argv[1:]):
+    with profile.capture(capture_root,sys.argv[1:]):
         result = specify_main()
         if isinstance(result,int) and result!=0:
             raise SystemExit(result)

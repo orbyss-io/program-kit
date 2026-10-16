@@ -10,24 +10,25 @@ import sys
 import uuid
 import zipfile
 
-from provider_operation import require, canonical, sha, local, load
+from provider_operation import require, canonical, sha, local, load, root_path
+import asset_sources
 
 
 def sources(root):
     installed = root/'.specify/extensions/program-kit-dotnet'
     extension = installed if installed.is_dir() else Path(__file__).resolve().parents[2]/'program-kit-dotnet'
     example = extension/'references/examples/ocr-operation'
-    require(example.is_dir(), 'co-installed native OCR reference is unavailable')
+    require(asset_sources.tree(example), 'co-installed native OCR reference is unavailable')
     return example, extension/'templates/dotnet/files'
 
 
 def prepared_sources(example):
-    return {file.name:sha(file.read_bytes()) for file in sorted(example.iterdir()) if file.is_file()}
+    return {name:sha(data) for name,data in asset_sources.tree(example).items()}
 
 
 def mechanisms():
     return {name:sha(Path(__file__).with_name(name).read_bytes()) for name in
-            ('provider_operation.py','provider_operation_authority.py','provider_operation_prepare.py','provider_operation_execute.py')
+            ('provider_operation.py','provider_operation_authority.py','provider_operation_prepare.py','provider_operation_execute.py','asset_sources.py')
             if Path(__file__).with_name(name).is_file()}
 
 
@@ -37,7 +38,7 @@ def prepare(root):
     bootstrap()
     from owned_scratch import owned_scratch, native_path
     import device_toolchain as device
-    root=Path(root).resolve()
+    root=root_path(root)
     example,template=sources(root)
     original=prepared_sources(example)
     original_mechanisms=mechanisms()
@@ -67,8 +68,9 @@ def prepare(root):
         return observed.stdout
     try:
         with owned_scratch(root,'validation-fixture') as staging:
-            for file in example.iterdir():
-                if file.is_file():shutil.copyfile(file,staging/file.name)
+            for name,data in asset_sources.tree(example).items():
+                require('/' not in name,'unqualified nested native OCR example')
+                (staging/name).write_bytes(data)
             (staging/'global.json').write_bytes(pin.read_bytes())
             # This auxiliary project never imports consumer build/CPM hooks.
             for name in ('Directory.Build.props','Directory.Build.targets','Directory.Packages.props'):
@@ -82,7 +84,7 @@ def prepare(root):
             run('build',[dotnet,'build','OcrOperation.csproj','--no-restore','--disable-build-servers','-m:1',
                          '-p:ManagePackageVersionsCentrally=false'],staging)
             native=json.loads(run('recording',[dotnet,native_path(staging/'bin/Debug/net10.0/OcrOperation.dll'),'recording-tests'],staging))
-            required=json.loads((example/'required-cases.json').read_text())
+            required=json.loads(asset_sources.read(example/'required-cases.json'))
             require(native['status']=='passed' and native['providerCalls']==0 and native['modelCalls']==0
                     and native['providerAcceptance'] is False and len(native['cases'])==len(set(native['cases']))
                     and set(native['cases'])==set(required),'required native recording cases are incomplete')
@@ -117,7 +119,7 @@ def prepare(root):
 
 def verify(root, relative, expected_sha256):
     """Read-only readiness; execution never restores, builds or acquires tools."""
-    root=Path(root).resolve()
+    root=root_path(root)
     path=local(root,relative)
     require(sha(path.read_bytes())==expected_sha256,'native adapter preparation record changed')
     value=load(path)
@@ -126,7 +128,7 @@ def verify(root, relative, expected_sha256):
     example,_=sources(root)
     require(value['sourceSha256']==prepared_sources(example),'native adapter sources changed; explicitly prepare current inputs again')
     require(value['mechanismSha256']==mechanisms(),'operation admission/execution mechanism changed; explicitly prepare current inputs again')
-    required=load(example/'required-cases.json')
+    required=json.loads(asset_sources.read(example/'required-cases.json'))
     native=value['native']
     require(native['status']=='passed' and native['providerCalls']==0 and native['modelCalls']==0 and native['providerAcceptance'] is False
             and len(native['cases'])==len(set(native['cases'])) and set(native['cases'])==set(required),
