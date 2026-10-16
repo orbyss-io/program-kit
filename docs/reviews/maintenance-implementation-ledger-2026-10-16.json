@@ -1,0 +1,808 @@
+{
+  "schemaVersion": 1,
+  "approvedOn": "2026-10-16",
+  "approval": "User explicitly approved complete plan, 43 findings and 18 decisions; implementation and preparation only. Exact publication, paid calls/workers and device installation retain separate authority.",
+  "approvedPlanSha256": "ae997c7e60bb5c7763a8f20e94b564b40d409b27761982380ea271a38e801b29",
+  "approvalRequestSha256": "f73c0eba05b57651775444e879bdef3fb234cd45b9d59625d916936f3bba62c6",
+  "historicalAudit": "artifacts/maintenance-research-2026-10-16/plan-coverage-audit.json",
+  "baselines": {
+    "programKit": "02d772cecb064a96f6755637fbd1950eca8fb647",
+    "foundationAuthoritativeMain": "ff091a2be8daab217291efe5309d2289567339c8",
+    "foundationOriginalCheckout": "30db6759e75bc53f7cc457e19c5a9d77297b9e71",
+    "consumerObservedHead": "50daf89f2142a034b98347bde4ae29b4a68961c0",
+    "consumerObservedChangedPaths": 567
+  },
+  "items": [
+    {
+      "id": "U0",
+      "finding": "U0 Dirty baseline and same-version witnesses",
+      "sourceDiagnosis": "Preserve isolation boundary; improve direct recovery and authentic packaged witnesses",
+      "workPackages": "A/E/G",
+      "closureRequired": "Dirty work preserved; isolated baseline explicit; witnesses derive from verified release; unknown source rejected.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "U1",
+      "finding": "U1 Prior completed receipt on retry",
+      "sourceDiagnosis": "Fix authentic intermediate-state admission",
+      "workPackages": "E",
+      "closureRequired": "Real interrupted update resumes from original version; altered receipts/originals/checks fail.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "U2",
+      "finding": "U2 Target materialized lock on retry",
+      "sourceDiagnosis": "Fix authenticated original/target transition",
+      "workPackages": "E",
+      "closureRequired": "Real complete target accepted only in verified retry; corrupt mixed state fails.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "U3",
+      "finding": "U3 Retired project locks",
+      "sourceDiagnosis": "Replace overly broad absence-based skip",
+      "workPackages": "E/G",
+      "closureRequired": "Authenticated retired locks preserved; unknown/tampered/reactivated and language/custom lock cases handled.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "U4",
+      "finding": "U4 Restore coverage",
+      "sourceDiagnosis": "Use complete canonical native restore closure",
+      "workPackages": "E",
+      "closureRequired": "Direct/solution/forward/reverse subjects accepted with real evidence; unrelated/stale/tampered coverage fails.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "P1",
+      "finding": "P1 Composition import",
+      "sourceDiagnosis": "Fix installed canonical adapter bootstrap",
+      "workPackages": "F",
+      "closureRequired": "Fresh installed schema-v2 phase subprocess succeeds without ambient imports.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-governance/scripts/dotnet_adapter.py",
+        "extensions/program-kit-governance/scripts/phase_obligations.py"
+      ],
+      "validation": [
+        {
+          "command": "shared Specify Python tests/validate_task_generation.py",
+          "status": "passed",
+          "scope": "22 task drafting tests including installed fresh-process finalize and missing-existing-evidence guard; no application execution",
+          "log": "artifacts/maintenance-implementation-2026-10-16/task-generation-3.log",
+          "sha256": "60f4f66decd27b98f3c5996a8632cd6971b45c66955e89c2e84391f0da93c0c8"
+        }
+      ],
+      "remainingDependencies": [
+        "Fresh installed schema-v2 phase path and full installed integration still require explicit validation."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "P2",
+      "finding": "P2 Planned versus physical graph",
+      "sourceDiagnosis": "Separate planning from execution selection",
+      "workPackages": "F",
+      "closureRequired": "Declared future edges plan successfully; invalid/unknown inputs and stale execution graph fail.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
+        "extensions/program-kit-governance/scripts/task_draft.py",
+        "tests/validate_scoped_verification.py",
+        "tests/validate_task_generation.py"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_scoped_verification.py",
+          "status": "passed",
+          "scope": "51 tests; final first-batch source, installed reconciliation includes its co-installed shared path helper.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/scoped-verification-final-batch1-2.log",
+          "sha256": "4b4a05930a9e2be6ac68213a68d6dc34ade0f0e915032e7df3ce9d4bd066448d"
+        },
+        {
+          "command": "shared Specify Python tests/validate_task_generation.py",
+          "status": "passed",
+          "scope": "22 task drafting tests including installed fresh-process finalize and missing-existing-evidence guard; no application execution",
+          "log": "artifacts/maintenance-implementation-2026-10-16/task-generation-3.log",
+          "sha256": "60f4f66decd27b98f3c5996a8632cd6971b45c66955e89c2e84391f0da93c0c8"
+        }
+      ],
+      "remainingDependencies": [
+        "Explicit future external file ownership and configured integration qualification remain."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R1",
+      "finding": "R1 xUnit alias",
+      "sourceDiagnosis": "Qualify supported selected identity/version",
+      "workPackages": "F/I",
+      "closureRequired": "Actual default scaffold previews/applies/restores/builds and executes nonempty tests; unqualified runners fail.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_project.py",
+        "tests/validate_test_dependencies.py"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_test_dependencies.py",
+          "status": "passed",
+          "scope": "7 tests; all three admitted exact runner identities/versions preview/apply, actual restore/build/named passing nonempty TRX execution",
+          "log": "artifacts/maintenance-implementation-2026-10-16/test-dependencies-native-2.log",
+          "sha256": "55fa45cc517dd435946a1da5dd444668cd64f7705a7636051f09ef5c66f5e11a"
+        }
+      ],
+      "remainingDependencies": [
+        "Bounded Development and final exact-candidate qualification remain."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R2",
+      "finding": "R2 Browser runtime/acquisition",
+      "sourceDiagnosis": "Use selected shared interpreter and explicit preparation",
+      "workPackages": "F",
+      "closureRequired": "Recording wrapper proves routing/cache/no acquisition; real prepared browser check passes.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R3",
+      "finding": "R3 Standalone task import",
+      "sourceDiagnosis": "Use common installed loader",
+      "workPackages": "F",
+      "closureRequired": "Real standalone CLI/finalize and existing-evidence cases pass; unknown ownership stays rejected.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-governance/scripts/dotnet_adapter.py",
+        "extensions/program-kit-governance/scripts/task_draft.py",
+        "tests/validate_task_generation.py"
+      ],
+      "validation": [
+        {
+          "command": "shared Specify Python tests/validate_task_generation.py",
+          "status": "passed",
+          "scope": "22 task drafting tests including installed fresh-process finalize and missing-existing-evidence guard; no application execution",
+          "log": "artifacts/maintenance-implementation-2026-10-16/task-generation-3.log",
+          "sha256": "60f4f66decd27b98f3c5996a8632cd6971b45c66955e89c2e84391f0da93c0c8"
+        }
+      ],
+      "remainingDependencies": [
+        "Full installed valid-existing-evidence path and final integration remain."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R4",
+      "finding": "R4 Schema wrong owner",
+      "sourceDiagnosis": "Correct deployment/grant lifecycle; bound any repair",
+      "workPackages": "H",
+      "closureRequired": "Real runtime-role admission and permissions; complete object/atomicity/unsafe-target negatives.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R5",
+      "finding": "R5 Generated eng outputs counted as source",
+      "sourceDiagnosis": "Correct actual authored/generated/native input classification",
+      "workPackages": "F",
+      "closureRequired": "Native architecture-build then pack succeeds; authored drift and changed required restore state still fail.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/handoff_contract.py",
+        "tests/validate_application_handoff.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1",
+        "tests/validate_release_bundle.py"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_application_handoff.py HandoffTests.test_engineering_source_excludes_generated_outputs_but_binds_native_inputs",
+          "status": "passed",
+          "scope": "authored engineering sources versus generated outputs and native restore inputs; not complete architecture build/pack acceptance",
+          "log": "artifacts/maintenance-implementation-2026-10-16/handoff-source-inputs.log",
+          "sha256": "c72399f372d8177081f4d529f4aa7d251381013964111a2de22a6a8b5da032cd"
+        },
+        {
+          "command": "python tests/validate_release_bundle.py ReleaseBundleTests.test_actual_engineering_reader_build_then_pack_preserves_authored_freshness",
+          "status": "passed",
+          "scope": "Real native engineering reader restore/build/pack and source freshness; authored source and actual assets edits still fail.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/engineering-build-pack.log",
+          "sha256": "4831f28d822d6212fa60c1f71ebbdc93992e6a62e652420ca3b76e4338cc942e"
+        }
+      ],
+      "remainingDependencies": [
+        "Full maintained Build.ps1 architecture/pack route in fresh bounded Development; final configured integration and exact-candidate qualification."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R6",
+      "finding": "R6 Parallel fixture schema race",
+      "sourceDiagnosis": "Centralize fresh fixture initialization",
+      "workPackages": "H",
+      "closureRequired": "Proved initially absent schema, actual concurrent preparation, preserved product concurrency and verified cleanup.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R7",
+      "finding": "R7 Viewport claim",
+      "sourceDiagnosis": "Correct withdrawn cause; retain measured assurance",
+      "workPackages": "A/I/J",
+      "closureRequired": "No false inheritance rule; central real tests assert effective viewports; no duplicate consumer Playwright tests.",
+      "status": "withdrawn-cause-disposition-recorded; measured-assurance-pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R8",
+      "finding": "R8 Plan invalid JSON",
+      "sourceDiagnosis": "Fix real stdout contract",
+      "workPackages": "F",
+      "closureRequired": "Entire native/scoped-wrapper stdout parses; failure paths retain nonzero diagnostics.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
+        "tests/validate_repository_verification_hook.py"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_repository_verification_hook.py",
+          "status": "passed",
+          "scope": "actual PowerShell wrapper; full native/scoped-adapter Plan stdout, routing, argument forwarding and failure guards using recording adapters",
+          "log": "artifacts/maintenance-implementation-2026-10-16/verification-hook.log",
+          "sha256": "c600ca617ef132ced37b8951664f7b709144f2854dd1f2663bd30ac4d82911eb"
+        }
+      ],
+      "remainingDependencies": [
+        "Bounded Development and exact-candidate qualification remain."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "R9",
+      "finding": "R9 Shared test drift",
+      "sourceDiagnosis": "Replace stale fixtures with preserved obligations",
+      "workPackages": "G/I",
+      "closureRequired": "Explicit required identities and old-to-new coverage; removal/substitution/skip/empty/failure negatives.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C1",
+      "finding": "C1 Preparation/runtime selection",
+      "sourceDiagnosis": "Preserve preflight; improve supported preparation recipe",
+      "workPackages": "A/F/I",
+      "closureRequired": "Maintained command chooses real runtime and reports exact missing preparation; attribution retained.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C2",
+      "finding": "C2 Node/Vite/project definitions",
+      "sourceDiagnosis": "Trace provenance; fix generation or update if implicated",
+      "workPackages": "A/D/I",
+      "closureRequired": "Clean actual generated composition builds on accepted pins; stale-owned-file transition tested.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C3",
+      "finding": "C3 Native API/provider/OpenAPI/analyzer wiring",
+      "sourceDiagnosis": "Supply qualified executable integration",
+      "workPackages": "B/I",
+      "closureRequired": "Real compile/export/checked client/runtime wire parity; public native seams and constraints preserved.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C4",
+      "finding": "C4 Generator lock/npm syntax",
+      "sourceDiagnosis": "Preserve lock requirement; prove runnable recipe",
+      "workPackages": "F/I",
+      "closureRequired": "Native selected generator lock and real maintained argument routing; no manual client/baseline reset.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C5",
+      "finding": "C5 Native test/config wiring",
+      "sourceDiagnosis": "Supply shared current harness/example and fixture setup",
+      "workPackages": "B/H/I",
+      "closureRequired": "Nondefault scalar options activate, native public features register and durable behavior is observed.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C6",
+      "finding": "C6 Frontend contracts/recovery",
+      "sourceDiagnosis": "Trace imports; align strict layout and real lifecycle",
+      "workPackages": "A/C/D/I",
+      "closureRequired": "Strict build/lint and real persisted-page/session/privacy recovery; original cause only claimed when substantiated.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C7",
+      "finding": "C7 Invalid wrappers/actions/sandbox",
+      "sourceDiagnosis": "Preserve scope/action/access contracts; improve commands",
+      "workPackages": "F/I",
+      "closureRequired": "Valid commands work; wrong payload/reason/scope still fail actionably; environment failures remain honest.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C8",
+      "finding": "C8 Quickstart owner omission",
+      "sourceDiagnosis": "Correct/test emitted owner-bound commands",
+      "workPackages": "I",
+      "closureRequired": "Actual generated example selects a concrete configured owner; PKV002 remains enforced.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C9",
+      "finding": "C9 Consumer docs/CI/private-file boundary",
+      "sourceDiagnosis": "Trace ownership and reconcile stale entrypoints",
+      "workPackages": "A/D/I",
+      "closureRequired": "Executable current workflow command/prerequisite proof plus settings/pack/private-file boundaries.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C10",
+      "finding": "C10 Stale frontend/package closure",
+      "sourceDiagnosis": "Preserve freshness guards and supported refresh",
+      "workPackages": "F/I",
+      "closureRequired": "Stale outputs reject; maintained refresh/reentry passes; no silent broad bypass.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "C11",
+      "finding": "C11 Producer/native-receipt row",
+      "sourceDiagnosis": "Preserve guard; prevent contradictory task edits",
+      "workPackages": "F/I",
+      "closureRequired": "Structured valid alternatives; conflicting producer/evidence fails; human reviews/ancestry unchanged.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "V1",
+      "finding": "V1 Original-baseline unmapped inputs",
+      "sourceDiagnosis": "Generate real bounded toolkit owners/checks",
+      "workPackages": "G",
+      "closureRequired": "Real mixed Affected selection from retained baseline; future unknown paths fail; no catch-all/baseline advance.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "V2",
+      "finding": "V2 Archive/locks/protected history",
+      "sourceDiagnosis": "Anchor preservation and complete inactivity checks",
+      "workPackages": "E/G",
+      "closureRequired": "Rehashed-payload and props/targets activation negatives; current locks native; no old-code execution.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "V3",
+      "finding": "V3 Installed/public/generated provenance",
+      "sourceDiagnosis": "Canonical full-set/source/executed-regression binding",
+      "workPackages": "A/G",
+      "closureRequired": "Complete attempt originals and public/guidance sets; modified/missing/spurious inputs fail; receipts unchanged.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "V4",
+      "finding": "V4 Managed/setup/core metadata",
+      "sourceDiagnosis": "Current validators plus authenticated six-file diagnosis",
+      "workPackages": "A/G",
+      "closureRequired": "Real managed render/profile/architecture checks; core mismatch explained/reconciled, never merely re-signed.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-governance/scripts/ensure_utf8.py",
+        "tests/validate_lifecycle_profiles.py"
+      ],
+      "validation": [
+        {
+          "command": "shared Specify Python: validate_lifecycle_profiles.validate_utf8()",
+          "status": "passed",
+          "scope": "exact native-manifest-bound UTF-8 transform, cp1252 subprocess, original manifest preservation and unknown edit rejection",
+          "log": "artifacts/maintenance-implementation-2026-10-16/core-utf8-2.log",
+          "sha256": "dca462aa5b262bd2dbca5a91d32d5eb3b9f593b6636deb2a252179b10af6d2ef"
+        }
+      ],
+      "remainingDependencies": [
+        "Full core reconciliation through normal released updater; managed render/profile/architecture checks."
+      ],
+      "closureEvidence": [
+        {
+          "scope": "Six-script attribution only; no consumer mutation",
+          "evidence": [
+            "artifacts/maintenance-implementation-2026-10-16/core-source-attribution.json",
+            "artifacts/maintenance-implementation-2026-10-16/core-public-source-attribution.json",
+            "artifacts/maintenance-implementation-2026-10-16/core-transform-attribution.json"
+          ],
+          "finding": "All six public scripts match exact Specify commit 4ca46a0706a662b1edc07086ef16f021820c2db0. Actual native Codex rendering matches all six original manifest hashes. Every current script is exactly the reversible ensure_utf8.py hardening of those native-rendered bytes. No line-ending cause or unexplained core edit remains in this six-file observation."
+        }
+      ]
+    },
+    {
+      "id": "S1",
+      "finding": "S1 Later Docker-reset recovery",
+      "sourceDiagnosis": "Preserve expected environment recovery and evidence scope",
+      "workPackages": "A/H/K",
+      "closureRequired": "Exact owned synthetic reconciliation; pinned supported runtime; no data-loss/product-regression invention.",
+      "status": "expected-environment-recovery-disposition; shared-recovery-validation-pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N1",
+      "finding": "N1 Interpreter/dependencies",
+      "sourceDiagnosis": "Fix applicable readiness and shared adapter contract; preserve correct canonical interpreter launch",
+      "workPackages": "F/G/I",
+      "closureRequired": "Verified child-grandchild runtime plus applicable missing-dependency negatives.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N2",
+      "finding": "N2 Temporary witness loss",
+      "sourceDiagnosis": "Durable authenticated retention/recovery and platform path support",
+      "workPackages": "A/E/G",
+      "closureRequired": "Removed staging recovers exact witness; modified/partial/deep-path cases and receipt preservation.",
+      "status": "partially-implemented; Windows path portion only",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/scripts/reconciliation.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
+        "tests/validate_owned_scratch.py"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_owned_scratch.py (external Windows process access)",
+          "status": "passed",
+          "scope": "12 tests: actual deep files, real junction, extended drive, entry/cleanup dual failure, exact ownership, transaction commit/rollback. UNC scratch remains unsupported.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/owned-scratch-final-batch1-2.log",
+          "sha256": "0cd7c228d91eed43e55c2daefee03ec7870002e928152bb8c2e7e1e98d6a90db"
+        }
+      ],
+      "remainingDependencies": [
+        "Durable content-addressed witness storage, authenticated recovery, modified-original rejection and subsequent-session verification remain."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N3",
+      "finding": "N3 Accepted story reopened",
+      "sourceDiagnosis": "Extend existing scoped material projections/diagnostics conservatively",
+      "workPackages": "D/G/I",
+      "closureRequired": "Unrelated additions preserve approval; affecting shared changes and rule changes cannot fabricate acceptance.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N4",
+      "finding": "N4 PATH-dependent historical render",
+      "sourceDiagnosis": "Bind historical render profile; separate current readiness",
+      "workPackages": "A/F/G/I",
+      "closureRequired": "Alias changes versus source changes distinguished; tampered/missing provenance stays explicit.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N5",
+      "finding": "N5 Checkpoint accumulation",
+      "sourceDiagnosis": "Bounded current projection plus complete retained history",
+      "workPackages": "F/G/I",
+      "closureRequired": "Repeated resume/growth/overflow; original authority/failures/history remain intact.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N6",
+      "finding": "N6 Frozen/current document conflict",
+      "sourceDiagnosis": "Ownership-aware task output planning and current proposal/index",
+      "workPackages": "D/G/I",
+      "closureRequired": "Immutable target diagnosed; valid new active target allowed; historical bytes protected.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N7",
+      "finding": "N7 Contract layout/analyzer mismatch",
+      "sourceDiagnosis": "Selected-rule-aware task examples and real compile qualification",
+      "workPackages": "F/I",
+      "closureRequired": "Native generated contract examples obey selected analyzer; no suppression.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N8",
+      "finding": "N8 OCR-only authority",
+      "sourceDiagnosis": "Reusable narrow operation binding/execution/accounting/recovery",
+      "workPackages": "L/I",
+      "closureRequired": "Offline exact-scope/concurrent-cap/unknown-outcome/no-resubmit/no-model/no-fallback proof.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N9",
+      "finding": "N9 Provider/composition key mismatch",
+      "sourceDiagnosis": "Authoritative binding guidance, declared-settings checks and configured public-registration proof",
+      "workPackages": "D/F/I/J",
+      "closureRequired": "Real emitted binding works; invented/missing key fails without fallback or secret disclosure.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N10",
+      "finding": "N10 Source metadata line endings",
+      "sourceDiagnosis": "Trace generator ownership; align generation/native export to exact text-hash contract",
+      "workPackages": "A/F/I/J",
+      "closureRequired": "Actual selected export accepts supported canonical text; meaningful changes and wrong hashes still fail.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N11",
+      "finding": "N11 Node/npm recovery split",
+      "sourceDiagnosis": "Reuse joint selected-pair diagnosis and ordered user-owned recovery",
+      "workPackages": "F/I/J",
+      "closureRequired": "Missing installation/wrong bundled npm/fresh-shell cases; both pins valid before evidence renewal.",
+      "status": "pending",
+      "changedFiles": [],
+      "validation": [],
+      "remainingDependencies": [
+        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "N12",
+      "finding": "N12 Windows selected-root and bundle staging cleanup",
+      "sourceDiagnosis": "Reported WinError 145 after restore; long paths are plausible but original failing logs do not establish cause. Consumer finally/rmtree may obscure the operation error and does not fully prove scratch ownership or UNC handling.",
+      "workPackages": "F/G; path handling related to N2",
+      "closureRequired": "Actual deep Windows paths, exact scratch identity/substitution guards, dual and cleanup-only failure observations, real maintained native update route, installed-template and CI coverage.",
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "tests/validate_owned_scratch.py",
+        "tests/validate_release_bundle.py",
+        "tests/validation-inventory.json",
+        "extensions/program-kit-dotnet/scripts/reconciliation.py"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_owned_scratch.py (external Windows process access)",
+          "status": "passed",
+          "scope": "12 tests: actual deep files, real junction, extended drive, entry/cleanup dual failure, exact ownership, transaction commit/rollback. UNC scratch remains unsupported.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/owned-scratch-final-batch1-2.log",
+          "sha256": "0cd7c228d91eed43e55c2daefee03ec7870002e928152bb8c2e7e1e98d6a90db"
+        },
+        {
+          "command": "python tests/validate_release_bundle.py <four focused cases>",
+          "status": "passed",
+          "scope": "4 actual Windows native restore/stage/pack/installed-template cases; not complete composition update or Linux acceptance",
+          "log": "artifacts/maintenance-implementation-2026-10-16/bundle-scratch-integration-4.log",
+          "sha256": "5a06e23c644a3c1efa31df4d257c249831b49c671ef4d3c6a7e369864e9d50ec"
+        },
+        {
+          "command": "python tests/validate_release_bundle.py ReleaseBundleTests.test_cleanup_failure_cannot_seal_a_successful_stage",
+          "status": "passed",
+          "scope": "Real configuration-only staging body completes, injected cleanup failure prevents success evidence.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/scratch-stage-failure.log",
+          "sha256": "314723ba5f76a8a4a6b530617e9e38108efbe443a988381d401b8335bf403241"
+        }
+      ],
+      "remainingDependencies": [
+        "Actual maintained composition update route; full current-source bounded Development and complete CI Linux/Windows checks; released consumer adoption. Original WinError 145 cause remains unproven without original logs."
+      ],
+      "closureEvidence": []
+    }
+  ],
+  "scopeAdditions": [
+    {
+      "id": "N12",
+      "approvedOn": "2026-10-16",
+      "approval": "User explicitly approved N12 and implementation of all 44 findings. Existing publication and paid-execution boundaries unchanged.",
+      "source": "docs/reviews/maintenance-repair-addendum-N12-2026-10-16.md",
+      "sourceSha256": "67cc691a2bd4337324078dd230cc7e8932939469f7efb2c373310535dbd6e78f"
+    }
+  ],
+  "expectedFindings": 44,
+  "guidanceRepairs": [
+    {
+      "file": "scripts/update_dependencies.py",
+      "change": "Retired Windows local Release recovery message now directs users to Linux dependency workflow, bounded --development, and exact-main qualify-candidate.yml.",
+      "validation": "Source changed; diagnostic execution/Development not yet passed."
+    }
+  ],
+  "inProgressValidation": {
+    "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
+    "journal": "artifacts/validation-runs/20261016T110151Z-3b40f6c4",
+    "status": "failed",
+    "observations": [
+      "Sandbox denied native test host access; deep temporary root caused Windows path errors copying native fixtures and generating composition transactions. These failures are not acceptance. Preserve logs and repair/rerun affected checks with appropriate process access and owned short temporary paths.",
+      "Implementation advanced while this failed run continued. Its mixed working inputs are not final-source acceptance. A fresh short-temp external-process Development run is required."
+    ],
+    "journalStatus": "failed"
+  }
+}

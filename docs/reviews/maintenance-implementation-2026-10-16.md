@@ -1,0 +1,65 @@
+# Maintenance implementation record
+
+The user approved the complete 16 October 2026 repair plan, all 43 findings and all
+18 agreed decisions, and requested implementation on 16 October 2026. This approval
+supersedes the plan's draft status. The plan, root-cause review and coverage audits
+remain unchanged as historical inputs. Their historical planning-only statements
+describe their preparation stage, not the current authorization.
+
+The [item ledger](maintenance-implementation-ledger-2026-10-16.json) binds the approved
+plan and request by SHA-256 and records implementation separately from validation
+and closure. A pending item is not implemented or accepted.
+
+## Source reconciliation
+
+- Program Kit fetched `origin/main` at `02d772cecb064a96f6755637fbd1950eca8fb647`,
+  identical to the approved planning baseline. Implementation branch:
+  `codex/maintenance-repair-2026-10-16`. Existing untracked review documents and
+  local skills were preserved.
+- Foundation fetched `origin/main` at `ff091a2be8daab217291efe5309d2289567339c8`.
+  The original checkout is `30db6759e75bc53f7cc457e19c5a9d77297b9e71`, with unrelated
+  lockfile edits. It remains untouched. An isolated worktree from authoritative
+  main is under `artifacts/maintenance-implementation-2026-10-16/foundation-source`;
+  its contributor instructions were read before implementation.
+- The consumer was inspected at `50daf89f2142a034b98347bde4ae29b4a68961c0`, with
+  567 changed/untracked paths. This is an observation, not an upgrade baseline or
+  acceptance checkpoint. No consumer files, live data or history were changed.
+
+## Execution boundaries
+
+Targeted validators and bounded Development apply during implementation. Complete
+qualification belongs to exact-candidate CI. Foundation publication must precede
+final Program Kit adoption. Exact commit/tag publication and attributable readiness
+review remain future gates. This implementation authorization supplies no paid-call,
+paid-worker, device-installation or later application-story authority.
+
+## N12 scope approval
+
+The user subsequently approved [N12](maintenance-repair-addendum-N12-2026-10-16.md),
+bringing the implementation inventory to 44 findings. Its source and approval are
+recorded separately in the ledger. The original 43-item plan, approval hashes and
+coverage audit remain unchanged. The initial implementation ledger is preserved at
+`artifacts/maintenance-implementation-2026-10-16/initial-43-item-implementation-ledger.json`.
+
+## First independent repair batch
+
+Installed adapter loading, task planning versus physical execution, exact qualified
+xUnit runner selection, Plan stdout, engineering-source classification, core UTF-8
+transformation ownership and N12 staging have implementation changes. The ledger
+records the actual targeted checks and their limits. These findings are not all
+closed, and the complete maintenance batch is not ready for release.
+
+The six core-script discrepancies are now attributed. Each installed original
+matches the exact public Specify 1.2.0 source and native Codex command rendering.
+Each current script is exactly that original plus Program Kit's UTF-8 hardening.
+The original manifest was never updated by that step. A separate reversible
+transformation record now describes the current supported change without rewriting
+the native manifest. Unknown additional edits remain errors. This investigation
+changed no consumer file or historical record.
+
+N12's focused Windows checks cover real deep paths, scratch substitution, dual
+failure and cleanup-only failure, plus native restore/staging/pack and installed
+template delivery. Native commands/configuration keep ordinary drive paths;
+Python staging I/O and cleanup use extended paths. Network scratch roots remain
+explicitly unsupported. Full composition-update integration and CI qualification
+remain outstanding; the original WinError 145 cause is not inferred from its code.
