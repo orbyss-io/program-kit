@@ -962,8 +962,8 @@
       "enforcement": "Scoped applicability review and actual consumer tests; installation/graph passes do not prove semantic acceptance.",
       "route": {
         "kind": "manual",
-        "via": ["extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "scripts/consumer_upgrade_workspace.py"],
-        "sections": ["Fresh story-delivery adoption"],
+        "via": ["extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "scripts/consumer_upgrade_workspace.py", "extensions/program-kit-governance/scripts/tooling_witness.py"],
+        "sections": ["Fresh story-delivery adoption", "Retained exact tooling source"],
         "requirements": [],
         "review": "Existing substantive review, scoped recovery and destination activation; no founding bootstrap restart."
       }

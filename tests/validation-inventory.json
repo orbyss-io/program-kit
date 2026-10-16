@@ -229,7 +229,7 @@
     },
     {
       "id": "validate_story_delivery",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": ["{python}", "tests/validate_story_delivery.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Bounded story/early review progression, scoped deferrals, roles and authenticated reference shapes, freshness, no-hook closure/handoff and deterministic active clocks; simulated humans only.",
@@ -2352,7 +2352,7 @@
     },
     {
       "id": "validate_bootstrap_lifecycle",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_bootstrap_lifecycle.py"
@@ -5130,6 +5130,17 @@
       ],
       "resources": [],
       "isolation": "Synthetic SDK projects and canonical architecture, no package/provider/agent calls. Decisions are explicitly fictional. Unsupported build shapes remain fully bound or require an explicit native material assessment."
+    },
+    {
+      "id": "validate_tooling_witness",
+      "qualification": {"linux": true, "windows": true, "build": false},
+      "command": ["{python}", "tests/validate_tooling_witness.py"],
+      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "purpose": "Original receipt-bound complete source survives staging loss and project moves; exact explicit recovery, independent later process and partial/modified/rehashed source negatives without historical execution or public self-attestation.",
+      "owner": "program-kit",
+      "inputs": ["extensions/program-kit-governance/scripts/tooling_witness.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py", "scripts/upgrade_program_kit.py", "scripts/build_release.py", "tests/validate_tooling_witness.py"],
+      "outputs": [], "resources": [],
+      "isolation": "Owned synthetic source and consumer, finite durable witness outside disposable caches. No downloads, source execution, patch replay or historical receipt rewrite."
     },
     {
       "id": "validate_asset_sources",

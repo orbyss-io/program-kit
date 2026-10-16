@@ -187,3 +187,42 @@ Prior phase state, checkmarks, human reviews and test receipts cannot establish 
 Keep unrelated shared work, foundations/tooling, dependency history and live data outside deletion.
 Historical recipes retain their earlier applicability; no mid-implementation continuation is offered
 for this fresh diagnostics-patch attempt.
+
+## Retained exact tooling source
+
+Before the maintained updater mutates components, it retains the complete actual
+release source under `.program-kit/tooling-witnesses/sha256/`. The original upgrade
+attempt and new migration receipt bind the exact record digest and original release
+fingerprint. This location is durable evidence, outside ordinary caches/scratch;
+retain it with its installation history. No automatic cleanup or eviction is provided.
+The composite publication includes `program-kit-source-witness.json`, generated
+from the actual packaged files and all five component inventories. Publication
+qualification authenticates its enclosing archive and producer. A checksum or
+this manifest alone cannot establish public origin; explicit local sources retain
+their disclosed local scope and gain no publisher or application acceptance.
+
+Run the current installed helper in a later session:
+
+```sh
+python .specify/extensions/program-kit-governance/scripts/tooling_witness.py verify --receipt .program-kit/installation/migration.json
+```
+
+The returned retained archive is bounded read-only comparison data. Historical
+projects/props remain inside the archive, outside active build/dependency discovery.
+Never extract into an active source tree, import or
+execute its scripts, replay local patches, renew evidence or alter an old receipt
+to make a comparison pass. Missing original staging can use the retained original;
+an existing partial or modified original fails, even when the retained copy is good.
+The complete original file set, packaged witness and both platform fingerprint
+orders are checked. Project moves preserve the relative retained binding; the
+original staging location remains historical rather than being silently rewritten.
+
+If retained source alone is missing, explicitly reacquire the original input under
+its original provenance, then run `recover --receipt <original-receipt> --candidate
+<exact-original-release>`. Recovery validates every original byte and records a
+separate location/recovery event. Wrong/rehashed candidates, modified or partial
+existing copies, missing record authority and unknown legacy receipts fail. Legacy
+receipts without this original binding require separate authenticated original
+evidence; this helper never backfills them. Historical receipts remain unchanged.
+Local repair declarations and actual executed regression coverage retain their
+separate validation requirements; source retention does not certify a local repair.

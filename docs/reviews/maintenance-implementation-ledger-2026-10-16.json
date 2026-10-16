@@ -19,11 +19,19 @@
       "sourceDiagnosis": "Preserve isolation boundary; improve direct recovery and authentic packaged witnesses",
       "workPackages": "A/E/G",
       "closureRequired": "Dirty work preserved; isolated baseline explicit; witnesses derive from verified release; unknown source rejected.",
-      "status": "partially-implemented; isolated installed recovery verified; packaged witness closure pending",
+      "status": "implemented-receipt-bound-complete-source-retention-and-real-installed-later-process; provenance/CI/adoption closure pending",
       "changedFiles": [
         "scripts/consumer_upgrade_workspace.py",
         "tests/validate_consumer_upgrade.py",
-        "tests/owned_fixture.py"
+        "tests/owned_fixture.py",
+        "extensions/program-kit-governance/scripts/tooling_witness.py",
+        "extensions/program-kit-governance/references/consumer-upgrade.md",
+        "extensions/program-kit-governance/references/phase-obligations.json",
+        "scripts/upgrade_program_kit.py",
+        "scripts/build_release.py",
+        "tests/validate_tooling_witness.py",
+        "tests/validate_asset_sources.py",
+        "tests/validation-inventory.json"
       ],
       "validation": [
         {
@@ -32,13 +40,36 @@
           "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
           "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
+        },
+        {
+          "command": "witness-source-archive-final.log",
+          "status": "passed",
+          "scope": "Four owned-source tests: exact complete anchored file set, original native platform fingerprint order, staging loss, explicit original recovery, later independent process/project move, deep Windows paths, unchanged historical receipt and wrong/rehashed/partial/modified original/archive/record rejection. Historical source is bounded ZIP data and never executed; publisher identity needs separate enclosing publication verification.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/witness-source-archive-final.log",
+          "sha256": "e3897116ae1ddc4166488be2f34807c90535b0197d44e0a3a3f78e599da56d50"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual 510-entry native bundle includes complete five-component original source witness. Installed helper in a separate process verifies archived source after original staging is moved; exact original receipt retained. Real installed UI and cold public SDK recording preparation also pass. No public release/consumer acceptance.",
+          "log": "artifacts/source-assets/1ca6267faa0543cdb4fd68851550ce53/results.json",
+          "sha256": "f23a700331ef1afcc7d744c54b6965950aa3ae8a4745943189e77271c6c11b4d"
+        },
+        {
+          "command": "updater-witness-archive-final.log",
+          "status": "passed",
+          "scope": "Real maintained complete sequential offline upgrade and coherence validation passed with durable archive source, historical qualified 0.12.7, unchanged accepted pins/intake/constitution/bootstrap, planned/materialized selection and invalid mutation refusal. Earlier loose-retained-source dependency admission and platform order failures remain failed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-witness-archive-final.log",
+          "sha256": "c1000c57ae5e85a34209276a3aa8d74da3241f26e8ce72607da4020bc22c973d"
         }
       ],
       "remainingDependencies": [
-        "Canonical authenticated packaged component witnesses and durable later-session retention/recovery remain.",
-        "Complete update-stage interruption inventory, exact-candidate qualification and released adoption remain."
+        "Complete local-deviation/executed-regression and original-attempt provenance closure remains in V3/R9; retention itself grants no local repair or publisher authority.",
+        "Exact-candidate CI/public release and normal released adoption remain. Legacy receipts without original source inventory cannot be backfilled; separate authenticated originals are required."
       ],
-      "closureEvidence": []
+      "closureEvidence": [
+        "New attempts/migrations bind the original complete source record hash. Durable non-cache ZIP data excludes historical projects from active discovery. Existing modified/partial originals or retained archives cannot be hidden by recovery. Original Windows/POSIX Path ordering is retained independently of later host platform; external publication authenticates packaged source identity, never a self-declared checksum."
+      ]
     },
     {
       "id": "U1",
@@ -758,7 +789,7 @@
       "sourceDiagnosis": "Trace imports; align strict layout and real lifecycle",
       "workPackages": "A/C/D/I",
       "closureRequired": "Strict build/lint and real persisted-page/session/privacy recovery; original cause only claimed when substantiated.",
-      "status": "partially-implemented; shared native BFF transport and real persisted-page privacy recovery; frontend provenance/profile/adoption pending",
+      "status": "partially-implemented; native BFF plus actual selected SPA protocol/private lifecycle proof; emitted frontend/profile/adoption pending",
       "changedFiles": [],
       "validation": [
         {
@@ -767,10 +798,24 @@
           "scope": "Actual source-built BFF pages and combined native prefixes; measured 1280x720/390x844; zero acquisition pending/cancelled confirmation followed by one native GET/POST; independently observed local logout, no-script forms and synthetic provider. Real Chromium persisted restore after native ticket revocation; WebKit fresh history navigation. No packaged Host, SPA provider, public release or consumer acceptance claim.",
           "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/native/1792169903404-a3cf06e9-553c-46b4-aa2e-570bbf34522d/results.json",
           "sha256": "38bc652bc5e0c5a7c1fbce1f17e0eb48c393c750e4cc1f698ad59e4eba638307"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual rebuilt maintained Foundation BFF/browser pages pass Chromium/WebKit after CShells 0.0.31 dependency preparation; measured viewports, secure one-shot admission, no-script recovery and real Chromium persisted restoration after native ticket revocation.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/native/1792188652486-758a8933-9afe-421d-bf56-1f46c86ea59f/results.json",
+          "sha256": "cfab61ab8fdfc5f5b0a74ded81e1ef262a309f6c07596fdac39802b57ca8ef2d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Real locked oidc-client-ts 3.5.0 public ESM and jwt-decode with a synthetic two-origin code/PKCE provider: nine named cases, actual native popup activation, original raw invalid draft, cancel zero effects, in-memory local clearing, provider unavailable versus independently confirmed termination, fresh userinfo unavailable/deadline, native invalid nonce and actual history/private revalidation in Chromium/WebKit at two measured viewports. COOP same-origin-allow-popups; current Program Kit SPA header/profile not qualified. No native SPA Host/API/public/consumer acceptance.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/spa-client/1792188686482-396246dd-79d6-4ba4-bdd1-5455d9b40972/results.json",
+          "sha256": "95f1eb7eb248442b5a89832a77daa553025bd4d3fe00501b3a35ac90dd8563fc"
         }
       ],
       "remainingDependencies": [
-        "Original frontend typing/import provenance, strict emitted build/lint, selected SPA protocol client and original domain recovery obligations remain.",
+        "Original frontend typing/import provenance, strict emitted build/lint and original domain recovery obligations remain. Actual selected SPA source proof uses an explicit popup-compatible isolation topology; emitted profile and real native SPA Host/API integration remain.",
         "Public packaged native closure, supported migration, emitted profile qualification, CI and adoption remain. No consumer code or data was changed."
       ],
       "closureEvidence": []
@@ -1131,7 +1176,7 @@
       "sourceDiagnosis": "Durable authenticated retention/recovery and platform path support",
       "workPackages": "A/E/G",
       "closureRequired": "Removed staging recovers exact witness; modified/partial/deep-path cases and receipt preservation.",
-      "status": "partially-implemented; Windows path portion only",
+      "status": "implemented-receipt-bound-complete-source-retention-and-real-installed-later-process; provenance/CI/adoption closure pending",
       "changedFiles": [
         "extensions/program-kit-dotnet/scripts/reconciliation.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
@@ -1139,7 +1184,14 @@
         "scripts/build_release.py",
         "scripts/invoke_specify.py",
         "scripts/initialize_device.py",
-        "tests/validate_release_install.py"
+        "tests/validate_release_install.py",
+        "extensions/program-kit-governance/scripts/tooling_witness.py",
+        "extensions/program-kit-governance/references/consumer-upgrade.md",
+        "extensions/program-kit-governance/references/phase-obligations.json",
+        "scripts/upgrade_program_kit.py",
+        "tests/validate_tooling_witness.py",
+        "tests/validate_asset_sources.py",
+        "tests/validation-inventory.json"
       ],
       "validation": [
         {
@@ -1155,12 +1207,36 @@
           "scope": "Actual full deep historical source tree builds via shared Windows filesystem adapter; real native CLI directory copies use that same physical spelling, preserving archive filename classification and all original source bytes. Owned fixture cleanup replaces ordinary temp cleanup. Durable authenticated witness closure remains separately outstanding.",
           "log": "artifacts/source-assets/e28adb5944bc42ad8cde7675c2b3f54d/results.json",
           "sha256": "b113c7e528404b43e18af52edb8c1e1aea58239ad3046355869d18aefd6a6a69"
+        },
+        {
+          "command": "witness-source-archive-final.log",
+          "status": "passed",
+          "scope": "Four owned-source tests: exact complete anchored file set, original native platform fingerprint order, staging loss, explicit original recovery, later independent process/project move, deep Windows paths, unchanged historical receipt and wrong/rehashed/partial/modified original/archive/record rejection. Historical source is bounded ZIP data and never executed; publisher identity needs separate enclosing publication verification.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/witness-source-archive-final.log",
+          "sha256": "e3897116ae1ddc4166488be2f34807c90535b0197d44e0a3a3f78e599da56d50"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual 510-entry native bundle includes complete five-component original source witness. Installed helper in a separate process verifies archived source after original staging is moved; exact original receipt retained. Real installed UI and cold public SDK recording preparation also pass. No public release/consumer acceptance.",
+          "log": "artifacts/source-assets/1ca6267faa0543cdb4fd68851550ce53/results.json",
+          "sha256": "f23a700331ef1afcc7d744c54b6965950aa3ae8a4745943189e77271c6c11b4d"
+        },
+        {
+          "command": "updater-witness-archive-final.log",
+          "status": "passed",
+          "scope": "Real maintained complete sequential offline upgrade and coherence validation passed with durable archive source, historical qualified 0.12.7, unchanged accepted pins/intake/constitution/bootstrap, planned/materialized selection and invalid mutation refusal. Earlier loose-retained-source dependency admission and platform order failures remain failed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-witness-archive-final.log",
+          "sha256": "c1000c57ae5e85a34209276a3aa8d74da3241f26e8ce72607da4020bc22c973d"
         }
       ],
       "remainingDependencies": [
-        "Durable content-addressed witness storage, authenticated recovery, modified-original rejection and subsequent-session verification remain."
+        "Complete local-deviation/executed-regression and original-attempt provenance closure remains in V3/R9; retention itself grants no local repair or publisher authority.",
+        "Exact-candidate CI/public release and normal released adoption remain. Legacy receipts without original source inventory cannot be backfilled; separate authenticated originals are required."
       ],
-      "closureEvidence": []
+      "closureEvidence": [
+        "New attempts/migrations bind the original complete source record hash. Durable non-cache ZIP data excludes historical projects from active discovery. Existing modified/partial originals or retained archives cannot be hidden by recovery. Original Windows/POSIX Path ordering is retained independently of later host platform; external publication authenticates packaged source identity, never a self-declared checksum."
+      ]
     },
     {
       "id": "N3",
@@ -1965,20 +2041,23 @@
     }
   ],
   "inProgressValidation": {
-    "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
+    "command": "./scripts/Test-ProgramKit.ps1 -Suite Development -BrowserEngines chromium,webkit",
     "source": {
-      "commit": "875843234bbfc71910bccf72ca62d7a136d81c88",
-      "tree": "0fa0c9ce303f96577e819de9af03f9dc7f31c100"
+      "commit": "0bc6408933426df7ba406ee52e8ccbf1e69fa0ad",
+      "tree": "4c0158c1042481255f4aae812e85ff44fbf4ec6b"
     },
-    "journal": "artifacts/validation-runs/20261016T151926Z-c5db5dbf/journal.json",
-    "journalSha256": "61f0331348262640a44a061740bb02853d491a4d6926dbafdfb2d1f2dc47ca24",
-    "status": "passed",
-    "observations": [
-      "106/106 bounded Development checks passed at 875843234bbfc71910bccf72ca62d7a136d81c88. Unrelated user files remained uncommitted; this is not clean exact-candidate CI qualification.",
-      "All earlier failed Development and targeted runs remain preserved. The later 102-pass/4-failure run was not relabelled passing.",
-      "baa4f7c subsequently repaired fresh review after material assessment and made restore evidence unique per execution. Its affected story63, validation-runner11 and installed task-generation25 cases passed, plus two maintained building-block runs with evidence-retention assertions. These are separate source/scoped results, not a recombined complete suite.",
-      "Local Firefox remains the known host limitation; Chromium/WebKit were selected locally and Firefox remains required in CI."
-    ]
+    "journal": "artifacts/validation-runs/20261016T213645Z-bc419d3a/journal.json",
+    "journalSha256": "cbaf66fdbede40e539917f0d9deda108c75f61d8e1763ab1a419ab589352c674",
+    "status": "failed",
+    "passed": 108,
+    "total": 112,
+    "failed": [
+      "validate_release_candidate",
+      "validate_native_phase_ownership",
+      "validate_post_bootstrap_continuation",
+      "validate_workflow_resumption"
+    ],
+    "qualification": "Original failed run remains failed. Later targeted repairs do not change this result; no exact-candidate CI/publication claim."
   },
   "originalApprovedFindings": 43,
   "directlyApprovedAdditionFindings": 1,
@@ -2160,6 +2239,42 @@
         "Some final diagnostics/profile/governance repairs followed the relevant steps in this failed run. It is not stable-source or exact-candidate qualification."
       ],
       "journalSha256": "c32de808a7bb65887d04298a759c778b69348fd9d602d46c2632c1d9ede306ac"
+    },
+    {
+      "command": "./scripts/Test-ProgramKit.ps1 -Suite Development -BrowserEngines chromium,webkit",
+      "source": {
+        "commit": "c93199690e7c87e341662d4f4b3fac752594677e",
+        "tree": "45bcf7016bd257c088552567b327cbf875bcee51"
+      },
+      "journal": "artifacts/validation-runs/20261016T183753Z-417f9005/journal.json",
+      "journalSha256": "dd0bb4885d4a9c4c24ad9d21606571c8c71ee6b537ce0f1760967bc21aec42f5",
+      "status": "failed",
+      "passed": 107,
+      "total": 109,
+      "failed": [
+        "validate_knowledge_inventory",
+        "validate_architecture_recipe"
+      ],
+      "qualification": "Original failed run remains failed. Later targeted repairs do not change this result; no exact-candidate CI/publication claim."
+    },
+    {
+      "command": "./scripts/Test-ProgramKit.ps1 -Suite Development -BrowserEngines chromium,webkit",
+      "source": {
+        "commit": "0bc6408933426df7ba406ee52e8ccbf1e69fa0ad",
+        "tree": "4c0158c1042481255f4aae812e85ff44fbf4ec6b"
+      },
+      "journal": "artifacts/validation-runs/20261016T213645Z-bc419d3a/journal.json",
+      "journalSha256": "cbaf66fdbede40e539917f0d9deda108c75f61d8e1763ab1a419ab589352c674",
+      "status": "failed",
+      "passed": 108,
+      "total": 112,
+      "failed": [
+        "validate_release_candidate",
+        "validate_native_phase_ownership",
+        "validate_post_bootstrap_continuation",
+        "validate_workflow_resumption"
+      ],
+      "qualification": "Original failed run remains failed. Later targeted repairs do not change this result; no exact-candidate CI/publication claim."
     }
   ],
   "continuationHistory": [
@@ -2330,6 +2445,38 @@
         }
       ],
       "qualification": "Scoped native/development evidence, not complete batch or publication qualification. Earlier failed/intermediate runs retain their own status."
+    },
+    {
+      "scope": "Frozen 47; no adoption of held additions. Foundation work remains in its isolated checkout.",
+      "implemented": [
+        "U0/N2 original durable source witness",
+        "C6 actual native selected SPA source boundary",
+        "Windows CI prerequisite declarations and complete release fixture"
+      ],
+      "validation": [
+        {
+          "command": "witness-source-archive-final.log",
+          "status": "passed",
+          "scope": "Four owned-source tests: exact complete anchored file set, original native platform fingerprint order, staging loss, explicit original recovery, later independent process/project move, deep Windows paths, unchanged historical receipt and wrong/rehashed/partial/modified original/archive/record rejection. Historical source is bounded ZIP data and never executed; publisher identity needs separate enclosing publication verification.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/witness-source-archive-final.log",
+          "sha256": "e3897116ae1ddc4166488be2f34807c90535b0197d44e0a3a3f78e599da56d50"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual 510-entry native bundle includes complete five-component original source witness. Installed helper in a separate process verifies archived source after original staging is moved; exact original receipt retained. Real installed UI and cold public SDK recording preparation also pass. No public release/consumer acceptance.",
+          "log": "artifacts/source-assets/1ca6267faa0543cdb4fd68851550ce53/results.json",
+          "sha256": "f23a700331ef1afcc7d744c54b6965950aa3ae8a4745943189e77271c6c11b4d"
+        },
+        {
+          "command": "updater-witness-archive-final.log",
+          "status": "passed",
+          "scope": "Real maintained complete sequential offline upgrade and coherence validation passed with durable archive source, historical qualified 0.12.7, unchanged accepted pins/intake/constitution/bootstrap, planned/materialized selection and invalid mutation refusal. Earlier loose-retained-source dependency admission and platform order failures remain failed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-witness-archive-final.log",
+          "sha256": "c1000c57ae5e85a34209276a3aa8d74da3241f26e8ce72607da4020bc22c973d"
+        }
+      ],
+      "qualification": "Development/source/installed proofs only. Development journal 20261016T213645Z-bc419d3a failed 108/112; its two native checkpoint failures passed unchanged focused reruns and remain observed, with cause unproven. Exact-candidate CI and remaining frozen work continue."
     }
   ]
 }

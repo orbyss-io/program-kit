@@ -127,9 +127,28 @@ class NativePackTests(unittest.TestCase):
                 native_phase_ownership.preflight(consumer,ROOT)
             self.assertNotEqual(original,pack.read_bytes(),'Guard must preserve the consumer change')
             pack.write_bytes(original)
+            import tooling_witness
+            import upgrade_program_kit
+            packaged_witness=json.loads((release/tooling_witness.PACKAGED).read_bytes())
+            self.assertEqual(tooling_witness.inventory(release),packaged_witness['files'])
+            self.assertEqual(5,len(packaged_witness['components']))
+            binding=tooling_witness.retain(consumer,release,upgrade_program_kit.release_fingerprint(release))
+            witness_receipt=consumer/'original-witness-receipt.json'
+            witness_receipt.write_bytes(tooling_witness.encoded({'releaseInputsSha256':binding['releaseInputsSha256'],'toolingWitness':binding}))
+            original_receipt=witness_receipt.read_bytes()
+            moved=staging/'removed-original-release'
+            self.assertTrue(release.resolve().is_relative_to(staging.resolve()) and moved.resolve().is_relative_to(staging.resolve()))
+            release.rename(moved)
+            witness_script=consumer/'.specify/extensions/program-kit-governance/scripts/tooling_witness.py'
+            retained=json.loads(run('installed-witness-later-session',[sys.executable,native_path(witness_script),'verify',
+                '--project-root',native_path(consumer),'--receipt','original-witness-receipt.json']))
+            self.assertEqual('retained-original-missing',retained['status'])
+            self.assertEqual(original_receipt,witness_receipt.read_bytes())
+            result['sourceWitness']={'binding':binding,'laterProcess':retained,'historicalReceiptUnchanged':True}
             result.update(status='passed',uiFilesCompared=len(expected),ownership=ownership,
                           cases=['exact-loose-packed-source-parity','native-hidden-pack-installed','actual-installed-ui-output-parity',
-                                 'actual-installed-public-SDK-recording-preparation','rehashed-virtual-source-edit-refused-without-overwrite'])
+                                 'actual-installed-public-SDK-recording-preparation','rehashed-virtual-source-edit-refused-without-overwrite',
+                                 'complete-packaged-component-witness','installed-later-session-without-original-staging'])
         finally:
             if os.environ.get('PROGRAM_KIT_IMPORTED_PACKAGES'):
                 from release_candidate import read,source,verify_payload

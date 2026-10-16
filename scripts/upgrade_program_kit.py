@@ -1611,6 +1611,9 @@ def main() -> int:
                                    f'python "{runtime_source}" setup --project-root "{target}"; then retry the same command')
             runtime.setup(target)
         attempt_path, attempt = begin_attempt(target, release, version, previous_version, args.repair_of_release_sha256)
+        witness = load_release_module(release / 'extensions/program-kit-governance/scripts/tooling_witness.py', 'upgrade_tooling_witness')
+        attempt['toolingWitness'] = witness.retain(target, release, attempt['releaseInputsSha256'])
+        seal_attempt(attempt_path, attempt)
         previous_version = attempt['previousInstalledVersion']
         audit = load_release_module(release / 'extensions/program-kit-governance/scripts/dependency_audit.py', 'upgrade_historical_input_archive')
         audit.archive_toolkit_proof_inputs(target)
@@ -1746,6 +1749,7 @@ def main() -> int:
         migration['applicationChecksPerformed'] = False
         migration['releaseReadinessEstablished'] = False
         migration['releaseInputsSha256'] = release_fingerprint(release)
+        migration['toolingWitness'] = attempt['toolingWitness']
         preserve_migration_completion(target, attempt_path)
         write_attempt(target / '.program-kit/installation/migration.json', migration)
         if not migration['migrationCompletionEstablished']:

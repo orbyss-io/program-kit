@@ -120,6 +120,9 @@ class NativePhaseOwnershipTests(unittest.TestCase):
             validator = release / 'extensions/program-kit-governance/scripts/release_guidance.py'
             validator.parent.mkdir(parents=True)
             shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts/release_guidance.py', validator)
+            for helper in ('render_profile.py', 'asset_sources.py'):
+                shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts' / helper,
+                                validator.parent / helper)
             generated = self.root / '.specify/extensions/program-kit-governance/references/release-guidance'
             build(ROOT, generated, (ROOT / 'VERSION').read_text().strip())
             before = snapshot(self.root)

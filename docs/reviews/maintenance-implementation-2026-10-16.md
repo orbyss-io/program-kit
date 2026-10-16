@@ -552,3 +552,52 @@ Four native phase refresh tests, 30 UI and 12 provider-context tests passed. Ear
 failed payload/staging/cleanup/helper runs remain preserved as failed. None of these
 development payloads is a selected or published release. Remaining frozen mechanisms,
 Foundation public adoption and complete candidate qualification continue.
+
+## Continuation: durable original source and native SPA client
+
+The maintained updater now retains the complete original source as bounded data in
+`.program-kit/tooling-witnesses/sha256/`. New original attempts and migration
+receipts bind its exact record hash. Packaging emits a complete source/five-component
+inventory from actual packaged bytes. Enclosing publication verification owns public
+source authority; local development sources cannot self-attest public origin. Exact
+explicit recovery records a separate event and preserves historical receipts.
+Existing edited/partial source or retained records fail rather than falling back.
+No archived source or local patch is executed. Legacy receipts are not backfilled.
+
+The native bundle proof passed at
+`artifacts/source-assets/1ca6267faa0543cdb4fd68851550ce53/results.json`: 510 entries,
+actual installed later-process verification after staging moves, unchanged original
+receipt, actual UI output and public SDK recording preparation. Four additional
+recovery/tampering cases passed, including a moved consumer and deep Windows paths.
+The complete maintained offline sequential updater passed, including historical
+0.12.7 and planned/materialized selections with preserved authority. Initial native
+Path-order mismatch and loose-source dependency discovery failures were repaired;
+their failed logs remain. Original platform fingerprint ordering is preserved, and
+historical projects/props remain inside the archive, outside active discovery.
+
+The Development journal `20261016T213645Z-bc419d3a` remains failed: 108/112 checks
+passed. Missing Windows prerequisite declarations and the incomplete shipped-catalog
+fixture were corrected; release-candidate 19, native ownership eight, runner eleven,
+knowledge seven and suite boundary checks passed afterward. Nine post-bootstrap and
+the full workflow-resumption checks passed without a production change after their
+native Spec Kit checkpoint replacement failures. Cause remains unproven; neither
+their reruns nor these other repairs convert the original run into a passing suite.
+
+Foundation commit `f88adbf` adds a bounded common private DOM observation boundary
+and an actual locked `oidc-client-ts` source fixture. Nine named cases pass in
+Chromium/WebKit at both measured viewports: real PKCE/native popup, fresh activation,
+cancelled confirmation with exact raw invalid draft retention, zero provider effects,
+in-memory local termination, provider failure/independent confirmation, fresh
+observation timeout/unavailability, native nonce rejection and actual history
+revalidation. CI retains Firefox. This synthetic live-userinfo topology uses
+popup-compatible COOP; it does not qualify the current emitted SPA headers, native
+SPA Host/API or an arbitrary provider's revocation semantics.
+
+Foundation source dependency preparation then selected public CShells 0.0.31 and
+Nuplane preview.114, refreshing locks and vendor settings. The rebuilt native BFF
+and real SPA client browser fixtures pass on that closure. The ordinary deep Windows
+Host metadata path failed; an explicitly shorter owned build/publish/work path
+passed actual compiled/vendor settings checks without weakening the validators.
+Independent Build release, complete native/package/image qualification, knowledge,
+security and public adoption remain. No tag/publication, paid worker/provider or
+active-consumer modification occurred. Remaining frozen mechanisms continue.

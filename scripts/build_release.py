@@ -281,6 +281,14 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
                 if assets.packed(component)!=payloads:raise ValueError('Compacted source asset bytes changed')
         build_guidance(root, staging / 'extensions/program-kit-governance/references/release-guidance',
                        (root / 'VERSION').read_text().strip(), aggregates=False)
+        witness_spec = importlib.util.spec_from_file_location('bundle_source_witness',
+            root / 'extensions/program-kit-governance/scripts/tooling_witness.py')
+        witness = importlib.util.module_from_spec(witness_spec); witness_spec.loader.exec_module(witness)
+        # Qualification authenticates the enclosing package/producer. This data
+        # manifest does not assign a public identity to a development build.
+        source_identity = {'repository': REPOSITORY, 'kind': 'unqualified-packaging-input',
+                           'version': (root / 'VERSION').read_text().strip(), 'publicOriginEstablished': False}
+        (staging / witness.PACKAGED).write_bytes(witness.encoded(witness.package_record(staging, source_identity)))
         specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
         specify_command = ["specify"]
         if specify_site_packages:
