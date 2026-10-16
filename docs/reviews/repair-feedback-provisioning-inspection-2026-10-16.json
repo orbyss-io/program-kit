@@ -8,6 +8,15 @@
   "meaning": "Not provisioned or not accessible to this authenticated account. Existence, owner permissions, maintainer team, ruleset and deployed guardian are not established.",
   "publicMutations": [],
   "preparedSource": "evidence-repository/",
-  "recovery": "Review prepared repository source and organization ruleset template; separately authorize actual provisioning and inspect deployed workflow identity/rules/maintainer review before enabling public delivery.",
-  "fixturesAreDeploymentEvidence": false
+  "recovery": "Review exact prepared source inventory, dedicated App registration, main-only environment and repository ruleset; separately approve provisioning, then inspect actual settings and operational acceptance.",
+  "fixturesAreDeploymentEvidence": false,
+  "followUpInspection": {
+    "authenticatedLogin": "joey-orbyss",
+    "organizationPlan": "free",
+    "organizationRole": "admin; active",
+    "teams": [],
+    "evidenceRepository": "HTTP 404; absent or inaccessible",
+    "proposedAppSlug": "HTTP 404; absent or inaccessible (private registrations may be hidden)",
+    "publicMutations": []
+  }
 }

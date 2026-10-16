@@ -21,7 +21,7 @@
     "name": "Program Kit Evidence Guardian",
     "expectedSlug": "program-kit-evidence-guardian",
     "homepage": "https://github.com/orbyss-io/program-kit-evidence",
-    "visibility": "private; installation only by owner",
+    "visibility": "public identity/permission inspection; no Marketplace listing",
     "webhookActive": false,
     "userAuthorization": false,
     "organizationPermissions": {},
@@ -34,7 +34,8 @@
     "installSelection": [
       "orbyss-io/program-kit-evidence"
     ],
-    "events": []
+    "events": [],
+    "otherAccounts": "Public registration permits other accounts to install it; no webhook/service is provided and no authority over their repositories is used. The orbyss-io installation selects only program-kit-evidence."
   },
   "environment": {
     "name": "evidence-guardian",

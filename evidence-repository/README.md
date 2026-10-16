@@ -13,8 +13,11 @@ No consumer artifacts or reporter history are copied. Tests make no public write
 
 Use a repository ruleset and a dedicated organization-owned GitHub App named
 `Program Kit Evidence Guardian` (intended slug `program-kit-evidence-guardian`).
-Disable webhooks and user authorization; install it only on this evidence
-repository. Grant Checks **write**, Contents **read**, Pull requests **read**,
+Make the registration public so outside consumers can inspect its identity and
+permissions through the public App API. Do not list it in Marketplace. Other
+accounts can choose to install a public App, but it has no webhook or service;
+our organization installation selects only this evidence repository. Disable
+webhooks and user authorization. Grant Checks **write**, Contents **read**, Pull requests **read**,
 and mandatory Metadata **read**. No organization permissions, contents write,
 issue write, administration, merge or publication authority.
 
@@ -83,6 +86,7 @@ references, with no automatic deletion in v1. Do not promise removal from Git
 history, forks, clones or caches.
 
 Platform references checked 16 October 2026:
+[App visibility](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/making-a-github-app-public-or-private),
 [App token action](https://github.com/actions/create-github-app-token/tree/bcd2ba49218906704ab6c1aa796996da409d3eb1),
 [App-bound repository rules](https://docs.github.com/en/rest/repos/rules),
 [main-only environment secrets](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments).
