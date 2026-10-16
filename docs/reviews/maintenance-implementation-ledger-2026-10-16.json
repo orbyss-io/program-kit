@@ -223,7 +223,27 @@
           "status": "passed",
           "scope": "Actual native command exit codes, input/output inventory, accepted renewal and explicit positive/negative case identities bound to current source hashes.",
           "log": "artifacts/restore-closure/results.json",
-          "sha256": "e0454a3c872086a4a0decdde51b7a3f2358554205f82751b45819fecbfca0358"
+          "sha256": "e0454a3c872086a4a0decdde51b7a3f2358554205f82751b45819fecbfca0358",
+          "retention": {
+            "verificationEligible": false,
+            "originalBytesRecovered": false,
+            "reason": "A later maintained validator reused this derived output filename; current bytes do not match the retained historical hash. Original declared hash is preserved, not replaced.",
+            "observation": "artifacts/maintenance-implementation-2026-10-16/restore-evidence-replacement-observation.json"
+          }
+        },
+        {
+          "command": "actual maintained tests/validate_building_blocks.py",
+          "status": "passed",
+          "scope": "Actual offline native renew/locked CLI and literal direct/solution/forward/reverse closure cases, with current source hashes and unique retained output. Not evaluated custom/F#/VB/full CI closure.",
+          "log": "artifacts/restore-closure/20261016T153820Z-aa0e489eea1a4318a1ff515020c2a0dc/results.json",
+          "sha256": "2f514c070a48601d8fe4e88f974df5bdfe62b6f1b5defb66c1dcde4fdb5062b8"
+        },
+        {
+          "command": "actual maintained tests/validate_building_blocks.py",
+          "status": "passed",
+          "scope": "Actual offline native renew/locked CLI and literal direct/solution/forward/reverse closure cases, with current source hashes and unique retained output. Not evaluated custom/F#/VB/full CI closure.",
+          "log": "artifacts/restore-closure/20261016T153830Z-7ad853e1479e44559038f9803ad6a112/results.json",
+          "sha256": "14d342bdbe266830963bcf1ce1a7b982706894c80725547d066e5e9baef77d34"
         }
       ],
       "remainingDependencies": [
@@ -232,7 +252,8 @@
       ],
       "closureEvidence": [
         "artifacts/restore-closure/results.json",
-        "One closure supplies command subjects, effective projects, standard output owners, input digests, progress snapshots and renewal admission. Locked evidence now binds actual lock/assets bytes. F#/VB project inputs are included in source freshness."
+        "One closure supplies command subjects, effective projects, standard output owners, input digests, progress snapshots and renewal admission. Locked evidence now binds actual lock/assets bytes. F#/VB project inputs are included in source freshness.",
+        "The old fixed-name derived output is ineligible for current verification because its original bytes are unavailable; its original hash and the replacement observation are retained. New native runs use distinct immutable paths under artifacts/restore-closure/."
       ]
     },
     {
@@ -315,7 +336,7 @@
         }
       ],
       "remainingDependencies": [
-        "Bounded Development and final exact-candidate qualification remain."
+        "Final exact-candidate qualification and released adoption remain. Bounded Development passed at 8758432."
       ],
       "closureEvidence": []
     },
@@ -525,7 +546,7 @@
         }
       ],
       "remainingDependencies": [
-        "Bounded Development and exact-candidate qualification remain."
+        "Final exact-candidate qualification and released adoption remain. Bounded Development passed at 8758432."
       ],
       "closureEvidence": []
     },
@@ -749,11 +770,13 @@
       "sourceDiagnosis": "Canonical full-set/source/executed-regression binding",
       "workPackages": "A/G",
       "closureRequired": "Complete attempt originals and public/guidance sets; modified/missing/spurious inputs fail; receipts unchanged.",
-      "status": "pending",
+      "status": "partially-implemented; restore evidence retention verified; complete integrity closure pending",
       "changedFiles": [
         "scripts/consumer_upgrade_workspace.py",
+        "tests/lock_renewal_cases.py",
+        "tests/owned_fixture.py",
         "tests/validate_consumer_upgrade.py",
-        "tests/owned_fixture.py"
+        "tests/validation-inventory.json"
       ],
       "validation": [
         {
@@ -762,10 +785,19 @@
           "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
           "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
+        },
+        {
+          "command": "native-retention-result",
+          "status": "passed",
+          "scope": "Two actual maintained native building-block validator executions passed and created two independent results; all pre-existing result bytes remained unchanged. Historical fixed-name gap remains disclosed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-06/native-retention-result.json",
+          "sha256": "27a4adcc416bd42426a139f77d53f46c38023882934faffa704cd68cc3d7d2f2"
         }
       ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Canonical complete attempt-original, authenticated public-source and generated-guidance inventories and their required regression bindings remain.",
+        "The historical fixed-name restore result cannot currently be recovered at its recorded hash; preserve the declared hash and replacement observation. New evidence cannot be relabelled as that original.",
+        "Exact-candidate complete CI qualification and normal released adoption remain."
       ],
       "closureEvidence": []
     },
@@ -949,6 +981,13 @@
           "scope": "62 actual story-delivery cases, including real offline native build/pack/runtime, repeated exact-state owner assessments, bound context additions and absence, complete earlier-evidence preservation, engineering-versus-human diagnostics and rule/scope/tampering negatives. All human decisions are simulated.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-05/validate_story_delivery.log",
           "sha256": "b44206b097fe39dec1ea3000ab431ae108bd3884e40e14c6f0c856b716d9ae9c"
+        },
+        {
+          "command": "validate_story_delivery",
+          "status": "passed",
+          "scope": "63 story-delivery cases, including actual native build/pack/runtime, exact context assessment, full earlier evidence chain, fresh human review after material change, archived original presentation/assessment/decision preservation and refusal to reuse its authority. Human decisions are synthetic.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-06/validate_story_delivery.log",
+          "sha256": "f68da50a6389b6f30e93ff6d06b953e4ccfc8dd2ca35746383c4d6e28c49d38e"
         }
       ],
       "remainingDependencies": [
@@ -1316,7 +1355,8 @@
         }
       ],
       "remainingDependencies": [
-        "Complete post-fix bounded Development and complete CI Linux/Windows qualification; public release/consumer adoption. Original WinError 145 cause remains unproven without original logs. Actual local maintained sequential update route now passes within its recorded fixture scope."
+        "Complete matching CI Linux/Windows qualification and normal public release/adoption remain. Bounded Development passed at 8758432; subsequent N3/V3 changes passed their affected validators separately.",
+        "Original WinError 145 cause remains unproven. Earlier failed local/native checkpoint streams remain retained for readiness review."
       ],
       "closureEvidence": [
         "The actual historical exporter fixture now uses the same exact-owned cleanup with extended Python I/O; all 8 transition cases pass without shortening/deleting historical profile inputs or changing machine long-path policy.",
@@ -1470,15 +1510,19 @@
   ],
   "inProgressValidation": {
     "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
-    "source": "2a29252 working tree with continuation-source-inputs.json; no clean candidate claim",
-    "journal": "artifacts/validation-runs/20261016T145613Z-39a42a54/journal.json",
-    "status": "failed",
+    "source": {
+      "commit": "875843234bbfc71910bccf72ca62d7a136d81c88",
+      "tree": "0fa0c9ce303f96577e819de9af03f9dc7f31c100"
+    },
+    "journal": "artifacts/validation-runs/20261016T151926Z-c5db5dbf/journal.json",
+    "journalSha256": "61f0331348262640a44a061740bb02853d491a4d6926dbafdfb2d1f2dc47ca24",
+    "status": "passed",
     "observations": [
-      "106 steps completed: 102 passed, 4 failed. The journal and all failures remain intact. Own profile-path and governance-writer repairs passed targeted validation afterward; this run remains failed.",
-      "Two other failures were native Spec Kit workflow checkpoint replacement errors; cause unproven and recorded separately without scope adoption or installed CLI edits.",
-      "Some final diagnostics/profile/governance repairs followed the relevant steps in this failed run. It is not stable-source or exact-candidate qualification."
-    ],
-    "journalSha256": "c32de808a7bb65887d04298a759c778b69348fd9d602d46c2632c1d9ede306ac"
+      "106/106 bounded Development checks passed at 875843234bbfc71910bccf72ca62d7a136d81c88. Unrelated user files remained uncommitted; this is not clean exact-candidate CI qualification.",
+      "All earlier failed Development and targeted runs remain preserved. The later 102-pass/4-failure run was not relabelled passing.",
+      "baa4f7c subsequently repaired fresh review after material assessment and made restore evidence unique per execution. Its affected story63, validation-runner11 and installed task-generation25 cases passed, plus two maintained building-block runs with evidence-retention assertions. These are separate source/scoped results, not a recombined complete suite.",
+      "Local Firefox remains the known host limitation; Chromium/WebKit were selected locally and Firefox remains required in CI."
+    ]
   },
   "originalApprovedFindings": 43,
   "directlyApprovedAdditionFindings": 1,
@@ -1618,6 +1662,18 @@
         "Native refresh 3, ownership 8, owned scratch 15, installed sync/coordinator 11, story-delivery repeat 48, public-core compatibility 10 and device-policy 16 pass separately after appropriate repairs/reproduction. Original story atomic-replace access error remains unexplained.",
         "Current inventory id validate_python_consistency actually invokes tests/validate_public_core_compatibility.py. Its failures were stale newline stdout/error mocks after the structured shared runtime repair; the exact historical 1.0.1 source fixture is separate and unchanged. This supersedes the prior current-inventory attribution without rewriting its retained observation."
       ]
+    },
+    {
+      "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
+      "source": "2a29252 working tree with continuation-source-inputs.json; no clean candidate claim",
+      "journal": "artifacts/validation-runs/20261016T145613Z-39a42a54/journal.json",
+      "status": "failed",
+      "observations": [
+        "106 steps completed: 102 passed, 4 failed. The journal and all failures remain intact. Own profile-path and governance-writer repairs passed targeted validation afterward; this run remains failed.",
+        "Two other failures were native Spec Kit workflow checkpoint replacement errors; cause unproven and recorded separately without scope adoption or installed CLI edits.",
+        "Some final diagnostics/profile/governance repairs followed the relevant steps in this failed run. It is not stable-source or exact-candidate qualification."
+      ],
+      "journalSha256": "c32de808a7bb65887d04298a759c778b69348fd9d602d46c2632c1d9ede306ac"
     }
   ],
   "continuationHistory": [
@@ -1646,6 +1702,10 @@
         {
           "path": "artifacts/maintenance-implementation-2026-10-16/continuation-05/results.json",
           "sha256": "d5e6851164c7dba59d9bbf47310084ec17ac4678a7fb324fe23515a9a415681a"
+        },
+        {
+          "path": "artifacts/maintenance-implementation-2026-10-16/continuation-06/results.json",
+          "sha256": "cd1278f71adacdf309e3487d9d30c4dbc0fb6cfb65bcb3b667e4c1c4848642cf"
         }
       ],
       "qualifier": {
@@ -1659,6 +1719,28 @@
       "unadoptedObservation": {
         "path": "artifacts/maintenance-implementation-2026-10-16/unadopted-native-checkpoint-observation.json",
         "sha256": "68a52908654499a68feb624ca18cc4468fa73fc890d1b852797ad53334e26a10"
+      },
+      "implementationCommit": "875843234bbfc71910bccf72ca62d7a136d81c88",
+      "followupImplementationCommit": "baa4f7c1726386a9d56c155ebc5d573d3c032f55",
+      "followupSourceManifest": {
+        "path": "artifacts/maintenance-implementation-2026-10-16/continuation-baa4f7c-source-inputs.json",
+        "sha256": "07e4225defc926446d61281b2947df4c2bb8fec5c2ca9ad52110d46e66dd0fca"
+      },
+      "restoreRetention": {
+        "path": "artifacts/maintenance-implementation-2026-10-16/continuation-06/native-retention-result.json",
+        "sha256": "27a4adcc416bd42426a139f77d53f46c38023882934faffa704cd68cc3d7d2f2"
+      },
+      "historicalEvidenceGap": {
+        "id": "U4/V3",
+        "originalPath": "artifacts/restore-closure/results.json",
+        "originalSha256": "e0454a3c872086a4a0decdde51b7a3f2358554205f82751b45819fecbfca0358",
+        "originalBytesRecovered": false,
+        "observation": "artifacts/maintenance-implementation-2026-10-16/restore-evidence-replacement-observation.json"
+      },
+      "ledgerAudit": {
+        "path": "artifacts/maintenance-implementation-2026-10-16/continuation-ledger-audit-final.json",
+        "sha256": "17608165551ee8f89a51dc3fd220a035b9c49216989cea1057e6439d4bdbfc55",
+        "status": "Current eligible references verified; one historical derived-output gap remains disclosed. No complete-batch acceptance claim."
       }
     }
   ]

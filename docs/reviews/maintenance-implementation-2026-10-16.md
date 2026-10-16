@@ -221,3 +221,44 @@ assessment. Subsequent assessments bind added/removed context inputs and retain
 the complete earlier original/evidence chain. These targeted passes are not merged
 into the failed suite. Fresh stable-source Development is the next validation.
 The historical 79-pass/27-failure run also remains failed.
+
+## Committed-source Development and retained evidence follow-up
+
+Commit `8758432` passed all 106 bounded Development checks in
+`artifacts/validation-runs/20261016T151926Z-c5db5dbf/journal.json`, using Chromium/WebKit
+and repository-owned temporary paths. This is local development evidence with
+unrelated user files preserved outside the commit, not clean exact-candidate CI
+qualification. The earlier 102-pass/four-failure and 79-pass/27-failure runs retain
+their failed status and original streams.
+
+Commit `baa4f7c` then repaired the normal fresh-review transition after an exact
+material assessment. A material outcome change can receive a new presentation and
+new human decision while the old presentation, scope, reviewer, decisions and
+assessment chain remain in retained history. The old decision cannot authorize
+the new presentation. All 63 story-delivery cases pass, including native execution;
+validation-runner (11) and installed task-generation (25) checks also pass. These
+post-suite results have their own source and scope; they are not merged into a
+fictional complete run for the later commit.
+
+The evidence-index audit discovered that the native restore validator reused
+`artifacts/restore-closure/results.json`. A later real execution replaced the bytes
+referenced by the earlier U4 hash. Those original derived-result bytes have not
+been recovered. Their original declared hash remains intact and explicitly
+ineligible for current verification; replacement bytes were captured separately
+and never relabelled the original. This is a disclosed historical evidence gap.
+No published receipt or historical dependency profile was rewritten.
+
+The validator now writes exclusively to a unique run directory and prints that
+path into its preserved stream; inventory ownership includes its actual helper.
+Two consecutive maintained building-block validator executions passed, retained
+two independent native results and proved that every pre-existing result stayed
+byte-identical. Their separate result and stream hashes are in
+`artifacts/maintenance-implementation-2026-10-16/continuation-06/`.
+
+The ledger still contains exactly 47 findings with the original approval history.
+The batch is **not complete**: Foundation native presentation/authentication and
+public dependency closure, other pending central mechanisms and integration,
+typed architecture/solution projections, migration and the exact-candidate
+qualification/adoption gates remain open. No publication candidate was selected,
+and no new batch, paid execution, device installation or active-consumer change
+was started.
