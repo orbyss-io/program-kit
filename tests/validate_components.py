@@ -132,8 +132,10 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 24:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 24")
+    if len(command_names) != 25:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 25")
+    if 'speckit.program-kit-governance.repair-request' not in command_names:
+        raise AssertionError('Consumer repair reporter must use native registered command distribution')
     if "speckit.program-kit-governance.upgrade" not in command_names:
         raise AssertionError("Consumer upgrade command is missing from the packaged extension")
     if "speckit.program-kit-governance.view-c4" not in command_names:

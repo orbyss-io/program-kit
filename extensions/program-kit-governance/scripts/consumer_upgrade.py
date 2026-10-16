@@ -114,7 +114,7 @@ def inputs(root):
             paths.extend(p.relative_to(root).as_posix() for p in directory.rglob('*') if p.is_file())
     return {p: sha(inside(root, p)) for p in sorted(set(paths)) if p and p != RECORD
             and p != '.program-kit/managed.json'
-            and not EXCLUDED.intersection(Path(p).parts) and not p.startswith(('artifacts/', '.specify/', '.program-kit/sync/',
+            and not EXCLUDED.intersection(Path(p).parts) and not p.startswith(('artifacts/', '.specify/', '.program-kit/repair-feedback-personal/', '.program-kit/sync/',
                 '.program-kit/lifecycle/', '.program-kit/installation/', '.program-kit/selection-history/'))}
 
 

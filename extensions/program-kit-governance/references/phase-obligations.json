@@ -1966,6 +1966,30 @@
         "requirements": [],
         "review": "Explicit narrow operation admission/accounting and native recording proof; human terminal consent remains separate."
       }
+    },
+    {
+      "path": "program-kit-governance/references/repair-feedback/operating.md",
+      "phases": [
+        "implementation",
+        "delivery",
+        "upgrade"
+      ],
+      "enforcement": "Optional reporter/guardian data contracts and explicit human publication review; no ordinary implementation hook or consumer acceptance authority.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.repair-request.md",
+          "extensions/program-kit-governance/scripts/repair_feedback.py"
+        ],
+        "sections": [
+          "Diagnostic and evidence preparation",
+          "Preferences and local delivery",
+          "GitHub prerequisites and public review",
+          "Fresh status and reconstructable history"
+        ],
+        "requirements": [],
+        "review": "Optional manual reporting, local queue, reviewed public evidence and fresh status/history. Independent evaluator and implementation owner retain distinct authority."
+      }
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
