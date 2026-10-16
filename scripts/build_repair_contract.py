@@ -70,7 +70,7 @@ def build():
         'ownerId': {'type': 'string', 'pattern': '^' + evaluator.intake.OWNER + '$'},
         'ledger': {'type': 'string', 'minLength': 1}, 'adapter': {'const': 'items-v1'}, 'routeSha256': hash_schema})
     assessment['required'].append('ownerRoute')
-    contract = {'contractVersion': c.VERSION, 'schema': 'request.schema.json', 'assessmentSchema': 'assessment.schema.json', 'questions': QUESTIONS,
+    contract = {'contractVersion': c.VERSION, 'schema': 'request.schema.json', 'assessmentSchema': '#/assessmentSchemas/1.1', 'questions': QUESTIONS,
         'vocabulary': {'request': 'Stable consumer observation identity; distinct from repair/finding identity.',
             'revision': 'Immutable evidence account superseding an exact earlier request hash.',
             'repair': 'Owner-selected shared change; several consumer requests may support one repair.',
@@ -92,20 +92,30 @@ def build():
                      'sensitiveChecks': ['GitHub token patterns', 'AWS access key IDs', 'private key headers', 'Bearer headers', 'credential assignments'],
                      'limitations': 'No assertion of truth, authenticated publisher, arbitrary personal/business safety or consumer acceptance.'}}
     contract['assessmentVersion'] = '1.1'
-    contract['historicalAssessmentSchema'] = 'assessment-1.0.schema.json'
+    # Consumers and evaluators share the same schemas without spending two
+    # additional entries in Spec Kit's bounded composite bundle. Repository
+    # copies remain available for standalone tools and historical byte identity.
+    contract['historicalAssessmentSchema'] = '#/assessmentSchemas/1.0'
+    contract['assessmentSchemas'] = {'1.0': historical_assessment, '1.1': assessment}
     return {'contract.json': contract, 'request.schema.json': schema, 'assessment.schema.json': assessment,
             'assessment-1.0.schema.json': historical_assessment}
+
+
+def published_path(name):
+    directory = ROOT / ('docs/contracts/repair-feedback' if name.startswith('assessment') else
+                        'extensions/program-kit-governance/references/repair-feedback')
+    return directory / name
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    directory = ROOT / 'extensions/program-kit-governance/references/repair-feedback'
     for name, value in build().items():
-        path = directory / name
+        path = published_path(name)
         if args.check:
             if not path.is_file() or path.read_bytes() != c.encoded(value):
                 raise SystemExit('PKRF published-contract-stale: run scripts/build_repair_contract.py')
         else:
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(c.encoded(value))

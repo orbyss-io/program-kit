@@ -29,6 +29,7 @@
         "evidence-repository/**",
         ".agents/skills/program-kit-repair-evaluator/**",
         "docs/maintenance/repair-feedback.md",
+        "docs/contracts/repair-feedback/**",
         "tests/validate_repair_feedback.py"
       ],
       "outputs": [

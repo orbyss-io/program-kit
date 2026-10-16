@@ -1,5 +1,479 @@
 {
-  "assessmentSchema": "assessment.schema.json",
+  "assessmentSchema": "#/assessmentSchemas/1.1",
+  "assessmentSchemas": {
+    "1.0": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "assessmentId": {
+          "pattern": "^assess-[a-z0-9-]+$",
+          "type": "string"
+        },
+        "assessmentVersion": {
+          "const": "1.0"
+        },
+        "cause": {
+          "enum": [
+            "program-kit-defect",
+            "guidance-gap",
+            "consumer-choice",
+            "domain-adaptation",
+            "mixed",
+            "unknown"
+          ]
+        },
+        "consumerEffects": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "correlation": {
+          "type": "object"
+        },
+        "createdAt": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "evidenceClass": {
+          "enum": [
+            "reported",
+            "inspected",
+            "independently-reproduced",
+            "unknown"
+          ]
+        },
+        "expectationSources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "mechanism": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "missingProof": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "ownership": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "pointOfUseAction": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "proposedDisposition": {
+          "enum": [
+            "adopt",
+            "duplicate",
+            "defer",
+            "reject",
+            "needs-proof"
+          ]
+        },
+        "rationale": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "relationships": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "explanation": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "groupId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "repairId": {
+                "pattern": "^repair-[a-z0-9-]+$",
+                "type": "string"
+              },
+              "requestId": {
+                "pattern": "^rf-[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "requestId",
+              "repairId",
+              "groupId",
+              "explanation"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "requests": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "contractVersion": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "requestId": {
+                "pattern": "^rf-[0-9a-f]{32}$",
+                "type": "string"
+              },
+              "requestSha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "selectedKnowledgeVersion": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "requestId",
+              "revision",
+              "requestSha256",
+              "contractVersion",
+              "selectedKnowledgeVersion"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "supportedScope": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "terminologyMapping": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "canonical": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "original": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "reason": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "original",
+              "canonical",
+              "reason"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "unknownFields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "assessmentVersion",
+        "assessmentId",
+        "createdAt",
+        "requests",
+        "terminologyMapping",
+        "unknownFields",
+        "evidenceClass",
+        "expectationSources",
+        "cause",
+        "ownership",
+        "missingProof",
+        "mechanism",
+        "supportedScope",
+        "consumerEffects",
+        "pointOfUseAction",
+        "relationships",
+        "proposedDisposition",
+        "rationale",
+        "correlation"
+      ],
+      "type": "object"
+    },
+    "1.1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "assessmentId": {
+          "pattern": "^assess-[a-z0-9-]+$",
+          "type": "string"
+        },
+        "assessmentVersion": {
+          "const": "1.1"
+        },
+        "cause": {
+          "enum": [
+            "program-kit-defect",
+            "guidance-gap",
+            "consumer-choice",
+            "domain-adaptation",
+            "mixed",
+            "unknown"
+          ]
+        },
+        "consumerEffects": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "correlation": {
+          "type": "object"
+        },
+        "createdAt": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "evidenceClass": {
+          "enum": [
+            "reported",
+            "inspected",
+            "independently-reproduced",
+            "unknown"
+          ]
+        },
+        "expectationSources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "mechanism": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "missingProof": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "ownerRoute": {
+          "additionalProperties": false,
+          "properties": {
+            "adapter": {
+              "const": "items-v1"
+            },
+            "ledger": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "ownerId": {
+              "pattern": "^[a-z0-9][a-z0-9-]{0,79}$",
+              "type": "string"
+            },
+            "routeSha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "routeVersion": {
+              "const": 1
+            }
+          },
+          "required": [
+            "routeVersion",
+            "ownerId",
+            "ledger",
+            "adapter",
+            "routeSha256"
+          ],
+          "type": "object"
+        },
+        "ownership": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "pointOfUseAction": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "proposedDisposition": {
+          "enum": [
+            "adopt",
+            "duplicate",
+            "defer",
+            "reject",
+            "needs-proof"
+          ]
+        },
+        "rationale": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "relationships": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "explanation": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "groupId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "repairId": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,159}$",
+                "type": "string"
+              },
+              "requestId": {
+                "pattern": "^rf-[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "requestId",
+              "repairId",
+              "groupId",
+              "explanation"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "requests": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "contractVersion": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "requestId": {
+                "pattern": "^rf-[0-9a-f]{32}$",
+                "type": "string"
+              },
+              "requestSha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "revision": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "selectedKnowledgeVersion": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "requestId",
+              "revision",
+              "requestSha256",
+              "contractVersion",
+              "selectedKnowledgeVersion"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "supportedScope": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "terminologyMapping": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "canonical": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "original": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "reason": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "original",
+              "canonical",
+              "reason"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "unknownFields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "assessmentVersion",
+        "assessmentId",
+        "createdAt",
+        "requests",
+        "terminologyMapping",
+        "unknownFields",
+        "evidenceClass",
+        "expectationSources",
+        "cause",
+        "ownership",
+        "missingProof",
+        "mechanism",
+        "supportedScope",
+        "consumerEffects",
+        "pointOfUseAction",
+        "relationships",
+        "proposedDisposition",
+        "rationale",
+        "correlation",
+        "ownerRoute"
+      ],
+      "type": "object"
+    }
+  },
   "assessmentVersion": "1.1",
   "budgets": {
     "allowedExtensions": [
@@ -89,7 +563,7 @@
     ],
     "version": "repair-guardian-1"
   },
-  "historicalAssessmentSchema": "assessment-1.0.schema.json",
+  "historicalAssessmentSchema": "#/assessmentSchemas/1.0",
   "questions": {
     "context": "Which consumer, Program Kit/profile/knowledge versions, phase, task and triggering command? What source and dirty-state limits were observed?",
     "decision": "What recorded decision explanation, constraints and considered alternatives explain the reported local choice? Mark later explanations retrospective; absent explanations unknown.",

@@ -7,6 +7,31 @@
   "approval": "Create a repair feedback skill, 01a14496-89a6-7740-838b-e03d8b17205f; corrected separate-session ownership",
   "specification": "docs/reviews/repair-feedback-feature-specification-2026-10-16.md",
   "handoff": "docs/reviews/repair-feedback-implementation-handoff-2026-10-16.md",
+  "pullRequestValidation": {
+    "pullRequest": "https://github.com/orbyss-io/program-kit/pull/42",
+    "approval": "User requested PR CI, repair of new failures, and preservation of active maintenance checkout and consumers.",
+    "firstRun": {
+      "url": "https://github.com/orbyss-io/program-kit/actions/runs/38939949086",
+      "head": "396fdb59025a0f5bbb97b513eed03e557374c785",
+      "windows": "passed",
+      "linuxChecks": 136,
+      "linuxPassed": 129,
+      "rootFailure": "build-release: composite consumer bundle contains 514 entries, exceeding Spec Kit's unchanged 512-entry limit",
+      "blockedChecks": 6,
+      "preservedArtifact": "artifacts/reviews/pr42-ci-first-run",
+      "journal": "artifacts/reviews/pr42-ci-first-run/validation-runs/20261016T172930Z-566ae611/journal.json"
+    },
+    "repair": "Embed the unchanged current and historical assessment schemas in the shared installed contract, with JSON-pointer metadata; retain standalone generated schema copies in docs/contracts/repair-feedback. Removes two composite-bundle entries while preserving both schema definitions, historical bytes and existing safety limits.",
+    "targetedValidation": {
+      "result": "passed",
+      "tests": 36,
+      "journal": "artifacts/validation-runs/20261016T175056Z-b36215d6/journal.json",
+      "coverage": "Packaged current/historical schemas validate actual assessment fixtures and match standalone bytes; installed consumer handoff and upgrade remain covered."
+    },
+    "packageValidation": "pending actual composite build",
+    "activeMaintenanceAndConsumers": "untouched",
+    "publicGuardianDeployment": "unchanged"
+  },
   "integrationFixes": {
     "approvedOn": "2026-10-16",
     "approval": "User approved all six integration fixes in recommended order, with active maintenance checkout and consumers untouched.",

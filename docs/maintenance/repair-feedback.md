@@ -90,7 +90,8 @@ directly when current public status is requested.
 
 ## Evaluate, then let the owner decide
 
-Create an assessment against `assessment.schema.json` (version **1.1**) using the
+Create an assessment against the shared `contract.json` object at
+`assessmentSchemas["1.1"]` (version **1.1**) using the
 exact `ownerRoute` returned by registration/inspection. Each request reference
 retains its ID, revision, original SHA-256, contract and selected knowledge version.
 Relationships may propose existing ledger IDs or new finding IDs; they do not
@@ -103,8 +104,12 @@ python scripts/repair_evaluator.py --root <checkout> --assessment <assessment.js
 ```
 
 Submission revalidates packet and routing before appending an immutable assessment.
-Assessment version 1.0 remains readable through `assessment-1.0.schema.json` as
-historical evidence; new submissions require 1.1. No original account is upgraded
+Assessment version 1.0 remains readable through `assessmentSchemas["1.0"]` as
+historical evidence; new submissions require 1.1. Standalone generated copies of
+both schemas remain under `docs/contracts/repair-feedback/` in the contributor
+repository. The 1.0 schema bytes remain unchanged. Both schemas ship inside the
+shared contract, keeping the consumer bundle within Spec Kit's entry limit.
+No original account is upgraded
 or rewritten. An assessment's proposed disposition never changes implementation
 status.
 

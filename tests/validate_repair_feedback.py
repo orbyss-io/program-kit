@@ -195,8 +195,7 @@ class RepairTests(unittest.TestCase):
     def test_contract_schema_and_historical_answers_are_preserved(self):
         from jsonschema import Draft202012Validator
         generated = build_repair_contract.build()
-        published = ROOT / 'extensions/program-kit-governance/references/repair-feedback'
-        for name, value in generated.items(): self.assertEqual(c.encoded(value), (published / name).read_bytes())
+        for name, value in generated.items(): self.assertEqual(c.encoded(value), build_repair_contract.published_path(name).read_bytes())
         schema = Draft202012Validator(generated['request.schema.json'])
         schema.validate(self.value)
         c.request(self.value)
@@ -651,6 +650,16 @@ class RepairTests(unittest.TestCase):
             self.assertIn('scripts/repair_feedback.py', zipped.namelist())
             self.assertIn('commands/speckit.program-kit-governance.repair-request.md', zipped.namelist())
             self.assertFalse(any('repair-evaluator' in x for x in zipped.namelist()))
+            packaged = json.loads(zipped.read('references/repair-feedback/contract.json'))
+            from jsonschema import Draft202012Validator
+            value = assessment(self.owner, [(self.packet, self.value)])
+            Draft202012Validator(packaged['assessmentSchemas']['1.1']).validate(value)
+            legacy = deepcopy(value); legacy['assessmentVersion'] = '1.0'; legacy.pop('ownerRoute')
+            legacy['relationships'][0]['repairId'] = 'repair-legacy'
+            Draft202012Validator(packaged['assessmentSchemas']['1.0']).validate(legacy)
+            for version, name in (('1.0', 'assessment-1.0.schema.json'), ('1.1', 'assessment.schema.json')):
+                self.assertEqual(c.encoded(packaged['assessmentSchemas'][version]), build_repair_contract.published_path(name).read_bytes())
+                self.assertNotIn('references/repair-feedback/' + name, zipped.namelist())
 
 
 # Separate fixture setup keeps these scenarios in the same declared validator.

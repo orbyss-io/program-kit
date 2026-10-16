@@ -30,6 +30,8 @@ remains historical/read-only. Submission checks complete current-contract eviden
 delivery/import provenance, routing and versions. Historical imports retain an
 explicit unqualified label. Public import reads a pinned PR as data; opening a PR
 or passing the guardian alone does not establish maintainer acceptance.
+Both assessment schemas are embedded in the shared contract's assessmentSchemas
+object; standalone repository copies live under docs/contracts/repair-feedback/.
 
 Compare the observed path against attributable expectations under actual consumer
 versions and constraints. Assess Program Kit ambiguity, correctness, discoverability

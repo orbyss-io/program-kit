@@ -155,3 +155,7 @@ Repository evaluators can preserve an explicitly selected historical JSON accoun
 with `scripts/repair_evaluator.py --root <chosen-checkout> --owner <id> --preserve-original <file>`.
 It retains exact bytes and actual recorded provenance, rejects missing provenance,
 and makes no current-contract or public-delivery claim for an older contract.
+The shared contract embeds current and historical assessment schemas under
+`assessmentSchemas["1.1"]` and `assessmentSchemas["1.0"]`; its schema metadata uses
+JSON pointers into that same document. Standalone copies are repository-only under
+`docs/contracts/repair-feedback/`. Both installed schema definitions are unchanged.
