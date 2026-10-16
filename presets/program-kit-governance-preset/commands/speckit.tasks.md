@@ -36,6 +36,11 @@ then each completed operation group. Resume saved groups without renumbering IDs
 boxes or consumer edits, or repeating unchanged preparation. Only read a contract/data-model/research
 section needed for the current operation or unresolved choice. Changed inputs require scoped review.
 An incomplete draft is not ready for implementation or read-only analysis.
+Use the reported document ownership when choosing output paths. A frozen historical input
+is a read dependency; select a distinct linked current index/versioned proposal for updates.
+For referenced frozen files, declare explicit `Task | Path | Mode` rows under
+`## Document outputs`. This does not make every compatibility document immutable and does
+not replace ordinary artifact ownership or human story review.
 
 ## Generate the operation plan
 

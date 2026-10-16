@@ -303,3 +303,17 @@ and historical receipts remain unchanged. Final public Nuplane/Build/Foundation
 closure, SPA-client integration, Program Kit composition/migration and the other
 pending ledger mechanisms still require implementation/qualification. Work
 continues within the same frozen 47 findings.
+
+## Continuation: retained document ownership
+
+N6 now uses one shipped reader for original supported reset-result hashes and an
+explicit protected subset. Task preparation exposes frozen ownership; save, input
+acknowledgement, finalization and delivery preflight preserve the bound original
+records and reject pending writes to historical bytes. Distinct current proposals
+link to preserved evidence. No folder-wide freeze or fresh acceptance is inferred.
+
+All 13 ownership cases, 63 story-delivery cases and the complete lifecycle validator
+pass. A prior recording-tool fixture run under repository-local TEMP correctly
+failed shared-device policy; the successful run used actual system temp without
+weakening that policy or installing tools. Both streams remain preserved. Final
+installed integration/CI and the remaining frozen repairs continue.

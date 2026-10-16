@@ -1098,13 +1098,48 @@
       "sourceDiagnosis": "Ownership-aware task output planning and current proposal/index",
       "workPackages": "D/G/I",
       "closureRequired": "Immutable target diagnosed; valid new active target allowed; historical bytes protected.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-with-targeted-and-lifecycle-validation; final-installed-integration/CI pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_inputs.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained-inputs.schema.json",
+        "extensions/program-kit-dotnet/references/retained-inputs.md",
+        "extensions/program-kit-governance/scripts/task_draft.py",
+        "extensions/program-kit-governance/scripts/artifact_ownership.py",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.phase-context.md",
+        "presets/program-kit-governance-preset/commands/speckit.tasks.md",
+        "tests/validate_document_ownership.py",
+        "tests/validation-inventory.json"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "validate_document_ownership.log",
+          "status": "passed",
+          "scope": "13 supported reset/draft/finalize/guard ownership cases, original record bytes, sticky anchors, protected/current targets and isolated shipped CLI.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-08/91c7b15a876744f5a1b1f18e799d3294/validate_document_ownership.log",
+          "sha256": "205391d1a3df8da2059f24b92e9f6ce37eee643cf4b9ec8ce92136d5bb36e118"
+        },
+        {
+          "command": "story-delivery.log",
+          "status": "passed",
+          "scope": "63 story-delivery cases including native execution; final guard source.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-08/764777d19837488783138ab086f6001d/story-delivery.log",
+          "sha256": "ef76e9bd2b60878872995497f842d56fd3b07027be44c1d46ef6736bb40f2b6e"
+        },
+        {
+          "command": "lifecycle.log",
+          "status": "passed",
+          "scope": "Complete lifecycle, activation, profile, ownership and UTF-8 validator; recording shared-device fixtures use actual system temp. Earlier repository-temp rejection retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-08/cde59f2a78fc4ac19abe11d5f476260b/lifecycle.log",
+          "sha256": "3ea5e83a0ea9108e52385ea19eca4cd7acf4b2ddb5b8780a2432d65f2ca7d6bc"
+        }
+      ],
+      "remainingDependencies": [
+        "Final installed profile integration and exact-source deterministic CI remain; active consumer untouched."
+      ],
+      "closureEvidence": [
+        "Canonical reader binds explicit protected inputs to raw original executed reset-result hashes. No global document freeze, independent signature or fresh product acceptance claim.",
+        "Drafting exposes ownership; pending tasks declare read/write intent. Mutations and preflight validate original bytes and retain sticky bindings across acknowledgement. Distinct linked current proposals are admitted; completed descriptions remain history."
+      ]
     },
     {
       "id": "N7",

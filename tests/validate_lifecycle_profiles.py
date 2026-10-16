@@ -771,7 +771,7 @@ def validate_toolchain_workflow() -> None:
         marker.write_text('simulated user completion')
         satisfied = run()
         if satisfied.returncode != 0 or "PKT000" not in satisfied.stdout:
-            raise AssertionError("already-satisfied toolchain did not avoid installation")
+            raise AssertionError(f"already-satisfied toolchain did not avoid installation: {satisfied.stdout}{satisfied.stderr}")
         (repository / ".oasdiff-version").write_text("1.29.1\n", encoding="utf-8")
         if os.name == "nt":
             reviewed_oasdiff = repository / "reviewed-oasdiff.cmd"

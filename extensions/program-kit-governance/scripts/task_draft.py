@@ -125,6 +125,11 @@ def inputs(root, feature):
                                         'data-model.md', 'quickstart.md')]
     paths += [root / '.specify/memory/constitution.md', root / '.specify/extensions.yml']
     paths += [root/'eng/foundation-composition.json', root/'eng/foundation-composition.resolved.json']
+    import retained_inputs
+    ownership = retained_inputs.snapshot(root)
+    paths += [root / relative for relative in ownership['inputs']]
+    if (feature / 'artifact-ownership.json').is_file():
+        paths.append(feature / 'artifact-ownership.json')
     # Latest actual setup outcome is a drafting input, not a drafting action.
     # A newer failure cannot be hidden by retaining a previous successful run.
     outcomes = list((root/'artifacts/tests/runs').glob('foundation-*/result.json'))
@@ -494,17 +499,22 @@ def validate_verification_obligations(content, tasks, ancestors, root=None):
 
 
 def prepare(root, feature, phases):
+    import retained_inputs
+    ownership = retained_inputs.snapshot(root)
     path = feature / 'tasks.md'
     content, state = load(path)
     current = inputs(root, feature)
     if state:
+        retained_inputs.validate_document_outputs(root, content, state.get('documentOwnership'))
         changed = sorted(k for k in current.keys() | state['inputs'].keys()
                          if current.get(k) != state['inputs'].get(k))
         return {'status': state['status'], 'completedPhases': state['completed'],
                 'remainingPhases': [p for p in state['phases'] if p not in state['completed']],
-                'changedInputs': changed, 'tasks': str(path)}
+                'changedInputs': changed, 'tasks': str(path), 'documentOwnership': retained_inputs.summary(ownership)}
     if content:
+        retained_inputs.validate_document_outputs(root, content)
         return {'status': 'existing', 'tasks': str(path),
+                'documentOwnership': retained_inputs.summary(ownership),
                 'instruction': 'Preserve existing tasks, IDs, checked boxes and consumer edits; review only missing or affected phases.'}
     if not phases or len(set(phases)) != len(phases) or any(not re.fullmatch(r'[A-Za-z0-9_-]+', p) for p in phases):
         raise ValueError('Supply unique operation group identifiers from the specification, e.g. US1_create US1_list closure dependencies')
@@ -514,6 +524,8 @@ def prepare(root, feature, phases):
 
     fresh = POLICY in (feature / 'spec.md').read_text(encoding='utf-8')
     state = {'version': 2, 'format': 'story-plan' if fresh else 'operation-plan', 'status': 'draft', 'phases': phases, 'completed': [], 'inputs': current}
+    if ownership['configured']:
+        state['documentOwnership'] = ownership
     store(path, f'# Tasks: {feature.name}\n\n> Draft: task generation is incomplete. Resume saved phases before analysis or implementation.\n', state)
     return prepare(root, feature, phases)
 
@@ -535,6 +547,10 @@ def save_phase(root, feature, phase, body):
     new_ids = re.findall(r'^- \[[ xX]\] (T\d+)\b', body, re.M)
     if len(set(old_ids + new_ids)) != len(old_ids + new_ids):
         raise ValueError('Duplicate task IDs; preserve saved IDs and continue numbering')
+    import retained_inputs
+    ownership = retained_inputs.validate_document_outputs(root, content.rstrip() + '\n\n' + body.strip(), state.get('documentOwnership'))
+    if ownership['configured']:
+        state['documentOwnership'] = ownership
     state['completed'].append(phase)
     store(path, content.rstrip() + '\n\n' + body.strip() + '\n', state)
 
@@ -544,6 +560,10 @@ def acknowledge(root, feature):
     content, state = load(path)
     if not state or state['status'] != 'draft':
         raise ValueError('Only an existing draft can acknowledge reviewed input changes')
+    import retained_inputs
+    ownership = retained_inputs.validate_document_outputs(root, content, state.get('documentOwnership'))
+    if ownership['configured']:
+        state['documentOwnership'] = ownership
     state['inputs'] = inputs(root, feature)
     store(path, content, state)
 
@@ -561,6 +581,8 @@ def finalize(root, feature):
     ids = [line.split()[0] for line in checklists]
     if len(ids) != len(set(ids)):
         raise ValueError('Duplicate task IDs in saved draft; resolve before analysis')
+    import retained_inputs
+    retained_inputs.validate_document_outputs(root, content, state.get('documentOwnership'))
     validate_operation_graph(content, required=state.get('format') in ('operation-plan', 'story-plan'), root=root)
     if state.get('format') == 'story-plan':
 
@@ -820,8 +842,10 @@ def assessed_basis(review):
 
 def assessment_policy():
     import handoff_contract
+    import retained_inputs
     return {**{name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-               for name in ('task_draft.py', 'review_material.py')},
+               for name in ('task_draft.py', 'review_material.py', 'artifact_ownership.py')},
+            'retained_inputs.py': hashlib.sha256(Path(retained_inputs.__file__).read_bytes()).hexdigest(),
             'handoff_contract.py': hashlib.sha256(Path(handoff_contract.__file__).read_bytes()).hexdigest()}
 
 
@@ -1016,6 +1040,8 @@ def accrue(value, now):
 
 
 def guard(root, feature, operation=None, closure=False, repair=False):
+    import retained_inputs
+    retained_inputs.validate_document_outputs(root, (feature / 'tasks.md').read_text(encoding='utf-8'))
     value = refresh(root, load_delivery(feature))
     from task_draft import validate_operation_graph
     content = (feature / 'tasks.md').read_text(encoding='utf-8')
@@ -1027,6 +1053,8 @@ def guard(root, feature, operation=None, closure=False, repair=False):
 
 
 def _review_guard(root, feature, value, operation=None, closure=False, repair=False):
+    import retained_inputs
+    retained_inputs.validate_document_outputs(root, (feature / 'tasks.md').read_text(encoding='utf-8'))
     if operation is None and value.get('active'):
         operation = value['active']['operation']
     content = (feature / 'tasks.md').read_text(encoding='utf-8')
