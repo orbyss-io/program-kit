@@ -1,0 +1,19 @@
+[
+  "test_paused_producer_cannot_resurrect_erased_object_or_clean_another_stage",
+  "test_stale_producer_and_paused_remover_cannot_damage_newer_publication",
+  "test_resource_admission_not_issuer_counter_revokes_old_physical_authority",
+  "test_actual_restart_preserves_highwater_barrier_and_legacy_denial",
+  "test_same_fence_replay_is_exact_and_expired_replay_has_no_authority",
+  "test_deadline_equality_before_admission_and_after_input_wait",
+  "test_deadline_is_rechecked_after_real_cross_process_guard_wait",
+  "test_cancellation_after_input_and_guard_wait_is_bound_to_exact_fence",
+  "test_missing_corrupt_duplicate_authority_never_resets_to_zero",
+  "test_missing_work_store_or_guard_never_creates_authority",
+  "test_counter_reuse_overflow_and_conflicting_work_identity_fail",
+  "test_publish_process_crash_windows_reconcile_independent_physical_and_work_state",
+  "test_erase_crash_windows_retain_removal_protection_and_observed_recovery",
+  "test_admission_crash_preserves_committed_highwater_on_actual_restart",
+  "test_stale_or_ordinary_inspection_cannot_authorize_reconciliation",
+  "test_uncertain_conflicting_effect_is_not_blindly_replayed_or_erased",
+  "test_retention_capacity_refuses_new_admission_without_retiring_barriers"
+]

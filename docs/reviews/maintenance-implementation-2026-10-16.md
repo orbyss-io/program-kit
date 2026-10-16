@@ -364,3 +364,25 @@ is a synthetic filter/integration example, with cooperative cancellation/deadlin
 checks and no complete PDF or process-memory/CPU/worker acceptance claim. Optional
 example dependencies are tracked in maintenance policy, and no consumer pin changed.
 Work continues on the other approved repairs within the same frozen inventory.
+
+## Continuation: physical fencing reference
+
+N15 now has point-of-use cross-resource guidance and a finite synthetic local recipe.
+It uses committed SQLite work authority, native file guarding, exact monotonically
+increasing admitted fences, retained removal identity and observation-bound recovery.
+No domain SQL/worker or generic storage framework was copied. The reference never
+retires its high-water/barrier metadata and refuses new admission at finite capacity.
+
+All 17 required cases pass on observed local fixed NTFS with actual processes,
+paused publish and erase, native guard contention, exact-fence cancellation, expiry
+after waits and at equality, replay, missing/corrupt/duplicate authority, overflow,
+real fresh-process restart and abrupt exits around admission/intent/effect/completion.
+Physical state and committed work facts are inspected separately during recovery.
+A repeated harness run observed a partial ready marker; atomic marker publication
+repairs that synchronization race. Earlier failed/green runs retain their own status.
+
+The claim excludes Linux until its actual CI result, network/shared/multi-host
+storage, hostile writers, authority backup rollback and power-loss durability.
+Payload deletion does not imply staging/history/privacy cleanup. Uncertain effects
+remain recovery work, without blind resubmission or paid dispatch. Remaining frozen
+mechanisms and full source qualification continue.

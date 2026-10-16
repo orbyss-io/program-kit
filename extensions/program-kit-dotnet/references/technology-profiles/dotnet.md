@@ -317,6 +317,9 @@ durable and MUST NOT be described as reliable post-commit, background, broker, o
 delivery. Those requirements trigger the separately tracked Integration Events design and its
 transactional outbox, at-least-once, idempotency, retry/dead-letter, ordering, versioning, replay,
 retention, security, and observability obligations.
+Cross-resource physical effects also require resource-side fencing and retained
+removal protection; see the [bounded fencing recipe](../cross-resource-fencing.md)
+for publication, reconciliation-read, erase, replay, deadline and crash boundaries.
 
 ## Profile evidence
 

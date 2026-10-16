@@ -124,6 +124,11 @@ prerequisite tasks; they do not block saving tasks or reporting architecture-che
   result atomically; conflicting reuse is a defined denial, not a new execution. For durable external
   delivery, use an admitted outbox and idempotent receiver. Retry the complete unit only when its
   replay/commit verification contract is safe; never promise exactly-once network delivery.
+- For cross-resource file effects, require resource-side fencing of publication,
+  recovery reads and erase, retained high-water/removal protection, and checks after
+  input/guard waits. The [physical fencing recipe](cross-resource-fencing.md) gives
+  a bounded synthetic example and native process/crash regressions. An outbox or
+  database completion fence alone cannot revoke an in-flight external mutation.
 <!-- /program-kit:decision-rule -->
 - Connection strings and secrets come from environment/secret providers. `shells.json` may contain
   feature activation and validated configuration names only, never credentials.

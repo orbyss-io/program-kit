@@ -4872,6 +4872,25 @@
       "isolation": "Unique disposable exact-image PostgreSQL container; no consumer data, startup schema creation or coding agent."
     },
     {
+      "id": "validate_local_fencing",
+      "qualification": {"linux": true, "windows": true, "build": false},
+      "command": ["{python}", "tests/validate_local_fencing.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Actual local process fencing, committed synthetic work, publish/erase, retained barriers, recovery reads, restart, waits, expiry/cancellation and deliberate process-crash windows; no domain or power-loss claim.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/references/examples/local-fencing/**",
+        "extensions/program-kit-dotnet/references/cross-resource-fencing.md",
+        "extensions/program-kit-dotnet/references/persistence-profiles.md",
+        "tests/validate_local_fencing.py"
+      ],
+      "outputs": ["artifacts/local-fencing/<unique>/results.json"],
+      "resources": [],
+      "isolation": "Exact new retained synthetic roots, SQLite/files and owned Python processes only. No agents, paid provider, active consumer, shared-volume or power-loss qualification."
+    },
+    {
       "id": "validate_pdf_decoding",
       "qualification": {"linux": true, "windows": true, "build": false},
       "command": ["{python}", "tests/validate_pdf_decoding.py"],

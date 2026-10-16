@@ -1627,15 +1627,35 @@
       "sourceDiagnosis": "Consumer stale publish/erase race and in-progress remedy are reported/inspected, not independently accepted. No upstream implementation/generator defect established. Adopt attribution, bounded guidance and reference-recipe work; do not copy domain storage code or create a storage framework.",
       "workPackages": "I/J; native publisher only if attributable gap",
       "closureRequired": "Actual cross-process stale publish AND erase, retained identity/barrier, restart, corruption, waiting/deadline, uncertain effect and storage-scope proof for each advertised recipe claim.",
-      "status": "adopted-for-attribution-and-bounded-shared-work; not-implemented",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Trace selected guidance/task provenance and any attributable example defect",
-        "Bounded synthetic recipe with explicit platform/storage/durability/retirement limits",
-        "Consumer SQL, lease policy, business semantics and tests remain consumer-owned"
+      "status": "implemented-with-actual-local-NTFS-process-qualification; Linux/current-CI pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/references/cross-resource-fencing.md",
+        "extensions/program-kit-dotnet/references/examples/local-fencing/local_fencing.py",
+        "extensions/program-kit-dotnet/references/examples/local-fencing/required-cases.json",
+        "extensions/program-kit-dotnet/references/persistence-profiles.md",
+        "extensions/program-kit-dotnet/references/technology-profiles/dotnet.md",
+        "tests/validate_local_fencing.py",
+        "tests/validation-inventory.json"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "python tests/validate_local_fencing.py",
+          "status": "passed",
+          "scope": "17 required actual native process cases on observed local fixed NTFS. Committed SQLite authority, paused producer/erase, higher fences, exact replay and expired replay, input/guard waits with observed contention, cancellation, corruption/duplicates/missing records, overflow, actual fresh-process restart, abrupt process exits at admission/intent/effect/completion, independent physical/work reconciliation and no implicit barrier retirement. No Linux, shared-volume, hostile-writer, power-loss or consumer acceptance claim.",
+          "log": "artifacts/local-fencing/0737ea0b84ae45dfa647d2973f0940e0/results.json",
+          "sha256": "22ca528ad4bb9a2c136f704e02e0befe91cf753bd75ba9ad8281f281ba3c40a3"
+        }
+      ],
+      "remainingDependencies": [
+        "Complete current deterministic CI must qualify Linux on its actual mount and the final source; only actual observed Windows local fixed NTFS is presently claimed.",
+        "Foundation/public integration gates and consumer-specific SQL/lease/business/worker acceptance remain independent; no authority was extended."
+      ],
+      "closureEvidence": [
+        "Existing outbox/operation-identity guidance was sound; no shipped implementation was attributed as the consumer race. Point-of-use guidance now requires actual resource-side effect/read/erase fencing.",
+        "The bounded synthetic recipe serializes physical admission and effects, retains exact monotonic authority and removal identity, refuses legacy bypass and same-root identity reset, and reconciles observed uncertainty without blind repeated effects. Domain SQL and consumer worker are not copied.",
+        "Reference never retires barriers/high-water metadata; finite capacity refuses admission. Content deletion is distinct from staging/metadata/privacy retention. Local cooperative clock/process/storage, backup-rollback and power-loss limits are explicit.",
+        "A repeated test exposed a ready-marker race in the supervisor, while stale physical publication was still denied. Marker publication is now atomic; failed and earlier unique runs remain separate. Final-source 17 cases pass with native storage/child exit/stream evidence."
+      ]
     }
   ],
   "scopeAdditions": [
