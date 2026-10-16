@@ -1,5 +1,6 @@
 """Generate published repair vocabulary/questions/schema from executable v1 constants."""
 import argparse
+from copy import deepcopy
 import json
 from pathlib import Path
 import sys
@@ -62,6 +63,13 @@ def build():
         'proposedDisposition': {'enum': list(evaluator.DISPOSITIONS)}, 'rationale': string, 'correlation': {'type': 'object'}})
     assessment['properties']['requests']['minItems'] = 1
     assessment['$schema'] = 'https://json-schema.org/draft/2020-12/schema'
+    historical_assessment = deepcopy(assessment)
+    assessment['properties']['assessmentVersion'] = {'const': '1.1'}
+    assessment['properties']['relationships']['items']['properties']['repairId']['pattern'] = '^' + evaluator.intake.REPAIR + '$'
+    assessment['properties']['ownerRoute'] = obj({'routeVersion': {'const': 1},
+        'ownerId': {'type': 'string', 'pattern': '^' + evaluator.intake.OWNER + '$'},
+        'ledger': {'type': 'string', 'minLength': 1}, 'adapter': {'const': 'items-v1'}, 'routeSha256': hash_schema})
+    assessment['required'].append('ownerRoute')
     contract = {'contractVersion': c.VERSION, 'schema': 'request.schema.json', 'assessmentSchema': 'assessment.schema.json', 'questions': QUESTIONS,
         'vocabulary': {'request': 'Stable consumer observation identity; distinct from repair/finding identity.',
             'revision': 'Immutable evidence account superseding an exact earlier request hash.',
@@ -83,7 +91,10 @@ def build():
         'guardian': {'version': c.GUARDIAN, 'meaning': 'Contract validity only; maintainer acceptance required. No submitted code execution.',
                      'sensitiveChecks': ['GitHub token patterns', 'AWS access key IDs', 'private key headers', 'Bearer headers', 'credential assignments'],
                      'limitations': 'No assertion of truth, authenticated publisher, arbitrary personal/business safety or consumer acceptance.'}}
-    return {'contract.json': contract, 'request.schema.json': schema, 'assessment.schema.json': assessment}
+    contract['assessmentVersion'] = '1.1'
+    contract['historicalAssessmentSchema'] = 'assessment-1.0.schema.json'
+    return {'contract.json': contract, 'request.schema.json': schema, 'assessment.schema.json': assessment,
+            'assessment-1.0.schema.json': historical_assessment}
 
 
 if __name__ == '__main__':

@@ -20,6 +20,7 @@ import uuid
 from urllib.parse import quote
 
 import repair_contract as c
+import repair_intake as intake
 
 PERSONAL = '.program-kit/repair-feedback-personal'
 QUEUE = 'artifacts/repair-feedback/intake'
@@ -71,9 +72,10 @@ def checkout(root):
     return root
 
 
-def configure(root, mode, contributor=None):
+def configure(root, mode, contributor=None, owner=None):
     c.require(mode in ('consumer', 'contributor'), 'mode')
     selected = str(checkout(contributor)) if mode == 'contributor' else None
+    owner_route = intake.route(selected, owner) if selected else None
     directory = c.inside(root, PERSONAL)
     # Git's own exclude file is local, upgrade-preserved and outside input digests.
     exclude = Path(git(root, 'rev-parse', '--git-path', 'info/exclude'))
@@ -88,11 +90,11 @@ def configure(root, mode, contributor=None):
     probe = PERSONAL + '/preferences.json'
     c.require(git(root, 'check-ignore', '--no-index', '--', probe) == probe, 'personal-ignore-not-proven')
     c.require(not git(root, 'ls-files', '--', PERSONAL), 'personal-records-already-tracked-remove-from-index-first')
-    write(directory / 'preferences.json', {'schemaVersion': 1, 'mode': mode, 'checkout': selected})
+    write(directory / 'preferences.json', {'schemaVersion': 2, 'mode': mode, 'checkout': selected, 'ownerRoute': owner_route})
     if not (directory / 'submissions.json').exists():
         write(directory / 'submissions.json', {'schemaVersion': 1, 'requests': []})
     return {'disclosure': 'Created or updated ignored personal preferences and submission index; choices survive upgrades. No credentials or current status stored.',
-            'path': str(directory), 'mode': mode, 'checkout': selected, 'ignoreVerified': True}
+            'path': str(directory), 'mode': mode, 'checkout': selected, 'ownerRoute': owner_route, 'ignoreVerified': True}
 
 
 def personal(root):
@@ -107,7 +109,7 @@ def remember(root, value):
     directory, _ = personal(root)
     index = read(directory / 'submissions.json', {'schemaVersion': 1, 'requests': []})
     # Append historical reference records; never overwrite implementation status.
-    allowed = {'requestId', 'projectId', 'revision', 'requestSha256', 'route', 'queue', 'ledger', 'objects', 'receipt', 'account', 'host'}
+    allowed = {'requestId', 'projectId', 'revision', 'requestSha256', 'route', 'queue', 'ledger', 'objects', 'receipt', 'account', 'host', 'checkout', 'ownerRoute'}
     c.require(set(value) <= allowed, 'submission-index-reference-fields-only')
     for obj in value.get('objects', []):
         c.fields(obj, ('repository', 'kind', 'number'))
@@ -163,10 +165,12 @@ def local(root, packet, ledger, correlation=None):
     _, preferences = personal(root)
     c.require(preferences['mode'] == 'contributor', 'local-route-requires-selected-contributor-checkout')
     target = checkout(preferences['checkout'])
+    c.require(preferences.get('ownerRoute') is not None, 'owner-route-required-reconfigure-contributor')
+    owner_route = intake.checked_route(target, preferences['ownerRoute'])
     proof = c.guard(packet)
     value = read(Path(packet) / 'request.json')
     c.safe_name(ledger)
-    c.require(c.inside(target, ledger).is_file(), 'owner-ledger-must-exist')
+    c.require(ledger == owner_route['ledger'], 'selected-owner-ledger-mismatch')
     relative = QUEUE + '/' + value['requestId'] + '/' + str(value['revision'])
     if value['revision'] > 1:
         previous = c.inside(target, QUEUE + '/' + value['requestId'] + '/' + str(value['revision'] - 1) + '/packet/request.json')
@@ -182,13 +186,27 @@ def local(root, packet, ledger, correlation=None):
             with path.open('xb') as stream:
                 stream.write(data)
     record = {'requestId': value['requestId'], 'revision': value['revision'], 'requestSha256': proof['requestSha256'],
-              'ledger': ledger, 'correlation': correlation or {'availability': 'pending', 'reason': 'not-retrieved'},
+              'ledger': ledger, 'ownerRoute': owner_route, 'source': {'kind': 'local'},
               'meaning': 'queued observation; owner disposition required'}
-    write(directory / 'delivery.json', record, immutable=True)
+    existing = read(directory / 'delivery.json')
+    if existing is not None and 'ownerRoute' not in existing:
+        intake.inspect(target, owner_route, record)  # Explicit owner binding is required for legacy delivery.
+    else:
+        write(directory / 'delivery.json', record, immutable=True)
+    if correlation is not None:
+        append_correlation(directory, record, correlation)
     remember(root, {'requestId': value['requestId'], 'projectId': value['projectId'], 'revision': value['revision'],
                     'requestSha256': proof['requestSha256'], 'route': 'local', 'queue': str(directory),
-                    'ledger': str(c.inside(target, ledger))})
-    return record
+                    'ledger': str(c.inside(target, ledger)), 'checkout': str(target), 'ownerRoute': owner_route})
+    return record | {'correlation': correlation or {'availability': 'pending', 'reason': 'not-retrieved'}}
+
+
+def append_correlation(directory, reference, correlation):
+    c.require(isinstance(correlation, dict), 'correlation-object-required')
+    value = {'reference': intake.identity(reference), 'correlation': correlation}
+    c.require(len(c.encoded(value)) <= c.MAX_TOTAL, 'correlation-budget')
+    c.sensitive(c.encoded(value))
+    write(c.inside(directory, 'correlation/' + c.digest(value) + '.json'), value, immutable=True)
 
 
 class GitHub:
@@ -511,14 +529,16 @@ def publish_locked(root, packet, reviewed, approved_digest, api):
 def status(records, api=None):
     result = {'retrievedAt': now(), 'sources': [], 'lifecycle': {key: 'unknown' for key in c.LIFECYCLE},
               'meaning': 'fresh per-source observations, not an atomic snapshot; no lifecycle inference from issue state'}
+    latest_local = {(r['requestId'], r.get('revision'), r.get('ledger')): r for r in records if r['route'] == 'local'}
     for record in records:
-        if record['route'] == 'local':
+        if record['route'] == 'local' and latest_local[(record['requestId'], record.get('revision'), record.get('ledger'))] is record:
             try:
-                ledger = read(record['ledger'])
-                c.require(ledger is not None, 'local-ledger-unavailable')
-                result['sources'].append({'source': 'local', 'ledger': record['ledger'], 'availability': 'available', 'data': ledger, 'retrievedAt': now()})
-            except (OSError, ValueError):
-                result['sources'].append({'source': 'local', 'availability': 'unavailable', 'retrievedAt': now()})
+                target = checkout(record['checkout'])
+                data = intake.state(target, record['ownerRoute'], record)
+                result['sources'].append({'source': 'local', 'reference': intake.identity(record), 'ledger': record['ledger'],
+                                          'availability': 'available', 'data': data, 'retrievedAt': now()})
+            except (OSError, ValueError, KeyError, TypeError):
+                result['sources'].append({'source': 'local', 'reference': intake.identity(record), 'availability': 'unavailable', 'retrievedAt': now()})
         for obj in record.get('objects', []):
             repository, number, kind = obj['repository'], obj['number'], obj['kind']
             c.require(repository in (c.UPSTREAM, c.EVIDENCE) and type(number) is int and number > 0 and
@@ -546,6 +566,13 @@ def status(records, api=None):
             except (OSError, ValueError, KeyError):
                 source['availability'] = 'partial' if 'data' in source else 'unavailable'
             result['sources'].append(source)
+    # Aggregate only when every observed source for these references supports the
+    # same fact. No adoption/release inference from issue or PR state.
+    local_sources = [s for s in result['sources'] if s['source'] == 'local']
+    for key in c.LIFECYCLE:
+        values = [s.get('data', {}).get('lifecycle', {}).get(key, 'unknown') for s in local_sources]
+        if values and all(type(v) is bool and v == values[0] for v in values):
+            result['lifecycle'][key] = values[0]
     return result
 
 
@@ -617,7 +644,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path.cwd())
     sub = parser.add_subparsers(dest='command', required=True)
-    p = sub.add_parser('configure'); p.add_argument('--mode', choices=('consumer', 'contributor'), required=True); p.add_argument('--checkout', type=Path)
+    p = sub.add_parser('configure'); p.add_argument('--mode', choices=('consumer', 'contributor'), required=True); p.add_argument('--checkout', type=Path); p.add_argument('--owner')
     sub.add_parser('clear-preferences')
     sub.add_parser('prerequisites')
     p = sub.add_parser('draft'); p.add_argument('--project', required=True); p.add_argument('--title', required=True); p.add_argument('--previous', type=Path); p.add_argument('--output', type=Path, required=True)
@@ -633,7 +660,7 @@ def main():
     p = sub.add_parser('link'); p.add_argument('--request-id', required=True); p.add_argument('--objects', type=Path, required=True)
     args = parser.parse_args()
     try:
-        if args.command == 'configure': result = configure(args.root, args.mode, args.checkout)
+        if args.command == 'configure': result = configure(args.root, args.mode, args.checkout, args.owner)
         elif args.command == 'clear-preferences':
             directory, _ = personal(args.root); (directory / 'preferences.json').unlink(); result = {'cleared': 'routing choices; historical submission references retained'}
         elif args.command == 'prerequisites':
@@ -665,8 +692,10 @@ def main():
             directory, _ = personal(args.root)
             refs = [r for r in read(directory / 'submissions.json')['requests'] if r['requestId'] == args.request_id]
             c.require(refs, 'unknown-request-discover-history-first')
-            try: api = GitHub(); api.auth()
-            except (ValueError, OSError): api = None
+            api = None
+            if any(r.get('objects') for r in refs):
+                try: api = GitHub(); api.auth()
+                except (ValueError, OSError): api = None
             result = status(refs, api)
         elif args.command == 'recover': result = recover(args.root, GitHub(), args.project, read(args.known_objects) if args.known_objects else None)
         elif args.command == 'link': result = link(args.root, args.request_id, read(args.objects))

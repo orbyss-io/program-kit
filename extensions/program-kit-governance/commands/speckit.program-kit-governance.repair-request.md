@@ -10,10 +10,14 @@ for the selected delivery or status procedure. Use installed
 
 On first unconfigured use, ask whether the person contributes to Program Kit;
 default to consumer mode. For contributor mode ask for their chosen Program Kit
-checkout, validate it with `configure --mode contributor --checkout <path>`, and
+checkout and explicitly registered receiving owner, validate them with
+`configure --mode contributor --checkout <path> --owner <owner-id>`, and
 disclose the ignored personal files and saved routing. Consumer mode uses
 `configure --mode consumer`. Allow changing/clearing choices. Never discover an
 internal evaluator from an arbitrary consumer remote or infer checkout authority.
+The selected checkout must contain this feature's evaluator skill and its owner's
+registered route. If either is absent, pause local delivery and identify that
+integration dependency; never copy another checkout's work or infer its owner.
 
 Answer the eight questions from retained records. Preserve original wording,
 selected versions, evidence identity and unclassified concepts. Use `unknown` for
@@ -29,7 +33,10 @@ validate the derivative before showing it for public review. Never publish a
 whole worktree, environment dump, credentials or arbitrary archive.
 
 Local mode writes only the selected checkout's immutable intake queue and links
-the owner's existing ledger. Search correlation may be pending. It creates no
+the owner's existing ledger. Search correlation may be pending. Later correlation
+is appended separately without altering the delivered packet or delivery record.
+Owner decisions and assessment hashes link to the exact request revision through
+the registered ledger adapter. It creates no
 public objects and never falls back to public delivery. Durable queue delivery
 does not depend on a running agent. Notifications/chat discovery are optional,
 require explicitly scoped recipients and messaging authority, and add no permission

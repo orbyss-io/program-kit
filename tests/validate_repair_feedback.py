@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'scripts'), str(ROOT / 'extensions/program-kit-governance/scripts')]
 import repair_contract as c
 import repair_feedback as rf
+import repair_intake as intake
 import repair_evaluator as evaluator
 import repair_evidence_guardian as guardian
 import repair_guardian_check as guardian_check
@@ -57,7 +58,36 @@ def init(root, contributor=False):
     if contributor:
         for name in ('extensions/program-kit-governance/extension.yml', '.agents/skills/program-kit-repair-evaluator/SKILL.md', 'docs/owner-ledger.json'):
             path = root / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_text('{}\n', encoding='utf-8')
+        rf.write(root / 'docs/owner-ledger.json', {'approval': 'Synthetic existing approval preserved', 'items': [{'id': 'U0', 'status': 'planned'}]})
+        evaluator.register_owner(root, 'maintenance', 'docs/owner-ledger.json')
     return root
+
+
+def assessment(owner, packets, name='synthetic'):
+    references = [{'requestId': value['requestId'], 'revision': value['revision'],
+                   'requestSha256': c.sha((directory / 'request.json').read_bytes()),
+                   'contractVersion': value['contractVersion'], 'selectedKnowledgeVersion': value['evidence']['knowledgeVersion']}
+                  for directory, value in packets]
+    return {'assessmentVersion': '1.1', 'assessmentId': 'assess-' + name, 'createdAt': rf.now(),
+            'ownerRoute': intake.route(owner, 'maintenance'), 'requests': references,
+            'terminologyMapping': [], 'unknownFields': ['root cause'], 'evidenceClass': 'inspected',
+            'expectationSources': ['synthetic retained guidance'], 'cause': 'unknown', 'ownership': 'unknown',
+            'missingProof': 'Independent execution missing', 'mechanism': 'Potential shared guidance gap',
+            'supportedScope': 'Synthetic observations', 'consumerEffects': 'unknown', 'pointOfUseAction': 'Identify next action',
+            'relationships': [{'requestId': r['requestId'], 'repairId': 'U0', 'groupId': None, 'explanation': 'Existing synthetic finding'} for r in references],
+            'proposedDisposition': 'needs-proof', 'rationale': 'Evidence is not independent execution', 'correlation': {'availability': 'pending'}}
+
+
+def owner_decision(owner, value, disposition='adopt', facts=None):
+    path = owner / value['ownerRoute']['ledger']
+    ledger = rf.read(path)
+    extension = ledger.setdefault('repairFeedback', {'adapterVersion': 1, 'ownerRoute': value['ownerRoute'], 'decisions': []})
+    for reference in value['requests']:
+        extension['decisions'].append(intake.identity(reference) | {
+            'assessmentId': value['assessmentId'], 'assessmentSha256': c.sha((owner / intake.BASE / 'assessments' / (value['assessmentId'] + '.json')).read_bytes()),
+            'disposition': disposition, 'rationale': 'Synthetic owner decision; approval history retained',
+            'repairIds': ['U0'] if disposition in ('adopt', 'duplicate') else [], 'facts': facts or {}})
+    rf.write(path, ledger)
 
 
 def correlation(destination=7):
@@ -186,7 +216,7 @@ class RepairTests(unittest.TestCase):
 
     def test_ignored_personal_state_is_outside_inputs_and_preserved_by_reconfigure(self):
         before = consumer_upgrade.inputs(self.consumer)
-        disclosure = rf.configure(self.consumer, 'contributor', self.owner)
+        disclosure = rf.configure(self.consumer, 'contributor', self.owner, 'maintenance')
         self.assertTrue(disclosure['ignoreVerified'])
         self.assertIn('disclosure', disclosure)
         self.assertEqual(before, consumer_upgrade.inputs(self.consumer))
@@ -203,7 +233,7 @@ class RepairTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'checkout-root-required'): rf.checkout(self.owner)
 
     def test_local_queue_durable_idempotent_zero_public_mutation_and_fresh_ledger(self):
-        rf.configure(self.consumer, 'contributor', self.owner)
+        rf.configure(self.consumer, 'contributor', self.owner, 'maintenance')
         api = RecordingGitHub()
         with patch.object(rf, 'GitHub', side_effect=AssertionError('Local route touched GitHub')):
             first = rf.local(self.consumer, self.packet, 'docs/owner-ledger.json')
@@ -212,11 +242,15 @@ class RepairTests(unittest.TestCase):
         self.assertEqual('pending', first['correlation']['availability'])
         records = rf.read(self.consumer / rf.PERSONAL / 'submissions.json')['requests']
         before = rf.status(records)
-        self.assertEqual({}, before['sources'][0]['data'])
-        rf.write(self.owner / 'docs/owner-ledger.json', {'ownerDisposition': 'deferred', 'validated': False})
+        self.assertIsNone(before['sources'][0]['data']['ownerDecision'])
+        value = assessment(self.owner, [(self.packet, self.value)])
+        evaluator.submit(self.owner, value)
+        owner_decision(self.owner, value, 'defer', {'validated': {'value': False, 'proof': ['Synthetic owner inspection']}})
         after = rf.status(records)
-        self.assertEqual('deferred', after['sources'][0]['data']['ownerDisposition'])
-        self.assertTrue(all(v == 'unknown' for v in after['lifecycle'].values()))
+        self.assertEqual('defer', after['sources'][0]['data']['ownerDecision']['disposition'])
+        self.assertTrue(after['lifecycle']['assessed'])
+        self.assertFalse(after['lifecycle']['validated'])
+        self.assertEqual('unknown', after['lifecycle']['released'])
         self.assertEqual('local', after['sources'][0]['source'])
         self.assertNotIn('ownerDisposition', (self.consumer / rf.PERSONAL / 'submissions.json').read_text())
         changed = deepcopy(self.value); changed['title'] = 'Conflicting correction without revision'
@@ -224,7 +258,7 @@ class RepairTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'queued-revision-conflict'): rf.local(self.consumer, self.packet, 'docs/owner-ledger.json')
 
     def test_queue_revisions_require_exact_predecessor(self):
-        rf.configure(self.consumer, 'contributor', self.owner)
+        rf.configure(self.consumer, 'contributor', self.owner, 'maintenance')
         second, value = packet(self.root, self.value, 'second')
         with self.assertRaisesRegex(ValueError, 'predecessor'): rf.local(self.consumer, second, 'docs/owner-ledger.json')
         rf.local(self.consumer, self.packet, 'docs/owner-ledger.json')
@@ -461,14 +495,14 @@ class RepairTests(unittest.TestCase):
         self.assertEqual('account', rf.discover(api, 'fixture-user')['scope'])
 
     def test_evaluator_multiple_requests_one_repair_owner_ledger_unchanged(self):
-        rf.configure(self.consumer, 'contributor', self.owner)
+        rf.configure(self.consumer, 'contributor', self.owner, 'maintenance')
         rf.local(self.consumer, self.packet, 'docs/owner-ledger.json')
         another, other = packet(self.root, suffix='another')
         rf.local(self.consumer, another, 'docs/owner-ledger.json')
         references = [{'requestId': value['requestId'], 'revision': value['revision'], 'requestSha256': c.sha((directory / 'request.json').read_bytes()),
                        'contractVersion': value['contractVersion'], 'selectedKnowledgeVersion': value['evidence']['knowledgeVersion']}
                       for directory, value in ((self.packet, self.value), (another, other))]
-        assessment = {'assessmentVersion': '1.0', 'assessmentId': 'assess-synthetic', 'createdAt': rf.now(), 'requests': references,
+        assessment = {'assessmentVersion': '1.1', 'ownerRoute': intake.route(self.owner, 'maintenance'), 'assessmentId': 'assess-synthetic', 'createdAt': rf.now(), 'requests': references,
             'terminologyMapping': [{'original': 'sprocket boundary', 'canonical': None, 'reason': 'unclassified'}], 'unknownFields': ['root cause'],
             'evidenceClass': 'inspected', 'expectationSources': ['old selected guidance'], 'cause': 'unknown', 'ownership': 'unknown',
             'missingProof': 'Independent execution missing', 'mechanism': 'Potential shared point-of-use gap', 'supportedScope': 'Two synthetic observations',
@@ -492,7 +526,7 @@ class RepairTests(unittest.TestCase):
         source = self.root / 'historical.json'
         source.write_text(json.dumps(historical, separators=(',', ':')), encoding='utf-8')
         raw = source.read_bytes()
-        result = evaluator.preserve_original(self.owner, source)
+        result = evaluator.preserve_original(self.owner, source, 'maintenance')
         queued = self.owner / rf.QUEUE / historical['requestId'] / '1/packet/request.json'
         self.assertEqual(raw, queued.read_bytes())
         self.assertEqual(c.sha(raw), result['requestSha256'])
@@ -619,9 +653,200 @@ class RepairTests(unittest.TestCase):
             self.assertFalse(any('repair-evaluator' in x for x in zipped.namelist()))
 
 
+# Separate fixture setup keeps these scenarios in the same declared validator.
+class IntakeTests(unittest.TestCase):
+    setUp = RepairTests.setUp
+
+    def queue(self, packets=None):
+        rf.configure(self.consumer, 'contributor', self.owner, 'maintenance')
+        for directory, _ in packets or [(self.packet, self.value)]:
+            rf.local(self.consumer, directory, 'docs/owner-ledger.json')
+
+    def test_owner_binding_missing_delivery_cross_owner_and_changed_route_fail(self):
+        with self.assertRaisesRegex(ValueError, 'owner-required'):
+            rf.configure(self.consumer, 'contributor', self.owner)
+        self.queue()
+        value = assessment(self.owner, [(self.packet, self.value)])
+        with self.assertRaisesRegex(ValueError, 'selected-owner-ledger'):
+            rf.local(self.consumer, self.packet, 'extensions/program-kit-governance/extension.yml')
+        rf.write(self.owner / 'docs/other.json', {'items': []})
+        evaluator.register_owner(self.owner, 'other', 'docs/other.json')
+        second, other = packet(self.root, suffix='other-owner-packet')
+        rf.configure(self.consumer, 'contributor', self.owner, 'other')
+        rf.local(self.consumer, second, 'docs/other.json')
+        mixed = assessment(self.owner, [(self.packet, self.value), (second, other)])
+        with self.assertRaisesRegex(ValueError, 'delivery-owner'):
+            evaluator.submit(self.owner, mixed)
+        directory = intake.directory(self.owner, self.value['requestId'], 1)
+        delivery = (directory / 'delivery.json').read_bytes()
+        (directory / 'delivery.json').unlink()
+        with self.assertRaises(ValueError): evaluator.submit(self.owner, value)
+        self.assertEqual('invalid-or-unrouted', evaluator.inbox(self.owner, 'maintenance')['records'][0]['availability'])
+        (directory / 'delivery.json').write_bytes(delivery)
+        rf.write(intake.owner_path(self.owner, 'maintenance'), {'routeVersion': 1, 'ownerId': 'maintenance', 'ledger': 'docs/other.json', 'adapter': 'items-v1'})
+        with self.assertRaisesRegex(ValueError, 'owner-route-changed'):
+            evaluator.submit(self.owner, value)
+
+    def test_current_packet_revalidated_and_historical_accounts_remain_unqualified(self):
+        self.queue()
+        value = assessment(self.owner, [(self.packet, self.value)])
+        queued = intake.directory(self.owner, self.value['requestId'], 1) / 'packet'
+        (queued / 'report.md').write_bytes(b'Changed synthetic proof')
+        with self.assertRaisesRegex(ValueError, 'member-identity'): evaluator.submit(self.owner, value)
+        for record in evaluator.inbox(self.owner, 'maintenance')['records']:
+            self.assertEqual('invalid-or-unrouted', record['availability'])
+        historical = deepcopy(self.value)
+        historical.update(requestId='rf-' + '0' * 32, contractVersion='0.9')
+        source = self.root / 'historical.json'; rf.write(source, historical)
+        evaluator.preserve_original(self.owner, source, 'maintenance')
+        preserved = intake.directory(self.owner, historical['requestId'], 1) / 'packet'
+        old_assessment = assessment(self.owner, [(preserved, historical)], 'historical')
+        evaluator.submit(self.owner, old_assessment)
+        data = intake.state(self.owner, old_assessment['ownerRoute'], old_assessment['requests'][0])
+        self.assertEqual('historical-unqualified', data['qualification'])
+        self.assertEqual(source.read_bytes(), (preserved / 'request.json').read_bytes())
+        old_assessment['assessmentVersion'] = '1.0'; old_assessment.pop('ownerRoute')
+        old_assessment['relationships'][0]['repairId'] = 'repair-historical'
+        with self.assertRaisesRegex(ValueError, 'historical-assessment-read-only'): evaluator.submit(self.owner, old_assessment)
+
+    def test_owner_dispositions_are_request_scoped_fresh_and_proof_bound(self):
+        second = packet(self.root, suffix='second')
+        self.queue([(self.packet, self.value), second])
+        one, two = assessment(self.owner, [(self.packet, self.value)], 'one'), assessment(self.owner, [second], 'two')
+        for value in (one, two): evaluator.submit(self.owner, value)
+        owner_decision(self.owner, one, facts={'implemented': {'value': True, 'proof': ['Synthetic changed source and owner record']}})
+        owner_decision(self.owner, two, 'reject')
+        records = rf.read(self.consumer / rf.PERSONAL / 'submissions.json')['requests']
+        first, other = rf.status([records[0]]), rf.status([records[1]])
+        self.assertTrue(first['lifecycle']['implemented'])
+        self.assertEqual('reject', other['sources'][0]['data']['ownerDecision']['disposition'])
+        self.assertEqual('unknown', other['lifecycle']['implemented'])
+        self.assertEqual('unknown', first['lifecycle']['released'])
+        self.assertNotIn('items', first['sources'][0]['data'])
+        self.assertEqual(2, len(evaluator.inbox(self.owner, 'maintenance')['records']))
+        page = evaluator.inbox(self.owner, 'maintenance', limit=1)
+        self.assertEqual(1, len(evaluator.inbox(self.owner, 'maintenance', limit=1, after=page['next'])['records']))
+        ledger_path = self.owner / 'docs/owner-ledger.json'; ledger = rf.read(ledger_path)
+        self.assertEqual('Synthetic existing approval preserved', ledger['approval'])
+        ledger['repairFeedback']['decisions'][0]['facts']['implemented']['value'] = False
+        rf.write(ledger_path, ledger)
+        self.assertFalse(rf.status([records[0]])['lifecycle']['implemented'])
+        ledger['repairFeedback']['decisions'][0]['facts']['implemented']['proof'] = []
+        rf.write(ledger_path, ledger)
+        self.assertEqual('unavailable', rf.status([records[0]])['sources'][0]['availability'])
+        self.assertEqual('unknown', rf.status([records[0]])['lifecycle']['implemented'])
+        self.assertNotIn('implemented', (self.consumer / rf.PERSONAL / 'submissions.json').read_text())
+
+    def test_correlation_followup_is_append_only_and_retry_idempotent(self):
+        self.queue()
+        folder = intake.directory(self.owner, self.value['requestId'], 1)
+        before = (folder / 'delivery.json').read_bytes()
+        for _ in range(2): rf.local(self.consumer, self.packet, 'docs/owner-ledger.json', correlation())
+        self.assertEqual(before, (folder / 'delivery.json').read_bytes())
+        self.assertEqual(1, len(list((folder / 'correlation').glob('*.json'))))
+        self.assertEqual(1, len(rf.read(self.consumer / rf.PERSONAL / 'submissions.json')['requests']))
+
+    def test_legacy_binding_preserves_delivery_and_refreshes_reference_only_index(self):
+        self.queue()
+        folder = intake.directory(self.owner, self.value['requestId'], 1)
+        current = rf.read(folder / 'delivery.json')
+        legacy = {k: v for k, v in current.items() if k not in ('ownerRoute', 'source')}
+        legacy['correlation'] = {'availability': 'pending'}
+        rf.write(folder / 'delivery.json', legacy)
+        original = (folder / 'delivery.json').read_bytes()
+        index_path = self.consumer / rf.PERSONAL / 'submissions.json'
+        index = rf.read(index_path)
+        for record in index['requests']:
+            record.pop('ownerRoute'); record.pop('checkout')
+        rf.write(index_path, index)
+        self.assertEqual('unavailable', rf.status(index['requests'])['sources'][0]['availability'])
+        with self.assertRaises(ValueError): evaluator.submit(self.owner, assessment(self.owner, [(self.packet, self.value)]))
+        evaluator.bind_legacy(self.owner, 'maintenance', current)
+        rf.local(self.consumer, self.packet, 'docs/owner-ledger.json')
+        self.assertEqual(original, (folder / 'delivery.json').read_bytes())
+        self.assertEqual('available', rf.status(rf.read(index_path)['requests'])['sources'][0]['availability'])
+
+    def test_changed_assessment_unknown_finding_and_ambiguous_owner_decision_unavailable(self):
+        self.queue()
+        value = assessment(self.owner, [(self.packet, self.value)])
+        evaluator.submit(self.owner, value)
+        owner_decision(self.owner, value)
+        ledger_path = self.owner / 'docs/owner-ledger.json'
+        original = rf.read(ledger_path)
+        for mode in ('missing-finding', 'ambiguous', 'changed-assessment', 'missing-ledger'):
+            with self.subTest(mode=mode):
+                ledger = deepcopy(original)
+                if mode == 'missing-finding': ledger['repairFeedback']['decisions'][0]['repairIds'] = ['unrelated']
+                if mode == 'ambiguous': ledger['repairFeedback']['decisions'].append(deepcopy(ledger['repairFeedback']['decisions'][0]))
+                rf.write(ledger_path, ledger)
+                assessment_path = self.owner / intake.BASE / 'assessments/assess-synthetic.json'
+                raw = assessment_path.read_bytes()
+                if mode == 'changed-assessment': assessment_path.write_bytes(raw + b' ')
+                if mode == 'missing-ledger': ledger_path.unlink()
+                records = rf.read(self.consumer / rf.PERSONAL / 'submissions.json')['requests']
+                state = rf.status(records)
+                self.assertEqual('unavailable', state['sources'][0]['availability'])
+                self.assertEqual('unknown', state['lifecycle']['implemented'])
+                assessment_path.write_bytes(raw)
+                rf.write(ledger_path, original)
+
+    def public_api(self, accepted=False, bad=None):
+        fake, reads = RecordingGitHub(), RepairTests.guardian_api(self)
+        original = fake.handle
+        marker = f"<!-- program-kit-repair {self.value['requestId']} revision=1 sha256={c.sha((self.packet / 'request.json').read_bytes())} -->"
+        merge = 'e' * 40
+        def handle(method, endpoint, payload):
+            if '/pulls/1' in endpoint:
+                obj = reads(endpoint)
+                if '/files?' not in endpoint:
+                    obj.update(merged=accepted, merge_commit_sha=merge, state='closed' if accepted else 'open')
+                    if bad == 'moved': obj['head']['sha'] = 'f' * 40
+                return obj
+            if '/git/' in endpoint:
+                if merge in endpoint:
+                    result = reads(endpoint.replace(merge, HEAD))
+                    if bad == 'accepted-bytes': result['tree'] = []
+                    return result
+                return reads(endpoint)
+            if '/compare/' in endpoint: return {'status': 'ahead', 'merge_base_commit': {'sha': merge}}
+            if '/check-runs?' in endpoint:
+                return {'total_count': 1, 'check_runs': [{'id': 9, 'name': 'program-kit-evidence/guardian', 'app': {'id': 15368 if bad == 'lookalike' else 123},
+                    'head_sha': HEAD, 'conclusion': 'success', 'output': {'summary': json.dumps({'submittedCommit': HEAD,
+                    'validatorCommit': TRUSTED, 'contractVersion': c.VERSION, 'guardianVersion': c.GUARDIAN})}}]}
+            if endpoint == f'repos/{c.UPSTREAM}/issues/7': return {'body': 'wrong' if bad == 'marker' else marker}
+            return original(method, endpoint, payload)
+        fake.handle = handle
+        return fake
+
+    def test_public_pinned_import_full_packet_retry_and_acceptance_separation(self):
+        fake = self.public_api()
+        imported = evaluator.import_public(self.owner, 'maintenance', 1, HEAD, BASE, TRUSTED, 7, fake)
+        self.assertFalse(imported['observation']['evidenceAccepted'])
+        folder = intake.directory(self.owner, self.value['requestId'], 1)
+        self.assertEqual(c.inventory(self.packet), c.inventory(folder / 'packet'))
+        before = (folder / 'delivery.json').read_bytes()
+        fake = self.public_api(accepted=True)
+        accepted = evaluator.import_public(self.owner, 'maintenance', 1, HEAD, BASE, TRUSTED, 7, fake)
+        self.assertTrue(accepted['observation']['evidenceAccepted'])
+        self.assertEqual([], fake.writes)
+        self.assertEqual(before, (folder / 'delivery.json').read_bytes())
+        self.assertEqual(2, len(list((folder / 'public-observations').glob('*.json'))))
+        value = assessment(self.owner, [(self.packet, self.value)])
+        evaluator.submit(self.owner, value)
+        self.assertIsNone(intake.state(self.owner, value['ownerRoute'], value['requests'][0])['ownerDecision'])
+
+    def test_public_wrong_marker_moved_head_and_same_name_app_do_not_accept(self):
+        for bad in ('marker', 'moved', 'accepted-bytes'):
+            with self.assertRaises(ValueError): evaluator.import_public(self.owner, 'maintenance', 1, HEAD, BASE, TRUSTED, 7, self.public_api(True, bad))
+        outcome = evaluator.import_public(self.owner, 'maintenance', 1, HEAD, BASE, TRUSTED, 7, self.public_api(True, 'lookalike'))
+        self.assertFalse(outcome['observation']['evidenceAccepted'])
+
+
 class InstalledRepairTests(unittest.TestCase):
     def test_native_command_skill_and_upgrade_preserve_personal_and_original_profile(self):
         temporary = tempfile.TemporaryDirectory(prefix='rf-native-')
+        owner_temporary = tempfile.TemporaryDirectory(prefix='rf-owner-')
+        owner = init(Path(owner_temporary.name) / 'owner', contributor=True)
         consumer = Path(temporary.name)
         old = os.environ.get('SPECIFY_INIT_DIR')
         os.environ['SPECIFY_INIT_DIR'] = str(consumer)
@@ -652,12 +877,36 @@ class InstalledRepairTests(unittest.TestCase):
                                      '--project', 'installed-synthetic', '--title', 'Native reporter', '--output', str(consumer / 'draft.json')], capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stderr)
             self.assertEqual(c.VERSION, rf.read(consumer / 'draft.json')['contractVersion'])
+            # Exercise the installed CLI through a complete owner handoff. The
+            # fixture owns this ledger; no active maintenance checkout is used.
+            def reporter(arguments):
+                result = subprocess.run([sys.executable, str(installed / 'scripts/repair_feedback.py'), '--root', str(consumer), *arguments],
+                                        capture_output=True, text=True, encoding='utf-8', timeout=60)
+                self.assertEqual(0, result.returncode, result.stderr)
+                return json.loads(result.stdout)
+            selected, observation = packet(Path(owner_temporary.name))
+            reporter(['configure', '--mode', 'contributor', '--checkout', str(owner), '--owner', 'maintenance'])
+            reporter(['local', '--packet', str(selected), '--ledger', 'docs/owner-ledger.json'])
+            value = assessment(owner, [(selected, observation)], 'installed')
+            evaluator.submit(owner, value)
+            owner_decision(owner, value, 'adopt', {'implemented': {'value': True, 'proof': ['Synthetic owner source record']}})
+            state = reporter(['status', '--request-id', observation['requestId']])
+            self.assertTrue(state['lifecycle']['assessed'])
+            self.assertTrue(state['lifecycle']['implemented'])
+            self.assertEqual('unknown', state['lifecycle']['released'])
+            self.assertEqual('U0', state['sources'][0]['data']['ownerDecision']['repairIds'][0])
+            personal = {p.name: p.read_bytes() for p in (consumer / rf.PERSONAL).iterdir()}
+            invoke(['extension', 'add', str(ROOT / 'extensions/program-kit-governance'), '--dev', '--force'])
+            invoke(['integration', 'use', 'codex'])
+            self.assertEqual(personal, {p.name: p.read_bytes() for p in (consumer / rf.PERSONAL).iterdir()})
+            self.assertTrue(reporter(['status', '--request-id', observation['requestId']])['lifecycle']['implemented'])
             import native_phase_ownership
             native_phase_ownership.preflight(consumer, ROOT)
         finally:
             if old is None: os.environ.pop('SPECIFY_INIT_DIR', None)
             else: os.environ['SPECIFY_INIT_DIR'] = old
             temporary.cleanup()
+            owner_temporary.cleanup()
 
 
 if __name__ == '__main__':

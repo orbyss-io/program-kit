@@ -36,7 +36,8 @@ never silently truncate proof to fit. No archives, full worktrees or env dumps.
 
 ## Preferences and local delivery
 
-`configure --mode consumer` or `configure --mode contributor --checkout <chosen-root>`
+`configure --mode consumer` or
+`configure --mode contributor --checkout <chosen-root> --owner <registered-owner-id>`
 creates `.program-kit/repair-feedback-personal/preferences.json` and `submissions.json`.
 It writes a repository-local Git exclude rule, proves `git check-ignore` behavior,
 and refuses already tracked personal data. Disclose these choices. This directory
@@ -45,12 +46,28 @@ through upgrade. `clear-preferences` clears routing only, keeping history. No to
 or current status belong in these files. Equivalent existing choices are reused
 by reading this directory before asking again; never overwrite choices silently.
 
+The receiving owner first registers their existing JSON ledger (with an `items`
+array of uniquely identified findings) using the repository-only maintainer procedure
+in `docs/maintenance/repair-feedback.md`. The chosen checkout needs this feature's
+evaluator skill; its absence is an integration prerequisite, not permission to copy
+or change another worktree. Configuration saves the exact owner, ledger and adapter
+reference; it never chooses a maintenance chat or campaign ledger automatically.
+
 Contributor `local --packet <sealed> --ledger <checkout-relative-owner-ledger>`
 creates `artifacts/repair-feedback/intake/<requestId>/<revision>/packet/` and immutable
-`delivery.json` in the chosen checkout. The owner ledger must exist. The reporter
+`delivery.json` in the chosen checkout. The ledger must match the registered route. The reporter
 never edits it. Repeating the same delivery is safe; conflicting bytes fail.
 `--correlation <search.json>` links read-only correlation; without it correlation
-remains pending. Owner adopts/defers/rejects/groups through the existing ledger.
+remains pending. Repeating delivery with later correlation appends a content-addressed
+observation under `correlation/`, leaving the original delivery and packet unchanged.
+Owner adopts/defers/rejects/groups through the existing ledger. The receiving owner
+uses `repair_evaluator.py --root <chosen-root> --owner <id> inbox` and `inspect`;
+there is no automatic polling, messaging or consumer interruption.
+
+Earlier contributor preferences require explicit reconfiguration with `--owner`.
+Earlier unbound deliveries are preserved. The owner can use `bind-legacy` with the
+exact request ID/revision/hash and matching existing ledger to append an owner
+binding; then retry the same local delivery. Never rewrite historical delivery bytes.
 
 ## GitHub prerequisites and public review
 
@@ -121,12 +138,20 @@ or unavailable. Source objects retain updated_at; retrievedAt names observation
 time. Local ledger data remains labelled local. Lifecycle facts remain unknown
 unless an evaluator/owner supplies attributable proof; arbitrary “fixed” comments,
 closed issues or merged evidence are not proof of implementation or release.
+Local status matches exact request/revision/hash and assessment identity, returning
+only its linked owner decision rather than the entire ledger. A missing, changed,
+ambiguous or invalid route/decision is unavailable, with unknown lifecycle facts.
+The `assessed` fact records an attributed assessment; owner-declared facts have
+proof references and remain distinct from independently executed validation.
+Imported public acceptance observations include their first observation time and
+are historical import evidence, not fresh remote status. Fetch known cloud objects
+separately for current public state; never expose a local ledger through public delivery.
 
 Version compatibility: v1 refuses unknown contract versions; preserve those originals
 and write a separate evaluator mapping with assessment version, original hash,
 canonical mappings and unknown fields. Do not replace old answers or pretend that
 new questions/knowledge were available to the original consumer.
 Repository evaluators can preserve an explicitly selected historical JSON account
-with `scripts/repair_evaluator.py --root <chosen-checkout> --preserve-original <file>`.
+with `scripts/repair_evaluator.py --root <chosen-checkout> --owner <id> --preserve-original <file>`.
 It retains exact bytes and actual recorded provenance, rejects missing provenance,
 and makes no current-contract or public-delivery claim for an older contract.

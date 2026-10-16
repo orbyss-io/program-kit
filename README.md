@@ -645,8 +645,12 @@ comparable diagnostics, local contributor intake, reviewed GitHub issue/evidence
 submissions, follow-up evidence and freshly retrieved status/history. The evaluator
 remains repository-only. See the [operating contract](extensions/program-kit-governance/references/repair-feedback/operating.md)
 and [indexed unreleased guidance](releases/migration-0.13.3.md).
-The separate public evidence repository and trusted guardian enforcement still
-require provisioning; source and recording fakes do not establish a deployed route.
+The [public evidence repository](https://github.com/orbyss-io/program-kit-evidence)
+and App-bound guardian were provisioned and tested in three synthetic scenarios;
+see the [operational results](docs/reviews/repair-feedback-operational-test-results-2026-10-16.json).
+Receiving owners use the [maintenance intake procedure](docs/maintenance/repair-feedback.md)
+to register a ledger, inspect local/public packets and record request-specific decisions.
+The feature remains unreleased source; these infrastructure tests do not qualify a release.
 
 ## License
 

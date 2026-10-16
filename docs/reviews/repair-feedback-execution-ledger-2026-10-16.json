@@ -7,6 +7,29 @@
   "approval": "Create a repair feedback skill, 01a14496-89a6-7740-838b-e03d8b17205f; corrected separate-session ownership",
   "specification": "docs/reviews/repair-feedback-feature-specification-2026-10-16.md",
   "handoff": "docs/reviews/repair-feedback-implementation-handoff-2026-10-16.md",
+  "integrationFixes": {
+    "approvedOn": "2026-10-16",
+    "approval": "User approved all six integration fixes in recommended order, with active maintenance checkout and consumers untouched.",
+    "sourceBase": "9f33334cf5d0f72ead15a115fea18b16b6647599",
+    "scope": "This feature branch, disposable consumers/owner ledgers and read-only recording GitHub fakes. No active checkout/consumer writes or public mutations.",
+    "changes": {
+      "IG-01": "Explicit immutable owner registration and selected routing across preferences, delivery, assessment and ledger adapter; existing IDs and hash-bound legacy binding supported.",
+      "IG-02": "Full current-contract packet, delivery/import provenance and owner route revalidated at evaluation and inspection; historical accounts stay unqualified.",
+      "IG-03": "Bounded on-demand inbox/inspect and pinned public packet import, with App-bound acceptance observations separate from triage and repair adoption.",
+      "IG-04": "Existing-ledger repairFeedback adapter links exact revisions and assessment hashes to owner decisions; fresh request-specific status returns attributed facts and proof references.",
+      "IG-05": "Later correlation appended as content-addressed observations; original delivery and packet stay immutable and retries deduplicate.",
+      "IG-06": "Installed complete handoff/upgrade fixture, negative boundary tests, maintainer entry point and reconciled unreleased deployment guidance."
+    },
+    "targetedValidation": {
+      "result": "passed",
+      "tests": 35,
+      "journal": "artifacts/validation-runs/20261016T164800Z-181438d8/journal.json",
+      "environment": "Workspace-owned extended Windows temp path; outside outer sandbox for the adversarial hard-link fixture. No production workaround or inner worker sandbox change."
+    },
+    "developmentValidation": "pending bounded Development run",
+    "maintainerProcedure": "docs/maintenance/repair-feedback.md",
+    "deployment": "Feature remains unreleased. Existing public guardian code, App, repository rules, keys and production deployment unchanged."
+  },
   "requirements": [
     {
       "id": "RF-01",

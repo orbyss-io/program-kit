@@ -61,6 +61,15 @@ CI qualification digest and exact packages. It is preparation, not local executi
 of Linux qualification. Historical local-evidence reuse cannot authorize borrowing
 qualification from another commit or rewriting a receipt.
 
+## Consumer repair intake
+
+For explicitly scoped incoming consumer repair observations, use the repository-only
+`program-kit-repair-evaluator` skill and [maintenance intake procedure](docs/maintenance/repair-feedback.md).
+The receiving owner explicitly registers an existing ledger, then uses bounded `inbox`
+and exact `inspect` operations. Do not infer a destination from an active chat or edit
+another maintenance campaign. Intake remains on demand; ordinary Spec Kit hooks and
+deterministic validation do not start agents, poll chats or contact consumers.
+
 ## Optional live acceptance
 
 ### Optional non-authorizing proxy intake

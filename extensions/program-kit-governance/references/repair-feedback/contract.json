@@ -1,5 +1,6 @@
 {
   "assessmentSchema": "assessment.schema.json",
+  "assessmentVersion": "1.1",
   "budgets": {
     "allowedExtensions": [
       ".cs",
@@ -88,6 +89,7 @@
     ],
     "version": "repair-guardian-1"
   },
+  "historicalAssessmentSchema": "assessment-1.0.schema.json",
   "questions": {
     "context": "Which consumer, Program Kit/profile/knowledge versions, phase, task and triggering command? What source and dirty-state limits were observed?",
     "decision": "What recorded decision explanation, constraints and considered alternatives explain the reported local choice? Mark later explanations retrospective; absent explanations unknown.",

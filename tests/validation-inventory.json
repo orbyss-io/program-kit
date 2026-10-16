@@ -18,7 +18,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Repair diagnostic contract, immutable local queue, reviewed/resumable GitHub fakes, data-only guardian, fresh status and native skill distribution. No public mutations.",
+      "purpose": "Repair contract, owner-bound intake/evidence pickup, existing-ledger dispositions, request-scoped fresh status, reviewed GitHub fakes, data-only guardian and installed handoff/upgrade. No public mutations.",
       "owner": "program-kit",
       "inputs": [
         "extensions/program-kit-governance/scripts/repair*.py",
@@ -28,6 +28,7 @@
         "scripts/*evidence*",
         "evidence-repository/**",
         ".agents/skills/program-kit-repair-evaluator/**",
+        "docs/maintenance/repair-feedback.md",
         "tests/validate_repair_feedback.py"
       ],
       "outputs": [
