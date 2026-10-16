@@ -26,7 +26,23 @@
       "journal": "artifacts/validation-runs/20261016T164800Z-181438d8/journal.json",
       "environment": "Workspace-owned extended Windows temp path; outside outer sandbox for the adversarial hard-link fixture. No production workaround or inner worker sandbox change."
     },
-    "developmentValidation": "pending bounded Development run",
+    "implementationCommits": ["2c491fc8f1bf7e09d9246e8a336176271a071139", "30586b8"],
+    "finalFeatureValidation": {
+      "result": "passed",
+      "tests": 36,
+      "journal": "artifacts/validation-runs/20261016T170025Z-2e529fe2/journal.json",
+      "environment": "Clean committed disposable source at a short Windows path, normal C:/tmp fixtures, installed device Python first on PATH; Chromium/WebKit."
+    },
+    "developmentValidation": {
+      "result": "failed",
+      "passed": 84,
+      "failed": 19,
+      "checks": 103,
+      "newlyFailingChecksComparedWithPreservedBaseline": [],
+      "sameFailingCases": "18 of 19 common failing checks have identical failing-case lists. Foundation setup has one additional long-path case that passes when only its disposable evidence root is shortened; original failed suite remains failed.",
+      "report": "docs/reviews/repair-feedback-integration-results-2026-10-16.json",
+      "diagnosticRun": "Deep source/extended-temp Development: 59 passed, 44 failed. Preserved separately; not combined with reruns into success."
+    },
     "maintainerProcedure": "docs/maintenance/repair-feedback.md",
     "deployment": "Feature remains unreleased. Existing public guardian code, App, repository rules, keys and production deployment unchanged."
   },
@@ -124,7 +140,8 @@
         "test_public_retry_after_main_advances_keeps_reviewed_bytes_and_parent",
         "test_interrupted_issue_outside_reconciliation_bound_uses_recovered_reference"
       ],
-      "disposition": "source-tested-external-provisioning-pending"
+      "previousDisposition": "source-tested-external-provisioning-pending",
+      "disposition": "provisioned-and-operationally-tested-three-guardian-scenarios"
     },
     {
       "id": "RF-09",
@@ -139,7 +156,8 @@
         "test_dedicated_app_check_binds_actual_head_and_never_passes_rejected_or_moved_data",
         "test_effective_rules_required_and_app_write_failure_cannot_become_success"
       ],
-      "disposition": "source-tested-external-provisioning-pending"
+      "previousDisposition": "source-tested-external-provisioning-pending",
+      "disposition": "provisioned-and-operationally-tested-three-guardian-scenarios"
     },
     {
       "id": "RF-10",
@@ -453,14 +471,15 @@
     "featureComplete": false,
     "deterministicFeatureChecks": true,
     "releaseGuidance": "releases/history.json -> migration-0.13.3.md (unreleased; VERSION not changed)",
-    "consumerChanges": "No required consumer migration; optional first-use routing only",
+    "consumerChanges": "Unreleased feature contributor preferences require explicit registered-owner selection; earlier local deliveries can be bound without rewriting them. Consumer mode and existing released locks are unaffected.",
     "preparedRepositorySource": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/source",
     "preparedInventory": "docs/reviews/repair-feedback-evidence-source-manifest-2026-10-16.json",
-    "development": "Full comparison: branch 83/103 passed; baseline 82/102 passed, same 20 failed checks and failing cases. Nineteen Windows deep-path/cleanup failures; device-toolchain launch selection corrected and 15 tests pass on both. Final feature correction validated at e4648f6 by standard runner (27 tests). No passed full Development or release claim.",
+    "historicalDevelopment": "Full comparison: branch 83/103 passed; baseline 82/102 passed, same 20 failed checks and failing cases. Nineteen Windows deep-path/cleanup failures; device-toolchain launch selection corrected and 15 tests pass on both. Final feature correction validated at e4648f6 by standard runner (27 tests). No passed full Development or release claim.",
+    "development": "Integration source 30586b8: 36 feature tests passed; controlled bounded Development 84/103 passed and 19 baseline checks failed. No new failing check; one additional foundation case isolated to fixture path length. Full suite remains failed. See integration results; no release qualification claim.",
     "externalDependencies": [
       "CI exact-candidate qualification before any release claim"
     ],
-    "reviewableBranch": "codex/repair-feedback; local commits only",
+    "reviewableBranch": "codex/repair-feedback; committed implementation and integration evidence",
     "publicMutations": [
       "Created orbyss-io/program-kit-evidence and pushed approved seed 1fee678a420d667c8e3fb07927cd593a011ab134",
       "User registered App 5346881 and installed it only on the evidence repository; user entered key directly in evidence-guardian environment",
@@ -485,6 +504,11 @@
   },
   "implementationCommit": "e4648f669b67fd7d6deb5967f4caa7ff0fd4d31a",
   "changedFiles": [
+    "AGENTS.md",
+    "docs/maintenance/repair-feedback.md",
+    "docs/reviews/repair-feedback-integration-results-2026-10-16.json",
+    "extensions/program-kit-governance/references/repair-feedback/assessment-1.0.schema.json",
+    "extensions/program-kit-governance/scripts/repair_intake.py",
     ".agents/skills/program-kit-repair-evaluator/SKILL.md",
     "README.md",
     "catalogs/extensions.json",
