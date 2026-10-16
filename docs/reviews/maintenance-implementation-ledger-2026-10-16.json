@@ -1191,17 +1191,67 @@
     {
       "id": "N4",
       "finding": "N4 PATH-dependent historical render",
-      "sourceDiagnosis": "Bind historical render profile; separate current readiness",
+      "sourceDiagnosis": "Maintained initializer and native CLI bridge observe actual successful native writes and original interpreter selection; immutable chained records bind producer/template/source/output hashes. Historical comparison uses each output original profile without current PATH probes or historical executable execution. Current runtime readiness remains separate. Missing/changed/partial history stays explicit.",
       "workPackages": "A/F/G/I",
       "closureRequired": "Alias changes versus source changes distinguished; tampered/missing provenance stays explicit.",
-      "status": "investigated; generation provenance repair pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-original-native-generation-profile-proof; current-packaged-and-CI-closure-pending",
+      "changedFiles": [
+        "extensions/program-kit-governance/scripts/render_profile.py",
+        "extensions/program-kit-governance/scripts/consumer_upgrade.py",
+        "scripts/native_phase_ownership.py",
+        "scripts/upgrade_program_kit.py",
+        "scripts/invoke_specify.py",
+        "scripts/initialize_device.py",
+        "Initialize-ProgramKit.cmd",
+        "Initialize-ProgramKit.sh",
+        "README.md",
+        "extensions/program-kit-governance/references/consumer-upgrade.md",
+        "tests/validate_phase_refresh.py",
+        "tests/validation-inventory.json"
+      ],
+      "validation": [
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual native CLI initial generation, original venv choice followed by loss, no current resolver or old executable use during historical reproduction, unrelated partial refresh leaves original untouched profiles, changed source and consumer edits refuse, no absent-history backfill, changed record refused; original records retained. Native initializer helper exercised against real installed launcher.",
+          "log": "artifacts/tests/phase-refresh/43318d67a3c74bc98c2a347796e0da05/historical-profile/results.json",
+          "sha256": "cec72f3da91b142f14f805a0982eb8ca78365d80fff878ca647557b23722e45c"
+        },
+        {
+          "command": "phase-profile-final.log",
+          "status": "passed",
+          "scope": "All four native tests passed: four retained preimplementation states, manual core/preset customization refusals, two actual integrations and alias/source/history cases. Earlier mid-run source edit was correctly rejected and its failed log remains separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/phase-profile-final.log",
+          "sha256": "23b8a19cc8ae978612e3a468de65c84ca11c6f7b6b883b921bb472bb27e62d6c"
+        },
+        {
+          "command": "validate_local_upgrade-render-profile.log",
+          "status": "passed",
+          "scope": "Sequential offline installed upgrade passed, including authentic 0.12.7 qualified consumer, preserved pins/intent/bootstrap, planned/materialized states, lock freshness and invalid mutation refusal.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/validate_local_upgrade-render-profile.log",
+          "sha256": "d7953a303efb64f35f565b2c46616b19f29fa4795557efce8cb33f36a7254723"
+        },
+        {
+          "command": "validate_upgrade_boundaries-render-profile.log",
+          "status": "passed",
+          "scope": "23 updater boundary cases passed; exact original retry/corrected-candidate, runtime and permission diagnostics retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/validate_upgrade_boundaries-render-profile.log",
+          "sha256": "1a16223415644985edc676ea32162db5b06d7fd8d9b45ca40c91626778b6aaad"
+        },
+        {
+          "command": "validate_repository_toolchain-render-profile.log",
+          "status": "passed",
+          "scope": "16 actual device/initializer readiness and npm child checks passed; no device installer ran.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/validate_repository_toolchain-render-profile.log",
+          "sha256": "5a8b05d105b81362ac3fbd98b7fbe0cd03bf8d8d57ff7d68c03c19707a263e58"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Current complete packaged/profile integration and exact-candidate CI qualification remain. Older unrecorded generation cannot acquire an invented historical alias or producer; incompatible/missing original producer requires explicit ownership reconciliation."
       ],
       "closureEvidence": [
-        "Read-only inspection of installed Spec Kit IntegrationBase.resolve_python_interpreter confirms project venv, python3/PATH, python/PATH, then sys.executable selection. Existing preset_baseline and restored_core_baseline re-render through this current environment. No historical interpreter substitution, consumer edit or new acceptance was performed."
+        "Read-only inspection of installed Spec Kit IntegrationBase.resolve_python_interpreter confirms project venv, python3/PATH, python/PATH, then sys.executable selection. Existing preset_baseline and restored_core_baseline re-render through this current environment. No historical interpreter substitution, consumer edit or new acceptance was performed.",
+        "Original generation evidence: artifacts/tests/phase-refresh/43318d67a3c74bc98c2a347796e0da05/historical-profile/results.json"
       ],
       "attributionEvidence": {
         "source": "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Lib\\site-packages\\specify_cli\\integrations\\base.py",

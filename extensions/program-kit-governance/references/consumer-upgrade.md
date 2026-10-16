@@ -1,5 +1,17 @@
 # Consumer upgrade and migration planning method
 
+The maintained initializer and native CLI bridge retain original generation
+profiles under `.specify/program-kit/render-profiles`. Each record binds actual
+native writes, the selected interpreter literal, installed producer/template hashes
+and original inputs; later component refreshes retain prior records and do not
+assign new provenance to untouched outputs. Historical comparison re-renders from
+authenticated installed sources with that recorded selection, without executing
+the old interpreter. Current device/PATH readiness remains a separate check.
+Preserve this history with the installation. Missing, changed, detached or partial
+records require explicit ownership reconciliation; never backfill an old alias
+from today's PATH, normalize arbitrary Python spellings, or rewrite historical
+records. Unwrapped third-party CLI writes supply no Program Kit generation record.
+
 Use the exact extracted release outside the consumer. The conversation owns semantic
 inspection and consequential questions; deterministic helpers inventory, persist and
 verify bounded contracts. No helper accepts an ADR or confirms product intent.

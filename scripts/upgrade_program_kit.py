@@ -255,10 +255,14 @@ def restored_core_baseline(target: Path, relative: str, integration: str) -> str
             skills = view / 'skills'
             (skills / path.parent.name).mkdir(parents=True)
             (skills / path.parent.name / 'SKILL.md').write_text('Native restore target\n', encoding='utf-8')
-            PresetManager(view)._unregister_skills_in_dir([path.parent.name], skills, integration,
-                                                     restore_from_bundled_core=True)
+            profile=load_release_module(Path(__file__).resolve().parents[1]/'extensions/program-kit-governance/scripts/render_profile.py',
+                                        'upgrade_core_render_profile')
+            with profile.rendering(target,relative) as generation:
+                PresetManager(view)._unregister_skills_in_dir([path.parent.name], skills, integration,
+                                                         restore_from_bundled_core=True)
             generated = skills / path.parent.name / 'SKILL.md'
-            return hashlib.sha256(generated.read_bytes()).hexdigest() if generated.is_file() else None
+            observed=hashlib.sha256(generated.read_bytes()).hexdigest() if generated.is_file() else None
+            return observed if not generation or generation['sha256']==observed else None
     except (ImportError, AttributeError, ValueError, OSError, KeyError, TypeError):
         return None
 
@@ -668,6 +672,14 @@ def preflight_specify(command: list[str], target: Path, release: Path) -> list[s
     try:
         result = run_specify_probe(command, ["--version"], target)
         if result.returncode == 0:
+            # Observe future actual generation even when the native launcher is
+            # healthy. Historical inputs are never inferred from this probe.
+            bridge=release/'scripts/invoke_specify.py'
+            if len(command)==1 and bridge.is_file():
+                adapter=load_release_module(bridge,'upgrade_native_launcher_capture')
+                try:site=adapter.launcher_site_packages(Path(command[0]))
+                except (OSError,ValueError):pass  # Custom vectors keep their explicit owner; no fabricated provenance.
+                else:return [sys.executable,str(bridge),'--site-packages',str(site),'--']
             return command
         failure = result
     except (OSError, subprocess.TimeoutExpired) as error:

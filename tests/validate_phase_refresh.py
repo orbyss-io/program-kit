@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import shutil
 import sys
 import time
 import unittest
@@ -147,6 +148,70 @@ class NativePhaseRefreshTests(unittest.TestCase):
         self.assertEqual(original, upgrade.selected_integration(self.root, 'auto'))
         result = json.loads((RUN / 'multiple/phase-refresh.json').read_text())
         self.assertEqual({'codex', 'copilot'}, {row['integration'] for row in result['results']})
+
+    def test_original_native_interpreter_choice_survives_alias_loss_without_execution(self):
+        from unittest.mock import patch
+        import render_profile
+        from specify_cli.integrations.base import IntegrationBase
+        # The native producer selects an existing project venv path without
+        # executing it. This records actual generation, not executable readiness.
+        candidate=self.root/'.venv/bin/python';candidate.parent.mkdir(parents=True)
+        candidate.write_text('deliberately unavailable runtime; generation must not execute it')
+        untouched='.agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md'
+        untouched_profile=render_profile.profile(self.root,untouched)
+        self.invoke(['preset','remove','program-kit-governance-preset'])
+        self.invoke(['preset','add','--dev',str(ROOT/'presets/program-kit-governance-preset')])
+        relative='.agents/skills/speckit-analyze/SKILL.md'
+        original=(self.root/relative).read_bytes()
+        generation=render_profile.profile(self.root,relative)
+        self.assertEqual(untouched_profile,render_profile.profile(self.root,untouched))
+        self.assertEqual('.venv/bin/python',generation['interpreter'])
+        candidate.unlink()
+        with patch.object(IntegrationBase,'resolve_python_interpreter',side_effect=AssertionError('historical rendering probed current PATH')):
+            self.assertEqual(digest(self.root/relative),flow.preset_baseline(self.root,relative,'codex'))
+        # Today's real resolver independently observes that the original path is gone.
+        self.assertNotEqual('.venv/bin/python',IntegrationBase.resolve_python_interpreter(self.root))
+        self.assertEqual(original,(self.root/relative).read_bytes())
+        history=self.root/'.specify/program-kit/render-profiles'
+        moved=self.root/'.specify/program-kit/original-render-profiles';history.rename(moved)
+        self.assertIsNone(render_profile.profile(self.root,relative))
+        self.assertNotEqual(digest(self.root/relative),flow.preset_baseline(self.root,relative,'codex'))
+        self.assertFalse(history.exists(),'Historical inspection must not manufacture original provenance')
+        moved.rename(history)
+        source=self.root/'.specify/presets/program-kit-governance-preset/commands/speckit.analyze.md'
+        source_bytes=source.read_bytes();source.write_bytes(source_bytes+b'\nChanged source obligation\n')
+        self.assertNotEqual(digest(self.root/relative),flow.preset_baseline(self.root,relative,'codex'))
+        source.write_bytes(source_bytes)
+        records,head=render_profile.history(self.root)
+        retained={file.name:file.read_bytes() for file in (self.root/'.specify/program-kit/render-profiles').iterdir()}
+        # A new native refresh records only its actual new writes and retains originals.
+        import initialize_device
+        launcher=Path(shutil.which('specify'))
+        self.assertEqual(0,initialize_device.invoke_native(self.root,'v'+(ROOT/'VERSION').read_text().strip(),ROOT,
+                                                         launcher,['integration','use','codex']))
+        self.assertNotEqual(head,render_profile.history(self.root)[1])
+        for name,contents in retained.items():
+            if name!='head.json':self.assertEqual(contents,(self.root/'.specify/program-kit/render-profiles'/name).read_bytes())
+        output=self.root/relative;output.write_bytes(output.read_bytes()+b'\nconsumer change\n')
+        self.assertNotEqual(digest(output),flow.preset_baseline(self.root,relative,'codex'))
+        # No original record is synthesized for an older unrecorded install.
+        history=self.root/'.specify/program-kit/render-profiles'
+        moved=self.root/'.specify/program-kit/original-render-profiles';history.rename(moved)
+        self.assertIsNone(render_profile.profile(self.root,relative))
+        self.assertNotEqual(digest(output),flow.preset_baseline(self.root,relative,'codex'))
+        moved.rename(history)
+        retained=RUN/'historical-profile';retained.mkdir(parents=True)
+        shutil.copytree(history,retained/'original-records')
+        record=history/Path(render_profile.history(self.root)[1]['path']).name
+        record.write_bytes(record.read_bytes()+b' ')
+        with self.assertRaisesRegex(render_profile.RenderProfileError,'changed or disappeared'):
+            render_profile.profile(self.root,relative)
+        (retained/'results.json').write_text(json.dumps({'status':'passed','originalInterpreter':generation['interpreter'],
+            'originalOutputSha256':generation['sha256'],'scope':'Actual native generation; no historical executable execution or readiness claim',
+            'cases':['original-native-venv-choice','unavailable-original-executable-independent-of-historical-match',
+                     'partial-refresh-retains-untouched-output-profile','changed-source-refuses-old-profile',
+                     'missing-history-no-backfill','tampered-history-rejected','consumer-edit-preserved',
+                     'native-initializer-helper-captures-refresh','immutable-original-records-retained']},indent=2),encoding='utf-8')
 
 
 if __name__ == '__main__':

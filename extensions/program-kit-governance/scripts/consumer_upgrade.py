@@ -268,9 +268,14 @@ def preset_baseline(root, relative, agent):
                 composed = temporary_preset / '.composed' / (command + '.md')
                 composed.parent.mkdir()
                 composed.write_text(content, encoding='utf-8', newline='\n')
-            with patch.object(manager, '_merge_pack_registered_skills'):
+            import importlib.util
+            specification=importlib.util.spec_from_file_location('consumer_native_render_profile',Path(__file__).with_name('render_profile.py'))
+            profile=importlib.util.module_from_spec(specification);specification.loader.exec_module(profile)
+            with profile.rendering(root,relative) as generation, patch.object(manager, '_merge_pack_registered_skills'):
                 manager._register_skills(rendered_manifest, temporary_preset, target_dir=output, target_agent=agent)
-            return sha(output / path.parent.name / 'SKILL.md')
+            rendered=sha(output / path.parent.name / 'SKILL.md')
+            if generation is not None and generation['sha256']!=rendered:return None
+            return rendered
     except (ImportError, AttributeError, KeyError, TypeError, ValueError, OSError, PresetValidationError):
         return None
 

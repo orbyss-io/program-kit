@@ -170,7 +170,7 @@
       "command": ["{python}", "tests/validate_phase_refresh.py"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Native all-phase integration refresh in four pre-implementation states, secondary integration composition and customization refusal without artifact or authority reset.",
-      "owner": "program-kit", "inputs": ["scripts/upgrade_program_kit.py", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "presets/**", "tests/validate_phase_refresh.py"],
+      "owner": "program-kit", "inputs": ["scripts/upgrade_program_kit.py", "scripts/native_phase_ownership.py", "scripts/invoke_specify.py", "scripts/initialize_device.py", "Initialize-ProgramKit.cmd", "Initialize-ProgramKit.sh", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "extensions/program-kit-governance/scripts/render_profile.py", "presets/**", "tests/validate_phase_refresh.py"],
       "outputs": ["artifacts/tests/phase-refresh"], "resources": [],
       "isolation": "Disposable native Spec Kit consumers and fictional retained phase artifacts; no agent, services or real consumer edits."
     },

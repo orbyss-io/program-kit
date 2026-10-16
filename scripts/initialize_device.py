@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import sys
 import tempfile
+import subprocess
 import urllib.request
 
 PINS = 'extensions/program-kit-dotnet/templates/dotnet/files'
@@ -44,13 +45,38 @@ def initialize(project: Path, ref: str, release: Path | None = None) -> None:
         check(project, pins, base)
 
 
+def invoke_native(project,ref,release,launcher,arguments):
+    """Use exact release-owned capture around the installed native CLI, with no tool acquisition."""
+    if not re.fullmatch(r'v\d+\.\d+\.\d+',ref):raise ValueError('Exact initializer release tag required')
+    if release is not None:
+        if (release/'VERSION').read_text().strip()!=ref[1:]:raise ValueError('Initializer bridge release version differs')
+        bridge=release/'scripts/invoke_specify.py'
+        return subprocess.run([sys.executable,str(bridge),'--launcher',str(launcher),'--',*arguments],cwd=project).returncode
+    files=('scripts/invoke_specify.py','extensions/program-kit-governance/scripts/render_profile.py')
+    with tempfile.TemporaryDirectory(prefix='program-kit-native-capture-') as directory:
+        root=Path(directory)
+        for relative in files:
+            path=root/relative;path.parent.mkdir(parents=True,exist_ok=True)
+            with urllib.request.urlopen('https://raw.githubusercontent.com/orbyss-io/program-kit/'+ref+'/'+relative,timeout=30) as response:
+                payload=response.read(1_048_577)
+                if len(payload)>1_048_576:raise ValueError('Oversized native capture source')
+                path.write_bytes(payload)
+        return subprocess.run([sys.executable,str(root/'scripts/invoke_specify.py'),'--launcher',str(launcher),'--',*arguments],cwd=project).returncode
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project-root', type=Path, default=Path.cwd())
     parser.add_argument('--ref', required=True)
     parser.add_argument('--release-root', type=Path, help='Use the explicitly staged same-version release or source checkout')
+    parser.add_argument('--native-launcher',type=Path)
+    parser.add_argument('--native-arguments',nargs=argparse.REMAINDER)
     args = parser.parse_args()
     try:
+        if args.native_launcher or args.native_arguments is not None:
+            if not args.native_launcher or not args.native_arguments:raise ValueError('Exact native launcher and arguments are required')
+            return invoke_native(args.project_root.resolve(),args.ref,args.release_root.resolve() if args.release_root else None,
+                                 args.native_launcher,args.native_arguments)
         initialize(args.project_root.resolve(), args.ref, args.release_root.resolve() if args.release_root else None)
         return 0
     except (OSError, ValueError) as error:

@@ -12,6 +12,7 @@ import re
 import subprocess
 import tempfile
 from unittest.mock import patch
+from contextlib import nullcontext
 
 
 class OwnershipError(ValueError):
@@ -154,7 +155,14 @@ def generated_guidance_guard(repository, release, metadata):
             'indexSha256': digest((directory / 'migration-index.json').read_bytes())}
 
 
-def rendered_outputs(repository, agent, manifest, installed, options):
+def rendered_outputs(repository, agent, manifest, installed, options, interpreter=None):
+    from specify_cli.integrations.base import IntegrationBase
+    with (patch.object(IntegrationBase,'resolve_python_interpreter',return_value=interpreter)
+          if interpreter is not None else nullcontext()):
+        return _rendered_outputs(repository,agent,manifest,installed,options)
+
+
+def _rendered_outputs(repository, agent, manifest, installed, options):
     from specify_cli.agents import CommandRegistrar
     from specify_cli.extensions import ExtensionManager
     registrar = CommandRegistrar(repository)
@@ -218,6 +226,12 @@ def _preflight(repository, release=None, integration_keys=None):
     base_options = load_init_options(repository)
     require(isinstance(base_options, dict), 'unresolved native initialization options')
     checked, generated_guidance = [], None
+    import importlib.util
+    profile_source=Path(release)/'extensions/program-kit-governance/scripts/render_profile.py' if release else None
+    require(profile_source is not None and profile_source.is_file(),'native generation profile reader is unavailable')
+    profile_spec=importlib.util.spec_from_file_location('phase_native_render_profile',profile_source)
+    profile=importlib.util.module_from_spec(profile_spec);profile_spec.loader.exec_module(profile)
+    render_reader=profile.Reader(repository)
     for name, metadata in registry['extensions'].items():
         require(isinstance(name, str) and re.fullmatch(r'[A-Za-z0-9_-]+', name) and isinstance(metadata, dict), 'invalid native extension ownership')
         if not metadata.get('enabled', True) and not name.startswith('program-kit-'):
@@ -256,20 +270,32 @@ def _preflight(repository, release=None, integration_keys=None):
                 options['ai_skills'] = True
             else:
                 options.pop('ai_skills', None)
-            expected = rendered_outputs(repository, agent, manifest, installed, options)
-            for destination, native_bytes in expected.items():
+            # Enumerate destinations through the native renderer without probing
+            # today's PATH. Each actual comparison uses its own original profile.
+            destinations = rendered_outputs(repository, agent, manifest, installed, options,interpreter='python')
+            variants={}
+            for destination in destinations:
                 relative = destination.relative_to(repository).as_posix()
                 target = contained(repository, relative, 'registered native phase output')
                 if not target.exists():
                     continue  # An absent owned output is repaired, never a customization.
                 require(target.is_file(), 'non-file native phase output: ' + relative)
+                generation=render_reader.profile(relative)
+                choice=generation['interpreter'] if generation else None
+                if choice not in variants:variants[choice]=rendered_outputs(repository,agent,manifest,installed,options,interpreter=choice)
+                native_bytes=variants[choice][destination]
+                if generation:
+                    require(generation['sha256'] in {digest(value) for value in native_bytes},
+                            'original generation inputs no longer reproduce their output: '+relative)
                 require(target.read_bytes() in native_bytes, 'consumer customization in native phase output: ' + name + ' / ' + agent + ' / ' + relative
-                        + '; preserve it and reconcile the owner before refresh')
+                        + ('; preserve it and reconcile the owner before refresh' if generation else
+                           '; original generation profile is missing; current PATH reproduction supplies no historical alias provenance'))
                 if target.name == 'SKILL.md':
                     extra = [p.relative_to(repository).as_posix() for p in target.parent.rglob('*') if p.is_file() and p != target]
                     require(not extra, 'consumer files in regenerable skill directory: ' + relative + '; ' + ', '.join(extra))
                 checked.append({'extension': name, 'integration': agent, 'path': relative,
-                                'sha256': digest(target.read_bytes()), 'sourceSha256': hashes})
+                                'sha256': digest(target.read_bytes()), 'sourceSha256': hashes,
+                                'renderProvenance':'original-native-generation' if generation else 'current-render-only; historical-profile-unavailable'})
     preset_sources = {}
     preset_registry = contained(repository, '.specify/presets/.registry', 'native preset registry')
     if preset_registry.is_file():

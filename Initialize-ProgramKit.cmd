@@ -86,6 +86,8 @@ if errorlevel 1 exit /b 2
 rem Check the original device selection before invocation-scoped PATH preparation.
 rem Only release-owned diagnostic Python/data are downloaded; no device installer runs.
 if exist "%~dp0scripts\initialize_device.py" (
+  set "PROGRAM_KIT_NATIVE_HELPER=%~dp0scripts\initialize_device.py"
+  set "PROGRAM_KIT_NATIVE_RELEASE=%~dp0."
   call "%SPECKIT_PYTHON%" "%~dp0scripts\initialize_device.py" --ref "%PROGRAM_KIT_REF%" --project-root "%CD%" --release-root "%~dp0."
   if errorlevel 1 exit /b 2
 ) else (
@@ -139,7 +141,7 @@ if errorlevel 1 (
 
 set "PROGRAM_KIT_STAGE=step 1/8: Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor"
 echo [1/8] Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor...
-call "%PROGRAM_KIT_SPECIFY%" init . --force --non-interactive --integration %PROGRAM_KIT_INTEGRATION% --script py
+call :profiled_native init . --force --non-interactive --integration %PROGRAM_KIT_INTEGRATION% --script py
 if errorlevel 1 goto :failed
 
 set "PROGRAM_KIT_STAGE=step 2/8: Registering the Program Kit extension catalog"
@@ -169,7 +171,7 @@ if errorlevel 1 goto :failed
 
 set "PROGRAM_KIT_STAGE=step 7/8: Installing Program Kit"
 echo [7/8] Installing Program Kit...
-call "%PROGRAM_KIT_SPECIFY%" bundle install program-kit --integration %PROGRAM_KIT_INTEGRATION%
+call :profiled_native bundle install program-kit --integration %PROGRAM_KIT_INTEGRATION%
 if errorlevel 1 goto :failed
 call "%SPECKIT_PYTHON%" ".specify\extensions\program-kit-governance\scripts\ensure_utf8.py" --target .
 if errorlevel 1 goto :failed
@@ -238,6 +240,7 @@ for /f "delims=" %%P in ('call "%SystemRoot%\System32\WindowsPowerShell\v1.0\pow
 exit /b 0
 
 :device_preflight
+set "PROGRAM_KIT_NATIVE_HELPER=%PROGRAM_KIT_DEVICE_PREFLIGHT%"
 call "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -Command "$ErrorActionPreference='Stop'; Invoke-WebRequest -UseBasicParsing ('https://raw.githubusercontent.com/orbyss-io/program-kit/'+$env:PROGRAM_KIT_REF+'/scripts/initialize_device.py') -OutFile $env:PROGRAM_KIT_DEVICE_PREFLIGHT"
 if errorlevel 1 (
   echo ERROR: Exact-release device policy could not be obtained; initialization has not started. 1>&2
@@ -246,6 +249,14 @@ if errorlevel 1 (
 call "%SPECKIT_PYTHON%" "%PROGRAM_KIT_DEVICE_PREFLIGHT%" --ref "%PROGRAM_KIT_REF%" --project-root "%CD%"
 if errorlevel 1 exit /b 2
 exit /b 0
+
+:profiled_native
+if defined PROGRAM_KIT_NATIVE_RELEASE (
+  call "%SPECKIT_PYTHON%" "%PROGRAM_KIT_NATIVE_HELPER%" --ref "%PROGRAM_KIT_REF%" --project-root "%CD%" --release-root "%PROGRAM_KIT_NATIVE_RELEASE%" --native-launcher "%PROGRAM_KIT_SPECIFY%" --native-arguments %*
+) else (
+  call "%SPECKIT_PYTHON%" "%PROGRAM_KIT_NATIVE_HELPER%" --ref "%PROGRAM_KIT_REF%" --project-root "%CD%" --native-launcher "%PROGRAM_KIT_SPECIFY%" --native-arguments %*
+)
+exit /b %errorlevel%
 
 :prepare_path
 rem Preserve command precedence after explicit overrides, remove duplicate/missing

@@ -114,6 +114,11 @@ four registrations to the trusted `main` update channel. Catalog entries continu
 downloads to immutable release tags, while later `workflow update` and `bundle update` commands can
 discover newer Program Kit releases.
 
+The initializer records actual native generation inputs and interpreter selection
+for later ownership checks. Preserve `.specify/program-kit/render-profiles` with
+the installation. Historical comparison uses those original inputs independently
+of current PATH readiness; an unrecorded historical alias remains unresolved.
+
 Before changing repository-managed files, each launcher verifies that `specify`, `python`, and Git can
 execute. Spec Kit validates the coding-agent tooling for the selected integration. The launcher
 checks whether that same `python` can import PyYAML and, only when needed,

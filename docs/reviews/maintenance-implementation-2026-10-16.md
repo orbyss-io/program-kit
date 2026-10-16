@@ -473,3 +473,25 @@ No real provider/model call or coding agent ran. This proof supplies neither hum
 consent nor application/provider acceptance. Hostile writers, authority backup
 rollback, network storage, multiple hosts and OS CPU/memory ceilings remain outside
 this local accounting claim. Remaining frozen work and full qualification continue.
+
+## Continuation: original native generation versus today's PATH
+
+N4 now records actual native CLI writes with the original selected interpreter,
+producer/template and source hashes, and per-output identities in retained chained
+records. The maintained initializer and normal recognized native updater launcher
+use the same recorder. Partial refreshes retain original profiles for untouched
+outputs. Read-only historical comparison reproduces each output from authenticated
+sources and its original choice without probing today's PATH or executing the old
+interpreter. It never assigns a guessed alias to an older unrecorded installation.
+Current device readiness remains independent; changed/missing producer inputs,
+records, templates and consumer customizations retain explicit diagnostic scope.
+
+The four-phase native refresh matrix passed, including two installed integrations,
+preserved artifacts and customization negatives. The dedicated retained proof also
+uses the actual initializer helper and installed launcher; original records survive
+alias loss and later refresh. Sequential offline installation/upgrade passed,
+including the historical 0.12.7 consumer, preserved intent/pins/bootstrap and actual
+planned/materialized transitions. Updater boundary (23), device toolchain (16),
+knowledge inventory and validation-runner checks passed separately. One earlier
+run rejected a source file changed while the run was active; it remains failed.
+No historical execution/readiness, public release or consumer acceptance is inferred.
