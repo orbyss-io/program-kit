@@ -1,0 +1,41 @@
+{
+  "kind": "collection-projection-interop-probe",
+  "nativeConfigurationReaderPreservesManifest": true,
+  "focusedProjectionError": "Review material scope: unknown verification version/fields",
+  "canonicalJsonProjectionAccepted": true,
+  "manifest": {
+    "schemaVersion": 1,
+    "runner": "adapter",
+    "providerIsolation": {
+      "required": true
+    },
+    "testGroups": [
+      {
+        "id": "example",
+        "projects": [
+          "tests/Example.Tests/Example.Tests.csproj"
+        ],
+        "inputs": [],
+        "reuse": false
+      }
+    ]
+  },
+  "scope": {
+    "schemaVersion": 1,
+    "inputs": [
+      {
+        "path": "eng/verification.json",
+        "kind": "verification",
+        "version": 1,
+        "projects": [
+          "tests/Example.Tests/Example.Tests.csproj"
+        ]
+      }
+    ]
+  },
+  "sourceSha256": {
+    "extensions/program-kit-governance/scripts/review_material.py": "ab78ddd80f9a2a6f808a9cf59abd9e9380531f872f9dd2eb374d9d93e66e508b",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py": "7e31acbf4f92973a1e180e1d00dec47b947133781f779611f6cdbad738901233"
+  },
+  "limits": "Synthetic read-only API interoperability probe; no consumer test, agent, native build or full schema/execution qualification."
+}
