@@ -182,13 +182,49 @@
       "sourceDiagnosis": "Replace overly broad absence-based skip",
       "workPackages": "E/G",
       "closureRequired": "Authenticated retired locks preserved; unknown/tampered/reactivated and language/custom lock cases handled.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-authenticated-retirement-and-native-active-lock-discovery; final-integration/CI pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_inputs.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_archives.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_locks.py",
+        "extensions/program-kit-dotnet/references/retained-inputs.md",
+        "tests/validate_document_ownership.py",
+        "scripts/upgrade_program_kit.py",
+        "extensions/program-kit-building-blocks/scripts/restore_dependencies.py",
+        "extensions/program-kit-building-blocks/scripts/native_restore_graph.py",
+        "tests/native_restore_graph_cases.py"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "validate_document_ownership.log",
+          "status": "passed",
+          "scope": "20 actual reset/document/archive/retired lock and shipped-reader upgrade cases; original anchors, props/targets/broad activation, C#/F#/VB/custom/multiple owner and tamper/orphan/reactivation negatives.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_document_ownership.log",
+          "sha256": "507cb7e463beea1a75ac72e3e313f52d481aa0510b0a4dcea5772a7a8bb445fe"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual exact-SDK offline C#/F#/VB renew/LockedMode with imported graph, forward/reverse closure, shared-directory distinct outputs and custom locks/assets; upgrade discovery/renewal admission; collision, tampered outputs and restore-hook negatives. Raw native graph evidence retained in owned consumer.",
+          "log": "artifacts/restore-closure/evaluated-b7cea2870d1b4521b91c78f1b802f5b0/results.json",
+          "sha256": "b2f1430476a230dfa16f55246e91ec3bbf66d468fefa84919ac2d42f588e55e6"
+        },
+        {
+          "command": "local-upgrade.log",
+          "status": "passed",
+          "scope": "Complete sequential offline/local installed migration passed after guard diagnostic-order correction. Historical 0.12.7 and planned/materialized consumers; actual native custom-lock classifier is separately qualified below.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-09/ff2fc14a862f45da9fa65c72783dc027/local-upgrade.log",
+          "sha256": "5b597e2ace34a00cf4e8c6708f9493bfe623fd0f9fe0a485b5d0baf10024272b"
+        }
+      ],
+      "remainingDependencies": [
+        "Unsupported original imported/dynamic retired association requires original evaluated ownership evidence; no invented backfill.",
+        "Final installed/current integration and exact-source CI remain."
+      ],
+      "closureEvidence": [
+        "Retirement requires original preserved lock bytes and every original project owner; project absence alone never skips a lock. C#/F#/VB, literal custom paths, multiple owners, tamper and reactivation are exercised.",
+        "Current custom locks are discovered by the canonical evaluated native graph, while original retirement stays separate. Unknown stale orphans and missing active native locks diagnose required recovery."
+      ]
     },
     {
       "id": "U4",
@@ -196,12 +232,16 @@
       "sourceDiagnosis": "Use complete canonical native restore closure",
       "workPackages": "E",
       "closureRequired": "Direct/solution/forward/reverse subjects accepted with real evidence; unrelated/stale/tampered coverage fails.",
-      "status": "partially-implemented; supported literal graph and standard outputs",
+      "status": "implemented-native-evaluated-graph/output-adapter-with-real-restore; final-integration/CI pending",
       "changedFiles": [
         "extensions/program-kit-building-blocks/scripts/restore_dependencies.py",
         "extensions/program-kit-building-blocks/commands/speckit.program-kit-building-blocks.sync.md",
         "scripts/upgrade_program_kit.py",
-        "tests/lock_renewal_cases.py"
+        "tests/lock_renewal_cases.py",
+        "extensions/program-kit-building-blocks/scripts/native_restore_graph.py",
+        "extensions/program-kit-building-blocks/references/native-restore-graph.md",
+        "tests/native_restore_graph_cases.py",
+        "tests/validate_building_blocks.py"
       ],
       "validation": [
         {
@@ -244,16 +284,24 @@
           "scope": "Actual offline native renew/locked CLI and literal direct/solution/forward/reverse closure cases, with current source hashes and unique retained output. Not evaluated custom/F#/VB/full CI closure.",
           "log": "artifacts/restore-closure/20261016T153830Z-7ad853e1479e44559038f9803ad6a112/results.json",
           "sha256": "14d342bdbe266830963bcf1ce1a7b982706894c80725547d066e5e9baef77d34"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual exact-SDK offline C#/F#/VB renew/LockedMode with imported graph, forward/reverse closure, shared-directory distinct outputs and custom locks/assets; upgrade discovery/renewal admission; collision, tampered outputs and restore-hook negatives. Raw native graph evidence retained in owned consumer.",
+          "log": "artifacts/restore-closure/evaluated-b7cea2870d1b4521b91c78f1b802f5b0/results.json",
+          "sha256": "b2f1430476a230dfa16f55246e91ec3bbf66d468fefa84919ac2d42f588e55e6"
         }
       ],
       "remainingDependencies": [
-        "Evaluated native graph/output adapter for supported custom/imported/relocated layouts and multiple project owners. Current literal adapter rejects these precisely instead of inferring default ownership.",
-        "Actual F#/VB/custom native qualification and full updater integration/CI. Retired lock authority remains separate U3/G work."
+        "Current complete deterministic qualification and installed adoption remain; unsupported native contexts fail with a bounded adapter diagnostic."
       ],
       "closureEvidence": [
         "artifacts/restore-closure/results.json",
         "One closure supplies command subjects, effective projects, standard output owners, input digests, progress snapshots and renewal admission. Locked evidence now binds actual lock/assets bytes. F#/VB project inputs are included in source freshness.",
-        "The old fixed-name derived output is ineligible for current verification because its original bytes are unavailable; its original hash and the replacement observation are retained. New native runs use distinct immutable paths under artifacts/restore-closure/."
+        "The old fixed-name derived output is ineligible for current verification because its original bytes are unavailable; its original hash and the replacement observation are retained. New native runs use distinct immutable paths under artifacts/restore-closure/.",
+        "Explicit exact-SDK/configuration native adapter binds targetless references/imports and actual NuGet metadata. All restore commands, requests, progress, output evidence, verification and upgrade custom-lock discovery use its canonical closure.",
+        "Distinct shared-directory/custom JSON lock and assets ownership is native. Independent output collisions, changing contexts/imports, malformed/foreign destinations, stale assets and consumer restore hooks fail. No retired application code is run."
       ]
     },
     {
@@ -759,13 +807,49 @@
       "sourceDiagnosis": "Generate real bounded toolkit owners/checks",
       "workPackages": "G",
       "closureRequired": "Real mixed Affected selection from retained baseline; future unknown paths fail; no catch-all/baseline advance.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-named-toolkit-runner-and-mixed-native-proof; complete-generated-provenance/CI pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_inputs.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_archives.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_locks.py",
+        "extensions/program-kit-dotnet/references/retained-inputs.md",
+        "tests/validate_document_ownership.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolkit_verification.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
+        "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
+        "tests/validate_scoped_verification.py"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "validate_scoped_verification.log",
+          "status": "passed",
+          "scope": "56 scoped cases, real Python and Git original-baseline mixed selection, persistent named failures and actual PowerShell toolkit-only/no-SDK/Acceptance guard.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_scoped_verification.log",
+          "sha256": "221635cfcff1640ca7692a903d1981c17b71f3eb494cc673e1ff257ec62b1a4b"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Real offline native MSTest/MTP build/test plus Python toolkit execution from unchanged Git baseline; independent tests unselected. Prepared local public feed, development mechanism scope; not current selected-profile qualification.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-09/c854519ba003483e94c91c5fc4a1f2a0/results.json",
+          "sha256": "419e7124bf3c15f63b4998f8f31d406d826b55125de69649c03c2f603e1fc4c4"
+        },
+        {
+          "command": "validate_document_ownership.log",
+          "status": "passed",
+          "scope": "20 actual reset/document/archive/retired lock and shipped-reader upgrade cases; original anchors, props/targets/broad activation, C#/F#/VB/custom/multiple owner and tamper/orphan/reactivation negatives.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_document_ownership.log",
+          "sha256": "507cb7e463beea1a75ac72e3e313f52d481aa0510b0a4dcea5772a7a8bb445fe"
+        }
+      ],
+      "remainingDependencies": [
+        "Complete authenticated installation/generated-guidance ownership witnesses depend on U0/N2/V3; do not substitute application tests for those checks.",
+        "Final installed/current profile integration and exact-source CI remain."
+      ],
+      "closureEvidence": [
+        "Explicit current Python checks execute independently of native project counts; exact inputs from original preservation are generated at sync. Actual PowerShell check-only path does not prepare a native SDK. Unknown future paths and removed failed check identities reject. Acceptance/Release narrowing remains forbidden."
+      ]
     },
     {
       "id": "V2",
@@ -773,13 +857,39 @@
       "sourceDiagnosis": "Anchor preservation and complete inactivity checks",
       "workPackages": "E/G",
       "closureRequired": "Rehashed-payload and props/targets activation negatives; current locks native; no old-code execution.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-original-archive-binding-and-bounded-inactivity; evaluated-unsupported-surface-disposition/CI pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_inputs.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_archives.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_locks.py",
+        "extensions/program-kit-dotnet/references/retained-inputs.md",
+        "tests/validate_document_ownership.py",
+        "extensions/program-kit-governance/scripts/task_draft.py"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "validate_document_ownership.log",
+          "status": "passed",
+          "scope": "20 actual reset/document/archive/retired lock and shipped-reader upgrade cases; original anchors, props/targets/broad activation, C#/F#/VB/custom/multiple owner and tamper/orphan/reactivation negatives.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_document_ownership.log",
+          "sha256": "507cb7e463beea1a75ac72e3e313f52d481aa0510b0a4dcea5772a7a8bb445fe"
+        },
+        {
+          "command": "local-upgrade.log",
+          "status": "passed",
+          "scope": "Complete sequential offline/local installed migration passed after guard diagnostic-order correction. Historical 0.12.7 and planned/materialized consumers; actual native custom-lock classifier is separately qualified below.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-09/ff2fc14a862f45da9fa65c72783dc027/local-upgrade.log",
+          "sha256": "5b597e2ace34a00cf4e8c6708f9493bfe623fd0f9fe0a485b5d0baf10024272b"
+        }
+      ],
+      "remainingDependencies": [
+        "Original imported/dynamic historical ownership without an original evaluated receipt remains a diagnosed gap; no reconstruction or historical authority rewrite.",
+        "Final current installed integration/CI remain."
+      ],
+      "closureEvidence": [
+        "Archive root/payload/preserved maps derive from original executed reset results; new resets bind raw inventory hash before deletion. Existing original receipts remain unchanged and old-map-only anchors are reported with their narrower scope.",
+        "Rehashed payload/inventory, extra/missing paths and props/targets/import/broad include activation reject. Dynamic or external/Exec activation without an admitted adapter remains a diagnosed gap; retired product code is not executed."
+      ]
     },
     {
       "id": "V3",
@@ -1131,6 +1241,20 @@
           "scope": "Complete lifecycle, activation, profile, ownership and UTF-8 validator; recording shared-device fixtures use actual system temp. Earlier repository-temp rejection retained.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-08/cde59f2a78fc4ac19abe11d5f476260b/lifecycle.log",
           "sha256": "3ea5e83a0ea9108e52385ea19eca4cd7acf4b2ddb5b8780a2432d65f2ca7d6bc"
+        },
+        {
+          "command": "validate_document_ownership.log",
+          "status": "passed",
+          "scope": "20 actual reset/document/archive/retired lock and shipped-reader upgrade cases; original anchors, props/targets/broad activation, C#/F#/VB/custom/multiple owner and tamper/orphan/reactivation negatives.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_document_ownership.log",
+          "sha256": "507cb7e463beea1a75ac72e3e313f52d481aa0510b0a4dcea5772a7a8bb445fe"
+        },
+        {
+          "command": "validate_story_delivery.log",
+          "status": "passed",
+          "scope": "63 final-guard story delivery cases, including actual native source execution; fresh-adoption diagnostic order preserved.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_story_delivery.log",
+          "sha256": "39de3e1332dc511eac33ad94e8c2d8e042a26fe0af4c4ef0dba32cb0b045b683"
         }
       ],
       "remainingDependencies": [
@@ -1422,16 +1546,32 @@
       "sourceDiagnosis": "Selected-library catch-and-return behavior is reported and source-reviewed in the handoff. An attributable Program Kit overclaim still requires inspection; no general PDF validator or consumer parser adoption is authorized.",
       "workPackages": "I/J; publisher seams only if attributed",
       "closureRequired": "Selected-package malformed/valid/unsupported/deferred and bounded-execution cases; precise envelope/traversal and operational versus invalid meanings; separate loader closure.",
-      "status": "adopted-for-attribution-and-bounded-shared-work; not-implemented",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Actual selected guidance attribution and source/package inspection",
-        "Bounded public-seam example and native execution/resource tests",
-        "No consumer or paid-provider acceptance inferred",
-        "Qualify cold startup and effective selected-runtime resource ceilings; no universal 64/256 descriptor recommendation. Abnormal startup/load/exit/resource/deadline remains unavailable/inconclusive; caller cancellation stays distinct."
+      "status": "implemented-attributed-boundary-and-public-native-example; final-qualification pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/references/pdf-stream-decoding.md",
+        "extensions/program-kit-dotnet/references/examples/pdf-decoding",
+        "extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+        "tests/validate_pdf_decoding.py",
+        "maintenance-policy.json",
+        "tests/validation-inventory.json"
       ],
-      "closureEvidence": [],
+      "validation": [
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "29 required native public PdfPig/SharpZipLib cases from cold locked restore; executed dependency DLLs equal actual archives. Catch-and-return reproduction, stored/fixed/dynamic zlib, final block/truncation/checksum/trailing envelope, unsupported surfaces, deferred image, cumulative/concurrent budgets. Synthetic scope; no complete PDF/OS-worker/application acceptance.",
+          "log": "artifacts/pdf-decoding/6367dd1fb1c94476b8c116b167d432d8/results.json",
+          "sha256": "c0c5b0c2268428b2a8daa2017fe825053a6b5e25316c75761c9e53949c73f653"
+        }
+      ],
+      "remainingDependencies": [
+        "Final deterministic CI and the broader Foundation Host/public dependency closure remain independent; consumer-specific adversarial/OS worker acceptance is not claimed."
+      ],
+      "closureEvidence": [
+        "No shipped generic PDF admission guarantee was found. Exact selected public FlateFilter catch-and-return behavior is reproduced; public FilterProvider adaptation preserves strict parsing.",
+        "Bounded optional example uses a decoder exposing finish/checksum/remaining input and explicitly limits supported codec/predictor/envelope/traversal scope. Separate cooperative byte/call/deadline evidence makes no OS memory/CPU/complete PDF claim. Domain worker/corpus and public Host loader qualification remain independent.",
+        "New optional example pins and native lock participate in dependency maintenance; ordinary consumer installation does not acquire them. Required named execution cases cannot be removed/substituted by raising unrelated counts."
+      ],
       "additionalEvidence": [
         {
           "source": {
@@ -1870,6 +2010,62 @@
         "path": "artifacts/maintenance-implementation-2026-10-16/continuation-07/development-package-proof.json",
         "sha256": "ed938bdc9699ffc40a2ae23d2995572ca6231bae840fccf85bd82d56d6552d27"
       }
+    },
+    {
+      "scope": "Frozen 47 only. New unrelated N17-N25 addenda, additions queue and transferred feedback work remain untouched.",
+      "implemented": [
+        "N6 follow-up",
+        "V1 named toolkit checks",
+        "V2 bounded original archive admission",
+        "U3 authenticated retirement",
+        "U4 native evaluated restore adapter",
+        "N13 public decoding example"
+      ],
+      "validation": [
+        {
+          "command": "validate_document_ownership.log",
+          "status": "passed",
+          "scope": "20 actual reset/document/archive/retired lock and shipped-reader upgrade cases; original anchors, props/targets/broad activation, C#/F#/VB/custom/multiple owner and tamper/orphan/reactivation negatives.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_document_ownership.log",
+          "sha256": "507cb7e463beea1a75ac72e3e313f52d481aa0510b0a4dcea5772a7a8bb445fe"
+        },
+        {
+          "command": "validate_scoped_verification.log",
+          "status": "passed",
+          "scope": "56 scoped cases, real Python and Git original-baseline mixed selection, persistent named failures and actual PowerShell toolkit-only/no-SDK/Acceptance guard.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_scoped_verification.log",
+          "sha256": "221635cfcff1640ca7692a903d1981c17b71f3eb494cc673e1ff257ec62b1a4b"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Real offline native MSTest/MTP build/test plus Python toolkit execution from unchanged Git baseline; independent tests unselected. Prepared local public feed, development mechanism scope; not current selected-profile qualification.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-09/c854519ba003483e94c91c5fc4a1f2a0/results.json",
+          "sha256": "419e7124bf3c15f63b4998f8f31d406d826b55125de69649c03c2f603e1fc4c4"
+        },
+        {
+          "command": "local-upgrade.log",
+          "status": "passed",
+          "scope": "Complete sequential offline/local installed migration passed after guard diagnostic-order correction. Historical 0.12.7 and planned/materialized consumers; actual native custom-lock classifier is separately qualified below.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-09/ff2fc14a862f45da9fa65c72783dc027/local-upgrade.log",
+          "sha256": "5b597e2ace34a00cf4e8c6708f9493bfe623fd0f9fe0a485b5d0baf10024272b"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual exact-SDK offline C#/F#/VB renew/LockedMode with imported graph, forward/reverse closure, shared-directory distinct outputs and custom locks/assets; upgrade discovery/renewal admission; collision, tampered outputs and restore-hook negatives. Raw native graph evidence retained in owned consumer.",
+          "log": "artifacts/restore-closure/evaluated-b7cea2870d1b4521b91c78f1b802f5b0/results.json",
+          "sha256": "b2f1430476a230dfa16f55246e91ec3bbf66d468fefa84919ac2d42f588e55e6"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "29 required native public PdfPig/SharpZipLib cases from cold locked restore; executed dependency DLLs equal actual archives. Catch-and-return reproduction, stored/fixed/dynamic zlib, final block/truncation/checksum/trailing envelope, unsupported surfaces, deferred image, cumulative/concurrent budgets. Synthetic scope; no complete PDF/OS-worker/application acceptance.",
+          "log": "artifacts/pdf-decoding/6367dd1fb1c94476b8c116b167d432d8/results.json",
+          "sha256": "c0c5b0c2268428b2a8daa2017fe825053a6b5e25316c75761c9e53949c73f653"
+        }
+      ],
+      "qualification": "Scoped native/development evidence, not complete batch or publication qualification. Earlier failed/intermediate runs retain their own status."
     }
   ]
 }

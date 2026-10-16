@@ -59,3 +59,40 @@ already bound frozen entry through `acknowledge-inputs`. Add a distinct active t
 linked to the original instead. Previously completed task descriptions remain history;
 their checkboxes do not authorize a new mutation. Existing artifact ownership,
 architecture and review rules still apply to the new target.
+
+The optional `archives` array names `{ "record": "original-reset" }`. Its root
+and exact payload set come from that original result. New resets bind the raw
+inventory hash before deletion. Older results without that field bind their
+original payload/preserved maps; the reader reports that narrower anchor rather
+than claiming an authenticated old review narrative. Changing payload and then
+rehashing its inventory cannot alter the original result's expected bytes.
+Missing, extra, aliased and escaped files fail.
+
+The optional `retiredLocks` array contains `{ "path": "src/Old/packages.lock.json",
+"record": "original-reset", "owners": ["src/Old/Old.fsproj"] }`. Every original
+same-directory C#/F#/VB project owner must occur in the original abandoned map,
+and the lock must occur in its preserved map. Custom lock paths require the
+original archived native project declaration; dynamic/imported old ownership
+needs an original evaluated ownership receipt and is currently a diagnosed gap.
+Reactivation, a new active same-directory owner and changed bytes fail. Project
+absence alone never grants retirement, and upgrade refuses unexplained stale
+orphans. Active locks continue through native restore.
+
+Inactivity admission examines current projects, solutions, root/eng props and
+targets, recursive imports, architecture and appsettings inputs. Direct archive
+references, broad includes reaching retired roots and declared lock reactivation
+fail. Unknown dynamic item/import paths, external imports and Exec require an
+explicit evaluated input adapter; this bounded static reader does not certify
+those unsupported activation mechanisms. It never executes retired code.
+
+Synchronization creates a named `retained-inputs` toolkit check with exact input
+ownership from these records. `Invoke-RepositoryVerification.ps1 -Scope Focused
+-Checks retained-inputs` runs it directly. Affected selection can combine it with
+native domain projects from the original Git baseline. Consumer `toolkitChecks`
+in `eng/verification.json` declare a unique `id`, current Python `script`, literal
+`arguments`, exact `inputs`, and `timeoutSeconds` (1..900). No shell or coding agent
+is dispatched by the adapter. Keep paid/provider operations outside these checks.
+Results retain separate named outcomes, input/runtime fingerprints and both
+streams under `artifacts/tests/toolkit-runs`. Failures/interruption remain pending
+even if a mapping is removed. These process results never count as native tests,
+do not advance the Git baseline and cannot narrow Acceptance or Release.

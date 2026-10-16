@@ -100,7 +100,8 @@ def snapshot(root):
     if not Path(filesystem_path(index_path)).exists():
         return {'schemaVersion': 1, 'configured': False, 'frozen': {}, 'activeDocuments': [], 'inputs': {}}
     data, index_hash = read_json(index_path)
-    require(set(data) == {'schemaVersion', 'records', 'protected', 'activeDocuments'} and type(data['schemaVersion']) is int and data['schemaVersion'] == 1,
+    require({'schemaVersion', 'records', 'protected', 'activeDocuments'} <= set(data)
+            <= {'schemaVersion', 'records', 'protected', 'activeDocuments', 'archives', 'retiredLocks'} and type(data['schemaVersion']) is int and data['schemaVersion'] == 1,
             'unsupported retained-input ownership index')
     require(all(isinstance(data[key], list) and len(data[key]) <= MAX_ROWS for key in ('records', 'protected', 'activeDocuments')),
             'retention inventories must be bounded arrays')
@@ -144,8 +145,14 @@ def snapshot(root):
         contained(root, relative)
         require(relative.endswith('.md') and relative.casefold() not in seen, 'a frozen document cannot become a mutable target; use a distinct current index/versioned proposal')
         seen.add(relative.casefold()); active.append(row)
+    from retained_archives import verify
+    archives, archive_inputs = verify(root, data.get('archives', []), records)
+    inputs.update(archive_inputs)
+    from retained_locks import verify as verify_locks
+    retired_locks, lock_inputs = verify_locks(root, data.get('retiredLocks', []), records)
+    inputs.update(lock_inputs)
     return {'schemaVersion': 1, 'configured': True, 'indexSha256': inputs[INDEX], 'frozen': frozen,
-            'activeDocuments': active, 'inputs': inputs}
+            'archives': archives, 'retiredLocks': retired_locks, 'activeDocuments': active, 'inputs': inputs}
 
 
 def preserve_basis(previous, current):
@@ -155,6 +162,10 @@ def preserve_basis(previous, current):
         for relative, binding in previous['frozen'].items():
             require(current['frozen'].get(relative) == binding,
                     'frozen ownership/anchor changed since drafting: ' + relative + '; retain its original record and create a linked active proposal')
+        require(all(row in current.get('archives', []) for row in previous.get('archives', [])),
+                'archive ownership/anchor changed since drafting; preserve original reset evidence')
+        require(all(current.get('retiredLocks', {}).get(path) == binding for path, binding in previous.get('retiredLocks', {}).items()),
+                'retired lock ownership/anchor changed since drafting; preserve original reset evidence')
     return current
 
 
@@ -162,6 +173,8 @@ def summary(value):
     return {'configured': value['configured'], 'index': INDEX if value['configured'] else None,
             'indexSha256': value.get('indexSha256'), 'frozenInputs': len(value['frozen']),
             'activeProposals': [row['path'] for row in value['activeDocuments']],
+            'retainedArchives': value.get('archives', []),
+            'retiredLocks': value.get('retiredLocks', {}),
             'inspectionCommand': 'python eng/retained_inputs.py inspect --repository .', 'freshProductAcceptance': False}
 
 

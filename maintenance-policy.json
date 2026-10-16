@@ -41,6 +41,7 @@
     "extensions/program-kit-building-blocks/references/dependency-profiles/index.json",
     "extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json",
     "extensions/program-kit-dotnet/references/persistence-runtimes.json",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/PdfDecodingExample.csproj",
     ".python-version"
   ],
   "families": {

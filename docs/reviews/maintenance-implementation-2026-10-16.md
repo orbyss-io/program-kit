@@ -317,3 +317,50 @@ pass. A prior recording-tool fixture run under repository-local TEMP correctly
 failed shared-device policy; the successful run used actual system temp without
 weakening that policy or installing tools. Both streams remain preserved. Final
 installed integration/CI and the remaining frozen repairs continue.
+
+## Continuation: toolkit checks, preservation and evaluated native restore
+
+The supported scoped runner now executes named Python toolkit checks with separate
+outcomes/evidence/failure obligations alongside native projects. Actual PowerShell
+check-only execution needs no native SDK. A real offline mixed native build/test
+and toolkit process passed from an unchanged retained Git baseline; unknown future
+inputs still fail. Sync derives explicit preservation check ownership from original
+records. Complete installed/public/generated witnesses remain separate work.
+
+Original reset results bind archive payloads, inventory and preserved bytes. New
+resets include the raw archive inventory digest; old receipts remain unchanged and
+report narrower original-map anchors. Protected history and authenticated retired
+C#/F#/VB locks share the reader. Props/targets/import activation, broad includes,
+rehashing, tamper, unexplained orphans and reactivated owners fail. Unsupported
+dynamic historical ownership is a diagnosed evidence gap, not reconstructed proof.
+
+The opt-in exact-SDK native restore adapter qualifies actual imported references,
+forward/reverse closure and custom lock/assets ownership. Real offline C#/F#/VB
+renew and LockedMode pass, including shared-directory distinct outputs and upgrade
+renewal admission. Independent output collisions, stale assets and consumer restore
+hooks reject. Raw native metadata/expanded sources remain in owned retained test
+roots. The earlier failed/native intermediate runs are not relabelled success.
+
+All 20 ownership, 56 scoped verification, 23 upgrade-boundary, 63 story-delivery and
+29 dependency-update tests passed separately. The complete sequential installed
+migration passed after repairing preflight diagnostic ordering; source/new native
+custom-lock integration has separate evidence. Full current-source CI remains due.
+
+## Continuation: selected PDF decoding boundary
+
+N13 now has precise source attribution, shipped point-of-use guidance and an
+optional bounded public-package example. All 29 required native cases pass from a
+cold locked NuGet restore; actual dependency DLLs match their package archive bytes.
+The tests reproduce PdfPig 0.1.16 returning encoded corrupt input, exercise stored,
+fixed and dynamic DEFLATE, incomplete final blocks/truncation/checksums/exact
+envelopes, unsupported surfaces, deferred images and shared byte/call budgets.
+They explicitly demonstrate an unreachable malformed stream outside traversal.
+
+NuGet's signed-package content hash differs from raw archive SHA-512. An initial
+qualifier assertion confused those values and failed; the corrected proof uses
+actual cold native LockedMode validation, retains both identities and verifies the
+executed DLLs against archive entries. No publisher corruption was inferred. This
+is a synthetic filter/integration example, with cooperative cancellation/deadline
+checks and no complete PDF or process-memory/CPU/worker acceptance claim. Optional
+example dependencies are tracked in maintenance policy, and no consumer pin changed.
+Work continues on the other approved repairs within the same frozen inventory.

@@ -396,6 +396,15 @@ def setup_verification_mappings(target: Path, entries: list[dict]) -> bytes:
     value = {'schemaVersion': 1, 'owner': 'program-kit-setup', 'testGroups': [],
              'reason': 'Known shared engineering, application guides and current compatibility inputs select declared native tests explicitly. This is scoped coverage, not application acceptance.',
              'unmappedInputs': [] if tests else sorted(inputs)}
+    # Derive exact toolkit ownership from original preservation records, separately
+    # from domain test projects. Do not turn arbitrary docs/future paths into matches.
+    import retained_inputs
+    retained = retained_inputs.snapshot(target)
+    if retained['configured']:
+        owned = sorted({*retained['inputs'], *retained['frozen'], 'eng/retained_inputs.py',
+                        'eng/retained_archives.py', 'eng/retained_locks.py', 'eng/owned_scratch.py'})
+        value['toolkitChecks'] = [{'id': 'retained-inputs', 'script': 'eng/retained_inputs.py',
+                                  'arguments': ['verify', '--repository', '.'], 'inputs': owned, 'timeoutSeconds': 60}]
     if tests:
         value['testGroups'].append({'id': 'program-kit-shared-setup', 'projects': tests,
                                    'inputs': sorted(inputs), 'reuse': False})

@@ -15,6 +15,93 @@ import repository_verification as verification
 
 
 class SelectionTests(unittest.TestCase):
+    def toolkit(self, source='print("real named toolkit check executed")\n'):
+        script = self.root / 'checks/preservation.py'; script.parent.mkdir(exist_ok=True)
+        script.write_text(source)
+        evidence = self.root / 'docs/retained.json'; evidence.parent.mkdir(exist_ok=True)
+        evidence.write_text('{}')
+        row = {'id': 'preservation', 'script': 'checks/preservation.py', 'arguments': [],
+               'inputs': ['docs/retained.json'], 'timeoutSeconds': 10}
+        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [row]}))
+        return row
+
+    def test_named_toolkit_executes_real_python_without_native_sdk_or_native_test_count(self):
+        self.toolkit()
+        selection = verification.select(self.root, 'Focused', checks=['preservation'])
+        with patch.object(verification, 'toolchain_identity', side_effect=AssertionError('native SDK must not be invoked')):
+            result = verification.execute(self.root, selection, [])
+        actual = result['toolkitExecution']['result']
+        self.assertEqual('completed', actual['status'])
+        self.assertFalse(actual['acceptanceEstablished'])
+        self.assertNotIn('executedTests', actual['outcomes'][0])
+        self.assertEqual([], result['projects'])
+        outcome = actual['outcomes'][0]
+        self.assertEqual(2, len(outcome['evidence']))
+        self.assertTrue(any('real named toolkit check executed' in (self.root/path).read_text() for path in outcome['evidence']))
+
+    def test_original_git_baseline_selects_mixed_toolkit_and_domain_without_future_catchall(self):
+        self.toolkit()
+        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+        subprocess.run(['git', '-C', str(self.root), 'add', '.'], check=True)
+        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                        'commit', '-qm', 'retained original baseline'], check=True)
+        baseline = subprocess.check_output(['git', '-C', str(self.root), 'rev-parse', 'HEAD'], text=True).strip()
+        (self.root/'src/Notes/Changed.cs').write_text('class Changed {}')
+        (self.root/'docs/retained.json').write_text('{"observed":true}')
+        result = verification.select(self.root, 'Affected', baseline=baseline)
+        self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], result['projects'])
+        self.assertEqual(['preservation'], result['toolkitChecks'])
+        self.assertEqual(baseline, result['baseline'])
+        self.assertEqual(baseline, subprocess.check_output(['git', '-C', str(self.root), 'rev-parse', 'HEAD'], text=True).strip())
+        (self.root/'docs/future.json').write_text('{}')
+        with self.assertRaisesRegex(ValueError, 'unknown verification input'):
+            verification.select(self.root, 'Affected', baseline=baseline)
+
+    def test_failed_toolkit_obligation_survives_removed_mapping_and_unrelated_success(self):
+        row = self.toolkit('raise SystemExit(7)\n')
+        selection = verification.select(self.root, 'Focused', checks=['preservation'])
+        with self.assertRaisesRegex(ValueError, 'toolkit check failed'):
+            verification.execute(self.root, selection, [])
+        self.assertEqual({'preservation'}, verification.toolkit_verification.pending(self.root))
+        (self.root/'eng/verification.json').write_text('{"schemaVersion":1}')
+        with self.assertRaisesRegex(ValueError, 'removed failing toolkit'):
+            self.select(['src/Notes/Changed.cs'])
+        self.toolkit()
+        self.assertEqual(['preservation'], self.select(['src/Notes/Changed.cs'])['toolkitChecks'])
+        verification.execute(self.root, verification.select(self.root, 'Focused', checks=['preservation']), [])
+        self.assertEqual(set(), verification.toolkit_verification.pending(self.root))
+
+    def test_toolkit_arguments_cannot_weaken_acceptance_or_native_argument_admission(self):
+        row = self.toolkit()
+        for relative in ('../escape.py', 'checks/*.py', 'checks/../preservation.py'):
+            row['script'] = relative
+            with self.assertRaises(ValueError):
+                verification.toolkit_verification.declarations(self.root, {'toolkitChecks': [row]})
+        self.toolkit()
+        selection = verification.select(self.root, 'Focused', checks=['preservation'])
+        with self.assertRaises(ValueError):
+            verification.execute(self.root, selection, ['--list-tests'])
+        self.assertFalse((self.root/'artifacts/tests/toolkit-runs').exists())
+
+    def test_shipped_powershell_toolkit_entrypoint_does_not_prepare_native_sdk(self):
+        self.toolkit()
+        engine = ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+        for path in engine.glob('*'):
+            if path.is_file() and path.suffix in {'.py', '.ps1', '.psm1'}:
+                shutil.copyfile(path, self.root/'eng'/path.name)
+        (self.root/'eng/Restore.ps1').write_text('throw "Native SDK preparation must not run for toolkit-only ownership"')
+        environment = os.environ.copy(); environment['SPECKIT_PYTHON'] = sys.executable
+        result = subprocess.run(['pwsh', '-NoLogo', '-NoProfile', '-File', str(self.root/'eng/Invoke-RepositoryVerification.ps1'),
+                                 '-Scope', 'Focused', '-Checks', 'preservation'], cwd=self.root,
+                                capture_output=True, text=True, env=environment, timeout=60)
+        self.assertEqual(0, result.returncode, result.stdout+result.stderr)
+        self.assertIn('Named toolkit checks completed', result.stdout)
+        rejected = subprocess.run(['pwsh', '-NoLogo', '-NoProfile', '-File', str(self.root/'eng/Invoke-RepositoryVerification.ps1'),
+                                   '-Scope', 'Acceptance', '-Checks', 'preservation'], cwd=self.root,
+                                  capture_output=True, text=True, env=environment, timeout=60)
+        self.assertNotEqual(0, rejected.returncode)
+        self.assertIn('Acceptance cannot be narrowed', rejected.stderr)
+
     def test_setup_maps_owned_guides_fixtures_and_shared_engineering_explicitly(self):
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
         import dotnet_sync

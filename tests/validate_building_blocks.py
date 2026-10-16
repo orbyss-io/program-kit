@@ -135,6 +135,8 @@ def accepted_fixture(module, root: Path, catalog: dict, composition: str = "doma
 def main() -> int:
     from lock_renewal_cases import exercise
     exercise(ROOT, load_module(RESTORE))
+    from native_restore_graph_cases import exercise as evaluated_exercise
+    evaluated_exercise(ROOT, load_module(RESTORE))
     module = load_module(RESOLVER)
     restore_module = load_module(RESTORE)
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))

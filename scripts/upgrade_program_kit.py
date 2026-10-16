@@ -1187,13 +1187,46 @@ def resynchronize_building_block_provenance(target: Path) -> None:
         raise UpgradeError(f"PKU116 compatible building-block provenance update failed: {apply.stderr.strip()}")
 
 
-def stale_program_kit_locks(target: Path, component_versions: dict[str, str]) -> list[Path]:
+def stale_program_kit_locks(target: Path, component_versions: dict[str, str], verifier=None) -> list[Path]:
     ignored = {".git", ".specify", "artifacts", "node_modules"}
+    retired = set()
+    archives = []
+    if (target / 'eng/retained-inputs.json').is_file():
+        reader = target / 'eng/retained_inputs.py'
+        if not reader.is_file():
+            raise UpgradeError('PKU113 retained ownership index requires the supported .NET reader; synchronize engineering before lock classification')
+        observed = subprocess.run([sys.executable, '-E', '-s', str(reader), 'verify', '--repository', str(target)],
+                                  cwd=target, capture_output=True, text=True, timeout=120)
+        if observed.returncode != 0:
+            raise UpgradeError('PKU113 original retained ownership/inactivity verification failed: ' + observed.stdout.strip() + observed.stderr.strip())
+        ownership = json.loads(observed.stdout)
+        retired = set(ownership.get('retiredLocks', {}))
+        archives = [row['root'] for row in ownership.get('retainedArchives', [])]
     stale: list[Path] = []
-    for path in target.rglob("packages.lock.json"):
+    paths = set(target.rglob('packages.lock.json'))
+    evaluated = {}
+    if (target/'eng/restore-graph.json').is_file():
+        if verifier is None:
+            raise UpgradeError('PKU113 custom/evaluated native lock classification requires the selected release restore adapter')
+        try:
+            inventory = verifier.nuget_active_inventory(target, set())
+            closure = verifier.nuget_restore_closure(target, inventory)
+            for project, outputs in closure['outputs'].items():
+                path = target/outputs['lock']
+                paths.add(path)
+                evaluated.setdefault(path, []).append(project)
+        except (OSError, ValueError, RuntimeError) as error:
+            raise UpgradeError('PKU113 native lock ownership failed: '+str(error)) from error
+    for path in sorted(paths):
         relative = path.relative_to(target)
         if any(part in ignored for part in relative.parts) or relative.parts[:2] == (".program-kit", "cache"):
             continue
+        if relative.as_posix() in retired:
+            continue
+        if any(relative.as_posix().startswith(archive + '/') for archive in archives):
+            continue
+        if not path.is_file():
+            raise UpgradeError('PKU113 active native lock is missing; run its reviewed renew/locked restore: '+relative.as_posix())
         try:
             value = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
@@ -1216,6 +1249,11 @@ def stale_program_kit_locks(target: Path, component_versions: dict[str, str]) ->
             )
             for package_id, dependency in entries
         ):
+            owners = evaluated.get(path) or [owner for owner in path.parent.iterdir() if owner.is_file()
+                      and owner.suffix.casefold() in {'.csproj', '.fsproj', '.vbproj'}]
+            if not owners:
+                raise UpgradeError('PKU113 unexplained stale NuGet lock has no active native owner or original authenticated retirement: '
+                                   + relative.as_posix() + '; restore the current owner or declare original reset-bound ownership; absence is not retirement')
             stale.append(path)
     return sorted(stale)
 
@@ -1532,7 +1570,8 @@ def main() -> int:
         has_bootstrap_decisions = False  # Completed bootstrap history is immutable; installation owns its version record.
         reconciliation = discover_openapi_reconciliation(target, release, retained_exporter)
         retired_sync_integration.preflight(target)
-        stale_locks = stale_program_kit_locks(target, component_versions)
+        native_lock_adapter = load_release_module(release/'extensions/program-kit-building-blocks/scripts/restore_dependencies.py', 'upgrade_native_lock_adapter') if (target/'eng/restore-graph.json').is_file() else None
+        stale_locks = stale_program_kit_locks(target, component_versions, native_lock_adapter)
         preflight_mutation_destinations(
             target,
             release,
@@ -1663,7 +1702,7 @@ def main() -> int:
                                 [sys.executable, str(executor), mode, '--approved', '--lock', '.program-kit/sync/dependencies.json',
                                  '--request', 'artifacts/program-kit/building-block-restore-request.json']):
                     run_step(command, target, 'Verify native dependencies: ' + mode, 20 if mode == 'renew' else 21, 21, attempt_path.parent)
-            stale_locks = stale_program_kit_locks(target, component_versions)
+            stale_locks = stale_program_kit_locks(target, component_versions, restore_verifier)
             report = sync_module.readiness(target, 'upgrade', None)
         if stale_locks:
             commands = write_lock_renewal(target, component_versions, stale_locks)

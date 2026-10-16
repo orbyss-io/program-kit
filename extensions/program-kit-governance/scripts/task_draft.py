@@ -1040,9 +1040,10 @@ def accrue(value, now):
 
 
 def guard(root, feature, operation=None, closure=False, repair=False):
+    value = load_delivery(feature)
     import retained_inputs
     retained_inputs.validate_document_outputs(root, (feature / 'tasks.md').read_text(encoding='utf-8'))
-    value = refresh(root, load_delivery(feature))
+    value = refresh(root, value)
     from task_draft import validate_operation_graph
     content = (feature / 'tasks.md').read_text(encoding='utf-8')
     validate_operation_graph(content, required=True, root=root)
@@ -1527,12 +1528,14 @@ def reset(root, request, apply=False):
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(root / relative, target)
         require(hashlib.sha256(target.read_bytes()).hexdigest() == digest, 'Archive verification failed')
-    (archive / 'inventory.json').write_text(json.dumps({**request, 'preserved': preserved}, indent=2), encoding='utf-8')
+    inventory = archive / 'inventory.json'
+    inventory.write_text(json.dumps({**request, 'preserved': preserved}, indent=2), encoding='utf-8')
     for relative, digest in selected.items():
         require(hashlib.sha256((root / relative).read_bytes()).hexdigest() == digest, 'Reset input changed during archival')
     for relative in selected:
         (root / relative).unlink()
-    result.update(status='abandoned', archive=archive.relative_to(root).as_posix())
+    result.update(status='abandoned', archive=archive.relative_to(root).as_posix(),
+                  archiveInventorySha256=hashlib.sha256(inventory.read_bytes()).hexdigest())
     return result
 
 

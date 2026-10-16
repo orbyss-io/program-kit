@@ -64,6 +64,130 @@ class DocumentOwnershipTests(unittest.TestCase):
         self.assertFalse(retained_inputs.summary(result)['freshProductAcceptance'])
         self.assertEqual(before, {p: self.sha(self.root / p) for p in before})
 
+    def archives(self):
+        self.index['archives'] = [{'record': 'original-reset'}]
+        self.write_index()
+        return self.root / json.loads(self.record.read_text())['archive']
+
+    def test_archive_original_inventory_and_payload_are_bound_without_old_code_execution(self):
+        archive = self.archives()
+        result = retained_inputs.snapshot(self.root)
+        self.assertEqual('original-sha256', result['archives'][0]['inventoryAnchor'])
+        inventory = archive/'inventory.json'
+        value = json.loads(inventory.read_text())
+        payload = archive/value['files'][0]['path']
+        payload.write_text('changed abandoned payload')
+        value['files'][0]['sha256'] = self.sha(payload)
+        inventory.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError, 'original preservation record changed'):
+            retained_inputs.snapshot(self.root)
+
+    def test_archive_missing_extra_and_case_aliases_fail(self):
+        archive = self.archives()
+        extra = archive/'extra.cs'; extra.write_text('must not execute')
+        with self.assertRaisesRegex(ValueError, 'archive payload differs'):
+            retained_inputs.snapshot(self.root)
+        extra.unlink()
+        original = json.loads(self.record.read_text())
+        (archive/next(iter(original['abandoned']))).unlink()
+        with self.assertRaisesRegex(ValueError, 'missing, extra or aliased'):
+            retained_inputs.snapshot(self.root)
+
+    def test_archive_reactivation_via_props_targets_imports_and_broad_include_fails(self):
+        archive = self.archives()
+        relative = archive.relative_to(self.root).as_posix()
+        for filename, xml in [('Directory.Build.props', f'<Project><ItemGroup><Compile Include="{relative}/specs/old/spec.md" /></ItemGroup></Project>'),
+                              ('Directory.Build.targets', f'<Project><Import Project="{relative}/hidden.props" /></Project>'),
+                              ('Directory.Build.props', '<Project><ItemGroup><Compile Include="**/*.cs" /></ItemGroup></Project>')]:
+            with self.subTest(filename=filename, xml=xml):
+                path = self.root/filename; path.write_text(xml)
+                try:
+                    with self.assertRaisesRegex(ValueError, 'retired archive/owner'):
+                        retained_inputs.snapshot(self.root)
+                finally:
+                    path.unlink()
+
+    def test_dynamic_inactivity_gap_and_changed_archive_anchor_cannot_be_acknowledged(self):
+        self.archives()
+        previous = retained_inputs.snapshot(self.root)
+        path = self.root/'Directory.Build.props'
+        path.write_text('<Project><ItemGroup><Compile Include="$(UnknownInputs)/**/*.cs" /></ItemGroup></Project>')
+        with self.assertRaisesRegex(ValueError, 'coverage gap'):
+            retained_inputs.snapshot(self.root)
+        path.unlink()
+        self.index.pop('archives'); self.write_index()
+        with self.assertRaisesRegex(ValueError, 'archive ownership/anchor'):
+            retained_inputs.preserve_basis(previous, retained_inputs.snapshot(self.root))
+
+    def retire_lock(self, suffix='.fsproj', custom=False, multiple=False):
+        directory = self.root/'src/Retired'; directory.mkdir(parents=True)
+        lock = self.root/'eng/locks/retired.json' if custom else directory/'packages.lock.json'
+        lock.parent.mkdir(parents=True, exist_ok=True)
+        lock.write_text('{"version":1,"dependencies":{"net10.0":{"Orbyss.Foundation.Authentication":{"resolved":"0.0.0"}}}}')
+        files = []
+        owners = []
+        for index, extension in enumerate([suffix, '.vbproj'] if multiple else [suffix]):
+            project = directory/f'Original{index}{extension}'
+            project.write_text('<Project><PropertyGroup><NuGetLockFilePath>../../eng/locks/retired.json</NuGetLockFilePath></PropertyGroup></Project>' if custom else '<Project/>')
+            relative = project.relative_to(self.root).as_posix(); owners.append(relative)
+            files.append(dict(path=relative, owner='specs/retired', sha256=self.sha(project)))
+        feature = self.root/'specs/retired'; feature.mkdir()
+        for name in ('spec.md', 'plan.md', 'tasks.md'):
+            file = feature/name; file.write_text('Old fixture')
+            files.append(dict(path=file.relative_to(self.root).as_posix(), owner='specs/retired', sha256=self.sha(file)))
+        original = task_draft.reset(self.root, dict(feature='specs/retired', reviewSource='Synthetic original reset review',
+            selectionSource='Synthetic selection', files=files, preserve=[lock.relative_to(self.root).as_posix()]), apply=True)
+        record = self.root/'artifacts/reset/locks.json'; record.write_text(json.dumps(original))
+        self.index['records'].append(dict(id='lock-reset', path=record.relative_to(self.root).as_posix(), sha256=self.sha(record)))
+        self.index['retiredLocks'] = [dict(path=lock.relative_to(self.root).as_posix(), record='lock-reset', owners=owners)]
+        self.write_index()
+        return lock, owners
+
+    def test_retired_locks_bind_csharp_fsharp_vb_original_owners_and_custom_paths(self):
+        for suffix, custom in [('.csproj', False), ('.fsproj', False), ('.vbproj', True)]:
+            with self.subTest(suffix=suffix, custom=custom):
+                # Each subcase has independent original reset evidence.
+                self.setUp()
+                lock, owners = self.retire_lock(suffix, custom)
+                result = retained_inputs.snapshot(self.root)
+                self.assertEqual(owners, next(iter(result['retiredLocks'].values()))['owners'])
+                self.assertEqual(self.sha(lock), next(iter(result['retiredLocks'].values()))['sha256'])
+                lock.write_text('tampered')
+                with self.assertRaisesRegex(ValueError, 'retired lock bytes changed'):
+                    retained_inputs.snapshot(self.root)
+
+    def test_multiowner_retirement_unknown_owner_and_reactivation_fail_closed(self):
+        lock, owners = self.retire_lock(multiple=True)
+        retained_inputs.snapshot(self.root)
+        self.index['retiredLocks'][0]['owners'] = owners[:1]; self.write_index()
+        with self.assertRaisesRegex(ValueError, 'every original'):
+            retained_inputs.snapshot(self.root)
+        self.index['retiredLocks'][0]['owners'] = owners; self.write_index()
+        (self.root/owners[0]).write_text('<Project/>')
+        with self.assertRaisesRegex(ValueError, 'owner reactivated'):
+            retained_inputs.snapshot(self.root)
+        (self.root/owners[0]).unlink()
+        (lock.parent/'New.fsproj').write_text('<Project/>')
+        with self.assertRaisesRegex(ValueError, 'active same-directory owner'):
+            retained_inputs.snapshot(self.root)
+
+    def test_upgrade_uses_actual_shipped_reader_and_never_treats_unknown_orphan_as_retired(self):
+        sys.path.insert(0, str(ROOT/'scripts'))
+        import upgrade_program_kit as upgrade
+        lock, owners = self.retire_lock()
+        for name in ('retained_inputs.py', 'retained_archives.py', 'retained_locks.py', 'owned_scratch.py'):
+            shutil.copyfile(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'/name, self.root/'eng'/name)
+        versions = {'Orbyss.Foundation.Authentication': '1.0.0'}
+        self.assertEqual([], upgrade.stale_program_kit_locks(self.root, versions))
+        orphan = self.root/'src/Unknown/packages.lock.json'; orphan.parent.mkdir(); orphan.write_bytes(lock.read_bytes())
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'unexplained stale NuGet lock'):
+            upgrade.stale_program_kit_locks(self.root, versions)
+        active = orphan.parent/'Current.vbproj'; active.write_text('<Project/>')
+        self.assertEqual([orphan], upgrade.stale_program_kit_locks(self.root, versions))
+        lock.write_text('corrupt preserved lock')
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'original retained ownership/inactivity'):
+            upgrade.stale_program_kit_locks(self.root, versions)
+
     def test_actual_drafting_rejects_frozen_output_before_saving_phase(self):
         task_draft.prepare(self.root, self.feature, ['docs'])
         tasks = self.feature / 'tasks.md'; before = tasks.read_bytes()

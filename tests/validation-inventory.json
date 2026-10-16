@@ -2261,6 +2261,7 @@
         ".github/**",
         "tests/validate_building_blocks.py",
         "tests/lock_renewal_cases.py",
+        "tests/native_restore_graph_cases.py",
         "docs/**",
         "releases/**"
       ],
@@ -4869,6 +4870,26 @@
       "inputs": ["extensions/program-kit-dotnet/references/persistence-runtimes.json", "extensions/program-kit-dotnet/references/persistence-profiles.md", "tests/validate_schema_role_grants.py"],
       "outputs": ["artifacts/tests/schema-role-grants"], "resources": ["docker"],
       "isolation": "Unique disposable exact-image PostgreSQL container; no consumer data, startup schema creation or coding agent."
+    },
+    {
+      "id": "validate_pdf_decoding",
+      "qualification": {"linux": true, "windows": true, "build": false},
+      "command": ["{python}", "tests/validate_pdf_decoding.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Actual locked public PdfPig stream/provider integration, strict envelope and deferred-work boundaries, named native cases and byte accounting; no general PDF/worker/provider acceptance.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-dotnet/references/examples/pdf-decoding/**",
+        "extensions/program-kit-dotnet/references/pdf-stream-decoding.md",
+        "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
+        "maintenance-policy.json",
+        "tests/validate_pdf_decoding.py"
+      ],
+      "outputs": ["artifacts/pdf-decoding/<unique>/results.json"],
+      "resources": [],
+      "isolation": "New retained owned fixture and public-package cache. Only bounded synthetic inputs; no user PDFs, agents, paid operations or process memory-limit claim."
     },
     {
       "id": "validate_document_ownership",

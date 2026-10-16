@@ -5,6 +5,7 @@ param(
     [ValidateSet('Acceptance', 'Focused', 'Affected')]
     [string]$Scope = 'Acceptance',
     [string[]]$Projects = @(),
+    [string[]]$Checks = @(),
     [string[]]$TestArguments = @(),
     [string[]]$ChangedPaths = @(),
     [string]$ChangedFrom = '',
@@ -105,6 +106,7 @@ if ($Scope -ne 'Acceptance') {
         $additional = @{}
         if ($Reason) { $additional.Reason = $Reason }
         if ($Force) { $additional.Force = $true }
+        if ($Checks.Count) { $additional.Checks = $Checks }
         & $resolved -Scope $Scope -Projects $Projects -TestArguments $TestArguments `
             -ChangedPaths $ChangedPaths -ChangedFrom $ChangedFrom -FeatureDirectory $FeatureDirectory `
             -Configuration $Configuration -Restore:$Restore -Plan:$Plan @additional
@@ -114,6 +116,7 @@ if ($Scope -ne 'Acceptance') {
         $arguments = @((Join-Path $PSScriptRoot 'repository_verification.py'), '--repository', $repository,
             '--scope', $Scope, '--configuration', $Configuration)
         foreach ($project in $Projects) { $arguments += @('--project', $project) }
+        foreach ($check in $Checks) { $arguments += @('--check', $check) }
         foreach ($path in $ChangedPaths) { $arguments += @('--changed-path', $path) }
         foreach ($argument in $TestArguments) { $arguments += "--test-argument=$argument" }
         if ($ChangedFrom) { $arguments += @('--changed-from', $ChangedFrom) }
@@ -122,8 +125,13 @@ if ($Scope -ne 'Acceptance') {
         if ($Force) { $arguments += '--force' }
         if ($Restore) { $arguments += '--restore' }
         if ($Plan) { $arguments += '--plan' }
-        & (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly
-        if (-not $?) { throw 'Could not prepare the native development environment.' }
+        $typedSelection = & $verificationPython @arguments --select-only
+        if ($LASTEXITCODE -ne 0) { throw 'Typed verification ownership selection failed; no check was dispatched.' }
+        $selectedOwners = ($typedSelection -join "`n") | ConvertFrom-Json
+        if ($selectedOwners.projects.Count) {
+            & (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly
+            if (-not $?) { throw 'Could not prepare the native development environment.' }
+        }
         & $verificationPython @arguments
         if ($LASTEXITCODE -ne 0) { throw 'Scoped native checks failed. No full-suite fallback was executed.' }
     }
@@ -132,7 +140,7 @@ if ($Scope -ne 'Acceptance') {
     }
     return
 }
-if ($Projects.Count -or $TestArguments.Count -or $ChangedPaths.Count -or $ChangedFrom -or $Plan -or $Restore -or $Reason -or $Force) {
+if ($Projects.Count -or $Checks.Count -or $TestArguments.Count -or $ChangedPaths.Count -or $ChangedFrom -or $Plan -or $Restore -or $Reason -or $Force) {
     throw 'PKV002 Acceptance cannot be narrowed by development selection parameters.'
 }
 

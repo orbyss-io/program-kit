@@ -802,6 +802,9 @@ def main() -> int:
         target_exporter = json.loads((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json').read_text(encoding='utf-8'))['tools']['orbyss.foundation.openapi.exporter']['version']
         feature = seed_openapi_lifecycle(project, old_runtime)
         (project / "Program.slnx").write_text("<Solution />\n", encoding="utf-8")
+        # This fixture's stale conventional lock is active, not an unexplained
+        # orphan. Its native project owner remains present through migration.
+        (project / 'Fixture.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>')
         (project / "packages.lock.json").write_text(
             json.dumps(
                 {

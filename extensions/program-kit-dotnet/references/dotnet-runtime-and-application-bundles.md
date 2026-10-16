@@ -84,6 +84,10 @@ library may reference a PDF package directly. Multi-assembly runtime loading rep
 is tracked in [Nuplane issue 132](https://github.com/valence-works/nuplane/issues/132); do not force
 isolation, replace a parser or alter package bytes/pins to hide that loader failure. Untrusted-parser
 qualification remains the consumer owner's separate responsibility.
+For the selected PdfPig 0.1.16 decode limitation, public filter-provider adaptation,
+exact envelope/deferred-work boundaries and executable bounded example, see
+[PDF stream decoding](pdf-stream-decoding.md). Strict parsing alone is not stream
+decode evidence; unavailable work grants no paid OCR/model fallback authority.
 
 One application release produces an application-bundle.zip, not a consumer Docker image.
 Run the unchanged, digest-pinned `ghcr.io/orbyss-io/foundation-host` published by Foundation.
