@@ -380,6 +380,30 @@
     {
       "path": "eng/foundation-test-support/IntegrationCase.cs",
       "ownership": "managed"
+    },
+    {
+      "path": "eng/toolkit_verification.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/retained_inputs.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/retained_archives.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/retained_locks.py",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/retained-inputs.schema.json",
+      "ownership": "managed"
+    },
+    {
+      "path": "eng/source_quality.py",
+      "ownership": "managed"
     }
   ],
   "obsoleteFiles": [

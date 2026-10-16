@@ -192,7 +192,9 @@
         "scripts/upgrade_program_kit.py",
         "extensions/program-kit-building-blocks/scripts/restore_dependencies.py",
         "extensions/program-kit-building-blocks/scripts/native_restore_graph.py",
-        "tests/native_restore_graph_cases.py"
+        "tests/native_restore_graph_cases.py",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "tests/identity_projection_cases.py"
       ],
       "validation": [
         {
@@ -215,6 +217,13 @@
           "scope": "Complete sequential offline/local installed migration passed after guard diagnostic-order correction. Historical 0.12.7 and planned/materialized consumers; actual native custom-lock classifier is separately qualified below.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-09/ff2fc14a862f45da9fa65c72783dc027/local-upgrade.log",
           "sha256": "5b597e2ace34a00cf4e8c6708f9493bfe623fd0f9fe0a485b5d0baf10024272b"
+        },
+        {
+          "command": "validate_dotnet_scaffold.py",
+          "status": "passed",
+          "scope": "Actual fresh generated consumer receives toolkit and retained-input transitive helpers and runs installed inspect in isolated Python. Full-tree fixture uses existing owned Windows path adapter.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-14/1792a4aad7fd42ef99d569ec59d6fe20/validate_dotnet_scaffold-repaired.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
         }
       ],
       "remainingDependencies": [
@@ -818,7 +827,9 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
         "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
-        "tests/validate_scoped_verification.py"
+        "tests/validate_scoped_verification.py",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "tests/identity_projection_cases.py"
       ],
       "validation": [
         {
@@ -841,6 +852,13 @@
           "scope": "20 actual reset/document/archive/retired lock and shipped-reader upgrade cases; original anchors, props/targets/broad activation, C#/F#/VB/custom/multiple owner and tamper/orphan/reactivation negatives.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_document_ownership.log",
           "sha256": "507cb7e463beea1a75ac72e3e313f52d481aa0510b0a4dcea5772a7a8bb445fe"
+        },
+        {
+          "command": "validate_dotnet_scaffold.py",
+          "status": "passed",
+          "scope": "Actual fresh generated consumer receives toolkit and retained-input transitive helpers and runs installed inspect in isolated Python. Full-tree fixture uses existing owned Windows path adapter.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-14/1792a4aad7fd42ef99d569ec59d6fe20/validate_dotnet_scaffold-repaired.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
         }
       ],
       "remainingDependencies": [
@@ -864,7 +882,9 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_locks.py",
         "extensions/program-kit-dotnet/references/retained-inputs.md",
         "tests/validate_document_ownership.py",
-        "extensions/program-kit-governance/scripts/task_draft.py"
+        "extensions/program-kit-governance/scripts/task_draft.py",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "tests/identity_projection_cases.py"
       ],
       "validation": [
         {
@@ -880,6 +900,13 @@
           "scope": "Complete sequential offline/local installed migration passed after guard diagnostic-order correction. Historical 0.12.7 and planned/materialized consumers; actual native custom-lock classifier is separately qualified below.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-09/ff2fc14a862f45da9fa65c72783dc027/local-upgrade.log",
           "sha256": "5b597e2ace34a00cf4e8c6708f9493bfe623fd0f9fe0a485b5d0baf10024272b"
+        },
+        {
+          "command": "validate_dotnet_scaffold.py",
+          "status": "passed",
+          "scope": "Actual fresh generated consumer receives toolkit and retained-input transitive helpers and runs installed inspect in isolated Python. Full-tree fixture uses existing owned Windows path adapter.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-14/1792a4aad7fd42ef99d569ec59d6fe20/validate_dotnet_scaffold-repaired.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
         }
       ],
       "remainingDependencies": [
@@ -1218,7 +1245,9 @@
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.phase-context.md",
         "presets/program-kit-governance-preset/commands/speckit.tasks.md",
         "tests/validate_document_ownership.py",
-        "tests/validation-inventory.json"
+        "tests/validation-inventory.json",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "tests/identity_projection_cases.py"
       ],
       "validation": [
         {
@@ -1255,6 +1284,13 @@
           "scope": "63 final-guard story delivery cases, including actual native source execution; fresh-adoption diagnostic order preserved.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-11/1d1f80afa9d94a72a6224e465d8ed25a/validate_story_delivery.log",
           "sha256": "39de3e1332dc511eac33ad94e8c2d8e042a26fe0af4c4ef0dba32cb0b045b683"
+        },
+        {
+          "command": "validate_dotnet_scaffold.py",
+          "status": "passed",
+          "scope": "Actual fresh generated consumer receives toolkit and retained-input transitive helpers and runs installed inspect in isolated Python. Full-tree fixture uses existing owned Windows path adapter.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-14/1792a4aad7fd42ef99d569ec59d6fe20/validate_dotnet_scaffold-repaired.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
         }
       ],
       "remainingDependencies": [
@@ -1268,14 +1304,38 @@
     {
       "id": "N7",
       "finding": "N7 Contract layout/analyzer mismatch",
-      "sourceDiagnosis": "Selected-rule-aware task examples and real compile qualification",
+      "sourceDiagnosis": "Existing selected public analyzer and template already enforce ORB1003. Repair point-of-use task context and maintained valid example; no central multi-type filename generator was established.",
       "workPackages": "F/I",
       "closureRequired": "Native generated contract examples obey selected analyzer; no suppression.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-selected-public-analyzer-proof; installed-profile-and-current-CI-closure-pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/source_quality.py",
+        "extensions/program-kit-governance/scripts/phase_obligations.py",
+        "extensions/program-kit-dotnet/references/dotnet-engineering.md",
+        "extensions/program-kit-dotnet/references/examples/contract-layout",
+        "tests/validate_contract_layout.py",
+        "tests/validate_normal_development.py",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "tests/validation-inventory.json"
+      ],
+      "validation": [
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual current selected public analyzer 0.3.5: four separately documented types compile; combined valid C# fails ORB1003, without C# syntax failure. Cold restore, LockedMode, archive/analyzer DLL hashes retained.",
+          "log": "artifacts/contract-layout/25f96b34586a4ad2bfcfa9462d54474c/results.json",
+          "sha256": "e1e17f21431032bf914c1d993d8889bd89ece9d3bb01e0beea02aef6d260b2ee"
+        },
+        {
+          "command": "validate_normal_development.log",
+          "status": "passed",
+          "scope": "31 ordinary-development cases including consumer selected pin, changed root severity and unsupported pin diagnostic; context makes no effective-project analyzer acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-14/1792a4aad7fd42ef99d569ec59d6fe20/validate_normal_development.log",
+          "sha256": "288ca32bee285a267d88d864a8d83d663a61306a5231b61f38533f5eb0951aac"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Current installed packaged/profile integration and exact-candidate CI qualification remain."
       ],
       "closureEvidence": []
     },

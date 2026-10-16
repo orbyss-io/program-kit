@@ -167,12 +167,14 @@ def model(root, feature, phase='planning', affected_paths=()):
                       if p['path'] in declarations or Path(p['path']).parent.as_posix() in declarations
                       or any(str(path).replace('\\', '/').startswith(Path(p['path']).parent.as_posix()+'/') for path in affected_paths))
     from build_output_recipe import recovery_guidance
+    from source_quality import guidance as source_quality_guidance
     output_guidance = [recovery_guidance(row['path']) for row in (manifest or {}).get('runtimeComposition', {}).get('projects', [])
                        if row['path'] in scoped and (row.get('buildProjectReferences') or row.get('buildOutputCopies'))]
     return {'schemaVersion': 1, 'feature': feature.relative_to(root).as_posix(), 'upgradeCompatibility': compatibility,
             'foundationApplicability': foundation_applicability(root, feature, inherited, tags),
             'lifecycleFindings': lifecycle_findings(root, manifest, scoped) if manifest and 'dotnet' in tags else [],
             'buildOutputGuidance': output_guidance,
+            'sourceQuality': source_quality_guidance(root) if 'dotnet' in tags else None,
             'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
             'decisions': decisions(root, feature),
             'prerequisites': retained_proofs(root, feature, phase),
@@ -202,6 +204,14 @@ def render(value, phase, detailed=False):
         'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
     }
     lines += [actions[phase], '']
+    if value.get('sourceQuality'):
+        quality = value['sourceQuality']
+        lines += ['Selected source rule ' + quality['rule'] + '; '
+                  + quality['analyzerPackage'] + ' version ' + str(quality['selectedVersion'])
+                  + '; root .editorconfig declarations ' + json.dumps(quality['rootDeclarations']) + '.',
+                  *quality['guidance'], '']
+        if quality.get('diagnostic'):
+            lines += ['Source rule context unresolved: ' + quality['diagnostic'], '']
     if value.get('buildOutputGuidance'):
         lines += ['Owned SDK build outputs: review the selected build edge before inventing custom publish/copy tasks.',
                   *value['buildOutputGuidance'], '']

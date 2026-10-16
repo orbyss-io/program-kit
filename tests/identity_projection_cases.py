@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 
 
 def exercise(root):
@@ -26,7 +27,7 @@ def exercise(root):
             (template / f'web-profiles/{profile}/eng/web-profile.json').read_bytes(), replacement))
         assert projected['localIdentityProvider'] == 'keycloak-99.0.1'
         assert projected['localIdentityProviderImage'] == replacement
-    with tempfile.TemporaryDirectory(prefix='identity-local-repair-') as directory:
+    with FixtureDirectory(prefix='identity-local-repair-') as directory:
         fixture = Path(directory)
         sources = fixture / 'source'
         shutil.copytree(root / 'extensions', sources / 'extensions', ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules'))
@@ -39,6 +40,14 @@ def exercise(root):
                    '--web-profile', 'bff-cookie']
         installed = subprocess.run(command, capture_output=True, text=True)
         assert installed.returncode == 0, installed.stdout + installed.stderr
+        # Fresh consumers must receive the transitive helpers used by their public
+        # engineering entry points; source-tree imports cannot establish this.
+        inspected = subprocess.run([sys.executable, '-E', '-s', '-S', str(consumer/'eng/retained_inputs.py'),
+                                   'inspect', '--repository', str(consumer)], capture_output=True, text=True)
+        assert inspected.returncode == 0, inspected.stdout + inspected.stderr
+        assert json.loads(inspected.stdout)['configured'] is False
+        assert (consumer/'eng/toolkit_verification.py').is_file()
+        assert (consumer/'eng/source_quality.py').is_file()
         module = consumer / 'eng/ProviderTestEnvironment.psm1'
         module.write_text('# Consumer-owned isolation module preserved by sync\n')
         module_bytes = module.read_bytes()

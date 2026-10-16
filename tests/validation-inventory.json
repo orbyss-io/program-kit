@@ -4942,6 +4942,39 @@
       "outputs": [],
       "resources": [],
       "isolation": "Owned disposable fictional consumers and actual installed Python CLIs; no coding agent, live consumer, database or provider."
+    },
+    {
+      "id": "validate_contract_layout",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_contract_layout.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Actual selected public ORB1003 analyzer: four separate contracts compile and valid combined source fails the named rule.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_contract_layout.py",
+        "extensions/program-kit-dotnet/references/examples/contract-layout/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
+        "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/source_quality.py"
+      ],
+      "outputs": [
+        "artifacts/contract-layout/<unique>/results.json"
+      ],
+      "resources": [],
+      "isolation": "New owned synthetic consumer and native public-package cache; no agents or application acceptance."
     }
   ],
   "groups": {

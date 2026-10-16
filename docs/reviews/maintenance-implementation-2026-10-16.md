@@ -386,3 +386,23 @@ storage, hostile writers, authority backup rollback and power-loss durability.
 Payload deletion does not imply staging/history/privacy cleanup. Uncertain effects
 remain recovery work, without blind resubmission or paid dispatch. Remaining frozen
 mechanisms and full source qualification continue.
+
+## Continuation: current Development findings and contract source layout
+
+The c931996 Development run retained 109 results: 107 passed and two failed.
+The failed run remains failed at `artifacts/validation-runs/20261016T183753Z-417f9005/journal.json`.
+Four optional references lacked knowledge inventory dispositions, and a fresh emitted
+consumer omitted the new toolkit/retained-input transitive helpers from its managed
+file list. The corrected inventory, actual architecture recipe and fresh scaffold
+now pass separately. Existing full-tree identity fixture paths now use the owned
+Windows adapter; unrelated source and frozen findings remain unchanged.
+
+N7 now projects the actual consumer analyzer pin and root ORB1003 declaration into
+planning/tasks/implementation context. A four-file documented contract example passes
+the selected public 0.3.5 analyzer; combining those valid types fails ORB1003 without
+C# syntax errors. Unsupported pins stay unresolved, and root declarations do not
+claim effective nested project settings. The maintained native qualifier retains
+lock, package, analyzer assets and source hashes. Ordinary development (31 cases),
+phase obligations, knowledge inventory, architecture recipe, native contract layout,
+validation runner and repository sync checks passed. Current full qualification
+remains outstanding; other approved repairs continue.

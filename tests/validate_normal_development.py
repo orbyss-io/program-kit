@@ -21,6 +21,19 @@ from validate_story_delivery import seed, accepted_fixture
 
 
 class DevelopmentTests(unittest.TestCase):
+    def test_source_rule_context_uses_consumer_pin_and_declared_severity_without_native_claim(self):
+        from source_quality import guidance
+        (self.root/'Directory.Packages.props').write_text('<Project><ItemGroup><PackageVersion Include="Orbyss.Foundation.Analyzers" Version="0.3.4" /></ItemGroup></Project>')
+        (self.root/'.editorconfig').write_text('[*.cs]\ndotnet_diagnostic.ORB1003.severity = warning\n')
+        result = guidance(self.root)
+        self.assertEqual('0.3.4', result['selectedVersion'])
+        self.assertEqual([{'section': '[*.cs]', 'severity': 'warning'}], result['rootDeclarations'])
+        self.assertFalse(result['effectiveProjectConfigurationQualified'])
+        (self.root/'Directory.Packages.props').write_text('<Project><ItemGroup><PackageVersion Include="Orbyss.Foundation.Analyzers" Version="$(Unknown)" /></ItemGroup></Project>')
+        unresolved = guidance(self.root)
+        self.assertIsNone(unresolved['selectedVersion'])
+        self.assertIn('PKR019', unresolved['diagnostic'])
+
     def test_selected_runtime_cannot_enter_implementation_without_its_model(self):
         path = self.root / 'docs/architecture/building-block-selection.json'
         path.parent.mkdir(parents=True, exist_ok=True)
