@@ -439,3 +439,37 @@ and validation-runner checks passed separately. Native-start coverage reports
 44 executed cases and two local host exclusions (directory symlink permission and
 POSIX ownership initialization); Linux CI remains responsible for those paths.
 Current whole-source/profile integration and CI qualification remain due.
+
+## Continuation: narrow OCR operation execution and original accounting
+
+N8 now has an optional exact OCR-only path alongside the unchanged broad provider
+gate. Native latest compatibility evidence binds the fixture, operation, original
+account authority and prepared public SDK adapter. A separate human-terminal
+one-use attestation supplies provider consent; fictional recording authority can
+never authorize provider execution. Explicit preparation acquires public packages;
+execution performs read-only readiness and never restores or builds implicitly.
+
+The original resource account retains historical mappings, full reservations,
+unknown outcomes and action counts. Atomic admission precedes possible POST.
+Missing/copying private state cannot initialize fresh budget. The actual selected
+Azure SDK 1.0.0 sends one exact Read/pages=1 request with no retry or hidden poll.
+Handles survive later body failure, timeout and actual native-process exit.
+Recovery uses the original archived operation and bounded GET/DELETE permission,
+never another POST. DELETE acknowledgment remains uncertain until a separate
+GET observes absence; cleanup never refunds reserved capacity.
+
+All 16 checks passed, including 11 required integrated cases in
+`artifacts/t/op-native-2d93baa173574acbaf45632926650df8/results.json`.
+Eight native competing processes consumed one manifest once; four separate native
+processes refused exhausted original aggregate capacity. Cold public LockedMode,
+native runtime/archive DLL hashes, original receipts/JUnit, source begin/end and
+bounded redacted process streams are retained. An initial test read a long native
+path through an ordinary Windows Python path and failed; the owned filesystem
+adapter corrected that test. Earlier failures remain preserved. Knowledge inventory,
+phase obligations and validation-runner checks passed; sandbox TEMP permission
+failures were rerun with normal TEMP and are not product regressions.
+
+No real provider/model call or coding agent ran. This proof supplies neither human
+consent nor application/provider acceptance. Hostile writers, authority backup
+rollback, network storage, multiple hosts and OS CPU/memory ceilings remain outside
+this local accounting claim. Remaining frozen work and full qualification continue.

@@ -1945,6 +1945,27 @@
         "requirements": [],
         "review": "Persistence admission links the optional bounded physical-effect example; application storage and distributed deployment need their own qualification."
       }
+    },
+    {
+      "path": "program-kit-governance/references/ocr-only-operations.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "Optional exact provider-operation lookup; no global OCR or paid acceptance requirement.",
+      "route": {
+        "kind": "routing",
+        "via": [
+          "extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+          "tests/validate_provider_operation_accounting.py"
+        ],
+        "sections": [
+          "Bounded OCR-only provider operations"
+        ],
+        "requirements": [],
+        "review": "Explicit narrow operation admission/accounting and native recording proof; human terminal consent remains separate."
+      }
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",

@@ -42,6 +42,7 @@
     "extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json",
     "extensions/program-kit-dotnet/references/persistence-runtimes.json",
     "extensions/program-kit-dotnet/references/examples/pdf-decoding/PdfDecodingExample.csproj",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/OcrOperation.csproj",
     ".python-version"
   ],
   "families": {

@@ -5017,6 +5017,43 @@
         "docker"
       ],
       "isolation": "Uniquely labelled disposable pinned PostgreSQL container and synthetic credentials; actual native runtime children receive no deployment connection; no existing database, ownership transfer, live consumer, agent or paid provider."
+    },
+    {
+      "id": "validate_provider_operation_accounting",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_provider_operation_accounting.py"
+      ],
+      "group": "integration",
+      "needs": [
+        "validate_bootstrap_lifecycle"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Actual native admission, public OCR SDK and separate recording processes: exact one-use operation, original history/caps, crash/timeout/unknown recovery, no re-POST, delete versus observed absence; no paid call.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_provider_operation_accounting.py",
+        "tests/provider-operation-cases.json",
+        "extensions/program-kit-governance/scripts/provider_operation*.py",
+        "extensions/program-kit-governance/references/ocr-only-operations.md",
+        "extensions/program-kit-dotnet/references/examples/ocr-operation/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
+        "tests/validate_bootstrap_lifecycle.py",
+        "maintenance-policy.json"
+      ],
+      "outputs": [
+        "artifacts/t/op-native-<unique>/results.json"
+      ],
+      "resources": [],
+      "isolation": "New owned retained synthetic consumer and cold public SDK cache. Recording terminal only: no socket, paid provider, model or coding agent. Original account authority remains distinct from disposable cache."
     }
   ],
   "groups": {

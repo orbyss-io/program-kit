@@ -1368,14 +1368,37 @@
     {
       "id": "N8",
       "finding": "N8 OCR-only authority",
-      "sourceDiagnosis": "Reusable narrow operation binding/execution/accounting/recovery",
+      "sourceDiagnosis": "Existing broad provider/model admission correctly rejects the narrower request. Added optional exact OCR-only native admission, separate human terminal one-use provider attestation, durable original account/reservation history, actual public SDK single dispatch and original bounded recovery. Recording authority cannot authorize provider I/O.",
       "workPackages": "L/I",
       "closureRequired": "Offline exact-scope/concurrent-cap/unknown-outcome/no-resubmit/no-model/no-fallback proof.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-offline-native-operation-proof; current-profile-and-CI-closure-pending",
+      "changedFiles": [
+        "extensions/program-kit-governance/scripts/provider_operation.py",
+        "extensions/program-kit-governance/scripts/provider_operation_authority.py",
+        "extensions/program-kit-governance/scripts/provider_operation_prepare.py",
+        "extensions/program-kit-governance/scripts/provider_operation_execute.py",
+        "extensions/program-kit-governance/references/ocr-only-operations.md",
+        "extensions/program-kit-dotnet/references/examples/ocr-operation",
+        "extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+        "tests/validate_provider_operation_accounting.py",
+        "tests/provider-operation-cases.json",
+        "tests/validate_ocr_operation.py",
+        "tests/validation-inventory.json",
+        "extensions/program-kit-governance/references/phase-obligations.json",
+        "maintenance-policy.json",
+        "AGENTS.md"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_provider_operation_accounting.py",
+          "status": "passed",
+          "scope": "16 tests, including 11 exact named integrated cases, actual native latest compatibility/JUnit admission, cold locked public Azure SDK 1.0.0, eight native competing processes with exactly one one-use reservation, four native cap refusals, original history, physical copied/lost store denial, SDK recording submit/poll/delete, separate absence, timeout/body/transport/process-exit uncertainty, immediate retained handle, original-contract recovery and no resubmission. Source begin/end, actual runtime/archive DLL and process/stream hashes retained. Local NTFS only; no provider socket, model, human attestation or paid worker.",
+          "log": "artifacts/t/op-native-2d93baa173574acbaf45632926650df8/results.json",
+          "sha256": "0a98a3fed5384debbd714a399dfde5118f28121f805cb83ca713991eca4c7a5c"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Current installed packaged/profile integration and exact-candidate CI qualification remain. No paid provider call, human consent, combined model/provider or application acceptance is claimed."
       ],
       "closureEvidence": []
     },

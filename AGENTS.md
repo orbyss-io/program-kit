@@ -63,6 +63,13 @@ qualification from another commit or rewriting a receipt.
 
 ## Optional live acceptance
 
+The optional OCR-only provider operation path is separate from coding-worker
+acceptance. Its account initialization and `provider_operation_authority.py`
+interactive issuance are human-terminal-owned: never launch either from an agent,
+CI or unattended hook. Deterministic validators may issue fictional recording-mode
+manifests and run offline transports; those cannot authorize provider I/O. Preserve
+original account authority, reservations and uncertain outcomes across sessions.
+
 ### Optional non-authorizing proxy intake
 
 An explicit user request for a proxy intake/rehearsal authorizes the current session to simulate

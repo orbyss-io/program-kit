@@ -1,0 +1,13 @@
+[
+  "eight-native-processes-one-use-admission-exactly-one-reservation",
+  "actual-native-submit-result-delete-ack-separate-absence-no-refund",
+  "consumed-and-copied-native-ticket-zero-repeat-transport",
+  "actual-native-oversized-response-unknown-reservation-no-resubmit",
+  "actual-native-timeout-after-handle-unknown-reservation-no-resubmit",
+  "actual-native-transport-failure-unknown-reservation-no-resubmit",
+  "actual-native-exit-after-handle-unknown-reservation-no-resubmit",
+  "actual-native-exit-before-transport-unknown-reservation-no-resubmit",
+  "four-native-processes-original-cap-includes-all-unknown-reservations",
+  "original-operation-recovery-after-current-contract-changed",
+  "read-only-readiness-rejects-changed-native-payload"
+]

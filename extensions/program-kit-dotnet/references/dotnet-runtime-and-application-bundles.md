@@ -135,6 +135,10 @@ repository-sync mechanism; retire untouched managed image files and report confl
 
 ## Boundaries retained from the wider .NET profile
 
+For an explicitly authorized one-page OCR operation, use the optional
+[OCR-only operation boundary](../../program-kit-governance/references/ocr-only-operations.md).
+Its recording proof supplies no paid or combined provider acceptance.
+
 - Central package management, locked restore, deterministic pack, and package-source mapping are mandatory.
 - `shells.json`, `hostsettings.json` and `nuplane.settings.json` remain scaffold-once consumer-owned inputs.
 - Managed OpenAPI production runs after package-closure staging through
