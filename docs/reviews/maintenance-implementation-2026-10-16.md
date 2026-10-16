@@ -167,3 +167,57 @@ delay; exhaustion stays a failure and an observed concurrent edit prevents retry
 No permissions are changed and no particular cause of the earlier host failures is
 asserted. This is checkpoint persistence evidence, not a human review or full suite
 qualification.
+
+## Full-tree Windows continuation and exact material assessment
+
+The continuation repairs snapshot, reproduction, rollback and mutation inventory I/O
+without dropping historical profiles or shortening the represented installation.
+Shared disposable fixtures now use exact-owned scratch; native shell entry points
+receive ordinary drive syntax while Python filesystem I/O uses extended paths.
+Foundation readiness gives children an absolute owned evidence directory so their
+relative-path APIs cannot recreate the legacy Windows limit. Transaction journal
+replacement has bounded native sharing recovery and refuses a changed destination.
+The original operation, cleanup and concurrent-edit failures remain observable.
+
+All 29 consumer upgrade, 28 Foundation setup, 17 scratch/transaction, and qualifier
+contract checks pass in their retained targeted runs. Separate current lifecycle,
+phase, readiness, provider-context, ownership and workflow checks pass as recorded
+under `artifacts/maintenance-implementation-2026-10-16/continuation-01` through `04`.
+Intermediate failures remain preserved. Sandbox-denied loopback operations were
+rerun with external-process access; no device software or installed CLI was changed.
+
+N3's `assess-material` transition records a separate explicit owner instruction for
+the exact prior accepted decision, all changed inputs, retained before bytes and
+current evidence. It requires independent build/dependency/packaging/runtime effect
+conclusions. It preserves the original presentation, reviewer, decision, scope,
+baseline and measured effort. An exact conservative current engineering context
+also binds newly introduced member inputs. It grants no standing exclusion to
+future sibling work, and tests alone cannot supply the human materiality decision.
+
+All 61 story-delivery cases pass. The new native case actually restores, builds,
+packs and executes a selected project before/after an unrelated solution addition;
+its selected artifacts and packaged assembly remain equal. A subsequent shared
+build-property change changes observed runtime behavior and reopens review. Native
+commands/results are retained under `artifacts/tests/review-material-native/`.
+Every human decision is labelled simulated; the active consumer is untouched.
+Automatic typed architecture/solution projection remains unfinished and these
+inputs retain their whole-file bindings. Foundation native presentation and the
+other remaining 47-item implementation/qualification/adoption gates remain open.
+
+That fresh bounded Development run completed with 102 passing and four failing
+steps at `artifacts/validation-runs/20261016T145613Z-39a42a54/journal.json`. It remains
+failed. Further inspection distinguished the missed profile-compaction/transition
+path issue, Program Kit's traceability replacement and two native Spec Kit workflow
+checkpoint replacement failures. The first two now pass targeted validation; the
+native CLI failures have an unadopted observation with source identities and original
+streams. Their host-versus-publisher cause is unproven. No third-party CLI source,
+device policy or workflow replay behavior was changed.
+
+Final targeted validation passes 62 story-delivery, 19 scratch/transaction/governance
+and 17 dependency-profile cases, plus readiness scope, governance state and shell
+preflight. Diagnostics retain the human-reviewed hash after engineering refresh,
+expose the exact decision digest and diagnose context changes after retrospective
+assessment. Subsequent assessments bind added/removed context inputs and retain
+the complete earlier original/evidence chain. These targeted passes are not merged
+into the failed suite. Fresh stable-source Development is the next validation.
+The historical 79-pass/27-failure run also remains failed.

@@ -5,6 +5,7 @@ import importlib.util
 import json
 import os
 import shutil
+import time
 import uuid
 from pathlib import Path, PurePosixPath
 
@@ -40,9 +41,27 @@ def safe_relative(value: str) -> str:
 def atomic_write(path: Path, content: bytes, suffix: str) -> None:
     path = filesystem_root(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    previous = path.read_bytes() if path.is_file() else None
     temporary = path.with_name(f"{path.name}.{suffix}.tmp")
-    temporary.write_bytes(content)
-    os.replace(temporary, path)
+    try:
+        temporary.write_bytes(content)
+        for attempt in range(5):
+            try:
+                os.replace(temporary, path)
+                break
+            except PermissionError as error:
+                if os.name != 'nt' or getattr(error, 'winerror', None) not in (5, 32, 33) or attempt == 4:
+                    raise
+                time.sleep(.02 * (attempt + 1))
+                try:
+                    unchanged = (path.read_bytes() if path.is_file() else None) == previous
+                except OSError:
+                    unchanged = False
+                if not unchanged:
+                    error.add_note('Transaction destination changed or became unreadable while replacement was blocked; no retry.')
+                    raise
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def write_journal(path: Path, value: dict) -> None:

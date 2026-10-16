@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory, native_path
 from pathlib import Path
 from unittest.mock import patch
 
@@ -46,7 +47,7 @@ def workflow_checks(root, context, run_id):
         context.record_architecture_blocked(root, run_id, "Renderer compatibility unresolved", "architecture", "Compare supported renderer options")
         return {"exit_code": 0, "stdout": "BLOCKED", "stderr": ""}
 
-    engine = WorkflowEngine(root)
+    engine = WorkflowEngine(Path(native_path(root)))
     # Preserve the seeded typed inputs in the reduced workflow fixture.
     definition.inputs = {}
     with patch.object(CommandStep, "_try_dispatch", side_effect=blocked_dispatch) as dispatch:
@@ -69,7 +70,7 @@ def main():
     catalog = blocks.load_json(bt.CATALOG)
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
     from repository_architecture import validate_manifest
-    with tempfile.TemporaryDirectory(prefix='planned-modularity-') as temporary:
+    with FixtureDirectory(prefix='planned-modularity-') as temporary:
         planned_root = Path(temporary)
         valid = {'runtimeComposition': {'projects': [
             {'path': 'src/Notes.Core/Notes.Core.csproj', 'role': 'core'},
@@ -90,7 +91,7 @@ def main():
             raise AssertionError('Planned composition role hid a domain implementation')
         validate_manifest(planned_root, {'runtimeComposition': {'projects': []}})
     write, write_json = ct.write, ct.write_json
-    with tempfile.TemporaryDirectory(prefix="program-kit-placement-") as temporary:
+    with FixtureDirectory(prefix="program-kit-placement-") as temporary:
         root = Path(temporary)
         intake = {"routing": {"capabilities": ["authenticated-browser-bff", "forms", "localization"]}}
         installed = root / ".specify/extensions/program-kit-building-blocks"
@@ -200,7 +201,7 @@ def main():
         assert next(t for t in context.building_block_target_inventory(root)["candidates"] if t["path"] == selection["targets"][0]["path"])["origin"] == "observed"
         invalid(lambda s: s["targets"][0].update(path="src/pricing/Pricing.csproj"), "PKB301")
 
-    with tempfile.TemporaryDirectory(prefix="program-kit-recovery-") as temporary:
+    with FixtureDirectory(prefix="program-kit-recovery-") as temporary:
         root = Path(temporary)
         run_id = "bd6be6ca"
         ct.seed_project(root, context, semantic, run_id)

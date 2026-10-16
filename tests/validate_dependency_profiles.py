@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import shutil
 import unittest
 from unittest.mock import patch
@@ -23,7 +24,7 @@ class ProfileTests(unittest.TestCase):
     def test_bundle_compaction_preserves_all_historical_authorities_and_fact_bytes(self):
         sys.path.insert(0, str(ROOT / 'scripts'))
         from build_release import pack_historical_package_facts
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             staging = Path(directory)
             registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'
             shutil.copytree(blocks.profile_registry(), registry)
@@ -59,7 +60,7 @@ class ProfileTests(unittest.TestCase):
     def test_portable_receipt_builder_rejects_changed_or_failed_evidence(self):
         sys.path.insert(0, str(ROOT / 'scripts'))
         from build_dependency_qualification import build
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             native, browser = root / 'native', root / 'browser'
             index = blocks.load_json(blocks.profile_registry() / 'index.json')
@@ -131,7 +132,7 @@ class ProfileTests(unittest.TestCase):
 
     def test_generic_default_receipt_rejects_incomplete_or_changed_qualification(self):
         catalog = blocks.load_json(fixtures.CATALOG)
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             registry = Path(directory) / 'registry'
             shutil.copytree(blocks.profile_registry(), registry)
             index = blocks.load_json(registry / 'index.json')
@@ -176,7 +177,7 @@ class ProfileTests(unittest.TestCase):
                     'entrySha256': blocks.canonical_sha256(index['profiles'][HISTORICAL])}
         for web in ('none', 'spa-pkce', 'bff-cookie'):
             for persistence in ('none', 'ef-postgresql'):
-                with self.subTest(web=web, persistence=persistence), tempfile.TemporaryDirectory() as directory:
+                with self.subTest(web=web, persistence=persistence), FixtureDirectory() as directory:
                     root = Path(directory)
                     command = [sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
                         '--target', str(root), '--profile-selected', '--foundation-host-accepted',
@@ -257,7 +258,7 @@ class ProfileTests(unittest.TestCase):
         return registry, index, receipt
 
     def test_native_qualification_binds_complete_stages_and_exact_activation_scope(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             registry, index, receipt = self.native_registry(directory)
             catalog = blocks.load_json(fixtures.CATALOG)
             blocks.qualified_dependency_profile(registry, None, catalog)
@@ -285,7 +286,7 @@ class ProfileTests(unittest.TestCase):
                     blocks.qualified_dependency_profile(registry, None, catalog)
 
     def test_installed_qualified_profile_binds_portable_checkout_bytes(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             registry = Path(directory) / 'profiles'
             shutil.copytree(blocks.profile_registry(), registry)
             index = blocks.load_json(registry / 'index.json')
@@ -310,7 +311,7 @@ class ProfileTests(unittest.TestCase):
 
     def test_scaffold_default_survives_check_and_later_registry_default_change(self):
         import subprocess
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             command = [sys.executable, str(ROOT / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
                 '--target', str(root), '--profile-selected', '--foundation-host-accepted',
@@ -350,7 +351,7 @@ class ProfileTests(unittest.TestCase):
     def test_profile_review_reconciles_producers_with_recoverable_sealed_files(self):
         class Interrupted(BaseException): pass
         for stop in ('catalog.contract.json', 'accepted.json'):
-            with self.subTest(stop=stop), tempfile.TemporaryDirectory() as directory:
+            with self.subTest(stop=stop), FixtureDirectory() as directory:
                 root = Path(directory)
                 catalog = blocks.load_json(fixtures.CATALOG)
                 installed = root / 'installed-catalog.json'
@@ -410,7 +411,7 @@ class ProfileTests(unittest.TestCase):
                 self.assertEqual(state, blocks.load_json(root / '.program-kit/lifecycle/SPC-001.json'))
 
     def test_profile_review_rejects_changed_producer_proposals_and_originals(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             catalog = blocks.load_json(fixtures.CATALOG)
             installed = root / 'installed-catalog.json'
@@ -466,7 +467,7 @@ class ProfileTests(unittest.TestCase):
 
     def test_new_project_scaffolding_and_draft_share_qualified_default(self):
         import subprocess
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             catalog = blocks.load_json(fixtures.CATALOG)
             registry = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'
@@ -512,7 +513,7 @@ class ProfileTests(unittest.TestCase):
             self.assertIn('newProjectQualification', blocks.load_json(root / '.program-kit/dependency-profile.json'))
 
     def test_new_default_requires_qualification_and_rejects_excluded_activations(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             registry = root / 'registry'
             shutil.copytree(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles', registry)
@@ -600,7 +601,7 @@ class ProfileTests(unittest.TestCase):
             fixture.doCleanups()
 
     def test_publisher_qualification_scope_cannot_be_bypassed(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             catalog = blocks.load_json(fixtures.CATALOG)
             installed = root / 'installed-catalog.json'
@@ -630,7 +631,7 @@ class ProfileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'composition rules'): profiles.materialize(changed, selected)
 
     def test_draft_review_recovery_and_unqualified_rejection(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with FixtureDirectory() as directory:
             root = Path(directory)
             catalog = blocks.load_json(fixtures.CATALOG)
             installed = root / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
@@ -670,7 +671,7 @@ class ProfileTests(unittest.TestCase):
     def test_interrupted_promotion_resumes_sealed_review_and_invalidates_only_affected_readiness(self):
         class Interrupted(BaseException): pass
         for stop in ('architecture-map.json', 'building-block-selection.json', 'dependency-profile.json', 'accepted.json'):
-            with self.subTest(stop=stop), tempfile.TemporaryDirectory() as directory:
+            with self.subTest(stop=stop), FixtureDirectory() as directory:
                 root = Path(directory)
                 catalog = blocks.load_json(fixtures.CATALOG)
                 catalog['families']['foundation']['releaseVersion'] = '0.2.3'

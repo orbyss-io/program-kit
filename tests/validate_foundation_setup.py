@@ -20,7 +20,9 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
-EVIDENCE = ROOT / 'artifacts/tests/foundation-setup-validator' / os.urandom(8).hex()
+sys.path.insert(0, str(ENG))
+from owned_scratch import filesystem_path
+EVIDENCE = Path(filesystem_path(ROOT / 'artifacts/tests/foundation-setup-validator' / os.urandom(8).hex()))
 
 
 def load(name, path):

@@ -11,6 +11,8 @@ import os
 import subprocess
 import sys
 import tempfile
+import uuid
+import zipfile
 import unittest
 from unittest.mock import patch
 
@@ -84,6 +86,184 @@ def accepted_fixture(root, feature):
 
 
 class DeliveryTests(unittest.TestCase):
+    def material_assessment(self, extra_basis=()):
+        solution = self.root / 'Application.slnx'
+        solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /></Solution>')
+        self.complete('T001', 'T002')
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+                 basisPaths=['src/Create.txt', 'Application.slnx', *extra_basis], entryPoint='Fictional application',
+                 preparedData='Synthetic records', walkthrough='Create and reopen', expected='Owned result',
+                 limitations='Simulated human assessment; unit fixture has no native build claim')
+        self.accept()
+        original = copy.deepcopy(delivery.load_delivery(self.feature))
+        archive = self.root / 'artifacts/original.slnx'
+        archive.write_bytes(solution.read_bytes())
+        solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /><Project Path="src/Unrelated/Unrelated.csproj" /></Solution>')
+        decision = original['checkpoints']['US1']['decisions'][-1]
+        request = {'checkpoint': 'US1', 'actor': 'owner', 'source': 'Simulated explicit separate owner assessment',
+                   'decisionSha256': hashlib.sha256(delivery._basis_bytes(decision)).hexdigest(),
+                   'checks': ['artifacts/passing.json'], 'changes': [{
+                       'path': 'Application.slnx', 'before': {'path': 'artifacts/original.slnx',
+                           'sha256': hashlib.sha256(archive.read_bytes()).hexdigest()},
+                       'afterSha256': hashlib.sha256(solution.read_bytes()).hexdigest(), 'conclusion': 'nonmaterial',
+                       'rationale': 'Synthetic disconnected member; actual closure assessment is human-owned',
+                       'effects': {key: 'Explicit synthetic assessment of ' + key
+                                   for key in ('build', 'dependencies', 'packaging', 'runtime')}}]}
+        return original, request
+
+    def test_native_unrelated_solution_member_and_shared_runtime_change_have_distinct_evidence(self):
+        import shutil
+        self.assertIsNotNone(shutil.which('dotnet'), 'Prepare the selected .NET SDK before this native case')
+        evidence = ROOT / 'artifacts/tests/review-material-native' / uuid.uuid4().hex
+        evidence.mkdir(parents=True)
+        empty = self.root / 'empty-feed'; empty.mkdir()
+        props = self.root / 'Directory.Build.props'
+        props.write_text('<Project><PropertyGroup><DefineConstants>BASELINE</DefineConstants></PropertyGroup></Project>')
+        project_text = ('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework>'
+                        '<OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings>'
+                        '</PropertyGroup></Project>')
+        for name in ('Create', 'Unrelated'):
+            directory = self.root / 'src' / name; directory.mkdir()
+            (directory / (name + '.csproj')).write_text(project_text)
+            (directory / 'Program.cs').write_text('#if CHANGED\nConsole.WriteLine("changed shared runtime");\n#else\nConsole.WriteLine("baseline runtime");\n#endif\n')
+        solution = self.root / 'Application.slnx'
+        solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /></Solution>')
+        commands = []
+        def native(*args):
+            command = ['dotnet', *args]
+            completed = subprocess.run(command, cwd=self.root, capture_output=True, text=True, encoding='utf-8', timeout=120)
+            log = evidence / ('command-' + str(len(commands)) + '.log')
+            log.write_text(completed.stdout + completed.stderr, encoding='utf-8')
+            commands.append({'command': command, 'exitCode': completed.returncode,
+                             'log': log.relative_to(ROOT).as_posix(), 'sha256': hashlib.sha256(log.read_bytes()).hexdigest()})
+            (evidence / 'commands.json').write_text(json.dumps(commands, indent=2))
+            self.assertEqual(0, completed.returncode, completed.stdout + completed.stderr)
+            return completed.stdout.strip()
+        def build_and_pack(output):
+            native('restore', 'Application.slnx', '--source', str(empty))
+            native('build', 'Application.slnx', '--no-restore', '-c', 'Release')
+            native('pack', 'src/Create/Create.csproj', '--no-build', '--no-restore', '-c', 'Release', '-o', str(output))
+            return {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                    for path in (self.root / 'src/Create/bin/Release/net10.0').iterdir() if path.is_file()}
+        before = build_and_pack(self.root / 'artifacts/package-before')
+        self.assertEqual('baseline runtime', native('src/Create/bin/Release/net10.0/Create.dll'))
+        original, request = self.material_assessment(extra_basis=['Directory.Build.props',
+            'src/Create/Create.csproj', 'src/Create/Program.cs'])
+        after = build_and_pack(self.root / 'artifacts/package-after')
+        self.assertEqual(before, after)
+        self.assertEqual('baseline runtime', native('src/Create/bin/Release/net10.0/Create.dll'))
+        packages = [next((self.root / 'artifacts' / folder).glob('*.nupkg')) for folder in ('package-before', 'package-after')]
+        with zipfile.ZipFile(packages[0]) as left, zipfile.ZipFile(packages[1]) as right:
+            self.assertEqual(left.read('lib/net10.0/Create.dll'), right.read('lib/net10.0/Create.dll'))
+        report = self.root / 'artifacts/native-checks.json'
+        report.write_text(json.dumps({'status': 'completed', 'exitCode': 0, 'commands': commands,
+            'selectedBuildAndRuntimeBefore': before, 'selectedBuildAndRuntimeAfter': after,
+            'humanAssessment': 'simulated; real consumer authority not established'}))
+        request['checks'] = ['artifacts/native-checks.json']
+        self.act('assess-material', **request); self.act('status')
+        retained = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('accepted', retained['human'])
+        self.assertEqual(original['checkpoints']['US1']['decisions'], retained['decisions'])
+        props.write_text(props.read_text().replace('BASELINE', 'CHANGED'))
+        native('build', 'Application.slnx', '--no-restore', '-c', 'Release')
+        self.assertEqual('changed shared runtime', native('src/Create/bin/Release/net10.0/Create.dll'))
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+        (evidence / 'result.json').write_text(json.dumps({'status': 'passed', 'commands': commands,
+            'unrelatedSolutionMemberPreservesSelectedOutputs': before == after,
+            'sharedRuntimeChangeReopensReview': True, 'acceptanceEstablished': False}, indent=2))
+
+    def test_exact_separate_material_assessment_preserves_original_review_and_effort(self):
+        original, request = self.material_assessment()
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+        self.act('assess-material', **request)
+        self.act('status')
+        current = delivery.load_delivery(self.feature)
+        before, after = original['checkpoints']['US1'], current['checkpoints']['US1']
+        self.assertEqual('accepted', after['human'])
+        for field in ('presentation', 'decisions', 'reviewer', 'basisPaths'):
+            self.assertEqual(before[field], after[field])
+        self.assertEqual(original['stories'], current['stories'])
+        self.assertEqual('original-commit', delivery.current(self.feature)['baseline'])
+        (self.root / 'Application.slnx').write_text('<Solution>Changed effective runtime closure</Solution>')
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_material_assessment_rejects_missing_authority_inputs_effects_and_failed_checks(self):
+        _, request = self.material_assessment()
+        mutations = [lambda row: row.update(actor='requester'), lambda row: row.pop('source'),
+                     lambda row: row.update(decisionSha256='unrelated'), lambda row: row.update(changes=[]),
+                     lambda row: row.update(basisPaths=['src/Create.txt']),
+                     lambda row: row['changes'][0].update(afterSha256='stale'),
+                     lambda row: row['changes'][0]['effects'].pop('packaging'),
+                     lambda row: row['changes'][0]['before'].update(sha256='unrelated')]
+        for mutate in mutations:
+            changed = copy.deepcopy(request); mutate(changed)
+            with self.assertRaises(ValueError): self.act('assess-material', **changed)
+            self.assertFalse(delivery.load_delivery(self.feature)['checkpoints']['US1'].get('materialAssessments'))
+        (self.root / 'artifacts/passing.json').write_text('{"status":"failed","exitCode":1}')
+        with self.assertRaisesRegex(ValueError, 'Failed/incomplete'):
+            self.act('assess-material', **request)
+
+    def test_material_assessment_cannot_redefine_scope_or_survive_changed_evidence_or_rules(self):
+        _, request = self.material_assessment()
+        self.act('assess-material', **request)
+        with patch.object(delivery, 'assessment_policy', return_value={'policy': 'changed'}):
+            self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+        (self.root / 'artifacts/passing.json').write_text('{"status":"completed","exitCode":0,"changed":true}')
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+        state = delivery.load_delivery(self.feature)
+        state['checkpoints']['US1']['materialScope'] = {'schemaVersion': 1, 'inputs': []}
+        with self.assertRaisesRegex(ValueError, 'cannot narrow'):
+            delivery.validate(state)
+
+    def test_new_member_inputs_and_context_diagnostics_cannot_borrow_prior_assessment(self):
+        _, request = self.material_assessment()
+        self.act('assess-material', **request)
+        import review_material
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertTrue(review_material.explain(self.root, review)['materialUnchanged'])
+        member = self.root / 'src/Unrelated.cs'
+        member.write_text('New member runtime effect after the exact assessment')
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('pending', review['human'])
+        diagnostics = review_material.explain(self.root, review)
+        self.assertFalse(diagnostics['materialUnchanged'])
+        self.assertEqual(['src/Unrelated.cs'], [row['path'] for row in diagnostics['assessment']['changedContextInputs']])
+        self.assertEqual(request['decisionSha256'], diagnostics['decisionSha256'])
+        # A subsequent owner assessment must cover the exact new context input;
+        # absence is proved by the previously bound inventory, not guessed now.
+        changed = copy.deepcopy(request)
+        changed['changes'] = [{**changed['changes'][0], 'path': 'src/Unrelated.cs',
+            'before': {'absent': True}, 'afterSha256': hashlib.sha256(member.read_bytes()).hexdigest()}]
+        self.act('assess-material', **changed); self.act('status')
+        retained = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('accepted', retained['human'])
+        self.assertEqual(2, len(retained['materialAssessments']))
+        self.assertTrue(review_material.explain(self.root, retained)['materialUnchanged'])
+        (self.root / 'artifacts/original.slnx').write_text('tampered original from the earlier assessment')
+        self.act('status')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
+    def test_whole_file_diagnostics_do_not_ignore_solution_additions(self):
+        original, _ = self.material_assessment()
+        import review_material
+        result = review_material.explain(self.root, original['checkpoints']['US1'])
+        self.assertFalse(result['materialUnchanged'])
+        self.assertFalse(result['acceptanceEstablished'])
+        self.assertIn('runtime assessment', result['inputs'][1]['reason'])
+        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        refreshed = review_material.explain(self.root, delivery.load_delivery(self.feature)['checkpoints']['US1'])
+        self.assertFalse(refreshed['materialUnchanged'])
+        self.assertFalse(refreshed['inputs'][1]['rawChanged'])
+        self.assertTrue(refreshed['inputs'][1]['materialChanged'])
+        self.assertEqual(hashlib.sha256(delivery._basis_bytes(original['checkpoints']['US1']['decisions'][-1])).hexdigest(),
+                         refreshed['decisionSha256'])
+
     @unittest.skipUnless(os.name == 'nt', 'Native Windows file sharing')
     def test_checkpoint_recovers_a_short_native_sharing_block_without_rewriting_history(self):
         import ctypes

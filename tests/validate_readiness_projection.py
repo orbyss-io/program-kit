@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory, native_path
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -21,7 +22,7 @@ g, life = fixture.governance, fixture.lifecycle
 class ProjectionTests(unittest.TestCase):
     def setUp(self):
         self.old = Path.cwd()
-        self.temp = tempfile.TemporaryDirectory(prefix='pk-readiness-projection-')
+        self.temp = FixtureDirectory(prefix='pk-readiness-projection-')
         self.root = Path(self.temp.name)
         os.chdir(self.root)
         self.addCleanup(self.temp.cleanup)
@@ -57,7 +58,7 @@ class ProjectionTests(unittest.TestCase):
             return original(instance, config, context)
         with patch.object(CommandStep, '_try_dispatch', side_effect=AssertionError('No readiness agent')):
             with patch.object(ShellStep, 'execute', execute):
-                state = WorkflowEngine(self.root).execute(definition, run_id='projection-terminal')
+                state = WorkflowEngine(Path(native_path(self.root))).execute(definition, run_id='projection-terminal')
         self.assertEqual(state.status.value, 'completed', (state.current_step_id, state.error))
         g.validate_completion()
 

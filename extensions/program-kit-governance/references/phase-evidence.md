@@ -236,6 +236,42 @@ does not renew engineering evidence. Its output distinguishes a changed projecti
 changed reviewed material. Architecture/solution/build/package/runtime closure remains under its
 existing full bindings until a supported, reviewed projection/transition establishes that scope.
 
+For an existing accepted review, a separately instructed owner may use the `delivery` action
+`assess-material`. This records an exact retrospective assessment; it never narrows the old
+`basisPaths` or changes the presentation, reviewer, decision or measured effort. It grants no
+authority to perform an assessment without that actual owner instruction. Solution membership
+and architecture remain whole-file inputs. An additive member is not inherently nonmaterial.
+
+The request names `checkpoint`, `actor: "owner"`, actual instruction `source`, the SHA-256 of
+the canonical original decision (`decisionSha256`), current successful native `checks`, and a
+`changes` row for every changed basis input. Each row supplies `path`, retained exact `before`
+`{path, sha256}`, `afterSha256`, `conclusion: "nonmaterial"`, a concrete `rationale`, and separate
+`effects` conclusions for `build`, `dependencies`, `packaging` and `runtime`. Inspect the actual
+diff and effective closures to reach those conclusions. Passing regressions alone do not prove
+nonmateriality. A material change requires renewed outcome review instead.
+
+Read-only `review-material` supplies `decisionSha256` and the reviewed/current input hashes.
+Refreshing engineering checks does not turn the current raw hashes into a new human basis.
+
+The command rejects omitted/extra inputs, stale hashes, missing before bytes, failed technical
+checks, unfinished tasks, wrong actor/decision and attempted scope changes. It appends a
+separate assessment event binding those exact snapshots, evidence and current policy. Later
+input, evidence or projection-policy changes invalidate its applicability; they cannot borrow
+the earlier assessment. Preserve its before-byte and check artifacts. Deterministic fixtures
+use simulated decisions and cannot establish real consumer acceptance.
+
+The retrospective event also binds a conservative current engineering context: authored
+`src`, `tests`, `eng`, `web`, `contracts`, root inputs and native restore observations. Newly
+introduced solution-member sources and project configuration therefore cannot change later
+under the authority of an earlier solution-only assessment. This is an exact-state transition;
+further unrelated authored work can require another explicit assessment. It is not automatic
+semantic independence detection or a narrower architecture/solution projection.
+Subsequent assessments cover changes to that bound context as well as original basis inputs.
+An added context input uses `before: {"absent": true}` only when the prior complete context
+proves its absence; a removed context input has an explicit null `afterSha256`. Existing
+inputs still need retained exact before bytes. All earlier assessment originals and evidence
+must remain intact; a later event cannot hide damage to the earlier chain.
+
 An owner's existing explicit deferral can retain permission for the same named operations while
 changed engineering or review evidence remains due. Refresh preserves that scoped permission;
 it does not turn a stale decision into acceptance. The original owner identity, assignment,

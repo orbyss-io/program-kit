@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from owned_fixture import FixtureDirectory, native_path
 import subprocess
 import sys
 import unittest
@@ -22,7 +23,7 @@ G, L = fixture.governance, fixture.lifecycle
 class PhaseReadinessTests(unittest.TestCase):
     def setUp(self):
         self.old = Path.cwd()
-        self.temp = tempfile.TemporaryDirectory(prefix='pk-phase-readiness-')
+        self.temp = FixtureDirectory(prefix='pk-phase-readiness-')
         self.root = Path(self.temp.name)
         os.chdir(self.root)
         self.addCleanup(self.temp.cleanup)
@@ -142,7 +143,7 @@ class PhaseReadinessTests(unittest.TestCase):
             return original(instance, config, context)
         with patch.object(CommandStep, '_try_dispatch', side_effect=AssertionError('No agent dispatch')):
             with patch.object(ShellStep, 'execute', execute):
-                state = WorkflowEngine(self.root).execute(definition, run_id='incomplete-terminal')
+                state = WorkflowEngine(Path(native_path(self.root))).execute(definition, run_id='incomplete-terminal')
         self.assertEqual('completed', state.status.value, state.error)
         G.validate_completion()
         workflow.validate_engine_completion(self.root)

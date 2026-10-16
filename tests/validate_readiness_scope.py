@@ -3,6 +3,7 @@ import copy
 import os
 from pathlib import Path
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 from unittest.mock import patch
 
@@ -14,7 +15,7 @@ g, life = fixture.governance, fixture.lifecycle
 class ReadinessScopeTests(unittest.TestCase):
     def setUp(self):
         self.previous = Path.cwd()
-        self.directory = tempfile.TemporaryDirectory(prefix='pk-ready-scope-')
+        self.directory = FixtureDirectory(prefix='pk-ready-scope-')
         self.root = Path(self.directory.name)
         os.chdir(self.root)
         self.addCleanup(self.directory.cleanup)

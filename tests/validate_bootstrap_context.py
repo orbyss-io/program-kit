@@ -4,6 +4,7 @@ import importlib.util
 import json
 import shutil
 import tempfile
+from owned_fixture import FixtureDirectory
 from pathlib import Path
 
 
@@ -246,7 +247,7 @@ def main() -> int:
     import sys
     sys.modules[spec.name] = semantic
     spec.loader.exec_module(semantic)
-    with tempfile.TemporaryDirectory(prefix="program-kit-context-test-") as directory:
+    with FixtureDirectory(prefix="program-kit-context-test-") as directory:
         project = Path(directory)
         run_id = "context-test-1"
         seed_project(project, module, semantic, run_id)

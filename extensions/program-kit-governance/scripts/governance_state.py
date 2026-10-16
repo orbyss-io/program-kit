@@ -16,6 +16,7 @@ if _scripts_path not in sys.path:
     sys.path.insert(0, _scripts_path)
 from decision_status import has_decision_status as _has_decision_status
 from bootstrap_profiles import validate_profile_dependencies
+from windows_workflow_path import write_bytes as _write_bytes
 
 
 CONSTITUTION = Path(".specify/memory/constitution.md")
@@ -468,17 +469,11 @@ def sha256(path: Path) -> str:
 
 
 def write_json(path: Path, value: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8", newline="\n")
-    temporary.replace(path)
+    write_text(path, json.dumps(value, indent=2) + "\n")
 
 
 def write_text(path: Path, value: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(value, encoding="utf-8", newline="\n")
-    temporary.replace(path)
+    _write_bytes(path, value.encode('utf-8'))
 
 
 def read_json(path: Path) -> dict:

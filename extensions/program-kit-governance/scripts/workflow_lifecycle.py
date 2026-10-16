@@ -20,6 +20,7 @@ import re
 import shlex
 import subprocess
 from pathlib import Path
+from windows_workflow_path import native_directory
 
 import bootstrap_lifecycle as lifecycle
 import bootstrap_context
@@ -249,7 +250,7 @@ def migrate_suffix(root: Path, state: RunState, saved: WorkflowDefinition, resta
     installed_path = root / '.specify/workflows/program-kit-bootstrap/workflow.yml'
     if not installed_path.is_file():
         return saved
-    installed = WorkflowEngine(root).load_workflow('program-kit-bootstrap')
+    installed = WorkflowEngine(native_directory(root)).load_workflow('program-kit-bootstrap')
     if saved.version == installed.version:
         return saved
     if (saved.version, installed.version) not in {
@@ -399,7 +400,7 @@ def execute_definition(root: Path, definition: WorkflowDefinition, inputs: dict,
     if run_directory(root, run_id).exists():
         raise WorkflowLifecycleError('Run ID already exists; use resume to preserve its history')
     with execution_owner(root, run_id):
-        return normalize_handoff_pause(root, WorkflowEngine(root).execute(definition, inputs=inputs, run_id=run_id,
+        return normalize_handoff_pause(root, WorkflowEngine(native_directory(root)).execute(definition, inputs=inputs, run_id=run_id,
                                             installed_workflow_id='program-kit-bootstrap'))
 
 
@@ -577,7 +578,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
     if state.status not in (RunStatus.PAUSED, RunStatus.FAILED):
         raise WorkflowLifecycleError(f'Cannot resume {state.status.value}')
     if state.status == RunStatus.PAUSED and not state.inputs.get('source_run'):
-        installed = WorkflowEngine(root).load_workflow('program-kit-bootstrap')
+        installed = WorkflowEngine(native_directory(root)).load_workflow('program-kit-bootstrap')
         if installed.version != definition.version:
             archived = snapshot(root, state)
             restart = definition.steps[state.current_step_index]['id']
@@ -586,7 +587,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
             invalidated = previous_ids | all_step_ids(definition.steps[state.current_step_index:])
             state.step_results = {key: value for key, value in state.step_results.items() if key not in invalidated}
             reset_execution_suffix(state, definition, state.current_step_index)
-            state.inputs = WorkflowEngine(root)._resolve_inputs(definition, state.inputs)
+            state.inputs = WorkflowEngine(native_directory(root))._resolve_inputs(definition, state.inputs)
             state.append_log({'event': 'paused_workflow_migration', 'snapshot': str(archived),
                               'invalidated_steps': sorted(invalidated), 'restart_step': restart})
             state.save()
@@ -645,7 +646,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
                 state.inputs[name] = ''
         if 'auto_approve_and_ratify' in state.inputs:
             state.inputs['auto_approve_and_ratify'] = False
-        state.inputs = WorkflowEngine(root)._resolve_inputs(definition, state.inputs)
+        state.inputs = WorkflowEngine(native_directory(root))._resolve_inputs(definition, state.inputs)
         # Keep approved prefix authority. Downstream completion is no longer valid.
         if restart in {'prepare-assessment-context', 'prepare-research-context', 'require-research-handoff'}:
             # A producer must be able to correct its own decisions before a fresh
@@ -662,7 +663,7 @@ def resume_unlocked(root: Path, run_id: str, inputs: dict, *, reuse_proven_closu
             and state.current_step_id == 'recovery-readiness'):
         prepare_recovery_readiness(root, run_id, state.inputs['source_run'])
     with execution_owner(root, run_id):
-        result = normalize_handoff_pause(root, WorkflowEngine(root).resume(run_id, inputs=inputs or None))
+        result = normalize_handoff_pause(root, WorkflowEngine(native_directory(root)).resume(run_id, inputs=inputs or None))
     if result.status == RunStatus.COMPLETED:
         governance.validate_completion()
         validate_engine_completion(root)
@@ -804,7 +805,7 @@ def main() -> int:
                 else:
                     with execution_lock(root):
                         require_enabled(root)
-                        definition = WorkflowEngine(root).load_workflow('program-kit-bootstrap')
+                        definition = WorkflowEngine(native_directory(root)).load_workflow('program-kit-bootstrap')
                         state = execute_definition(root, definition, inputs, args.run_id or uuid.uuid4().hex[:8])
                         if state.status == RunStatus.COMPLETED:
                             governance.validate_completion()

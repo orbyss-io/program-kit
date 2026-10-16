@@ -19,6 +19,17 @@ import upgrade_program_kit as updater
 SCRIPTS = Path(__file__).resolve().parents[1] / 'extensions/program-kit-governance/scripts'
 sys.path.insert(0, str(SCRIPTS))
 import consumer_upgrade as workflow
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] /
+                       'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+from owned_scratch import filesystem_path
+
+
+def io_root(path):
+    return Path(filesystem_path(Path(path).absolute()))
+
+
+def file_hash(root, relative):
+    return workflow.sha(workflow.inside(io_root(root), relative))
 
 PORTABLE = ('.specify', '.program-kit/managed.json', '.program-kit/installation', '.program-kit/dependency-profile.json',
             '.program-kit/dependency-profiles', '.program-kit/specification-intake',
@@ -32,6 +43,7 @@ def installation_files(root):
     Runtime caches, sync/phase receipts and machine-local proofs are never promoted.
     Original history remains history at its original hashes.
     """
+    root = io_root(root)
     result = set()
     for relative in PORTABLE:
         path = workflow.inside(root, relative)
@@ -66,6 +78,7 @@ def installation_files(root):
 
 
 def snapshot(root, directory, paths):
+    root, directory = io_root(root), io_root(directory)
     workflow.require(not directory.exists(), 'Snapshot destination already exists')
     directory.mkdir(parents=True)
     hashes = {}
@@ -84,6 +97,7 @@ def snapshot(root, directory, paths):
 
 def reproduce(snapshot_root, target, hashes):
     """Exact owned baseline bytes. Never overwrite a consumer or invent installation history."""
+    snapshot_root, target = io_root(snapshot_root), io_root(target)
     for relative, expected in hashes.items():
         source = workflow.inside(snapshot_root, relative)
         destination = workflow.inside(target, relative)
@@ -109,6 +123,7 @@ def effective_environment(target):
 
 def transfer_views(source, target, value):
     """Transport only checksum-bound generated input views, never caches or executed proof logs."""
+    source, target = io_root(source), io_root(target)
     if isinstance(value, dict):
         if set(value) == {'path', 'sha256'} and value['path'].startswith('artifacts/program-kit/consumer-upgrade/inputs/'):
             original = workflow.inside(source, value['path'])
@@ -312,7 +327,7 @@ def integration_review(target, destination):
     changed = workflow.git(destination, 'diff', '--name-only', base, head).splitlines()
     candidate = workflow.inputs(target)
     original = baseline(value)
-    local = {p: workflow.sha(workflow.inside(destination, p)) for p in original}
+    local = {p: file_hash(destination, p) for p in original}
     setup_changes = [p for p in original if local[p] != original[p]]
     # merge-base --is-ancestor is tested via return code; never turn absence into a fake success.
     try:
@@ -330,6 +345,7 @@ def integration_review(target, destination):
 
 def restore(destination, archive, before, after):
     # A concurrent edit is never clobbered by recovery. Keep archive and report the exact repair.
+    destination, archive = io_root(destination), io_root(archive)
     for relative in before.keys() | after.keys():
         actual = workflow.sha(workflow.inside(destination, relative))
         workflow.require(actual in {before.get(relative), after.get(relative)}, 'Recovery conflicts with a consumer edit: ' + relative)
@@ -346,6 +362,7 @@ def restore(destination, archive, before, after):
 
 def mutation_files(root, known, integration_roots):
     """Closed toolkit mutation surface; arbitrary application edits never enter rollback."""
+    root = io_root(root)
     paths = set(known) | {workflow.RECORD}
     for relative in ('.specify', '.program-kit/sync', '.program-kit/installation',
                      '.program-kit/dependency-profiles', '.program-kit/selection-history'):
@@ -381,7 +398,7 @@ def activation(target, destination, release, commands, extra=(), runner=None):
     actual = workflow.inputs(destination)
     workflow.require(candidate == actual, 'Destination source differs from the combined verified candidate')
     original = baseline(value)
-    local = {p: workflow.sha(workflow.inside(destination, p)) for p in original}
+    local = {p: file_hash(destination, p) for p in original}
     # Reviewed tracked engineering edits can arrive through Git; ignored installation assets cannot.
     expected_local = {p: candidate.get(p, h) for p, h in original.items()}
     workflow.require(local == expected_local, 'Destination installation changed after integration review')
@@ -448,7 +465,7 @@ def activation(target, destination, release, commands, extra=(), runner=None):
             current = workflow.inside(destination, relative)
             if current.is_file(): shutil.copy2(current, directory / ('failed-' + current.name))
         after_paths = mutation_files(destination, paths, integration_roots)
-        after = {p: workflow.sha(workflow.inside(destination, p)) for p in after_paths}
+        after = {p: file_hash(destination, p) for p in after_paths}
         ledger['interruptedState'] = after
         workflow.atomic(directory / 'activation.json', ledger)
         try:
@@ -470,7 +487,7 @@ def recover(destination, ledger_path, observed=None):
         workflow.require(observed and observed.get('processesStopped') is True and observed.get('reviewProvenance'),
                          'After abrupt host/process loss, inspect owned outputs and confirm children stopped before reviewed recovery')
         current_paths = mutation_files(destination, ledger['original'], ledger['integrationRoots'])
-        current_hashes = {p: workflow.sha(workflow.inside(destination, p)) for p in current_paths}
+        current_hashes = {p: file_hash(destination, p) for p in current_paths}
         workflow.require(observed.get('inputs') == current_hashes, 'Reviewed interrupted outputs changed; preserve conflicting edits')
         ledger.update(interruptedState=current_hashes, recoveryReview=observed['reviewProvenance'], status='recovering')
         workflow.atomic(ledger_path, ledger)

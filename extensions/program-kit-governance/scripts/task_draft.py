@@ -44,6 +44,12 @@ def _basis_sites(value):
             require(isinstance(decision, dict), 'Malformed retained human decision')
             for field in ('basis', 'materialBasis'):
                 yield decision, field
+        assessments = review.get('materialAssessments', [])
+        require(isinstance(assessments, list), 'Malformed retained material assessments')
+        for assessment in assessments:
+            require(isinstance(assessment, dict), 'Malformed retained material assessment')
+            for field in ('previousBasis', 'currentBasis', 'contextBasis', 'previousContextBasis', 'checkBasis', 'policy'):
+                yield assessment, field
 
 
 def _basis_bytes(value):
@@ -761,6 +767,107 @@ def owner_continuation(review, value, operation=None):
             and (operation is None or operation in permits))
 
 
+def assessed_basis(review):
+    """An exact human material assessment never changes the original review."""
+    events = review.get('materialAssessments', [])
+    if not events:
+        return None
+    require(isinstance(events, list) and review.get('decisions') and isinstance(review.get('presentation'), dict),
+            'Material assessment requires retained accepted decision provenance')
+    previous = review.get('presentation', {}).get('basis')
+    previous_context = None
+    decision = hashlib.sha256(_basis_bytes(review['decisions'][-1])).hexdigest()
+    for event in events:
+        require(isinstance(event, dict) and event.get('version') == 1 and event.get('actor') == 'owner'
+                and nonempty(event.get('source')) and event.get('decisionSha256') == decision
+                and event.get('previousBasis') == previous and event.get('currentBasis')
+                and event.get('previousContextBasis') == previous_context
+                and event.get('checks') and event.get('checkBasis') and event.get('changes'),
+                'Malformed or rebound material assessment; retain the original decision')
+        require(isinstance(event.get('currentBasis'), dict) and set(event['currentBasis']) == set(previous)
+                and isinstance(event.get('contextBasis'), dict) and event['contextBasis']
+                and isinstance(event.get('policy'), dict) and event['policy']
+                and isinstance(event.get('changes'), list), 'Malformed retained material assessment inputs')
+        old_inputs = {**(previous_context or {}), **previous}
+        new_inputs = {**(event['contextBasis'] if previous_context is not None else {}), **event['currentBasis']}
+        changed = {name for name in set(old_inputs) | set(new_inputs) if old_inputs.get(name) != new_inputs.get(name)}
+        require(len(event['changes']) == len(changed)
+                and {row.get('path') for row in event['changes'] if isinstance(row, dict)} == changed,
+                'Retained material assessment must cover the exact changed input set')
+        for row in event['changes']:
+            before = row.get('before', {})
+            require((old_inputs.get(row['path']) is None and before == {'absent': True})
+                    or (isinstance(before, dict) and set(before) == {'path', 'sha256'}
+                        and before['sha256'] == old_inputs[row['path']]),
+                    'Retained material assessment has a changed original binding')
+            require('afterSha256' in row and row['afterSha256'] == new_inputs.get(row['path'])
+                    and row.get('conclusion') == 'nonmaterial' and nonempty(row.get('rationale'))
+                    and isinstance(row.get('effects'), dict)
+                    and set(row['effects']) == {'build', 'dependencies', 'packaging', 'runtime'}
+                    and all(nonempty(effect) for effect in row['effects'].values()),
+                    'Malformed retained material effect assessment')
+        require(event.get('presentationSha256') == hashlib.sha256(_basis_bytes(review['presentation'])).hexdigest()
+                and event.get('scopeSha256') == hashlib.sha256(_basis_bytes(review.get('materialScope'))).hexdigest(),
+                'Material assessment cannot narrow or rewrite the original presentation/scope')
+        previous = event['currentBasis']
+        previous_context = event['contextBasis']
+    return previous
+
+
+def assessment_policy():
+    import handoff_contract
+    return {**{name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
+               for name in ('task_draft.py', 'review_material.py')},
+            'handoff_contract.py': hashlib.sha256(Path(handoff_contract.__file__).read_bytes()).hexdigest()}
+
+
+def assessment_context(root):
+    """Exact conservative current closure, including newly introduced member inputs.
+
+    This assessment does not confer a standing exclusion on future sibling work.
+    Native restore observations use the same inventory as package freshness.
+    """
+    import handoff_contract
+    result = handoff_contract.source_inputs(root)
+    excluded = {'bin', 'obj', 'node_modules', 'dist', '__pycache__', '.auth'}
+    for directory in ('src', 'tests', 'eng', 'web', 'contracts'):
+        for target in (root / directory).rglob('*'):
+            relative = target.relative_to(root)
+            if target.is_file() and not excluded.intersection(relative.parts) and target.suffix not in ('.pyc', '.pyo'):
+                result[relative.as_posix()] = hashlib.sha256(path(root, relative.as_posix()).read_bytes()).hexdigest()
+    for target in root.iterdir():
+        if target.is_file():
+            result[target.name] = hashlib.sha256(path(root, target.name).read_bytes()).hexdigest()
+    return result
+
+
+def assessed_material_state(root, review, raw=None):
+    """Shared read-only applicability for refresh and explanation, without new authority."""
+    expected = assessed_basis(review)
+    require(expected is not None, 'No retained material assessment')
+    event = review['materialAssessments'][-1]
+    context = assessment_context(root)
+    previous_context = event['contextBasis']
+    changes = [{'path': name, 'reviewedSha256': previous_context.get(name), 'currentSha256': context.get(name)}
+               for name in sorted(set(previous_context) | set(context)) if previous_context.get(name) != context.get(name)]
+    try:
+        evidence_current = all(check_artifacts(root, item['checks'], freshness=False) == item['checkBasis']
+                               for item in review['materialAssessments'])
+        originals_current = all(row['before'] == {'absent': True} or
+                                hashlib.sha256(path(root, row['before']['path']).read_bytes()).hexdigest()
+                                == row['before']['sha256']
+                                for item in review['materialAssessments'] for row in item['changes'])
+    except (ValueError, OSError, KeyError, TypeError):
+        evidence_current = originals_current = False
+    result = {'rawBasisCurrent': (raw if raw is not None else basis(root, review['basisPaths'])) == expected,
+              'contextCurrent': not changes, 'policyCurrent': event['policy'] == assessment_policy(),
+              'evidenceCurrent': evidence_current, 'originalsCurrent': originals_current,
+              'changedContextInputs': changes}
+    result['current'] = all(result[name] for name in ('rawBasisCurrent', 'contextCurrent', 'policyCurrent',
+                                                     'evidenceCurrent', 'originalsCurrent'))
+    return result
+
+
 def validate(value):
     require(isinstance(value, dict) and value.get('version') == 1, 'Malformed story delivery state')
     require(isinstance(value.get('roles'), dict) and 'owner' in value['roles'] and 'requester' in value['roles'], 'Missing review roles')
@@ -788,10 +895,10 @@ def validate(value):
                     isinstance(decision.get('permits'), list) and isinstance(decision.get('at'), (int, float)),
                     'Malformed retained human decision provenance')
         if review['human'] in ('accepted', 'deferred'):
-            scoped_retained = (review.get('materialScope') and isinstance(review.get('presentation'), dict) and
+            scoped_retained = ((review.get('materialAssessments') or (review.get('materialScope') and isinstance(review.get('presentation'), dict) and
                               review['presentation'].get('materialBasis') and review.get('engineeringInputBasis') and
                               review['decisions'] and review['decisions'][-1].get('materialBasis') == review['presentation']['materialBasis'] and
-                              not review.get('stale'))
+                              not review.get('stale'))) and not review.get('stale'))
             require((review.get('engineering') == 'complete' or scoped_retained or owner_continuation(review, value))
                     and isinstance(review.get('presentation'), dict) and review['decisions'],
                     'Decision requires complete engineering, presented basis and provenance')
@@ -806,6 +913,8 @@ def validate(value):
                         ('entryPoint', 'preparedData', 'walkthrough', 'expected', 'limitations', 'outcome')) and
                     isinstance(review.get('checkBasis'), dict) and review['checkBasis'] and review.get('checks') and review.get('basisPaths'),
                     'Malformed presented journey/verification basis')
+        if review.get('materialAssessments'):
+            assessed_basis(review)
     clock = value.get('clock')
     require(isinstance(clock, dict) and isinstance(clock.get('at'), (int, float)) and math.isfinite(clock['at']) and
             isinstance(clock.get('waiting'), bool), 'Malformed active clock')
@@ -850,6 +959,9 @@ def refresh(root, value):
                 if review.get('materialScope') and presented.get('materialBasis'):
                     import review_material
                     material_fresh = review_material.basis(root, review['materialScope'], review['basisPaths']) == presented['materialBasis']
+                    fresh = fresh and material_fresh
+                if review.get('materialAssessments'):
+                    material_fresh = assessed_material_state(root, review, raw)['current']
                     fresh = fresh and material_fresh
             except (ValueError, OSError, KeyError, TypeError):
                 fresh = False
@@ -1077,6 +1189,59 @@ def transition(root, feature, request, now=None, reader=github_read):
                 review['presentation']['basis'] = prior['basis']
             review.update(human='accepted' if unchanged_acceptance else 'ready for review', stale=False, permits=[])
             value['clock']['waiting'] = True
+    elif action == 'assess-material':
+        require(owner and nonempty(request.get('source')),
+                'Material assessment requires a separate explicit owner instruction and its actual source')
+        review = value['checkpoints'][request['checkpoint']]
+        require(review.get('decisions') and review['decisions'][-1]['verdict'] == 'accepted'
+                and isinstance(review.get('presentation'), dict), 'Retain an actual prior accepted review')
+        decision = hashlib.sha256(_basis_bytes(review['decisions'][-1])).hexdigest()
+        require(request.get('decisionSha256') == decision, 'Bind the exact original accepted decisionSha256')
+        require('materialScope' not in request and 'basisPaths' not in request,
+                'Material assessment cannot drop inputs or redefine the original review scope')
+        require(not load_failures(feature), 'Resolve required technical failures before material assessment')
+        completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', (feature / 'tasks.md').read_text(encoding='utf-8'), re.M))
+        require(set(review.get('taskIds', value['stories'][review['story']]['taskIds'])) <= completed,
+                'Complete checkpoint engineering tasks before material assessment')
+        before = assessed_basis(review) or review['presentation']['basis']
+        after = basis(root, review['basisPaths'])
+        current_context = assessment_context(root)
+        previous_context = review['materialAssessments'][-1]['contextBasis'] if review.get('materialAssessments') else None
+        before_inputs = {**(previous_context or {}), **before}
+        after_inputs = {**(current_context if previous_context is not None else {}), **after}
+        changes = request.get('changes')
+        changed = {name for name in set(before_inputs) | set(after_inputs)
+                   if before_inputs.get(name) != after_inputs.get(name)}
+        require(changed and isinstance(changes, list) and len(changes) == len(changed)
+                and {row.get('path') for row in changes if isinstance(row, dict)} == changed,
+                'Assess every actually changed basis input exactly once')
+        for row in changes:
+            original = row.get('before', {})
+            effects = row.get('effects', {})
+            absent = before_inputs.get(row['path']) is None and previous_context is not None
+            require((absent and original == {'absent': True}) or
+                    (not absent and isinstance(original, dict) and set(original) == {'path', 'sha256'}
+                     and original['sha256'] == before_inputs[row['path']]
+                     and hashlib.sha256(path(root, original['path']).read_bytes()).hexdigest() == original['sha256']),
+                    'Supply retained exact before bytes matching the accepted input hash')
+            require('afterSha256' in row and row['afterSha256'] == after_inputs.get(row['path']) and row.get('conclusion') == 'nonmaterial'
+                    and nonempty(row.get('rationale')) and isinstance(effects, dict)
+                    and set(effects) == {'build', 'dependencies', 'packaging', 'runtime'}
+                    and all(nonempty(effect) for effect in effects.values()),
+                    'Record exact after hash and explicit build/dependency/packaging/runtime effect assessment; tests alone are insufficient')
+        checks = check_artifacts(root, request.get('checks'))
+        event = {'version': 1, 'actor': 'owner', 'source': request['source'], 'at': now,
+                 'decisionSha256': decision, 'previousBasis': copy.deepcopy(before), 'currentBasis': after,
+                 'presentationSha256': hashlib.sha256(_basis_bytes(review['presentation'])).hexdigest(),
+                 'scopeSha256': hashlib.sha256(_basis_bytes(review.get('materialScope'))).hexdigest(),
+                 'policy': assessment_policy(), 'changes': copy.deepcopy(changes),
+                 'contextBasis': current_context,
+                 'checks': request['checks'], 'checkBasis': checks}
+        if previous_context is not None:
+            event['previousContextBasis'] = previous_context
+        review.setdefault('materialAssessments', []).append(event)
+        review.update(human='accepted', engineering='complete', stale=False, checks=request['checks'],
+                      checkBasis=checks, engineeringInputBasis=after)
     elif action == 'decision':
         key = request['checkpoint']
         review = value['checkpoints'][key]

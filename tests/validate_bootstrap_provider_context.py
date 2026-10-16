@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 from unittest.mock import patch
 
@@ -49,7 +50,7 @@ class ProviderContextTests(unittest.TestCase):
         self.assertEqual(exporter, json.loads(tools.read_text())['tools']['orbyss.foundation.openapi.exporter']['version'])
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = FixtureDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         shutil.copytree(ROOT / 'extensions/program-kit-building-blocks', self.root / '.specify/extensions/program-kit-building-blocks')

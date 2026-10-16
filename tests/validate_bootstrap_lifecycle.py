@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 from unittest.mock import patch
 from pathlib import Path
 
@@ -148,7 +149,7 @@ def workflow_gate(root):
 def browser_baseline_checks():
     previous = Path.cwd()
     for profile in ('none-v1', 'bff-cookie-v1', 'spa-pkce-v1'):
-        with tempfile.TemporaryDirectory(prefix='program-kit-browser-baseline-') as directory:
+        with FixtureDirectory(prefix='program-kit-browser-baseline-') as directory:
             root = Path(directory)
             os.chdir(root)
             try:
@@ -189,7 +190,7 @@ def browser_baseline_checks():
 def main():
     browser_baseline_checks()
     previous = Path.cwd()
-    with tempfile.TemporaryDirectory(prefix='program-kit-lifecycle-') as directory:
+    with FixtureDirectory(prefix='program-kit-lifecycle-') as directory:
         root = Path(directory)
         os.chdir(root)
         try:

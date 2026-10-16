@@ -175,7 +175,43 @@ def basis(root, scope, paths):
 def explain(root, review):
     """Read-only per-input materiality diagnostics; never changes a disposition."""
     scope = review.get('materialScope')
-    require(scope is not None, 'checkpoint has no reviewed materialScope; retain whole-file authority until an explicit assessment')
+    decision = review.get('decisions', [])
+    decision_hash = digest(decision[-1]) if decision else None
+    if review.get('materialAssessments'):
+        from task_draft import assessed_material_state
+        assessment = assessed_material_state(root, review)
+        engineering = review.get('engineeringInputBasis', {})
+        prior = review['materialAssessments'][-1]['currentBasis']
+        rows = []
+        for relative in review['basisPaths']:
+            raw = hashlib.sha256((root / relative).read_bytes()).hexdigest()
+            rows.append({'path': relative, 'kind': 'file', 'rawChanged': raw != engineering.get(relative),
+                         'materialChanged': raw != prior.get(relative), 'currentRawSha256': raw,
+                         'reviewedRawSha256': prior.get(relative), 'reason': 'exact separately assessed input'})
+        return {'readOnly': True, 'acceptanceEstablished': False, 'decisionSha256': decision_hash,
+                'projectionPolicyCurrent': assessment['policyCurrent'], 'materialUnchanged': assessment['current'],
+                'assessment': assessment, 'inputs': rows}
+    if scope is None:
+        # Whole-file historical decisions remain whole-file decisions. Diagnostics
+        # can support an exact separate human assessment without rewriting them.
+        original = review.get('presentation', {}).get('basis', {})
+        assessments = review.get('materialAssessments', [])
+        prior = assessments[-1]['currentBasis'] if assessments else original
+        engineering = review.get('engineeringInputBasis', original)
+        rows = []
+        for relative in review['basisPaths']:
+            path = root / relative
+            raw = hashlib.sha256(path.read_bytes()).hexdigest()
+            changed = raw != prior.get(relative)
+            rows.append({'path': relative, 'kind': 'file', 'rawChanged': raw != engineering.get(relative),
+                         'materialChanged': changed, 'currentRawSha256': raw, 'reviewedRawSha256': prior.get(relative),
+                         'reason': 'solution membership requires build/dependency/packaging/runtime assessment'
+                             if changed and path.suffix.casefold() in ('.sln', '.slnx') else
+                             'whole-file reviewed input changed; explicit material assessment or renewed review required'
+                             if changed else 'whole-file reviewed input unchanged'})
+        return {'readOnly': True, 'acceptanceEstablished': False, 'projectionPolicyCurrent': True,
+                'decisionSha256': decision_hash,
+                'materialUnchanged': not any(row['materialChanged'] for row in rows), 'inputs': rows}
     presented = review.get('presentation', {})
     prior = presented.get('materialBasis')
     require(isinstance(prior, dict), 'checkpoint has no retained material projection; no retrospective approval inferred')
@@ -193,4 +229,5 @@ def explain(root, review):
                                'reviewed material input changed' if not unchanged else
                                'reviewed material projection unchanged; raw engineering freshness remains independent'})
     return {'readOnly': True, 'acceptanceEstablished': False, 'projectionPolicyCurrent': policy_current,
+            'decisionSha256': decision_hash,
             'materialUnchanged': policy_current and all(not row['materialChanged'] for row in rows), 'inputs': rows}

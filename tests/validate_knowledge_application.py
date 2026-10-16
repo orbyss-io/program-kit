@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +16,7 @@ from repository_architecture import validate_planned
 
 class KnowledgeApplicationTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix='knowledge-application-')
+        temporary = FixtureDirectory(prefix='knowledge-application-')
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         self.feature = self.root / 'specs/001-notes'

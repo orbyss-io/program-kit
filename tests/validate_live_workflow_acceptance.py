@@ -5,6 +5,7 @@ import copy
 import os
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory, native_path
 from pathlib import Path
 from unittest.mock import patch
 
@@ -31,7 +32,7 @@ def rejects(action, code):
 def main():
     previous = Path.cwd()
     schema = load_object(ROOT / 'tests/live/schemas/v2/authorization.schema.json')
-    with tempfile.TemporaryDirectory(prefix='program-kit-live-workflow-') as temporary:
+    with FixtureDirectory(prefix='program-kit-live-workflow-') as temporary:
         base = Path(temporary)
         profile = {'integration': 'codex', 'launcherVersion': 'test-only', 'model': 'test-only',
                    'reasoningEffort': 'test-only', 'sandbox': 'workspace-write', 'timeoutSeconds': 60}

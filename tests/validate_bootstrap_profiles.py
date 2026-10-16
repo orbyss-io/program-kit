@@ -6,6 +6,7 @@ import json
 import shutil
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 from pathlib import Path
 
@@ -58,7 +59,7 @@ class ProfileRoutingTests(unittest.TestCase):
         self.assertEqual(intake, original)
 
     def test_generated_handoff_from_language_neutral_intake(self):
-        with tempfile.TemporaryDirectory(prefix="program-kit-profile-routing-") as directory:
+        with FixtureDirectory(prefix="program-kit-profile-routing-") as directory:
             project = Path(directory)
             seed_project(project, context, semantic, "profiles")
             intake_path = project / context.INTAKE_PATH

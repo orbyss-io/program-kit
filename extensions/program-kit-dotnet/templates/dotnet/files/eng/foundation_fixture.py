@@ -18,6 +18,7 @@ import uuid
 from urllib.parse import urlsplit
 
 from foundation_process import run
+from owned_scratch import filesystem_path
 
 
 def require(condition, message):
@@ -27,7 +28,7 @@ def require(condition, message):
 
 def captured(command, cwd, directory, *, timeout=120, environment=None, secret_values=()):
     """Retain both drained streams, redacted even on failure or interruption."""
-    directory = Path(directory)
+    directory = Path(filesystem_path(Path(directory).absolute()))
     directory.mkdir(parents=True, exist_ok=False)
     paths = [directory / 'stdout.log', directory / 'stderr.log']
     result = {'status': 'running', 'cleanupComplete': False, 'logsDrained': False,

@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory, native_path
 import yaml
 from pathlib import Path
 from unittest.mock import patch
@@ -95,7 +96,7 @@ def legacy_checkpoint_cases(root):
                 marker.write_text('corrected producer output', encoding='utf-8')
             return {'exit_code': 0, 'stdout': 'fictional legacy producer', 'stderr': ''}
         with patch.object(CommandStep, '_try_dispatch', dispatch):
-            failed = WorkflowEngine(root).execute(current_definition, run_id='legacy-' + mode)
+            failed = WorkflowEngine(Path(native_path(root))).execute(current_definition, run_id='legacy-' + mode)
             assert failed.status == RunStatus.FAILED and failed.current_step_id == 'validate-architecture-output'
             prefix = copy.deepcopy(failed.step_results['accepted-prefix'])
             state_path = workflow.run_directory(root, failed.run_id) / 'state.json'
@@ -116,7 +117,7 @@ def legacy_checkpoint_cases(root):
                 validate_execution(failed.execution, workflow_steps=current_definition.steps,
                                    current_step_index=failed.current_step_index)
                 failed.save()
-                failed = WorkflowEngine(root).resume(failed.run_id)
+                failed = WorkflowEngine(Path(native_path(root))).resume(failed.run_id)
                 assert failed.status == RunStatus.FAILED and failed.current_step_id == 'validate-architecture-output', (mode, failed.current_step_id, failed.error)
                 assert failed.execution['offset'] == offset
                 assert failed.execution['initial']['accepted-prefix'] == prefix
@@ -147,7 +148,7 @@ def main():
         config['run'] = config['run'].replace('python ', f'"{sys.executable}" ', 1)
         return original_shell(self, config, context)
     previous = Path.cwd()
-    with tempfile.TemporaryDirectory(prefix='program-kit-workflow-resume-') as temporary:
+    with FixtureDirectory(prefix='program-kit-workflow-resume-') as temporary:
         root = short_path(Path(temporary))
         os.chdir(root)
         try:
@@ -192,7 +193,7 @@ def main():
                           'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'},
                          *ready_tail()]
                 with patch.object(CommandStep, '_try_dispatch', arch_dispatch):
-                    first = WorkflowEngine(root).execute(definition(steps), run_id='architecture-retry')
+                    first = WorkflowEngine(Path(native_path(root))).execute(definition(steps), run_id='architecture-retry')
                     assert first.status == RunStatus.FAILED and first.current_step_id == 'validate-architecture-output'
                     prefix = copy.deepcopy(first.step_results['accepted-prefix'])
                     native_prefix = copy.deepcopy(first.execution['sequence']['nodes'][0])
@@ -274,7 +275,7 @@ def main():
                         assert result['completion_eligible']
                     return {'exit_code': 0, 'stdout': 'fixture producer', 'stderr': ''}
                 with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
-                    failed = WorkflowEngine(root).execute(definition(ready_tail()), run_id='readiness-retry')
+                    failed = WorkflowEngine(Path(native_path(root))).execute(definition(ready_tail()), run_id='readiness-retry')
                     assert failed.status == RunStatus.FAILED and failed.current_step_id == 'require-readiness'
                     assert not (root / g.BOOTSTRAP_COMPLETION).exists()
                     original_state = (workflow.run_directory(root, failed.run_id) / 'state.json').read_bytes()
@@ -295,7 +296,7 @@ def main():
                     {'id': 'confirm-completion-failure', 'type': 'gate', 'message': 'Historical abort-only fixture',
                      'options': ['abort'], 'on_reject': 'abort', 'verdict_input': 'bootstrap_verdict'}])
                 with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
-                    aborted = WorkflowEngine(root).execute(historical, inputs={'bootstrap_verdict': 'abort'}, run_id='historical-abort')
+                    aborted = WorkflowEngine(Path(native_path(root))).execute(historical, inputs={'bootstrap_verdict': 'abort'}, run_id='historical-abort')
                     assert aborted.status == RunStatus.ABORTED
                     old = (workflow.run_directory(root, aborted.run_id) / 'state.json').read_bytes()
                     # Interrupt the deterministic readiness shell; resumption
@@ -324,7 +325,7 @@ def main():
                     workflow.validate_engine_completion(root)
                 rejected = definition([{'id': 'review-bootstrap', 'type': 'gate', 'message': 'Semantic rejection',
                                        'options': ['approve', 'reject'], 'on_reject': 'abort', 'verdict_input': 'bootstrap_verdict'}])
-                rejected_state = WorkflowEngine(root).execute(rejected, inputs={'bootstrap_verdict': 'reject'}, run_id='semantic-rejection')
+                rejected_state = WorkflowEngine(Path(native_path(root))).execute(rejected, inputs={'bootstrap_verdict': 'reject'}, run_id='semantic-rejection')
                 try:
                     workflow.resume(root, rejected_state.run_id)
                 except life.LifecycleError as error:
@@ -339,7 +340,7 @@ def main():
                         architecture.write_bytes(architecture.read_bytes() + b'\nReviewed clarification of the first-slice narrative.\n')
                     return readiness_dispatch(self, command, integration, model, args, context)
                 with patch.object(CommandStep, '_try_dispatch', changed_dispatch):
-                    failed = WorkflowEngine(root).execute(definition(ready_tail()), run_id='changed-authority')
+                    failed = WorkflowEngine(Path(native_path(root))).execute(definition(ready_tail()), run_id='changed-authority')
                     assert failed.status == RunStatus.FAILED
                     workflow.recovery.prepare(root, failed.run_id)
                     # A real changed input, not an independently worded report,
@@ -386,7 +387,7 @@ def main():
                 (root / g.BOOTSTRAP_COMPLETION).unlink(missing_ok=True)
                 recovery_fixture_originals = {p: (root / p).read_bytes() for p in g.bootstrap_artifacts()}
                 with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
-                    proof_source = WorkflowEngine(root).execute(definition(ready_tail()), run_id='nested-proof-source')
+                    proof_source = WorkflowEngine(Path(native_path(root))).execute(definition(ready_tail()), run_id='nested-proof-source')
                 workflow.recovery.prepare(root, proof_source.run_id)
                 architecture.write_bytes(architecture.read_bytes() + b'\nBounded proof recovery fixture.\n')
                 native = copy.deepcopy(workflow.continuation_definition(root).data)
@@ -440,7 +441,7 @@ def main():
                         return {'exit_code': 0, 'stdout': 'incomplete assessment', 'stderr': ''}
                     return readiness_dispatch(self, command, integration, model, args, context)
                 with patch.object(CommandStep, '_try_dispatch', legacy_dispatch):
-                    legacy_source = WorkflowEngine(root).execute(definition(ready_tail()), run_id='legacy-context')
+                    legacy_source = WorkflowEngine(Path(native_path(root))).execute(definition(ready_tail()), run_id='legacy-context')
                     with patch.object(workflow, 'continuation_definition', return_value=WorkflowDefinition(legacy)):
                         legacy_failed = workflow.resume(root, legacy_source.run_id)
                 assert legacy_failed.current_step_id == 'recovery-require-ready'
@@ -477,7 +478,7 @@ def main():
                 # admission checks are exercised by validate_bootstrap_lifecycle.
                 (root / g.BOOTSTRAP_COMPLETION).unlink(missing_ok=True)
                 with patch.object(CommandStep, '_try_dispatch', readiness_dispatch):
-                    prepared_source = WorkflowEngine(root).execute(definition(ready_tail()), run_id='prepared-authority')
+                    prepared_source = WorkflowEngine(Path(native_path(root))).execute(definition(ready_tail()), run_id='prepared-authority')
                 assert prepared_source.status == RunStatus.FAILED
                 workflow.recovery.prepare(root, prepared_source.run_id)
                 architecture.write_bytes(architecture.read_bytes() + b'\nPrepared scoped correction for review.\n')
@@ -573,7 +574,7 @@ def main():
                 old_definition = definition(migration_steps)
                 old_definition.data['workflow']['version'] = '0.10.2'
                 old_definition = WorkflowDefinition(old_definition.data)
-                migration_state = WorkflowEngine(migration).execute(old_definition, run_id='saved-migration')
+                migration_state = WorkflowEngine(Path(native_path(migration))).execute(old_definition, run_id='saved-migration')
                 assert migration_state.status == RunStatus.PAUSED
                 prefix = copy.deepcopy(migration_state.step_results['preserved-prefix'])
                 current = copy.deepcopy(old_definition.data)

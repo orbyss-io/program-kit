@@ -14,10 +14,112 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 import owned_scratch as scratch
 
 
 class OwnedScratchTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt', 'Native Windows governance sharing')
+    def test_governance_replacement_recovers_short_block_and_preserves_persistent_failure(self):
+        import governance_state as governance
+        import threading
+        import time
+        target = self.root / 'traceability.md'
+        governance.write_text(target, 'original document\n')
+        with self.locked_file(target) as release:
+            thread = threading.Thread(target=lambda: (time.sleep(.06), release()))
+            thread.start()
+            try:
+                governance.write_text(target, 'new document\n')
+            finally:
+                thread.join(timeout=2)
+            self.assertFalse(thread.is_alive())
+        self.assertEqual('new document\n', target.read_text())
+        with self.locked_file(target):
+            with self.assertRaises(PermissionError): governance.write_text(target, 'blocked document')
+        self.assertEqual('new document\n', target.read_text())
+        self.assertFalse(list(self.root.glob('.traceability.md.*.tmp')))
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows governance concurrent-edit boundary')
+    def test_governance_replacement_refuses_concurrent_edit_and_unreadable_snapshot(self):
+        import governance_state as governance
+        import windows_workflow_path as paths
+        target = self.root / 'traceability.md'
+        target.write_text('original document')
+        failure = PermissionError('concurrent document edit'); failure.winerror = 32
+        def blocked(*_):
+            target.write_text('concurrent document')
+            raise failure
+        with patch.object(paths.os, 'replace', side_effect=blocked) as replace:
+            with self.assertRaises(PermissionError): governance.write_text(target, 'stale document')
+            replace.assert_called_once()
+        self.assertEqual('concurrent document', target.read_text())
+        self.assertFalse(list(self.root.glob('.traceability.md.*.tmp')))
+        with patch.object(paths, 'file_snapshot', side_effect=PermissionError('cannot inspect original')):
+            with self.assertRaises(PermissionError): governance.write_text(target, 'must not write')
+        self.assertEqual('concurrent document', target.read_text())
+
+    @contextlib.contextmanager
+    def locked_file(self, path):
+        import ctypes
+        from ctypes import wintypes
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
+                                      wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        kernel.CreateFileW.restype = wintypes.HANDLE
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        handle = kernel.CreateFileW(str(path), 0x80000000, 3, None, 3, 128, None)
+        self.assertNotEqual(ctypes.c_void_p(-1).value, handle, ctypes.get_last_error())
+        closed = False
+        def release():
+            nonlocal closed
+            if not closed:
+                kernel.CloseHandle(handle)
+                closed = True
+        try:
+            yield release
+        finally:
+            release()
+
+    @unittest.skipUnless(os.name == 'nt', 'Native Windows transaction sharing')
+    def test_transaction_replacement_recovers_short_block_and_refuses_persistent_block(self):
+        import reconciliation
+        import threading
+        import time
+        target = self.root / 'journal.json'
+        target.write_bytes(b'original journal')
+        with self.locked_file(target) as release:
+            thread = threading.Thread(target=lambda: (time.sleep(.06), release()))
+            thread.start()
+            try:
+                reconciliation.atomic_write(target, b'new journal', 'journal')
+            finally:
+                thread.join(timeout=2)
+            self.assertFalse(thread.is_alive())
+        self.assertEqual(b'new journal', target.read_bytes())
+        with self.locked_file(target):
+            with self.assertRaises(PermissionError):
+                reconciliation.atomic_write(target, b'must not replace', 'journal')
+        self.assertEqual(b'new journal', target.read_bytes())
+        self.assertFalse(target.with_name('journal.json.journal.tmp').exists())
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows transaction retry boundary')
+    def test_transaction_retry_refuses_changed_destination(self):
+        import reconciliation
+        target = self.root / 'journal.json'
+        target.write_bytes(b'original journal')
+        failure = PermissionError('observed concurrent edit')
+        failure.winerror = 32
+        def blocked(*_):
+            target.write_bytes(b'concurrent journal')
+            raise failure
+        with patch.object(reconciliation.os, 'replace', side_effect=blocked) as replace:
+            with self.assertRaises(PermissionError):
+                reconciliation.atomic_write(target, b'stale journal', 'journal')
+            replace.assert_called_once()
+        self.assertEqual(b'concurrent journal', target.read_bytes())
+        self.assertFalse(target.with_name('journal.json.journal.tmp').exists())
+
     @unittest.skipUnless(os.name == 'nt', 'Windows read-only Git objects')
     def test_real_disposable_git_objects_are_removed_without_touching_sibling_data(self):
         sentinel = self.root / 'retained-data'

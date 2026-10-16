@@ -19,11 +19,24 @@
       "sourceDiagnosis": "Preserve isolation boundary; improve direct recovery and authentic packaged witnesses",
       "workPackages": "A/E/G",
       "closureRequired": "Dirty work preserved; isolated baseline explicit; witnesses derive from verified release; unknown source rejected.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "partially-implemented; isolated installed recovery verified; packaged witness closure pending",
+      "changedFiles": [
+        "scripts/consumer_upgrade_workspace.py",
+        "tests/validate_consumer_upgrade.py",
+        "tests/owned_fixture.py"
+      ],
+      "validation": [
+        {
+          "command": "validate_consumer_upgrade.log",
+          "status": "passed",
+          "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
+          "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Canonical authenticated packaged component witnesses and durable later-session retention/recovery remain.",
+        "Complete update-stage interruption inventory, exact-candidate qualification and released adoption remain."
       ],
       "closureEvidence": []
     },
@@ -42,7 +55,10 @@
         "tests/validate_release_guidance.py",
         "tests/validate_exporter_upgrade.py",
         "tests/validate_local_upgrade.py",
-        "tests/validation-inventory.json"
+        "tests/validation-inventory.json",
+        "scripts/consumer_upgrade_workspace.py",
+        "tests/validate_consumer_upgrade.py",
+        "tests/owned_fixture.py"
       ],
       "validation": [
         {
@@ -72,6 +88,13 @@
           "scope": "11 migration-plan/receipt tests including exact archived prior completed receipt after component version advances; missing context, changed verification and changed original reject.",
           "log": "artifacts/maintenance-implementation-2026-10-16/retry-migration-receipt.log",
           "sha256": "6e2996453eb54569acfdd15ff44bca5fb25d55c4ebd98cd87c598e48f73d6938"
+        },
+        {
+          "command": "validate_consumer_upgrade.log",
+          "status": "passed",
+          "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
+          "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
         }
       ],
       "remainingDependencies": [
@@ -100,7 +123,10 @@
         "tests/validate_release_guidance.py",
         "tests/validate_exporter_upgrade.py",
         "tests/validate_local_upgrade.py",
-        "tests/validation-inventory.json"
+        "tests/validation-inventory.json",
+        "scripts/consumer_upgrade_workspace.py",
+        "tests/validate_consumer_upgrade.py",
+        "tests/owned_fixture.py"
       ],
       "validation": [
         {
@@ -130,6 +156,13 @@
           "scope": "11 migration-plan/receipt tests including exact archived prior completed receipt after component version advances; missing context, changed verification and changed original reject.",
           "log": "artifacts/maintenance-implementation-2026-10-16/retry-migration-receipt.log",
           "sha256": "6e2996453eb54569acfdd15ff44bca5fb25d55c4ebd98cd87c598e48f73d6938"
+        },
+        {
+          "command": "validate_consumer_upgrade.log",
+          "status": "passed",
+          "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
+          "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
         }
       ],
       "remainingDependencies": [
@@ -717,8 +750,20 @@
       "workPackages": "A/G",
       "closureRequired": "Complete attempt originals and public/guidance sets; modified/missing/spurious inputs fail; receipts unchanged.",
       "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "changedFiles": [
+        "scripts/consumer_upgrade_workspace.py",
+        "tests/validate_consumer_upgrade.py",
+        "tests/owned_fixture.py"
+      ],
+      "validation": [
+        {
+          "command": "validate_consumer_upgrade.log",
+          "status": "passed",
+          "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
+          "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -876,11 +921,11 @@
       "sourceDiagnosis": "Extend existing scoped material projections/diagnostics conservatively",
       "workPackages": "D/G/I",
       "closureRequired": "Unrelated additions preserve approval; affecting shared changes and rule changes cannot fabricate acceptance.",
-      "status": "partially-implemented; story-document projection and diagnostics verified",
+      "status": "partially-implemented; exact retrospective assessment and native solution case verified",
       "changedFiles": [
+        "extensions/program-kit-governance/references/phase-evidence.md",
         "extensions/program-kit-governance/scripts/review_material.py",
         "extensions/program-kit-governance/scripts/task_draft.py",
-        "extensions/program-kit-governance/references/phase-evidence.md",
         "tests/validate_story_delivery.py"
       ],
       "validation": [
@@ -890,14 +935,29 @@
           "scope": "56 deterministic cases: declared sibling-plan addition retains exact original decisions/baseline with engineering stale; shared/selected changes reopen; unknown/nested/duplicate/mismatched/unclosed/fenced regions and changed known-story policy cannot fabricate approval; read-only native CLI diagnostics; actual Windows sharing release/exhaustion and concurrent authored edit preservation. Synthetic decisions only.",
           "log": "artifacts/maintenance-implementation-2026-10-16/story-document-material-projection-final.log",
           "sha256": "c5253a973a0ac5a2ce9dc9d2a3e44e12feab950f5915176ea2cc1cdda92a006c"
+        },
+        {
+          "command": "story-native-final.log",
+          "status": "passed",
+          "scope": "61 story-delivery cases. Explicit separate owner assessment preserves original decision/reviewer/presentation/basis/effort; authority/hash/input/effect/check/scope negatives. Actual offline .NET restore/build/pack/runtime proves a disconnected solution addition leaves selected outputs unchanged and a shared build-property change changes runtime output and reopens review. Human decisions are simulated; no consumer acceptance.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/story-native-final.log",
+          "sha256": "b2a9fb977333fd79167fbf042372009b0276017589b9464ee9465c34735fc97d"
+        },
+        {
+          "command": "validate_story_delivery",
+          "status": "passed",
+          "scope": "62 actual story-delivery cases, including real offline native build/pack/runtime, repeated exact-state owner assessments, bound context additions and absence, complete earlier-evidence preservation, engineering-versus-human diagnostics and rule/scope/tampering negatives. All human decisions are simulated.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-05/validate_story_delivery.log",
+          "sha256": "b44206b097fe39dec1ea3000ab431ae108bd3884e40e14c6f0c856b716d9ae9c"
         }
       ],
       "remainingDependencies": [
-        "Conservative scoped architecture projection; actual additive solution-member build/dependency/package/runtime effects and native tests; separately human-authorized retrospective material-assessment transition preserving original reviewer/basis/effort and actual actor/source/check records. No blanket solution/new-project exclusions or current consumer acceptance inferred.",
-        "Complete current-source Development, exact-candidate CI and released normal consumer adoption."
+        "Automatic conservative typed architecture/solution closure projection remains unfinished; those files retain full bindings. The implemented retrospective transition binds an exact current conservative engineering context instead of granting a standing exclusion for future sibling changes.",
+        "Complete current-source Development, exact-candidate CI and released normal adoption remain. No real consumer material assessment has been requested or performed."
       ],
       "closureEvidence": [
-        "New presentations can bind a finite reviewed story partition: shared prose and selected story closure remain material; only declared independent sibling bodies are omitted. Existing review records are not narrowed or rewritten. Native review-material diagnostics do not mutate checkpoints, renew engineering evidence or create acceptance."
+        "New presentations can bind a finite reviewed story partition: shared prose and selected story closure remain material; only declared independent sibling bodies are omitted. Existing review records are not narrowed or rewritten. Native review-material diagnostics do not mutate checkpoints, renew engineering evidence or create acceptance.",
+        "Actual native solution results and command streams retained under artifacts/tests/review-material-native/; see continuation-04/story-native-final.log and continuation-source-inputs.json for test/source bindings."
       ],
       "additionalEvidence": [
         {
@@ -1144,7 +1204,14 @@
         "tests/validate_phase_refresh.py",
         "tests/validate_repository_sync.py",
         "tests/validate_local_upgrade.py",
-        "tests/upgrade_selection_cases.py"
+        "tests/upgrade_selection_cases.py",
+        "scripts/consumer_upgrade_workspace.py",
+        "tests/validate_consumer_upgrade.py",
+        "tests/owned_fixture.py",
+        "extensions/program-kit-building-blocks/scripts/dependency_profiles.py",
+        "extensions/program-kit-governance/scripts/governance_state.py",
+        "extensions/program-kit-governance/scripts/windows_workflow_path.py",
+        "tests/validate_dependency_profiles.py"
       ],
       "validation": [
         {
@@ -1218,6 +1285,34 @@
           "scope": "15 cases after minimum-version compatibility repair. Both real rmtree callback APIs exercised on Python 3.15; no actual Python 3.11 run claimed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/owned-scratch-readonly-git-final-2.log",
           "sha256": "603a6d2ffe4c7933b8a4f53ffad118610bb1924ea2d94d07b7cb16022a4369c8"
+        },
+        {
+          "command": "validate_consumer_upgrade.log",
+          "status": "passed",
+          "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
+          "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
+        },
+        {
+          "command": "validate_owned_scratch.log",
+          "status": "passed",
+          "scope": "17 Windows ownership/cleanup/transaction cases, including real short and persistent native sharing blocks and refusal to overwrite a concurrent journal edit.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_owned_scratch.log",
+          "sha256": "24ce0bfd1d3c954dc7f2147775ee93c194c80a2184add17bfe899187073b9a52"
+        },
+        {
+          "command": "validate_owned_scratch",
+          "status": "passed",
+          "scope": "19 actual ownership/cleanup/transaction/governance cases. Native Windows file handles prove short-block recovery and persistent-block failure; observed concurrent edits and unreadable original snapshots are refused without permission changes.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-05/validate_owned_scratch.log",
+          "sha256": "5ebe984cb4decbe9c71ac49cf8e90c563d809c6350b124696140d16ee777f482"
+        },
+        {
+          "command": "profiles-final-2",
+          "status": "passed",
+          "scope": "17 dependency-profile cases including full historical compaction and actual preserved dependency-transition draft/apply/retry from ordinary Windows root spelling. No historical authority bytes changed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/profiles-final-2.log",
+          "sha256": "2a5988d4cb8efe9128676c01364a5bd955ad2354dbebb035ffaed264b871c369"
         }
       ],
       "remainingDependencies": [
@@ -1375,16 +1470,15 @@
   ],
   "inProgressValidation": {
     "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
-    "source": "beab166ac2f5a2e195cdc715aaba5c35866d67bf (development working tree; not clean CI qualification)",
-    "journal": "artifacts/validation-runs/20261016T133907Z-7be2ef6f/journal.json",
-    "journalSha256": "a953178eb8534f3f0490792f712cb89bef6a83f14c9a767726a81ec5b3bf046e",
+    "source": "2a29252 working tree with continuation-source-inputs.json; no clean candidate claim",
+    "journal": "artifacts/validation-runs/20261016T145613Z-39a42a54/journal.json",
     "status": "failed",
     "observations": [
-      "106 steps: 79 passed and 27 failed. This run precedes subsequent fixture/source repairs and is not complete acceptance. Targeted passes cannot be combined into a passing suite.",
-      "Real Windows long-path failures, atomic-replace access failures, repository-local simulated tool refusal and stale structured-runtime mocks observed. Distinct diagnostics are retained in original logs; no blanket product/host attribution.",
-      "Native refresh 3, ownership 8, owned scratch 15, installed sync/coordinator 11, story-delivery repeat 48, public-core compatibility 10 and device-policy 16 pass separately after appropriate repairs/reproduction. Original story atomic-replace access error remains unexplained.",
-      "Current inventory id validate_python_consistency actually invokes tests/validate_public_core_compatibility.py. Its failures were stale newline stdout/error mocks after the structured shared runtime repair; the exact historical 1.0.1 source fixture is separate and unchanged. This supersedes the prior current-inventory attribution without rewriting its retained observation."
-    ]
+      "106 steps completed: 102 passed, 4 failed. The journal and all failures remain intact. Own profile-path and governance-writer repairs passed targeted validation afterward; this run remains failed.",
+      "Two other failures were native Spec Kit workflow checkpoint replacement errors; cause unproven and recorded separately without scope adoption or installed CLI edits.",
+      "Some final diagnostics/profile/governance repairs followed the relevant steps in this failed run. It is not stable-source or exact-candidate qualification."
+    ],
+    "journalSha256": "c32de808a7bb65887d04298a759c778b69348fd9d602d46c2632c1d9ede306ac"
   },
   "originalApprovedFindings": 43,
   "directlyApprovedAdditionFindings": 1,
@@ -1511,6 +1605,61 @@
         "Maintenance interruption alias and overbroad handoff declaration input issues were repaired afterward; full targeted validators pass (5 and 12 tests). No third broad rerun yet.",
         "Legacy validate_python_consistency.py requires exact Spec Kit 1.0.1 and cannot run against installed 1.2.0. Its guard was preserved. Current workflow-shell20, workflow-runtime5 and new runtime6 checks passed separately; this is not combined suite acceptance."
       ]
+    },
+    {
+      "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
+      "source": "beab166ac2f5a2e195cdc715aaba5c35866d67bf (development working tree; not clean CI qualification)",
+      "journal": "artifacts/validation-runs/20261016T133907Z-7be2ef6f/journal.json",
+      "journalSha256": "a953178eb8534f3f0490792f712cb89bef6a83f14c9a767726a81ec5b3bf046e",
+      "status": "failed",
+      "observations": [
+        "106 steps: 79 passed and 27 failed. This run precedes subsequent fixture/source repairs and is not complete acceptance. Targeted passes cannot be combined into a passing suite.",
+        "Real Windows long-path failures, atomic-replace access failures, repository-local simulated tool refusal and stale structured-runtime mocks observed. Distinct diagnostics are retained in original logs; no blanket product/host attribution.",
+        "Native refresh 3, ownership 8, owned scratch 15, installed sync/coordinator 11, story-delivery repeat 48, public-core compatibility 10 and device-policy 16 pass separately after appropriate repairs/reproduction. Original story atomic-replace access error remains unexplained.",
+        "Current inventory id validate_python_consistency actually invokes tests/validate_public_core_compatibility.py. Its failures were stale newline stdout/error mocks after the structured shared runtime repair; the exact historical 1.0.1 source fixture is separate and unchanged. This supersedes the prior current-inventory attribution without rewriting its retained observation."
+      ]
+    }
+  ],
+  "continuationHistory": [
+    {
+      "sourceBaseline": "2a29252d77c2f632455dddc2fdc73718e87c2648",
+      "sourceState": "working-tree repairs; not a clean publication candidate",
+      "sourceManifest": "artifacts/maintenance-implementation-2026-10-16/continuation-source-inputs.json",
+      "sourceManifestSha256": "11dc34404619d23e9511295051e363a439033aa5dbefba440c6f6bbb7f580e88",
+      "targetedRuns": [
+        {
+          "path": "artifacts/maintenance-implementation-2026-10-16/continuation-01/results.json",
+          "sha256": "1fabe3d9b051e567a039986de975b8cf35d1ac99d1697a4bb4f18979cb4e990e"
+        },
+        {
+          "path": "artifacts/maintenance-implementation-2026-10-16/continuation-02/results.json",
+          "sha256": "e6b0985b2e59792bd6adb7154718a60baf3d83bc0913f922ed82c3be7ad11db9"
+        },
+        {
+          "path": "artifacts/maintenance-implementation-2026-10-16/continuation-03/results.json",
+          "sha256": "ab37989437328d4194c68b83ecd18f23c22f2759e43fa87cfed49d672e732ff1"
+        },
+        {
+          "path": "artifacts/maintenance-implementation-2026-10-16/continuation-04/results.json",
+          "sha256": "30f8c94e20944c4f4248b489865bbfaf328d88d9302092a9fc1738dba2514d61"
+        },
+        {
+          "path": "artifacts/maintenance-implementation-2026-10-16/continuation-05/results.json",
+          "sha256": "d5e6851164c7dba59d9bbf47310084ec17ac4678a7fb324fe23515a9a415681a"
+        }
+      ],
+      "qualifier": {
+        "command": "qualifier-final-2.log",
+        "status": "passed",
+        "scope": "Actual supervised local HTTP/Python failure-contract tests; no browser/runtime/application acceptance. Earlier sandbox and path failures preserved separately.",
+        "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/qualifier-final-2.log",
+        "sha256": "be32c6df451be941a88dd68e97b763c5cde7e442026855fcd08198afc7f5d778"
+      },
+      "scope": "Existing 47 findings only. Foundation source, active consumer, additions queue, later addenda and transferred repair-feedback work were not modified.",
+      "unadoptedObservation": {
+        "path": "artifacts/maintenance-implementation-2026-10-16/unadopted-native-checkpoint-observation.json",
+        "sha256": "68a52908654499a68feb624ca18cc4468fa73fc890d1b852797ad53334e26a10"
+      }
     }
   ]
 }

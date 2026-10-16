@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory, native_path
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -18,7 +19,7 @@ g, life, workflow = fixture.g, fixture.life, fixture.workflow
 class PostBootstrapTests(unittest.TestCase):
     def setUp(self):
         self.previous = Path.cwd()
-        self.temp = tempfile.TemporaryDirectory(prefix='post-bootstrap-')
+        self.temp = FixtureDirectory(prefix='post-bootstrap-')
         self.root = Path(self.temp.name)
         os.chdir(self.root)
         self.addCleanup(self.cleanup)
@@ -44,7 +45,7 @@ class PostBootstrapTests(unittest.TestCase):
         self.shell.start()
         self.stdin = patch.object(sys.stdin, 'isatty', return_value=False)
         self.stdin.start()
-        self.source = fixture.WorkflowEngine(self.root).execute(fixture.definition([
+        self.source = fixture.WorkflowEngine(Path(native_path(self.root))).execute(fixture.definition([
             fixture.shell('complete-bootstrap', fixture.FLOW + 'step complete --run-id {{ context.run_id }}')
         ]), run_id='completed-source')
         self.assertEqual(fixture.RunStatus.COMPLETED, self.source.status, self.source.error)
