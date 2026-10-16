@@ -11,9 +11,12 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from urllib.parse import urlparse
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] in ('current', 'review-material'):
+    sys.dont_write_bytecode = True
 from dotnet_adapter import bootstrap
 
 bootstrap()
@@ -137,11 +140,28 @@ def store(path, content, state):
 
 def atomic_write(path, content):
     # Same-directory replacement keeps either the previous or the next complete checkpoint.
+    previous = path.read_bytes() if path.is_file() else None
     descriptor, temporary = tempfile.mkstemp(prefix='.tasks-', suffix='.tmp', dir=path.parent)
     try:
         with os.fdopen(descriptor, 'w', encoding='utf-8', newline='\n') as stream:
             stream.write(content)
-        os.replace(temporary, path)
+        for attempt in range(5):
+            try:
+                os.replace(temporary, path)
+                break
+            except PermissionError as error:
+                if os.name != 'nt' or getattr(error, 'winerror', None) not in (5, 32, 33) or attempt == 4:
+                    raise
+                # A short Windows sharing/access block may clear. Retrying must
+                # never overwrite a concurrent human edit or acquire permissions.
+                time.sleep(.02 * (attempt + 1))
+                try:
+                    unchanged = (path.read_bytes() if path.is_file() else None) == previous
+                except OSError:
+                    unchanged = False
+                if not unchanged:
+                    error.add_note('Checkpoint destination changed or became unreadable while replacement was blocked; no retry/write.')
+                    raise
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
@@ -544,7 +564,7 @@ def finalize(root, feature):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('prepare', 'save-phase', 'acknowledge-inputs', 'finalize', 'checkpoint', 'current', 'delivery', 'reset'))
+    parser.add_argument('command', choices=('prepare', 'save-phase', 'acknowledge-inputs', 'finalize', 'checkpoint', 'current', 'delivery', 'reset', 'review-material'))
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phases', nargs='+')
@@ -553,6 +573,7 @@ def main():
     parser.add_argument('--apply', action='store_true', help='Apply only an explicitly human-selected unfinished-feature file inventory')
     parser.add_argument('--history', action='store_true', help='Current: explicitly read retained progress and complete delivery provenance')
     parser.add_argument('--history-sha', help='Current --history: resolve an exact retained progress reference')
+    parser.add_argument('--checkpoint', help='review-material: retained checkpoint identity to diagnose without writing')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     feature = (root / args.feature_dir).resolve()
@@ -579,6 +600,12 @@ def main():
             result = current_projection(checkpoint(feature, json.loads(Path(args.content_file).read_text(encoding='utf-8'))))
         elif args.command == 'current':
             result = progress_history(feature, args.history_sha) if args.history else current_projection(current(feature))
+        elif args.command == 'review-material':
+            require(nonempty(args.checkpoint), 'review-material requires --checkpoint')
+            import review_material
+            reviews = load_delivery(feature)['checkpoints']
+            require(args.checkpoint in reviews, 'Unknown review checkpoint: ' + args.checkpoint)
+            result = review_material.explain(root, reviews[args.checkpoint])
         elif args.command == 'reset':
             if not args.content_file:
                 raise ValueError('reset requires the concrete reviewed inventory in --content-file')

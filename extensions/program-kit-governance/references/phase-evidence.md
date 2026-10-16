@@ -217,6 +217,25 @@ review. Unknown/deleted inputs, unsupported projections and unprovable legacy hi
 An `engineering` transition renews raw-input freshness only with actual successful relevant artifacts;
 tests never create acceptance. Original decision objects and their raw basis remain unchanged.
 
+For a new review, `story-document` version 1 can project an explicitly partitioned Markdown plan.
+Its input row names `stories` (the reviewed outcome's complete story closure) and `knownStories`
+(the reviewed finite set of sibling identities). Delimit a region with exact whole lines
+`<!-- program-kit:story-start US1 -->` and `<!-- program-kit:story-end US1 -->`.
+All prose outside regions remains shared material; all selected regions remain material.
+Only bodies of already declared independent siblings are omitted. Include a sibling in `stories`
+whenever its behavior influences the reviewed outcome; markers cannot establish independence.
+Unknown, duplicate, nested, mismatched, unclosed or fenced-code markers are errors. Changing
+the finite known set, selection or projection implementation cannot manufacture acceptance.
+Do not automatically add markers or narrow an earlier review: existing whole-file authority,
+decision, reviewer, basis and effort remain historical evidence. A retrospective narrowing needs
+a separately authorized material assessment; it is not supplied by this projection.
+
+Run `task_draft.py review-material --repository . --feature-dir specs/<feature> --checkpoint US1`
+for read-only per-input raw/material diagnostics. It writes no checkpoint, grants no authority and
+does not renew engineering evidence. Its output distinguishes a changed projection policy from
+changed reviewed material. Architecture/solution/build/package/runtime closure remains under its
+existing full bindings until a supported, reviewed projection/transition establishes that scope.
+
 An owner's existing explicit deferral can retain permission for the same named operations while
 changed engineering or review evidence remains due. Refresh preserves that scoped permission;
 it does not turn a stale decision into acceptance. The original owner identity, assignment,

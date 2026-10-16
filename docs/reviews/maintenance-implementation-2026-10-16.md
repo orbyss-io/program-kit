@@ -148,3 +148,22 @@ local maintained route within that fixture scope, not all interruption boundarie
 or current consumer/public adoption. A later compatibility guard retains the
 Python 3.11 rmtree callback API; both callback APIs pass real Git-object cleanup
 on Python 3.15, with no claim of actual 3.11 execution.
+
+## Scoped story-plan and checkpoint continuation
+
+A new `story-document` projection retains shared prose and the selected story
+closure, allowing only previously declared independent sibling regions to change
+without reopening the human disposition. The original decision and baseline remain
+unchanged; engineering evidence must still be renewed. Unknown/malformed regions,
+shared/selected changes and changed projection rules cannot create acceptance.
+`task_draft.py review-material` provides read-only per-input diagnostics. Existing
+whole-file reviews are not retroactively narrowed. Architecture/solution membership
+and the explicitly authorized retrospective material-assessment transition remain
+N3 work, including its actual build/package/runtime closure evidence.
+
+All 56 story-delivery cases pass, including actual Windows file locks. Checkpoint
+replacement now retries a short access/sharing block for a bounded 200 ms total
+delay; exhaustion stays a failure and an observed concurrent edit prevents retry.
+No permissions are changed and no particular cause of the earlier host failures is
+asserted. This is checkpoint persistence evidence, not a human review or full suite
+qualification.

@@ -876,14 +876,29 @@
       "sourceDiagnosis": "Extend existing scoped material projections/diagnostics conservatively",
       "workPackages": "D/G/I",
       "closureRequired": "Unrelated additions preserve approval; affecting shared changes and rule changes cannot fabricate acceptance.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired.",
-        "Include additive solution membership: distinguish actual build/dependency/package/runtime effects from unrelated additions; retain original review and record separately authorized transitions using real native checks and actor/source fields."
+      "status": "partially-implemented; story-document projection and diagnostics verified",
+      "changedFiles": [
+        "extensions/program-kit-governance/scripts/review_material.py",
+        "extensions/program-kit-governance/scripts/task_draft.py",
+        "extensions/program-kit-governance/references/phase-evidence.md",
+        "tests/validate_story_delivery.py"
       ],
-      "closureEvidence": [],
+      "validation": [
+        {
+          "command": "python tests/validate_story_delivery.py (external Windows process access)",
+          "status": "passed",
+          "scope": "56 deterministic cases: declared sibling-plan addition retains exact original decisions/baseline with engineering stale; shared/selected changes reopen; unknown/nested/duplicate/mismatched/unclosed/fenced regions and changed known-story policy cannot fabricate approval; read-only native CLI diagnostics; actual Windows sharing release/exhaustion and concurrent authored edit preservation. Synthetic decisions only.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/story-document-material-projection-final.log",
+          "sha256": "c5253a973a0ac5a2ce9dc9d2a3e44e12feab950f5915176ea2cc1cdda92a006c"
+        }
+      ],
+      "remainingDependencies": [
+        "Conservative scoped architecture projection; actual additive solution-member build/dependency/package/runtime effects and native tests; separately human-authorized retrospective material-assessment transition preserving original reviewer/basis/effort and actual actor/source/check records. No blanket solution/new-project exclusions or current consumer acceptance inferred.",
+        "Complete current-source Development, exact-candidate CI and released normal consumer adoption."
+      ],
+      "closureEvidence": [
+        "New presentations can bind a finite reviewed story partition: shared prose and selected story closure remain material; only declared independent sibling bodies are omitted. Existing review records are not narrowed or rewritten. Native review-material diagnostics do not mutate checkpoints, renew engineering evidence or create acceptance."
+      ],
       "additionalEvidence": [
         {
           "source": {
@@ -928,7 +943,8 @@
         "extensions/program-kit-governance/references/phase-evidence.md",
         "presets/program-kit-governance-preset/templates/tasks-governance.md",
         "presets/program-kit-governance-preset/commands/speckit.implement.md",
-        "tests/validate_task_generation.py"
+        "tests/validate_task_generation.py",
+        "tests/validate_story_delivery.py"
       ],
       "validation": [
         {
@@ -944,12 +960,21 @@
           "scope": "48 existing story/human-authority, provenance, effort and continuation guard tests",
           "log": "artifacts/maintenance-implementation-2026-10-16/checkpoint-story-guards.log",
           "sha256": "a94cfe7746e78c490771fafa299a1673de06591bb1a167bc35f90edcedae7922"
+        },
+        {
+          "command": "python tests/validate_story_delivery.py (external Windows process access)",
+          "status": "passed",
+          "scope": "56 deterministic cases: declared sibling-plan addition retains exact original decisions/baseline with engineering stale; shared/selected changes reopen; unknown/nested/duplicate/mismatched/unclosed/fenced regions and changed known-story policy cannot fabricate approval; read-only native CLI diagnostics; actual Windows sharing release/exhaustion and concurrent authored edit preservation. Synthetic decisions only.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/story-document-material-projection-final.log",
+          "sha256": "c5253a973a0ac5a2ce9dc9d2a3e44e12feab950f5915176ea2cc1cdda92a006c"
         }
       ],
       "remainingDependencies": [
         "Final current-source Development/CI qualification and normal consumer migration; no consumer history has been rewritten."
       ],
-      "closureEvidence": []
+      "closureEvidence": [
+        "Repeated actual Windows atomic-replace access failures motivated bounded (five attempts, 200 ms total delay) replacement retry only for Win32 access/sharing/lock errors. Native file-lock release and held-lock exhaustion tests pass. The original failure remains an error on exhaustion; observed concurrent edits stop retries without overwriting the destination. No ACL/permission changes or original host-cause claim."
+      ]
     },
     {
       "id": "N6",

@@ -7,6 +7,7 @@ from pathlib import Path
 import copy
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -83,6 +84,81 @@ def accepted_fixture(root, feature):
 
 
 class DeliveryTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt', 'Native Windows file sharing')
+    def test_checkpoint_recovers_a_short_native_sharing_block_without_rewriting_history(self):
+        import ctypes
+        from ctypes import wintypes
+        import threading
+        import time
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
+                                      wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        kernel.CreateFileW.restype = wintypes.HANDLE
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        target = self.feature / 'tasks.md'
+        original = target.read_text()
+        handle = kernel.CreateFileW(str(target), 0x80000000, 3, None, 3, 128, None)
+        self.assertNotEqual(ctypes.c_void_p(-1).value, handle, ctypes.get_last_error())
+        released = threading.Event()
+        def release():
+            time.sleep(.06)
+            kernel.CloseHandle(handle)
+            released.set()
+        thread = threading.Thread(target=release)
+        thread.start()
+        try:
+            delivery.atomic_write(target, original + '\nRetained checkpoint fixture.\n')
+            thread.join(timeout=2)
+            self.assertFalse(thread.is_alive())
+            self.assertEqual(original + '\nRetained checkpoint fixture.\n', target.read_text())
+            self.assertEqual([], list(self.feature.glob('.tasks-*.tmp')))
+        finally:
+            thread.join(timeout=2)
+            if not released.is_set():
+                kernel.CloseHandle(handle)
+
+    @unittest.skipUnless(os.name == 'nt', 'Native Windows file sharing')
+    def test_checkpoint_persistent_native_block_preserves_original_and_reports_failure(self):
+        import ctypes
+        from ctypes import wintypes
+        import time
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
+                                      wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        kernel.CreateFileW.restype = wintypes.HANDLE
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        target = self.feature / 'tasks.md'
+        original = target.read_bytes()
+        handle = kernel.CreateFileW(str(target), 0x80000000, 3, None, 3, 128, None)
+        self.assertNotEqual(ctypes.c_void_p(-1).value, handle, ctypes.get_last_error())
+        started = time.monotonic()
+        try:
+            with self.assertRaises(PermissionError) as observed:
+                delivery.atomic_write(target, 'must not replace retained checkpoint')
+            self.assertIn(observed.exception.winerror, (5, 32, 33))
+            self.assertLess(time.monotonic() - started, 2)
+            self.assertEqual(original, target.read_bytes())
+            self.assertEqual([], list(self.feature.glob('.tasks-*.tmp')))
+        finally:
+            kernel.CloseHandle(handle)
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows replacement retry boundary')
+    def test_checkpoint_retry_cannot_overwrite_a_concurrent_edit(self):
+        target = self.feature / 'tasks.md'
+        failure = PermissionError('blocked replacement fixture')
+        failure.winerror = 32
+        def blocked(*_):
+            target.write_text('concurrent authored fixture content')
+            raise failure
+        with patch.object(delivery.os, 'replace', side_effect=blocked) as replace:
+            with self.assertRaises(PermissionError) as observed:
+                delivery.atomic_write(target, 'stale writer must not win')
+            self.assertIs(failure, observed.exception)
+            replace.assert_called_once()
+        self.assertEqual('concurrent authored fixture content', target.read_text())
+        self.assertIn('destination changed', ' '.join(failure.__notes__))
+        self.assertEqual([], list(self.feature.glob('.tasks-*.tmp')))
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='story-review-')
         self.addCleanup(temporary.cleanup)
@@ -127,6 +203,106 @@ class DeliveryTests(unittest.TestCase):
             basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
             entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
         self.accept()
+
+    def story_document_presentation(self):
+        self.complete('T001', 'T002')
+        self.shared_plan = self.feature / 'plan.md'
+        self.shared_plan.write_text('# Shared plan\nAuthentication: required for private records.\n'
+            '<!-- program-kit:story-start US1 -->\nCreate and reopen an owned record.\n'
+            '<!-- program-kit:story-end US1 -->\n', encoding='utf-8')
+        self.plan_relative = self.shared_plan.relative_to(self.root).as_posix()
+        self.document_scope = {'schemaVersion': 1, 'inputs': [
+            {'path': 'src/Create.txt', 'kind': 'file'},
+            {'path': self.plan_relative, 'kind': 'story-document', 'version': 1,
+             'stories': ['US1'], 'knownStories': ['US1', 'US2']}]}
+        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+            basisPaths=['src/Create.txt', self.plan_relative], materialScope=self.document_scope,
+            entryPoint='fictional interface', preparedData='fictional account', walkthrough='create and reopen',
+            expected='owned useful record', limitations='synthetic scope proof, no real human acceptance')
+        self.accept()
+
+    def test_known_sibling_plan_addition_retains_original_review_and_requires_current_engineering(self):
+        self.story_document_presentation()
+        before = copy.deepcopy(delivery.load_delivery(self.feature))
+        baseline = delivery.current(self.feature)['baseline']
+        with self.shared_plan.open('a', encoding='utf-8') as stream:
+            stream.write('<!-- program-kit:story-start US2 -->\nExport an unrelated record.\n'
+                         '<!-- program-kit:story-end US2 -->\n')
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('accepted', review['human'])
+        self.assertEqual('pending', review['engineering'])
+        self.assertEqual(before['checkpoints']['US1']['decisions'], review['decisions'])
+        with self.assertRaisesRegex(ValueError, 'engineering checks remain due'):
+            self.act('start', operation='export')
+        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('start', operation='export')
+        after = delivery.load_delivery(self.feature)
+        self.assertEqual(before['checkpoints']['US1']['decisions'], after['checkpoints']['US1']['decisions'])
+        self.assertEqual(baseline, delivery.current(self.feature)['baseline'])
+
+    def test_shared_plan_policy_and_selected_story_changes_reopen_without_rewriting_approval(self):
+        for old, new in [('required for private records', 'optional for private records'),
+                         ('reopen an owned record', 'reopen another account record')]:
+            with self.subTest(change=new):
+                self.story_document_presentation()
+                original = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
+                self.shared_plan.write_text(self.shared_plan.read_text().replace(old, new), encoding='utf-8')
+                self.act('status')
+                review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+                self.assertEqual('pending', review['human'])
+                self.assertTrue(review['stale'])
+                self.assertEqual(original, review['decisions'])
+
+    def test_unknown_nested_duplicate_or_unclosed_story_regions_cannot_preserve_acceptance(self):
+        additions = [
+            '<!-- program-kit:story-start US3 -->\nunknown\n<!-- program-kit:story-end US3 -->\n',
+            '<!-- program-kit:story-start US2 -->\n<!-- program-kit:story-start US1 -->\n',
+            '<!-- program-kit:story-start US1 -->\nduplicate\n<!-- program-kit:story-end US1 -->\n',
+            '<!-- program-kit:story-start US2 -->\nunclosed\n',
+            '```markdown\n<!-- program-kit:story-start US2 -->\nexample\n<!-- program-kit:story-end US2 -->\n```\n',
+            '<!-- program-kit:story-start US2 -->\nwrong end\n<!-- program-kit:story-end US1 -->\n']
+        for addition in additions:
+            with self.subTest(addition=addition):
+                self.story_document_presentation()
+                with self.shared_plan.open('a', encoding='utf-8') as stream:
+                    stream.write(addition)
+                self.act('status')
+                review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+                self.assertEqual('pending', review['human'])
+                self.assertEqual('accepted', review['decisions'][-1]['verdict'])
+
+    def test_native_review_material_diagnostics_are_read_only_and_do_not_grant_acceptance(self):
+        self.story_document_presentation()
+        with self.shared_plan.open('a', encoding='utf-8') as stream:
+            stream.write('<!-- program-kit:story-start US2 -->\nUnrelated private fixture prose.\n'
+                         '<!-- program-kit:story-end US2 -->\n')
+        before = {p.relative_to(self.root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                  for p in self.root.rglob('*') if p.is_file()}
+        command = [sys.executable, str(ROOT / 'extensions/program-kit-governance/scripts/task_draft.py'),
+            'review-material', '--repository', str(self.root), '--feature-dir', self.feature.relative_to(self.root).as_posix(),
+            '--checkpoint', 'US1']
+        result = subprocess.run(command, capture_output=True, encoding='utf-8', timeout=30)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        evidence = json.loads(result.stdout)
+        self.assertTrue(evidence['readOnly'])
+        self.assertFalse(evidence['acceptanceEstablished'])
+        self.assertTrue(evidence['materialUnchanged'])
+        self.assertTrue(next(row for row in evidence['inputs'] if row['path'] == self.plan_relative)['rawChanged'])
+        self.assertNotIn('Unrelated private fixture prose', result.stdout)
+        self.assertEqual(before, {p.relative_to(self.root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                                  for p in self.root.rglob('*') if p.is_file()})
+
+    def test_expanding_known_story_rules_cannot_manufacture_an_approval(self):
+        self.story_document_presentation()
+        value = delivery.load_delivery(self.feature)
+        original = copy.deepcopy(value['checkpoints']['US1']['decisions'])
+        value['checkpoints']['US1']['materialScope']['inputs'][1]['knownStories'].append('US3')
+        delivery.persist(self.feature, value)
+        self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('pending', review['human'])
+        self.assertEqual(original, review['decisions'])
 
     def large_presentation(self):
         self.complete('T001', 'T002')
