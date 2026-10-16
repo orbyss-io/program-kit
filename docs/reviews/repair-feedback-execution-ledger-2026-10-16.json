@@ -28,7 +28,17 @@
       "journal": "artifacts/validation-runs/20261016T175056Z-b36215d6/journal.json",
       "coverage": "Packaged current/historical schemas validate actual assessment fixtures and match standalone bytes; installed consumer handoff and upgrade remain covered."
     },
-    "packageValidation": "pending actual composite build",
+    "packageValidation": {
+      "result": "passed",
+      "sourceCommit": "988809d",
+      "compositeEntries": 512,
+      "unchangedSpecKitLimit": 512,
+      "completeBuild": "scripts/build_release.py completed successfully in a separate short-path checkout",
+      "buildLog": "artifacts/reviews/pr42-full-package-build.log",
+      "artifacts": "artifacts/reviews/pr42-package-988809d",
+      "componentsJournal": "artifacts/validation-runs/20261016T175350Z-6cfe1b88/journal.json",
+      "scope": "Local packaging validation only; no publication or release qualification claim"
+    },
     "activeMaintenanceAndConsumers": "untouched",
     "publicGuardianDeployment": "unchanged"
   },
