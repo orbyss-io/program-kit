@@ -60,7 +60,11 @@ class RepositoryToolchainTests(unittest.TestCase):
     def setUp(self):
         environment = patch.dict(os.environ, {'PROGRAMKIT_DEVICE_PYTHON': ''})
         environment.start(); self.addCleanup(environment.stop)
-        self.temp = tempfile.TemporaryDirectory()
+        # Simulated user tools must live outside every checkout, independently
+        # of a suite's repository-local TEMP setting. The production rejection
+        # of tools from this or another Git checkout remains the test oracle.
+        parent = Path(os.environ['LOCALAPPDATA']) / 'Temp' if os.name == 'nt' else None
+        self.temp = tempfile.TemporaryDirectory(prefix='program-kit-device-fixture-', dir=parent)
         self.addCleanup(self.temp.cleanup)
         self.base = Path(self.temp.name)
         self.repo = self.base / 'consumer-a'

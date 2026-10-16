@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import os
 import shutil
 import subprocess
 import sys
@@ -12,9 +14,38 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "extensions/program-kit-governance/scripts"))
 import repository_sync as sync
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+from owned_scratch import owned_scratch, filesystem_path
 
 
 class CoordinatorTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt', 'Windows extended source-root regression')
+    def test_installed_sync_reads_declared_parent_source_roots_with_extended_paths(self):
+        with owned_scratch(ROOT, 'validation-fixture') as scratch:
+            directory = Path(filesystem_path(scratch))
+            target = directory / 'consumer'
+            installed = target / '.specify/extensions/program-kit-dotnet'
+            shutil.copytree(ROOT / 'extensions/program-kit-dotnet', installed,
+                            ignore=shutil.ignore_patterns('__pycache__'))
+            shutil.copytree(ROOT / 'extensions/program-kit-building-blocks',
+                            installed.with_name('program-kit-building-blocks'),
+                            ignore=shutil.ignore_patterns('__pycache__'))
+            shutil.copytree(ROOT / 'extensions/program-kit-governance',
+                            installed.with_name('program-kit-governance'),
+                            ignore=shutil.ignore_patterns('__pycache__'))
+            before = {p.relative_to(target).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                      for p in target.rglob('*') if p.is_file()}
+            result = subprocess.run([sys.executable, str(installed / 'scripts/dotnet_sync.py'),
+                '--target', str(target), '--profile-selected', '--web-profile', 'none', '--check', '--json'],
+                capture_output=True, text=True, encoding='utf-8', timeout=90)
+            self.assertIn(result.returncode, (0, 1), result.stdout + result.stderr)
+            self.assertTrue(result.stdout.strip(), result.stderr)
+            plan = json.loads(result.stdout)
+            self.assertFalse(plan['conflicts'])
+            self.assertIn('eng/composition_model.py', {row['path'] for row in plan['actions']})
+            self.assertEqual(before, {p.relative_to(target).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                                     for p in target.rglob('*') if p.is_file()})
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix="program-kit-repository-sync-")
         self.addCleanup(temporary.cleanup)

@@ -4,6 +4,7 @@ import io
 import os
 from pathlib import Path
 import shutil
+import stat
 import sys
 import tempfile
 import unittest
@@ -17,6 +18,71 @@ import owned_scratch as scratch
 
 
 class OwnedScratchTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt', 'Windows read-only Git objects')
+    def test_real_disposable_git_objects_are_removed_without_touching_sibling_data(self):
+        sentinel = self.root / 'retained-data'
+        sentinel.write_text('preserve')
+        # Exercise both actual rmtree callback APIs on the current interpreter;
+        # this does not claim that a Python 3.11 interpreter was executed.
+        for version in (sys.version_info, (3, 11, 0)):
+            with self.subTest(callbackApi=version[:2]), patch.object(scratch.sys, 'version_info', version):
+                manager = scratch.owned_scratch(self.root, 'validation-fixture')
+                with manager as directory:
+                    for command in (['init', '-q'], ['hash-object', '-w', '--stdin']):
+                        result = subprocess.run(['git', '-C', str(directory), *command], input=b'owned fixture object\n',
+                                                capture_output=True, check=True)
+                    object_id = result.stdout.decode('ascii').strip()
+                    stored = directory / '.git/objects' / object_id[:2] / object_id[2:]
+                    self.assertTrue(stored.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY)
+                self.assertFalse(directory.exists())
+        self.assertEqual('preserve', sentinel.read_text())
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows read-only bit contract')
+    def test_readonly_recovery_refuses_outside_paths_and_plain_access_denial(self):
+        manager = scratch.owned_scratch(self.root, 'validation-fixture')
+        with manager as directory:
+            outside = self.root / 'retained-readonly'
+            outside.write_text('preserve')
+            os.chmod(outside, stat.S_IREAD)
+            try:
+                failure = PermissionError('outside deletion refused')
+                with self.assertRaises(PermissionError) as observed:
+                    manager._remove_readonly_file(os.unlink, str(outside), failure)
+                self.assertIs(failure, observed.exception)
+                self.assertTrue(outside.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY)
+                self.assertEqual('preserve', outside.read_text())
+            finally:
+                os.chmod(outside, stat.S_IWRITE)
+            writable = directory / 'writable'
+            writable.write_text('preserve access error')
+            failure = PermissionError('not a read-only failure')
+            with self.assertRaises(PermissionError) as observed:
+                manager._remove_readonly_file(os.unlink, str(writable), failure)
+            self.assertIs(failure, observed.exception)
+            self.assertTrue(writable.exists())
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows directory junction boundary')
+    def test_readonly_recovery_cannot_follow_a_nested_junction(self):
+        outside = self.root / 'retained-tree'
+        outside.mkdir()
+        sentinel = outside / 'object'
+        sentinel.write_text('preserve')
+        os.chmod(sentinel, stat.S_IREAD)
+        try:
+            manager = scratch.owned_scratch(self.root, 'validation-fixture')
+            with manager as directory:
+                junction = directory / 'borrowed'
+                result = subprocess.run(['cmd.exe', '/d', '/c', 'mklink', '/J', str(junction), str(outside)],
+                                        capture_output=True, text=True, timeout=30)
+                self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+                with self.assertRaisesRegex(ValueError, 'links or reparse points'):
+                    manager._remove_readonly_file(os.unlink, str(junction / 'object'), PermissionError('read-only'))
+                self.assertTrue(sentinel.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY)
+                self.assertEqual('preserve', sentinel.read_text())
+            self.assertTrue(sentinel.exists())
+        finally:
+            os.chmod(sentinel, stat.S_IWRITE)
+
     def test_failed_entry_preserves_integrity_error_and_residual_cleanup_observation(self):
         manager = scratch.owned_scratch(self.root, 'release-bundle')
         failure = ValueError('scratch identity changed during entry')

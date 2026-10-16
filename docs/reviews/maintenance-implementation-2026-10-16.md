@@ -74,8 +74,9 @@ distinct findings. Adoption does not establish an upstream defect or validate th
 consumer's remedy. Additional N3/N13 evidence refines those rows without duplicate
 IDs. The original 43-item plan/audit and subsequent direct N12 approval remain intact.
 
-The separately discussed contributor evaluation skill is still under design in
-its own chat and is not a settled implementation requirement here. Publication,
+The separately discussed contributor evaluation skill was explicitly transferred
+by the human to another branch/session. No part of that feature or its design
+documents is adopted, implemented, staged or committed here. Publication,
 paid execution, device installation and destructive-operation boundaries remain
 unchanged. The active consumer has not been modified.
 
@@ -113,3 +114,37 @@ Complete sequential interruption qualification remains outstanding. Restore
 commands, project/output inventory, input digests and renewal admission share one
 closure; actual offline renew/locked checks cover a forward nonmember and reverse
 dependents. Custom layouts require the remaining evaluated native adapter work.
+
+## Further Windows update-route validation
+
+The next bounded Development run completed 106 steps, with 79 passing and 27
+failing. Its original journal and failures remain retained. Targeted post-repair
+passes do not turn that run into a passing suite.
+
+Actual native phase refresh (3 cases) and native source/output ownership (8 cases)
+now pass with complete historical profiles in exact-owned extended filesystem
+fixtures. Native Git arguments retain ordinary drive syntax. Full sequential
+updater execution exposed read-only Git objects and unnormalized extended
+sourceRoot opens. The scratch owner clears only a verified owned regular file's
+read-only bit; outside paths, junction parents and genuine access failures remain
+errors. All 15 scratch cases pass. Installed sync now normalizes the I/O path while
+retaining its original declared source identity, and its direct CLI prevents
+consumer bytecode writes. All 11 repository-sync cases pass.
+
+Current public-core compatibility retains its 10 named obligations and now mocks
+the actual structured probe. All pass, including real public generation and the
+missing-worker-artifact gate. All 16 device-policy fixtures pass with simulated
+user tools outside Git; production device policy is unchanged. The original
+story atomic-replace failure remains unexplained; a separate 48-case rerun passes.
+These are bounded repair results, with remaining suite/CI/release/adoption work
+explicit in the ledger.
+
+The actual maintained sequential updater then completed successfully, including
+15 updater invocations with expected deliberate failure outcomes, authentic
+historical v0.12.7 inputs, planned/materialized selections, partial-install
+recovery, read-only preview and final offline/local coherence. The separate
+`native-upgrade-route-final.json` binds its log and timings. This establishes the
+local maintained route within that fixture scope, not all interruption boundaries
+or current consumer/public adoption. A later compatibility guard retains the
+Python 3.11 rmtree callback API; both callback APIs pass real Git-object cleanup
+on Python 3.15, with no claim of actual 3.11 execution.

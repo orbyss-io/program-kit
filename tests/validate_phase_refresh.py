@@ -7,13 +7,14 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-import tempfile
 import time
 import unittest
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'scripts'), str(ROOT / 'extensions/program-kit-governance/scripts')]
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+from owned_scratch import owned_scratch, filesystem_path
 import upgrade_program_kit as upgrade
 import consumer_upgrade as flow
 from specify_cli.integrations.manifest import IntegrationManifest
@@ -27,9 +28,11 @@ def digest(path):
 
 class NativePhaseRefreshTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix='program-kit-phase-refresh-')
-        self.addCleanup(self.temporary.cleanup)
-        self.base = Path(self.temporary.name)
+        # Keep the complete historical profile tree. Native Python filesystem
+        # operations need an extended root on Windows; shortening the fixture's
+        # data or changing the host long-path policy would hide the boundary.
+        scratch = self.enterContext(owned_scratch(ROOT, 'validation-fixture'))
+        self.base = Path(filesystem_path(scratch))
         self.root = self.base / 'consumer'
         self.root.mkdir()
         self.cli = [sys.executable, str(ROOT / 'scripts/invoke_specify.py'), '--site-packages',

@@ -17,6 +17,8 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 UPDATER = ROOT / "scripts/upgrade_program_kit.py"
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+from owned_scratch import owned_scratch, filesystem_path, native_path
 
 
 def load_updater():
@@ -123,7 +125,8 @@ def validate_read_only_module_loading() -> None:
 
 def run(*command: str, cwd: Path) -> subprocess.CompletedProcess[str]:
     started = time.perf_counter()
-    result = subprocess.run(command, cwd=cwd, text=True, encoding='utf-8', errors='replace',
+    result = subprocess.run(command, cwd=cwd, env={**os.environ, 'SPECIFY_INIT_DIR': str(cwd)},
+                            text=True, encoding='utf-8', errors='replace',
                             capture_output=True, check=False)
     if str(UPDATER) in command:
         evidence = ROOT / 'artifacts/maintenance-flow/local-upgrade-timings.json'
@@ -492,8 +495,11 @@ def main() -> int:
     validate_read_only_module_loading()
     validate_uv_launcher_bridge()
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-    with tempfile.TemporaryDirectory(prefix="program-kit-local-upgrade-") as directory, tempfile.TemporaryDirectory(prefix='program-kit-fictional-source-') as fixture_directory:
-        project = Path(directory).resolve()
+    with owned_scratch(ROOT, 'validation-fixture') as directory, owned_scratch(ROOT, 'validation-fixture') as witness:
+        # Preserve every historical profile while using extended paths for Python
+        # filesystem I/O. These exact owned roots cannot escape into consumer data.
+        project = Path(filesystem_path(directory))
+        fixture_directory = filesystem_path(witness)
         initialized = run(
             "specify", "init", ".", "--force", "--non-interactive",
             "--integration", "codex", "--script", "py", "--ignore-agent-tools",

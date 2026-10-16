@@ -114,7 +114,41 @@ class OwnedScratch:
 
     def _remove(self):
         self._verify()
-        shutil.rmtree(filesystem_path(self.path))
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(filesystem_path(self.path), onexc=self._remove_readonly_file)
+        else:
+            # Python 3.11 remains supported; onexc was introduced in 3.12.
+            shutil.rmtree(filesystem_path(self.path), onerror=lambda operation, path, details:
+                          self._remove_readonly_file(operation, path, details[1]))
+
+    def _remove_readonly_file(self, operation, filename, error):
+        """Clear only Windows' read-only bit on an owned regular scratch file.
+
+        Git's disposable object store legitimately contains read-only files.
+        An ACL failure, a link, an outside path or another operation is still a
+        cleanup failure; never broaden permissions or repair an arbitrary tree.
+        """
+        if os.name != 'nt' or operation is not os.unlink or not isinstance(error, PermissionError):
+            raise error
+        self._verify()
+        target = Path(native_path(Path(filename)))
+        try:
+            relative = target.relative_to(self.path)
+        except ValueError:
+            raise error
+        if not relative.parts or '..' in relative.parts:
+            raise error
+        for parent in reversed(target.parents):
+            if parent == self.path or parent.is_relative_to(self.path):
+                directory_identity(parent)  # Reject junctions before traversing.
+        info = os.lstat(filesystem_path(target))
+        attributes = getattr(info, 'st_file_attributes', 0)
+        if (not stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode)
+                or attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT
+                or not attributes & stat.FILE_ATTRIBUTE_READONLY):
+            raise error
+        os.chmod(filesystem_path(target), info.st_mode | stat.S_IWRITE)
+        operation(filesystem_path(target))
 
     def __exit__(self, error_type, operation_error, traceback):
         try:

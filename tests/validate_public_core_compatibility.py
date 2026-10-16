@@ -37,9 +37,15 @@ class PublicCoreTests(unittest.TestCase):
             with self.subTest(python3=python3), patch.dict(os.environ, {}, clear=True), \
                     patch.object(runtime, 'device_preflight'), \
                     patch.object(runtime.shutil, 'which', side_effect=which) as lookup, \
-                    patch.object(runtime.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, sys.executable + '\n', '')):
+                    patch.object(runtime.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0,
+                        json.dumps({'executable': sys.executable,
+                                    'version': '.'.join(map(str, sys.version_info[:3])),
+                                    'modules': {'yaml': '6.0.3'}}), '')) as probe:
                 self.assertEqual(os.path.abspath(sys.executable), runtime.resolve(self.root))
                 lookup.assert_called_once_with('python')
+                self.assertEqual(sys.executable, probe.call_args.args[0][0])
+                self.assertEqual('-I', probe.call_args.args[0][1])
+                self.assertEqual('["yaml"]', probe.call_args.args[0][-1])
 
     def test_active_manifests_and_ci_share_the_public_cli_baseline(self):
         import yaml
@@ -73,9 +79,10 @@ class PublicCoreTests(unittest.TestCase):
             with patch.dict(os.environ, {'SPECKIT_PYTHON': sys.executable}, clear=True), \
                     patch.object(runtime, 'device_preflight'), \
                     patch.object(runtime.subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, '', diagnostic)):
-                with self.assertRaisesRegex(ValueError, 'before agent dispatch') as error:
+                with self.assertRaisesRegex(ValueError, 'WORKFLOW_RUNTIME_PREFLIGHT: workflow readiness failed') as error:
                     runtime.resolve(self.root)
                 self.assertIn(diagnostic, str(error.exception))
+                self.assertIn('No acquisition was attempted.', str(error.exception))
 
     def test_real_native_environment_without_yaml_is_rejected(self):
         environment = self.root / 'no-yaml'

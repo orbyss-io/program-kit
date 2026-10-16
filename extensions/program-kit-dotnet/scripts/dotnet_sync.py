@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 from xml.etree import ElementTree
 
+# Direct installed CLI execution must not create import caches in a consumer,
+# including --check. Module callers retain their existing interpreter policy.
+if __name__ == '__main__':
+    sys.dont_write_bytecode = True
+
 import reconciliation
 import identity_fixture
 import spa_profile
@@ -248,6 +253,10 @@ def desired_content(
     spa_configuration: dict | None,
     template_root: Path,
 ) -> bytes:
+    # Extended Windows filesystem paths do not interpret dot segments. Resolve
+    # only the I/O path here; the caller retains the original publisher source
+    # identity (including its declared sourceRoot) in managed ownership records.
+    source = source.resolve()
     content = source.read_bytes()
     if relative == "global.json":
         value = load_json(source, {})

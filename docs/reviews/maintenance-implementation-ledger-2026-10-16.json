@@ -502,11 +502,29 @@
       "sourceDiagnosis": "Replace stale fixtures with preserved obligations",
       "workPackages": "G/I",
       "closureRequired": "Explicit required identities and old-to-new coverage; removal/substitution/skip/empty/failure negatives.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "partially-implemented; explicit shared obligation inventory pending",
+      "changedFiles": [
+        "tests/validate_public_core_compatibility.py",
+        "tests/validate_repository_toolchain.py"
+      ],
+      "validation": [
+        {
+          "command": "python tests/validate_public_core_compatibility.py",
+          "status": "passed",
+          "scope": "10 existing named obligations retained: selected interpreter, isolated workflow dependency probe, preserved diagnostics/no acquisition, actual missing PyYAML environment, unmodified public generation and native missing-worker-artifact gate. Updated stale structured-probe mock and error contract; added isolated executable/module assertions.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/public-core-current-runtime-contract.log",
+          "sha256": "af6cad1faf2c89f47ba028e1ff271c87b1e94cfa00ab2a3b55abe999151d5464"
+        },
+        {
+          "command": "python tests/validate_repository_toolchain.py",
+          "status": "passed",
+          "scope": "16 named cases pass with simulated user tools outside Git even when runner TEMP is inside the repository. Production repository-local tool refusal unchanged.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/device-fixtures-outside-checkout.log",
+          "sha256": "659b01f7fc3fc091d4c0c3cb5d21a58baba26a6ec2680a032d37476fd91b7845"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Explicit reviewed shared module/case identities and old-to-new behavioral obligation inventory, including consumer Common.Toolkit bridge attribution; missing/substitution/skip/empty/failure negatives. Current fixture repairs alone do not close R9."
       ],
       "closureEvidence": []
     },
@@ -882,13 +900,20 @@
       "sourceDiagnosis": "Bind historical render profile; separate current readiness",
       "workPackages": "A/F/G/I",
       "closureRequired": "Alias changes versus source changes distinguished; tampered/missing provenance stays explicit.",
-      "status": "pending",
+      "status": "investigated; generation provenance repair pending",
       "changedFiles": [],
       "validation": [],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
-      "closureEvidence": []
+      "closureEvidence": [
+        "Read-only inspection of installed Spec Kit IntegrationBase.resolve_python_interpreter confirms project venv, python3/PATH, python/PATH, then sys.executable selection. Existing preset_baseline and restored_core_baseline re-render through this current environment. No historical interpreter substitution, consumer edit or new acceptance was performed."
+      ],
+      "attributionEvidence": {
+        "source": "C:\\Users\\tech_\\AppData\\Roaming\\uv\\tools\\specify-cli\\Lib\\site-packages\\specify_cli\\integrations\\base.py",
+        "sha256": "7ab249afa782f3ee7438e3198c981aeecbbb96cf5f81907d84adcbdc1d088c26",
+        "scope": "Installed native source inspection only; not a historical render reproduction pass."
+      }
     },
     {
       "id": "N5",
@@ -1089,7 +1114,12 @@
         "tests/validate_owned_scratch.py",
         "tests/validate_release_bundle.py",
         "tests/validation-inventory.json",
-        "extensions/program-kit-dotnet/scripts/reconciliation.py"
+        "extensions/program-kit-dotnet/scripts/reconciliation.py",
+        "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
+        "tests/validate_phase_refresh.py",
+        "tests/validate_repository_sync.py",
+        "tests/validate_local_upgrade.py",
+        "tests/upgrade_selection_cases.py"
       ],
       "validation": [
         {
@@ -1119,13 +1149,59 @@
           "scope": "12 actual Windows lifecycle/deep path/identity/dual-failure cases after allowing the owned validation-fixture purpose; sandbox junction-creation denial was not treated as success.",
           "log": "artifacts/maintenance-implementation-2026-10-16/owned-scratch-validation-fixture-external.log",
           "sha256": "e2d1440b244c54cbff09f5a71edba5f299bbf72ffef66117674d955a4066049c"
+        },
+        {
+          "command": "python tests/validate_owned_scratch.py (external Windows process access)",
+          "status": "passed",
+          "scope": "15 cases, including real read-only Git objects, a real nested junction, outside/read-write access-denial refusal, deep paths and dual/cleanup-only errors.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/owned-scratch-readonly-git-final.log",
+          "sha256": "6df455d1da2234aa4456a39a303e40fa17bb59db662f41cf768d098c8b5df6a9"
+        },
+        {
+          "command": "python tests/validate_phase_refresh.py (external Windows process access)",
+          "status": "passed",
+          "scope": "3 actual native refresh/retention scenarios with complete preserved historical profiles, using exact-owned extended filesystem fixture roots.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/native-phase-extended-root.log",
+          "sha256": "a48280712af902e121d1cf08f6c974d0204bb6372cb1014b94503a6611f5f732"
+        },
+        {
+          "command": "python tests/validate_native_phase_ownership.py (external Windows process access)",
+          "status": "passed",
+          "scope": "8 actual native output/source/customization/integration/guidance ownership cases; no consumer mutation.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/native-ownership-extended-root.log",
+          "sha256": "185098e68bf076633c831620b2348449c7e7eb8252e7c93534b033372a2d7e00"
+        },
+        {
+          "command": "python tests/validate_repository_sync.py (external Windows process access)",
+          "status": "passed",
+          "scope": "11 coordinator/installed-copy cases; real installed --check reads parent sourceRoots under extended Windows paths and creates no bytecode or other consumer writes.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/installed-sync-extended-source-final-4.log",
+          "sha256": "bd9620d7a2359900e5c63795c7787a47c0d3a67c1928b822e4095c92ed2ed383"
+        },
+        {
+          "command": "python -u tests/validate_local_upgrade.py",
+          "status": "passed",
+          "scope": "Actual maintained sequential updater, historical Git v0.12.7 components, fictional version-zero source witness, planned/materialized selection transitions, permission/partial-install/post-install failure negatives, retry, read-only preview and final coherence. Disposable Windows consumers only.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/local-upgrade-extended-root-final.log",
+          "sha256": "aa4713c71394f27c09aebf2cbea6c4568c9588134d19a28cb700841e5376ed47",
+          "record": "artifacts/maintenance-implementation-2026-10-16/native-upgrade-route-final.json",
+          "recordSha256": "31df4e8c1c660ee88eaec2df7b747f9fe0892fc8df1e3078f092fd2ed6ee9152"
+        },
+        {
+          "command": "python tests/validate_owned_scratch.py (external Windows process access)",
+          "status": "passed",
+          "scope": "15 cases after minimum-version compatibility repair. Both real rmtree callback APIs exercised on Python 3.15; no actual Python 3.11 run claimed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/owned-scratch-readonly-git-final-2.log",
+          "sha256": "603a6d2ffe4c7933b8a4f53ffad118610bb1924ea2d94d07b7cb16022a4369c8"
         }
       ],
       "remainingDependencies": [
-        "Actual maintained composition update route; full current-source bounded Development and complete CI Linux/Windows checks; released consumer adoption. Original WinError 145 cause remains unproven without original logs."
+        "Complete post-fix bounded Development and complete CI Linux/Windows qualification; public release/consumer adoption. Original WinError 145 cause remains unproven without original logs. Actual local maintained sequential update route now passes within its recorded fixture scope."
       ],
       "closureEvidence": [
-        "The actual historical exporter fixture now uses the same exact-owned cleanup with extended Python I/O; all 8 transition cases pass without shortening/deleting historical profile inputs or changing machine long-path policy."
+        "The actual historical exporter fixture now uses the same exact-owned cleanup with extended Python I/O; all 8 transition cases pass without shortening/deleting historical profile inputs or changing machine long-path policy.",
+        "Actual full-updater execution exposed Windows read-only Git-object cleanup and unnormalized extended sourceRoot opens. Cleanup now changes only the read-only bit of verified owned regular files and rejects nested reparse parents/outside paths; direct installed sync suppresses consumer bytecode and resolves only source I/O while preserving publisher sourceIdentity. Full-updater completion and complete CI remain separate gates.",
+        "Actual maintained sequential updater completed successfully: 15 updater invocations with expected deliberate failure outcomes, authentic historical v0.12.7 transition, planned/materialized selection checks and final offline/local coherence. Independent same-commit CI/public adoption and broader interruption coverage remain unfinished."
       ]
     },
     {
@@ -1274,14 +1350,15 @@
   ],
   "inProgressValidation": {
     "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
-    "source": "cb99ff4",
-    "journal": "artifacts/validation-runs/20261016T112335Z-762155a6/journal.json",
+    "source": "beab166ac2f5a2e195cdc715aaba5c35866d67bf (development working tree; not clean CI qualification)",
+    "journal": "artifacts/validation-runs/20261016T133907Z-7be2ef6f/journal.json",
+    "journalSha256": "a953178eb8534f3f0490792f712cb89bef6a83f14c9a767726a81ec5b3bf046e",
     "status": "failed",
     "observations": [
-      "103 steps: 78 passed and 25 failed. Deep Windows source/fixture copy paths remain; no complete acceptance claimed.",
-      "Repository-toolchain fixture passes all 15 baseline cases when simulated user tools are outside Git. With paired recovery it passes 16.",
-      "Maintenance interruption alias and overbroad handoff declaration input issues were repaired afterward; full targeted validators pass (5 and 12 tests). No third broad rerun yet.",
-      "Legacy validate_python_consistency.py requires exact Spec Kit 1.0.1 and cannot run against installed 1.2.0. Its guard was preserved. Current workflow-shell20, workflow-runtime5 and new runtime6 checks passed separately; this is not combined suite acceptance."
+      "106 steps: 79 passed and 27 failed. This run precedes subsequent fixture/source repairs and is not complete acceptance. Targeted passes cannot be combined into a passing suite.",
+      "Real Windows long-path failures, atomic-replace access failures, repository-local simulated tool refusal and stale structured-runtime mocks observed. Distinct diagnostics are retained in original logs; no blanket product/host attribution.",
+      "Native refresh 3, ownership 8, owned scratch 15, installed sync/coordinator 11, story-delivery repeat 48, public-core compatibility 10 and device-policy 16 pass separately after appropriate repairs/reproduction. Original story atomic-replace access error remains unexplained.",
+      "Current inventory id validate_python_consistency actually invokes tests/validate_public_core_compatibility.py. Its failures were stale newline stdout/error mocks after the structured shared runtime repair; the exact historical 1.0.1 source fixture is separate and unchanged. This supersedes the prior current-inventory attribution without rewriting its retained observation."
     ]
   },
   "originalApprovedFindings": 43,
@@ -1311,7 +1388,7 @@
   "sharedCapabilities": [
     {
       "id": "Foundation browser presentation / confirmation",
-      "status": "prototype-in-progress; not packaged, published or integrated",
+      "status": "partially-implemented; admitted native representation seam and browser module, no selectable presentation feature",
       "source": "artifacts/maintenance-implementation-2026-10-16/foundation-source",
       "validation": [
         {
@@ -1327,20 +1404,88 @@
           "scope": "Real dialog, keyboard, explicit trigger focus restoration, cancellation, shared controls, current reads, trusted popup gestures, measured 1024x768 viewport. Fixture-only protocol; native Host/auth and consumer acceptance false.",
           "log": "artifacts/maintenance-implementation-2026-10-16/foundation-presentation-browser-local.log",
           "sha256": "3082eb6ebe6acd412f11d96b67b5183719d58cfff006469e62c56413295105e7"
+        },
+        {
+          "command": "dotnet run ProblemDetails.Probe -c Release --no-restore",
+          "status": "passed",
+          "scope": "Native HTTP purpose/admission precedence, original exception endpoint preservation, machine/default JSON, malformed/media preferences, bounded renderer fallback, minimum budget, HEAD/cancellation and no private diagnostic output. Fake renderer is scoped seam/fault-injection evidence, not product page acceptance.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-problem-browser-boundary.log",
+          "sha256": "cbae158b8fd6c40a159cb7c8afefde9a3fcbb6f110b2e9878bb3025c12b844bd"
+        },
+        {
+          "command": "dotnet run Authentication.BffCookie.Probe -c Release --no-restore",
+          "status": "passed",
+          "scope": "Existing native options/callback/session/antiforgery/discovery/JWKS/PAR/logout and machine acknowledgement checks pass after explicit purpose metadata.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-bff-purpose.log",
+          "sha256": "5e5d0395f6c0d5a8e0456572c512116a0ce4f0fdc205886ae31aa9550a63b617"
+        },
+        {
+          "command": "dotnet run HostedPages.Probe -c Release --no-restore",
+          "status": "passed",
+          "scope": "Existing real two-shell/private page/bootstrap/asset/header/permission/recreation checks pass; unsupported local symbolic-link leg remains Linux CI requirement.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-hosted-purpose.log",
+          "sha256": "fcfc4b76e746cf8213c45fa2c5caa8f5ed6cdefd57ec5eb41f4a2326a70e842f"
+        },
+        {
+          "command": "node <pinned TypeScript>/bin/tsc -p tests/browser/tsconfig.json",
+          "status": "passed",
+          "scope": "TypeScript 7.0.2 strict NodeNext direct .mjs/.d.mts import, generic result narrowing, invalid policy and async source rejection.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-browser-types.log",
+          "sha256": "966f24bde53cbcba4deac4ea34556a34de95f4f0757d9ddd3e08325e6aec5ba9"
+        },
+        {
+          "command": "npm run --prefix tests/browser test:types",
+          "status": "passed",
+          "scope": "Actual CI-style npm/type-check route passes.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-browser-types-ci-route.log",
+          "sha256": "2d12e1441ef59457ce9ed847cea6a29d7a724ff6370eec07880a76eeb0748004"
+        },
+        {
+          "command": "python tests/validate_dependency_updates.py",
+          "status": "passed",
+          "scope": "9 dependency/tooling policy cases pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-dependency-tooling-policy.log",
+          "sha256": "ba1277fca90c73c579eb6fb215f3ba4830b8fbd89607ebdeed384b7d2a9b1d13"
+        },
+        {
+          "command": "python tests/validate_update_workflow.py",
+          "status": "passed",
+          "scope": "2 independent update/publication-order contracts pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-update-workflow-browser.log",
+          "sha256": "6db5414056f12ab722eda33f0dbe6e60d33e9778d8f882a7dfcf8ecfb9e4c93b"
         }
       ],
       "remaining": [
-        "Native typed feature/options/routes and safe admitted representation seam",
-        "Actual packaged client assets/types and standard auth protocol integration",
-        "Neutral Host fallback, live browser matrix and all supported compositions",
-        "Publisher maintenance/locks/knowledge/security/review/publication before Program Kit adoption"
+        "Selectable native presentation feature/options/routes with safe branding/locales and actual standard pages.",
+        "Native secure BFF/SPA browser transport integration, packaged assets/types and current knowledge.",
+        "Neutral Host browser fallback and actual fresh/upgraded emitted composition qualification; retain CI Firefox and native symlink legs.",
+        "Publisher dependency maintenance, locks, complete CI/security/readiness/publication before Program Kit adoption."
       ],
-      "nativeModuleEvidence": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/module/result.json"
+      "nativeModuleEvidence": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/module/result.json",
+      "implementationCommits": [
+        "Foundation 8392075: purpose/admitted representation boundary and native endpoint metadata",
+        "Foundation 1890a74: shared confirmation module, strict TypeScript contracts and actual Chromium/WebKit module qualification"
+      ]
     }
   ],
   "outOfScopeDesign": {
     "sourceThreadId": "01a14496-89a6-7740-838b-e03d8b17205f",
     "feature": "Reusable contributor feedback/evaluation skill",
-    "disposition": "Under design in its owning chat; no settled specification adopted or implemented here."
-  }
+    "disposition": "Transferred to a separate branch and implementation session by explicit human instruction on 2026-10-16. Not adopted, implemented, staged or committed in this maintenance session.",
+    "supersedes": "Previous under-design disposition retained here as history: no settled specification had been adopted or implemented."
+  },
+  "developmentHistory": [
+    {
+      "command": "./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'",
+      "source": "cb99ff4",
+      "journal": "artifacts/validation-runs/20261016T112335Z-762155a6/journal.json",
+      "status": "failed",
+      "observations": [
+        "103 steps: 78 passed and 25 failed. Deep Windows source/fixture copy paths remain; no complete acceptance claimed.",
+        "Repository-toolchain fixture passes all 15 baseline cases when simulated user tools are outside Git. With paired recovery it passes 16.",
+        "Maintenance interruption alias and overbroad handoff declaration input issues were repaired afterward; full targeted validators pass (5 and 12 tests). No third broad rerun yet.",
+        "Legacy validate_python_consistency.py requires exact Spec Kit 1.0.1 and cannot run against installed 1.2.0. Its guard was preserved. Current workflow-shell20, workflow-runtime5 and new runtime6 checks passed separately; this is not combined suite acceptance."
+      ]
+    }
+  ]
 }
