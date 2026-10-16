@@ -334,27 +334,46 @@ def verify_deployment(api, base_commit, validator_commit):
     deployment = api.api('GET', 'repos/' + c.EVIDENCE + '/contents/guardian-deployment.json?ref=' + main['sha'])
     config = json.loads(base64.b64decode(deployment['content']))
     c.require(config.get('validatorCommit') == validator_commit and config.get('contractVersion') == c.VERSION
-              and type(config.get('requiredWorkflowRulesetId')) is int, 'trusted-guardian-not-configured')
-    # Public metadata read, including inherited organization rules. Consumers
-    # must not need organization Administration or upstream Write permission.
-    rules = api.api('GET', f"repos/{c.EVIDENCE}/rulesets/{config['requiredWorkflowRulesetId']}?includes_parents=true")
+              and type(config.get('repositoryRulesetId')) is int and config['repositoryRulesetId'] > 0
+              and type(config.get('githubAppId')) is int and config['githubAppId'] > 0
+              and config.get('githubAppSlug') == 'program-kit-evidence-guardian', 'trusted-guardian-not-configured')
+    # Repository rules and App identity are public metadata. Consumers need no
+    # organization Administration, upstream Write, or access to the App secret.
+    app = api.api('GET', 'apps/' + config['githubAppSlug'])
+    c.require(app.get('id') == config['githubAppId'] and app.get('owner', {}).get('login') == 'orbyss-io'
+              and app.get('permissions') == {'checks': 'write', 'contents': 'read', 'pull_requests': 'read', 'metadata': 'read'},
+              'dedicated-guardian-app-identity-or-permissions')
+    rules = api.api('GET', f"repos/{c.EVIDENCE}/rulesets/{config['repositoryRulesetId']}?includes_parents=true")
     conditions = rules.get('conditions', {})
     branches = conditions.get('ref_name', {})
-    repositories = conditions.get('repository_id', {}).get('repository_ids', [])
     c.require(rules.get('enforcement') == 'active' and rules.get('target') == 'branch' and not rules.get('bypass_actors')
-              and remote['id'] in repositories and 'refs/heads/main' in branches.get('include', [])
+              and rules.get('source_type') == 'Repository' and rules.get('source') == c.EVIDENCE
+              and 'refs/heads/main' in branches.get('include', [])
               and not branches.get('exclude'), 'ruleset-must-enforce-main-and-repository-without-bypass')
-    c.require(any(r.get('type') == 'workflows' and any(
-        w.get('path') == '.github/workflows/guardian.yml' and w.get('repository_id') == remote['id'] and
-        w.get('sha') == validator_commit for w in r.get('parameters', {}).get('workflows', []))
-        for r in rules.get('rules', [])) and any(r.get('type') == 'pull_request' and
+    effective = []
+    for page in range(1, 11):
+        batch = api.api('GET', f'repos/{c.EVIDENCE}/rules/branches/main?per_page=100&page={page}')
+        effective.extend(r for r in batch if r.get('ruleset_id') == config['repositoryRulesetId'])
+        if len(batch) < 100:
+            break
+    else:
+        raise ValueError('PKRF effective-rules-incomplete')
+    c.require(any(r.get('type') == 'required_status_checks' and
+        r.get('parameters', {}).get('strict_required_status_checks_policy') is True and any(
+        w.get('context') == 'program-kit-evidence/guardian' and w.get('integration_id') == config['githubAppId']
+        for w in r.get('parameters', {}).get('required_status_checks', []))
+        for r in effective) and any(r.get('type') == 'pull_request' and
         r.get('parameters', {}).get('required_approving_review_count', 0) >= 1 and
-        all(r.get('parameters', {}).get(key) is True for key in ('dismiss_stale_reviews_on_push', 'require_code_owner_review', 'require_last_push_approval'))
-        for r in rules.get('rules', [])), 'trusted-workflow-and-maintainer-review-rule-required')
-    trusted = api.api('GET', f'repos/{c.EVIDENCE}/contents/.github/workflows/guardian.yml?ref={validator_commit}')
-    c.require(trusted.get('sha'), 'trusted-workflow-unavailable')
-    return {'main': main, 'submissionBase': submission_base, 'repository': remote, 'retrievedAt': now(), 'rulesetId': config['requiredWorkflowRulesetId'],
+        all(r.get('parameters', {}).get(key) is True for key in ('dismiss_stale_reviews_on_push', 'require_code_owner_review', 'require_last_push_approval', 'required_review_thread_resolution'))
+        for r in effective) and {'deletion', 'non_fast_forward'} <= {r.get('type') for r in effective},
+        'app-bound-check-and-maintainer-review-rule-required')
+    for name in ('.github/workflows/guardian.yml', '.github/CODEOWNERS', 'guardian.py', 'guardian_check.py', 'repair_contract.py'):
+        trusted = api.api('GET', f'repos/{c.EVIDENCE}/contents/{name}?ref={validator_commit}')
+        current = api.api('GET', f'repos/{c.EVIDENCE}/contents/{name}?ref={main["sha"]}')
+        c.require(trusted.get('sha') and current.get('sha') == trusted['sha'], 'trusted-guardian-source-changed')
+    return {'main': main, 'submissionBase': submission_base, 'repository': remote, 'retrievedAt': now(), 'rulesetId': config['repositoryRulesetId'],
             'validatorCommit': validator_commit, 'availability': 'configured',
+            'githubAppId': config['githubAppId'], 'execution': 'maintainer-workflow-dispatch-from-main',
             'bypassVisibility': 'visible' if 'bypass_actors' in rules else 'not-disclosed-by-GitHub-to-read-only-consumer',
             'meaning': 'fresh configuration inspection; no submitted evidence or maintainer acceptance established'}
 

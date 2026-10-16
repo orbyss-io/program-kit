@@ -3,6 +3,14 @@
   "profileRegistry": "extensions/program-kit-building-blocks/references/dependency-profiles",
   "optionalTools": [
     {
+      "name": "Dedicated evidence guardian App token action",
+      "command": "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1",
+      "usedBy": "evidence-repository/.github/workflows/guardian.yml",
+      "scope": "Optional separately provisioned evidence repository only; token restricted to that repository, checks write and contents/pull requests read.",
+      "updatePolicy": "SHA pin v3.2.0; tracked by the workflow input scan. No automatic provisioning or secret setup. Review upgrades with dependency maintenance.",
+      "source": "https://github.com/actions/create-github-app-token"
+    },
+    {
       "name": "GitHub CLI repair feedback",
       "command": "gh api",
       "usedBy": "extensions/program-kit-governance/scripts/repair_feedback.py and scripts/verify_evidence_repository.py",

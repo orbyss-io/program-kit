@@ -12,6 +12,7 @@ def prepare(output):
         raise ValueError('PKRF evidence-repository-output-must-be-new')
     shutil.copytree(ROOT / 'evidence-repository', output)
     shutil.copyfile(ROOT / 'scripts/repair_evidence_guardian.py', output / 'guardian.py')
+    shutil.copyfile(ROOT / 'scripts/repair_guardian_check.py', output / 'guardian_check.py')
     shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts/repair_contract.py', output / 'repair_contract.py')
     shutil.copytree(ROOT / 'extensions/program-kit-governance/references/repair-feedback', output / 'contract')
     (output / '.gitignore').write_text('__pycache__/\n*.pyc\n', encoding='utf-8')

@@ -4,18 +4,18 @@
   "enforcement": "active",
   "bypass_actors": [],
   "conditions": {
-    "repository_id": {"repository_ids": [0]},
     "ref_name": {"include": ["refs/heads/main"], "exclude": []}
   },
   "rules": [
     {"type": "deletion"},
     {"type": "non_fast_forward"},
     {
-      "type": "workflows",
+      "type": "required_status_checks",
       "parameters": {
         "do_not_enforce_on_create": false,
-        "workflows": [
-          {"repository_id": 0, "path": ".github/workflows/guardian.yml", "sha": "REPLACE_WITH_TRUSTED_COMMIT"}
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          {"context": "program-kit-evidence/guardian", "integration_id": 0}
         ]
       }
     },

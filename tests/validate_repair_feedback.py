@@ -20,6 +20,7 @@ import repair_contract as c
 import repair_feedback as rf
 import repair_evaluator as evaluator
 import repair_evidence_guardian as guardian
+import repair_guardian_check as guardian_check
 import build_repair_contract
 import prepare_evidence_repository
 import consumer_upgrade
@@ -72,11 +73,16 @@ class RecordingGitHub:
         self.loss, self.lost = None, False
         self.issue_state = 'open'
         self.fail_read = False
-        self.rules = {'enforcement': 'active', 'target': 'branch', 'bypass_actors': [],
-            'conditions': {'repository_id': {'repository_ids': [42]}, 'ref_name': {'include': ['refs/heads/main'], 'exclude': []}},
-            'rules': [{'type': 'workflows', 'parameters': {'workflows': [{'path': '.github/workflows/guardian.yml', 'repository_id': 42, 'sha': TRUSTED}]}},
+        self.rules = {'enforcement': 'active', 'target': 'branch', 'bypass_actors': [], 'source_type': 'Repository', 'source': c.EVIDENCE,
+            'conditions': {'ref_name': {'include': ['refs/heads/main'], 'exclude': []}},
+            'rules': [{'type': 'required_status_checks', 'parameters': {'strict_required_status_checks_policy': True,
+                      'required_status_checks': [{'context': guardian_check.CHECK, 'integration_id': 123}]}},
                       {'type': 'pull_request', 'parameters': {'required_approving_review_count': 1, 'dismiss_stale_reviews_on_push': True,
-                                                            'require_code_owner_review': True, 'require_last_push_approval': True}}]}
+                                                            'require_code_owner_review': True, 'require_last_push_approval': True,
+                                                            'required_review_thread_resolution': True}}, {'type': 'deletion'}, {'type': 'non_fast_forward'}]}
+        self.app = {'id': 123, 'owner': {'login': 'orbyss-io'},
+                    'permissions': {'checks': 'write', 'contents': 'read', 'pull_requests': 'read', 'metadata': 'read'}}
+        self.source_moved = False
 
     def auth(self):
         return 'fixture-user'
@@ -95,12 +101,15 @@ class RecordingGitHub:
         path, _, query = endpoint.partition('?')
         params = parse_qs(query)
         if method == 'GET':
+            if path == 'apps/program-kit-evidence-guardian': return self.app
             if path == 'repos/' + c.EVIDENCE: return {'full_name': c.EVIDENCE, 'private': False, 'default_branch': 'main', 'id': 42}
             if path.endswith('/commits/main'): return {'sha': BASE, 'commit': {'tree': {'sha': 'base-tree'}}}
             if path.endswith('/contents/guardian-deployment.json'):
-                return {'content': base64.b64encode(c.encoded({'contractVersion': c.VERSION, 'validatorCommit': TRUSTED, 'requiredWorkflowRulesetId': 1})).decode()}
+                return {'content': base64.b64encode(c.encoded({'contractVersion': c.VERSION, 'validatorCommit': TRUSTED,
+                    'repositoryRulesetId': 1, 'githubAppId': 123, 'githubAppSlug': 'program-kit-evidence-guardian'})).decode()}
             if '/rulesets/' in path: return self.rules
-            if path.endswith('/contents/.github/workflows/guardian.yml'): return {'sha': 'workflow-blob'}
+            if '/rules/branches/main' in path: return [dict(r, ruleset_id=1) for r in self.rules['rules']]
+            if '/contents/' in path: return {'sha': 'changed' if self.source_moved and params.get('ref') != [TRUSTED] else 'trusted-blob'}
             if path == 'repos/fixture-user/program-kit-evidence': return {'full_name': 'fixture-user/program-kit-evidence', 'parent': {'full_name': c.EVIDENCE}, 'html_url': 'https://github.com/fixture-user/program-kit-evidence'}
             if path.endswith('/forks'): return self.forks
             if '/git/matching-refs/' in path: return self.refs
@@ -345,12 +354,16 @@ class RepairTests(unittest.TestCase):
 
     def test_public_rejects_same_name_guardian_rules_and_wrong_destination_before_writes(self):
         rf.configure(self.consumer, 'consumer'); review = self.review()
-        for change in ('same-name-check', 'bypass', 'wrong-repository', 'mutable-ref', 'no-review'):
+        for change in ('same-name-check', 'bypass', 'wrong-repository', 'source-moved', 'no-review', 'wrong-app', 'broad-app', 'wrong-owner', 'inactive-check'):
             api = RecordingGitHub()
             if change == 'same-name-check': api.rules['rules'][0] = {'type': 'required_status_checks', 'parameters': {'required_status_checks': [{'context': 'guardian'}]}}
             elif change == 'bypass': api.rules['bypass_actors'] = [{'actor_id': 1}]
-            elif change == 'wrong-repository': api.rules['conditions']['repository_id']['repository_ids'] = [43]
-            elif change == 'mutable-ref': api.rules['rules'][0]['parameters']['workflows'][0]['sha'] = 'main'
+            elif change == 'wrong-repository': api.rules['source'] = 'other/repo'
+            elif change == 'source-moved': api.source_moved = True
+            elif change == 'wrong-app': api.rules['rules'][0]['parameters']['required_status_checks'][0]['integration_id'] = 124
+            elif change == 'broad-app': api.app['permissions']['contents'] = 'write'
+            elif change == 'wrong-owner': api.app['owner']['login'] = 'untrusted'
+            elif change == 'inactive-check': api.rules['enforcement'] = 'disabled'
             else: api.rules['rules'][1]['parameters']['require_last_push_approval'] = False
             with self.assertRaises(ValueError): rf.public(self.consumer, self.packet, review, review['reviewDigest'], api)
             self.assertEqual([], api.writes)
@@ -545,13 +558,53 @@ class RepairTests(unittest.TestCase):
             with self.subTest(bad=bad), self.assertRaises(ValueError): guardian.inspect(self.guardian_api(bad), c.EVIDENCE, 1, HEAD, BASE, TRUSTED)
         with self.assertRaises(ValueError): guardian.inspect(self.guardian_api(), 'consumer/default-remote', 1, HEAD, BASE, TRUSTED)
 
+    def test_dedicated_app_check_binds_actual_head_and_never_passes_rejected_or_moved_data(self):
+        for bad in (None, 'policy', 'symlink', 'moved'):
+            reads, writes = self.guardian_api('policy' if bad == 'policy' else 'symlink' if bad == 'symlink' else None), []
+            count = 0
+            def api(method, endpoint, payload=None):
+                nonlocal count
+                if method != 'GET':
+                    writes.append((method, endpoint, payload))
+                    return {'id': 9}
+                result = reads(endpoint)
+                if '/pulls/1' == endpoint[-8:]:
+                    count += 1
+                    result['state'] = 'open'
+                    if bad == 'moved' and count >= 3:
+                        result['head']['sha'] = 'd' * 40
+                return result
+            proof = guardian_check.run(api, c.EVIDENCE, 1, TRUSTED)
+            self.assertEqual(HEAD, writes[0][2]['head_sha'])
+            self.assertEqual(guardian_check.CHECK, writes[0][2]['name'])
+            self.assertEqual('success' if bad is None else 'failure', writes[-1][2]['conclusion'])
+            self.assertEqual(bad is None, proof is not None)
+            self.assertIn(TRUSTED, writes[-1][2]['output']['summary'])
+        with self.assertRaises(ValueError): guardian_check.run(api, 'other/repo', 1, TRUSTED)
+
+    def test_effective_rules_required_and_app_write_failure_cannot_become_success(self):
+        rf.configure(self.consumer, 'consumer'); api = RecordingGitHub(); review = self.review()
+        original = api.handle
+        api.handle = lambda method, endpoint, payload: [] if '/rules/branches/main?' in endpoint else original(method, endpoint, payload)
+        with self.assertRaises(ValueError): rf.public(self.consumer, self.packet, review, review['reviewDigest'], api)
+        self.assertEqual([], api.writes)
+        reads = self.guardian_api()
+        def unavailable(method, endpoint, payload=None):
+            if method != 'GET': raise OSError('check API unavailable')
+            return dict(reads(endpoint), state='open')
+        with self.assertRaises(OSError): guardian_check.run(unavailable, c.EVIDENCE, 1, TRUSTED)
+
     def test_prepared_repository_is_source_only_and_internal_evaluator_not_packaged(self):
         from build_release import BUNDLE_SOURCE_PREFIXES, BUNDLE_RUNTIME_SCRIPTS, deterministic_zip
         output = prepare_evidence_repository.prepare(self.root / 'evidence-source')
         self.assertIsNone(rf.read(output / 'guardian-deployment.json')['validatorCommit'])
         self.assertEqual((ROOT / 'extensions/program-kit-governance/scripts/repair_contract.py').read_bytes(), (output / 'repair_contract.py').read_bytes())
         workflow = (output / '.github/workflows/guardian.yml').read_text()
-        self.assertIn('github.workflow_sha', workflow)
+        self.assertIn('vars.GUARDIAN_VALIDATOR_COMMIT', workflow)
+        self.assertIn('workflow_dispatch:', workflow)
+        self.assertIn("github.ref == 'refs/heads/main'", workflow)
+        self.assertIn('environment: evidence-guardian', workflow)
+        self.assertIn('permission-checks: write', workflow)
         self.assertNotIn('pull_request_target:', workflow)
         self.assertNotIn('head.sha }}\n          persist', workflow)
         self.assertTrue(all(not x.startswith('.agents/') for x in (*BUNDLE_SOURCE_PREFIXES, *BUNDLE_RUNTIME_SCRIPTS)))

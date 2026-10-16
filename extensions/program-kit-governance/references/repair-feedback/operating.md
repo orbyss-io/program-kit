@@ -72,11 +72,11 @@ declined or regressed. If incomplete, refine before public delivery. Empty searc
 is not proof of uniqueness. Evaluators use the same correlation path.
 
 Before preparing public delivery, inspect actual repository metadata, pinned main,
-guardian deployment and enforced required-workflow rules. Intended evidence repo:
+guardian deployment and enforced App-bound check rules. Intended evidence repo:
 orbyss-io/program-kit-evidence. Its absence or unavailable rules pauses publication.
 `plan --packet <sealed> --correlation <search.json> --destination <new-or-number>
 --rationale <causal-disposition> --account <selected-login> --base-commit <exact-sha>
---validator-commit <trusted-workflow-sha> --output <review.json>` records all exact
+--validator-commit <trusted-guardian-source-sha> --output <review.json>` records all exact
 content and destinations. Show review.json and packet contents. The PR/cross-link
 URL placeholders refer only to the objects created by this described workflow.
 After explicit approval of the exact review digest, run `publish --packet <sealed>
@@ -86,8 +86,11 @@ The CLI creates/comments on the repair issue, creates/reuses the selected user's
 fork, commits only the reviewed inventory via Git Data API, publishes a stable
 branch, opens an evidence PR against main and cross-links it. The consumer needs
 no upstream Write. `guardian-deployment.json` is not sufficient: the live ruleset
-must enforce the pinned workflow identity and maintainer review. Same-name status
-checks alone cannot establish trust. See repository-owned `evidence-repository/`.
+must enforce the dedicated App integration ID and maintainer review. Same-name
+status checks from other Apps cannot satisfy it. A maintainer dispatches the
+guardian workflow from main for the current PR head; a new push needs another
+check and approval. The App runs pinned trusted source in a main-only secret
+environment. See repository-owned `evidence-repository/`.
 All submitted code is data. Acceptance retains evidence in v1; no automatic deletion.
 
 Interrupted operations retain the prepared report and ignored delivery journal

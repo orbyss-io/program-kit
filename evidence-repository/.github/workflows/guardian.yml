@@ -1,27 +1,39 @@
 name: Trusted repair evidence guardian
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pull_request:
+        description: Evidence PR number to inspect at its current head
+        required: true
+        type: string
 permissions:
   contents: read
   pull-requests: read
 jobs:
   guardian:
+    if: github.ref == 'refs/heads/main' && github.repository == 'orbyss-io/program-kit-evidence'
     runs-on: ubuntu-latest
+    environment: evidence-guardian
     steps:
       - name: Read trusted base only
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # repository-qualified v7.0.1
         with:
           repository: orbyss-io/program-kit-evidence
-          ref: ${{ github.workflow_sha }}
+          ref: ${{ vars.GUARDIAN_VALIDATOR_COMMIT }}
           persist-credentials: false
+      - name: Mint repository-scoped check token
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.GUARDIAN_APP_CLIENT_ID }}
+          private-key: ${{ secrets.GUARDIAN_APP_PRIVATE_KEY }}
+          permission-checks: write
+          permission-contents: read
+          permission-pull-requests: read
       - name: Inspect submitted blobs as data
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
           GUARDIAN_REPOSITORY: ${{ github.repository }}
-          GUARDIAN_PR: ${{ github.event.pull_request.number }}
-          GUARDIAN_HEAD: ${{ github.event.pull_request.head.sha }}
-          GUARDIAN_BASE: ${{ github.event.pull_request.base.sha }}
-          GUARDIAN_VALIDATOR: ${{ github.workflow_sha }}
-        run: python3 guardian.py
+          GUARDIAN_PR: ${{ inputs.pull_request }}
+          GUARDIAN_VALIDATOR: ${{ vars.GUARDIAN_VALIDATOR_COMMIT }}
+        run: python3 guardian_check.py

@@ -1,52 +1,88 @@
 # Separate public repair evidence repository
 
-This directory is **source for provisioning**, not a deployed route or public
-acceptance claim. Intended identity: `orbyss-io/program-kit-evidence`, public,
-default branch main. Repair issues and implementation PRs remain in Program Kit.
-Consumer evidence arrives through their own fork and evidence PR.
+This tree is a provisioning proposal, not a deployed public route. Intended
+identity: `orbyss-io/program-kit-evidence`, public, default branch `main`.
+Repair issues and implementation PRs remain in Program Kit. Consumers submit
+selected evidence through their own forks and PRs without upstream Write.
 
 Prepare with `python scripts/prepare_evidence_repository.py --output <new-directory>`.
-Review that exact tree, then separately authorize creating/configuring the public
-repository. No provisioning command is automatically run by Program Kit tests.
-The prepared tree includes trusted guardian code, the contract, workflow and this
-procedure. No consumer/reporter source or artifacts are copied into it.
+Review the exact output inventory before separately approving public setup.
+No consumer artifacts or reporter history are copied. Tests make no public writes.
 
-1. Publish only the reviewed prepared source, note its exact commit, and configure
-   a repository/organization ruleset that requires the **specific workflow identity**
-   `.github/workflows/guardian.yml` pinned at that trusted commit. Use an organization
-   workflow rule with repository ID, workflow path and exact `sha`. Target this
-   repository ID and refs/heads/main without bypass actors. A required
-   status name alone is insufficient: same-name jobs must not impersonate it.
-   If the account/plan cannot enforce required workflow identity, deployment is
-   blocked pending an equivalent separately trusted GitHub App enforcement boundary.
-2. Require a pull request, at least one maintainer approval, dismiss stale approvals,
-   approval after latest push, code owner review and no bypass actors. Protect
-   workflows, validator, contract and accepted evidence through this ruleset.
-   `CODEOWNERS` names `@orbyss-io/maintainers`; verify that team exists and has the
-   required role before provisioning (it is an intended value, not verified state).
-3. Set `guardian-deployment.json` fields `validatorCommit` and
-   `requiredWorkflowRulesetId` to the actual trusted commit/rule, preserving v1
-   contract. This file records configuration; clients freshly read and validate
-   the actual rules before mutation. Run `verify_evidence_repository.py` with the
-   expected commit and record its read-only result. Never claim fixtures prove
-   repository provisioning or maintainer permissions.
-4. Guardian runs from the pinned trusted workflow commit, downloads exact PR blobs as **data** and
-   never checks out the submitted branch, runs scripts, installs dependencies,
-   builds projects, renders files or starts a coding agent. Its readonly token
-   cannot publish anything. It binds proof to exact head, trusted validator commit
-   and contract/guardian version. Main-only PRs add one request/revision inventory;
-   changing workflows, policy, earlier evidence or unrelated files fails.
-5. Merge only after that trusted workflow succeeds for the actual head and
-   maintainer content review. Passing is contract-valid evidence, not verified
-   diagnosis, publisher attestation or consumer acceptance. Retain accepted evidence
-   as release references. No automatic deletion in v1; do not promise removal from
-   Git history, forks, clones or caches.
+## GitHub Free enforcement
 
-Review the fork push contents before pushing: publication precedes the PR and
-guardian. Prefer synthetic examples, sanitized selected excerpts and minimal proof.
-Supported checks cannot decide whether arbitrary business/personal facts are safe.
+Use a repository ruleset and a dedicated organization-owned GitHub App named
+`Program Kit Evidence Guardian` (intended slug `program-kit-evidence-guardian`).
+Disable webhooks and user authorization; install it only on this evidence
+repository. Grant Checks **write**, Contents **read**, Pull requests **read**,
+and mandatory Metadata **read**. No organization permissions, contents write,
+issue write, administration, merge or publication authority.
 
-Platform references rechecked 16 October 2026:
-[CLI API/cache options](https://cli.github.com/manual/gh_api),
-[trusted Actions usage](https://docs.github.com/en/actions/reference/security/secure-use),
-[workflow rules](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets).
+Create the `evidence-guardian` environment with selected deployment branch `main`
+(branch rule, no tags). Keep its only secret `GUARDIAN_APP_PRIVATE_KEY` there,
+never in repository/organization secrets. Environment variables:
+`GUARDIAN_APP_CLIENT_ID` (assigned by GitHub) and `GUARDIAN_VALIDATOR_COMMIT`
+(the reviewed seed source commit). Never print or store the key in this tree,
+logs, review artifacts or chat. App-token action v3.2.0 is SHA-pinned and requests
+only the current repository and those permissions; cleanup revokes its token.
+Use GitHub-hosted ephemeral runners.
+
+The workflow has only `workflow_dispatch`, restricted to repository identity and
+`refs/heads/main`. A maintainer starts it with an evidence PR number. It checks out
+the pinned validator commit, reads the current PR head/base through GitHub's API,
+inspects submitted blobs as data, and creates `program-kit-evidence/guardian` on
+that head using the App token. It never checks out or executes submitted code,
+installs project dependencies, renders evidence, or starts a coding agent.
+There is no `pull_request_target` trigger or event-policy exception.
+
+The environment's main-only restriction also blocks a manually dispatched modified
+feature-branch workflow from obtaining the App key. Keep the main workflow
+identical to the pinned validator workflow. The fresh client verifier compares
+trusted source blobs with main and checks the App identity/permissions.
+
+Apply `repository-ruleset.template.json` to this repository after seeding and
+configuration. Replace `integration_id: 0` with the actual dedicated App ID.
+Require the exact check context **and** that App ID, strict latest-base checking,
+PRs, at least one approval, stale-review dismissal, code owner review, approval
+of the latest push, and resolved discussions. No bypass actors; block deletion
+and force pushes. `CODEOWNERS` names verified organization administrator
+`@joey-orbyss`; no unverified team is needed. A PR author cannot approve their own
+submission. Ordinary consumer PRs can be reviewed by this maintainer; maintainer-
+authored submissions need another eligible code owner before acceptance.
+
+Record actual positive `githubAppId` and `repositoryRulesetId`, the actual App
+slug and exact `validatorCommit` in `guardian-deployment.json`. Null seed IDs
+intentionally fail verification. The later configuration commit changes only
+deployment metadata; leave validator/workflow/code-owner bytes identical.
+Before enabling submission, run the read-only verifier with actual main and
+validator SHAs. It checks effective main rules rather than merely trusting the
+configuration file. Secret/environment/installation boundaries additionally need
+the owner's administrative inspection and operational tests; public metadata
+alone cannot prove these private settings.
+
+## Acceptance and upkeep
+
+Dispatch the workflow from main after reviewing an incoming PR. A missing check,
+API failure, interrupted run or rejected inventory never establishes acceptance.
+A new head requires another dispatch and review. Strict status enforcement also
+requires a fresh check after updating the PR to a changed base. Merge only after
+the App check passes for the current head and a maintainer reviews the content.
+Same-name GitHub Actions jobs or checks from other Apps cannot satisfy the rule.
+
+The guardian permits additions for exactly one request revision; it rejects
+workflow, policy and prior-evidence modifications. Policy/validator upgrades
+therefore need a separately reviewed administrative maintenance operation and
+new pinned source/environment/configuration verification. Never weaken rules
+silently to merge a failed evidence submission.
+
+Passing means contract-valid evidence, not independently reproduced diagnosis,
+publisher attestation or consumer acceptance. Review fork contents before pushing:
+publication precedes the PR and guardian. Supported checks cannot decide whether
+arbitrary business/personal facts are safe. Retain accepted evidence as release
+references, with no automatic deletion in v1. Do not promise removal from Git
+history, forks, clones or caches.
+
+Platform references checked 16 October 2026:
+[App token action](https://github.com/actions/create-github-app-token/tree/bcd2ba49218906704ab6c1aa796996da409d3eb1),
+[App-bound repository rules](https://docs.github.com/en/rest/repos/rules),
+[main-only environment secrets](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments).
