@@ -264,6 +264,27 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256(delivery._basis_bytes(original['checkpoints']['US1']['decisions'][-1])).hexdigest(),
                          refreshed['decisionSha256'])
 
+    def test_fresh_human_review_retains_prior_material_assessment_without_reusing_its_authority(self):
+        _, request = self.material_assessment()
+        self.act('assess-material', **request)
+        original = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1'])
+        (self.root / 'src/Create.txt').write_text('Materially changed accepted outcome')
+        self.act('status')
+        self.present()
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('ready for review', review['human'])
+        self.assertFalse(review.get('materialAssessments'))
+        history = review['materialAssessmentHistory'][0]
+        for field in ('presentation', 'reviewer', 'decisions', 'materialAssessments'):
+            self.assertEqual(original[field], history[field])
+        with self.assertRaisesRegex(ValueError, 'original accepted presentation'):
+            self.act('assess-material', **request)
+        self.accept(); self.act('status')
+        review = delivery.load_delivery(self.feature)['checkpoints']['US1']
+        self.assertEqual('accepted', review['human'])
+        self.assertEqual(2, len(review['decisions']))
+        self.assertEqual(history, review['materialAssessmentHistory'][0])
+
     @unittest.skipUnless(os.name == 'nt', 'Native Windows file sharing')
     def test_checkpoint_recovers_a_short_native_sharing_block_without_rewriting_history(self):
         import ctypes

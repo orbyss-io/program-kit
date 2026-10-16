@@ -33,23 +33,27 @@ def _basis_sites(value):
     """Only owned review fields are interned; arbitrary history remains untouched."""
     delivery = value.get('delivery', {})
     require(isinstance(delivery, dict) and isinstance(delivery.get('checkpoints', {}), dict), 'Malformed retained delivery state')
-    for review in delivery.get('checkpoints', {}).values():
-        require(isinstance(review, dict) and isinstance(review.get('decisions', []), list), 'Malformed retained review history')
-        for field in ('engineeringInputBasis', 'checkBasis'):
-            yield review, field
-        if isinstance(review.get('presentation'), dict):
-            for field in ('basis', 'materialBasis'):
-                yield review['presentation'], field
-        for decision in review.get('decisions', []):
-            require(isinstance(decision, dict), 'Malformed retained human decision')
-            for field in ('basis', 'materialBasis'):
-                yield decision, field
-        assessments = review.get('materialAssessments', [])
-        require(isinstance(assessments, list), 'Malformed retained material assessments')
-        for assessment in assessments:
-            require(isinstance(assessment, dict), 'Malformed retained material assessment')
-            for field in ('previousBasis', 'currentBasis', 'contextBasis', 'previousContextBasis', 'checkBasis', 'policy'):
-                yield assessment, field
+    for current_review in delivery.get('checkpoints', {}).values():
+        require(isinstance(current_review, dict), 'Malformed retained review history')
+        histories = current_review.get('materialAssessmentHistory', [])
+        require(isinstance(histories, list), 'Malformed material assessment history')
+        for review in [current_review, *histories]:
+            require(isinstance(review, dict) and isinstance(review.get('decisions', []), list), 'Malformed retained review history')
+            for field in ('engineeringInputBasis', 'checkBasis'):
+                yield review, field
+            if isinstance(review.get('presentation'), dict):
+                for field in ('basis', 'materialBasis'):
+                    yield review['presentation'], field
+            for decision in review.get('decisions', []):
+                require(isinstance(decision, dict), 'Malformed retained human decision')
+                for field in ('basis', 'materialBasis'):
+                    yield decision, field
+            assessments = review.get('materialAssessments', [])
+            require(isinstance(assessments, list), 'Malformed retained material assessments')
+            for assessment in assessments:
+                require(isinstance(assessment, dict), 'Malformed retained material assessment')
+                for field in ('previousBasis', 'currentBasis', 'contextBasis', 'previousContextBasis', 'checkBasis', 'policy'):
+                    yield assessment, field
 
 
 def _basis_bytes(value):
@@ -915,6 +919,16 @@ def validate(value):
                     'Malformed presented journey/verification basis')
         if review.get('materialAssessments'):
             assessed_basis(review)
+        histories = review.get('materialAssessmentHistory', [])
+        require(isinstance(histories, list), 'Malformed retained material assessment history')
+        for archived in histories:
+            require(isinstance(archived, dict) and archived.get('version') == 1
+                    and archived.get('reviewer') in value['roles'] and archived.get('materialAssessments')
+                    and archived.get('decisions') and archived['decisions'][-1].get('verdict') == 'accepted'
+                    and not archived.get('materialAssessmentHistory')
+                    and isinstance(archived.get('supersededAt'), (int, float))
+                    and math.isfinite(archived['supersededAt']), 'Malformed archived material assessment')
+            assessed_basis(archived)
     clock = value.get('clock')
     require(isinstance(clock, dict) and isinstance(clock.get('at'), (int, float)) and math.isfinite(clock['at']) and
             isinstance(clock.get('waiting'), bool), 'Malformed active clock')
@@ -1168,6 +1182,7 @@ def transition(root, feature, request, now=None, reader=github_read):
             review['engineeringInputBasis'] = basis(root, review['basisPaths'])
         if action == 'present':
             prior = copy.deepcopy(review.get('presentation'))
+            prior_scope = copy.deepcopy(review.get('materialScope'))
             prior_human = review['human']
             require(all(nonempty(request.get(field)) for field in ('entryPoint', 'preparedData', 'walkthrough', 'expected', 'limitations')),
                     'Present runnable entry point, prepared data/account, walkthrough, expected results and material limitations')
@@ -1187,6 +1202,11 @@ def transition(root, feature, request, now=None, reader=github_read):
                 # Preserve the exact original decision's raw basis. Current raw
                 # hashes belong to engineering freshness, not rewritten approval.
                 review['presentation']['basis'] = prior['basis']
+            elif review.get('materialAssessments'):
+                review.setdefault('materialAssessmentHistory', []).append({
+                    'version': 1, 'presentation': prior, 'materialScope': prior_scope,
+                    'reviewer': review['reviewer'], 'decisions': copy.deepcopy(review['decisions']),
+                    'materialAssessments': review.pop('materialAssessments'), 'supersededAt': now})
             review.update(human='accepted' if unchanged_acceptance else 'ready for review', stale=False, permits=[])
             value['clock']['waiting'] = True
     elif action == 'assess-material':
@@ -1195,6 +1215,9 @@ def transition(root, feature, request, now=None, reader=github_read):
         review = value['checkpoints'][request['checkpoint']]
         require(review.get('decisions') and review['decisions'][-1]['verdict'] == 'accepted'
                 and isinstance(review.get('presentation'), dict), 'Retain an actual prior accepted review')
+        require(review['decisions'][-1]['basis'] == review['presentation']['basis']
+                and review['decisions'][-1].get('materialBasis') == review['presentation'].get('materialBasis'),
+                'Material assessment requires the original accepted presentation; a new presentation needs its own human decision')
         decision = hashlib.sha256(_basis_bytes(review['decisions'][-1])).hexdigest()
         require(request.get('decisionSha256') == decision, 'Bind the exact original accepted decisionSha256')
         require('materialScope' not in request and 'basisPaths' not in request,

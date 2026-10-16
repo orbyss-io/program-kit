@@ -2260,11 +2260,12 @@
         "THIRD-PARTY-NOTICES.md",
         ".github/**",
         "tests/validate_building_blocks.py",
+        "tests/lock_renewal_cases.py",
         "docs/**",
         "releases/**"
       ],
       "outputs": [
-        "artifacts/validation-runs/<run>/validate_building_blocks"
+        "artifacts/restore-closure/<unique-run>/results.json"
       ],
       "resources": [],
       "isolation": "Unique temporary consumer per invocation; shared source read-only."

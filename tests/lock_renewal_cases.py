@@ -8,6 +8,8 @@ import tempfile
 import zipfile
 import shutil
 import sys
+import uuid
+from datetime import datetime, timezone
 
 
 def exercise(root, restore):
@@ -138,9 +140,11 @@ def exercise(root, restore):
             assert 'evaluated' in str(error)
         else:
             raise AssertionError('Dynamic reverse graph was silently narrowed')
-        output = root / 'artifacts/restore-closure/results.json'
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps({'status': 'passed', 'sdk': sdk, 'nativeExecutions': executions,
+        run = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex
+        output = root / 'artifacts/restore-closure' / run / 'results.json'
+        output.parent.mkdir(parents=True)
+        with output.open('x', encoding='utf-8', newline='\n') as stream:
+            stream.write(json.dumps({'status': 'passed', 'sdk': sdk, 'nativeExecutions': executions,
             'directClosure': closure, 'solutionClosure': solution_closure,
             'restoreEvidence': evidence, 'acceptedRenewal': renewal,
             'sourceSha256': {str(path.relative_to(root)).replace('\\','/'): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -148,5 +152,6 @@ def exercise(root, restore):
             'cases': {'actual-maintained-renew-and-locked': True, 'forward-nonmember-owner': True,
                       'reverse-dependent-owner': True, 'unrelated-owner-rejected': True,
                       'changed-assets-rejected': True, 'custom-output-refused': True, 'dynamic-graph-refused': True,
-                      'unrelated-lock-and-retained-profile-unchanged': True}}, indent=2) + '\n', encoding='utf-8')
+                      'unrelated-lock-and-retained-profile-unchanged': True}}, indent=2) + '\n')
+        print('Native restore closure evidence: ' + output.relative_to(root).as_posix())
     print('Complete reverse-dependent lock batch and whole-solution LockedMode passed; unrelated lock/profile bytes preserved.')

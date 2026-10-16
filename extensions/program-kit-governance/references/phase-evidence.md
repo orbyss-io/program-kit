@@ -271,6 +271,10 @@ An added context input uses `before: {"absent": true}` only when the prior compl
 proves its absence; a removed context input has an explicit null `afterSha256`. Existing
 inputs still need retained exact before bytes. All earlier assessment originals and evidence
 must remain intact; a later event cannot hide damage to the earlier chain.
+When the outcome changes materially, a fresh `present` retains the earlier accepted
+presentation and assessment chain in `materialAssessmentHistory` and requires a new human
+decision. It cannot reuse the older decision to approve the new presentation. This preserves
+history without preventing normal renewed review.
 
 An owner's existing explicit deferral can retain permission for the same named operations while
 changed engineering or review evidence remains due. Refresh preserves that scoped permission;
