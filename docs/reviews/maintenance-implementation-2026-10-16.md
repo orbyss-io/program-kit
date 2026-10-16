@@ -97,3 +97,19 @@ The Foundation prototype passes sixteen model checks and actual Chromium/WebKit
 dialog, cancellation, focus-return and trusted popup-gesture probes. The protocol
 action is a fixture. Native Host/auth integration, packaging and configured
 composition acceptance are unfinished; these results do not certify them.
+
+## Native hashing and interrupted-update work
+
+Foundation commit `18fec64` unifies the current settings-source hashing contract
+and adds a native inspection target. Installed repaired-tool tests pass. A freshly
+downloaded public Build 0.3.1 archive independently confirms the original exporter
+contract and raw-CRLF rejection. The incorrect consumer generator remains
+unattributed. The private development archive is not a published new tool version.
+
+Updater retry context now retains the original migration receipt and admits exact
+original/target materialization across the supported catalog transition. Targeted
+real materialization, migration, exporter-transition and boundary tests pass.
+Complete sequential interruption qualification remains outstanding. Restore
+commands, project/output inventory, input digests and renewal admission share one
+closure; actual offline renew/locked checks cover a forward nonmember and reverse
+dependents. Custom layouts require the remaining evaluated native adapter work.

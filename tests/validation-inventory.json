@@ -2,6 +2,36 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_upgrade_retry",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_upgrade_retry.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exact original/target retry admission, real materialization and preserved originals; no worker or publication.",
+      "owner": "program-kit",
+      "inputs": [
+        "scripts/upgrade_program_kit.py",
+        "scripts/openapi_upgrade_reconciliation.py",
+        "extensions/program-kit-building-blocks/**",
+        "tests/validate_upgrade_retry.py",
+        "tests/validate_building_blocks.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Unique disposable materialized consumer; only file transactions, no agent, data store or provider calls."
+    },
+    {
       "id": "validate_web_runtime",
       "qualification": {
         "linux": true,

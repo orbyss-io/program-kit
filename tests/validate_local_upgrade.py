@@ -27,6 +27,7 @@ def load_updater():
         if specification is None or specification.loader is None:
             raise AssertionError("could not load release-owned updater")
         module = importlib.util.module_from_spec(specification)
+        sys.modules[specification.name] = module
         specification.loader.exec_module(module)
         return module
     finally:

@@ -13,6 +13,8 @@ import validate_local_upgrade as upgrades
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 import openapi_upgrade_reconciliation as reconciliation
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+from owned_scratch import owned_scratch, filesystem_path
 
 
 class ExporterUpgradeTests(unittest.TestCase):
@@ -25,9 +27,8 @@ class ExporterUpgradeTests(unittest.TestCase):
         self.catalog = self.blocks.load_json(fixtures.CATALOG)
         # Exercise the historical exporter-only release independently of today's
         # newer qualified default and its managed tool template.
-        historical_release = tempfile.TemporaryDirectory(prefix='historical-exporter-release-')
-        self.addCleanup(historical_release.cleanup)
-        self.release = Path(historical_release.name)
+        historical_release = self.enterContext(owned_scratch(ROOT, 'validation-fixture'))
+        self.release = Path(filesystem_path(historical_release))
         shutil.copytree(ROOT / 'extensions/program-kit-building-blocks', self.release / 'extensions/program-kit-building-blocks')
         shutil.copyfile(ROOT / 'VERSION', self.release / 'VERSION')
         shutil.copyfile(ROOT / 'bundle.yml', self.release / 'bundle.yml')
@@ -98,6 +99,24 @@ class ExporterUpgradeTests(unittest.TestCase):
                 with self.subTest(name=name, mutation=mutation), self.assertRaises(reconciliation.ReconciliationError):
                     reconciliation.catalog_transition(self.root, self.release, self.blocks, self.blocks.load_json(self.selection))
                 path.write_bytes(original)
+
+    def test_exact_retry_context_admits_original_and_target_after_supported_catalog_transition(self):
+        target_version = (self.release / 'VERSION').read_text().strip()
+        attempt_path, attempt = self.upgrader.begin_attempt(self.root, self.release, target_version, '0.12.5')
+        attempt.update(status='incomplete', diagnostic='fixture: sequential installer interruption')
+        self.upgrader.write_attempt(attempt_path, attempt)
+        transition = reconciliation.catalog_transition(self.root, self.release, self.blocks, self.blocks.load_json(self.selection))
+        reconciliation.archive_catalog_transition(transition)
+        reconciliation.apply_catalog_transition(self.root, self.release, transition, self.blocks, target_version)
+        manifest = self.root / '.specify/extensions/program-kit-governance/extension.yml'
+        manifest.write_text('extension:\n  version: "' + target_version + '"\n')
+        context = self.upgrader.upgrade_retry_context(self.root, self.release, target_version)
+        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, self.release, retry_context=context))
+        target = self.blocks.resolve(self.root, self.selection, self.release / reconciliation.CATALOG_RELATIVE, target_version)
+        self.blocks.apply_materialization(self.root, self.lock, target, self.catalog)
+        self.assertEqual('materialized', self.upgrader.building_block_upgrade_state(self.root, self.release, retry_context=context))
+        for name, data in transition['originals'].items():
+            self.assertEqual(data, (transition['archive'] / name).read_bytes())
 
     def test_runtime_or_policy_changes_cannot_use_exporter_authorization(self):
         release = self.root / 'candidate'

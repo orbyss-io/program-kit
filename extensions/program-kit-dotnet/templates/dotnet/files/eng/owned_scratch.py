@@ -76,7 +76,7 @@ class OwnedScratch:
         self.repository = repository.resolve(strict=True)
         if os.name == 'nt' and native_path(self.repository).startswith('\\\\'):
             raise ValueError('PKR015 network/UNC scratch roots are unsupported; use a local drive checkout')
-        if purpose not in {'selected-roots', 'release-bundle'}:
+        if purpose not in {'selected-roots', 'release-bundle', 'validation-fixture'}:
             raise ValueError('PKR015 unknown owned staging purpose')
         self.purpose = purpose
         self.path = None

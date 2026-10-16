@@ -33,13 +33,57 @@
       "sourceDiagnosis": "Fix authentic intermediate-state admission",
       "workPackages": "E",
       "closureRequired": "Real interrupted update resumes from original version; altered receipts/originals/checks fail.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-with-targeted-validation; full-update-closure-pending",
+      "changedFiles": [
+        "scripts/upgrade_program_kit.py",
+        "scripts/openapi_upgrade_reconciliation.py",
+        "README.md",
+        "tests/validate_upgrade_retry.py",
+        "tests/validate_release_guidance.py",
+        "tests/validate_exporter_upgrade.py",
+        "tests/validate_local_upgrade.py",
+        "tests/validation-inventory.json"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "installed Specify Python tests/validate_upgrade_boundaries.py",
+          "status": "passed",
+          "scope": "23 offline permission/runtime/retry-origin/corrected-candidate boundary tests.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/retry-upgrade-boundaries.log",
+          "sha256": "74137eb93ce367a12f8c9fbff0cbb316ae174ba1fae7955de4b6d71d09d3d653"
+        },
+        {
+          "command": "installed Specify Python tests/validate_exporter_upgrade.py",
+          "status": "passed",
+          "scope": "8 actual file/materialization cases; archived exporter-only transition, original/target retry and runtime/policy/source changes rejected. Historical fixture uses owned extended-path I/O and exact cleanup.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/retry-exporter-transition.log",
+          "sha256": "a4cc3a5311fcc5d0a3407ca6f34da4a4ce6fece8920c28d222cf5d7ef7337739"
+        },
+        {
+          "command": "installed Specify Python tests/validate_upgrade_retry.py",
+          "status": "passed",
+          "scope": "5 real original/target materialization and negative cases; unchanged selection/authority/originals/attempt bytes. Recomputed target cannot borrow changed architecture authority.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/retry-materialization.log",
+          "sha256": "6194f375061c7fbbd3b06e27213276b371e80f5eba64faa469e36d2feb9d1c2b"
+        },
+        {
+          "command": "installed Specify Python tests/validate_release_guidance.py",
+          "status": "passed",
+          "scope": "11 migration-plan/receipt tests including exact archived prior completed receipt after component version advances; missing context, changed verification and changed original reject.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/retry-migration-receipt.log",
+          "sha256": "6e2996453eb54569acfdd15ff44bca5fb25d55c4ebd98cd87c598e48f73d6938"
+        }
+      ],
+      "remainingDependencies": [
+        "Real maintained sequential upgrade interruption after every mutation boundary, fresh-process retry and installed/source/provenance negatives for the complete update.",
+        "Canonical complete original/check ownership work in G and current exact-candidate CI qualification.",
+        "Normal released consumer adoption after public Foundation/Program Kit closure; active consumer untouched."
+      ],
+      "closureEvidence": [
+        "Retry context derives from the verified preserved attempt, original installed version, exact release fingerprint and archived inputs. Prior completed receipt is separately archived before component writes and never relabeled new completion.",
+        "Complete target lock requires exact computed target/current physical materialization and unchanged selection or exact supported exporter-only transition. Exact archived original lock remains admissible across that transition; mixed locks and unknown selection changes reject.",
+        "Original architecture authority is preserved; only the canonical selection-registration transform is admitted. The actual selected custom architecture path is archived instead of assuming the default path."
+      ]
     },
     {
       "id": "U2",
@@ -47,13 +91,57 @@
       "sourceDiagnosis": "Fix authenticated original/target transition",
       "workPackages": "E",
       "closureRequired": "Real complete target accepted only in verified retry; corrupt mixed state fails.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-with-targeted-validation; full-update-closure-pending",
+      "changedFiles": [
+        "scripts/upgrade_program_kit.py",
+        "scripts/openapi_upgrade_reconciliation.py",
+        "README.md",
+        "tests/validate_upgrade_retry.py",
+        "tests/validate_release_guidance.py",
+        "tests/validate_exporter_upgrade.py",
+        "tests/validate_local_upgrade.py",
+        "tests/validation-inventory.json"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "installed Specify Python tests/validate_upgrade_boundaries.py",
+          "status": "passed",
+          "scope": "23 offline permission/runtime/retry-origin/corrected-candidate boundary tests.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/retry-upgrade-boundaries.log",
+          "sha256": "74137eb93ce367a12f8c9fbff0cbb316ae174ba1fae7955de4b6d71d09d3d653"
+        },
+        {
+          "command": "installed Specify Python tests/validate_exporter_upgrade.py",
+          "status": "passed",
+          "scope": "8 actual file/materialization cases; archived exporter-only transition, original/target retry and runtime/policy/source changes rejected. Historical fixture uses owned extended-path I/O and exact cleanup.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/retry-exporter-transition.log",
+          "sha256": "a4cc3a5311fcc5d0a3407ca6f34da4a4ce6fece8920c28d222cf5d7ef7337739"
+        },
+        {
+          "command": "installed Specify Python tests/validate_upgrade_retry.py",
+          "status": "passed",
+          "scope": "5 real original/target materialization and negative cases; unchanged selection/authority/originals/attempt bytes. Recomputed target cannot borrow changed architecture authority.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/retry-materialization.log",
+          "sha256": "6194f375061c7fbbd3b06e27213276b371e80f5eba64faa469e36d2feb9d1c2b"
+        },
+        {
+          "command": "installed Specify Python tests/validate_release_guidance.py",
+          "status": "passed",
+          "scope": "11 migration-plan/receipt tests including exact archived prior completed receipt after component version advances; missing context, changed verification and changed original reject.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/retry-migration-receipt.log",
+          "sha256": "6e2996453eb54569acfdd15ff44bca5fb25d55c4ebd98cd87c598e48f73d6938"
+        }
+      ],
+      "remainingDependencies": [
+        "Real maintained sequential upgrade interruption after every mutation boundary, fresh-process retry and installed/source/provenance negatives for the complete update.",
+        "Canonical complete original/check ownership work in G and current exact-candidate CI qualification.",
+        "Normal released consumer adoption after public Foundation/Program Kit closure; active consumer untouched."
+      ],
+      "closureEvidence": [
+        "Retry context derives from the verified preserved attempt, original installed version, exact release fingerprint and archived inputs. Prior completed receipt is separately archived before component writes and never relabeled new completion.",
+        "Complete target lock requires exact computed target/current physical materialization and unchanged selection or exact supported exporter-only transition. Exact archived original lock remains admissible across that transition; mixed locks and unknown selection changes reject.",
+        "Original architecture authority is preserved; only the canonical selection-registration transform is admitted. The actual selected custom architecture path is archived instead of assuming the default path."
+      ]
     },
     {
       "id": "U3",
@@ -75,13 +163,44 @@
       "sourceDiagnosis": "Use complete canonical native restore closure",
       "workPackages": "E",
       "closureRequired": "Direct/solution/forward/reverse subjects accepted with real evidence; unrelated/stale/tampered coverage fails.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "partially-implemented; supported literal graph and standard outputs",
+      "changedFiles": [
+        "extensions/program-kit-building-blocks/scripts/restore_dependencies.py",
+        "extensions/program-kit-building-blocks/commands/speckit.program-kit-building-blocks.sync.md",
+        "scripts/upgrade_program_kit.py",
+        "tests/lock_renewal_cases.py"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "installed Specify Python tests/validate_building_blocks.py",
+          "status": "passed",
+          "scope": "Actual offline maintained renew/locked CLI with solution, direct root, forward nonmember, reverse dependents, actual lock/assets inventory and upgrade renewal admission; unrelated locks/profile retained; changed assets/custom outputs/dynamic graph reject.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/restore-closure-native.log",
+          "sha256": "1a590d7924e44ffb85bdb59a2073b96789e2fa151fede6de081e6fdfc2bd85a7"
+        },
+        {
+          "command": "installed Specify Python tests/validate_sync_readiness.py",
+          "status": "passed",
+          "scope": "7 request freshness, interrupted resume and dependency readiness tests.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/sync-readiness-restore-closure.log",
+          "sha256": "8e634ef1c92e4d7b165a10006873c95e30b5ab2f22b8d32b840993dc2b04c7f1"
+        },
+        {
+          "command": "actual maintained offline renew and locked CLI; preserved result inspection",
+          "status": "passed",
+          "scope": "Actual native command exit codes, input/output inventory, accepted renewal and explicit positive/negative case identities bound to current source hashes.",
+          "log": "artifacts/restore-closure/results.json",
+          "sha256": "e0454a3c872086a4a0decdde51b7a3f2358554205f82751b45819fecbfca0358"
+        }
+      ],
+      "remainingDependencies": [
+        "Evaluated native graph/output adapter for supported custom/imported/relocated layouts and multiple project owners. Current literal adapter rejects these precisely instead of inferring default ownership.",
+        "Actual F#/VB/custom native qualification and full updater integration/CI. Retired lock authority remains separate U3/G work."
+      ],
+      "closureEvidence": [
+        "artifacts/restore-closure/results.json",
+        "One closure supplies command subjects, effective projects, standard output owners, input digests, progress snapshots and renewal admission. Locked evidence now binds actual lock/assets bytes. F#/VB project inputs are included in source freshness."
+      ]
     },
     {
       "id": "P1",
@@ -866,16 +985,69 @@
     {
       "id": "N10",
       "finding": "N10 Source metadata line endings",
-      "sourceDiagnosis": "Trace generator ownership; align generation/native export to exact text-hash contract",
+      "sourceDiagnosis": "Actual selected public Build 0.3.1 (nuspec source aa7ae11678b0dbcf96af009e347d06673a9dce06) independently verifies CRLF-to-LF UTF-8 hashing. Original consumer generator remains unattributed. Central Python refresh helper universally translated lone CR, unlike the exporter; repaired with a shared explicit contract and native inspected generation route.",
       "workPackages": "A/F/I/J",
       "closureRequired": "Actual selected export accepts supported canonical text; meaningful changes and wrong hashes still fail.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
-      "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+      "status": "implemented-with-targeted-validation; not-closed",
+      "changedFiles": [
+        "Foundation: scripts/refresh_feature_metadata.py",
+        "Foundation: src/Orbyss.Foundation.Build/SettingsSourceText.cs",
+        "Foundation: src/Orbyss.Foundation.Build/InspectSettingsSourceBindings.cs",
+        "Foundation: src/Orbyss.Foundation.Build/EmitSettingsMetadata.cs",
+        "Foundation: src/Orbyss.Foundation.Build/InspectSettingsSourceGraph.cs",
+        "Foundation: src/Orbyss.Foundation.Build/buildTransitive/Orbyss.Foundation.Build.targets",
+        "Foundation: src/Orbyss.Foundation.Build/README.md",
+        "Foundation: tests/settings_source_binding_cases.py",
+        "Foundation: tests/validate_settings_build.py"
       ],
-      "closureEvidence": []
+      "validation": [
+        {
+          "command": "dotnet build Foundation.Build -c Release --no-restore",
+          "status": "passed",
+          "scope": "Locked native tool build: zero warnings/errors.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-build-tool-build.log",
+          "sha256": "865598e2935b3a19973fa70d0e9c3d69f7854f51662df2eaa9af4d5fe49bc024"
+        },
+        {
+          "command": "python tests/validate_settings_build.py --package <private repaired archive>",
+          "status": "passed",
+          "scope": "Installed native source/default/encoding/export agreement; 23 existing rejection cases, no-build/reference-constant guards and prior-output preservation.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-settings-build-native-final.log",
+          "sha256": "a1538efc5276ef0b6aefe377c81bf7fd9e3b8bab1b6cd24f6d416ae0ef2074c9"
+        },
+        {
+          "command": "python tests/validate_settings_graph.py --package <private repaired archive>",
+          "status": "passed",
+          "scope": "Actual installed schema2 graph/default/import/secret guards.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-settings-graph-native.log",
+          "sha256": "a79ddbbfcdc0350a119bbcf42217b655340d21ecf3d7f3fa9e8fc41f391f19e0"
+        },
+        {
+          "command": "python qualify-original-settings-hash.py",
+          "status": "passed",
+          "scope": "Fresh public 0.3.1 archive: real native LF/CRLF/BOM/lone-CR/final-newline export, raw CRLF hash rejected and prior output preserved.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/original-settings-hash.log",
+          "sha256": "b9099979306269935cd383a7c58b5b05617c1dcbaa1248e4d943813e37d8effc"
+        },
+        {
+          "command": "python scripts/refresh_feature_metadata.py",
+          "status": "passed",
+          "scope": "Current publisher source inventories match; no historical record or current declaration was rewritten.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/foundation-current-inventories.log",
+          "sha256": "1b065529830e5a4861c5e54a7f86744eb200f4d96063faac5ff6f7482e8d7598"
+        }
+      ],
+      "remainingDependencies": [
+        "New immutable independently versioned Build release after dependency maintenance/CI/security/review gates; private 0.3.1 archive is not publication.",
+        "Program Kit selected public package/knowledge/recipe adoption and full exact-candidate qualification.",
+        "Original consumer generator attribution is not established; do not label it a shipped Program Kit generator defect. Preserve original consumer/history and migrate through released tooling."
+      ],
+      "closureEvidence": [
+        "artifacts/maintenance-implementation-2026-10-16/original-settings-hash-attribution.json",
+        "artifacts/maintenance-implementation-2026-10-16/foundation-settings-source-qualification.json",
+        "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/settings-build/tmp1fbi0h1c/source-binding-results.json",
+        "Foundation local implementation commit 18fec64. New native inspection report never rewrites declarations or compiled provenance; UTF-8 policy is explicit, unsupported encodings reject, and actual native output matches generation."
+      ]
     },
     {
       "id": "N11",
@@ -940,12 +1112,21 @@
           "scope": "Real configuration-only staging body completes, injected cleanup failure prevents success evidence.",
           "log": "artifacts/maintenance-implementation-2026-10-16/scratch-stage-failure.log",
           "sha256": "314723ba5f76a8a4a6b530617e9e38108efbe443a988381d401b8335bf403241"
+        },
+        {
+          "command": "python tests/validate_owned_scratch.py (external junction fixture access)",
+          "status": "passed",
+          "scope": "12 actual Windows lifecycle/deep path/identity/dual-failure cases after allowing the owned validation-fixture purpose; sandbox junction-creation denial was not treated as success.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/owned-scratch-validation-fixture-external.log",
+          "sha256": "e2d1440b244c54cbff09f5a71edba5f299bbf72ffef66117674d955a4066049c"
         }
       ],
       "remainingDependencies": [
         "Actual maintained composition update route; full current-source bounded Development and complete CI Linux/Windows checks; released consumer adoption. Original WinError 145 cause remains unproven without original logs."
       ],
-      "closureEvidence": []
+      "closureEvidence": [
+        "The actual historical exporter fixture now uses the same exact-owned cleanup with extended Python I/O; all 8 transition cases pass without shortening/deleting historical profile inputs or changing machine long-path policy."
+      ]
     },
     {
       "id": "N13",

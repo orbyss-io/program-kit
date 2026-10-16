@@ -198,6 +198,42 @@ class GuidanceTests(unittest.TestCase):
             original.write_text('extension:\n  version: "0.12.4"\n', encoding='utf-8')
             with self.assertRaisesRegex(UpgradeError, 'version provenance'): migration_origin(root, '0.12.6')
             self.assertEqual(payload, path.read_bytes())
+
+    def test_interrupted_components_admit_only_the_exact_archived_prior_completed_receipt(self):
+        import upgrade_program_kit as upgrade
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name).resolve()
+            directory = build(ROOT, root / 'guidance', '0.12.6')
+            prior_plan = plan(directory, '0.12.5', '0.12.6')
+            receipt = completion(prior_plan, {check: True for entry in prior_plan['migrations'] for check in entry['verificationChecks']})
+            self.assertTrue(receipt['migrationCompletionEstablished'])
+            path = root / '.program-kit/installation/migration.json'
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(receipt))
+            payload = path.read_bytes()
+            manifest = root / '.specify/extensions/program-kit-governance/extension.yml'
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text('extension:\n  version: "0.12.6"\n')
+            target_version = (ROOT / 'VERSION').read_text().strip()
+            attempt_path, attempt = upgrade.begin_attempt(root, ROOT, target_version, '0.12.6')
+            attempt.update(status='incomplete', diagnostic='fixture: interrupted after component installation')
+            upgrade.write_attempt(attempt_path, attempt)
+            manifest.write_text('extension:\n  version: "' + target_version + '"\n')
+            context = upgrade.upgrade_retry_context(root, ROOT, target_version)
+            self.assertEqual('0.12.6', upgrade.migration_origin(root, target_version, '0.12.6', target_version, context))
+            self.assertEqual(payload, path.read_bytes())
+            with self.assertRaisesRegex(upgrade.UpgradeError, 'differs from installed'):
+                upgrade.migration_origin(root, target_version, '0.12.6', target_version)
+            changed = copy.deepcopy(receipt)
+            changed['checks']['dependency-verification'] = False
+            path.write_text(json.dumps(changed))
+            with self.assertRaisesRegex(upgrade.UpgradeError, 'differs from installed|required verification'):
+                upgrade.migration_origin(root, target_version, '0.12.6', target_version, context)
+            path.write_bytes(payload)
+            archived = root / attempt['originals']['migration']['path']
+            archived.write_bytes(payload + b' ')
+            with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121'):
+                upgrade.upgrade_retry_context(root, ROOT, target_version)
     def test_substantive_change_requires_exact_accepted_decision(self):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)

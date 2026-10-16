@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 import tempfile
 import zipfile
+import shutil
+import sys
 
 
 def exercise(root, restore):
@@ -24,7 +26,7 @@ def exercise(root, restore):
         config.write_text(f'<configuration><packageSources><clear/><add key="fixture" value="{feed.as_posix()}" /></packageSources></configuration>')
         projects = {}
         rows = []
-        for name, dependencies, role in (('Owner', [], 'implementation'), ('Owner.Api', ['Owner'], 'api'),
+        for name, dependencies, role in (('Dependency', [], 'core'), ('Owner', ['Dependency'], 'implementation'), ('Owner.Api', ['Owner'], 'api'),
                                          ('Owner.Tests', ['Owner.Api'], 'test'), ('Independent', [], 'core')):
             relative = f'{"tests" if role == "test" else "src"}/{name}/{name}.csproj'
             projects[name] = relative
@@ -36,7 +38,7 @@ def exercise(root, restore):
             target.write_text(f'<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup><ItemGroup>{edges}{pin}</ItemGroup></Project>')
             rows.append({'path': relative, 'role': role, 'projectReferences': references})
         solution = repository / 'Closure.slnx'
-        solution.write_text('<Solution>' + ''.join(f'<Project Path="{p}" />' for p in projects.values()) + '</Solution>')
+        solution.write_text('<Solution>' + ''.join(f'<Project Path="{p}" />' for name,p in projects.items() if name != 'Dependency') + '</Solution>')
         (repository / 'eng').mkdir()
         (repository / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': rows, 'bindings': []}}))
         profile = repository / '.program-kit/dependency-profile.json'
@@ -46,8 +48,13 @@ def exercise(root, restore):
         environment = restore.isolated_environment(repository)
         environment['MSBUILDDISABLENODEREUSE'] = '1'
         environment['DOTNET_ADD_GLOBAL_TOOLS_TO_PATH'] = '0'
+        executions = []
         def native(arguments):
-            return subprocess.run(arguments, cwd=repository, env=environment, capture_output=True, text=True, timeout=180)
+            result = subprocess.run(arguments, cwd=repository, env=environment, capture_output=True, text=True, timeout=180)
+            executions.append({'command': [str(arg).replace(str(repository), '<fixture>') for arg in arguments],
+                               'exitCode': result.returncode, 'stdoutSha256': hashlib.sha256(result.stdout.encode()).hexdigest(),
+                               'stderrSha256': hashlib.sha256(result.stderr.encode()).hexdigest()})
+            return result
         initial = native(['dotnet', 'restore', str(solution), '--configfile', str(config), '--use-lock-file'])
         assert initial.returncode == 0, initial.stdout + initial.stderr
         independent = repository / Path(projects['Independent']).parent / 'packages.lock.json'
@@ -63,8 +70,67 @@ def exercise(root, restore):
         locked = native(['dotnet', 'restore', str(solution), '--configfile', str(config), '--locked-mode'])
         assert locked.returncode == 0, 'Incomplete renewal caused whole-solution LockedMode failure:\n' + locked.stdout + locked.stderr
         assert {command['subject'] for command in plan} == {projects['Owner'], projects['Owner.Api'], projects['Owner.Tests']}
+        # The forward dependency is absent from solution membership and the
+        # target list, yet real native restore produces its outputs.
+        closure = restore.nuget_plan_closure(repository, lock)
+        related = {projects[name] for name in ('Dependency', 'Owner', 'Owner.Api', 'Owner.Tests')}
+        assert set(closure['projects']) == related
+        solution_lock = {'targets': [{'path': projects['Owner'], 'lockRoot': 'Closure.slnx',
+                                     'packages': [{'materializationKind': 'nuget-project'}]}]}
+        solution_closure = restore.nuget_plan_closure(repository, solution_lock)
+        assert set(solution_closure['projects']) == set(projects.values())
+        dependency_path = repository / '.program-kit/sync/dependencies.json'
+        dependency_path.parent.mkdir(parents=True)
+        dependency_path.write_text(json.dumps(lock))
+        toolchain_path = repository / 'artifacts/program-kit/toolchain.json'
+        toolchain_path.parent.mkdir(parents=True)
+        toolchain_path.write_text(json.dumps({'commands': {'dotnet': [shutil.which('dotnet')]},
+            'required': {'dotnet': sdk['version']}, 'resolved': {'dotnet': sdk['version']}, 'satisfied': True}))
+        # Execute the actual maintained CLI, not a synthetic successful receipt.
+        for mode in ('renew', 'locked'):
+            execution = native([sys.executable, restore.__file__, mode, '--target', str(repository),
+                                '--lock', '.program-kit/sync/dependencies.json', '--approved'])
+            assert execution.returncode == 0, execution.stdout + execution.stderr
+        evidence_path = repository / 'artifacts/program-kit/building-block-restore.json'
+        evidence = json.loads(evidence_path.read_text())
+        restore.verify_evidence(repository, lock, evidence)
+        expected_outputs = {closure['outputs'][project][kind] for project in related for kind in ('lock', 'assets')}
+        actual_outputs = {path for outputs in evidence['nugetOutputs'].values() for path in outputs}
+        assert expected_outputs == actual_outputs
+        assert all((repository / path).is_file() for path in actual_outputs)
+        sys.path.insert(0, str(root / 'scripts'))
+        import upgrade_program_kit as upgrade
+        affected = [repository / closure['outputs'][project]['lock'] for project in related]
+        upgrade.write_lock_renewal(repository, {}, affected)
+        assert upgrade.satisfy_lock_renewal(repository, {}, [], restore), 'Forward/reverse native owner was rejected'
+        renewal = json.loads((repository / 'artifacts/program-kit/dotnet-lock-renewal.json').read_text())
+        # A current lock snapshot is insufficient for an unrelated owner.
+        upgrade.write_lock_renewal(repository, {}, [independent])
+        assert not upgrade.satisfy_lock_renewal(repository, {}, [], restore)
+        # The exact native output inventory must survive through verification.
+        assets = repository / closure['outputs'][projects['Dependency']]['assets']
+        original_assets = assets.read_bytes()
+        assets.write_bytes(original_assets + b'\n ')
+        try:
+            restore.verify_evidence(repository, lock, evidence)
+        except restore.RestoreError as error:
+            assert 'output inventory' in str(error)
+        else:
+            raise AssertionError('Changed forward output was accepted')
+        assets.write_bytes(original_assets)
+        restore.verify_evidence(repository, lock, evidence)
         assert independent.read_bytes() == original_lock
         assert profile.read_bytes() == original_profile
+        custom = repository / projects['Dependency']
+        custom_original = custom.read_bytes()
+        custom.write_text(custom.read_text().replace('<TargetFramework>', '<NuGetLockFilePath>locks/custom.json</NuGetLockFilePath><TargetFramework>'))
+        try:
+            restore.nuget_plan_closure(repository, lock)
+        except restore.RestoreError as error:
+            assert 'evaluated graph/output adapter' in str(error)
+        else:
+            raise AssertionError('Custom lock was silently attributed to a default path')
+        custom.write_bytes(custom_original)
         (repository / projects['Owner.Api']).write_text('<Project><ItemGroup><ProjectReference Include="$(Unknown)" /></ItemGroup></Project>')
         try:
             restore.restore_commands(repository, lock, 'renew')
@@ -72,4 +138,15 @@ def exercise(root, restore):
             assert 'evaluated' in str(error)
         else:
             raise AssertionError('Dynamic reverse graph was silently narrowed')
+        output = root / 'artifacts/restore-closure/results.json'
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps({'status': 'passed', 'sdk': sdk, 'nativeExecutions': executions,
+            'directClosure': closure, 'solutionClosure': solution_closure,
+            'restoreEvidence': evidence, 'acceptedRenewal': renewal,
+            'sourceSha256': {str(path.relative_to(root)).replace('\\','/'): hashlib.sha256(path.read_bytes()).hexdigest()
+                             for path in (Path(__file__), Path(restore.__file__), root / 'scripts/upgrade_program_kit.py')},
+            'cases': {'actual-maintained-renew-and-locked': True, 'forward-nonmember-owner': True,
+                      'reverse-dependent-owner': True, 'unrelated-owner-rejected': True,
+                      'changed-assets-rejected': True, 'custom-output-refused': True, 'dynamic-graph-refused': True,
+                      'unrelated-lock-and-retained-profile-unchanged': True}}, indent=2) + '\n', encoding='utf-8')
     print('Complete reverse-dependent lock batch and whole-solution LockedMode passed; unrelated lock/profile bytes preserved.')

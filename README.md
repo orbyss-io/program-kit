@@ -275,6 +275,13 @@ command. The operating-system upgrade lock releases after interruption without a
 handoff. Local history keeps the latest five completed owned runs, preserving failed/interrupted
 runs until explicit cleanup; see the [cleanup preview](docs/consumer-engineering.md).
 
+Retries bind the original installed version, archived inputs and exact target release.
+An interrupted component installation can retain its exact archived prior migration receipt;
+that receipt stays historical until the maintained updater writes new completion evidence.
+Materialization must match the complete original or complete target, with current output and
+selection checks. Changed originals, mixed locks, unknown selection changes and unfinished
+transactions remain errors; an old attempt does not authorize a different upgrade.
+
 Open the installed integration in the repository, invoke
 `$speckit-program-kit-governance-bootstrap`, and describe what you want to build. Intake uses the
 shipped Program Kit grilling skill in the same conversation: numbered questions, recommendations,
