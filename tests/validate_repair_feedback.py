@@ -188,6 +188,10 @@ class RepairTests(unittest.TestCase):
         self.assertEqual(before, consumer_upgrade.inputs(self.consumer))
         with self.assertRaises(ValueError): rf.remember(self.consumer, {'status': 'fixed'})
         with self.assertRaises(ValueError): rf.configure(self.consumer, 'contributor', self.consumer)
+        with patch.object(rf, 'git', return_value=str(self.owner) + '/.'):
+            self.assertEqual(self.owner.resolve(), rf.checkout(self.owner))
+        with patch.object(rf, 'git', return_value=str(self.consumer)):
+            with self.assertRaisesRegex(ValueError, 'checkout-root-required'): rf.checkout(self.owner)
 
     def test_local_queue_durable_idempotent_zero_public_mutation_and_fresh_ledger(self):
         rf.configure(self.consumer, 'contributor', self.owner)
@@ -373,6 +377,20 @@ class RepairTests(unittest.TestCase):
         rf.public(self.consumer, self.packet, review, review['reviewDigest'], api)
         self.assertEqual(1, len(api.refs)); self.assertEqual(1, len(api.prs))
         self.assertEqual([{'sha': BASE}], api.commits[HEAD]['parents'])
+
+    def test_interrupted_issue_outside_reconciliation_bound_uses_recovered_reference(self):
+        rf.configure(self.consumer, 'consumer'); api = RecordingGitHub(); review = self.review()
+        api.loss = '/issues'
+        with self.assertRaises(ValueError): rf.public(self.consumer, self.packet, review, review['reviewDigest'], api)
+        original = api.handle
+        def outside_recent(method, endpoint, payload):
+            if method == 'GET' and endpoint.startswith('repos/' + c.UPSTREAM + '/issues?'): return []
+            return original(method, endpoint, payload)
+        api.handle = outside_recent
+        with self.assertRaisesRegex(ValueError, 'unresolved'): rf.public(self.consumer, self.packet, review, review['reviewDigest'], api)
+        rf.recover(self.consumer, api, 'synthetic-project', [{'repository': c.UPSTREAM, 'kind': 'issue', 'number': 11}])
+        rf.public(self.consumer, self.packet, review, review['reviewDigest'], api)
+        self.assertEqual(1, len(api.issues)); self.assertEqual(1, len(api.prs))
 
     def test_fresh_status_changed_remote_and_failed_reads_never_fall_back(self):
         rf.configure(self.consumer, 'consumer')

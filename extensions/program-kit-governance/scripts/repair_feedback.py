@@ -62,7 +62,10 @@ def git(root, *args):
 def checkout(root):
     c.require(root is not None, 'contributor-checkout-must-be-user-selected')
     root = Path(root).resolve()
-    c.require(git(root, 'rev-parse', '--show-toplevel').replace('\\', '/').casefold() == root.as_posix().casefold(), 'checkout-root-required')
+    # Git normalizes Windows extended paths differently from pathlib. Compare
+    # actual directory identity, so a valid selected root is not rejected due
+    # to spelling while a nested or unrelated repository still fails.
+    c.require(os.path.samefile(Path(git(root, 'rev-parse', '--show-toplevel')).resolve(), root), 'checkout-root-required')
     c.require((root / 'extensions/program-kit-governance/extension.yml').is_file() and
               (root / '.agents/skills/program-kit-repair-evaluator/SKILL.md').is_file(), 'program-kit-contributor-checkout-required')
     return root
@@ -298,8 +301,12 @@ def plan(packet, correlation, destination, rationale, account, base_commit, vali
     return result
 
 
-def reconcile_issue(api, value, interrupted=False):
+def reconcile_issue(api, value, interrupted=False, known_number=None):
     tag = marker(value)
+    if known_number is not None:
+        issue = api.api('GET', f'repos/{c.UPSTREAM}/issues/{known_number}')
+        c.require(tag in (issue.get('body') or ''), 'known-issue-request-marker-conflict')
+        return issue
     # Bounded direct reconciliation avoids trusting a search index after response loss.
     found = []
     for page in (1, 2):
@@ -405,7 +412,16 @@ def publish_locked(root, packet, reviewed, approved_digest, api):
     write(journal, history)
     c.require(api.auth() == reviewed['account'], 'github-account-changed')
     main = verify_deployment(api, reviewed['baseCommit'], reviewed['validatorCommit'])['submissionBase']
-    issue = reconcile_issue(api, value, any(e['kind'] == 'attempt-create-issue' for e in history['events'])) if reviewed['destination'] == 'new' else api.api('GET', f"repos/{c.UPSTREAM}/issues/{reviewed['destination']}")
+    known = {obj['number'] for record in read(directory / 'submissions.json', {'requests': []})['requests']
+             if record.get('requestId') == value['requestId'] and record.get('revision') == value['revision']
+             and record.get('requestSha256') == proof['requestSha256']
+             for obj in record.get('objects', []) if obj['repository'] == c.UPSTREAM and obj['kind'] == 'issue'}
+    for entry in history['events']:
+        match = re.fullmatch(r'https://github.com/' + re.escape(c.UPSTREAM) + r'/issues/([1-9][0-9]*)', entry['reference'])
+        if entry['kind'] == 'issue' and match: known.add(int(match[1]))
+    c.require(len(known) <= 1, 'ambiguous-known-issue-references')
+    issue = reconcile_issue(api, value, any(e['kind'] == 'attempt-create-issue' for e in history['events']),
+                            next(iter(known), None)) if reviewed['destination'] == 'new' else api.api('GET', f"repos/{c.UPSTREAM}/issues/{reviewed['destination']}")
     if issue is None:
         event('attempt-create-issue', marker(value))
         issue = api.api('POST', f'repos/{c.UPSTREAM}/issues', {'title': reviewed['title'], 'body': reviewed['body']})
