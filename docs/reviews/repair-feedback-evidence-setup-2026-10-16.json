@@ -54,7 +54,7 @@
     ],
     "variables": {
       "GUARDIAN_APP_CLIENT_ID": "<GitHub-assigned client ID>",
-      "GUARDIAN_VALIDATOR_COMMIT": "<reviewed prepared seed commit SHA>"
+      "GUARDIAN_VALIDATOR_COMMIT": "1fee678a420d667c8e3fb07927cd593a011ab134"
     },
     "secretNames": [
       "GUARDIAN_APP_PRIVATE_KEY"
@@ -112,5 +112,17 @@
     "No evidence acceptance merges included"
   ],
   "publicOperationStatus": "not performed",
-  "initialRulesetEnforcement": "disabled during unadvertised setup; activate exact reviewed rules after deployment metadata is committed"
+  "initialRulesetEnforcement": "disabled during unadvertised setup; activate exact reviewed rules after deployment metadata is committed",
+  "reviewedSeedCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+  "sourceManifest": "docs/reviews/repair-feedback-evidence-source-manifest-2026-10-16.json",
+  "deploymentConfiguration": {
+    "contractVersion": "1.0",
+    "validatorCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+    "repositoryRulesetId": "<positive ID returned for the reviewed ruleset>",
+    "githubAppId": "<positive ID of the approved dedicated App>",
+    "githubAppSlug": "program-kit-evidence-guardian",
+    "provisioning": "configured; operational acceptance recorded separately"
+  },
+  "supersededLocalDraftSeed": "e09debd6ca397c1f53a267dc4eacb3d0e562ce53; retained locally, not approved or published",
+  "sourceManifestSha256": "0c597bbff9123d2e2352eac4fd58e8b9ee652fcbb83565bd8f4a1df3401ac4d3"
 }

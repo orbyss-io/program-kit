@@ -106,12 +106,15 @@
     {
       "id": "RF-09",
       "changes": [
-        "data-only guardian and enforceable evidence contract/budgets"
+        "data-only guardian and enforceable evidence contract/budgets",
+        "dedicated App integration ID, pinned main-only dispatcher and repository rules compatible with GitHub Free"
       ],
       "validation": [
         "test_trusted_guardian_exact_head_bound_data_only_and_adversarial_inventory",
         "test_guard_rejects_tamper_extra_policy_archive_secret_and_size_without_echo",
-        "test_public_rejects_same_name_guardian_rules_and_wrong_destination_before_writes"
+        "test_public_rejects_same_name_guardian_rules_and_wrong_destination_before_writes",
+        "test_dedicated_app_check_binds_actual_head_and_never_passes_rejected_or_moved_data",
+        "test_effective_rules_required_and_app_write_failure_cannot_become_success"
       ],
       "disposition": "source-tested-external-provisioning-pending"
     },
@@ -332,6 +335,48 @@
       "outcome": "passed",
       "log": "artifacts/validation-runs/20261016T141129Z-e751210e/validate_knowledge_inventory.log",
       "logSha256": "a5dd445a4678dc7648b4ccb6c0be4bc997d2499ef47761eaef27aaae95f20410"
+    },
+    {
+      "id": "Development-normal-path-baseline",
+      "outcome": "failed; controlled comparison retained",
+      "source": {
+        "commit": "02d772cecb064a96f6755637fbd1950eca8fb647",
+        "tree": "e904a6a5809f1fc7cf8892b1f33b2b3f064aa7ac"
+      },
+      "passed": 82,
+      "failed": 20,
+      "journal": "artifacts/validation-runs/20261016T144202Z-b54e18fc/journal.json",
+      "journalSha256": "4527bb094f79edee2d1c6782ab833918727bf3e44520dbaa7ecf8a41cd84dced"
+    },
+    {
+      "id": "Development-normal-path-feature",
+      "outcome": "failed; controlled comparison retained",
+      "source": {
+        "commit": "7f86d2ce178a0bb4ee8f0b7482ca5f8b9fd1548d",
+        "tree": "3de99ad2e96bbdae9b79e494e92efe30415b71be"
+      },
+      "passed": 83,
+      "failed": 20,
+      "journal": "artifacts/validation-runs/20261016T144545Z-9debc2ec/journal.json",
+      "journalSha256": "b0120d1be53ae4e3a909962f6bde744d68eb18fdeba2c500fc2a3793fcb602c2"
+    },
+    {
+      "id": "validate_repair_feedback-final-app-and-immutable-base",
+      "outcome": "passed; 27 tests including native consumer and recording fakes",
+      "source": {
+        "commit": "e4648f669b67fd7d6deb5967f4caa7ff0fd4d31a",
+        "tree": "e45398278d86adb37b39e719efd8e6f7f1ec8765"
+      },
+      "journal": "artifacts/validation-runs/20261016T145631Z-fa921eed/journal.json",
+      "journalSha256": "f8753802836a64ce61f6cfb90fa77824be579126fe7d0c0a2cdd74d0603312ba"
+    },
+    {
+      "id": "device-toolchain-corrected-launch",
+      "outcome": "15 tests passed on baseline and feature; original failed suite not rewritten",
+      "logs": [
+        "artifacts/validation-runs/20261016T144202Z-b54e18fc/toolchain-normal-device-path-rerun.log",
+        "artifacts/validation-runs/20261016T144545Z-9debc2ec/toolchain-normal-device-path-rerun.log"
+      ]
     }
   ],
   "dependencies": [
@@ -348,7 +393,7 @@
     {
       "id": "trusted-rules",
       "disposition": "pending",
-      "evidence": "Requires actual pinned workflow identity ruleset, verified maintainer team/review and operational acceptance; source templates/fakes cannot qualify deployment"
+      "evidence": "Pending exact setup approval, actual App-bound repository rules, main-only secret environment, verified code owner and operational checks; source/fakes cannot establish deployment."
     }
   ],
   "closure": {
@@ -361,23 +406,29 @@
     "deterministicFeatureChecks": true,
     "releaseGuidance": "releases/history.json -> migration-0.13.3.md (unreleased; VERSION not changed)",
     "consumerChanges": "No required consumer migration; optional first-use routing only",
-    "preparedRepositorySource": "artifacts/tests/repair-feedback/prepared-evidence-repository",
-    "preparedInventory": "artifacts/tests/repair-feedback/prepared-source-manifest.json",
-    "development": "Not qualified: three completed 103-check Development attempts retained with failures. Feature-scoped 25-test acceptance, component manifests, release guidance and knowledge inventory pass. Broad Windows path/child-tool/harness failures require appropriate host/CI qualification; no release readiness claim.",
+    "preparedRepositorySource": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/source",
+    "preparedInventory": "docs/reviews/repair-feedback-evidence-source-manifest-2026-10-16.json",
+    "development": "Full comparison: branch 83/103 passed; baseline 82/102 passed, same 20 failed checks and failing cases. Nineteen Windows deep-path/cleanup failures; device-toolchain launch selection corrected and 15 tests pass on both. Final feature correction validated at e4648f6 by standard runner (27 tests). No passed full Development or release claim.",
     "externalDependencies": [
-      "Actual public evidence repository provisioning/ownership",
-      "Pinned required-workflow enforcement and maintainer role/rules verification",
-      "Operational acceptance after exact public-content approval",
+      "Approval of exact public source and dedicated public App registration",
+      "Actual evidence repository, App-only installation selection, main-only secret environment and effective rules verification",
+      "Separate approval of synthetic public operational PR contents, then actual acceptance checks",
       "CI exact-candidate qualification before any release claim"
     ],
     "reviewableBranch": "codex/repair-feedback; local commits only",
-    "publicMutations": []
+    "publicMutations": [],
+    "preparedSeedCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+    "developmentComparison": "docs/reviews/repair-feedback-development-comparison-2026-10-16.json",
+    "setupProposal": "docs/reviews/repair-feedback-evidence-setup-2026-10-16.json"
   },
-  "implementationCommit": "d2913b5a7b3dbab73701ca48046ee4aa1e342414",
+  "implementationCommit": "e4648f669b67fd7d6deb5967f4caa7ff0fd4d31a",
   "changedFiles": [
     ".agents/skills/program-kit-repair-evaluator/SKILL.md",
     "README.md",
     "catalogs/extensions.json",
+    "docs/reviews/repair-feedback-development-comparison-2026-10-16.json",
+    "docs/reviews/repair-feedback-evidence-setup-2026-10-16.json",
+    "docs/reviews/repair-feedback-evidence-source-manifest-2026-10-16.json",
     "docs/reviews/repair-feedback-execution-ledger-2026-10-16.json",
     "docs/reviews/repair-feedback-feature-specification-2026-10-16.md",
     "docs/reviews/repair-feedback-implementation-handoff-2026-10-16.md",
@@ -386,7 +437,7 @@
     "evidence-repository/.github/workflows/guardian.yml",
     "evidence-repository/README.md",
     "evidence-repository/guardian-deployment.json",
-    "evidence-repository/organization-ruleset.template.json",
+    "evidence-repository/repository-ruleset.template.json",
     "extensions/program-kit-governance/commands/speckit.program-kit-governance.repair-request.md",
     "extensions/program-kit-governance/extension.yml",
     "extensions/program-kit-governance/references/capability-index.json",
@@ -407,6 +458,7 @@
     "scripts/prepare_evidence_repository.py",
     "scripts/repair_evaluator.py",
     "scripts/repair_evidence_guardian.py",
+    "scripts/repair_guardian_check.py",
     "scripts/verify_evidence_repository.py",
     "tests/validate_components.py",
     "tests/validate_repair_feedback.py",
