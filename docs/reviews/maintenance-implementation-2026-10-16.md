@@ -601,3 +601,30 @@ passed actual compiled/vendor settings checks without weakening the validators.
 Independent Build release, complete native/package/image qualification, knowledge,
 security and public adoption remain. No tag/publication, paid worker/provider or
 active-consumer modification occurred. Remaining frozen mechanisms continue.
+
+R9 now has a current shipped exact-case runner and a fixed reviewed-source contract:
+339 case identities in 19 modules, with explicit platform applicability and 1,312
+mechanism/fixture inputs. Count substitution, changed source/inputs, missing,
+duplicate, empty, skipped and failed required execution all fail. Nine focused
+negative controls and eleven portable original failure-scope/xUnit alias obligations
+pass. The actual installed 511-entry bundle executes its current helper through the
+existing toolkit adapter (`artifacts/source-assets/b67dce25ff0e4bc581c482c735703b95/results.json`).
+The current native-start inventory passed 44 Windows cases; its two POSIX/symlink
+cases require their own platforms and are not counted as passes. An initial default
+sandbox execution failed and remains failed. Original 166-case semantic lineage and
+consumer-specific obligations remain explicit completion work; no minimum-count or
+native C# wrapper claim substitutes for them.
+
+Development journal `20261016T222536Z-56f8ad1f` remains failed: 111/113 checks.
+The central building-block atomic writer now handles bounded native Windows sharing
+blocks while refusing concurrent edits or persistent denial, without changing
+permissions. Its 20 owned-scratch and 17 dependency-profile cases pass. The native
+Spec Kit checkpoint replacement failure remains observed; installed core source
+was not changed. A fresh bounded suite is still required.
+
+Foundation draft PR14 remains open. CI `38977973561` failed on an obsolete JSON
+bootstrap redirect assertion; the corrected native HTTP and Chromium/WebKit probes
+pass. CI `38979465042` passed the full three-browser matrix and native packaged
+Host/PostgreSQL qualification; later source still needs its own complete run. The
+publication guard now admits the same complete 31-package set as metadata validation:
+30 runtime packages and the analyzer. No stable tag/publication occurred.

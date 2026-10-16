@@ -1,0 +1,3119 @@
+{
+  "schemaVersion": 1,
+  "modules": [
+    {
+      "module": "validate_public_core_compatibility",
+      "path": "tests/validate_public_core_compatibility.py",
+      "sha256": "8c11ef041fc79f4edb87a9b517d4951acf289a48117fa47da0762da0f7f8b241",
+      "cases": {
+        "validate_public_core_compatibility.PublicCoreTests.test_native_runtime_uses_selected_python_with_different_or_absent_python3": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_active_manifests_and_ci_share_the_public_cli_baseline": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_disagreeing_ci_pins_are_rejected": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_missing_native_dependency_and_unsupported_version_preserve_diagnostic": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_real_native_environment_without_yaml_is_rejected": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_upstream_python3_skill_is_not_rejected_for_missing_private_core_contract": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_actual_public_package_generates_an_accepted_unmodified_consumer": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_resolver_probe_failure_preserves_root_cause": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_native_environment_restores_caller_after_failure": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_public_core_compatibility.PublicCoreTests.test_zero_exit_worker_without_output_fails_the_native_artifact_gate": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_repository_toolchain",
+      "path": "tests/validate_repository_toolchain.py",
+      "sha256": "0f484524ef678f573e659fde817428a59f8bac92f8e278b544578e3d20919f73",
+      "cases": {
+        "validate_repository_toolchain.RepositoryToolchainTests.test_missing_recorded_command_reports_the_authoritative_pair_without_rewriting_evidence": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_explicit_device_python_is_validated_without_path_masking": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_shared_installation_reused_across_repositories_and_fresh_processes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_outdated_selection_ignores_fallbacks_and_preserves_pins": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_local_npm_and_sdk_caches_cannot_mask_outdated_shared_installations": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_local_explicit_and_path_tools_rejected_including_other_checkout": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_legacy_approval_never_runs_installer_or_manager": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_missing_tools_and_persistent_remediation_contract": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_stale_path_preserves_evidence_and_refresh_recovers": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_side_by_side_sdk_remediation_preserves_other_versions": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_python_venv_and_repository_copy_do_not_establish_device_readiness": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_shared_specify_shim_cannot_hide_a_repository_local_uv_environment": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_project_dependency_restoration_preserves_parent_and_selected_child_tools": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_initializer_checks_before_repository_mutation_and_resumes_after_user_completion": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.RepositoryToolchainTests.test_initializer_lookup_failure_blocks_without_mutation_or_installer": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_toolchain.NativeNpmChildTests.test_long_parent_path_executes_exact_recorded_node_in_npm_lifecycle_child": [
+          "Windows"
+        ]
+      }
+    },
+    {
+      "module": "validate_task_generation",
+      "path": "tests/validate_task_generation.py",
+      "sha256": "850fece7cd7a7c9c94c9410a028c9850c5453b88ccc0bcdc8b96329bf1d364af",
+      "cases": {
+        "validate_task_generation.TaskTests.test_selected_build_edges_project_the_supported_recipe_before_task_authoring": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_installed_cli_finalizes_future_graph_in_a_fresh_unrelated_process": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_broad_gate_waits_for_selected_test_materialization_preserving_task_graph": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_migrated_prerequisite_guidance_preserves_eventual_coverage_and_contract_review": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_native_analyzer_append_preserves_core_and_rejects_missing_alignment_or_gates": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_draft_inputs_track_latest_actual_foundation_outcome_without_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_every_context_source_has_valid_focused_sections": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_scoped_graph_preserves_gates_and_rejects_unrelated_future_prerequisites": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_operation_graph_rejects_cycles_unknown_rows_and_missing_tasks": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_new_operation_draft_finalization_checks_graph_without_claiming_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_new_draft_requires_maps_while_legacy_drafts_remain_read_only_compatible": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_checkpoint_many_resumes_replace_current_state_preserve_failures_and_task_plan": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_current_projection_stays_bounded_while_complete_decision_failure_history_is_retained": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_history_tampering_and_retained_overflow_preserve_atomic_prior_state": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_checkpoint_rejects_lossy_invalid_or_failed_updates_atomically": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_duplicate_or_malformed_checkpoint_preserves_retained_state": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_context_is_bounded_phase_scoped_and_keeps_required_checks": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_generated_draft_and_unrelated_source_cannot_expand_context": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_project_delivery_is_read_only_and_only_is_focused": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_interrupted_draft_resumes_without_rewriting_or_duplicate_tasks": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_changed_inputs_require_scoped_review_and_preserve_completed_work": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_failed_checkpoint_preserves_last_saved_phase": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_unmarked_consumer_tasks_are_preserved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_final_review_rejects_invalid_or_duplicate_saved_tasks": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_reference_instructions_use_ordinary_artifacts_and_preserve_gates": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_normal_development",
+      "path": "tests/validate_normal_development.py",
+      "sha256": "5dda9880bf5e021c336b0e47c44b3998d9c99b48e78a2fddb2c7cbab2b7be47b",
+      "cases": {
+        "validate_normal_development.DevelopmentTests.test_source_rule_context_uses_consumer_pin_and_declared_severity_without_native_claim": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_selected_runtime_cannot_enter_implementation_without_its_model": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_mixed_scalar_list_bindings_preserve_scoped_adoption": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_neighbor_and_empty_bindings_do_not_inherit_capabilities": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_negated_frontend_scope_retains_actual_backend_obligations": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_genuine_frontend_only_scope_remains_supported": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_normal_flow_creates_no_dossiers_or_approvals": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_failed_entry_requires_a_fresh_successful_invocation_after_repair": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_planned_roles_gate_after_plan_tasks_and_source_without_builds": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_planned_source_requires_manifest_but_empty_repository_is_valid": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_constitution_amendment_is_independent_and_preserves_previous_approval": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_changed_tooling_and_stale_receipts_do_not_block_drafting": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_unrelated_project_does_not_activate_feature_guidance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_guidance_arrives_before_source_and_has_real_enforcement_routes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_conditional_guidance_and_csharp_intent_are_scoped_before_source": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_excluded_capabilities_do_not_activate_guidance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_identity_styling_intent_routes_provider_theme_guidance_before_frontend_source": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_identity_backend_and_explicitly_excluded_screens_do_not_invent_ui_scope": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_selected_ef_package_supplies_planning_knowledge_even_without_keywords": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_positive_api_prefix_and_nested_non_goals_are_scoped_separately": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_phase_projection_is_concise_and_changes_the_immediate_action": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_historical_cli_is_read_only_and_keeps_original_results": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_completion_cannot_claim_success_without_an_engineering_command": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_successful_engineering_command_does_not_certify_semantic_or_human_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_partial_checkpoint_never_runs_full_acceptance_and_unreviewed_handoff_is_rejected": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_feature_closure_runs_acceptance_once_and_forwards_affected_scope": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_coarse_parent_with_delivered_operation_substep_is_still_progress": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_operation_graph_never_defers_retained_feature_authority_gate": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_closure_does_not_reuse_prior_scoped_pass_as_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_failed_engineering_remains_failed_and_preserves_diagnostics": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_normal_development.DevelopmentTests.test_history_preview_is_bounded_and_protects_failed_interrupted_and_unowned": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_scoped_verification",
+      "path": "tests/validate_scoped_verification.py",
+      "sha256": "c4bc6c123d5b0754e1dc3835545af0fef90e76cde869f63ceedb0c02bdb7ed8e",
+      "cases": {
+        "validate_scoped_verification.SelectionTests.test_named_toolkit_executes_real_python_without_native_sdk_or_native_test_count": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_original_git_baseline_selects_mixed_toolkit_and_domain_without_future_catchall": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_failed_toolkit_obligation_survives_removed_mapping_and_unrelated_success": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_toolkit_arguments_cannot_weaken_acceptance_or_native_argument_admission": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_shipped_powershell_toolkit_entrypoint_does_not_prepare_native_sdk": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_setup_maps_owned_guides_fixtures_and_shared_engineering_explicitly": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_build_only_sources_select_dependent_tests_and_invalidate_their_fingerprints": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_declared_output_copy_uses_one_closed_recipe_for_items_and_input_ownership": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_semicolon_file_items_and_split_items_select_identical_tests": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_private_implementation_selects_its_tests_not_other_domains": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_future_reference_intent_plans_but_cannot_mint_execution_evidence": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_task_progress_does_not_expand_native_selection_or_claim_empty_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_public_core_change_includes_reverse_dependencies_and_shared_tests": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_shared_build_configuration_selects_all_dependent_native_tests": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_non_source_inputs_need_explicit_ownership_not_silent_full_fallback": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_undeclared_project_and_missing_edges_cannot_narrow_silently": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_focused_scope_requires_named_test_projects_and_no_acceptance_claim": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_git_delta_includes_committed_staged_untracked_deleted_and_renamed_inputs": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_no_implicit_head_baseline_and_zero_test_bypasses_are_rejected": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_native_execution_builds_only_selected_targets_and_rejects_zero_tests": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_affected_keeps_previous_failures_and_filtered_pass_cannot_clear_them": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_hidden_imported_edge_cannot_be_ignored_when_narrowing": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_replaced_failure_forces_successor_full_run_preserving_history": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_stale_setup_and_authored_rules_reconcile_through_reviewed_successors": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_successor_mapping_reconciliation_rolls_back_interruption_without_losing_failure": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_unknown_authored_owner_cannot_be_ignored_during_reconciliation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_after_tasks_compares_broad_obligations_to_actual_shared_input_selection": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_replaced_failure_cannot_be_repaid_by_cached_or_filtered_success": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_replacement_without_old_failure_still_forces_full_successor_regression": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_split_replacement_requires_all_successors_with_valid_execution_evidence": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_failed_successor_and_changed_replacement_mapping_retain_obligation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_replacement_chain_requires_terminal_current_test_owner": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_test_ownership_replacements_reject_ambiguous_cycles_and_non_test_successors": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_nested_inherited_edges_and_new_projects_cannot_narrow_silently": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_generated_policy_imports_work_without_ignoring_nested_project_edges": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_current_success_is_reused_without_build_or_fabricated_receipt": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_retained_baseline_projects_remain_selected_but_only_stale_project_runs": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_transitive_source_shared_build_environment_toolchain_and_logs_invalidate": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_declared_non_source_environment_and_generated_inputs_invalidate": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_deleted_renamed_untracked_inputs_and_coverage_configuration_invalidate": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_partial_success_survives_later_project_failure_and_traversal_builds_once": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_filtered_success_does_not_clear_full_or_other_filtered_failure": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_literal_import_item_inputs_tracked_and_dynamic_build_inputs_fail_closed": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_actual_restored_package_bytes_are_part_of_freshness": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_shared_package_digests_are_read_once_per_observation_and_refresh_next_time": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_optional_literal_missing_import_materialization_invalidates_and_real_template_plans": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_secret_environment_declarations_are_rejected_without_snapshotting_values": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_runsettings_file_contents_and_unknown_file_arguments_cannot_reuse_stale_passes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_provider_checks_default_to_no_reuse_when_external_state_declared": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_shared_dotnet_tool_manifest_invalidates_and_unsafe_boolean_types_fail_closed": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_nested_inherited_build_and_imported_item_select_their_actual_callers": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_mutating_source_during_build_cannot_bind_stale_binaries_to_new_fingerprint": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_compiler_generated_outputs_are_observed_after_build_and_ci_properties_invalidate": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_vstest_native_trx_nonzero_execution_and_failure_preserved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_runner_adapter_reports_real_count_evidence_and_core_keeps_orchestration": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_xunit_native_report_requires_named_passing_cases_and_cannot_reuse_minimum_only_proof": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_document_ownership",
+      "path": "tests/validate_document_ownership.py",
+      "sha256": "cb033c3cc20c31a4aeb5e123cecab97f93253c398e4525e773aa2d19f365f5df",
+      "cases": {
+        "validate_document_ownership.DocumentOwnershipTests.test_snapshot_binds_original_reset_and_proposal_without_modifying_either": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_archive_original_inventory_and_payload_are_bound_without_old_code_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_archive_missing_extra_and_case_aliases_fail": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_archive_reactivation_via_props_targets_imports_and_broad_include_fails": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_dynamic_inactivity_gap_and_changed_archive_anchor_cannot_be_acknowledged": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_retired_locks_bind_csharp_fsharp_vb_original_owners_and_custom_paths": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_multiowner_retirement_unknown_owner_and_reactivation_fail_closed": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_upgrade_uses_actual_shipped_reader_and_never_treats_unknown_orphan_as_retired": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_actual_drafting_rejects_frozen_output_before_saving_phase": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_reference_requires_explicit_read_intent_and_new_active_target_is_allowed": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_prior_completed_tasks_are_historical_not_new_mutation_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_plain_text_and_case_alias_cannot_hide_a_frozen_output": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_changed_frozen_bytes_and_changed_original_record_fail": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_rehashed_anchor_and_payload_cannot_change_a_retained_drafting_basis": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_removing_index_or_frozen_entry_does_not_unfreeze_the_prior_basis": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_standalone_preflight_reads_the_bound_draft_even_after_index_removal": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_ownership_transition_uses_distinct_current_path_and_preserves_original": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_preview_and_missing_original_provenance_do_not_claim_frozen_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_portable_aliases_traversal_duplicates_and_unknown_proposals_fail": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_document_ownership.DocumentOwnershipTests.test_installed_isolated_cli_inspects_and_rejects_before_phase_mutation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_owned_scratch",
+      "path": "tests/validate_owned_scratch.py",
+      "sha256": "21459b721ffdbb29dbb66cb2451eee1696b5f79feccbab5e30328bee1e59669f",
+      "cases": {
+        "validate_owned_scratch.OwnedScratchTests.test_building_block_writer_recovers_short_block_and_preserves_persistent_failure": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_governance_replacement_recovers_short_block_and_preserves_persistent_failure": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_governance_replacement_refuses_concurrent_edit_and_unreadable_snapshot": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_transaction_replacement_recovers_short_block_and_refuses_persistent_block": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_transaction_retry_refuses_changed_destination": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_real_disposable_git_objects_are_removed_without_touching_sibling_data": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_readonly_recovery_refuses_outside_paths_and_plain_access_denial": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_readonly_recovery_cannot_follow_a_nested_junction": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_failed_entry_preserves_integrity_error_and_residual_cleanup_observation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_deep_reconciliation_commits_and_rolls_back_without_shortening_ownership": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_deep_tree_is_removed_after_success_and_original_body_error": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_dual_failure_preserves_original_and_records_cleanup_and_residual": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_cleanup_failure_after_success_is_failure": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_parent_sibling_and_outside_targets_never_get_deleted": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_replaced_root_is_not_the_owned_directory": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_replaced_parent_and_artifacts_links_are_refused": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_reparse_root_is_refused_without_following_its_target": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_platform_conversion_is_exact_and_device_or_relative_paths_fail": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_relative_root_unknown_purpose_and_network_root_are_not_supported": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_already_extended_local_drive_root_keeps_the_same_owned_lifecycle": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_dependency_profiles",
+      "path": "tests/validate_dependency_profiles.py",
+      "sha256": "83d93a99d375ac670d6046a9c107904d659e38e628ce0ecbb0dd338919482e6b",
+      "cases": {
+        "validate_dependency_profiles.ProfileTests.test_bundle_compaction_preserves_all_historical_authorities_and_fact_bytes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_portable_receipt_builder_rejects_changed_or_failed_evidence": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_generic_default_receipt_rejects_incomplete_or_changed_qualification": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_six_scaffold_choices_use_new_default_and_retain_historical_profile": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_public_native_profile_preserves_runtime_and_restricts_scope": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_native_qualification_binds_complete_stages_and_exact_activation_scope": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_installed_qualified_profile_binds_portable_checkout_bytes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_scaffold_default_survives_check_and_later_registry_default_change": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_profile_review_reconciles_producers_with_recoverable_sealed_files": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_profile_review_rejects_changed_producer_proposals_and_originals": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_new_project_scaffolding_and_draft_share_qualified_default": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_new_default_requires_qualification_and_rejects_excluded_activations": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_transition_registers_review_and_preserves_unaffected_scoped_proof": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_publisher_qualification_scope_cannot_be_bypassed": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_exact_profiles_are_separate_from_composition": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_draft_review_recovery_and_unqualified_rejection": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_dependency_profiles.ProfileTests.test_interrupted_promotion_resumes_sealed_review_and_invalidates_only_affected_readiness": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_story_delivery",
+      "path": "tests/validate_story_delivery.py",
+      "sha256": "bf026493bf9199b9040b9270c40bc806466e29f194265708007c1a3702b2d445",
+      "cases": {
+        "validate_story_delivery.DeliveryTests.test_native_unrelated_solution_member_and_shared_runtime_change_have_distinct_evidence": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_exact_separate_material_assessment_preserves_original_review_and_effort": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_material_assessment_rejects_missing_authority_inputs_effects_and_failed_checks": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_material_assessment_cannot_redefine_scope_or_survive_changed_evidence_or_rules": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_new_member_inputs_and_context_diagnostics_cannot_borrow_prior_assessment": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_whole_file_diagnostics_do_not_ignore_solution_additions": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_fresh_human_review_retains_prior_material_assessment_without_reusing_its_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_checkpoint_recovers_a_short_native_sharing_block_without_rewriting_history": [
+          "Windows"
+        ],
+        "validate_story_delivery.DeliveryTests.test_checkpoint_persistent_native_block_preserves_original_and_reports_failure": [
+          "Windows"
+        ],
+        "validate_story_delivery.DeliveryTests.test_checkpoint_retry_cannot_overwrite_a_concurrent_edit": [
+          "Windows"
+        ],
+        "validate_story_delivery.DeliveryTests.test_known_sibling_plan_addition_retains_original_review_and_requires_current_engineering": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_shared_plan_policy_and_selected_story_changes_reopen_without_rewriting_approval": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_unknown_nested_duplicate_or_unclosed_story_regions_cannot_preserve_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_native_review_material_diagnostics_are_read_only_and_do_not_grant_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_expanding_known_story_rules_cannot_manufacture_an_approval": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_repeated_large_bases_are_interned_without_losing_human_provenance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_expanded_bases_are_independent_and_legacy_state_migrates_atomically": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_missing_tampered_or_mixed_stored_bases_are_refused_without_writes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_summary_and_retained_history_limits_refuse_without_discarding_state": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_basis_expansion_is_bounded_even_when_stored_state_is_small": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_owner_named_continuation_survives_material_changes_but_not_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_owner_can_defer_an_existing_stale_review_but_requester_cannot": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_requester_deferral_loses_fresh_authority_after_source_changes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_owner_continuation_preserves_scoped_raw_freshness_and_rejects_failed_checks": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_changed_operation_meaning_revokes_only_relevant_active_permits": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_permitted_active_work_counts_once_and_explicit_wait_and_suspend_do_not": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_other_due_checkpoint_still_blocks_active_work_and_clock": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_scoped_sibling_host_change_retains_human_decision_but_blocks_stale_engineering": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_canonical_formatting_change_retains_acceptance_without_rewriting_approval": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_material_shared_host_authentication_change_reopens_only_affected_review": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_unknown_duplicate_or_deleted_shared_input_cannot_claim_unchanged": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_changed_scope_does_not_promote_historical_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_shared_private_mount_is_material_even_without_business_source_change": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_verification_sibling_group_requires_current_checks_without_new_human_decision": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_failed_checks_cannot_renew_scoped_engineering": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_projection_implementation_change_reopens_review": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_active_environment_switch_cannot_hide_behind_old_environment_projection": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_operations_progress_without_review_and_actual_dependencies_remain": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_completed_boxes_and_engineering_do_not_manufacture_human_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_pause_acceptance_and_repair_scope": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_bounded_deferral_permits_only_named_work_and_remains_due_at_handoff": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_early_checkpoint_requires_agreement_and_stops_next_operation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_progress_replacement_retains_all_reviews_roles_baseline_and_failures": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_material_changes_reopen_only_affected_story_unrelated_tests_preserve_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_unchanged_represented_story_preserves_original_human_source": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_early_review_reuse_requires_complete_unchanged_story_coverage": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_failed_or_changed_check_artifacts_cannot_be_waived": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_suspension_retains_active_effort_without_charging_stopped_session": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_malformed_state_and_clock_are_rejected_without_loss": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_explicit_owner_scope_update_reopens_only_affected_meaning_preserves_effort": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_clock_survives_resume_wait_and_repairs_warns_once_never_blocks_due_to_time": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_no_hook_preflight_finish_and_formal_handoff_consume_same_state": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_old_partial_feature_cannot_initialize_and_scaffold_first_graph_is_valid": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_authenticated_exact_github_author_scope_and_outage": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_github_outage_wrong_reviewer_and_explicit_owner_reassignment": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_github_stable_account_confirmation_and_deferral_scope_cannot_be_impersonated": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_same_code_new_user_meaning_cannot_replay_old_authenticated_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_github_reference_reader_is_read_only_and_exact_url": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_reset_preview_rejects_changed_ownership_shared_data_and_unselected_apply": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_delete_only_restart_removes_entire_spec_and_owned_code_without_content_archive": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_delete_only_restart_requires_complete_spec_inventory_and_unchanged_inputs": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_delete_only_cli_removes_attempt_without_an_archive": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_historical_archive_recipe_retains_its_original_behavior": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_tooling_witness",
+      "path": "tests/validate_tooling_witness.py",
+      "sha256": "e46f939eadffcb3e5d891cd90cd6ec812b431113c79980640a34df67bb333f05",
+      "cases": {
+        "validate_tooling_witness.WitnessTests.test_removed_staging_exact_recovery_later_process_and_moved_consumer_keep_original_receipt": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_tooling_witness.WitnessTests.test_existing_partial_modified_or_rehashed_original_cannot_fall_back": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_tooling_witness.WitnessTests.test_wrong_rehashed_candidate_partial_retained_and_record_tampering_fail_without_repair": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_tooling_witness.WitnessTests.test_complete_packaged_components_and_exact_updater_fingerprint_no_public_self_attestation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_repository_sync",
+      "path": "tests/validate_repository_sync.py",
+      "sha256": "6093abbc22a215f720655afdd47a7b9975ab6d2ac4d59193f23c8c502ac941d3",
+      "cases": {
+        "validate_repository_sync.CoordinatorTests.test_installed_sync_reads_declared_parent_source_roots_with_extended_paths": [
+          "Windows"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_javascript_planning_does_not_invoke_dotnet_or_materialize_files": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_bootstrap_records_requirements_without_applying_them": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_upgrade_does_not_create_previously_unmaterialized_baseline": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_authority_and_pin_changes_invalidate_reviewed_plan": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_wrong_toolchain_evidence_is_scheduled_for_audit": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_failed_operation_preserves_an_incomplete_receipt": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_feature_path_must_stay_inside_repository": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_task_completion_does_not_change_setup_authority_but_design_does": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_configured_ratification_and_baseline_are_bound_to_plan": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_repository_sync.CoordinatorTests.test_live_seed_is_compatible_and_original_consumer_conflict_is_preserved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_case_inventory",
+      "path": "tests/validate_case_inventory.py",
+      "sha256": "52a99a08ca65aebe8c17427fd96f4f0c08ffc9c46b581f9fc840193cd2f5c311",
+      "cases": {
+        "validate_case_inventory.CaseInventoryTests.test_actual_case_and_fresh_process_bind_original_sources_and_leave_contract_unchanged": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_126_unrelated_passes_cannot_replace_one_required_identity": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_skipped_failed_error_expected_failure_and_empty_cases_cannot_pass": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_same_case_name_wrong_body_or_rehashed_contract_cannot_borrow_original_review": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_duplicate_leaf_and_load_tests_removal_are_rejected_before_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_explicit_other_platform_is_not_executed_and_no_required_case_means_no_success": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_unknown_module_missing_source_and_unreadable_inventory_fail_without_fallback": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_source_changed_during_case_is_retained_as_failed_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_declared_mechanism_inputs_are_required_and_cannot_change_during_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "test_hosted_bundle_content",
+      "path": "tests/native_start/test_hosted_bundle_content.py",
+      "sha256": "3a9739800058056c8cbe5face9af84164c9c6330cb28885904c30990c792353d",
+      "cases": {
+        "test_hosted_bundle_content.HostedBundleContentTests.test_native_closure_includes_manifest_and_admitted_assets_only": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_changed_asset_cannot_seal_current_manifest": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_native_mount_keeps_admitted_content_beneath_its_frontend_directory": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_native_mount_rejects_unlisted_sibling_bytes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_manifest_hash_mismatch_rejects": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_private_asset_never_enters_public_bundle_inventory": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_source_freshness_contains_compiled_snapshot": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_archive_contains_admitted_bytes_and_excludes_unlisted_content": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_asset_traversal_rejects_before_copy": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_bundle_content.HostedBundleContentTests.test_source_change_during_stage_cannot_be_sealed_as_current": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "test_selected_shell_composition",
+      "path": "tests/native_start/test_selected_shell_composition.py",
+      "sha256": "f9ebeb36e57b8b51139fdcf4f138b3dd6928976f1e0dc500e034599efe6cee2b",
+      "cases": {
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_packaging_uses_selected_shell_profile_and_managed_features": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_managed_feature_cannot_be_disabled_by_consumer": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_missing_selected_source_does_not_use_empty_root": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_foreign_shell_in_selected_source_rejects": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_selection_path_cannot_escape_repository": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_unaccepted_selection_does_not_override_supported_root": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_multiple_selected_sources_merge_without_implicit_profile_duplication": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_native_freshness_tracks_nested_consumer_and_generated_source": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_composed_stage_is_not_recomposed_with_raw_default_profile": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_selected_shell_composition.SelectedShellCompositionTests.test_composed_stage_still_rejects_missing_actual_feature": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "test_central_exact_versions",
+      "path": "tests/native_start/test_central_exact_versions.py",
+      "sha256": "91bce335954e16b4322fc828617bea35de1d0e97ea15576c3abcec4a41d356fd",
+      "cases": {
+        "test_central_exact_versions.CentralExactVersionTests.test_plain_literal_preserved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_central_exact_versions.CentralExactVersionTests.test_singleton_exact_version_preserved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_central_exact_versions.CentralExactVersionTests.test_singleton_prerelease_preserved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_central_exact_versions.CentralExactVersionTests.test_flexible_or_evaluated_versions_remain_rejected": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "test_hosted_frontend_update",
+      "path": "tests/native_start/test_hosted_frontend_update.py",
+      "sha256": "c2b33f3a6e994c11518bca424eede9a57bb8b2550378b7658408c5c400069c41",
+      "cases": {
+        "test_hosted_frontend_update.HostedFrontendUpdateTests.test_retained_mutable_vite_recipe_reproduces_pkc110_without_waiving_immutability": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_hosted_frontend_update.HostedFrontendUpdateTests.test_prepare_source_edit_update_retains_previous_assets_and_mount": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "test_pending_activation",
+      "path": "tests/native_start/test_pending_activation.py",
+      "sha256": "44021e69bd062bac9e9770f8e8b080d8119593d56c0036c72cac6e5935476e8d",
+      "cases": {
+        "test_pending_activation.PendingActivationTests.test_plain_update_activates_fresh_prepared_bundle_without_rebuilding_it": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_pending_activation.PendingActivationTests.test_requested_host_preserves_unrelated_pending_activation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_pending_activation.PendingActivationTests.test_changed_and_pending_hosts_are_unioned_without_duplicate_activation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_pending_activation.PendingActivationTests.test_fresh_active_bundle_reports_unchanged_without_claiming_new_readiness": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_pending_activation.PendingActivationTests.test_newly_rebuilt_bundle_remains_pending_after_failed_readiness_then_plain_retry": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_pending_activation.PendingActivationTests.test_failed_dependency_activation_http_or_browser_keeps_pending_until_retry": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_pending_activation.PendingActivationTests.test_stale_prepared_closure_fails_before_activation_and_retains_pending": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_pending_activation.PendingActivationTests.test_foreign_pending_host_is_not_silently_discarded": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "test_private_files",
+      "path": "tests/native_start/test_private_files.py",
+      "sha256": "fe1c434a1fdc28596a9f76486d2d495459731c1a57f731569556e6d7286ae6f8",
+      "cases": {
+        "test_private_files.PrivateFilesTests.test_first_provision_retains_bytes_and_removed_resource_history": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_ordinary_run_cannot_provision_or_relocate_storage": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_prior_verified_mount_is_retained_even_without_new_lifecycle_fields": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_private_binding_cannot_use_foreign_host_or_duplicate_target": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_configuration_target_cannot_inject_framework_or_nested_keys": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_private_roots_reject_public_stage_source_nested_and_alias": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_production_environment_cannot_select_development_private_adapter": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_retained_root_cannot_be_retargeted_through_symlink": [
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_new_posix_permissions_are_nonrecursive_and_preserve_operator_roots": [
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_compose_mount_is_private_writable_and_does_not_create_missing_root": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_dependencies_wait_only_selected_closure_preserving_existing_containers": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "test_private_files.PrivateFilesTests.test_unhealthy_prerequisite_failure_propagates_before_host_activation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_shared_obligations",
+      "path": "tests/validate_shared_obligations.py",
+      "sha256": "185f105d287e30fdd18c19eb20ffc0d9553a6975a1167b5308e50642fb234840",
+      "cases": {
+        "validate_shared_obligations.TaskScopedFailures.test_later_task_hint_cannot_waive_a_retained_required_failure": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TaskScopedFailures.test_unscoped_failure_still_blocks_current_story": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TaskScopedFailures.test_current_task_failure_still_blocks_current_story": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TaskScopedFailures.test_unknown_task_scope_cannot_suppress_retained_failure": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TaskScopedFailures.test_mixed_current_and_later_failure_scope_still_blocks_current_story": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TaskScopedFailures.test_unsupported_failure_scope_is_rejected_and_failure_is_preserved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TaskScopedFailures.test_resolved_failure_removes_only_its_obsolete_scope": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TestProjectAliasTests.test_selected_alias_preserves_direct_identity_and_mtp": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TestProjectAliasTests.test_explicit_mtp_package_still_supported": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TestProjectAliasTests.test_unqualified_alias_versions_rejected": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.TestProjectAliasTests.test_missing_pin_and_other_framework_remain_rejected": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    }
+  ],
+  "inputs": [
+    ".gitattributes",
+    ".github/dependabot.yml",
+    ".github/scripts/update_published_readme.py",
+    ".github/workflows/ci.yml",
+    ".github/workflows/legacy-maintenance.yml",
+    ".github/workflows/published-readme.yml",
+    ".github/workflows/qualify-candidate.yml",
+    ".github/workflows/record-release-assessment.yml",
+    ".github/workflows/refresh-candidate-security.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/update-dependencies.yml",
+    "VERSION",
+    "bundle.yml",
+    "extensions/program-kit-building-blocks/commands/speckit.program-kit-building-blocks.sync.md",
+    "extensions/program-kit-building-blocks/extension.yml",
+    "extensions/program-kit-building-blocks/references/building-block-restore-request.schema.json",
+    "extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
+    "extensions/program-kit-building-blocks/references/building-blocks-lock.schema.json",
+    "extensions/program-kit-building-blocks/references/dependency-profile-index.schema.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/availability.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/catalog.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Analyzers.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.Assurance.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.BffCookie.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.ClientCredentials.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.Core.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.DPoP.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.DownstreamApi.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.SpaPkce.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.TokenExchange.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Build.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Collections.Core.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.DomainEvents.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.DomainEvents.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Execution.Core.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Execution.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Identity.Admin.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Identity.Keycloak.Admin.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Json.AspNetCore.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Json.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Mcp.AspNetCore.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.OpenApi.Exporter.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.PostgreSql.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Tasks.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Tasks.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.Discovery.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.Discovery.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.HostedPages.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.OpenApi.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.ProblemDetails.Core.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.ProblemDetails.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.WebDefaults.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/packages.lock.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/profile.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/qualification.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/recipe-b26ccd24.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/recipe.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.0-build-0.3.0-exporter-0.2.4-forms-0.2.1-localization-0.1.2/state.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/availability.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/catalog.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/package.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/packages.lock.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/profile.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/qualification.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-384b7de5.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-5f401003.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.1-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/state.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/availability.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/catalog.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/package.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/packages.lock.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/profile.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/qualification.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-b2067069.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-f0612131.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.2-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/state.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/availability.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/catalog.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/package.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/packages.lock.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/profile.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/qualification.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-6e736f9b.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/recipe-8483e85c.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2/state.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/availability.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/catalog.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/knowledge/package.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/packages.lock.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/profile.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/qualification.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/recipe-6e9280eb.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/state.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-26e0c720/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-26e0c720/target-b600cea777b5e355ac1f751b074845e8c46bb9abfd020915b5b9510a24862f99.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-50568b04/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-50568b04/target-7a950b88e955eb997ad7f1f1a5abca88c380bb2d28c7168946f4df458e8804d7.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-600fc430/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-600fc430/target-b6b1fab9a1f524ce97227ed0b36a70e2149793c2f53995bf4165698f538c3eac.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-6240b10b/base-8cdfd9d0527b500ea9be52a07a3bb6e2cb755c698452bc504e989333ed8186ae.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-6240b10b/target-fbf38288081e9b02d750cc11a1ee18dbf1cdb4b1c6295916f4e59c0f27b428a1.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-e0a00bf1/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/candidate-e0a00bf1/target-711688199ac1f5a97b968a15c592b02ae7824c544c4dac62c54d23ee758440d1.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/foundation-0-3-0-contracts/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/foundation-0-3-0-contracts/target-2096c95e15d554778b40543a494b2299586f557e8b2080cfb6f0e38635770d92.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/foundation-0-3-0-settings-v2/base-105768edf0505f039f0ed641cf5c5e2ec28d305dd3577c1f1beb287d3c73edf8.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/catalogs/foundation-0-3-0-settings-v2/target-da6726d988f1dfdd912d2c0e28c56d4bf0498ae188dc45dda17c0f69b8893732.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/dependency-profile-default-0.12.7.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/dependency-profile-foundation-0.3.0-build-0.3.0.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/dependency-profile-foundation-0.3.0.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/dependency-profile-public-tools-0.12.6.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/engineering-contracts.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/evidence/dependency-qualification-default-0.12.7.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/evidence/dependency-qualification-public-tools-0.12.6.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/evidence/release-receipt-0.12.5.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Analyzers.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.Assurance.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.BffCookie.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.ClientCredentials.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.DPoP.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.DownstreamApi.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.SpaPkce.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.TokenExchange.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Authentication.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.DomainEvents.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.DomainEvents.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Identity.Admin.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Identity.Keycloak.Admin.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Json.AspNetCore.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Json.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Mcp.AspNetCore.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.OpenApi.Exporter.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Tasks.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Tasks.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.Discovery.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.Discovery.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.HostedPages.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.OpenApi.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.Web.ProblemDetails.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/Orbyss.Foundation.WebDefaults.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/knowledge/foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2/knowledge/source.pack",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/lifecycle-knowledge/0.0.30-preview.159/CShells.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/lifecycle-knowledge/0.0.30-preview.159/CShells.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/lifecycle-knowledge/0.0.30-preview.159/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/lifecycle-knowledge/0.0.30-preview.174/CShells.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/lifecycle-knowledge/0.0.30-preview.174/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/lifecycle-knowledge/0.0.30/CShells.Abstractions.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/lifecycle-knowledge/0.0.30/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/lifecycle-knowledge/index.json",
+    "extensions/program-kit-building-blocks/references/dependency-profiles/public-v0.12.5.json",
+    "extensions/program-kit-building-blocks/references/dependency-qualification-recipe.schema.json",
+    "extensions/program-kit-building-blocks/references/foundation-baseline-evidence.json",
+    "extensions/program-kit-building-blocks/references/foundation-contracts-development-v1.json",
+    "extensions/program-kit-building-blocks/references/foundation-contracts-development-v2.json",
+    "extensions/program-kit-building-blocks/references/foundation-contracts-development-v3.json",
+    "extensions/program-kit-building-blocks/references/foundation-contracts-development-v4.json",
+    "extensions/program-kit-building-blocks/references/foundation-contracts-development.md",
+    "extensions/program-kit-building-blocks/references/native-restore-graph.md",
+    "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+    "extensions/program-kit-building-blocks/references/orbyss-building-blocks.md",
+    "extensions/program-kit-building-blocks/references/orbyss-building-blocks.schema.json",
+    "extensions/program-kit-building-blocks/scripts/building_blocks.py",
+    "extensions/program-kit-building-blocks/scripts/dependency_context.py",
+    "extensions/program-kit-building-blocks/scripts/dependency_profiles.py",
+    "extensions/program-kit-building-blocks/scripts/lifecycle_knowledge.py",
+    "extensions/program-kit-building-blocks/scripts/native_restore_graph.py",
+    "extensions/program-kit-building-blocks/scripts/producer_reconciliation.py",
+    "extensions/program-kit-building-blocks/scripts/profile_catalogs.py",
+    "extensions/program-kit-building-blocks/scripts/public_availability.py",
+    "extensions/program-kit-building-blocks/scripts/publisher_knowledge.py",
+    "extensions/program-kit-building-blocks/scripts/restore_dependencies.py",
+    "extensions/program-kit-building-blocks/scripts/wire_capabilities.py",
+    "extensions/program-kit-dotnet/extension.yml",
+    "extensions/program-kit-dotnet/references/cross-resource-fencing.md",
+    "extensions/program-kit-dotnet/references/dotnet-engineering.md",
+    "extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+    "extensions/program-kit-dotnet/references/engineering-adapter.md",
+    "extensions/program-kit-dotnet/references/examples/ApplicationAuthenticationPresentation.cs",
+    "extensions/program-kit-dotnet/references/examples/contract-layout/ContractLayout.csproj",
+    "extensions/program-kit-dotnet/references/examples/contract-layout/ILabelRule.cs",
+    "extensions/program-kit-dotnet/references/examples/contract-layout/LabelDecision.cs",
+    "extensions/program-kit-dotnet/references/examples/contract-layout/LabelFailure.cs",
+    "extensions/program-kit-dotnet/references/examples/contract-layout/LabelRequest.cs",
+    "extensions/program-kit-dotnet/references/examples/local-fencing/local_fencing.py",
+    "extensions/program-kit-dotnet/references/examples/local-fencing/required-cases.json",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/BoundedContent.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/DelayedContent.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/NativeOcrRecovery.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/NativeOcrSubmission.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/NativeWorker.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/OcrEnvelope.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/OcrOperation.csproj",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/OcrSubmissionHandler.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/Program.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/RecordingTerminal.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/WorkerTicket.cs",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/packages.lock.json",
+    "extensions/program-kit-dotnet/references/examples/ocr-operation/required-cases.json",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/BoundedFilterProvider.cs",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/BoundedFlateFilter.cs",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/DecodeBudget.cs",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/DecodeLimits.cs",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/InspectionUnavailableException.cs",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/PdfDecodingExample.csproj",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/PdfFixture.cs",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/Program.cs",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/packages.lock.json",
+    "extensions/program-kit-dotnet/references/examples/pdf-decoding/required-cases.json",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/FixtureContext.cs",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/FixtureDeployment.cs",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/FixtureFeature.cs",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/FixtureIdentity.cs",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/PostgreSqlLifecycle.csproj",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/PrivateFilesFeature.cs",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/PrivateFilesOptions.cs",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/PrivateFilesProbe.cs",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/Program.cs",
+    "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/required-cases.json",
+    "extensions/program-kit-dotnet/references/foundation-compositions.md",
+    "extensions/program-kit-dotnet/references/implementation-boundaries.md",
+    "extensions/program-kit-dotnet/references/keycloak-admin-api.md",
+    "extensions/program-kit-dotnet/references/label-validation.md",
+    "extensions/program-kit-dotnet/references/pdf-stream-decoding.md",
+    "extensions/program-kit-dotnet/references/persistence-profiles.md",
+    "extensions/program-kit-dotnet/references/persistence-runtimes.json",
+    "extensions/program-kit-dotnet/references/retained-inputs.md",
+    "extensions/program-kit-dotnet/references/secure-web-profiles.md",
+    "extensions/program-kit-dotnet/references/technology-profiles/dotnet.md",
+    "extensions/program-kit-dotnet/references/web-security-evidence.json",
+    "extensions/program-kit-dotnet/references/web-security-threat-model.md",
+    "extensions/program-kit-dotnet/scripts/composition_migrate.py",
+    "extensions/program-kit-dotnet/scripts/composition_model.py",
+    "extensions/program-kit-dotnet/scripts/composition_render.py",
+    "extensions/program-kit-dotnet/scripts/dependency_profile.py",
+    "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
+    "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+    "extensions/program-kit-dotnet/scripts/identity_fixture.py",
+    "extensions/program-kit-dotnet/scripts/persistence_selection.py",
+    "extensions/program-kit-dotnet/scripts/reconciliation.py",
+    "extensions/program-kit-dotnet/scripts/spa_profile.py",
+    "extensions/program-kit-dotnet/templates/dotnet/compositions/application-foundation-postgresql.json",
+    "extensions/program-kit-dotnet/templates/dotnet/compositions/application-foundation.json",
+    "extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak-postgresql.json",
+    "extensions/program-kit-dotnet/templates/dotnet/compositions/foundation-bff-keycloak.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.github/workflows/application-ci.yml",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.github/workflows/application-release.yml",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.npm-version",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc",
+    "extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version",
+    "extensions/program-kit-dotnet/templates/dotnet/files/Directory.Build.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/Directory.Build.targets",
+    "extensions/program-kit-dotnet/templates/dotnet/files/Directory.Packages.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/NuGet.config",
+    "extensions/program-kit-dotnet/templates/dotnet/files/VERSION",
+    "extensions/program-kit-dotnet/templates/dotnet/files/artifacts/.gitignore",
+    "extensions/program-kit-dotnet/templates/dotnet/files/artifacts/cache/.gitignore",
+    "extensions/program-kit-dotnet/templates/dotnet/files/artifacts/tools/.gitignore",
+    "extensions/program-kit-dotnet/templates/dotnet/files/docs/application/application.md",
+    "extensions/program-kit-dotnet/templates/dotnet/files/docs/application/build-and-run.md",
+    "extensions/program-kit-dotnet/templates/dotnet/files/docs/application/review-scenarios.md",
+    "extensions/program-kit-dotnet/templates/dotnet/files/docs/application/runtime-requirements.md",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.targets",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Persistence.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKitPython.psm1",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/README.md",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/application-bundle.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/application-handoff.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/application-handoff.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/application_handoff.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/assembly_graph/AssemblyGraph.csproj",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/assembly_graph/NuGet.Config",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/assembly_graph/Program.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/build_output_recipe.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/building-blocks.catalog.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/central_packages.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/feature_metadata.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-qualification-support/QualificationFeature.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-qualification-support/RuntimeOptionsObservation.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-qualification-support/product_driver.mjs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/CaseSuite.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/EffectiveSettings.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/IntegrationCase.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/SettingObservation.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/SettingSource.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation-test-support/packages.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_fixture.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_qualification.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_setup.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/handoff-index.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/handoff_contract.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/hosted_bundle.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/keycloak_composition.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/label_validation.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/legacy-feature-bridge.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/oasdiff_cli.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi-contract.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi-contracts.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi-defaults.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_capabilities.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_contracts.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_init.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/openapi_pipeline.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/package_hash/PackageHash.csproj",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/package_hash/Program.cs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/prepare_hosted_pages.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/ProgramKit.Persistence.EfPostgreSql.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/ProgramKit.Persistence.EfSqlServer.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/ProgramKit.Persistence.EfSqlite.props",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/program_kit_version.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/python_runtime_contract.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained-inputs.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_archives.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_inputs.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/retained_locks.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/runtime-closure.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/runtime_closure.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/settings-metadata.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/settings-package-reference.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/shell_composition.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/source_quality.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_project.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_results.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolchain.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolkit_verification.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/vendor/foundation-0.3.3/LICENSE",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/vendor/foundation-0.3.3/README.md",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/vendor/foundation-0.3.3/create_hosted_manifest.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/verify_handoff.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/verify_host_image.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/web-profile.shells.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/web/composition-readiness.mjs",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/web_identity.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/eng/web_readiness.py",
+    "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/hostsettings.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/nuplane.settings.json",
+    "extensions/program-kit-dotnet/templates/dotnet/files/shells.json",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/.gitignore",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/package-lock.json",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/package.json",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/src/app.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/src/styles.css",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/tsconfig.json",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/vite.config.mjs",
+    "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+    "extensions/program-kit-dotnet/templates/dotnet/migrations.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/eng/web-profile.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/eng/web-profile.shells.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/eng/web/bff-session.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/eng/web/tests/bff-session.spec.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/eng/web/web-contract.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/identity-client.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/bff-cookie/managed-files.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.application.yml",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/program-kit-realm.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/email/html/email-verification.ftl",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/email/html/executeActions.ftl",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/email/html/password-reset.ftl",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/email/messages/messages_en.properties",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/email/text/email-verification.ftl",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/email/text/executeActions.ftl",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/email/text/password-reset.ftl",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/email/theme.properties",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/login/resources/css/program-kit.css",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/login/resources/img/program-kit-mark.svg",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/login/theme.properties",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/keycloak/themes/program-kit/login/webauthn-register.ftl",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Prepare-Web.ps1",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/Test-Web.ps1",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/compose_topology.py",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/preflight.py",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/.gitignore",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/authentication-recovery-focus.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package-lock.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/persona-fixture.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/playwright.config.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication-recovery-focus.spec.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tsconfig.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/deploy/compose.application.yml",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/spa-pkce.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/spa-pkce.schema.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web-profile.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web-profile.shells.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/spa-security.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/spa-session.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/tests/authentication.spec.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/tests/spa-session.spec.ts",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/verify_spa_security.py",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/vite.security.mjs",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/web-contract.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/identity-client.json",
+    "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/managed-files.json",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.architecture-check.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.architecture.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.assessment.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap-closure.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap-recovery.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.constitution-begin.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.constitution-ratify.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.constitution-review.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.implementation-check.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.json-schema.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.phase-context.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-bootstrap.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy-intake.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.readiness.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.repair-request.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.research.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.roadmap.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.specification-intake.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.sync.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.tooling.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.ui.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.view-c4.md",
+    "extensions/program-kit-governance/config/program-kit.template.yml",
+    "extensions/program-kit-governance/examples/bootstrap-identity/Feature.cs",
+    "extensions/program-kit-governance/examples/bootstrap-identity/Probe.csproj",
+    "extensions/program-kit-governance/examples/bootstrap-identity/README.md",
+    "extensions/program-kit-governance/examples/bootstrap-identity/browser.mjs",
+    "extensions/program-kit-governance/examples/bootstrap-identity/identity_probe.py",
+    "extensions/program-kit-governance/examples/bootstrap-postgresql/Program.cs",
+    "extensions/program-kit-governance/examples/bootstrap-postgresql/README.md",
+    "extensions/program-kit-governance/examples/bootstrap-postgresql/postgresql_probe.py",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/Boundary/Boundary.csproj",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/Boundary/Program.cs",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/Core/Core.csproj",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/Core/Port.cs",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/Feature/Feature.csproj",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/Feature/Features.cs",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/README.md",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/forms_probe.py",
+    "extensions/program-kit-governance/examples/bootstrap-runtime/runtime_probe.py",
+    "extensions/program-kit-governance/extension.yml",
+    "extensions/program-kit-governance/references/api-proof.schema.json",
+    "extensions/program-kit-governance/references/architecture-map.schema.json",
+    "extensions/program-kit-governance/references/architecture-method.md",
+    "extensions/program-kit-governance/references/architecture-proof.schema.json",
+    "extensions/program-kit-governance/references/artifact-ownership.schema.json",
+    "extensions/program-kit-governance/references/bootstrap-context.schema.json",
+    "extensions/program-kit-governance/references/bootstrap-continuation.yml",
+    "extensions/program-kit-governance/references/bootstrap-decisions.schema.json",
+    "extensions/program-kit-governance/references/bootstrap-intake.schema.json",
+    "extensions/program-kit-governance/references/bootstrap-lifecycle.md",
+    "extensions/program-kit-governance/references/bootstrap-proof-plan.schema.json",
+    "extensions/program-kit-governance/references/c4-viewer-tool.json",
+    "extensions/program-kit-governance/references/c4-viewing.md",
+    "extensions/program-kit-governance/references/capability-adoption.schema.json",
+    "extensions/program-kit-governance/references/capability-index.json",
+    "extensions/program-kit-governance/references/codex-desktop-windows.md",
+    "extensions/program-kit-governance/references/component-adoption.md",
+    "extensions/program-kit-governance/references/consumer-migration-recipes.json",
+    "extensions/program-kit-governance/references/consumer-upgrade.md",
+    "extensions/program-kit-governance/references/default-adoption.md",
+    "extensions/program-kit-governance/references/device-toolchain-policy.md",
+    "extensions/program-kit-governance/references/functional-discovery.md",
+    "extensions/program-kit-governance/references/intake-artifacts.md",
+    "extensions/program-kit-governance/references/intake-authoring-example.json",
+    "extensions/program-kit-governance/references/intake-method.md",
+    "extensions/program-kit-governance/references/json-schema-tools.md",
+    "extensions/program-kit-governance/references/modularity-and-contracts.md",
+    "extensions/program-kit-governance/references/native-phase-source-baselines.json",
+    "extensions/program-kit-governance/references/obligation-design.schema.json",
+    "extensions/program-kit-governance/references/obligation-review.schema.json",
+    "extensions/program-kit-governance/references/ocr-only-operations.md",
+    "extensions/program-kit-governance/references/operation-recovery-example.mjs",
+    "extensions/program-kit-governance/references/orbyss-building-blocks.md",
+    "extensions/program-kit-governance/references/persistence.schema.json",
+    "extensions/program-kit-governance/references/phase-evidence.md",
+    "extensions/program-kit-governance/references/phase-obligations.json",
+    "extensions/program-kit-governance/references/programming-guardrails.md",
+    "extensions/program-kit-governance/references/repair-feedback/contract.json",
+    "extensions/program-kit-governance/references/repair-feedback/operating.md",
+    "extensions/program-kit-governance/references/repair-feedback/request.schema.json",
+    "extensions/program-kit-governance/references/semantic-contract.schema.json",
+    "extensions/program-kit-governance/references/software-language.md",
+    "extensions/program-kit-governance/references/specification-intake.md",
+    "extensions/program-kit-governance/references/technology-profiles/typescript.md",
+    "extensions/program-kit-governance/references/tool-selection.md",
+    "extensions/program-kit-governance/references/ui-content.schema.json",
+    "extensions/program-kit-governance/references/ui-design-model.md",
+    "extensions/program-kit-governance/references/ui-evaluation-v1.md",
+    "extensions/program-kit-governance/references/ui-evidence-v1.json",
+    "extensions/program-kit-governance/references/ui-experience-v1.md",
+    "extensions/program-kit-governance/references/ui-feedback-and-recovery.md",
+    "extensions/program-kit-governance/references/ui-icons-evidence.json",
+    "extensions/program-kit-governance/references/ui-profile.schema.json",
+    "extensions/program-kit-governance/references/verification-plan.schema.json",
+    "extensions/program-kit-governance/references/verification-results.schema.json",
+    "extensions/program-kit-governance/references/vertical-slicing.md",
+    "extensions/program-kit-governance/references/workflow-resumption.md",
+    "extensions/program-kit-governance/scripts/Check-RepairFeedbackGitHub.ps1",
+    "extensions/program-kit-governance/scripts/api_proof.py",
+    "extensions/program-kit-governance/scripts/architecture_map.py",
+    "extensions/program-kit-governance/scripts/architecture_proof.py",
+    "extensions/program-kit-governance/scripts/architecture_verify.py",
+    "extensions/program-kit-governance/scripts/artifact_ownership.py",
+    "extensions/program-kit-governance/scripts/asset_sources.py",
+    "extensions/program-kit-governance/scripts/bootstrap_compatibility.py",
+    "extensions/program-kit-governance/scripts/bootstrap_context.py",
+    "extensions/program-kit-governance/scripts/bootstrap_defaults.py",
+    "extensions/program-kit-governance/scripts/bootstrap_handoff.py",
+    "extensions/program-kit-governance/scripts/bootstrap_intake.py",
+    "extensions/program-kit-governance/scripts/bootstrap_lifecycle.py",
+    "extensions/program-kit-governance/scripts/bootstrap_probe_projects.py",
+    "extensions/program-kit-governance/scripts/bootstrap_profiles.py",
+    "extensions/program-kit-governance/scripts/bootstrap_proof_plan.py",
+    "extensions/program-kit-governance/scripts/bootstrap_provider_context.py",
+    "extensions/program-kit-governance/scripts/bootstrap_quality.py",
+    "extensions/program-kit-governance/scripts/bootstrap_recovery.py",
+    "extensions/program-kit-governance/scripts/bootstrap_stages.py",
+    "extensions/program-kit-governance/scripts/bounded_read.py",
+    "extensions/program-kit-governance/scripts/c4_view.py",
+    "extensions/program-kit-governance/scripts/capability_adoption.py",
+    "extensions/program-kit-governance/scripts/case_inventory.py",
+    "extensions/program-kit-governance/scripts/check-repair-feedback-github.sh",
+    "extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py",
+    "extensions/program-kit-governance/scripts/codex_worker_policy.py",
+    "extensions/program-kit-governance/scripts/compatibility_diagnostics.py",
+    "extensions/program-kit-governance/scripts/compatibility_process.py",
+    "extensions/program-kit-governance/scripts/compatibility_scope.py",
+    "extensions/program-kit-governance/scripts/consumer_upgrade.py",
+    "extensions/program-kit-governance/scripts/contract_shapes.py",
+    "extensions/program-kit-governance/scripts/decision_knowledge.py",
+    "extensions/program-kit-governance/scripts/decision_status.py",
+    "extensions/program-kit-governance/scripts/dependency_audit.py",
+    "extensions/program-kit-governance/scripts/dotnet_adapter.py",
+    "extensions/program-kit-governance/scripts/ensure_utf8.py",
+    "extensions/program-kit-governance/scripts/execution_history.py",
+    "extensions/program-kit-governance/scripts/feature_context.py",
+    "extensions/program-kit-governance/scripts/feature_knowledge.py",
+    "extensions/program-kit-governance/scripts/feature_plan_decisions.py",
+    "extensions/program-kit-governance/scripts/fixture_readiness.py",
+    "extensions/program-kit-governance/scripts/governance_state.py",
+    "extensions/program-kit-governance/scripts/historical_phase_evidence.py",
+    "extensions/program-kit-governance/scripts/implementation_preflight.py",
+    "extensions/program-kit-governance/scripts/intake_authoring.py",
+    "extensions/program-kit-governance/scripts/json-schema-requirements.txt",
+    "extensions/program-kit-governance/scripts/json_schema.py",
+    "extensions/program-kit-governance/scripts/language_identity.py",
+    "extensions/program-kit-governance/scripts/lifecycle_state.py",
+    "extensions/program-kit-governance/scripts/managed_compatibility.py",
+    "extensions/program-kit-governance/scripts/managed_provider_probes.py",
+    "extensions/program-kit-governance/scripts/material_closure.py",
+    "extensions/program-kit-governance/scripts/npm_graph.py",
+    "extensions/program-kit-governance/scripts/npm_metadata.py",
+    "extensions/program-kit-governance/scripts/package_execution.py",
+    "extensions/program-kit-governance/scripts/phase_obligations.py",
+    "extensions/program-kit-governance/scripts/provider_operation.py",
+    "extensions/program-kit-governance/scripts/provider_operation_authority.py",
+    "extensions/program-kit-governance/scripts/provider_operation_execute.py",
+    "extensions/program-kit-governance/scripts/provider_operation_prepare.py",
+    "extensions/program-kit-governance/scripts/proxy_bootstrap.py",
+    "extensions/program-kit-governance/scripts/proxy_intake.py",
+    "extensions/program-kit-governance/scripts/python_runtime.py",
+    "extensions/program-kit-governance/scripts/release_guidance.py",
+    "extensions/program-kit-governance/scripts/render_profile.py",
+    "extensions/program-kit-governance/scripts/repair_contract.py",
+    "extensions/program-kit-governance/scripts/repair_feedback.py",
+    "extensions/program-kit-governance/scripts/repair_intake.py",
+    "extensions/program-kit-governance/scripts/repository_sync.py",
+    "extensions/program-kit-governance/scripts/review_material.py",
+    "extensions/program-kit-governance/scripts/runtime_fixture.py",
+    "extensions/program-kit-governance/scripts/schema_runtime.py",
+    "extensions/program-kit-governance/scripts/semantic_contract.py",
+    "extensions/program-kit-governance/scripts/specification_intake.py",
+    "extensions/program-kit-governance/scripts/sync_readiness.py",
+    "extensions/program-kit-governance/scripts/task_draft.py",
+    "extensions/program-kit-governance/scripts/tooling_witness.py",
+    "extensions/program-kit-governance/scripts/ui_content.py",
+    "extensions/program-kit-governance/scripts/ui_contracts.py",
+    "extensions/program-kit-governance/scripts/ui_evaluation.py",
+    "extensions/program-kit-governance/scripts/ui_patterns.py",
+    "extensions/program-kit-governance/scripts/ui_profile.py",
+    "extensions/program-kit-governance/scripts/ui_svg.py",
+    "extensions/program-kit-governance/scripts/ui_tokens.py",
+    "extensions/program-kit-governance/scripts/upgrade_remediation.py",
+    "extensions/program-kit-governance/scripts/windows_workflow_path.py",
+    "extensions/program-kit-governance/scripts/workflow_lifecycle.py",
+    "extensions/program-kit-governance/scripts/workflow_shell_preflight.py",
+    "extensions/program-kit-governance/scripts/workspace_output.py",
+    "extensions/program-kit-governance/templates/ui-experience/acceptance/.npmrc",
+    "extensions/program-kit-governance/templates/ui-experience/acceptance/analytics.test.mjs",
+    "extensions/program-kit-governance/templates/ui-experience/acceptance/browser.mjs",
+    "extensions/program-kit-governance/templates/ui-experience/acceptance/durability.mjs",
+    "extensions/program-kit-governance/templates/ui-experience/acceptance/durability.test.mjs",
+    "extensions/program-kit-governance/templates/ui-experience/acceptance/package-lock.json",
+    "extensions/program-kit-governance/templates/ui-experience/acceptance/package.json",
+    "extensions/program-kit-governance/templates/ui-experience/analytics.mjs",
+    "extensions/program-kit-governance/templates/ui-experience/content.json",
+    "extensions/program-kit-governance/templates/ui-experience/icons/LICENSE.txt",
+    "extensions/program-kit-governance/templates/ui-experience/icons/lucide.json",
+    "extensions/program-kit-governance/templates/ui-experience/interactions.mjs",
+    "extensions/program-kit-governance/templates/ui-experience/layout-classic.css",
+    "extensions/program-kit-governance/templates/ui-experience/layout.css",
+    "extensions/program-kit-governance/templates/ui-experience/profile.json",
+    "maintenance-policy.json",
+    "release-policy.json",
+    "scripts/Approve-LendingReference.ps1",
+    "scripts/Confirm-LiveFeatureIntake.ps1",
+    "scripts/Invoke-LocalRelease.ps1",
+    "scripts/New-LiveAcceptanceAuthorization.ps1",
+    "scripts/New-LiveBootstrapCheckpoint.ps1",
+    "scripts/Probe-CodexWorkerPermissions.ps1",
+    "scripts/Start-IntakeSession.ps1",
+    "scripts/Test-AdvancedAuthentication.ps1",
+    "scripts/Test-LiveBootstrap.ps1",
+    "scripts/Test-LiveBuildingBlockConsumer.ps1",
+    "scripts/Test-LiveRepositorySync.ps1",
+    "scripts/Test-LocalInstall.ps1",
+    "scripts/Test-ProgramKit.ps1",
+    "scripts/build_dependency_qualification.py",
+    "scripts/build_native_phase_baselines.py",
+    "scripts/build_release.py",
+    "scripts/build_release_guidance.py",
+    "scripts/build_repair_contract.py",
+    "scripts/capture_lifecycle_knowledge.py",
+    "scripts/consumer_upgrade_workspace.py",
+    "scripts/dependency_maintenance.py",
+    "scripts/initialize_device.py",
+    "scripts/intake_session.py",
+    "scripts/invoke_specify.py",
+    "scripts/local_catalog_server.py",
+    "scripts/maintenance_packet.py",
+    "scripts/native_phase_ownership.py",
+    "scripts/openapi_upgrade_reconciliation.py",
+    "scripts/prepare_evidence_repository.py",
+    "scripts/prepare_foundation_contracts_development_profile.py",
+    "scripts/prepare_sync_live_review.py",
+    "scripts/probe_codex_worker_permissions.py",
+    "scripts/publish_candidate.py",
+    "scripts/record_local_bundle.py",
+    "scripts/release_candidate.py",
+    "scripts/release_trial.py",
+    "scripts/repair_evaluator.py",
+    "scripts/repair_evidence_guardian.py",
+    "scripts/repair_guardian_check.py",
+    "scripts/retired_sync_integration.py",
+    "scripts/run_validation.py",
+    "scripts/update_dependencies.py",
+    "scripts/update_dependency_profiles.py",
+    "scripts/upgrade_program_kit.py",
+    "scripts/verify_evidence_repository.py",
+    "scripts/verify_legacy_programkit_nuget.py",
+    "scripts/write_release_receipt.py",
+    "tests/acceptance/intake-grilling.md",
+    "tests/build_output_recipe_cases.py",
+    "tests/capture_lending_intake.py",
+    "tests/ci-tool-requirements.txt",
+    "tests/composition_fixture.py",
+    "tests/exercise_fresh_story_reset.py",
+    "tests/fixture_readiness_cases.py",
+    "tests/fixtures/application-handoff-native-w3/Program.cs",
+    "tests/fixtures/application-handoff-native-w3/SettingsExporter.csproj",
+    "tests/fixtures/application-handoff/receiver_app.py",
+    "tests/fixtures/application-lifecycle/NuGet.Config",
+    "tests/fixtures/application-lifecycle/Probe.csproj",
+    "tests/fixtures/application-lifecycle/Program.cs",
+    "tests/fixtures/authentication-presentation/Probe.cs",
+    "tests/fixtures/authentication-presentation/browser.mjs",
+    "tests/fixtures/composition-activation/Activation.Tests.csproj",
+    "tests/fixtures/composition-activation/SelectedFeatureTests.cs",
+    "tests/fixtures/composition-numeric/NumericFeature.cs",
+    "tests/fixtures/composition-numeric/Program.cs",
+    "tests/fixtures/default-dependency-profile/README.md",
+    "tests/fixtures/default-dependency-profile/packages.lock.json",
+    "tests/fixtures/dotnet-engineering/EngineeringCases.csproj",
+    "tests/fixtures/dotnet-engineering/Program.cs",
+    "tests/fixtures/foundation-consumer-contracts/baseline/canonical-v1.json",
+    "tests/fixtures/foundation-consumer-contracts/baseline/mixed-workbench-architecture.json",
+    "tests/fixtures/foundation-consumer-contracts/baseline/saved-schema-one.json",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/Directory.Build.props",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/Directory.Packages.props",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/Notes.slnx",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/NuGet.config",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/README.md",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/bundle.json",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/eng/architecture.json",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/oracle/FixtureIssuer.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/oracle/Notes.Oracle.csproj",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/oracle/NotesBehaviorOracle.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/oracle/Program.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/oracle/packages.lock.json",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/schema.sql",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/CreateNote/CreateNoteEndpoint.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/CreateNote/CreateNoteRequest.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/CreateNote/CreateNoteResponse.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/FixtureAuthenticationAliases.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/ListNotes/ListNotesEndpoint.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/ListNotes/ListNotesResponse.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/NoteOwnerAdapter.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/NoteProblemMapper.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/NoteWire.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/Notes.Api.csproj",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/NotesApiFeature.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/ReadNote/ReadNoteEndpoint.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/ReadNote/ReadNoteResponse.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/RenameNote/RenameNoteEndpoint.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/RenameNote/RenameNoteRequest.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/RenameNote/RenameNoteResponse.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Api/feature.json",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/INoteAuthoring.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/INoteQueries.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/INoteRevisionLifecycle.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/NoteAcknowledgement.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/NoteFailure.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/NoteName.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/NoteOutcome.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/NoteOwner.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/NotePage.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/NoteProtocol.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/NoteSnapshot.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.Core/Notes.Core.csproj",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/NoteOperationBudget.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/NoteOperationDigest.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/NoteQueries.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/NoteRevisionLifecycle.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/NoteRow.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/Notes.PostgreSql.csproj",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/NotesDbContext.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/NotesPostgreSqlFeature.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/ReceiptRow.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/RevisionRow.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/StorageFailure.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/StorageNames.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes.PostgreSql/feature.json",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes/NoteAuthoring.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes/Notes.csproj",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes/NotesFeature.cs",
+    "tests/fixtures/foundation-consumer-contracts/notes/v1/src/Notes/feature.json",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Api/ContractFeature.cs",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Api/PublishedTools.Contract.Api.csproj",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Api/SampleEndpoint.cs",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Api/SampleRequest.cs",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Api/SampleResponse.cs",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Api/UnstartedDataSource.cs",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Api/feature.json",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Core/PublishedTools.Contract.Core.csproj",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Core/SampleSnapshot.cs",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Directory.Build.props",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Directory.Build.targets",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/Directory.Packages.props",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/PublishedTools.slnx",
+    "tests/fixtures/foundation-consumer-contracts/published-tools/v1/README.md",
+    "tests/fixtures/foundation-test-support/Program.cs",
+    "tests/fixtures/foundation-test-support/SupportProbe.csproj",
+    "tests/fixtures/historical-compatibility-tooling-0.12.9.json",
+    "tests/fixtures/historical-spa-residue.json",
+    "tests/fixtures/hosted-palette/Program.cs",
+    "tests/fixtures/hosted-palette/browser.mjs",
+    "tests/fixtures/initial-design.md",
+    "tests/fixtures/knowledge-application/components/ComponentProbe.csproj",
+    "tests/fixtures/knowledge-application/components/NuGet.Config",
+    "tests/fixtures/knowledge-application/components/Program.cs",
+    "tests/fixtures/knowledge-application/components/hosted-pages/Probe.csproj",
+    "tests/fixtures/knowledge-application/components/hosted-pages/Program.cs",
+    "tests/fixtures/knowledge-application/components/upstream-probes.json",
+    "tests/fixtures/knowledge-application/components/web-defaults/PolicyProbeFeature.cs",
+    "tests/fixtures/knowledge-application/components/web-defaults/Probe.csproj",
+    "tests/fixtures/knowledge-application/components/web-defaults/Program.cs",
+    "tests/fixtures/knowledge-application/forms-browser-packages/package.json",
+    "tests/fixtures/knowledge-application/forms-browser-packages/provenance.json",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/fixtures/published-product.json",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/app.tsx",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/browser.mjs",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/build.mjs",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/deployment.mjs",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/index.html",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/locales.mjs",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/program-kit-validator.d.ts",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/reference-theme.css",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/schema.mjs",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/styles.css",
+    "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/tsconfig.json",
+    "tests/fixtures/knowledge-application/oracle-browser/browser.mjs",
+    "tests/fixtures/knowledge-application/oracle-browser/package.json",
+    "tests/fixtures/knowledge-application/oracle-calibration/server.py",
+    "tests/fixtures/knowledge-application/reference-consumer/Lending.slnx",
+    "tests/fixtures/knowledge-application/reference-consumer/README.md",
+    "tests/fixtures/knowledge-application/reference-consumer/src/Lending.Core/Lending.Core.csproj",
+    "tests/fixtures/knowledge-application/reference-consumer/src/Lending.Core/Reservations.cs",
+    "tests/fixtures/knowledge-application/reference-consumer/src/Lending.Storage/FileLendingStore.cs",
+    "tests/fixtures/knowledge-application/reference-consumer/src/Lending.Storage/Lending.Storage.csproj",
+    "tests/fixtures/knowledge-application/reference-consumer/tests/Lending.FixtureHost/Lending.FixtureHost.csproj",
+    "tests/fixtures/knowledge-application/reference-consumer/tests/Lending.FixtureHost/Program.cs",
+    "tests/fixtures/knowledge-application/reference-consumer/web/app.ts",
+    "tests/fixtures/knowledge-application/reference-consumer/web/build.mjs",
+    "tests/fixtures/knowledge-application/reference-consumer/web/index.html",
+    "tests/fixtures/knowledge-application/reference-consumer/web/package.json",
+    "tests/fixtures/knowledge-application/reference-consumer/web/tsconfig.json",
+    "tests/fixtures/knowledge-application/reference-extension-probe/Probe.csproj",
+    "tests/fixtures/knowledge-application/reference-extension-probe/Program.cs",
+    "tests/fixtures/label-validation/Api/Api.csproj",
+    "tests/fixtures/label-validation/Api/LabelRequest.cs",
+    "tests/fixtures/label-validation/Api/Program.cs",
+    "tests/fixtures/label-validation/Core/Core.csproj",
+    "tests/fixtures/label-validation/Core/DisplayLabels.cs",
+    "tests/fixtures/label-validation/Exporter/Exporter.csproj",
+    "tests/fixtures/label-validation/Exporter/Program.cs",
+    "tests/fixtures/label-validation/NuGet.config",
+    "tests/fixtures/label-validation/browser.mjs",
+    "tests/fixtures/label-validation/rule-names.mjs",
+    "tests/fixtures/legacy-bff-web.json",
+    "tests/fixtures/legacy-spa-web.json",
+    "tests/fixtures/lending-recovery-architecture.md",
+    "tests/fixtures/lending-recovery-traceability.md",
+    "tests/fixtures/persistence-runtime/Program.cs",
+    "tests/fixtures/reusable-foundations/CreateResourceOutcome.cs",
+    "tests/fixtures/reusable-foundations/IOwnedResources.cs",
+    "tests/fixtures/reusable-foundations/OwnedResourceFeature.cs",
+    "tests/fixtures/reusable-foundations/OwnedResources.cs",
+    "tests/fixtures/reusable-foundations/ResourceOwner.cs",
+    "tests/fixtures/reusable-foundations/qualification.mjs",
+    "tests/fixtures/reusable-foundations/schema.sql",
+    "tests/fixtures/runnable-host/central-package-pins/Directory.Packages.props",
+    "tests/fixtures/runnable-host/central-package-pins/README.md",
+    "tests/identity_projection_cases.py",
+    "tests/live/run_bootstrap_acceptance.py",
+    "tests/live/scenarios/README.md",
+    "tests/live/scenarios/catalog.json",
+    "tests/live/scenarios/clean-bootstrap/PROJECT_REQUEST.md",
+    "tests/live/scenarios/clean-bootstrap/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/clean-bootstrap/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/clean-bootstrap/docs/architecture/project-intent.md",
+    "tests/live/scenarios/clean-bootstrap/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/clean-bootstrap/expectations.json",
+    "tests/live/scenarios/clean-bootstrap/first-slice-workflow.yml",
+    "tests/live/scenarios/foundation-notes/v1/feature.md",
+    "tests/live/scenarios/foundation-notes/v1/oracle_adapter.py",
+    "tests/live/scenarios/foundation-notes/v1/scenario.json",
+    "tests/live/scenarios/household-shopping/v1/OPERATOR.md",
+    "tests/live/scenarios/household-shopping/v1/PROJECT_REQUEST.md",
+    "tests/live/scenarios/household-shopping/v1/README.md",
+    "tests/live/scenarios/household-shopping/v1/REVIEW.md",
+    "tests/live/scenarios/household-shopping/v1/fixture.json",
+    "tests/live/scenarios/internal-forms-workspace/v1/expectations/catalog-8017cec0.json",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/Directory.Build.props",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/Directory.Packages.props",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/Dockerfile",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/InternalForms.slnx",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/PROJECT_REQUEST.md",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/shells.json",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/src/InternalForms.Api/ApiProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/src/InternalForms.Api/InternalForms.Api.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/src/InternalForms.Bff/BffProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/src/InternalForms.Bff/InternalForms.Bff.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/src/InternalForms.Forms/FormsProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/src/InternalForms.Forms/InternalForms.Forms.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/web/package.json",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/web/src/smoke.ts",
+    "tests/live/scenarios/internal-forms-workspace/v1/fixture/web/tsconfig.json",
+    "tests/live/scenarios/internal-forms-workspace/v1/scenario.json",
+    "tests/live/scenarios/internal-forms-workspace/v1/selection-template.json",
+    "tests/live/scenarios/internal-forms-workspace/v2/README.md",
+    "tests/live/scenarios/internal-forms-workspace/v2/expectations/catalog-c5a214cb.json",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/Directory.Build.props",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/Directory.Packages.props",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/Dockerfile",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/InternalForms.slnx",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/PROJECT_REQUEST.md",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/shells.json",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/src/InternalForms.Api/ApiProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/src/InternalForms.Api/InternalForms.Api.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/src/InternalForms.Bff/BffProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/src/InternalForms.Bff/InternalForms.Bff.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/src/InternalForms.Forms/FormsProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/src/InternalForms.Forms/InternalForms.Forms.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/web/package.json",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/web/src/smoke.ts",
+    "tests/live/scenarios/internal-forms-workspace/v2/fixture/web/tsconfig.json",
+    "tests/live/scenarios/internal-forms-workspace/v2/scenario.json",
+    "tests/live/scenarios/internal-forms-workspace/v2/selection-template.json",
+    "tests/live/scenarios/internal-forms-workspace/v3/README.md",
+    "tests/live/scenarios/internal-forms-workspace/v3/expectations/catalog-0ca415b7.json",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/Directory.Build.props",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/Directory.Packages.props",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/Dockerfile",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/InternalForms.slnx",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/PROJECT_REQUEST.md",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/shells.json",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/src/InternalForms.Api/ApiProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/src/InternalForms.Api/InternalForms.Api.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/src/InternalForms.Bff/BffProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/src/InternalForms.Bff/InternalForms.Bff.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/src/InternalForms.Forms/FormsProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/src/InternalForms.Forms/InternalForms.Forms.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/web/package.json",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/web/src/smoke.ts",
+    "tests/live/scenarios/internal-forms-workspace/v3/fixture/web/tsconfig.json",
+    "tests/live/scenarios/internal-forms-workspace/v3/scenario.json",
+    "tests/live/scenarios/internal-forms-workspace/v3/selection-template.json",
+    "tests/live/scenarios/internal-forms-workspace/v4/README.md",
+    "tests/live/scenarios/internal-forms-workspace/v4/expectations/catalog-a639142c.json",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/Directory.Build.props",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/Directory.Packages.props",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/Dockerfile",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/InternalForms.slnx",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/PROJECT_REQUEST.md",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/shells.json",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/src/InternalForms.Api/ApiProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/src/InternalForms.Api/InternalForms.Api.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/src/InternalForms.Bff/BffProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/src/InternalForms.Bff/InternalForms.Bff.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/src/InternalForms.Forms/FormsProbe.cs",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/src/InternalForms.Forms/InternalForms.Forms.csproj",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/web/package.json",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/web/src/smoke.ts",
+    "tests/live/scenarios/internal-forms-workspace/v4/fixture/web/tsconfig.json",
+    "tests/live/scenarios/internal-forms-workspace/v4/scenario.json",
+    "tests/live/scenarios/internal-forms-workspace/v4/selection-template.json",
+    "tests/live/scenarios/knowledge-application/v1/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v1/README.md",
+    "tests/live/scenarios/knowledge-application/v1/acceptance.json",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/expectations/catalog-c5a214cb.json",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/acceptance/README.md",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/acceptance/browser-contract.json",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/acceptance/http-contract.json",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/acceptance/services.json",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/scenario.json",
+    "tests/live/scenarios/knowledge-application/v1/bootstrap-seed/selection-template.json",
+    "tests/live/scenarios/knowledge-application/v1/cases.json",
+    "tests/live/scenarios/knowledge-application/v1/future-targets.json",
+    "tests/live/scenarios/knowledge-application/v1/http-contract.json",
+    "tests/live/scenarios/knowledge-application/v1/reference-identity/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v1/reference-identity/contracts/lending-identity.json",
+    "tests/live/scenarios/knowledge-application/v1/reference-identity/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/knowledge-application/v1/reference-identity/specs/001-equipment-lending/spec.md",
+    "tests/live/scenarios/knowledge-application/v1/reference-source-files/catalogs/extensions.json",
+    "tests/live/scenarios/knowledge-application/v1/reference-source-files/catalogs/presets.json",
+    "tests/live/scenarios/knowledge-application/v1/reference-source-files/catalogs/workflows.json",
+    "tests/live/scenarios/knowledge-application/v1/reference-source.json",
+    "tests/live/scenarios/knowledge-application/v1/upgrade-overlay/contracts/consumer-extension.json",
+    "tests/live/scenarios/knowledge-application/v1/upgrade-overlay/docs/consumer/lending-operations.md",
+    "tests/live/scenarios/knowledge-application/v2/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v2/README.md",
+    "tests/live/scenarios/knowledge-application/v2/acceptance.json",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/expectations/catalog-0ca415b7.json",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/acceptance/README.md",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/acceptance/browser-contract.json",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/acceptance/http-contract.json",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/acceptance/services.json",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/scenario.json",
+    "tests/live/scenarios/knowledge-application/v2/bootstrap-seed/selection-template.json",
+    "tests/live/scenarios/knowledge-application/v2/cases.json",
+    "tests/live/scenarios/knowledge-application/v2/future-targets.json",
+    "tests/live/scenarios/knowledge-application/v2/http-contract.json",
+    "tests/live/scenarios/knowledge-application/v2/reference-identity/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v2/reference-identity/contracts/lending-identity.json",
+    "tests/live/scenarios/knowledge-application/v2/reference-identity/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/knowledge-application/v2/reference-identity/specs/001-equipment-lending/spec.md",
+    "tests/live/scenarios/knowledge-application/v2/reference-source-files/catalogs/extensions.json",
+    "tests/live/scenarios/knowledge-application/v2/reference-source-files/catalogs/presets.json",
+    "tests/live/scenarios/knowledge-application/v2/reference-source-files/catalogs/workflows.json",
+    "tests/live/scenarios/knowledge-application/v2/reference-source.json",
+    "tests/live/scenarios/knowledge-application/v2/upgrade-overlay/contracts/consumer-extension.json",
+    "tests/live/scenarios/knowledge-application/v2/upgrade-overlay/docs/consumer/lending-operations.md",
+    "tests/live/scenarios/knowledge-application/v3/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v3/README.md",
+    "tests/live/scenarios/knowledge-application/v3/acceptance.json",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/expectations/catalog-a639142c.json",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/acceptance/README.md",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/acceptance/browser-contract.json",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/acceptance/http-contract.json",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/acceptance/services.json",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/scenario.json",
+    "tests/live/scenarios/knowledge-application/v3/bootstrap-seed/selection-template.json",
+    "tests/live/scenarios/knowledge-application/v3/cases.json",
+    "tests/live/scenarios/knowledge-application/v3/future-targets.json",
+    "tests/live/scenarios/knowledge-application/v3/http-contract.json",
+    "tests/live/scenarios/knowledge-application/v3/reference-identity/PROJECT_REQUEST.md",
+    "tests/live/scenarios/knowledge-application/v3/reference-identity/contracts/lending-identity.json",
+    "tests/live/scenarios/knowledge-application/v3/reference-identity/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/knowledge-application/v3/reference-identity/specs/001-equipment-lending/spec.md",
+    "tests/live/scenarios/knowledge-application/v3/reference-source-files/catalogs/extensions.json",
+    "tests/live/scenarios/knowledge-application/v3/reference-source-files/catalogs/presets.json",
+    "tests/live/scenarios/knowledge-application/v3/reference-source-files/catalogs/workflows.json",
+    "tests/live/scenarios/knowledge-application/v3/reference-source.json",
+    "tests/live/scenarios/knowledge-application/v3/upgrade-overlay/contracts/consumer-extension.json",
+    "tests/live/scenarios/knowledge-application/v3/upgrade-overlay/docs/consumer/lending-operations.md",
+    "tests/live/scenarios/price-calculator/v1/.gitattributes",
+    "tests/live/scenarios/price-calculator/v1/README.md",
+    "tests/live/scenarios/price-calculator/v1/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/price-calculator/v1/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/price-calculator/v1/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/price-calculator/v1/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/price-calculator/v1/provenance.json",
+    "tests/live/scenarios/price-calculator/v1/scenario.json",
+    "tests/live/scenarios/repair-desk/v1/OPERATOR.md",
+    "tests/live/scenarios/repair-desk/v1/PROJECT_REQUEST.md",
+    "tests/live/scenarios/repair-desk/v1/README.md",
+    "tests/live/scenarios/repair-desk/v1/REVIEW.md",
+    "tests/live/scenarios/repair-desk/v1/fixture.json",
+    "tests/live/scenarios/repository-sync/v1/PROJECT_REQUEST.md",
+    "tests/live/scenarios/repository-sync/v1/REVIEW.md",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/expectations/catalog-8017cec0.json",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/Directory.Build.props",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/Directory.Packages.props",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/InternalForms.slnx",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/PROJECT_REQUEST.md",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/docs/architecture/architecture-map.json",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/docs/architecture/bootstrap-intake.json",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/docs/architecture/project-intent.md",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/docs/architecture/workspace.dsl",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/shells.json",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/src/InternalForms.Api/ApiProbe.cs",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/src/InternalForms.Api/InternalForms.Api.csproj",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/src/InternalForms.Bff/BffProbe.cs",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/src/InternalForms.Bff/InternalForms.Bff.csproj",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/src/InternalForms.Forms/FormsProbe.cs",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/src/InternalForms.Forms/InternalForms.Forms.csproj",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/web/package.json",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/web/src/smoke.ts",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/fixture/web/tsconfig.json",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/scenario.json",
+    "tests/live/scenarios/repository-sync/v1/bootstrap-seed/selection-template.json",
+    "tests/live/scenarios/repository-sync/v1/cases.json",
+    "tests/live/scenarios/repository-sync/v1/future-targets.json",
+    "tests/live/scenarios/repository-sync/v1/upgrade-overlay/config/consumer-upgrade-marker.json",
+    "tests/live/scenarios/repository-sync/v1/upgrade-overlay/src/InternalForms.Api/ConsumerUpgradeMarker.cs",
+    "tests/live/schemas/v2/authorization.schema.json",
+    "tests/live/schemas/v2/candidate-expectation.schema.json",
+    "tests/live/schemas/v2/checkpoint.schema.json",
+    "tests/live/schemas/v2/ci-trial-preparation.schema.json",
+    "tests/live/schemas/v2/evidence-manifest.schema.json",
+    "tests/live/schemas/v2/operation-receipt.schema.json",
+    "tests/live/schemas/v2/release-receipt.schema.json",
+    "tests/live/schemas/v2/restore-request.schema.json",
+    "tests/live/schemas/v2/scenario.schema.json",
+    "tests/live/schemas/v2/trial-receipt.schema.json",
+    "tests/live/schemas/v2/workflow-run.schema.json",
+    "tests/live/v2/__init__.py",
+    "tests/live/v2/authorization.py",
+    "tests/live/v2/baseline_metadata.py",
+    "tests/live/v2/bootstrap_provisioning.py",
+    "tests/live/v2/candidate.py",
+    "tests/live/v2/checkpoint.py",
+    "tests/live/v2/cli.py",
+    "tests/live/v2/common.py",
+    "tests/live/v2/evidence.py",
+    "tests/live/v2/fixture_catalog.py",
+    "tests/live/v2/intake_fixture.py",
+    "tests/live/v2/intake_handoff.py",
+    "tests/live/v2/learning_metrics.py",
+    "tests/live/v2/learning_report.py",
+    "tests/live/v2/lending_host.py",
+    "tests/live/v2/lending_oracle.py",
+    "tests/live/v2/postgresql_service.py",
+    "tests/live/v2/redaction.py",
+    "tests/live/v2/reference_baseline.py",
+    "tests/live/v2/scenario.py",
+    "tests/live/v2/supervisor.py",
+    "tests/live/v2/sync_comparison.py",
+    "tests/live/v2/sync_oracles.py",
+    "tests/live/v2/sync_stages.py",
+    "tests/live/v2/trial_candidate.py",
+    "tests/live/v2/validation.py",
+    "tests/live/v2/workflow_acceptance.py",
+    "tests/lock_renewal_cases.py",
+    "tests/manage_lending_reference.py",
+    "tests/native_restore_graph_cases.py",
+    "tests/native_start/test_central_exact_versions.py",
+    "tests/native_start/test_hosted_bundle_content.py",
+    "tests/native_start/test_hosted_frontend_update.py",
+    "tests/native_start/test_pending_activation.py",
+    "tests/native_start/test_private_files.py",
+    "tests/native_start/test_selected_shell_composition.py",
+    "tests/owned_fixture.py",
+    "tests/prepare_lending_reference.py",
+    "tests/prepare_readiness_recovery.py",
+    "tests/probe_accepted_bootstrap_recovery.py",
+    "tests/probe_accepted_upgrade_recovery.py",
+    "tests/provider-operation-cases.json",
+    "tests/qualify_reusable_foundations.py",
+    "tests/recover_consumer_bootstrap.py",
+    "tests/release_workflow_contracts.py",
+    "tests/review_discovery_roadmap.py",
+    "tests/run_foundation_notes_qualification.py",
+    "tests/schemas/candidate-payload.schema.json",
+    "tests/schemas/candidate-qualification.schema.json",
+    "tests/schemas/candidate-security.schema.json",
+    "tests/schemas/release-assessment.schema.json",
+    "tests/schemas/release-policy.schema.json",
+    "tests/simulate_consumer_readiness_retry.py",
+    "tests/spec_kit_source_fixture.py",
+    "tests/test_workflow_shell_preflight.py",
+    "tests/upgrade_probe_fixtures.py",
+    "tests/upgrade_selection_cases.py",
+    "tests/validate_api_proof.py",
+    "tests/validate_application_handoff.py",
+    "tests/validate_application_lifecycle.py",
+    "tests/validate_architecture_placement.py",
+    "tests/validate_architecture_recipe.py",
+    "tests/validate_asset_sources.py",
+    "tests/validate_authentication_presentation.py",
+    "tests/validate_bootstrap_compatibility.py",
+    "tests/validate_bootstrap_consistency_e2e.py",
+    "tests/validate_bootstrap_context.py",
+    "tests/validate_bootstrap_handoff_quality.py",
+    "tests/validate_bootstrap_handoffs.py",
+    "tests/validate_bootstrap_intake.py",
+    "tests/validate_bootstrap_lifecycle.py",
+    "tests/validate_bootstrap_profiles.py",
+    "tests/validate_bootstrap_proof_plan.py",
+    "tests/validate_bootstrap_provider_context.py",
+    "tests/validate_bootstrap_runtime.py",
+    "tests/validate_bootstrap_runtime_bindings.py",
+    "tests/validate_bootstrap_semantics.py",
+    "tests/validate_browser_launch.py",
+    "tests/validate_building_block_availability.py",
+    "tests/validate_building_blocks.py",
+    "tests/validate_c4_view.py",
+    "tests/validate_capability_proof.py",
+    "tests/validate_case_inventory.py",
+    "tests/validate_codex_bootstrap.py",
+    "tests/validate_codex_worker_policy.py",
+    "tests/validate_components.py",
+    "tests/validate_composition_activation.py",
+    "tests/validate_composition_model.py",
+    "tests/validate_composition_start.py",
+    "tests/validate_composition_tooling.py",
+    "tests/validate_consumer_descriptor_builder.py",
+    "tests/validate_consumer_provider_runtime.py",
+    "tests/validate_consumer_upgrade.py",
+    "tests/validate_consumer_upgrade_install.py",
+    "tests/validate_contract_layout.py",
+    "tests/validate_default_dependency_profile.py",
+    "tests/validate_dependency_audit.py",
+    "tests/validate_dependency_profile_catalogs.py",
+    "tests/validate_dependency_profiles.py",
+    "tests/validate_dependency_updates.py",
+    "tests/validate_dependency_workflows.py",
+    "tests/validate_discovery_fixture.py",
+    "tests/validate_document_ownership.py",
+    "tests/validate_dotnet_build_contract.py",
+    "tests/validate_dotnet_engineering.py",
+    "tests/validate_dotnet_scaffold.py",
+    "tests/validate_dotnet_test_discovery.py",
+    "tests/validate_effective_dependency_context.py",
+    "tests/validate_exporter_upgrade.py",
+    "tests/validate_feature_knowledge.py",
+    "tests/validate_foundation_composition.py",
+    "tests/validate_foundation_contracts_development_profile.py",
+    "tests/validate_foundation_notes.py",
+    "tests/validate_foundation_published_tools.py",
+    "tests/validate_foundation_setup.py",
+    "tests/validate_generated_contract_schemas.py",
+    "tests/validate_governance_config.py",
+    "tests/validate_governance_state.py",
+    "tests/validate_hosted_palette.py",
+    "tests/validate_installed_bootstrap_flow.py",
+    "tests/validate_intake_authoring.py",
+    "tests/validate_intake_handoff.py",
+    "tests/validate_intake_session.py",
+    "tests/validate_js_toolchain.py",
+    "tests/validate_json_schema.py",
+    "tests/validate_knowledge_application.py",
+    "tests/validate_knowledge_inventory.py",
+    "tests/validate_label_validation.py",
+    "tests/validate_learning_metrics.py",
+    "tests/validate_learning_report.py",
+    "tests/validate_legacy_programkit_nuget.py",
+    "tests/validate_lending_oracle.py",
+    "tests/validate_lifecycle_design.py",
+    "tests/validate_lifecycle_profiles.py",
+    "tests/validate_live_bootstrap_acceptance.py",
+    "tests/validate_live_fixture_catalog.py",
+    "tests/validate_live_trial_candidate.py",
+    "tests/validate_live_workflow_acceptance.py",
+    "tests/validate_local_fencing.py",
+    "tests/validate_local_upgrade.py",
+    "tests/validate_maintenance_flow.py",
+    "tests/validate_maintenance_packet.py",
+    "tests/validate_material_closure.py",
+    "tests/validate_native_phase_ownership.py",
+    "tests/validate_native_start_repairs.py",
+    "tests/validate_normal_development.py",
+    "tests/validate_numeric_schema.py",
+    "tests/validate_ocr_operation.py",
+    "tests/validate_operation_recovery.py",
+    "tests/validate_orbyss_building_blocks.py",
+    "tests/validate_owned_scratch.py",
+    "tests/validate_package_execution.py",
+    "tests/validate_packaged_ui.py",
+    "tests/validate_pdf_decoding.py",
+    "tests/validate_persistence_runtime.py",
+    "tests/validate_persistence_selection.py",
+    "tests/validate_phase_obligations.py",
+    "tests/validate_phase_readiness.py",
+    "tests/validate_phase_refresh.py",
+    "tests/validate_placement_contract.py",
+    "tests/validate_post_bootstrap_continuation.py",
+    "tests/validate_postgresql_lifecycle.py",
+    "tests/validate_postgresql_service.py",
+    "tests/validate_provider_operation_accounting.py",
+    "tests/validate_proxy_intake.py",
+    "tests/validate_public_component_use.py",
+    "tests/validate_public_core_compatibility.py",
+    "tests/validate_public_install.py",
+    "tests/validate_public_upgrade.py",
+    "tests/validate_published_forms_browser.py",
+    "tests/validate_publisher_settings_handoff.py",
+    "tests/validate_python_consistency.py",
+    "tests/validate_readiness_projection.py",
+    "tests/validate_readiness_scope.py",
+    "tests/validate_reference_baseline.py",
+    "tests/validate_release_bundle.py",
+    "tests/validate_release_candidate.py",
+    "tests/validate_release_guidance.py",
+    "tests/validate_release_install.py",
+    "tests/validate_repair_feedback.py",
+    "tests/validate_repository_sync.py",
+    "tests/validate_repository_toolchain.py",
+    "tests/validate_repository_verification_hook.py",
+    "tests/validate_retired_sync.py",
+    "tests/validate_runnable_host_pins.py",
+    "tests/validate_schema_role_grants.py",
+    "tests/validate_scoped_materialization.py",
+    "tests/validate_scoped_verification.py",
+    "tests/validate_settings_authorities.py",
+    "tests/validate_shared_obligations.py",
+    "tests/validate_specification_intake.py",
+    "tests/validate_standalone_engineering.py",
+    "tests/validate_story_delivery.py",
+    "tests/validate_sync_live_fixtures.py",
+    "tests/validate_sync_readiness.py",
+    "tests/validate_sync_stages.py",
+    "tests/validate_task_generation.py",
+    "tests/validate_test_dependencies.py",
+    "tests/validate_test_suites.py",
+    "tests/validate_tooling_witness.py",
+    "tests/validate_ui_browser.py",
+    "tests/validate_ui_experience.py",
+    "tests/validate_upgrade_boundaries.py",
+    "tests/validate_upgrade_retry.py",
+    "tests/validate_validation_runner.py",
+    "tests/validate_w3_packaged_handoff.py",
+    "tests/validate_web_identity.py",
+    "tests/validate_web_runtime.py",
+    "tests/validate_wire_capabilities.py",
+    "tests/validate_workflow_resumption.py",
+    "tests/validate_workflow_runtimes.py",
+    "tests/validation-inventory.json",
+    "tests/verification_isolation_cases.py",
+    "tests/verify_lending_consumer.py",
+    "tests/verify_lending_reference_extensions.py",
+    "tests/windows_path_alias.py"
+  ]
+}

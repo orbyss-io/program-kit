@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sys
+import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -126,10 +127,7 @@ def repository_path(repository: Path, relative: str) -> Path:
 
 
 def atomic_write(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".program-kit.tmp")
-    temporary.write_text(content, encoding="utf-8", newline="\n")
-    temporary.replace(path)
+    atomic_write_bytes(path, content.encode('utf-8'), 'program-kit')
 
 
 def resolution_projection(catalog: dict) -> dict:
@@ -1306,9 +1304,31 @@ def reconcile_output(repository: Path, previous: dict | None, desired: dict | No
 
 def atomic_write_bytes(path: Path, content: bytes, suffix: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f"{path.name}.{suffix}.tmp")
-    temporary.write_bytes(content)
-    os.replace(temporary, path)
+    try:
+        previous = path.read_bytes()
+    except FileNotFoundError:
+        previous = None
+    temporary = path.with_name(f".{path.name}.{suffix}.{uuid.uuid4().hex}.tmp")
+    try:
+        with temporary.open('xb') as stream:
+            stream.write(content); stream.flush(); os.fsync(stream.fileno())
+        for attempt in range(5):
+            try:
+                os.replace(temporary, path)
+                return
+            except PermissionError as error:
+                if os.name != 'nt' or getattr(error, 'winerror', None) not in (5, 32, 33) or attempt == 4:
+                    raise
+                time.sleep(.02 * (attempt + 1))
+                try:
+                    current = path.read_bytes() if path.exists() else None
+                except OSError:
+                    current = object()  # An unreadable original cannot authorize retry.
+                if current != previous:
+                    error.add_note('Building-block destination changed or became unreadable while replacement was blocked; no retry.')
+                    raise
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def transaction_root(repository: Path) -> Path:

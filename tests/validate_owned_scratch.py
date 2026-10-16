@@ -19,6 +19,35 @@ import owned_scratch as scratch
 
 
 class OwnedScratchTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt', 'Native Windows building-block replacement')
+    def test_building_block_writer_recovers_short_block_and_preserves_persistent_failure(self):
+        import importlib.util
+        import threading
+        import time
+        spec = importlib.util.spec_from_file_location('owned_scratch_building_blocks',
+            ROOT / 'extensions/program-kit-building-blocks/scripts/building_blocks.py')
+        blocks = importlib.util.module_from_spec(spec); sys.modules[spec.name] = blocks; spec.loader.exec_module(blocks)
+        target = self.root / 'dependency-profile.json'
+        target.write_bytes(b'original binding')
+        with self.locked_file(target) as release:
+            thread = threading.Thread(target=lambda: (time.sleep(.06), release())); thread.start()
+            try: blocks.atomic_write(target, 'new binding')
+            finally: thread.join(timeout=2)
+            self.assertFalse(thread.is_alive())
+        self.assertEqual(b'new binding', target.read_bytes())
+        with self.locked_file(target):
+            with self.assertRaises(PermissionError): blocks.atomic_write(target, 'blocked binding')
+        self.assertEqual(b'new binding', target.read_bytes())
+        self.assertFalse(list(self.root.glob('.dependency-profile.json.*.tmp')))
+        failure = PermissionError('observed concurrent binding edit'); failure.winerror = 5
+        def changed(*_):
+            target.write_bytes(b'concurrent binding'); raise failure
+        with patch.object(blocks.os, 'replace', side_effect=changed) as replace:
+            with self.assertRaises(PermissionError): blocks.atomic_write(target, 'stale binding')
+            replace.assert_called_once()
+        self.assertEqual(b'concurrent binding', target.read_bytes())
+        self.assertFalse(list(self.root.glob('.dependency-profile.json.*.tmp')))
+
     @unittest.skipUnless(os.name == 'nt', 'Native Windows governance sharing')
     def test_governance_replacement_recovers_short_block_and_preserves_persistent_failure(self):
         import governance_state as governance

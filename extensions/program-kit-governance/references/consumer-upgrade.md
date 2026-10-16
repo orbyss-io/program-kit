@@ -226,3 +226,43 @@ receipts without this original binding require separate authenticated original
 evidence; this helper never backfills them. Historical receipts remain unchanged.
 Local repair declarations and actual executed regression coverage retain their
 separate validation requirements; source retention does not certify a local repair.
+
+## Required shared regression cases
+
+Use the current installed `scripts/case_inventory.py` through a named Python
+`toolkitChecks` owner for shared engineering regressions. Keep native application
+tests in their actual native owner; a C# wrapper calling Python is not an
+application test merely because it appears in a native test report.
+
+Commit a reviewed current contract containing `schemaVersion: 1`, `modules` and
+`inputs`. Each module declares its literal current Python path, exact source
+SHA-256, import name and complete fully qualified `module.Class.test_method` to
+platform-list mapping. `inputs` lists the actual current mechanism/helpers tested.
+Pass the original reviewed contract digest explicitly:
+
+```sh
+python .specify/extensions/program-kit-governance/scripts/case_inventory.py --contract tests/current-shared-cases.json --contract-sha256 <reviewed-contract-sha256>
+```
+
+The toolkit declaration uses that installed script and literal arguments, includes
+the contract, current cases and mechanism files in its exact owned inputs, and
+sets a bounded timeout. Select it with the existing Focused `Checks` argument.
+Review a changed contract deliberately with its obligation mapping. Do not rebuild
+the expected inventory from discovery during verification or refresh its digest
+just to make missing cases pass. The caller's authenticated source/review supplies
+the anchor; the manifest cannot authenticate its own publisher.
+
+Missing, added, renamed, duplicate, skipped, expected-failure, failing and empty
+required execution fails independently of unrelated passing counts. Every current
+platform case must actually start once and pass. Explicit other-platform cases are
+reported as not applicable and require their platform's qualification; they are
+never recorded as passed. Source and declared inputs must remain unchanged through
+execution. Each run retains source hashes, required/executed identities and bounded
+logs in a new `artifacts/tests/toolkit-cases/` directory. This establishes scoped
+regression execution, not semantic completeness or application acceptance.
+
+When replacing old shared fixtures, retain a reviewed old-obligation-to-new-case
+mapping. Preserve consumer-specific provider budgets, paid authority, domain,
+deployment and original-history checks under their actual current owners. Generic
+toolkit cases cannot replace those obligations, and archived code is never imported
+to manufacture current coverage. Preserve original failed and historical results.

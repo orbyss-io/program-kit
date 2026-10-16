@@ -2,6 +2,81 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_shared_obligations",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_shared_obligations"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Preserved old required failure-scope and native runner alias obligations against current synthetic contracts; no retired domain source.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_shared_obligations.py",
+        "tests/validate_story_delivery.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_project.py"
+      ],
+      "outputs": [
+        "artifacts/tests/toolkit-cases/<unique>/results.json"
+      ],
+      "resources": [],
+      "isolation": "Owned fictional current story/checkpoint and static selected alias only; no SDK, provider or coding agent."
+    },
+    {
+      "id": "validate_case_inventory",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_case_inventory"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exact reviewed current case identities and source binding; count substitution, skipped/empty/failed execution and changed mechanisms cannot pass.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "tests/validate_case_inventory.py",
+        "tests/shared-regression-cases.json",
+        "tests/owned_fixture.py"
+      ],
+      "outputs": [
+        "artifacts/tests/toolkit-cases/<unique>/results.json"
+      ],
+      "resources": [],
+      "isolation": "Owned synthetic files and fresh selected Python only; no archived code, SDK, provider or coding agent."
+    },
+    {
       "id": "validate_upgrade_retry",
       "qualification": {
         "linux": true,
@@ -73,15 +148,40 @@
     },
     {
       "id": "validate_owned_scratch",
-      "qualification": {"linux": true, "windows": true, "build": false},
-      "command": ["{python}", "tests/validate_owned_scratch.py"],
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_owned_scratch"
+      ],
       "group": "development",
       "needs": [],
-      "platforms": ["Windows", "Linux"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
       "purpose": "Owned local staging, deep paths, exact directory identity and separate operation/cleanup failures; no agent.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py", "extensions/program-kit-dotnet/scripts/reconciliation.py", "tests/validate_owned_scratch.py"],
-      "outputs": ["artifacts/validation-runs/<run>/validate_owned_scratch"],
+      "inputs": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py",
+        "extensions/program-kit-dotnet/scripts/reconciliation.py",
+        "tests/validate_owned_scratch.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
+      ],
+      "outputs": [
+        "artifacts/validation-runs/<run>/validate_owned_scratch"
+      ],
       "resources": [],
       "isolation": "Unique local disposable repositories; network scratch unsupported; real consumer untouched."
     },
@@ -229,13 +329,40 @@
     },
     {
       "id": "validate_story_delivery",
-      "qualification": {"linux": true, "windows": true, "build": false},
-      "command": ["{python}", "tests/validate_story_delivery.py"],
-      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_story_delivery"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
       "purpose": "Bounded story/early review progression, scoped deferrals, roles and authenticated reference shapes, freshness, no-hook closure/handoff and deterministic active clocks; simulated humans only.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-governance/**", "extensions/program-kit-dotnet/scripts/composition_model.py", "presets/program-kit-governance-preset/**", "tests/validate_story_delivery.py", "tests/composition_fixture.py"],
-      "outputs": [], "resources": [],
+      "inputs": [
+        "extensions/program-kit-governance/**",
+        "extensions/program-kit-dotnet/scripts/composition_model.py",
+        "presets/program-kit-governance-preset/**",
+        "tests/validate_story_delivery.py",
+        "tests/composition_fixture.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
+      ],
+      "outputs": [],
+      "resources": [],
       "isolation": "Temporary fictional consumers and recorded GitHub response shapes; no real human acceptance, coding agents, posting, monitoring or real consumer reset."
     },
     {
@@ -416,10 +543,20 @@
     },
     {
       "id": "validate_normal_development",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
       "command": [
         "{python}",
-        "tests/validate_normal_development.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_normal_development"
       ],
       "group": "development",
       "needs": [],
@@ -432,7 +569,10 @@
       "inputs": [
         "extensions/**",
         "presets/**",
-        "tests/validate_normal_development.py", "tests/validate_story_delivery.py"
+        "tests/validate_normal_development.py",
+        "tests/validate_story_delivery.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [
         "artifacts/validate_normal_development"
@@ -442,10 +582,20 @@
     },
     {
       "id": "validate_scoped_verification",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
       "command": [
         "{python}",
-        "tests/validate_scoped_verification.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_scoped_verification"
       ],
       "group": "development",
       "needs": [],
@@ -459,7 +609,9 @@
         "extensions/program-kit-dotnet/**",
         "extensions/program-kit-governance/**",
         "presets/**",
-        "tests/validate_scoped_verification.py"
+        "tests/validate_scoped_verification.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_scoped_verification"
@@ -469,10 +621,20 @@
     },
     {
       "id": "validate_task_generation",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
       "command": [
         "{python}",
-        "tests/validate_task_generation.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_task_generation"
       ],
       "group": "development",
       "needs": [],
@@ -485,7 +647,11 @@
       "inputs": [
         "extensions/**",
         "presets/**",
-        "tests/validate_task_generation.py", "tests/exercise_fresh_story_reset.py", "tests/validate_story_delivery.py"
+        "tests/validate_task_generation.py",
+        "tests/exercise_fresh_story_reset.py",
+        "tests/validate_story_delivery.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [
         "artifacts/validate_task_generation"
@@ -560,10 +726,20 @@
     },
     {
       "id": "validate_dependency_profiles",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
       "command": [
         "{python}",
-        "tests/validate_dependency_profiles.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_dependency_profiles"
       ],
       "group": "development",
       "needs": [],
@@ -589,7 +765,9 @@
         ".github/**",
         "tests/validate_dependency_profiles.py",
         "docs/**",
-        "releases/**"
+        "releases/**",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_dependency_profiles"
@@ -677,10 +855,20 @@
     },
     {
       "id": "validate_repository_toolchain",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
       "command": [
         "{python}",
-        "tests/validate_repository_toolchain.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_repository_toolchain"
       ],
       "group": "development",
       "needs": [],
@@ -706,7 +894,9 @@
         ".github/**",
         "docs/**",
         "releases/**",
-        "tests/validate_repository_toolchain.py"
+        "tests/validate_repository_toolchain.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_repository_toolchain"
@@ -914,10 +1104,20 @@
     },
     {
       "id": "validate_python_consistency",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
       "command": [
         "{python}",
-        "tests/validate_public_core_compatibility.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_public_core_compatibility"
       ],
       "group": "development",
       "needs": [],
@@ -943,7 +1143,9 @@
         ".github/**",
         "tests/validate_public_core_compatibility.py",
         "docs/**",
-        "releases/**"
+        "releases/**",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_python_consistency"
@@ -1792,10 +1994,20 @@
     },
     {
       "id": "validate_repository_sync",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
       "command": [
         "{python}",
-        "tests/validate_repository_sync.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_repository_sync"
       ],
       "group": "development",
       "needs": [],
@@ -1821,7 +2033,9 @@
         ".github/**",
         "tests/validate_repository_sync.py",
         "docs/**",
-        "releases/**"
+        "releases/**",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [
         "artifacts/validation-runs/<run>/validate_repository_sync"
@@ -4919,7 +5133,13 @@
       },
       "command": [
         "{python}",
-        "tests/validate_document_ownership.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_document_ownership"
       ],
       "group": "development",
       "needs": [],
@@ -4937,7 +5157,9 @@
         "extensions/program-kit-governance/commands/**",
         "presets/program-kit-governance-preset/commands/speckit.tasks.md",
         "tests/validate_document_ownership.py",
-        "tests/owned_fixture.py"
+        "tests/owned_fixture.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [],
       "resources": [],
@@ -5133,13 +5355,40 @@
     },
     {
       "id": "validate_tooling_witness",
-      "qualification": {"linux": true, "windows": true, "build": false},
-      "command": ["{python}", "tests/validate_tooling_witness.py"],
-      "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "--module",
+        "validate_tooling_witness"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
       "purpose": "Original receipt-bound complete source survives staging loss and project moves; exact explicit recovery, independent later process and partial/modified/rehashed source negatives without historical execution or public self-attestation.",
       "owner": "program-kit",
-      "inputs": ["extensions/program-kit-governance/scripts/tooling_witness.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py", "scripts/upgrade_program_kit.py", "scripts/build_release.py", "tests/validate_tooling_witness.py"],
-      "outputs": [], "resources": [],
+      "inputs": [
+        "extensions/program-kit-governance/scripts/tooling_witness.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
+        "scripts/upgrade_program_kit.py",
+        "scripts/build_release.py",
+        "tests/validate_tooling_witness.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
+      ],
+      "outputs": [],
+      "resources": [],
       "isolation": "Owned synthetic source and consumer, finite durable witness outside disposable caches. No downloads, source execution, patch replay or historical receipt rewrite."
     },
     {

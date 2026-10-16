@@ -89,7 +89,9 @@
         "tests/validation-inventory.json",
         "scripts/consumer_upgrade_workspace.py",
         "tests/validate_consumer_upgrade.py",
-        "tests/owned_fixture.py"
+        "tests/owned_fixture.py",
+        "extensions/program-kit-building-blocks/scripts/building_blocks.py",
+        "tests/validate_owned_scratch.py"
       ],
       "validation": [
         {
@@ -126,6 +128,20 @@
           "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
           "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
+        },
+        {
+          "command": "building-block-atomic-owned.log",
+          "status": "passed",
+          "scope": "20 owned scratch cases, including a real Windows short/persistent delete-sharing block and concurrent destination edit preservation; no permission changes.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/building-block-atomic-owned.log",
+          "sha256": "5d7418a548edca0c6802882ca3e764252cd09457acc8cd7ffb19d11531f1e04c"
+        },
+        {
+          "command": "dependency-profiles-atomic.log",
+          "status": "passed",
+          "scope": "17 actual dependency profile regressions pass after the central owned atomic writer repair.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/dependency-profiles-atomic.log",
+          "sha256": "4848dc52bf4c3955260ea84109c73589caf248fd938258ef992627ef464486f6"
         }
       ],
       "remainingDependencies": [
@@ -678,12 +694,17 @@
       "sourceDiagnosis": "Replace stale fixtures with preserved obligations",
       "workPackages": "G/I",
       "closureRequired": "Explicit required identities and old-to-new coverage; removal/substitution/skip/empty/failure negatives.",
-      "status": "partially-implemented; explicit shared obligation inventory pending",
+      "status": "implemented exact identity/source runner and preserved portable obligations; original 166-case semantic mapping and complete qualification pending",
       "changedFiles": [
-        "tests/validate_public_core_compatibility.py",
-        "tests/validate_repository_toolchain.py",
-        "tests/validate_task_generation.py",
-        "tests/validate_release_install.py"
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "extensions/program-kit-governance/references/consumer-upgrade.md",
+        "extensions/program-kit-governance/references/phase-obligations.json",
+        "tests/shared-regression-cases.json",
+        "tests/validate_case_inventory.py",
+        "tests/validate_shared_obligations.py",
+        "tests/validate_native_start_repairs.py",
+        "tests/validate_asset_sources.py",
+        "tests/validation-inventory.json"
       ],
       "validation": [
         {
@@ -706,10 +727,46 @@
           "scope": "Actual packaged workflow helper preserves the original unresolved provider-failure obligation through bounded current failure counts plus exact retained history/head/complete event count. This fixes one drifted reusable installed helper; the complete explicit old-to-new shared obligation/module/case inventory remains open.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-16/packed-release-install-checkpoint-history.log",
           "sha256": "d762f92988f88b6f0d71caff2c3b70eb1783eed7d1957a650501be8c29f6f868"
+        },
+        {
+          "command": "case-inventory-mechanism-inputs.log",
+          "status": "passed",
+          "scope": "Nine identity/source/mechanism negative controls; 126 unrelated passing cases cannot substitute a required identity; skips, missing/empty/fail/error, duplicate/load_tests substitution and changed inputs fail.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/case-inventory-mechanism-inputs.log",
+          "sha256": "28a2af9e397ddd9bc15a10fc768438d372dd5d903eb84d9b1e4835f465a8dfdd"
+        },
+        {
+          "command": "preserved-shared-obligations.log",
+          "status": "passed",
+          "scope": "11 old failure-scope and selected xUnit alias obligations against current generic fictional state. No old business fixture, provider call or acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/preserved-shared-obligations.log",
+          "sha256": "99afd8f96ac35d2abde2e17fc3c98f670e7907419e357d9f3b337febfb00300b"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "44 explicit native-start cases actually passed; two POSIX/symlink cases explicitly require their qualified platforms. Earlier default sandbox run failed and remains failed.",
+          "log": "artifacts/tests/toolkit-cases/22f18d2fe03148ddbc99690f4d7e7cad/results.json",
+          "sha256": "e0af32748e1bd853d5ecf2196729154d81eaa18e642a0acbe23fd8d6cfbf162d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Real 511-entry native bundle install, installed current case helper through named toolkit adapter, current source-bound exact case execution, UI/public SDK recording preparation and immutable original witness. No native application count or public source authority borrowed.",
+          "log": "artifacts/source-assets/b67dce25ff0e4bc581c482c735703b95/results.json",
+          "sha256": "4eb1768ee30dacae13b5d7b0c82a115f5c80a5c878db0ea72fd3e2c55f480469"
+        },
+        {
+          "command": "case-knowledge-routing.log",
+          "status": "passed",
+          "scope": "25 task-generation/source knowledge routing cases pass with the explicit shared-regression guidance.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/case-knowledge-routing.log",
+          "sha256": "20cbac4170c80a792d4c0bd459efb1c1eb47fdc6da9d087d89c53f6b4b33356d"
         }
       ],
       "remainingDependencies": [
-        "Explicit reviewed shared module/case identities and old-to-new behavioral obligation inventory, including consumer Common.Toolkit bridge attribution; missing/substitution/skip/empty/failure negatives. Current fixture repairs alone do not close R9."
+        "Complete reviewed original 166-case obligation mapping, explicitly retaining consumer-specific provider/domain/history obligations and native C# bridge attribution.",
+        "Current complete required case execution, exact-candidate CI, normal released adoption; the current fixed contract declares 339 cases across 19 modules and explicit platform applicability."
       ],
       "closureEvidence": []
     },
@@ -2275,6 +2332,23 @@
         "validate_workflow_resumption"
       ],
       "qualification": "Original failed run remains failed. Later targeted repairs do not change this result; no exact-candidate CI/publication claim."
+    },
+    {
+      "command": "./scripts/Test-ProgramKit.ps1 -Suite Development -BrowserEngines chromium,webkit",
+      "source": {
+        "commit": "94da09b615083b9b7032942a7059ea57a8d4f9ba",
+        "tree": "44213167b2dbbcafc1ab02ab212c77c918c50481"
+      },
+      "journal": "artifacts/validation-runs/20261016T222536Z-56f8ad1f/journal.json",
+      "journalSha256": "9374d43bdc00610a88c9d4728fec5dca6180b01ece6c03bd56d26d0311a54083",
+      "status": "failed",
+      "passed": 111,
+      "total": 113,
+      "failed": [
+        "validate_dependency_profiles",
+        "validate_workflow_resumption"
+      ],
+      "qualification": "Original failed run remains failed. Building-block atomic writer repaired with targeted native evidence; recurring installed native Spec Kit checkpoint replacement failure remains observed, cause unproven. No installed public core code changed."
     }
   ],
   "continuationHistory": [
@@ -2477,6 +2551,66 @@
         }
       ],
       "qualification": "Development/source/installed proofs only. Development journal 20261016T213645Z-bc419d3a failed 108/112; its two native checkpoint failures passed unchanged focused reruns and remain observed, with cause unproven. Exact-candidate CI and remaining frozen work continue."
+    },
+    {
+      "scope": "Frozen 47 only; preserve unrelated held investigation/grilling files and active consumer.",
+      "implemented": [
+        "Bounded Windows building-block atomic writer",
+        "R9 exact shared-case execution and current portable original failure/alias obligations",
+        "Foundation native bootstrap denial proof and complete publication family guard"
+      ],
+      "validation": [
+        {
+          "command": "building-block-atomic-owned.log",
+          "status": "passed",
+          "scope": "20 owned scratch cases, including a real Windows short/persistent delete-sharing block and concurrent destination edit preservation; no permission changes.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/building-block-atomic-owned.log",
+          "sha256": "5d7418a548edca0c6802882ca3e764252cd09457acc8cd7ffb19d11531f1e04c"
+        },
+        {
+          "command": "dependency-profiles-atomic.log",
+          "status": "passed",
+          "scope": "17 actual dependency profile regressions pass after the central owned atomic writer repair.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/dependency-profiles-atomic.log",
+          "sha256": "4848dc52bf4c3955260ea84109c73589caf248fd938258ef992627ef464486f6"
+        },
+        {
+          "command": "case-inventory-mechanism-inputs.log",
+          "status": "passed",
+          "scope": "Nine identity/source/mechanism negative controls; 126 unrelated passing cases cannot substitute a required identity; skips, missing/empty/fail/error, duplicate/load_tests substitution and changed inputs fail.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/case-inventory-mechanism-inputs.log",
+          "sha256": "28a2af9e397ddd9bc15a10fc768438d372dd5d903eb84d9b1e4835f465a8dfdd"
+        },
+        {
+          "command": "preserved-shared-obligations.log",
+          "status": "passed",
+          "scope": "11 old failure-scope and selected xUnit alias obligations against current generic fictional state. No old business fixture, provider call or acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/preserved-shared-obligations.log",
+          "sha256": "99afd8f96ac35d2abde2e17fc3c98f670e7907419e357d9f3b337febfb00300b"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "44 explicit native-start cases actually passed; two POSIX/symlink cases explicitly require their qualified platforms. Earlier default sandbox run failed and remains failed.",
+          "log": "artifacts/tests/toolkit-cases/22f18d2fe03148ddbc99690f4d7e7cad/results.json",
+          "sha256": "e0af32748e1bd853d5ecf2196729154d81eaa18e642a0acbe23fd8d6cfbf162d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Real 511-entry native bundle install, installed current case helper through named toolkit adapter, current source-bound exact case execution, UI/public SDK recording preparation and immutable original witness. No native application count or public source authority borrowed.",
+          "log": "artifacts/source-assets/b67dce25ff0e4bc581c482c735703b95/results.json",
+          "sha256": "4eb1768ee30dacae13b5d7b0c82a115f5c80a5c878db0ea72fd3e2c55f480469"
+        },
+        {
+          "command": "case-knowledge-routing.log",
+          "status": "passed",
+          "scope": "25 task-generation/source knowledge routing cases pass with the explicit shared-regression guidance.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/case-knowledge-routing.log",
+          "sha256": "20cbac4170c80a792d4c0bd459efb1c1eb47fdc6da9d087d89c53f6b4b33356d"
+        }
+      ],
+      "qualification": "Scoped current development/installed evidence; original 166 lineage mapping, complete Development and exact candidate/public closure remain. Foundation draft PR14 remains open at 0c4939c. Previous CI38977973561 failed at obsolete JSON redirect assertion; corrected CI38979465042 has passed all native/browser/packaged PostgreSQL stages but is not reused as exact-source qualification for later commits."
     }
   ]
 }

@@ -111,6 +111,37 @@ class NativePackTests(unittest.TestCase):
             content=json.loads((consumer/'.program-kit/ui/content.json').read_text())
             expected=ui_profile.outputs(profile,content)
             self.assertTrue(all((consumer/name).read_bytes()==data for name,data in expected.items()))
+            # The actual installed current helper executes an explicitly anchored
+            # current consumer case through the supported toolkit adapter. No
+            # historical source or invented C# application owner is involved.
+            engineering=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'
+            (consumer/'eng').mkdir(exist_ok=True)
+            for name in ('toolkit_verification.py','retained_inputs.py','owned_scratch.py'):
+                shutil.copyfile(engineering/name,consumer/'eng'/name)
+            required=consumer/'required_current_cases.py'
+            required.write_bytes(b'import unittest\nclass Required(unittest.TestCase):\n def test_actual_current_obligation(self): self.assertEqual(7, 7)\n')
+            runner='.specify/extensions/program-kit-governance/scripts/case_inventory.py'
+            contract={'schemaVersion':1,'inputs':[runner], 'modules':[{'module':'required_current_cases',
+                'path':required.name,'sha256':hashlib.sha256(required.read_bytes()).hexdigest(),
+                'cases':{'required_current_cases.Required.test_actual_current_obligation':['Windows','Linux','Darwin']}}]}
+            contract_path=consumer/'reviewed-current-cases.json'
+            contract_path.write_bytes((json.dumps(contract,indent=2)+'\n').encode())
+            anchor=hashlib.sha256(contract_path.read_bytes()).hexdigest()
+            adapter=consumer/'invoke-reviewed-cases.py'
+            adapter.write_bytes(('from pathlib import Path\nimport sys\nsys.path.insert(0,"eng")\nimport toolkit_verification as t\n'
+                'root=Path.cwd()\nrow='+repr({'id':'current-regressions','script':runner,
+                    'arguments':['--contract',contract_path.name,'--contract-sha256',anchor],
+                    'inputs':[required.name,contract_path.name],'timeoutSeconds':30})+'\n'
+                'print(t.execute(root,[row["id"]],t.declarations(root,{"toolkitChecks":[row]}))["run"])\n').encode())
+            toolkit_receipt=run('installed-case-inventory-toolkit',[sys.executable,native_path(adapter)]).splitlines()[-1]
+            actual_toolkit=json.loads((consumer/toolkit_receipt).read_bytes())
+            actual_cases=list((consumer/'artifacts/tests/toolkit-cases').glob('*/results.json'))
+            self.assertEqual('completed',actual_toolkit['status']);self.assertEqual(1,len(actual_cases))
+            self.assertEqual({'required_current_cases.Required.test_actual_current_obligation':'passed'},
+                             json.loads(actual_cases[0].read_bytes())['executedCases'])
+            self.assertFalse(actual_toolkit['acceptanceEstablished'])
+            result['caseInventory']={'contractSha256':anchor,'toolkitReceipt':toolkit_receipt,
+                'resultSha256':hashlib.sha256(actual_cases[0].read_bytes()).hexdigest()}
             # Real installed native source guard sees logical original files,
             # including publisher examples, rather than trusting a rehashed pack.
             ownership=native_phase_ownership.preflight(consumer,ROOT)
@@ -148,6 +179,7 @@ class NativePackTests(unittest.TestCase):
             result.update(status='passed',uiFilesCompared=len(expected),ownership=ownership,
                           cases=['exact-loose-packed-source-parity','native-hidden-pack-installed','actual-installed-ui-output-parity',
                                  'actual-installed-public-SDK-recording-preparation','rehashed-virtual-source-edit-refused-without-overwrite',
+                                 'installed-current-case-inventory-through-toolkit-adapter',
                                  'complete-packaged-component-witness','installed-later-session-without-original-staging'])
         finally:
             if os.environ.get('PROGRAM_KIT_IMPORTED_PACKAGES'):
