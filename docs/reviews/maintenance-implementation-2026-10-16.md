@@ -406,3 +406,36 @@ lock, package, analyzer assets and source hashes. Ordinary development (31 cases
 phase obligations, knowledge inventory, architecture recipe, native contract layout,
 validation runner and repository sync checks passed. Current full qualification
 remains outstanding; other approved repairs continue.
+
+## Continuation: public native database lifecycle and provider binding
+
+R4/R6 now have a maintained, fixed disposable PostgreSQL lifecycle example through
+public Foundation 0.3.5 and actual CShells 0.0.30 activation. Deployment and runtime
+use distinct identities and credentials. First preparation serializes only schema
+deployment; eight runtime transactions were independently observed overlapping.
+Startup reads the required journal revision and each required grant through the
+runtime unit, without application DDL. Unsafe objects/foreign owners/unmarked
+targets reject without ownership transfer, preserving fixture data. Actual schema
+absence and uniquely owned container cleanup are independently observed. This is
+not a general production migration or repair tool; no Foundation API defect was
+attributed where its existing public capability suffices.
+
+N9 uses one typed private-binding projection for Compose, the generated reference
+and scoped task context. Complete native source declarations with mismatched keys
+fail before materialization; absent declarations remain explicitly unqualified.
+Key comparison follows native case-insensitive configuration semantics. Actual
+native registration consumes the emitted private path, while an invented key or
+missing binding fails without fallback. Static declaration matching does not
+authenticate source hashes, infer arbitrary C# accesses or replace native build
+and activation. The actual accepted private location remains the runtime input.
+
+The final source passed all 19 required native cases at
+`artifacts/postgresql-lifecycle/af85c9213c1e4471852b391aa101fe2d/results.json`.
+Exact redacted commands, both streams, source/assembly/package DLL hashes and
+observed cleanup are retained. Initial fixture setup failures and a run rejected
+for a mid-run source edit remain failed; no failed run is reused as qualification.
+Composition (35 cases), ordinary development (31), phase obligations, inventory
+and validation-runner checks passed separately. Native-start coverage reports
+44 executed cases and two local host exclusions (directory symlink permission and
+POSIX ownership initialization); Linux CI remains responsible for those paths.
+Current whole-source/profile integration and CI qualification remain due.

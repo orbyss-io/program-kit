@@ -43,6 +43,70 @@ REFERENCE_KINDS = {'shellRef': 'shell', 'hostRef': 'host', 'featureRef': 'featur
                    'authorityRef': 'identityAuthority', 'frontendRef': 'frontend', 'filesRef': 'privateFiles'}
 
 
+def private_file_bindings(value):
+    """One typed binding identity for runtime emission and provider authoring context.
+
+    No environment values or credentials are read. This is not source inference or
+    proof that arbitrary dynamic provider accesses consume these declared keys.
+    """
+    result = []
+    for row in bindings(value, 'privateFiles'):
+        shell = value['resources'][row['shellRef']]['name']
+        section = row.get('section', 'EvidenceFiles')
+        result.append({'featureRef': row['featureRef'], 'featurePath': value['resources'][row['featureRef']]['path'],
+                       'hostRef': row['hostRef'], 'shellRef': row['shellRef'], 'shellName': shell,
+                       'filesRef': row['filesRef'], 'configurationKey': section + ':' + row['setting'],
+                       'environmentKey': 'CShells__Shells__' + shell + '__Configuration__' + section + '__' + row['setting'],
+                       'runtimePath': '/private-evidence/' + row['filesRef']})
+    return sorted(result, key=lambda row: (row['featurePath'], row['shellName'], row['configurationKey']))
+
+
+def provider_binding_declarations(repository, value, *, feature_paths=None):
+    """Compare an existing native source declaration to its typed composition.
+
+    The native metadata producer still validates source hashes and actual compiled
+    registration. This check does not interpret C# or certify dynamic accesses.
+    """
+    findings = []
+    for binding in private_file_bindings(value):
+        if feature_paths is not None and binding['featurePath'] not in feature_paths:
+            continue
+        path = Path(repository) / Path(binding['featurePath']).parent / 'settings.source.json'
+        if not path.is_file():
+            findings.append({'featurePath': binding['featurePath'], 'status': 'native-declaration-not-present',
+                             'configurationKey': binding['configurationKey']})
+            continue
+        require(path.resolve().is_relative_to(Path(repository).resolve()), 'provider settings declaration escaped repository')
+        require(path.stat().st_size <= 1_048_576, 'provider settings declaration exceeds its bounded size')
+        def unique(pairs):
+            result = {}
+            for key, item in pairs:
+                require(key not in result, 'duplicate provider settings declaration member')
+                result[key] = item
+            return result
+        metadata = json.loads(path.read_text(encoding='utf-8-sig'), object_pairs_hook=unique)
+        feature = value['resources'][binding['featureRef']]
+        require(isinstance(metadata, dict) and type(metadata.get('schemaVersion')) is int and metadata['schemaVersion'] == 2
+                and metadata.get('packageId') == feature['packageId'] and isinstance(metadata.get('contracts'), list)
+                and 1 <= len(metadata['contracts']) <= 64, 'unsupported native provider settings declaration: ' + binding['featurePath'])
+        declared = set()
+        for contract in metadata['contracts']:
+            require(isinstance(contract, dict) and type(contract.get('complete')) is bool
+                    and isinstance(contract.get('settings'), list) and len(contract['settings']) <= 4096,
+                    'unsupported native provider settings contract: ' + binding['featurePath'])
+            for setting in contract['settings']:
+                require(isinstance(setting, dict) and isinstance(setting.get('path'), str), 'invalid declared provider setting path')
+                if contract['complete']:
+                    key = setting['path'].casefold()  # Native IConfiguration keys are case insensitive.
+                    require(key not in declared, 'duplicate declared provider setting path')
+                    declared.add(key)
+        require(binding['configurationKey'].casefold() in declared,
+                'provider settings declaration does not cover composition binding: ' + binding['featurePath'] + ' ' + binding['configurationKey'])
+        findings.append({'featurePath': binding['featurePath'], 'status': 'declared-key-matches; native-activation-required',
+                         'configurationKey': binding['configurationKey']})
+    return findings
+
+
 def require(condition, message):
     if not condition:
         raise ValueError('PKM001 ' + message)

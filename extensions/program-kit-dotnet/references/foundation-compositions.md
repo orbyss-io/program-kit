@@ -1,5 +1,16 @@
 # Typed executable Foundation composition
 
+Private-file provider authoring uses the exact typed binding projected into
+`eng/foundation-composition.resolved.json`, the generated configuration reference and
+scoped phase context. For a binding selecting `EvidenceFiles:Root`, read that key in
+the provider and declare it in its native settings metadata. An invented
+`PolicyEvidence:RootPath` key is not an alias. Current native source declarations are
+compared before dependent materialization; absent declarations are reported as such,
+and their presence cannot establish actual compiled registration or exhaustive
+dynamic C# access coverage. Use configured native activation to establish that proof.
+The maintained lifecycle fixture includes an actual emitted private binding and
+missing/invented-key negatives, without changing the accepted private location.
+
 The sole authoring input is schema version 2 of `eng/foundation-composition.json`.
 Start from `templates/dotnet/compositions/application-foundation.json` or its
 `application-foundation-postgresql.json` variant, then populate the consumer's Accepted

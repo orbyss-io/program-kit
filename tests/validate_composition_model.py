@@ -18,6 +18,36 @@ def example():
 
 
 class ResourceModel(unittest.TestCase):
+    def test_private_provider_binding_projects_exact_key_and_discloses_static_limit(self):
+        graph = example()
+        shell = next(iter(model.resources(graph, 'shell')))
+        host = next(iter(model.resources(graph, 'host')))
+        feature = next(row['featureRef'] for row in model.bindings(graph, 'databaseProvider'))
+        graph['resources']['owned-files'] = {'kind':'privateFiles','ownerRef':'fixture-owner'}
+        graph['authority'] = {'architectureMap':'docs/architecture/fixture.json','decisionIds':['fixture']}
+        graph['bindings'].append({'kind':'privateFiles','filesRef':'owned-files','hostRef':host,
+                                  'shellRef':shell,'featureRef':feature,'setting':'Root'})
+        for configured in graph['environments'].values():
+            configured['resources']['owned-files']={'directory':'artifacts/private/owned-files'}
+        model.validate(graph)
+        binding = model.private_file_bindings(graph)[0]
+        self.assertEqual('EvidenceFiles:Root', binding['configurationKey'])
+        self.assertTrue(binding['environmentKey'].endswith('__Configuration__EvidenceFiles__Root'))
+        self.assertEqual('/private-evidence/owned-files', binding['runtimePath'])
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.assertEqual('native-declaration-not-present', model.provider_binding_declarations(root,graph)[0]['status'])
+            metadata = root/Path(binding['featurePath']).parent/'settings.source.json'
+            metadata.parent.mkdir(parents=True)
+            declaration = {'schemaVersion':2,'packageId':graph['resources'][feature]['packageId'],
+                           'contracts':[{'complete':True,'settings':[{'path':'PolicyEvidence:RootPath'}]}]}
+            metadata.write_text(json.dumps(declaration))
+            with self.assertRaisesRegex(ValueError,'does not cover composition binding'):
+                model.provider_binding_declarations(root,graph)
+            declaration['contracts'][0]['settings'][0]['path']='evidencefiles:ROOT'
+            metadata.write_text(json.dumps(declaration))
+            self.assertIn('native-activation-required',model.provider_binding_declarations(root,graph)[0]['status'])
+
     def ordinary_provider_graph(self, database=True, declared=True):
         graph = example()
         if not database:

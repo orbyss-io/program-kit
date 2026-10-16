@@ -504,6 +504,7 @@ def resolve(graph, contract):
             'environment': contract['environment'], 'hosts': hosts, 'projects': model.project_list(graph),
             'packages': contract['packages'], 'hostImage': contract['hostImage'], 'serviceImages': contract['serviceImages'],
             'contractSha256': hashlib.sha256(encoded(contract)).hexdigest(),
+            'providerBindings': model.private_file_bindings(graph),
             'scope': 'Configured foundation projection; actual preparation/start/readiness are separate evidence'}
 
 
@@ -518,12 +519,17 @@ def reference(graph, resolved):
         '| Host | Shells | Selected roots | Runtime stage |', '| --- | --- | --- | --- |',
         *['| ' + name + ' | ' + ', '.join(host['shellNames']) + ' | ' + ', '.join(host['rootPackages']) + ' | ' + host['runtimeStage'] + ' |'
           for name, host in resolved['hosts'].items()], '',
+        '| Provider project | Shell | Configuration key | Private mount |', '| --- | --- | --- | --- |',
+        *['| ' + row['featurePath'] + ' | ' + row['shellName'] + ' | ' + row['configurationKey'] + ' | ' + row['runtimePath'] + ' |'
+          for row in resolved.get('providerBindings', [])], '',
+        'Provider code and native settings metadata consume these exact keys. Missing bindings fail; do not introduce an alternate-key fallback. Declared-key checks do not infer arbitrary dynamic C# accesses or prove configured activation.', '',
         'Preparation timings, foundation readiness and product acceptance are distinct. Product schema, ownership and business authorization remain consumer-owned.', ''])
 
 
 def validate_materialized(repository, graph, contract, profile, realm=None):
     """Validate the generated desired profile against canonical bindings before writes."""
     model.validate(graph, repository)
+    model.provider_binding_declarations(repository, graph)
     require(contract['modelDigest'] == model.digest(graph), 'stale composition contract')
     value = json.loads(profile)
     expected_names = {row['name'] for row in model.resources(graph, 'shell').values()}

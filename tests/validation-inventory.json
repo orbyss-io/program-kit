@@ -4975,6 +4975,48 @@
       ],
       "resources": [],
       "isolation": "New owned synthetic consumer and native public-package cache; no agents or application acceptance."
+    },
+    {
+      "id": "validate_postgresql_lifecycle",
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_postgresql_lifecycle.py"
+      ],
+      "group": "integration",
+      "needs": [
+        "validate_composition_model"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Actual selected public Foundation/CShells registration from emitted provider binding; separate PostgreSQL deployment/runtime identities, fresh parallel preparation, observed concurrent runtime effects, unsafe target denial and observed cleanup.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_postgresql_lifecycle.py",
+        "tests/composition_fixture.py",
+        "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/**",
+        "extensions/program-kit-dotnet/references/persistence-profiles.md",
+        "extensions/program-kit-dotnet/scripts/composition_model.py",
+        "extensions/program-kit-dotnet/scripts/composition_render.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
+        "extensions/program-kit-dotnet/references/persistence-runtimes.json",
+        "extensions/program-kit-building-blocks/references/dependency-profiles/**"
+      ],
+      "outputs": [
+        "artifacts/postgresql-lifecycle/<unique>/results.json"
+      ],
+      "resources": [
+        "docker"
+      ],
+      "isolation": "Uniquely labelled disposable pinned PostgreSQL container and synthetic credentials; actual native runtime children receive no deployment connection; no existing database, ownership transfer, live consumer, agent or paid provider."
     }
   ],
   "groups": {

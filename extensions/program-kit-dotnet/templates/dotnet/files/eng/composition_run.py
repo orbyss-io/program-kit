@@ -278,14 +278,13 @@ def compose_model(root, graph, contract, resolved, credentials):
                 values[prefix + 'PostgreSql__Policies__' + row['policy'] + '__ConnectionString'] = '${' + key + ':?Prepare the database binding}'
         volumes = [{'type': 'bind', 'source': str(stage / file), 'target': '/app/' + file, 'read_only': True,
                     'bind': {'create_host_path': False}} for file in ('hostsettings.json', 'shells.json', 'nuplane.settings.json', 'packages')]
-        for row in model.bindings(graph, 'privateFiles'):
+        for row in model.private_file_bindings(graph):
             if row['hostRef'] != name:
                 continue
-            target = '/private-evidence/' + row['filesRef']
+            target = row['runtimePath']
             volumes.append({'type': 'bind', 'source': str(private_roots[row['filesRef']]), 'target': target,
                             'read_only': False, 'bind': {'create_host_path': False}})
-            shell = graph['resources'][row['shellRef']]['name']
-            values['CShells__Shells__' + shell + '__Configuration__' + row.get('section', 'EvidenceFiles') + '__' + row['setting']] = target
+            values[row['environmentKey']] = target
         if (stage / 'shells.json').is_file():
             import hosted_bundle
             staged_shells = shell_composition.load(stage / 'shells.json', True)

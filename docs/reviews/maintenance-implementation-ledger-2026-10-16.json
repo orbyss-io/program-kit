@@ -497,14 +497,27 @@
     {
       "id": "R4",
       "finding": "R4 Schema wrong owner",
-      "sourceDiagnosis": "Correct deployment/grant lifecycle; bound any repair",
+      "sourceDiagnosis": "Existing Foundation public policy/unit registration is sufficient. Shipped a narrowly scoped maintained deployment/runtime lifecycle example instead of copying consumer SQL or adding a general ownership-transfer API.",
       "workPackages": "H",
       "closureRequired": "Real runtime-role admission and permissions; complete object/atomicity/unsafe-target negatives.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-real-public-native-fixture-proof; current-profile-and-CI-closure-pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle",
+        "tests/validate_postgresql_lifecycle.py",
+        "extensions/program-kit-dotnet/references/persistence-profiles.md",
+        "tests/validation-inventory.json"
+      ],
+      "validation": [
+        {
+          "command": "installed Specify Python tests/validate_postgresql_lifecycle.py",
+          "status": "passed",
+          "scope": "19 exact named cases through public Foundation PostgreSql 0.3.5 and native CShells 0.0.30: separate roles and distinct credentials; initial schema absence; eight first-preparation processes and eight observed overlapping runtime transactions; individual permissions/revision admission, unsafe-object/foreign-owner/unmarked-target denial; actual emitted private-provider key/native registration and missing/invented-key failures; observed schema and owned-container cleanup. Cold native restore/LockedMode, exact commands, source/fixture assembly/runtime archive DLL hashes retained. Fixed synthetic schema only; no production migration or ownership-transfer capability.",
+          "log": "artifacts/postgresql-lifecycle/af85c9213c1e4471852b391aa101fe2d/results.json",
+          "sha256": "645aa5684abd0dad717738614fb14d5def4feb77eb20866e57cbeeb902bb9a5a"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Current selected-profile integration and exact-source CI qualification remain. Application migrations/roles and production targets require application-owned deployment; the fixed disposable fixture cannot authorize ownership repair."
       ],
       "closureEvidence": []
     },
@@ -557,14 +570,27 @@
     {
       "id": "R6",
       "finding": "R6 Parallel fixture schema race",
-      "sourceDiagnosis": "Centralize fresh fixture initialization",
+      "sourceDiagnosis": "Existing Foundation public policy/unit registration is sufficient. Shipped a narrowly scoped maintained deployment/runtime lifecycle example instead of copying consumer SQL or adding a general ownership-transfer API.",
       "workPackages": "H",
       "closureRequired": "Proved initially absent schema, actual concurrent preparation, preserved product concurrency and verified cleanup.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-real-public-native-fixture-proof; current-profile-and-CI-closure-pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle",
+        "tests/validate_postgresql_lifecycle.py",
+        "extensions/program-kit-dotnet/references/persistence-profiles.md",
+        "tests/validation-inventory.json"
+      ],
+      "validation": [
+        {
+          "command": "installed Specify Python tests/validate_postgresql_lifecycle.py",
+          "status": "passed",
+          "scope": "19 exact named cases through public Foundation PostgreSql 0.3.5 and native CShells 0.0.30: separate roles and distinct credentials; initial schema absence; eight first-preparation processes and eight observed overlapping runtime transactions; individual permissions/revision admission, unsafe-object/foreign-owner/unmarked-target denial; actual emitted private-provider key/native registration and missing/invented-key failures; observed schema and owned-container cleanup. Cold native restore/LockedMode, exact commands, source/fixture assembly/runtime archive DLL hashes retained. Fixed synthetic schema only; no production migration or ownership-transfer capability.",
+          "log": "artifacts/postgresql-lifecycle/af85c9213c1e4471852b391aa101fe2d/results.json",
+          "sha256": "645aa5684abd0dad717738614fb14d5def4feb77eb20866e57cbeeb902bb9a5a"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Current selected-profile integration and exact-source CI qualification remain. Application migrations/roles and production targets require application-owned deployment; the fixed disposable fixture cannot authorize ownership repair."
       ],
       "closureEvidence": []
     },
@@ -1356,14 +1382,33 @@
     {
       "id": "N9",
       "finding": "N9 Provider/composition key mismatch",
-      "sourceDiagnosis": "Authoritative binding guidance, declared-settings checks and configured public-registration proof",
+      "sourceDiagnosis": "Established consumer key mismatch (PolicyEvidence:RootPath versus accepted EvidenceFiles:Root), not a generated binding defect. One canonical typed binding now feeds actual runtime emission, generated reference and scoped task context; native source declaration matching preserves case-insensitive IConfiguration semantics and discloses its static limits.",
       "workPackages": "D/F/I/J",
       "closureRequired": "Real emitted binding works; invented/missing key fails without fallback or secret disclosure.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-emitted-native-binding-proof; current-profile-and-CI-closure-pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/scripts/composition_model.py",
+        "extensions/program-kit-dotnet/scripts/composition_render.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/composition_run.py",
+        "extensions/program-kit-governance/scripts/phase_obligations.py",
+        "extensions/program-kit-dotnet/references/foundation-compositions.md",
+        "tests/validate_composition_model.py",
+        "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle",
+        "tests/validate_postgresql_lifecycle.py",
+        "extensions/program-kit-dotnet/references/persistence-profiles.md",
+        "tests/validation-inventory.json"
+      ],
+      "validation": [
+        {
+          "command": "installed Specify Python tests/validate_postgresql_lifecycle.py",
+          "status": "passed",
+          "scope": "19 exact named cases through public Foundation PostgreSql 0.3.5 and native CShells 0.0.30: separate roles and distinct credentials; initial schema absence; eight first-preparation processes and eight observed overlapping runtime transactions; individual permissions/revision admission, unsafe-object/foreign-owner/unmarked-target denial; actual emitted private-provider key/native registration and missing/invented-key failures; observed schema and owned-container cleanup. Cold native restore/LockedMode, exact commands, source/fixture assembly/runtime archive DLL hashes retained. Fixed synthetic schema only; no production migration or ownership-transfer capability.",
+          "log": "artifacts/postgresql-lifecycle/af85c9213c1e4471852b391aa101fe2d/results.json",
+          "sha256": "645aa5684abd0dad717738614fb14d5def4feb77eb20866e57cbeeb902bb9a5a"
+        }
+      ],
       "remainingDependencies": [
-        "Specified implementation/investigation and required closure evidence remain; see closureRequired."
+        "Current full installed/profile integration and exact-source CI qualification remain. Declared-key checks do not authenticate native source hashes or infer arbitrary dynamic C# accesses; the native producer/build and configured activation retain those duties."
       ],
       "closureEvidence": []
     },

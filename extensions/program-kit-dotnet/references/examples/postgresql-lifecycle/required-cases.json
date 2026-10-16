@@ -1,0 +1,21 @@
+[
+  "schema-proved-absent-before-first-parallel-preparation",
+  "eight-real-first-preparations-one-deployment",
+  "eight-concurrent-native-runtime-units-independent-committed-effects",
+  "runtime-denied-ddl",
+  "runtime-denied-journal-write",
+  "runtime-denied-role-escalation",
+  "one-missing-grant-blocks-runtime-before-effect",
+  "wrong-revision-denied-without-startup-DDL",
+  "unexpected-view-refused-with-data-preserved",
+  "unexpected-function-refused-with-data-preserved",
+  "unexpected-sequence-refused-with-data-preserved",
+  "unexpected-domain-refused-with-data-preserved",
+  "foreign-table-owner-refused-without-transfer",
+  "schema-cleanup-independently-observed",
+  "unmarked-empty-schema-refused-and-preserved",
+  "actual-emitted-private-key-native-shell-registration",
+  "invented-key-native-activation-denied-without-fallback",
+  "missing-key-native-activation-denied-without-fallback",
+  "mismatched-native-source-declaration-diagnosed-before-dependent-work"
+]

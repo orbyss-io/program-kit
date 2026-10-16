@@ -82,6 +82,21 @@ prerequisite tasks; they do not block saving tasks or reporting architecture-che
 
 ## Architecture and implementation contract
 
+For selected PostgreSQL, deploy the product schema and journal with a separate deployment
+identity before admitting application users. Runtime startup verifies its required revision,
+schema usage, each table operation and sequence permission through the actual runtime
+connection; it performs no product DDL. Do not use administrator credentials in the app.
+The optional [native lifecycle example](examples/postgresql-lifecycle/) uses public
+Foundation registration and real CShells activation. Its fixture-only deployment holds a
+transaction-scoped advisory lock around first preparation, while runtime units remain
+concurrent. It never transfers object ownership: unmarked targets, foreign owners and
+unexpected tables, views, sequences, functions or types require explicit diagnosis.
+`python tests/validate_postgresql_lifecycle.py` builds the selected public packages and
+proves these boundaries against a uniquely owned pinned PostgreSQL container, including
+independently observed cleanup. This fixed synthetic schema is not a general production
+migration or ownership-repair tool; application migrations and least privileges remain
+with their data owner.
+
 - Core projects are POCO-only: no EF Core, provider, `DbContext`, migrations, DI, or vendor references.
 - Core-owned interfaces state cohesive semantic capabilities. One interface may contain multiple
   naturally related operations, but split it when consumers, consistency, security, optionality,
