@@ -115,6 +115,7 @@ def main() -> int:
             "root=Path(sys.argv[sys.argv.index('--repository')+1]).resolve()\n"
             "assert Path(os.environ['NUGET_PACKAGES']).resolve()==root/'artifacts/cache/nuget/packages'\n"
             "Path(os.environ['PROGRAMKIT_TEST_VERIFICATION_MARKER']).write_text(json.dumps(sys.argv[1:]))\n"
+            "if '--plan' in sys.argv: print(json.dumps({'plan':True,'route':'native'}))\n"
             "sys.exit(int(os.environ.get('PROGRAMKIT_TEST_EXIT','0')))\n", encoding='utf-8')
         scoped = run(shell, wrapper, environment, '-Scope', 'Focused', '-Projects',
                      'tests/Notes.Tests/Notes.Tests.csproj', '-TestArguments', '--filter-uid=one',
@@ -122,6 +123,8 @@ def main() -> int:
         forwarded = json.loads(marker.read_text()) if scoped.returncode == 0 else []
         if scoped.returncode or '--test-argument=--filter-uid=one' not in forwarded or '--force' not in forwarded or 'Shared storage dependency changed' not in forwarded:
             raise AssertionError('Scoped selection/filter forwarding failed: ' + scoped.stdout + scoped.stderr)
+        if json.loads(scoped.stdout) != {'plan': True, 'route': 'native'}:
+            raise AssertionError('The complete native Plan stdout must be one JSON document')
         environment['PROGRAMKIT_TEST_EXIT'] = '9'
         failed = run(shell, wrapper, environment, '-Scope', 'Affected', '-ChangedFrom', 'initial-commit')
         if failed.returncode == 0 or 'No full-suite fallback' not in failed.stdout + failed.stderr:
@@ -138,6 +141,10 @@ def main() -> int:
         delegated = run(shell, wrapper, environment, '-Scope', 'Affected', '-ChangedFrom', 'initial-commit')
         if delegated.returncode or marker.read_text().strip() != 'scoped-adapter':
             raise AssertionError('Fixed scoped consumer adapter did not receive the scope')
+        adapter.write_text(adapter.read_text() + "if ($Plan) { Write-Output '{\"plan\":true,\"route\":\"adapter\"}' }\n", encoding='utf-8')
+        delegated_plan = run(shell, wrapper, environment, '-Scope', 'Affected', '-ChangedFrom', 'initial-commit', '-Plan')
+        if delegated_plan.returncode or json.loads(delegated_plan.stdout) != {'plan': True, 'route': 'adapter'}:
+            raise AssertionError('The complete adapter Plan stdout must be one JSON document')
         adapter.write_text('exit 23\n', encoding='utf-8')
         if run(shell, wrapper, environment, '-Scope', 'Affected', '-ChangedFrom', 'initial-commit').returncode == 0:
             raise AssertionError('Scoped adapter failure was accepted')

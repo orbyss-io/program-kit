@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import os
+import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
@@ -214,6 +215,62 @@ def operation_fixture():
 
 
 class TaskTests(unittest.TestCase):
+    def test_installed_cli_finalizes_future_graph_in_a_fresh_unrelated_process(self):
+        installed = self.root / '.specify/extensions'
+        for extension, folders in {'program-kit-governance': ['scripts'],
+                                   'program-kit-dotnet': ['scripts', 'templates/dotnet/files/eng']}.items():
+            for folder in folders:
+                shutil.copytree(ROOT / 'extensions' / extension / folder, installed / extension / folder,
+                                ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules', 'dist'))
+        graph = {'runtimeComposition': {'projects': [
+            {'path': 'src/Owned/Owned.csproj', 'role': 'implementation', 'projectReferences': []},
+            {'path': 'tests/Owned/Owned.csproj', 'role': 'test', 'projectReferences': ['src/Owned/Owned.csproj']}
+        ], 'bindings': []}}
+        (self.root / 'eng').mkdir(exist_ok=True)
+        (self.root / 'eng/architecture.json').write_text(json.dumps(graph))
+        # An existing project has not yet materialized its planned future edge.
+        project = self.root / 'tests/Owned/Owned.csproj'
+        project.parent.mkdir(parents=True)
+        project.write_text('<Project/>')
+        body = '''## Owned operation
+- [ ] T001 Materialize owned behavior
+- [ ] T002 Run Affected regression
+## Operation dependency map
+| Operation | Depends on operations |
+|-----------|-----------------------|
+| owned | none |
+## Task dependency map
+| Task | Operation | Depends on tasks | Requires | Provides |
+|------|-----------|------------------|----------|----------|
+| T001 | owned | none | none | none |
+| T002 | owned | T001 | none | none |
+## Verification obligations
+| Task | Scope | Baseline | Owners | Inputs |
+|------|-------|----------|--------|--------|
+| T002 | Affected | original-baseline | tests/Owned/Owned.csproj | src/Owned/Future.cs |
+## Test materialization map
+| Owner | Producer | Evidence |
+|-------|----------|----------|
+| tests/Owned/Owned.csproj | T001 | none |
+'''
+        draft.prepare(self.root, self.feature, ['owned'])
+        draft.save_phase(self.root, self.feature, 'owned', body)
+        environment = {k: v for k, v in os.environ.items() if k not in ('PYTHONPATH', 'PYTHONHOME')}
+        command = [sys.executable, str(installed / 'program-kit-governance/scripts/task_draft.py'),
+                   'finalize', '--repository', str(self.root), '--feature-dir', self.feature.relative_to(self.root).as_posix()]
+        result = subprocess.run(command, cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertFalse(json.loads(result.stdout)['implementationExecuted'])
+        # Existing-evidence admission also loads the adapter, then preserves its guard.
+        content = (self.feature / 'tasks.md').read_text().replace(
+            '| tests/Owned/Owned.csproj | T001 | none |',
+            '| tests/Owned/Owned.csproj | existing | artifacts/missing.json |')
+        (self.feature / 'tasks.md').write_text(content)
+        failed = subprocess.run(command, cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn('missing native test evidence', failed.stdout)
+        self.assertNotIn('ModuleNotFoundError', failed.stderr)
+
     def test_broad_gate_waits_for_selected_test_materialization_preserving_task_graph(self):
         body = '''# Tasks
 - [ ] T007 Run Affected prerequisite

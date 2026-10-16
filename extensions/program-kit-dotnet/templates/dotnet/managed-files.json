@@ -193,6 +193,10 @@
       "ownership": "managed"
     },
     {
+      "path": "eng/owned_scratch.py",
+      "ownership": "managed"
+    },
+    {
       "path": "eng/legacy-feature-bridge.json",
       "ownership": "managed"
     },

@@ -305,7 +305,12 @@ def validate_utf8() -> None:
         scripts = repository / ".specify/scripts/python"
         scripts.mkdir(parents=True)
         probe = scripts / "setup_tasks.py"
-        probe.write_text("print('Task template → ✓')\n", encoding="utf-8")
+        probe.write_text("print('Task template → ✓')\n", encoding="utf-8", newline="\n")
+        manifest = repository / '.specify/integrations/speckit.manifest.json'
+        manifest.parent.mkdir()
+        manifest.write_text(json.dumps({'integration': 'speckit', 'version': 'fixture', 'files': {
+            '.specify/scripts/python/setup_tasks.py': __import__('hashlib').sha256(probe.read_bytes()).hexdigest()}}))
+        original_manifest = manifest.read_bytes()
         subprocess.run([sys.executable, str(ensure), "--target", str(repository)], check=True)
         environment = os.environ.copy()
         environment["PYTHONUTF8"] = "0"
@@ -314,6 +319,12 @@ def validate_utf8() -> None:
         if result.returncode != 0 or "Task template → ✓" not in result.stdout.decode("utf-8"):
             raise AssertionError(f"UTF-8 startup failed under cp1252: {result.stderr!r}")
         subprocess.run([sys.executable, str(ensure), "--target", str(repository), "--check"], check=True)
+        if manifest.read_bytes() != original_manifest:
+            raise AssertionError('UTF-8 ownership reconciliation rewrote native historical evidence')
+        probe.write_text(probe.read_text(encoding='utf-8') + '# unexplained customization\n', encoding='utf-8', newline='\n')
+        rejected = subprocess.run([sys.executable, str(ensure), '--target', str(repository), '--check'], capture_output=True, text=True)
+        if rejected.returncode == 0 or 'exact owned UTF-8 transformation' not in rejected.stderr:
+            raise AssertionError('Unknown core edits were accepted as UTF-8 policy')
 
 
 def validate_feature_activation() -> None:

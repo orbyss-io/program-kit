@@ -14,8 +14,8 @@ from feature_context import context, adopted_context
 from decision_knowledge import constraints
 
 
-_engineering = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/eng'
-sys.path.insert(0, str(_engineering))
+from dotnet_adapter import bootstrap
+_engineering = bootstrap()
 from test_results import test_results, require, text
 from repository_architecture import validate_planned, lifecycle_findings
 

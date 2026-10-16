@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
@@ -10,6 +11,19 @@ from pathlib import Path, PurePosixPath
 
 class ReconciliationError(RuntimeError):
     pass
+
+
+def filesystem_root(path: Path) -> Path:
+    """Use the shipped shared Windows path contract for transaction I/O only."""
+    if os.name != 'nt':
+        return path
+    source = Path(__file__).resolve().parents[1] / 'templates/dotnet/files/eng/owned_scratch.py'
+    if not source.is_file():
+        raise ReconciliationError('Shared Windows path helper is missing; restore the complete installed Program Kit .NET component before reconciliation')
+    specification = importlib.util.spec_from_file_location('reconciliation_owned_paths', source)
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    return Path(module.filesystem_path(path.absolute()))
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -24,6 +38,7 @@ def safe_relative(value: str) -> str:
 
 
 def atomic_write(path: Path, content: bytes, suffix: str) -> None:
+    path = filesystem_root(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f"{path.name}.{suffix}.tmp")
     temporary.write_bytes(content)
@@ -43,6 +58,7 @@ def _current_hash(path: Path) -> str | None:
 
 
 def rollback_transaction(target: Path, transaction: Path, journal: dict) -> None:
+    target, transaction = filesystem_root(target), filesystem_root(transaction)
     actions = journal.get("actions")
     if not isinstance(actions, list):
         raise ReconciliationError(f"Invalid reconciliation journal: {transaction}")
@@ -87,6 +103,7 @@ def rollback_transaction(target: Path, transaction: Path, journal: dict) -> None
 
 
 def pending_transactions(target: Path) -> list[Path]:
+    target = filesystem_root(target)
     root = target / ".program-kit/transactions"
     if not root.is_dir():
         return []
@@ -94,6 +111,7 @@ def pending_transactions(target: Path) -> list[Path]:
 
 
 def recover_transactions(target: Path) -> list[str]:
+    target = filesystem_root(target)
     recovered: list[str] = []
     for transaction in pending_transactions(target):
         journal_path = transaction / "journal.json"
@@ -111,6 +129,7 @@ def recover_transactions(target: Path) -> list[str]:
 
 
 def apply_plan(target: Path, actions: list[dict], next_state: bytes) -> str:
+    target = filesystem_root(target)
     transaction_id = uuid.uuid4().hex
     transaction = target / ".program-kit/transactions" / transaction_id
     stage_root = transaction / "stage"

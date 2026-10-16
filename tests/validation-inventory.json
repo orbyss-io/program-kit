@@ -2,6 +2,20 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_owned_scratch",
+      "qualification": {"linux": true, "windows": true, "build": false},
+      "command": ["{python}", "tests/validate_owned_scratch.py"],
+      "group": "development",
+      "needs": [],
+      "platforms": ["Windows", "Linux"],
+      "purpose": "Owned local staging, deep paths, exact directory identity and separate operation/cleanup failures; no agent.",
+      "owner": "program-kit",
+      "inputs": ["extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py", "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py", "extensions/program-kit-dotnet/scripts/reconciliation.py", "tests/validate_owned_scratch.py"],
+      "outputs": ["artifacts/validation-runs/<run>/validate_owned_scratch"],
+      "resources": [],
+      "isolation": "Unique local disposable repositories; network scratch unsupported; real consumer untouched."
+    },
+    {
       "id": "validate_release_candidate",
       "qualification": {
         "linux": true,

@@ -903,17 +903,21 @@ def source_inputs(repository: Path) -> dict[str, str]:
             if output:
                 generated.add(contained(repository, output, exists=False))
     candidates = [p for p in (repository / 'src').rglob('*') if p.is_file() and p not in generated
-                  and not {'bin', 'obj', 'node_modules', 'dist'}.intersection(p.relative_to(repository).parts)]
+                  and not {'bin', 'obj', 'node_modules', 'dist', '__pycache__'}.intersection(p.relative_to(repository).parts)]
     candidates += [repository / name for name in ('VERSION', 'global.json', 'NuGet.config', 'Directory.Packages.props',
                     'Directory.Build.props', 'Directory.Build.targets', 'shells.json', 'hostsettings.json',
                     'nuplane.settings.json', 'eng/web-profile.shells.json', 'eng/.config/dotnet-tools.json',
                     'eng/building-blocks.lock.json', 'eng/building-blocks.shells.json')
                    if (repository / name).is_file()]
-    candidates += [p for p in (repository / 'eng').rglob('*') if p.is_file() and p.suffix in {'.props', '.targets', '.py', '.ps1', '.sh'}]
+    # Engineering inputs include native sources, project/config files and data
+    # assets used by the maintained tools. A language suffix list is incomplete.
+    candidates += [p for p in (repository / 'eng').rglob('*') if p.is_file() and p not in generated
+                   and not {'bin', 'obj', 'node_modules', 'dist', '__pycache__'}.intersection(p.relative_to(repository).parts)
+                   and p.suffix not in {'.pyc', '.pyo'}]
     candidates += [p for p in (repository / '.config').rglob('*') if p.is_file()]
     # A same-version restore can change the selected closure without editing source.
     # Observe current projects' exact restore graph/lock, not orphaned obj directories.
-    for project in (repository / 'src').rglob('*.*proj'):
+    for project in (p for base in ('src', 'eng') for p in (repository / base).rglob('*.*proj')):
         if {'bin', 'obj'}.intersection(project.relative_to(repository).parts):
             continue
         candidates += [p for p in (project.parent / 'obj/project.assets.json', project.parent / 'packages.lock.json') if p.is_file()]

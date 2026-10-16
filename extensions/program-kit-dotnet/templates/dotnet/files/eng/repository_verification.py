@@ -363,7 +363,7 @@ def pending_failures(root, tests):
     return failed
 
 
-def select(root, scope, projects=(), changed_paths=(), baseline=None):
+def select(root, scope, projects=(), changed_paths=(), baseline=None, *, planning=False):
     root = root.resolve()
     manifest = read(root / 'eng/architecture.json')
     graph = validate_planned(root, manifest)
@@ -385,7 +385,8 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
         if baseline:
             paths.update(changed_inputs(root, baseline))
         require(bool(paths), 'PKV002 no changed inputs; reuse current results rather than claiming a new test run')
-        literal_edges(root, graph)
+        if not planning:
+            literal_edges(root, graph)
         known_input_owners = input_owners(root, graph)
         config = configuration(root)
         selected, affected = set(), set()
@@ -432,6 +433,7 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
                 'PKV002 only design context changed; no native run was executed. Reuse current actual results and review the changed design.')
         require(bool(selected), 'PKV003 changed responsibilities have no dependent tests; add coverage or a scoped consumer adapter')
     return {'schemaVersion': 1, 'scope': scope, 'projects': sorted(selected), 'changedInputs': sorted(paths),
+            **({'planningOnly': True} if planning else {}),
             'baseline': baseline, 'acceptanceEstablished': False,
             'inputMappings': sorted(mapped_groups) if scope == 'Affected' else []}
 
@@ -716,6 +718,7 @@ def evidence_valid(root, path, outcome):
 
 
 def plan(root, selection, arguments, build_configuration='Debug', reason='', toolchain=None, force=False, native_report=None):
+    require(not selection.get('planningOnly'), 'PKV003 task planning selection is not executable evidence; select the current physical graph before verification')
     arguments = test_arguments(arguments)
     require(native_report in (None, 'xunit-trx') and (native_report is None or runner_kind(root) == 'mtp'),
             'PKV004 native report requires the selected xUnit/MTP runner capability')

@@ -141,6 +141,18 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], result['projects'])
         self.assertFalse(result['acceptanceEstablished'])
 
+    def test_future_reference_intent_plans_but_cannot_mint_execution_evidence(self):
+        project = self.root / 'src/Notes/Notes.csproj'
+        project.write_text('<Project/>')
+        selected = self.select(['src/Notes/Rename.cs'], planning=True)
+        self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], selected['projects'])
+        with self.assertRaisesRegex(ValueError, 'planning selection is not executable'):
+            verification.plan(self.root, selected, [])
+        with self.assertRaisesRegex(ValueError, 'projectReferences|edges'):
+            self.select(['src/Notes/Rename.cs'])
+        with self.assertRaisesRegex(ValueError, 'unknown verification input'):
+            self.select(['contracts/undeclared.json'], planning=True)
+
     def test_task_progress_does_not_expand_native_selection_or_claim_empty_execution(self):
         result = self.select(['src/Notes/Rename.cs', 'specs/001-notes/tasks.md'])
         self.assertEqual(['tests/Notes.Tests/Notes.Tests.csproj'], result['projects'])
@@ -294,6 +306,9 @@ class SelectionTests(unittest.TestCase):
         installed = self.root / '.specify/extensions/program-kit-dotnet/scripts/reconciliation.py'
         installed.parent.mkdir(parents=True)
         shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/scripts/reconciliation.py', installed)
+        helper = installed.parents[1] / 'templates/dotnet/files/eng/owned_scratch.py'
+        helper.parent.mkdir(parents=True)
+        shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py', helper)
         state = self.root / '.program-kit/managed.json'; state.parent.mkdir()
         state.write_text(json.dumps({'schemaVersion': 2, 'files': {'eng/verification.setup.json': {'ownership': 'managed'}}}))
         retained = {p: p.read_bytes() for p in (archive, lock, history, tasks)}

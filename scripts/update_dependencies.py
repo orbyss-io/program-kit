@@ -32,7 +32,7 @@ def main():
     policy=importlib.util.module_from_spec(spec); spec.loader.exec_module(policy)
     policy.contributor(ROOT)
     if not args.development and os.name=='nt':
-        parser.error('Complete update validation runs in Linux CI. Use the user-owned Release terminal described in AGENTS.md on Windows.')
+        parser.error('Complete update validation runs in Linux CI. Run the Update dependencies workflow; for bounded local validation use --development. After maintenance, qualify the exact main commit with qualify-candidate.yml as described in docs/releasing.md.')
     if args.upgrade:
         run('upgrade',[sys.executable,'scripts/dependency_maintenance.py','upgrade'])
         policy.contributor(ROOT)  # Updated pins may require a new human device selection.

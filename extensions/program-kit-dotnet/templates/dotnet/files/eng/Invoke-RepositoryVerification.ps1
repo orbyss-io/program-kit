@@ -159,7 +159,9 @@ if ($Scope -ne 'Acceptance') {
         & $verificationPython @arguments
         if ($LASTEXITCODE -ne 0) { throw 'Scoped native checks failed. No full-suite fallback was executed.' }
     }
-    Write-Host "Scoped $Scope checks completed; full application acceptance is not established."
+    if (-not $Plan) {
+        Write-Host "Scoped $Scope checks completed; full application acceptance is not established."
+    }
     return
 }
 if ($Projects.Count -or $TestArguments.Count -or $ChangedPaths.Count -or $ChangedFrom -or $Plan -or $Restore -or $Reason -or $Force) {

@@ -20,6 +20,47 @@ from live.v2.common import LiveContractError
 
 
 class ReleaseBundleTests(unittest.TestCase):
+    def test_actual_engineering_reader_build_then_pack_preserves_authored_freshness(self):
+        helper = self.root / 'eng/assembly_graph'
+        shutil.copytree(TEMPLATE / 'eng/assembly_graph', helper,
+                        ignore=shutil.ignore_patterns('bin', 'obj', '__pycache__'))
+        project = helper / 'AssemblyGraph.csproj'
+        def native(*arguments):
+            result = subprocess.run(['dotnet', *map(str, arguments)], cwd=self.root,
+                                    capture_output=True, text=True, timeout=180)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        native('restore', project)
+        bundle.runtime_closure.prepare_pack(self.root, self.packages)
+        before = bundle.runtime_closure.source_inputs(self.root)
+        native('run', '--project', project, '--configuration', 'Release', '--no-restore', '--no-launch-profile')
+        self.assertEqual(before, bundle.runtime_closure.source_inputs(self.root))
+        native('pack', project, '--configuration', 'Release', '--no-build', '--no-restore',
+               '-p:Version=1.2.3', '-o', self.packages)
+        bundle.runtime_closure.seal_pack(self.root, self.packages)
+        inventory = self.packages / 'program-kit-pack.json'
+        self.assertTrue(bundle.runtime_closure.validate_pack(self.root, self.packages, inventory)['established'])
+        # Changing an authored native input or its actual restore state still fails.
+        for path in (helper / 'Program.cs', helper / 'obj/project.assets.json'):
+            original = path.read_bytes()
+            path.write_bytes(original + b'\n')
+            with self.assertRaisesRegex(ValueError, 'PKR023.*stale'):
+                bundle.runtime_closure.validate_pack(self.root, self.packages, inventory)
+            path.write_bytes(original)
+
+    def test_cleanup_failure_cannot_seal_a_successful_stage(self):
+        import contextlib
+        import io
+        import owned_scratch
+        evidence = self.root / bundle.runtime_closure.EVIDENCE
+        with patch.object(owned_scratch.OwnedScratch, '_remove', side_effect=PermissionError('fixture cleanup failed')):
+            with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(owned_scratch.ScratchCleanupError) as observed:
+                bundle.stage(self.root, self.packages, self.stage)
+        self.assertTrue(self.stage.is_dir(), 'The body actually completed its staging work')
+        self.assertTrue(Path(observed.exception.record['scratch']).is_dir())
+        record = json.loads(evidence.read_text())
+        self.assertFalse(record['satisfied'])
+        self.assertEqual('stage-in-progress-or-failed', record['reason'])
+
     def test_native_portable_closure_preserves_framework_dependencies_and_combines_host_minima(self):
         self.write('NuGet.config', '<configuration><packageSources><clear/><add key="public" '
                    'value="https://api.nuget.org/v3/index.json"/></packageSources></configuration>')
@@ -47,6 +88,7 @@ class ReleaseBundleTests(unittest.TestCase):
         self.assertFalse(evidence['packagePruningEnabled'])
         self.assertEqual([], evidence['diagnosticCodes'])
         self.assertEqual({'Fixture':'1.0.0'}, evidence['roots'])
+        self.assertEqual([], list((self.root / 'artifacts/s').iterdir()))
 
     def test_signed_nuget_identity_uses_native_content_bytes_and_rejects_tampering(self):
         project = self.root / 'signed-package.csproj'
@@ -100,6 +142,7 @@ class ReleaseBundleTests(unittest.TestCase):
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
             installed = target / 'eng/legacy-feature-bridge.json'
             self.assertEqual((TEMPLATE / 'eng/legacy-feature-bridge.json').read_bytes(), installed.read_bytes())
+            self.assertEqual((TEMPLATE / 'eng/owned_scratch.py').read_bytes(), (target / 'eng/owned_scratch.py').read_bytes())
             result = subprocess.run([sys.executable, '-I', '-c',
                                      'import sys;sys.path.insert(0,sys.argv[1]);import release_bundle;'
                                      'assert release_bundle.LEGACY_FEATURE_BRIDGE["packageVersions"] == ["0.2.2","0.2.3"]',

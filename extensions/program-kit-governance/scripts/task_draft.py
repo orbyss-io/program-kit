@@ -14,6 +14,9 @@ import subprocess
 import tempfile
 import time
 from urllib.parse import urlparse
+from dotnet_adapter import bootstrap
+
+bootstrap()
 
 PREFIX = '<!-- program-kit:tasks-draft '
 MARKER = re.compile(r'^<!-- program-kit:tasks-draft (.+) -->$', re.M)
@@ -366,7 +369,7 @@ def validate_verification_obligations(content, tasks, ancestors, root=None):
             from repository_verification import select
             inputs = paths(inputs_cell)
             actual = select(root, scope, projects=sorted(owners) if scope == 'Focused' else (),
-                            changed_paths=inputs)['projects']
+                            changed_paths=inputs, planning=True)['projects']
             if set(actual) != owners:
                 raise ValueError('PKT021 selected test owners differ from maintained selection: ' + gate + '; actual ' + ', '.join(actual))
         for owner in owners:
@@ -562,9 +565,6 @@ def check_artifacts(root, references, *, freshness=True):
                 require(record['outcomes'] and all(outcome.get('status') == 'completed' for outcome in record['outcomes']),
                         'Required technical outcomes are incomplete: ' + ref)
                 # Reuse the maintained native evidence reader when its fingerprints are present.
-                from phase_obligations import _engineering
-                import sys
-                sys.path.insert(0, str(_engineering))
                 from repository_verification import evidence_valid
                 for outcome in record['outcomes']:
                     if freshness and outcome.get('fingerprint'):
