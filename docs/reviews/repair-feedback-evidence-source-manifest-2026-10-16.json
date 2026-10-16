@@ -1,0 +1,89 @@
+{
+  "implementationCommit": "e4648f669b67fd7d6deb5967f4caa7ff0fd4d31a",
+  "preparedSource": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/source",
+  "seedCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+  "seedTree": "28cb1360441c9a07c2d60e580169e39da02df998",
+  "status": "local-only seed; no remote configured, no public mutation",
+  "publicFiles": [
+    {
+      "path": ".github/CODEOWNERS",
+      "bytes": 15,
+      "sha256": "d1d9a107bc3bbc548e9a58e04dd974c66384c565199e0ae6bff57fc5ba5b090d",
+      "gitBlob": "3eeb94b8861da53326624ab1b93ebcfe0f8551bb"
+    },
+    {
+      "path": ".github/workflows/guardian.yml",
+      "bytes": 1476,
+      "sha256": "8826ba2b06be35b2c83ed013b409dccc6f8976d387f6ef4957371e0667054fa8",
+      "gitBlob": "89d5fc8b58e04317615059fc6314ea70a39ce41e"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 21,
+      "sha256": "01d8d0360f02a0c00e236a4eb2a1d8bdf83377acf442eaafad7a136bf14d6bb0",
+      "gitBlob": "3673a99c42a2a2746b5a9a879538a14601dfd881"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6296,
+      "sha256": "bf4805b65f9192ea5e073eaa46c3e2117846eadb290ac6fac6f103fbfdfe1536",
+      "gitBlob": "b2ad23628b41c6f5e79ccadb5da98b42222692be"
+    },
+    {
+      "path": "contract/assessment.schema.json",
+      "bytes": 4621,
+      "sha256": "b9df154ef31a62c873d9ac5fabc2c8a6ab490109befd9c8f84458472887cd036",
+      "gitBlob": "974b753f4dcbb0456e2fa0f5d904626a780c5bd1"
+    },
+    {
+      "path": "contract/contract.json",
+      "bytes": 4340,
+      "sha256": "d640c583aa7c0547d481110f02d52c91b533bfc10a5d0536910c56c2559aa1f9",
+      "gitBlob": "bcaeaf80269457daa48d64d2a72fc3df9f02b4e0"
+    },
+    {
+      "path": "contract/operating.md",
+      "bytes": 8977,
+      "sha256": "c37c417c25fca053770d4d4d2c1b01a54b7c08fd29073062e561f2e663f65cb3",
+      "gitBlob": "e2c5363165846fc5f52068caeb2003369e42345e"
+    },
+    {
+      "path": "contract/request.schema.json",
+      "bytes": 12443,
+      "sha256": "c38155128013bc7f24664cbb4a1c420eb46e90d90d5245dd829d5d815bf049c8",
+      "gitBlob": "0447a7c81fab689bfe990da3d5d6ec396eacb950"
+    },
+    {
+      "path": "guardian-deployment.json",
+      "bytes": 220,
+      "sha256": "018077f5d78a6d840aabe6055d9a9cf4f7626c5c47ac695a40f431ecd2f5ad71",
+      "gitBlob": "e046d5459ea8cc3d3672643c440f059f747dc036"
+    },
+    {
+      "path": "guardian.py",
+      "bytes": 5814,
+      "sha256": "a8a1a4882f7eb8214c1016ed67dae1ed012ccdc935025f82c058c143994d2ce5",
+      "gitBlob": "c82ba79b9a0a6ad7ecb1d44c1facd334fee3ca47"
+    },
+    {
+      "path": "guardian_check.py",
+      "bytes": 3481,
+      "sha256": "53671ea79f9a317fe83c576c37061348b0ca5e7e85b0cb50f789d405ac0204fb",
+      "gitBlob": "bcb8af72b1c853c3103c926d51b0efdedb4114d7"
+    },
+    {
+      "path": "repair_contract.py",
+      "bytes": 9363,
+      "sha256": "86188640f5671f9136853c768625377772106bd570996093a8949983c83bbfae",
+      "gitBlob": "ffa25187f6cadc7bd2daef8cf3391c477d8c2e6d"
+    },
+    {
+      "path": "repository-ruleset.template.json",
+      "bytes": 953,
+      "sha256": "a2b29c919d731d8b6866205ad38ce3e05ba3f024a79ed69e57d005e1edd739d6",
+      "gitBlob": "9545d641ebfca1441c36689007d63b74b3ed6c94"
+    }
+  ],
+  "fileCount": 13,
+  "totalBytes": 58020
+}

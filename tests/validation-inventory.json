@@ -2,6 +2,43 @@
   "schemaVersion": 1,
   "checks": [
     {
+      "id": "validate_repair_feedback",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_repair_feedback.py"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Repair contract, owner-bound intake/evidence pickup, existing-ledger dispositions, request-scoped fresh status, reviewed GitHub fakes, data-only guardian and installed handoff/upgrade. No public mutations.",
+      "owner": "program-kit",
+      "inputs": [
+        "extensions/program-kit-governance/scripts/repair*.py",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.repair-request.md",
+        "extensions/program-kit-governance/references/repair-feedback/**",
+        "scripts/*repair*",
+        "scripts/*evidence*",
+        "evidence-repository/**",
+        ".agents/skills/program-kit-repair-evaluator/**",
+        "docs/maintenance/repair-feedback.md",
+        "docs/contracts/repair-feedback/**",
+        "tests/validate_repair_feedback.py"
+      ],
+      "outputs": [
+        "artifacts/tests/repair-feedback"
+      ],
+      "resources": [],
+      "isolation": "Disposable Git consumers and deterministic recording API fakes; all submitted code treated as data."
+    },
+    {
       "id": "validate_release_candidate",
       "qualification": {
         "linux": true,

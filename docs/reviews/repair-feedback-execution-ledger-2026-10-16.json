@@ -1,0 +1,591 @@
+{
+  "schemaVersion": 1,
+  "feature": "consumer-repair-feedback",
+  "owner": "Separate repair-feedback implementation session",
+  "branch": "codex/repair-feedback",
+  "baseCommit": "02d772cecb064a96f6755637fbd1950eca8fb647",
+  "approval": "Create a repair feedback skill, 01a14496-89a6-7740-838b-e03d8b17205f; corrected separate-session ownership",
+  "specification": "docs/reviews/repair-feedback-feature-specification-2026-10-16.md",
+  "handoff": "docs/reviews/repair-feedback-implementation-handoff-2026-10-16.md",
+  "pullRequestValidation": {
+    "pullRequest": "https://github.com/orbyss-io/program-kit/pull/42",
+    "approval": "User requested PR CI, repair of new failures, and preservation of active maintenance checkout and consumers.",
+    "firstRun": {
+      "url": "https://github.com/orbyss-io/program-kit/actions/runs/38939949086",
+      "head": "396fdb59025a0f5bbb97b513eed03e557374c785",
+      "windows": "passed",
+      "linuxChecks": 136,
+      "linuxPassed": 129,
+      "rootFailure": "build-release: composite consumer bundle contains 514 entries, exceeding Spec Kit's unchanged 512-entry limit",
+      "blockedChecks": 6,
+      "preservedArtifact": "artifacts/reviews/pr42-ci-first-run",
+      "journal": "artifacts/reviews/pr42-ci-first-run/validation-runs/20261016T172930Z-566ae611/journal.json"
+    },
+    "repair": "Embed the unchanged current and historical assessment schemas in the shared installed contract, with JSON-pointer metadata; retain standalone generated schema copies in docs/contracts/repair-feedback. Removes two composite-bundle entries while preserving both schema definitions, historical bytes and existing safety limits.",
+    "targetedValidation": {
+      "result": "passed",
+      "tests": 36,
+      "journal": "artifacts/validation-runs/20261016T175056Z-b36215d6/journal.json",
+      "coverage": "Packaged current/historical schemas validate actual assessment fixtures and match standalone bytes; installed consumer handoff and upgrade remain covered."
+    },
+    "packageValidation": {
+      "result": "passed",
+      "sourceCommit": "988809d",
+      "compositeEntries": 512,
+      "unchangedSpecKitLimit": 512,
+      "completeBuild": "scripts/build_release.py completed successfully in a separate short-path checkout",
+      "buildLog": "artifacts/reviews/pr42-full-package-build.log",
+      "artifacts": "artifacts/reviews/pr42-package-988809d",
+      "componentsJournal": "artifacts/validation-runs/20261016T175350Z-6cfe1b88/journal.json",
+      "scope": "Local packaging validation only; no publication or release qualification claim"
+    },
+    "activeMaintenanceAndConsumers": "untouched",
+    "publicGuardianDeployment": "unchanged"
+  },
+  "integrationFixes": {
+    "approvedOn": "2026-10-16",
+    "approval": "User approved all six integration fixes in recommended order, with active maintenance checkout and consumers untouched.",
+    "sourceBase": "9f33334cf5d0f72ead15a115fea18b16b6647599",
+    "scope": "This feature branch, disposable consumers/owner ledgers and read-only recording GitHub fakes. No active checkout/consumer writes or public mutations.",
+    "changes": {
+      "IG-01": "Explicit immutable owner registration and selected routing across preferences, delivery, assessment and ledger adapter; existing IDs and hash-bound legacy binding supported.",
+      "IG-02": "Full current-contract packet, delivery/import provenance and owner route revalidated at evaluation and inspection; historical accounts stay unqualified.",
+      "IG-03": "Bounded on-demand inbox/inspect and pinned public packet import, with App-bound acceptance observations separate from triage and repair adoption.",
+      "IG-04": "Existing-ledger repairFeedback adapter links exact revisions and assessment hashes to owner decisions; fresh request-specific status returns attributed facts and proof references.",
+      "IG-05": "Later correlation appended as content-addressed observations; original delivery and packet stay immutable and retries deduplicate.",
+      "IG-06": "Installed complete handoff/upgrade fixture, negative boundary tests, maintainer entry point and reconciled unreleased deployment guidance."
+    },
+    "targetedValidation": {
+      "result": "passed",
+      "tests": 35,
+      "journal": "artifacts/validation-runs/20261016T164800Z-181438d8/journal.json",
+      "environment": "Workspace-owned extended Windows temp path; outside outer sandbox for the adversarial hard-link fixture. No production workaround or inner worker sandbox change."
+    },
+    "implementationCommits": ["2c491fc8f1bf7e09d9246e8a336176271a071139", "30586b8"],
+    "finalFeatureValidation": {
+      "result": "passed",
+      "tests": 36,
+      "journal": "artifacts/validation-runs/20261016T170025Z-2e529fe2/journal.json",
+      "environment": "Clean committed disposable source at a short Windows path, normal C:/tmp fixtures, installed device Python first on PATH; Chromium/WebKit."
+    },
+    "developmentValidation": {
+      "result": "failed",
+      "passed": 84,
+      "failed": 19,
+      "checks": 103,
+      "newlyFailingChecksComparedWithPreservedBaseline": [],
+      "sameFailingCases": "18 of 19 common failing checks have identical failing-case lists. Foundation setup has one additional long-path case that passes when only its disposable evidence root is shortened; original failed suite remains failed.",
+      "report": "docs/reviews/repair-feedback-integration-results-2026-10-16.json",
+      "diagnosticRun": "Deep source/extended-temp Development: 59 passed, 44 failed. Preserved separately; not combined with reruns into success."
+    },
+    "maintainerProcedure": "docs/maintenance/repair-feedback.md",
+    "deployment": "Feature remains unreleased. Existing public guardian code, App, repository rules, keys and production deployment unchanged."
+  },
+  "requirements": [
+    {
+      "id": "RF-01",
+      "changes": [
+        "extension.yml repair-request registration",
+        "native generated consumer skill",
+        ".agents/skills/program-kit-repair-evaluator"
+      ],
+      "validation": [
+        "InstalledRepairTests.test_native_command_skill_and_upgrade_preserve_personal_and_original_profile",
+        "test_prepared_repository_is_source_only_and_internal_evaluator_not_packaged"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-02",
+      "changes": [
+        "repair_contract.py",
+        "repair-feedback/contract.json",
+        "request.schema.json"
+      ],
+      "validation": [
+        "test_contract_schema_and_historical_answers_are_preserved"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-03",
+      "changes": [
+        "immutable requests and explicit evaluator terminologyMapping"
+      ],
+      "validation": [
+        "test_contract_schema_and_historical_answers_are_preserved",
+        "test_historical_unknown_contract_preserved_as_bytes_without_new_answers"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-04",
+      "changes": [
+        "request/revision/supersedes identities and assessment relationships"
+      ],
+      "validation": [
+        "test_queue_revisions_require_exact_predecessor",
+        "test_evaluator_multiple_requests_one_repair_owner_ledger_unchanged"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-05",
+      "changes": [
+        "configure/personal/remember and Git exclude proof",
+        "consumer_upgrade.inputs exclusion"
+      ],
+      "validation": [
+        "test_ignored_personal_state_is_outside_inputs_and_preserved_by_reconfigure",
+        "InstalledRepairTests.test_native_command_skill_and_upgrade_preserve_personal_and_original_profile"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-06",
+      "changes": [
+        "immutable local intake queue referencing owner ledger"
+      ],
+      "validation": [
+        "test_local_queue_durable_idempotent_zero_public_mutation_and_fresh_ledger"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-07",
+      "changes": [
+        "bounded search/inspection, reviewed create/comment destinations"
+      ],
+      "validation": [
+        "test_bounded_open_closed_search_refines_empty_and_excessive_and_inspects_comments",
+        "test_review_binds_destinations_all_content_and_exact_approval",
+        "test_public_new_and_duplicate_exact_inventory_and_idempotent_retries"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-08",
+      "changes": [
+        "review digest, fork Git Data API publication and recoverable PR cross-links",
+        "evidence-repository provisioning source"
+      ],
+      "validation": [
+        "test_public_new_and_duplicate_exact_inventory_and_idempotent_retries",
+        "test_public_response_loss_reconciles_issue_comment_fork_branch_pr_and_crosslink",
+        "test_public_retry_after_main_advances_keeps_reviewed_bytes_and_parent",
+        "test_interrupted_issue_outside_reconciliation_bound_uses_recovered_reference"
+      ],
+      "previousDisposition": "source-tested-external-provisioning-pending",
+      "disposition": "provisioned-and-operationally-tested-three-guardian-scenarios"
+    },
+    {
+      "id": "RF-09",
+      "changes": [
+        "data-only guardian and enforceable evidence contract/budgets",
+        "dedicated App integration ID, pinned main-only dispatcher and repository rules compatible with GitHub Free"
+      ],
+      "validation": [
+        "test_trusted_guardian_exact_head_bound_data_only_and_adversarial_inventory",
+        "test_guard_rejects_tamper_extra_policy_archive_secret_and_size_without_echo",
+        "test_public_rejects_same_name_guardian_rules_and_wrong_destination_before_writes",
+        "test_dedicated_app_check_binds_actual_head_and_never_passes_rejected_or_moved_data",
+        "test_effective_rules_required_and_app_write_failure_cannot_become_success"
+      ],
+      "previousDisposition": "source-tested-external-provisioning-pending",
+      "disposition": "provisioned-and-operationally-tested-three-guardian-scenarios"
+    },
+    {
+      "id": "RF-10",
+      "changes": [
+        "repository-only independent assessments and owner intake"
+      ],
+      "validation": [
+        "test_evaluator_multiple_requests_one_repair_owner_ledger_unchanged",
+        "test_historical_unknown_contract_preserved_as_bytes_without_new_answers"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-11",
+      "changes": [
+        "fresh direct status, project/account discovery, superseding evidence"
+      ],
+      "validation": [
+        "test_fresh_status_changed_remote_and_failed_reads_never_fall_back",
+        "test_account_discovery_includes_commented_and_involved_project_provenance",
+        "test_recover_lost_index_and_link_known_implementation_and_release_objects"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-12",
+      "changes": [
+        "portable CLI prerequisite helpers, preserved packets and historical mutation journal"
+      ],
+      "validation": [
+        "test_actual_gh_adapter_disables_cache_and_suppresses_stderr",
+        "test_public_response_loss_reconciles_issue_comment_fork_branch_pr_and_crosslink"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    },
+    {
+      "id": "RF-13",
+      "changes": [
+        "this owner ledger and indexed versioned migration guidance"
+      ],
+      "validation": [
+        "tests/validate_knowledge_inventory.py",
+        "tests/validate_components.py",
+        "releases/history.json -> migration-0.13.3.md"
+      ],
+      "disposition": "source-implemented-and-deterministically-tested"
+    }
+  ],
+  "validation": [
+    {
+      "id": "feature-acceptance",
+      "command": "Specify Python tests/validate_repair_feedback.py",
+      "outcome": "25 tests passed with extended Windows temp paths, including actual native installation/regeneration, root identity aliases and recovery from known references outside the recent-issue bound; all public operations were recording fakes",
+      "log": "artifacts/tests/repair-feedback/feature-acceptance-final.log",
+      "logSha256": "414ad93608f345f82d0cb6200fb446e6f1bb2ed6ad7fc2cece9dea153c8e211e"
+    },
+    {
+      "id": "knowledge-inventory",
+      "outcome": "7 tests passed after registering the optional manual route"
+    },
+    {
+      "id": "components",
+      "outcome": "Existing component validator passed after registering 25 commands in manifest/catalog"
+    },
+    {
+      "id": "skill-validation",
+      "outcome": "Repository evaluator skill-creator quick_validate passed"
+    },
+    {
+      "id": "prerequisites",
+      "outcome": "Actual PowerShell helper identified installed GitHub CLI outside PATH without install/login"
+    },
+    {
+      "id": "development-initial",
+      "journal": "artifacts/validation-runs/20261016T135434Z-3b0ec68a/journal.json",
+      "outcome": "failed; Windows source/destination path-length failures and new reference registration repaired",
+      "checks": 103,
+      "passed": 71,
+      "failed": [
+        "validate_native_phase_ownership",
+        "validate_phase_refresh",
+        "qualify_reusable_foundations_contracts",
+        "validate_foundation_composition",
+        "validate_foundation_setup",
+        "validate_consumer_upgrade",
+        "validate_effective_dependency_context",
+        "validate_lifecycle_design",
+        "validate_knowledge_application",
+        "validate_dependency_profiles",
+        "validate_release_guidance",
+        "validate_components",
+        "validate_exporter_upgrade",
+        "validate_bootstrap_provider_context",
+        "validate_bootstrap_profiles",
+        "validate_dependency_audit",
+        "validate_knowledge_inventory",
+        "validate_architecture_placement",
+        "validate_placement_contract",
+        "validate_bootstrap_lifecycle",
+        "validate_readiness_scope",
+        "validate_readiness_projection",
+        "validate_phase_readiness",
+        "validate_post_bootstrap_continuation",
+        "validate_workflow_resumption",
+        "validate_live_workflow_acceptance",
+        "validate_release_bundle",
+        "validate_foundation_contracts_development_profile",
+        "validate_dependency_profile_catalogs",
+        "validate_bootstrap_runtime_bindings",
+        "validate_dependency_workflows",
+        "validate_native_start_repairs"
+      ],
+      "journalSha256": "6b3fc9db119ff56b7a1533d0e4bb97220a9d7e183731b992b6ac6eb1f664ec56"
+    },
+    {
+      "id": "development-extended-source",
+      "journal": "artifacts/validation-runs/20261016T140352Z-6f6715b6/journal.json",
+      "outcome": "failed; extended source paths exposed existing child-tool/path-normalization limits; reporter/catalog registration repaired",
+      "checks": 103,
+      "passed": 68,
+      "failed": [
+        "validate_native_phase_ownership",
+        "validate_phase_refresh",
+        "validate_numeric_schema",
+        "validate_composition_activation",
+        "qualify_reusable_foundations_contracts",
+        "validate_foundation_composition",
+        "validate_foundation_setup",
+        "validate_lifecycle_design",
+        "validate_knowledge_application",
+        "validate_standalone_engineering",
+        "validate_maintenance_flow",
+        "validate_test_suites",
+        "validate_dependency_profiles",
+        "validate_components",
+        "validate_exporter_upgrade",
+        "validate_upgrade_boundaries",
+        "validate_bootstrap_profiles",
+        "validate_dependency_audit",
+        "validate_persistence_selection",
+        "validate_architecture_recipe",
+        "validate_repository_sync",
+        "validate_architecture_placement",
+        "validate_placement_contract",
+        "validate_bootstrap_lifecycle",
+        "validate_readiness_scope",
+        "validate_readiness_projection",
+        "validate_phase_readiness",
+        "validate_post_bootstrap_continuation",
+        "validate_workflow_resumption",
+        "validate_live_workflow_acceptance",
+        "validate_governance_state",
+        "validate_release_bundle",
+        "validate_application_handoff",
+        "validate_composition_model",
+        "validate_native_start_repairs"
+      ],
+      "journalSha256": "a9d0bbd7c88edce0c4ecefc3a60f88e18001d992e86cf07a13c2a51d21abeb2c"
+    },
+    {
+      "id": "native-ownership-rerun",
+      "outcome": "8 tests passed with extended source and temp paths"
+    },
+    {
+      "id": "development-short-checkout",
+      "sourceCommit": "938b991c1bd23b592ef2182a0d7e4e4dee2eee29",
+      "journal": "artifacts/validation-runs/20261016T141129Z-e751210e/journal.json",
+      "journalSha256": "be40b1093a1e2b530775db384a10e1e000eee34d1c4b63d7e3638d4bcd0f2c4d",
+      "executionRoot": "C:/tmp/rf-8a721e",
+      "command": "scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit' with extended C:/tmp TEMP/TMP",
+      "outcome": "failed; exact disposable source retained. This attempt predates d2913b5; its reporter path-identity failure is repaired and covered by the subsequent 25-test run. Existing path alias/tool/harness failures remain unqualified, never converted to success.",
+      "checks": 103,
+      "passed": 78,
+      "failed": [
+        "validate_repair_feedback",
+        "validate_release_candidate",
+        "qualify_reusable_foundations_contracts",
+        "validate_foundation_composition",
+        "validate_foundation_setup",
+        "validate_consumer_upgrade",
+        "validate_application_lifecycle",
+        "validate_normal_development",
+        "validate_scoped_verification",
+        "validate_repository_toolchain",
+        "validate_json_schema",
+        "validate_proxy_intake",
+        "validate_bootstrap_handoffs",
+        "validate_architecture_recipe",
+        "validate_intake_authoring",
+        "validate_building_blocks",
+        "validate_architecture_placement",
+        "validate_readiness_projection",
+        "validate_phase_readiness",
+        "validate_bootstrap_proof_plan",
+        "validate_post_bootstrap_continuation",
+        "validate_workflow_resumption",
+        "validate_live_workflow_acceptance",
+        "validate_release_bundle",
+        "validate_settings_authorities"
+      ]
+    },
+    {
+      "id": "validate_release_guidance-final",
+      "outcome": "passed",
+      "log": "artifacts/validation-runs/20261016T141129Z-e751210e/validate_release_guidance.log",
+      "logSha256": "e7e5c0557d5bf40a7f106489f23186e8385a1cf9b39ea959077382e6a36530cf"
+    },
+    {
+      "id": "validate_components-final",
+      "outcome": "passed",
+      "log": "artifacts/validation-runs/20261016T141129Z-e751210e/validate_components.log",
+      "logSha256": "96ffda2ce71739dcd4eb5d7f1f6fa40c6869e4c8b48c5bfb8d9771482f06de0e"
+    },
+    {
+      "id": "validate_knowledge_inventory-final",
+      "outcome": "passed",
+      "log": "artifacts/validation-runs/20261016T141129Z-e751210e/validate_knowledge_inventory.log",
+      "logSha256": "a5dd445a4678dc7648b4ccb6c0be4bc997d2499ef47761eaef27aaae95f20410"
+    },
+    {
+      "id": "Development-normal-path-baseline",
+      "outcome": "failed; controlled comparison retained",
+      "source": {
+        "commit": "02d772cecb064a96f6755637fbd1950eca8fb647",
+        "tree": "e904a6a5809f1fc7cf8892b1f33b2b3f064aa7ac"
+      },
+      "passed": 82,
+      "failed": 20,
+      "journal": "artifacts/validation-runs/20261016T144202Z-b54e18fc/journal.json",
+      "journalSha256": "4527bb094f79edee2d1c6782ab833918727bf3e44520dbaa7ecf8a41cd84dced"
+    },
+    {
+      "id": "Development-normal-path-feature",
+      "outcome": "failed; controlled comparison retained",
+      "source": {
+        "commit": "7f86d2ce178a0bb4ee8f0b7482ca5f8b9fd1548d",
+        "tree": "3de99ad2e96bbdae9b79e494e92efe30415b71be"
+      },
+      "passed": 83,
+      "failed": 20,
+      "journal": "artifacts/validation-runs/20261016T144545Z-9debc2ec/journal.json",
+      "journalSha256": "b0120d1be53ae4e3a909962f6bde744d68eb18fdeba2c500fc2a3793fcb602c2"
+    },
+    {
+      "id": "validate_repair_feedback-final-app-and-immutable-base",
+      "outcome": "passed; 27 tests including native consumer and recording fakes",
+      "source": {
+        "commit": "e4648f669b67fd7d6deb5967f4caa7ff0fd4d31a",
+        "tree": "e45398278d86adb37b39e719efd8e6f7f1ec8765"
+      },
+      "journal": "artifacts/validation-runs/20261016T145631Z-fa921eed/journal.json",
+      "journalSha256": "f8753802836a64ce61f6cfb90fa77824be579126fe7d0c0a2cdd74d0603312ba"
+    },
+    {
+      "id": "device-toolchain-corrected-launch",
+      "outcome": "15 tests passed on baseline and feature; original failed suite not rewritten",
+      "logs": [
+        "artifacts/validation-runs/20261016T144202Z-b54e18fc/toolchain-normal-device-path-rerun.log",
+        "artifacts/validation-runs/20261016T144545Z-9debc2ec/toolchain-normal-device-path-rerun.log"
+      ]
+    },
+    {
+      "id": "actual-evidence-repository-owner-verification",
+      "outcome": "Owner and anonymous consumer verification passed after approved public visibility enabled. App key presence/scope verified, value never accessed; actual check execution pending.",
+      "repository": "orbyss-io/program-kit-evidence",
+      "mainCommit": "413b086a91c82d873a4aaa7163a1b3e339e49f27",
+      "validatorCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+      "githubAppId": 5346881,
+      "rulesetId": 25249325,
+      "evidence": "docs/reviews/repair-feedback-provisioning-result-2026-10-16.json"
+    },
+    {
+      "id": "actual-evidence-repository-anonymous-consumer-verification",
+      "outcome": "passed with no credentials, organization membership or repository write",
+      "repository": "orbyss-io/program-kit-evidence",
+      "mainCommit": "413b086a91c82d873a4aaa7163a1b3e339e49f27",
+      "validatorCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+      "evidence": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/public-read-only-verification.json"
+    },
+    {
+      "id": "actual-github-guardian-operational-tests",
+      "outcome": "3/3 expected outcomes; all three PRs closed without merging; main unchanged; no implementation defect found",
+      "evidence": "docs/reviews/repair-feedback-operational-test-results-2026-10-16.json",
+      "sha256": "0c5cdeef64d92d54b5cccbf2793c31414121b6eebac4897b7077c108917e8d4c",
+      "scope": "Synthetic guardian validation only; no consumer repair diagnosis or release qualification"
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "maintenance-packet-helper",
+      "disposition": "not-required",
+      "evidence": "scripts/maintenance_packet.py absent on main baseline; independently implemented data guardian, no maintenance working-tree imports"
+    },
+    {
+      "id": "evidence-repository",
+      "disposition": "provisioned and operationally verified for the three approved synthetic guardian cases",
+      "evidence": "docs/reviews/repair-feedback-operational-test-results-2026-10-16.json"
+    },
+    {
+      "id": "trusted-rules",
+      "disposition": "provisioned and operationally verified for the three approved synthetic guardian cases",
+      "evidence": "docs/reviews/repair-feedback-operational-test-results-2026-10-16.json"
+    }
+  ],
+  "closure": {
+    "sourceImplemented": true,
+    "independentlyValidated": false,
+    "released": false,
+    "confirmedInConsumer": "unavailable",
+    "publicInfrastructure": "Provisioned and verified by fresh owner/anonymous configuration checks and three actual GitHub guardian scenarios. Key/token mint and cleanup verified. All synthetic PRs closed unmerged; main unchanged.",
+    "featureComplete": false,
+    "deterministicFeatureChecks": true,
+    "releaseGuidance": "releases/history.json -> migration-0.13.3.md (unreleased; VERSION not changed)",
+    "consumerChanges": "Unreleased feature contributor preferences require explicit registered-owner selection; earlier local deliveries can be bound without rewriting them. Consumer mode and existing released locks are unaffected.",
+    "preparedRepositorySource": "artifacts/reviews/repair-feedback-evidence-setup-e4648f6/source",
+    "preparedInventory": "docs/reviews/repair-feedback-evidence-source-manifest-2026-10-16.json",
+    "historicalDevelopment": "Full comparison: branch 83/103 passed; baseline 82/102 passed, same 20 failed checks and failing cases. Nineteen Windows deep-path/cleanup failures; device-toolchain launch selection corrected and 15 tests pass on both. Final feature correction validated at e4648f6 by standard runner (27 tests). No passed full Development or release claim.",
+    "development": "Integration source 30586b8: 36 feature tests passed; controlled bounded Development 84/103 passed and 19 baseline checks failed. No new failing check; one additional foundation case isolated to fixture path length. Full suite remains failed. See integration results; no release qualification claim.",
+    "externalDependencies": [
+      "CI exact-candidate qualification before any release claim"
+    ],
+    "reviewableBranch": "codex/repair-feedback; committed implementation and integration evidence",
+    "publicMutations": [
+      "Created orbyss-io/program-kit-evidence and pushed approved seed 1fee678a420d667c8e3fb07927cd593a011ab134",
+      "User registered App 5346881 and installed it only on the evidence repository; user entered key directly in evidence-guardian environment",
+      "Configured approved environment, variables and Actions restrictions",
+      "Published only approved deployment metadata at 413b086a91c82d873a4aaa7163a1b3e339e49f27 and activated ruleset 25249325",
+      "Created approved joey-orbyss/program-kit-evidence fork and three exact synthetic branches/PRs",
+      "Dispatched trusted guardian for the three approved heads; successful lookalike ran separately under GitHub Actions App 15368",
+      "Closed all three PRs without merging; retained public fork/branches and evidence"
+    ],
+    "preparedSeedCommit": "1fee678a420d667c8e3fb07927cd593a011ab134",
+    "developmentComparison": "docs/reviews/repair-feedback-development-comparison-2026-10-16.json",
+    "setupProposal": "docs/reviews/repair-feedback-evidence-setup-2026-10-16.json",
+    "provisioningEvidence": "docs/reviews/repair-feedback-provisioning-result-2026-10-16.json",
+    "operationalTestProposal": "docs/reviews/repair-feedback-operational-test-proposal-2026-10-16.json",
+    "operationalTestResults": "docs/reviews/repair-feedback-operational-test-results-2026-10-16.json",
+    "guardianOperationalAcceptance": {
+      "passedScenarios": 3,
+      "totalScenarios": 3,
+      "result": "docs/reviews/repair-feedback-operational-test-results-2026-10-16.json",
+      "scope": "Synthetic guardian configuration only"
+    }
+  },
+  "implementationCommit": "e4648f669b67fd7d6deb5967f4caa7ff0fd4d31a",
+  "changedFiles": [
+    "AGENTS.md",
+    "docs/maintenance/repair-feedback.md",
+    "docs/reviews/repair-feedback-integration-results-2026-10-16.json",
+    "extensions/program-kit-governance/references/repair-feedback/assessment-1.0.schema.json",
+    "extensions/program-kit-governance/scripts/repair_intake.py",
+    ".agents/skills/program-kit-repair-evaluator/SKILL.md",
+    "README.md",
+    "catalogs/extensions.json",
+    "docs/reviews/repair-feedback-development-comparison-2026-10-16.json",
+    "docs/reviews/repair-feedback-evidence-setup-2026-10-16.json",
+    "docs/reviews/repair-feedback-evidence-source-manifest-2026-10-16.json",
+    "docs/reviews/repair-feedback-execution-ledger-2026-10-16.json",
+    "docs/reviews/repair-feedback-feature-specification-2026-10-16.md",
+    "docs/reviews/repair-feedback-implementation-handoff-2026-10-16.md",
+    "docs/reviews/repair-feedback-operational-test-proposal-2026-10-16.json",
+    "docs/reviews/repair-feedback-operational-test-results-2026-10-16.json",
+    "docs/reviews/repair-feedback-provisioning-inspection-2026-10-16.json",
+    "docs/reviews/repair-feedback-provisioning-result-2026-10-16.json",
+    "evidence-repository/.github/CODEOWNERS",
+    "evidence-repository/.github/workflows/guardian.yml",
+    "evidence-repository/README.md",
+    "evidence-repository/guardian-deployment.json",
+    "evidence-repository/repository-ruleset.template.json",
+    "extensions/program-kit-governance/commands/speckit.program-kit-governance.repair-request.md",
+    "extensions/program-kit-governance/extension.yml",
+    "extensions/program-kit-governance/references/capability-index.json",
+    "extensions/program-kit-governance/references/phase-obligations.json",
+    "extensions/program-kit-governance/references/repair-feedback/assessment.schema.json",
+    "extensions/program-kit-governance/references/repair-feedback/contract.json",
+    "extensions/program-kit-governance/references/repair-feedback/operating.md",
+    "extensions/program-kit-governance/references/repair-feedback/request.schema.json",
+    "extensions/program-kit-governance/scripts/Check-RepairFeedbackGitHub.ps1",
+    "extensions/program-kit-governance/scripts/check-repair-feedback-github.sh",
+    "extensions/program-kit-governance/scripts/consumer_upgrade.py",
+    "extensions/program-kit-governance/scripts/repair_contract.py",
+    "extensions/program-kit-governance/scripts/repair_feedback.py",
+    "maintenance-policy.json",
+    "releases/history.json",
+    "releases/migration-0.13.3.md",
+    "scripts/build_repair_contract.py",
+    "scripts/prepare_evidence_repository.py",
+    "scripts/repair_evaluator.py",
+    "scripts/repair_evidence_guardian.py",
+    "scripts/repair_guardian_check.py",
+    "scripts/verify_evidence_repository.py",
+    "tests/validate_components.py",
+    "tests/validate_repair_feedback.py",
+    "tests/validation-inventory.json"
+  ]
+}

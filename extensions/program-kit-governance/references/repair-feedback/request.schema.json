@@ -1,0 +1,527 @@
+{
+  "$id": "https://program-kit.orbyss.io/contracts/repair-request/1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "supersedes": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "revision": {
+            "const": 1
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "supersedes": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "component": {
+      "enum": [
+        "governance",
+        "bootstrap",
+        "knowledge",
+        "building-blocks",
+        "dotnet",
+        "upgrade",
+        "tooling",
+        "unclassified"
+      ]
+    },
+    "contractVersion": {
+      "const": "1.0"
+    },
+    "createdAt": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "type": "string"
+    },
+    "diagnostics": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "evidenceClass": {
+              "enum": [
+                "reported",
+                "inspected",
+                "independently-reproduced",
+                "unknown"
+              ]
+            },
+            "explanationKind": {
+              "enum": [
+                "recorded",
+                "retrospective",
+                "unknown"
+              ]
+            },
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "answer",
+            "evidenceClass",
+            "explanationKind",
+            "references"
+          ],
+          "type": "object"
+        },
+        "decision": {
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "evidenceClass": {
+              "enum": [
+                "reported",
+                "inspected",
+                "independently-reproduced",
+                "unknown"
+              ]
+            },
+            "explanationKind": {
+              "enum": [
+                "recorded",
+                "retrospective",
+                "unknown"
+              ]
+            },
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "answer",
+            "evidenceClass",
+            "explanationKind",
+            "references"
+          ],
+          "type": "object"
+        },
+        "expectation": {
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "evidenceClass": {
+              "enum": [
+                "reported",
+                "inspected",
+                "independently-reproduced",
+                "unknown"
+              ]
+            },
+            "explanationKind": {
+              "enum": [
+                "recorded",
+                "retrospective",
+                "unknown"
+              ]
+            },
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "answer",
+            "evidenceClass",
+            "explanationKind",
+            "references"
+          ],
+          "type": "object"
+        },
+        "lesson": {
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "evidenceClass": {
+              "enum": [
+                "reported",
+                "inspected",
+                "independently-reproduced",
+                "unknown"
+              ]
+            },
+            "explanationKind": {
+              "enum": [
+                "recorded",
+                "retrospective",
+                "unknown"
+              ]
+            },
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "answer",
+            "evidenceClass",
+            "explanationKind",
+            "references"
+          ],
+          "type": "object"
+        },
+        "observation": {
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "evidenceClass": {
+              "enum": [
+                "reported",
+                "inspected",
+                "independently-reproduced",
+                "unknown"
+              ]
+            },
+            "explanationKind": {
+              "enum": [
+                "recorded",
+                "retrospective",
+                "unknown"
+              ]
+            },
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "answer",
+            "evidenceClass",
+            "explanationKind",
+            "references"
+          ],
+          "type": "object"
+        },
+        "remedy": {
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "evidenceClass": {
+              "enum": [
+                "reported",
+                "inspected",
+                "independently-reproduced",
+                "unknown"
+              ]
+            },
+            "explanationKind": {
+              "enum": [
+                "recorded",
+                "retrospective",
+                "unknown"
+              ]
+            },
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "answer",
+            "evidenceClass",
+            "explanationKind",
+            "references"
+          ],
+          "type": "object"
+        },
+        "resources": {
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "evidenceClass": {
+              "enum": [
+                "reported",
+                "inspected",
+                "independently-reproduced",
+                "unknown"
+              ]
+            },
+            "explanationKind": {
+              "enum": [
+                "recorded",
+                "retrospective",
+                "unknown"
+              ]
+            },
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "answer",
+            "evidenceClass",
+            "explanationKind",
+            "references"
+          ],
+          "type": "object"
+        },
+        "results": {
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "evidenceClass": {
+              "enum": [
+                "reported",
+                "inspected",
+                "independently-reproduced",
+                "unknown"
+              ]
+            },
+            "explanationKind": {
+              "enum": [
+                "recorded",
+                "retrospective",
+                "unknown"
+              ]
+            },
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "answer",
+            "evidenceClass",
+            "explanationKind",
+            "references"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "context",
+        "expectation",
+        "observation",
+        "resources",
+        "decision",
+        "remedy",
+        "results",
+        "lesson"
+      ],
+      "type": "object"
+    },
+    "evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "dirtyState": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "knowledgeVersion": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "members": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "bytes": {
+                "maximum": 262144,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "path": {
+                "maxLength": 200,
+                "minLength": 1,
+                "pattern": "^[a-zA-Z0-9.][a-zA-Z0-9_./-]*$",
+                "type": "string"
+              },
+              "provenance": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "purpose": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "qualification": {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "transformations": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "path",
+              "purpose",
+              "provenance",
+              "bytes",
+              "sha256",
+              "transformations",
+              "qualification"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "profileVersion": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "programKitVersion": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sourceCommit": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "programKitVersion",
+        "profileVersion",
+        "knowledgeVersion",
+        "sourceCommit",
+        "dirtyState",
+        "members"
+      ],
+      "type": "object"
+    },
+    "omissions": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "originalAccount": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "type": "string"
+    },
+    "projectId": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+      "type": "string"
+    },
+    "requestId": {
+      "pattern": "^rf-[0-9a-f]{32}$",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "supersedes": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      ]
+    },
+    "title": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "unclassified": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "contractVersion",
+    "requestId",
+    "revision",
+    "supersedes",
+    "projectId",
+    "createdAt",
+    "component",
+    "title",
+    "originalAccount",
+    "diagnostics",
+    "unclassified",
+    "evidence",
+    "omissions"
+  ],
+  "type": "object"
+}
