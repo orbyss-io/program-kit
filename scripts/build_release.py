@@ -36,6 +36,7 @@ BUNDLE_SOURCE_PREFIXES = (
 BUNDLE_RUNTIME_SCRIPTS = {
     "scripts/initialize_device.py",
     "scripts/record_local_bundle.py",
+    "scripts/install_local_extension.py",
     "scripts/consumer_upgrade_workspace.py",
     "scripts/invoke_specify.py",
     "scripts/openapi_upgrade_reconciliation.py",

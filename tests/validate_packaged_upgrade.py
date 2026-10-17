@@ -1,4 +1,4 @@
-"""One real packaged updater journey from immutable locally available v0.13.1.
+"""One real packaged updater journey from the immediate supported predecessor.
 
 The old sources come from Git's exact tag, not fabricated version metadata. No
 network package lookup, coding agent, native application build or publication.
@@ -16,10 +16,11 @@ import uuid
 
 from owned_fixture import FixtureDirectory, native_path
 from validate_package_smoke import extract
-from local_bundle_fixture import install_local_bundle
+from local_bundle_fixture import install_local_bundle, verify_release_copies
 
 ROOT = Path(__file__).resolve().parents[1]
-PREVIOUS = '0.13.1'
+PREVIOUS = next(entry['previous'] for entry in json.loads((ROOT / 'releases/history.json').read_text(encoding='utf-8'))['entries']
+                if entry['version'] == (ROOT / 'VERSION').read_text().strip())
 
 
 def scenario():
@@ -72,11 +73,11 @@ def scenario():
                 raise AssertionError(label + ' failed; inspect ' + str(evidence) + '\n' + result.stdout + result.stderr)
             return result
 
-        run('init', [*bridge, 'init', '.', '--force', '--non-interactive', '--integration', 'codex',
+        run('init', [*bridge, 'init', '.', '--force', '--non-interactive', '--integration', 'copilot',
             '--script', 'py', '--ignore-agent-tools'])
         # Core owns first-install contribution records; preinstalling primitives
         # and fabricating ownership would not represent a supported consumer.
-        install_local_bundle(project, previous, bridge, run)
+        install_local_bundle(project, previous, bridge, run, integration='copilot')
         prepared = schema_runtime.runtime_path(project)
         prepared.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(runtime, prepared)
@@ -88,7 +89,7 @@ def scenario():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(payload)
         run('packaged-updater', [sys.executable, native_path(release / 'scripts/upgrade_program_kit.py'),
-            '--release-root', native_path(release), '--target', native_path(project), '--integration', 'codex',
+            '--release-root', native_path(release), '--target', native_path(project), '--integration', 'copilot',
             '--offline', '--specify-command-json', json.dumps(bridge)])
         for relative, payload in authored.items():
             assert (project / relative).read_bytes() == payload, 'Updater changed authored input: ' + relative
@@ -107,6 +108,9 @@ def scenario():
         assert migration['fromVersion'] == PREVIOUS and migration['toVersion'] == version
         assert migration['checks']['installation-coherence'] is True
         assert migration['migrationCompletionEstablished'] is True
+        # Copilot supports dev symlinks on POSIX. A release upgrade must leave
+        # ordinary native outputs, independently usable after staging is gone.
+        verify_release_copies(project, release)
     result = {'status': 'passed', 'fromVersion': PREVIOUS, 'toVersion': version,
         'elapsedSeconds': round(time.monotonic() - started, 3), 'steps': steps,
         'scope': 'Actual immutable-tag source installation to packaged sequential updater; authored data preserved. No application acceptance.'}

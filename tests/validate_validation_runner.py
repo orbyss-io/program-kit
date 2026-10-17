@@ -83,6 +83,16 @@ class SelectionTests(unittest.TestCase):
         check['prerequisites'] = ['tool:program-kit-nonexistent-tool']
         self.assertEqual(check['prerequisites'], runner.missing_prerequisites(check))
 
+    def test_previous_release_prerequisite_follows_history_and_reports_missing_tag(self):
+        reference = runner.prerequisite_git_ref('previous-release')
+        self.assertTrue(reference.startswith('refs/tags/v'))
+        self.assertEqual('refs/tags/fixture', runner.prerequisite_git_ref('refs/tags/fixture'))
+        check = dict(platforms=[runner.platform.system()], prerequisites=['git-ref:previous-release'])
+        with patch.object(runner, 'git', side_effect=ValueError('missing tag')) as git:
+            missing = runner.missing_prerequisites(check)
+            self.assertIn('make the supported historical fixture tag available', missing[0])
+            self.assertEqual(reference + '^{commit}', git.call_args.args[-1])
+
     def test_active_definition_is_valid_and_integrity_has_no_integration(self):
         definition = runner.load_definition()
         self.assertTrue(definition['capabilities'])

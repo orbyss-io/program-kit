@@ -1787,11 +1787,17 @@ def main() -> int:
             environment=uv_windows_specify_environment(specify)
             if environment is not None: local_bundle[0]=str(environment[0])
         local_bundle+=['--release-root',str(release),'--target',str(target),'--integration',integration]
+        local_extension = [local_bundle[0], str(release / 'scripts/install_local_extension.py')]
+        if '--site-packages' in local_bundle:
+            local_extension += ['--site-packages', local_bundle[local_bundle.index('--site-packages') + 1]]
+        def extension_copy(identity):
+            return local_extension + ['--target', str(target), '--source', str(release / 'extensions' / identity),
+                                      '--extension', identity, '--force']
         steps = [
             (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
-            (specify + ["extension", "add", str(release / "extensions/program-kit-governance"), "--dev", "--force"], "Install governance extension"),
-            (specify + ["extension", "add", str(release / "extensions/program-kit-building-blocks"), "--dev", "--force"], "Install building-block extension"),
-            (specify + ["extension", "add", str(release / "extensions/program-kit-dotnet"), "--dev", "--force"], "Install .NET extension"),
+            (extension_copy('program-kit-governance'), "Install governance extension"),
+            (extension_copy('program-kit-building-blocks'), "Install building-block extension"),
+            (extension_copy('program-kit-dotnet'), "Install .NET extension"),
             (specify + ["preset", "remove", "program-kit-governance-preset"], "Remove prior governance preset"),
             (specify + ["preset", "add", "--dev", str(release / "presets/program-kit-governance-preset")], "Install governance preset"),
             (local_bundle,"Resolve bundle composition record"),

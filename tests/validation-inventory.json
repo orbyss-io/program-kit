@@ -117,6 +117,7 @@
     "upgrade": {
       "inputs": [
         "scripts/upgrade_program_kit.py",
+        "scripts/install_local_extension.py",
         "scripts/native_phase_ownership.py",
         "scripts/consumer_upgrade_workspace.py",
         "scripts/openapi_upgrade_reconciliation.py",
@@ -5010,7 +5011,7 @@
         "module:yaml",
         "module:specify_cli",
         "runtime:json-schema",
-        "git-ref:refs/tags/v0.13.1"
+        "git-ref:previous-release"
       ],
       "suites": [
         "Baseline"
@@ -5021,7 +5022,7 @@
         "Windows",
         "Linux"
       ],
-      "purpose": "Actual immutable v0.13.1 source installation to candidate packaged sequential updater, authored preservation/coherence; profile refusal and transaction rollback/retry."
+      "purpose": "Immediate supported predecessor to candidate packaged Copilot upgrade with native copied outputs, customization/alias refusal and authored preservation/coherence; profile refusal and transaction rollback/retry."
     },
     {
       "id": "mechanics-scaffold",
