@@ -185,7 +185,7 @@ def selected_integration(target: Path, requested: str) -> str:
     return candidate
 
 
-def phase_refresh_plan(target: Path, release: Path) -> dict:
+def phase_refresh_plan(target: Path, release: Path, deviations=None) -> dict:
     """Admit native refresh from recorded ownership, never from a directory convention."""
     from specify_cli.integrations import get_integration
     from specify_cli.integrations.manifest import IntegrationManifest
@@ -227,7 +227,7 @@ def phase_refresh_plan(target: Path, release: Path) -> dict:
                                        f'{key} {relative}; preserve it and reconcile the owner before refresh')
                 inherited.append(relative)
         rows.append({'integration': key, 'before': hashes, 'nativePresetOverrides': inherited})
-    native = native_phase_ownership.preflight(target, release, sorted(keys))
+    native = native_phase_ownership.preflight(target, release, sorted(keys), deviations=deviations)
     return {'schemaVersion': 1, 'defaultIntegration': default, 'integrations': rows,
             'nativePhaseOwnership': native}
 
@@ -490,6 +490,13 @@ def prior_attempt(target: Path, release: Path, version: str, repair_of: str | No
                 and value.get('status') in {'running', 'incomplete'}):
             previous.append((path, value))
     latest = max(attempts, key=lambda item: item[1]['startedAt']) if attempts else None
+    completed = [value['startedAt'] for _, value in attempts if value.get('status') == 'completed']
+    if completed:
+        # Failed attempts remain immutable history. Once a later real attempt
+        # completes, a new operation must not resume an older failed mutation or
+        # inherit that operation's local-repair arguments/original input set.
+        boundary = max(completed)
+        previous = [item for item in previous if item[1]['startedAt'] > boundary]
     repaired_prior = None
     if latest and latest[1].get('status') in {'running', 'incomplete'} and (
             latest[1].get('releaseInputsSha256') != fingerprint):
@@ -532,9 +539,15 @@ def begin_attempt(target: Path, release: Path, version: str, observed: str, repa
              'retryOf': prior[0].relative_to(target).as_posix() if prior else None,
              'releaseInputsSha256': fingerprint, 'bootstrapDecisionsSha256': authority_hash,
              'startedAt': datetime.now(timezone.utc).isoformat(), 'status': 'running',
-             'authorization': 'explicit-local-upgrade-command'}
+             'authorization': 'explicit-local-upgrade-command', 'componentMutationStarted': False,
+             'originalInputCapturePending': True}
     if prior:
         value['originals'] = prior[1]['originals']
+        if prior[1].get('originalInputs'):
+            value['originalInputs'] = prior[1]['originalInputs']
+            value['originalInputCapturePending'] = False
+        elif not (prior[1].get('originalInputCapturePending') is True and prior[1].get('componentMutationStarted') is False):
+            value['originalInputCapturePending'] = False  # A legacy partial mutation cannot become a new original.
         if prior[1]['releaseInputsSha256'] != fingerprint:
             value['repairOfReleaseSha256'] = prior[1]['releaseInputsSha256']
     else:
@@ -1045,6 +1058,50 @@ def preflight_mutation_destinations(
         ) from error
 
 
+def canonical_attempt_input_paths(target, release, phase_plan, mutation_arguments, profile):
+    """One finite source of actual installer-owned originals, not directory counts."""
+    _, files = managed_mutation_destinations(target, release, *mutation_arguments)
+    names = {path.relative_to(target).as_posix() for path in files}
+    names.update({'.specify/integration.json', '.specify/init-options.json', '.specify/extensions/.registry',
+                  '.specify/presets/.registry', '.specify/workflows/workflow-registry.json', '.specify/bundle-records.json',
+                  '.program-kit/managed.json', '.program-kit/dependency-profile.json',
+                  '.program-kit/sync/context.json', '.program-kit/sync/receipt.json',
+                  '.program-kit/sync/dependencies.json', '.program-kit/installation/migration.json',
+                  'eng/building-blocks.lock.json', 'docs/architecture/building-block-selection.json'})
+    for integration in phase_plan['integrations']:
+        names.update(integration['before'])
+        names.add('.specify/integrations/' + integration['integration'] + '.manifest.json')
+    names.update(row['path'] for row in phase_plan['nativePhaseOwnership']['outputs'])
+    # Include each actual target source file as an original presence/absence,
+    # including additions absent from an older installed component.
+    for relative in ('extensions/program-kit-governance', 'extensions/program-kit-building-blocks',
+                     'extensions/program-kit-dotnet', 'presets/program-kit-governance-preset',
+                     'workflows/program-kit-bootstrap'):
+        source = release / relative
+        for path in source.rglob('*') if source.is_dir() else []:
+            if {'__pycache__', '.dev-cache', '.composed', 'bin', 'obj', 'node_modules'} & set(path.relative_to(source).parts): continue
+            if path.is_file() and path.suffix not in {'.pyc', '.pyo'}:
+                names.add('.specify/' + relative + '/' + path.relative_to(source).as_posix())
+    for relative in ('.specify/extensions/program-kit-governance', '.specify/extensions/program-kit-building-blocks',
+                     '.specify/extensions/program-kit-dotnet', '.specify/presets/program-kit-governance-preset',
+                     '.specify/workflows/program-kit-bootstrap', '.specify/program-kit/render-profiles',
+                     '.specify/governance', '.program-kit/sync', '.program-kit/dependency-profiles'):
+        directory = repository_relative_path(target, relative, 'canonical original source')
+        for path in directory.rglob('*') if directory.is_dir() else []:
+            if {'__pycache__', '.dev-cache', '.composed', 'bin', 'obj', 'node_modules'} & set(path.relative_to(directory).parts): continue
+            if path.is_file() and path.suffix not in {'.pyc', '.pyo'}:
+                names.add(path.relative_to(target).as_posix())
+    if profile:
+        manifests = [release / 'extensions/program-kit-dotnet/templates/dotnet/managed-files.json']
+        if profile[0] != 'none': manifests.append(release / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles' / profile[0] / 'managed-files.json')
+        for manifest in manifests:
+            value = read_destination_state(manifest, 'canonical original managed destinations')
+            names.update(entry['path'] for entry in value['files'])
+            names.update(value.get('obsoleteFiles', []))
+    for name in names: repository_relative_path(target, name, 'canonical original input')
+    return sorted(names)
+
+
 def building_block_versions(release: Path, target: Path) -> dict[str, str]:
     path = release / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
     try:
@@ -1442,6 +1499,12 @@ def migration_origin(target: Path, installed: str, fallback: str | None = None, 
     path = migration_record_path(target)
     if not path.is_file(): return fallback or installed
     record = json.loads(path.read_text(encoding='utf-8'))
+    canonical = load_release_module(Path(__file__).resolve().parents[1] /
+        'extensions/program-kit-governance/scripts/release_guidance.py', 'upgrade_canonical_completion')
+    try:
+        canonical.validate_completion(record)
+    except ValueError as error:
+        raise UpgradeError(str(error)) from error
     if record.get('status') not in {'pending', 'completed'}:
         raise UpgradeError('PKU132 migration provenance has unsupported status')
     plan = record.get('plan', {})
@@ -1499,6 +1562,8 @@ def main() -> int:
     parser.add_argument('--offline', action='store_true', help='Install offline and report required dependency verification without network restores')
     parser.add_argument('--plan', action='store_true', help='Read verified migration guidance without mutation')
     parser.add_argument('--repair-of-release-sha256', help='Explicitly resume a corrected candidate from this exact preserved failed release fingerprint')
+    parser.add_argument('--local-repairs', help='Exact consumer-relative reviewed local repair declaration; executes its current required cases before replacement')
+    parser.add_argument('--local-repairs-sha256', help='Original reviewed SHA-256 of --local-repairs; both arguments are required together')
     parser.add_argument("--specify-command", default="specify", help=argparse.SUPPRESS)
     parser.add_argument("--specify-command-json", default="", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -1509,6 +1574,8 @@ def main() -> int:
     try:
         release = Path(args.release_root).resolve()
         target = Path(args.target).resolve()
+        if bool(args.local_repairs) != bool(args.local_repairs_sha256):
+            raise UpgradeError('PKU147 local repair reconciliation requires both the exact declaration and its original reviewed SHA-256')
         effective_root = os.environ.get('SPECIFY_INIT_DIR')
         if not args.plan and effective_root and Path(effective_root).resolve() != target:
             raise UpgradeError('PKU133 inherited SPECIFY_INIT_DIR targets another project; no mutation started. '
@@ -1527,7 +1594,10 @@ def main() -> int:
                 'refresh every installed native integration and compose all registered phase contributions; preserve customizations',
                 'synchronize engineering configuration transactionally', 'validate installation coherence',
                 'restore and verify affected native dependencies' if not args.offline else 'report native dependency verification pending']
-            if importlib.util.find_spec('specify_cli') is not None:
+            if args.local_repairs:
+                plan['phaseRefreshPlan'] = {'unresolved': 'Explicit local repair reconciliation requires fresh current-case execution during apply; preview supplies no tested-source admission.',
+                    'declaration': args.local_repairs, 'declarationSha256': args.local_repairs_sha256}
+            elif importlib.util.find_spec('specify_cli') is not None:
                 plan['phaseRefreshPlan'] = phase_refresh_plan(target, release)
             else:
                 plan['phaseRefreshPlan'] = {'unresolved': 'Native ownership preview requires the installed Spec Kit Python runtime; installation runs this admission before component writes.'}
@@ -1563,7 +1633,21 @@ def main() -> int:
         delegated = ensure_cli_runtime(specify, release)
         if delegated is not None:
             return delegated
-        phase_plan = phase_refresh_plan(target, release)
+        deviations, local_repairs = None, None
+        prior, _, _ = prior_attempt(target, release, version, args.repair_of_release_sha256)
+        if args.local_repairs:
+            original_inputs = None
+            if prior and prior[1].get('localRepairs'):
+                if (prior[1]['localRepairs'].get('declarationSha256') != args.local_repairs_sha256
+                        or prior[1]['localRepairs'].get('declaration') != args.local_repairs):
+                    raise UpgradeError('PKU147 retry must preserve its original reviewed local repair declaration')
+                witness = load_release_module(release / 'extensions/program-kit-governance/scripts/tooling_witness.py', 'upgrade_original_repair_inputs')
+                original_inputs = witness.verify_attempt_inputs(target, prior[1]['originalInputs'], prior[1]['originals'])
+            deviations, local_repairs = native_phase_ownership.tested_deviations(
+                target, release, args.local_repairs, args.local_repairs_sha256, original_inputs)
+        elif prior and prior[1].get('localRepairs'):
+            raise UpgradeError('PKU147 interrupted local repair reconciliation requires its original --local-repairs and --local-repairs-sha256 arguments')
+        phase_plan = phase_refresh_plan(target, release, deviations)
         if pending_upgrade_transactions(target):
             descriptor, lock_path = acquire_lock(target)
             recover_upgrade_transactions(target, release)
@@ -1613,6 +1697,29 @@ def main() -> int:
         attempt_path, attempt = begin_attempt(target, release, version, previous_version, args.repair_of_release_sha256)
         witness = load_release_module(release / 'extensions/program-kit-governance/scripts/tooling_witness.py', 'upgrade_tooling_witness')
         attempt['toolingWitness'] = witness.retain(target, release, attempt['releaseInputsSha256'])
+        if local_repairs is not None:
+            attempt['localRepairs'] = local_repairs
+        checked = {}
+        if local_repairs is not None:
+            executed = local_repairs['execution']
+            checked = dict(executed['inputSha256'])
+            checked.update(executed['moduleSourceSha256'])
+            checked[local_repairs['declaration']] = local_repairs['declarationSha256']
+            checked[local_repairs['contract']] = local_repairs['contractSha256']
+            for relative, expected in checked.items():
+                source = repository_relative_path(target, relative, 'executed local repair source')
+                if not source.is_file() or hashlib.sha256(source.read_bytes()).hexdigest() != expected:
+                    raise UpgradeError('PKU147 local repair execution inputs changed before original capture: ' + relative)
+        if attempt.get('originalInputs'):
+            witness.verify_attempt_inputs(target, attempt['originalInputs'], attempt['originals'])
+        else:
+            if not attempt['originalInputCapturePending']:
+                raise UpgradeError('PKU146 legacy interrupted mutation lacks its original canonical input inventory; preserve its history and authenticate original inputs, never backfill from partial current state')
+            inputs = canonical_attempt_input_paths(target, release, phase_plan,
+                (integration, profile, has_bootstrap_decisions, reconciliation, stale_locks, exporter_transition), profile)
+            inputs = sorted(set(inputs) | set(checked))
+            attempt['originalInputs'] = witness.retain_attempt_inputs(target, inputs, attempt)
+        attempt.update(originalInputCapturePending=False, componentMutationStarted=True)
         seal_attempt(attempt_path, attempt)
         previous_version = attempt['previousInstalledVersion']
         audit = load_release_module(release / 'extensions/program-kit-governance/scripts/dependency_audit.py', 'upgrade_historical_input_archive')
@@ -1750,6 +1857,10 @@ def main() -> int:
         migration['releaseReadinessEstablished'] = False
         migration['releaseInputsSha256'] = release_fingerprint(release)
         migration['toolingWitness'] = attempt['toolingWitness']
+        migration['originalInputs'] = attempt['originalInputs']
+        migration['originals'] = attempt['originals']
+        if attempt.get('localRepairs'):
+            migration['localRepairs'] = attempt['localRepairs']
         preserve_migration_completion(target, attempt_path)
         write_attempt(target / '.program-kit/installation/migration.json', migration)
         if not migration['migrationCompletionEstablished']:
@@ -1780,6 +1891,8 @@ def main() -> int:
         recovery = [sys.executable, str(release / 'scripts/upgrade_program_kit.py'), '--release-root', str(release), '--target', str(target)]
         if args.repair_of_release_sha256:
             recovery.extend(['--repair-of-release-sha256', args.repair_of_release_sha256])
+        if args.local_repairs:
+            recovery.extend(['--local-repairs', args.local_repairs, '--local-repairs-sha256', args.local_repairs_sha256])
         if args.offline: recovery.append('--offline')
         if args.accept_openapi_producer_pin_reconciliation: recovery.append('--accept-openapi-producer-pin-reconciliation')
         print('Next action: fix the reported cause, then run ' + subprocess.list2cmdline(recovery), file=sys.stderr)

@@ -14,7 +14,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_shared_obligations"
       ],
@@ -52,7 +52,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_case_inventory"
       ],
@@ -83,10 +83,7 @@
         "windows": true,
         "build": false
       },
-      "command": [
-        "{python}",
-        "tests/validate_upgrade_retry.py"
-      ],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002", "--module", "validate_upgrade_retry"],
       "group": "development",
       "needs": [],
       "platforms": [
@@ -96,6 +93,8 @@
       "purpose": "Exact original/target retry admission, real materialization and preserved originals; no worker or publication.",
       "owner": "program-kit",
       "inputs": [
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "tests/shared-regression-cases.json",
         "scripts/upgrade_program_kit.py",
         "scripts/openapi_upgrade_reconciliation.py",
         "extensions/program-kit-building-blocks/**",
@@ -113,10 +112,7 @@
         "windows": true,
         "build": false
       },
-      "command": [
-        "{python}",
-        "tests/validate_web_runtime.py"
-      ],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002", "--module", "validate_web_runtime"],
       "group": "development",
       "needs": [],
       "platforms": [
@@ -159,7 +155,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_owned_scratch"
       ],
@@ -240,7 +236,7 @@
     {
       "id": "validate_native_phase_ownership",
       "qualification": {"linux": true, "windows": false, "build": false},
-      "command": ["{python}", "tests/validate_native_phase_ownership.py"],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002", "--module", "validate_native_phase_ownership"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Exact native extension/preset source and generated output ownership, customization refusal, secondary integrations and immutable archived-source witnesses before upgrade mutation.",
       "owner": "program-kit", "inputs": ["scripts/native_phase_ownership.py", "scripts/upgrade_program_kit.py", "extensions/program-kit-governance/references/native-phase-source-baselines.json", "tests/validate_native_phase_ownership.py"],
@@ -340,7 +336,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_story_delivery"
       ],
@@ -554,7 +550,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_normal_development"
       ],
@@ -593,7 +589,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_scoped_verification"
       ],
@@ -632,7 +628,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_task_generation"
       ],
@@ -737,7 +733,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_dependency_profiles"
       ],
@@ -817,10 +813,7 @@
     {
       "id": "validate_release_guidance",
       "qualification": {"linux": true, "windows": false, "build": false},
-      "command": [
-        "{python}",
-        "tests/validate_release_guidance.py"
-      ],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002", "--module", "validate_release_guidance"],
       "group": "development",
       "needs": [],
       "platforms": [
@@ -830,6 +823,8 @@
       "purpose": "validate release guidance",
       "owner": "program-kit",
       "inputs": [
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "tests/shared-regression-cases.json",
         "scripts/**",
         "extensions/**",
         "presets/**",
@@ -866,7 +861,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_repository_toolchain"
       ],
@@ -1115,7 +1110,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_public_core_compatibility"
       ],
@@ -2005,7 +2000,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_repository_sync"
       ],
@@ -2806,7 +2801,7 @@
     },
     {
       "id": "validate_post_bootstrap_continuation",
-      "qualification": {"linux": true, "windows": false, "build": false},
+      "qualification": {"linux": true, "windows": true, "build": false},
       "command": [
         "{python}",
         "tests/validate_post_bootstrap_continuation.py"
@@ -5048,7 +5043,7 @@
         "tests/validate_composition_start.py"
       ],
       "outputs": [
-        "artifacts/tests/composition-start"
+        "artifacts/t/composition-<unique>"
       ],
       "resources": [
         "docker",
@@ -5137,7 +5132,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_document_ownership"
       ],
@@ -5366,7 +5361,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "c711a989ca14c2a42a30404b07d5e0bfc814a9c23b6dbe190eae7f373f79c1b5",
+        "a5eac400c455d3ef66ca90cc6f5a5012626d3755dc1be405f40079dcb4f75002",
         "--module",
         "validate_tooling_witness"
       ],

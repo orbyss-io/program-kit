@@ -126,7 +126,11 @@ if ($Scope -ne 'Acceptance') {
         if ($Restore) { $arguments += '--restore' }
         if ($Plan) { $arguments += '--plan' }
         $typedSelection = & $verificationPython @arguments --select-only
-        if ($LASTEXITCODE -ne 0) { throw 'Typed verification ownership selection failed; no check was dispatched.' }
+        if ($LASTEXITCODE -ne 0) {
+            $selectionDiagnostic = ($typedSelection -join "`n")
+            if ($selectionDiagnostic.Length -gt 4096) { $selectionDiagnostic = $selectionDiagnostic.Substring(0, 4096) }
+            throw "Typed verification ownership selection failed; no check was dispatched. $selectionDiagnostic"
+        }
         $selectedOwners = ($typedSelection -join "`n") | ConvertFrom-Json
         if ($selectedOwners.projects.Count) {
             & (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly

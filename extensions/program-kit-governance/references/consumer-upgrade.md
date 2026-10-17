@@ -266,3 +266,43 @@ mapping. Preserve consumer-specific provider budgets, paid authority, domain,
 deployment and original-history checks under their actual current owners. Generic
 toolkit cases cannot replace those obligations, and archived code is never imported
 to manufacture current coverage. Preserve original failed and historical results.
+
+## Reconcile declared local tooling repairs
+
+Use the trusted staged release's updater with both `--local-repairs
+<consumer-relative-declaration.json>` and `--local-repairs-sha256
+<original-reviewed-declaration-sha256>`. Review the concrete declaration and its
+coverage rationale before selecting that digest. Preview reports that fresh
+execution is still required; it supplies no tested-source admission.
+
+The declaration has `schemaVersion: 1`, `contract`, `contractSha256` and a finite
+`repairs` array. The contract uses the current exact-case format above. Each repair
+names its exact installed machine-source `path`, `beforeSha256`, `afterSha256`,
+nonempty fully qualified `requiredCases`, and reviewed `rationale`. An explicit
+addition uses `beforeSha256: null`; deletion requires separate owner reconciliation.
+Every changed path must be a declared current case input. Generated command/skill
+customizations and manifests still pass their ordinary ownership checks.
+
+The maintained updater compares each original against one complete authenticated
+component baseline before executing current cases. Missing publisher helpers,
+unregistered/spurious repair owners, wrong original/changed bytes, absent or skipped
+required cases, and changed inputs fail. A C# method's existence or a supplied
+passing JSON report cannot substitute for fresh execution. The reviewer remains
+responsible for whether the selected cases test the repair's semantics.
+
+Before component replacement, the original attempt retains the complete exact
+managed/native input set, explicit absences, local patch, declaration, case contract
+and selected case sources as bounded data under
+`.program-kit/installation/attempt-inputs/sha256/`. The new attempt and migration
+receipt bind this original inventory; `tooling_witness.py verify-inputs --receipt
+<original-attempt-or-migration-receipt>` verifies it in a later process without
+replaying archived source. This verifies original bytes, not migration completion.
+The normal migration validator separately requires its canonical checks.
+
+An interrupted repair reconciliation retains the original arguments and canonical
+originals. Retry freshly executes the current cases against the actual remaining
+installed sources, including components already replaced by authentic target bytes.
+Original patch/evidence remains historical. Legacy partial mutations without the
+complete original input binding cannot be backfilled from current mixed state.
+Public publisher identity, local tested deviation, generated output, historical
+receipt and current application acceptance remain distinct claims.

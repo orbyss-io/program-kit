@@ -1303,12 +1303,19 @@ def reconcile_output(repository: Path, previous: dict | None, desired: dict | No
 
 
 def atomic_write_bytes(path: Path, content: bytes, suffix: str) -> None:
+    # This component installs independently; keep its native file adapter local.
+    # Extended spelling is only for filesystem I/O, never a NuGet/CLI URI.
+    if os.name == 'nt':
+        spelling = os.path.abspath(path)
+        if not spelling.startswith('\\\\?\\'):
+            spelling = '\\\\?\\UNC\\' + spelling[2:] if spelling.startswith('\\\\') else '\\\\?\\' + spelling
+        path = Path(spelling)
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         previous = path.read_bytes()
     except FileNotFoundError:
         previous = None
-    temporary = path.with_name(f".{path.name}.{suffix}.{uuid.uuid4().hex}.tmp")
+    temporary = path.with_name(f".pkb-{uuid.uuid4().hex}.tmp")
     try:
         with temporary.open('xb') as stream:
             stream.write(content); stream.flush(); os.fsync(stream.fileno())
@@ -1321,7 +1328,9 @@ def atomic_write_bytes(path: Path, content: bytes, suffix: str) -> None:
                     raise
                 time.sleep(.02 * (attempt + 1))
                 try:
-                    current = path.read_bytes() if path.exists() else None
+                    current = path.read_bytes()
+                except FileNotFoundError:
+                    current = None
                 except OSError:
                     current = object()  # An unreadable original cannot authorize retry.
                 if current != previous:

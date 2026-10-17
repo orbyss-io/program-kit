@@ -74,10 +74,17 @@ normal review must check the actual responsibilities and governing constraints.
 Development uses explicit scopes rather than the acceptance pipeline at every checkpoint:
 
 ```powershell
-./eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects tests/Notes.Tests/Notes.Tests.csproj
+python eng/repository_verification.py --repository . --list-owners
 ./eng/Invoke-RepositoryVerification.ps1 -Scope Affected -ChangedFrom <implementation-base> -Plan
 ./eng/Invoke-RepositoryVerification.ps1 -Scope Affected -ChangedFrom <implementation-base>
 ```
+
+The owner query prints copyable Focused commands for the actual materialized test
+projects and named toolkit checks in this repository. Use the relevant emitted
+command in the feature quickstart and retain its concrete owner path/check ID.
+Unmaterialized owners remain explicitly pending; a repository with no test owner
+must declare and implement meaningful tests first. Running Focused without a named
+owner still fails with PKV002. The query executes no SDK, tests or preparation.
 
 Focused builds named test projects and runs their selected native tests; `-TestArguments` accepts the
 selected framework's filters as an argument array. An unfiltered Focused selection with multiple

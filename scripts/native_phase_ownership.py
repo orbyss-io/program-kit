@@ -94,7 +94,7 @@ def native_source_baselines(release, kind, name, metadata, manifest_hash):
     return result
 
 
-def source_guard(repository, release, name, metadata, manifest, sources, kind='extensions'):
+def source_guard(repository, release, name, metadata, manifest, sources, kind='extensions', deviations=None):
     reader=asset_reader(release)
     expected = metadata.get('manifest_hash')
     require(isinstance(expected, str) and re.fullmatch(r'(?:sha256:)?[0-9a-f]{64}', expected),
@@ -111,47 +111,70 @@ def source_guard(repository, release, name, metadata, manifest, sources, kind='e
         payloads[relative] = reader.read(path) if reader else path.read_bytes()
         hashes[relative] = digest(payloads[relative])
     if name.startswith('program-kit-'):
-        verified, closest = False, set(sources)
+        prefix = '.specify/' + kind + '/' + name + '/'
+        repairs = {path[len(prefix):]: row for path, row in (deviations or {}).items() if path.startswith(prefix)}
+        verified, closest = False, None
         for witness, directory in witnesses:
-            unmatched = set()
+            if isinstance(directory, dict):
+                expected_names = {relative for relative in directory if machine_source_path(relative)}
+            elif directory is not None:
+                expected_names = installed_source_files(directory, release)
+            else:
+                tree = subprocess.run(['git', '-C', str(release), 'ls-tree', '-r', '--name-only', '-z',
+                    witness.removeprefix('git:') + ':' + kind + '/' + name], capture_output=True, timeout=15)
+                if tree.returncode != 0: continue
+                expected_names = {relative for relative in tree.stdout.decode('utf-8').split('\0')
+                                  if relative and machine_source_path(relative)}
+            # Declared native command/script paths outside the ordinary source
+            # roots still receive exact byte comparison below. Missing ordinary
+            # helpers cannot disappear merely because current discovery omits them.
+            expected_names.update(relative for relative in sources if not machine_source_path(relative))
+            expected_names.update(relative for relative, row in repairs.items() if row['beforeSha256'] is None)
+            unmatched = expected_names.symmetric_difference(set(sources))
             for relative, payload in payloads.items():
                 if isinstance(directory, dict):
-                    matches = directory.get(relative) == hashes[relative]
+                    original_hash = directory.get(relative)
                 elif directory is not None:
                     publisher = directory / relative
                     try:original=reader.read(publisher) if reader else publisher.read_bytes()
                     except FileNotFoundError:original=None
-                    matches = original == payload
+                    original_hash = digest(original) if original is not None else None
                 else:
                     result = subprocess.run(['git', '-C', str(release), 'show', witness.removeprefix('git:') + ':' + kind + '/' + name + '/' + relative],
                                             capture_output=True, timeout=15)
-                    matches = result.returncode == 0 and result.stdout == payload
+                    original_hash = digest(result.stdout) if result.returncode == 0 else None
+                repair = repairs.get(relative)
+                matches = original_hash == hashes[relative] if repair is None else (
+                    original_hash == repair['beforeSha256'] and hashes[relative] == repair['afterSha256'])
                 if not matches:
                     unmatched.add(relative)
-            if len(unmatched) < len(closest):
+            if closest is None or len(unmatched) < len(closest):
                 closest = unmatched
             if not unmatched:
                 verified = True; break
-        require(verified, 'unresolved or customized installed Program Kit source: ' + name + ' / ' + ', '.join(sorted(closest))
+        require(verified, 'unresolved or customized installed Program Kit source: ' + name + ' / ' + ', '.join(sorted(closest or set(sources)))
                 + '; native manifest_hash covers only the manifest; preserve the complete source component and reconcile against one authenticated original')
     return hashes
 
 
-def installed_source_files(installed,release=None):
-    """Machine sources; versioned package facts keep their separate immutable authority."""
+def machine_source_path(relative):
+    parts = Path(relative).parts
     excluded = {'__pycache__', '.dev-cache', '.composed', '.git', 'bin', 'obj', 'node_modules'}
-    reader=asset_reader(release)
-    paths={path.relative_to(installed).as_posix() for path in installed.rglob('*') if path.is_file()}
-    if reader:paths.update(reader.packed(installed))
-    return {relative for relative in paths
-            if (Path(relative).parts[0] in {'commands', 'scripts', 'templates', 'config', 'references', 'docs', 'examples'}
-                                  or Path(relative).name in {'extension.yml', 'preset.yml', 'README.md'})
-            and not (Path(relative).parts[0] == 'references'
-                     and (Path(relative).parts[1:2] in {('dependency-profiles',), ('release-guidance',)}
-                          or Path(relative).name in {'release-guidance.json', 'native-phase-source-baselines.json'}))
-            and not excluded & set(Path(relative).parts)
-            and Path(relative).suffix not in {'.pyc', '.pyo'} and Path(relative).name != '.keep-config'
-            and not (len(Path(relative).parts)==1 and (Path(relative).name.endswith('-config.yml') or Path(relative).name.endswith('-config.local.yml')))}
+    return bool(parts) and (parts[0] in {'commands', 'scripts', 'templates', 'config', 'references', 'docs', 'examples'}
+            or Path(relative).name in {'extension.yml', 'preset.yml', 'README.md'}) \
+        and not (parts[0] == 'references' and (parts[1:2] in {('dependency-profiles',), ('release-guidance',)}
+                 or Path(relative).name in {'release-guidance.json', 'native-phase-source-baselines.json'})) \
+        and not excluded & set(parts) and Path(relative).suffix not in {'.pyc', '.pyo'} \
+        and Path(relative).name != '.keep-config' \
+        and not (len(parts) == 1 and (Path(relative).name.endswith('-config.yml') or Path(relative).name.endswith('-config.local.yml')))
+
+
+def installed_source_files(installed, release=None):
+    """Machine sources; versioned package facts keep their separate immutable authority."""
+    reader = asset_reader(release)
+    paths = {path.relative_to(installed).as_posix() for path in installed.rglob('*') if path.is_file()}
+    if reader: paths.update(reader.packed(installed))
+    return {relative for relative in paths if machine_source_path(relative)}
 
 
 def generated_guidance_guard(repository, release, metadata):
@@ -227,7 +250,7 @@ def _rendered_outputs(repository, agent, manifest, installed, options):
     return expected
 
 
-def _preflight(repository, release=None, integration_keys=None):
+def _preflight(repository, release=None, integration_keys=None, deviations=None):
     repository = Path(repository).resolve()
     from specify_cli import load_init_options
     from specify_cli.extensions import ExtensionManager, ExtensionManifest
@@ -244,7 +267,7 @@ def _preflight(repository, release=None, integration_keys=None):
     require(isinstance(keys, list) and keys and all(isinstance(k, str) for k in keys), 'unresolved installed integration bindings')
     base_options = load_init_options(repository)
     require(isinstance(base_options, dict), 'unresolved native initialization options')
-    checked, generated_guidance = [], None
+    checked, generated_guidance, extension_sources = [], None, {}
     import importlib.util
     profile_source=Path(release)/'extensions/program-kit-governance/scripts/render_profile.py' if release else None
     require(profile_source is not None and profile_source.is_file(),'native generation profile reader is unavailable')
@@ -268,7 +291,8 @@ def _preflight(repository, release=None, integration_keys=None):
         if name.startswith('program-kit-'):
             sources.update(installed_source_files(installed,release))
         sources = sorted(sources)
-        hashes = source_guard(repository, release, name, metadata, manifest, sources)
+        hashes = source_guard(repository, release, name, metadata, manifest, sources, deviations=deviations)
+        extension_sources[name] = hashes
         if name == 'program-kit-governance':
             generated_guidance = generated_guidance_guard(repository, release, metadata)
         if not metadata.get('enabled', True):
@@ -330,17 +354,97 @@ def _preflight(repository, release=None, integration_keys=None):
             manifest = PresetManifest(manifest_path)
             sources = {row['file'] for row in manifest.templates}
             sources.update(installed_source_files(installed,release))
-            preset_sources[name] = source_guard(repository, release, name, metadata, manifest, sorted(sources), 'presets')
+            preset_sources[name] = source_guard(repository, release, name, metadata, manifest, sorted(sources), 'presets', deviations)
     return {'schemaVersion': 1, 'outputs': checked, 'presetSourceSha256': preset_sources,
+            'extensionSourceSha256': extension_sources,
             'generatedReleaseGuidance': generated_guidance, 'readOnly': True,
             'sourceScope': 'Exact installed manifests and authenticated Program Kit phase sources/references/docs; generated release guides, native retained config, consumer extension sources and selected versioned package evidence retain separate authority.'}
 
 
-def preflight(repository, release=None, integration_keys=None):
+def preflight(repository, release=None, integration_keys=None, deviations=None):
     try:
-        return _preflight(repository, release, integration_keys)
+        return _preflight(repository, release, integration_keys, deviations)
     except OwnershipError:
         raise
     except (ImportError, AttributeError, OSError, ValueError, TypeError, KeyError) as error:
         raise OwnershipError('PKU135 unsupported or unreadable native phase ownership binding ('
                              + type(error).__name__ + '); preserve installed sources/outputs and repair the scoped native registry/API') from error
+
+
+def tested_deviations(repository, release, declaration, expected, prior_inputs=None):
+    """Fresh execution of reviewed current cases, with original publisher comparison.
+
+    The explicit declaration is a local review input. Its hash is not publisher
+    authentication or proof that the selected cases cover the repair's semantics.
+    The normal guard authenticates every original against one complete component.
+    """
+    runner = Path(release) / 'extensions/program-kit-governance/scripts/case_inventory.py'
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('upgrade_current_case_inventory', runner)
+    cases = importlib.util.module_from_spec(spec); spec.loader.exec_module(cases)
+    require(isinstance(expected, str) and re.fullmatch('[a-f0-9]{64}', expected), 'original reviewed local repair declaration SHA-256 is required')
+    path = cases.inside(repository, declaration)
+    require(path.is_file() and path.stat().st_size <= 2_097_152, 'local repair declaration missing or oversized')
+    raw = path.read_bytes(); require(digest(raw) == expected, 'local repair declaration differs from its review anchor')
+    value = json.loads(raw, object_pairs_hook=cases.unique)
+    require(isinstance(value, dict) and set(value) == {'schemaVersion', 'contract', 'contractSha256', 'repairs'}
+            and value['schemaVersion'] == 1 and isinstance(value['repairs'], list) and 0 < len(value['repairs']) <= 128,
+            'local repairs need a finite exact declaration and current case contract')
+    definitions, inputs = cases.contract(repository, value['contract'], value['contractSha256'])
+    all_cases = {case: platforms for row in definitions.values() for case, platforms in row['cases'].items()}
+    import platform
+    repairs, active = {}, {}
+    for row in value['repairs']:
+        require(isinstance(row, dict) and set(row) == {'path', 'beforeSha256', 'afterSha256', 'requiredCases', 'rationale'},
+                'each local repair needs exact before/after sources, required cases and review rationale')
+        relative = row['path']; target = cases.inside(repository, relative); parts = Path(relative).parts
+        require(len(parts) >= 5 and parts[0] == '.specify' and parts[1] in {'extensions', 'presets'}
+                and parts[2].startswith('program-kit-') and machine_source_path('/'.join(parts[3:]))
+                and relative not in repairs and relative.casefold() not in {name.casefold() for name in repairs},
+                'local repair must name one exact installed Program Kit machine source')
+        require((row['beforeSha256'] is None or isinstance(row['beforeSha256'], str) and re.fullmatch('[a-f0-9]{64}', row['beforeSha256']))
+                and isinstance(row['afterSha256'], str) and re.fullmatch('[a-f0-9]{64}', row['afterSha256'])
+                and row['beforeSha256'] != row['afterSha256'], 'local repair must change an exact original source; deletions need separate owner reconciliation')
+        require(isinstance(row['rationale'], str) and 0 < len(row['rationale'].strip()) <= 4096
+                and isinstance(row['requiredCases'], list) and row['requiredCases']
+                and len(set(row['requiredCases'])) == len(row['requiredCases'])
+                and all(case in all_cases and platform.system() in all_cases[case] for case in row['requiredCases']),
+                'local repair requires nonempty exact current-platform regression identities and reviewed coverage rationale')
+        require(relative in inputs and target.is_file(), 'local repaired source must be an actual required case input')
+        if prior_inputs is not None:
+            require(prior_inputs.get('files', {}).get(relative) == row['afterSha256'],
+                    'retry local repair differs from the canonical original attempt inventory')
+        elif digest(target.read_bytes()) != row['afterSha256']:
+            raise OwnershipError('PKU135 local repaired source differs from its reviewed after hash: ' + relative)
+        repairs[relative] = row
+        if digest(target.read_bytes()) == row['afterSha256']: active[relative] = row
+    # Before executing any selected current test, establish complete authentic
+    # originals. No supplied execution report can bypass this read-only admission.
+    admitted = preflight(repository, release, deviations=active)
+    authenticated = {'.specify/' + kind + '/' + component + '/' + relative
+        for kind, key in (('extensions', 'extensionSourceSha256'), ('presets', 'presetSourceSha256'))
+        for component, files in admitted[key].items() for relative in files}
+    require(set(repairs) <= authenticated, 'spurious local repair lacks an authenticated registered source owner')
+    def inventory():
+        result = {}
+        for kind in ('extensions', 'presets'):
+            for component in sorted((repository / '.specify' / kind).glob('program-kit-*')):
+                for relative in installed_source_files(component, release):
+                    target = component / relative
+                    reader = asset_reader(release)
+                    result[target.relative_to(repository).as_posix()] = digest(reader.read(target) if reader else target.read_bytes())
+        return result
+    before = inventory()
+    require(set(repairs) <= set(before), 'spurious local repair has no installed source owner')
+    modules = sorted({case.split('.')[0] for row in repairs.values() for case in row['requiredCases']})
+    result = cases.execute(repository, value['contract'], value['contractSha256'], modules)
+    for relative, row in repairs.items():
+        require(result['inputSha256'].get(relative) == before[relative]
+                and all(result['executedCases'].get(case) == 'passed' for case in row['requiredCases']),
+                'local repair lacks actual successful required-case/source execution: ' + relative)
+    require(inventory() == before and path.read_bytes() == raw, 'installed source set or local repair declaration changed during execution')
+    return active, {'schemaVersion': 1, 'declaration': declaration, 'declarationSha256': expected,
+        'contract': value['contract'], 'contractSha256': value['contractSha256'], 'repairs': value['repairs'],
+        'execution': result, 'installedSourceSha256': before,
+        'claim': 'Current executed local repair evidence; original publisher, generated outputs and historical receipts retain separate authority.',
+        'productAcceptanceEstablished': False, 'publisherAuthenticityEstablished': False}

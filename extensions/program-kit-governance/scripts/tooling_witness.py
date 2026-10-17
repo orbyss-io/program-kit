@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
+import stat
 import uuid
 import zipfile
 
@@ -257,16 +258,119 @@ def recover(root, binding, candidate):
     return select(root, binding)
 
 
+def attempt_input_bytes(path):
+    try: info = path.stat()
+    except FileNotFoundError: return None
+    require(stat.S_ISREG(info.st_mode) and info.st_size <= MAX_FILE,
+            'attempt input must be a bounded regular file or explicitly absent')
+    return path.read_bytes()  # Unreadability is never evidence of absence.
+
+
+def retain_attempt_inputs(root, paths, attempt):
+    """Freeze the updater's finite canonical mutation inputs before component writes.
+
+    The producer supplies exact native/managed ownership paths, including absent
+    destinations. This is original data, not permission to replay archived code.
+    Unrelated directories and arbitrary historical .original counts supply no
+    additional coverage or authority.
+    """
+    root = filesystem(root)
+    names = sorted(set(paths) | {row['path'] for row in attempt['originals'].values()})
+    require(names and len(names) <= MAX_FILES and len({name.casefold() for name in names}) == len(names),
+            'attempt inputs require a complete finite canonical path set without aliases')
+    files, payloads, total = {}, {}, 0
+    for name in names:
+        path = contained(root, name)
+        raw = attempt_input_bytes(path)
+        if raw is None:
+            files[name] = None
+            continue
+        total += len(raw)
+        require(total <= MAX_TOTAL, 'attempt inputs exceed finite aggregate bound')
+        files[name] = sha(raw); payloads[name] = raw
+    for row in attempt['originals'].values():
+        require(files.get(row['path']) == row['sha256'], 'original attempt alias differs from its exact archived bytes')
+    identity = {name: attempt[name] for name in ('id', 'targetVersion', 'previousInstalledVersion', 'releaseInputsSha256')}
+    record = {'schemaVersion': 1, 'kind': 'upgrade-original-inputs', 'attempt': identity,
+              'files': files, 'originalAliases': attempt['originals'],
+              'scope': 'Exact original canonical updater inputs and absences; no application acceptance, local repair or public origin is established.'}
+    raw = encoded(record); address = sha(raw)
+    relative_record = '.program-kit/installation/attempt-inputs/sha256/' + address + '/record.json'
+    path = contained(root, relative_record)
+    binding = {'record': relative_record, 'sha256': address}
+    if path.parent.exists():
+        require(path.is_file() and path.read_bytes() == raw, 'partial or modified original attempt input record')
+    else:
+        temporary = path.parent.with_name('.partial-' + uuid.uuid4().hex); temporary.mkdir(parents=True)
+        with zipfile.ZipFile(temporary / 'inputs.zip', 'x', compression=zipfile.ZIP_STORED) as archive:
+            for name, payload in payloads.items():
+                require(contained(root, name).read_bytes() == payload, 'attempt input changed during original capture: ' + name)
+                item = zipfile.ZipInfo(name, (1980, 1, 1, 0, 0, 0)); item.external_attr = 0o644 << 16
+                archive.writestr(item, payload)
+        with (temporary / 'inputs.zip').open('r+b') as stream: stream.flush(); os.fsync(stream.fileno())
+        # Check absences too; a concurrent file cannot silently become an original.
+        for name, expected in files.items():
+            current = attempt_input_bytes(contained(root, name))
+            require((sha(current) if current is not None else None) == expected,
+                    'attempt input changed during original capture: ' + name)
+        (temporary / 'record.json').write_bytes(raw)
+        temporary.rename(path.parent)
+    verify_attempt_inputs(root, binding, attempt['originals'])
+    return binding
+
+
+def verify_attempt_inputs(root, binding, original_aliases=None):
+    """Check the original receipt anchor and exact archive set, never a file count."""
+    root = filesystem(root)
+    require(isinstance(binding, dict) and set(binding) == {'record', 'sha256'}
+            and isinstance(binding['sha256'], str) and re.fullmatch('[a-f0-9]{64}', binding['sha256']),
+            'original canonical attempt input binding is required; do not backfill legacy history')
+    require(binding['record'] == '.program-kit/installation/attempt-inputs/sha256/' + binding['sha256'] + '/record.json',
+            'canonical attempt input record must use its original exact address')
+    path = contained(root, binding['record'])
+    require(path.is_file() and path.stat().st_size <= 8 * 1_048_576 and sha(path.read_bytes()) == binding['sha256'],
+            'original canonical attempt input record is missing or changed')
+    record = json.loads(path.read_bytes())
+    require(isinstance(record, dict) and set(record) == {'schemaVersion', 'kind', 'attempt', 'files', 'originalAliases', 'scope'}
+            and type(record['schemaVersion']) is int and record['schemaVersion'] == 1 and record['kind'] == 'upgrade-original-inputs'
+            and isinstance(record['files'], dict) and 0 < len(record['files']) <= MAX_FILES,
+            'unsupported or empty canonical original input inventory')
+    files = record['files']
+    require(len({name.casefold() for name in files}) == len(files), 'canonical original input aliases are not admitted')
+    for name, expected in files.items():
+        relative(name)
+        require(expected is None or isinstance(expected, str) and re.fullmatch('[a-f0-9]{64}', expected),
+                'canonical original input hash or explicit absence is required')
+    aliases = record['originalAliases']
+    require(isinstance(aliases, dict) and aliases and all(isinstance(row, dict) and set(row) == {'path', 'sha256'}
+            and files.get(row['path']) == row['sha256'] and isinstance(row['sha256'], str) for row in aliases.values()),
+            'original attempt aliases differ from their complete canonical inventory')
+    identity = record['attempt']
+    require(isinstance(identity, dict) and set(identity) == {'id', 'targetVersion', 'previousInstalledVersion', 'releaseInputsSha256'}
+            and all(isinstance(value, str) and value for value in identity.values())
+            and re.fullmatch('[a-f0-9]{64}', identity['releaseInputsSha256']), 'canonical original attempt identity is incomplete')
+    require(original_aliases is None or aliases == original_aliases, 'attempt originals differ from their original canonical input record')
+    retained = {name: expected for name, expected in files.items() if expected is not None}
+    read_archive(path.parent / 'inputs.zip', {'files': retained, 'packagedManifestSha256': None})
+    return {'status': 'verified-original-inputs', 'recordSha256': binding['sha256'], 'files': files,
+            'attempt': record['attempt'], 'applicationAcceptanceEstablished': False, 'publicOriginEstablished': False}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('verify', 'recover'))
+    parser.add_argument('action', choices=('verify', 'recover', 'verify-inputs'))
     parser.add_argument('--project-root', type=Path, default=Path.cwd())
     parser.add_argument('--receipt', required=True, help='Original project-relative installation/attempt receipt; never a newly invented fingerprint.')
     parser.add_argument('--candidate', type=Path)
     args = parser.parse_args(); root = filesystem(args.project_root)
     receipt = contained(root, args.receipt)
     require(receipt.is_file() and receipt.stat().st_size <= 8 * 1_048_576, 'original receipt is missing or exceeds bounds')
-    value = json.loads(receipt.read_bytes()); binding = value.get('toolingWitness')
+    value = json.loads(receipt.read_bytes())
+    if args.action == 'verify-inputs':
+        result = verify_attempt_inputs(root, value.get('originalInputs'), value.get('originals'))
+        print(json.dumps(result, indent=2))
+        return
+    binding = value.get('toolingWitness')
     require(binding is not None and value.get('releaseInputsSha256') == binding.get('releaseInputsSha256'),
             'receipt lacks an original bound witness; authenticate original release inputs before migration, never backfill history')
     require(args.action != 'recover' or args.candidate is not None, 'exact original --candidate is required for recovery')

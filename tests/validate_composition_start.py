@@ -124,7 +124,10 @@ def main():
     args = parser.parse_args()
     if args.tooling and (not args.execute or not args.oasdiff or not args.oasdiff.is_file()):
         parser.error('--tooling requires --execute and an existing --oasdiff binary')
-    directory = ROOT / 'artifacts/tests/composition-start' / uuid.uuid4().hex
+    # Native MSBuild assembly probing on Windows still rejects some ordinary
+    # package paths over MAX_PATH. Keep this retained SDK fixture short; this
+    # qualifies the stated native path envelope, not arbitrary-depth SDK builds.
+    directory = ROOT / 'artifacts/t' / ('composition-' + uuid.uuid4().hex[:12])
     root = directory / 'consumer'
     (root / 'eng').mkdir(parents=True)
     started = time.monotonic()
@@ -336,12 +339,13 @@ public sealed class ProbeService
                 sys.path.insert(0, str(root / 'eng'))
                 import foundation_qualification as qualification
                 # Loader must use the migrated provider realm, with no credential output.
-                authority = graph['environments']['development']['resources']['product-identity']
-                realm = root / 'deploy/keycloak/product-identity' / (authority['realm'] + '-realm.json')
-                os.environ['PROGRAMKIT_IDENTITY_REALM_FILE'] = str(realm)
-                os.environ['PLAYWRIGHT_BROWSERS_PATH'] = str(root / 'artifacts/cache/browsers')
+                command([sys.executable, 'eng/web_identity.py', '--repository', '.', '--shell', 'application-shell'],
+                    root, directory / 'selected-web-identity')
+                selected_identity = json.loads((directory / 'selected-web-identity/stdout.log').read_text())
+                os.environ['PROGRAMKIT_IDENTITY_REALM_FILE'] = selected_identity['realmFile']
+                os.environ['PROGRAMKIT_IDENTITY_AUTHORITY'] = selected_identity['authority']
+                os.environ['PLAYWRIGHT_BROWSERS_PATH'] = str(root / 'artifacts/cache/playwright-browsers')
                 command(['node', '--input-type=module', '-e', "await import('./eng/web/persona-fixture.ts')"], root, directory / 'migrated-personas')
-                os.environ['PROGRAMKIT_IDENTITY_AUTHORITY'] = authority['publicOrigin'] + '/realms/' + authority['realm']
                 os.environ['PROGRAMKIT_PERMISSION_PROBE_PATH'] = '/api/permission-probe'
                 browser_dir = directory / 'maintained-bff'; browser_dir.mkdir()
                 projection = composition_render.recipe_projection(graph, 'application-shell')

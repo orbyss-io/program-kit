@@ -440,7 +440,7 @@
     {
       "module": "validate_scoped_verification",
       "path": "tests/validate_scoped_verification.py",
-      "sha256": "c4bc6c123d5b0754e1dc3835545af0fef90e76cde869f63ceedb0c02bdb7ed8e",
+      "sha256": "c31516f6d182da95076436c980487ea1ea7d68d29064ec3d3f0a7585f00a9722",
       "cases": {
         "validate_scoped_verification.SelectionTests.test_named_toolkit_executes_real_python_without_native_sdk_or_native_test_count": [
           "Windows",
@@ -721,6 +721,11 @@
           "Windows",
           "Linux",
           "Darwin"
+        ],
+        "validate_scoped_verification.SelectionTests.test_quickstart_owner_query_emits_actual_configured_commands_without_native_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
         ]
       }
     },
@@ -834,9 +839,12 @@
     {
       "module": "validate_owned_scratch",
       "path": "tests/validate_owned_scratch.py",
-      "sha256": "21459b721ffdbb29dbb66cb2451eee1696b5f79feccbab5e30328bee1e59669f",
+      "sha256": "54debe3d6f99d7582c84d82350495dd6cbc8767d0001c7c3841f2bd41067487c",
       "cases": {
         "validate_owned_scratch.OwnedScratchTests.test_building_block_writer_recovers_short_block_and_preserves_persistent_failure": [
+          "Windows"
+        ],
+        "validate_owned_scratch.OwnedScratchTests.test_building_block_atomic_writer_handles_deep_path_and_refuses_unreadable_concurrent_destination": [
           "Windows"
         ],
         "validate_owned_scratch.OwnedScratchTests.test_governance_replacement_recovers_short_block_and_preserves_persistent_failure": [
@@ -1333,7 +1341,7 @@
     {
       "module": "validate_tooling_witness",
       "path": "tests/validate_tooling_witness.py",
-      "sha256": "e46f939eadffcb3e5d891cd90cd6ec812b431113c79980640a34df67bb333f05",
+      "sha256": "878d19c688b90d4482dc53ca279ed035f75ece3ccde1a6470d450700f8c4fa24",
       "cases": {
         "validate_tooling_witness.WitnessTests.test_removed_staging_exact_recovery_later_process_and_moved_consumer_keep_original_receipt": [
           "Windows",
@@ -1351,6 +1359,21 @@
           "Darwin"
         ],
         "validate_tooling_witness.WitnessTests.test_complete_packaged_components_and_exact_updater_fingerprint_no_public_self_attestation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_tooling_witness.WitnessTests.test_canonical_attempt_input_archive_missing_extra_or_changed_member_cannot_pass_by_count": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_tooling_witness.WitnessTests.test_canonical_attempt_inputs_bind_exact_original_set_absences_aliases_and_later_process": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_tooling_witness.WitnessTests.test_canonical_attempt_record_removal_rehash_and_alias_substitution_cannot_rewrite_original": [
           "Windows",
           "Linux",
           "Darwin"
@@ -1742,7 +1765,7 @@
     {
       "module": "validate_shared_obligations",
       "path": "tests/validate_shared_obligations.py",
-      "sha256": "185f105d287e30fdd18c19eb20ffc0d9553a6975a1167b5308e50642fb234840",
+      "sha256": "701c21d2b3aeb26af02ba45ac814f3738cdc2394f7a4f0e92e6e4524d3bd4ad6",
       "cases": {
         "validate_shared_obligations.TaskScopedFailures.test_later_task_hint_cannot_waive_a_retained_required_failure": [
           "Windows",
@@ -1795,6 +1818,234 @@
           "Darwin"
         ],
         "validate_shared_obligations.TestProjectAliasTests.test_missing_pin_and_other_framework_remain_rejected": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.PackSourceInputTests.test_generated_engineering_props_do_not_invalidate_authored_source": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.PackSourceInputTests.test_actual_engineering_source_changes_still_invalidate_pack": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.PackSourceInputTests.test_native_application_assets_and_locks_remain_observed": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.VerificationCommandTests.test_formal_boundaries_refuse_development_narrowing": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.VerificationCommandTests.test_release_refuses_scoped_development_even_with_release_configuration": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_shared_obligations.VerificationCommandTests.test_valid_named_owner_plan_and_unknown_owner_keep_scoped_diagnostics_without_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_web_runtime",
+      "path": "tests/validate_web_runtime.py",
+      "sha256": "630ad282c4a4035f7271a40a5fe916edaa028ba71c788df172e6b594bbc1d0eb",
+      "cases": {
+        "validate_web_runtime.WebRuntimeTests.test_verification_propagates_absolute_runtime_to_children_and_grandchildren_without_acquisition": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_web_runtime.WebRuntimeTests.test_unprepared_check_fails_before_typecheck_or_browser_and_restores_environment": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_web_runtime.WebRuntimeTests.test_explicit_preparation_owns_acquisition_without_device_dependency_install": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_web_runtime.WebRuntimeTests.test_runtime_mismatch_or_stale_pin_stops_before_adapter_dispatch": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_web_runtime.WebRuntimeTests.test_applicable_dependency_probe_fails_only_for_selected_workflow": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_web_runtime.WebRuntimeTests.test_real_node_missing_dependency_admission_is_read_only": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_native_phase_ownership",
+      "path": "tests/validate_native_phase_ownership.py",
+      "sha256": "d7fd5a4a6aa35fa4e88df40442abd5fd74fb4fec80a68e5a280f4b57ede2d793",
+      "cases": {
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_exact_native_extension_rendering_is_read_only_and_covers_every_registered_output": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_manual_generated_skill_edits_fail_before_any_write": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_independently_edited_installed_source_is_not_authenticated_by_manifest_hash": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_both_installed_integrations_and_copilot_prompt_customizations_are_admitted_by_exact_bindings": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_unknown_registrations_and_missing_sources_remain_scoped_unresolved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_preset_template_customization_is_protected_before_replacement": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_phase_reference_edit_is_not_hidden_by_unchanged_generated_command": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_shipped_catalog_proves_historical_source_without_a_git_checkout_and_rejects_hybrids": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_local_deviation_requires_fresh_actual_current_case_source_and_whole_original": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_native_phase_ownership.NativePhaseOwnershipTests.test_missing_unregistered_helper_or_extra_source_cannot_disappear_from_complete_publisher_inventory": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_upgrade_retry",
+      "path": "tests/validate_upgrade_retry.py",
+      "sha256": "3b2222a356aedf72ee2df6848e797af1c93d2f36e48f14fc013b22284d547805",
+      "cases": {
+        "validate_upgrade_retry.UpgradeRetryTests.test_actual_original_then_complete_target_materialization_are_admitted_only_with_retry_context": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_retry.UpgradeRetryTests.test_completed_retry_supersedes_failed_attempt_for_a_new_operation_without_rewriting_history": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_retry.UpgradeRetryTests.test_mixed_lock_and_changed_actual_materialization_remain_errors": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_retry.UpgradeRetryTests.test_even_complete_recomputed_target_cannot_borrow_a_changed_selection": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_retry.UpgradeRetryTests.test_pending_transaction_and_changed_original_stay_blocked": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_retry.UpgradeRetryTests.test_recomputed_target_cannot_borrow_changed_architecture_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_release_guidance",
+      "path": "tests/validate_release_guidance.py",
+      "sha256": "a1f3bdca505729eb6d0b218ec9731c6f9be8e6cf687bdc9526c1247e60cfe823",
+      "cases": {
+        "validate_release_guidance.GuidanceTests.test_migration_cannot_retire_required_checks_or_promote_tooling_to_application_acceptance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_patch_routes_unfinished_features_to_delete_only_fresh_phases": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_install_payload_preserves_every_registered_profile_and_knowledge": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_compact_bundle_guidance_retains_verified_history_and_current_adoption": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_semantic_changes_require_maintained_complete_recipe_contracts": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_qualification_assets_and_release_receipt_reject_missing_or_changed_bytes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_missing_verification_cannot_complete_and_pending_origin_is_preserved": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_legacy_noop_recovers_only_sealed_original_version_and_preserves_receipt": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_interrupted_components_admit_only_the_exact_archived_prior_completed_receipt": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_substantive_change_requires_exact_accepted_decision": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_verified_baseline_is_read_only_and_old_sources_need_layout_inspection": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_cumulative_entries_and_tamper_missing_source_and_downgrade": [
           "Windows",
           "Linux",
           "Darwin"

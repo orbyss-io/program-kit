@@ -688,6 +688,32 @@ def main() -> int:
         if "outside this sandbox" not in destination_blocked.stderr or "SKILL.md" not in destination_blocked.stderr:
             raise AssertionError("PKU115 omitted the blocked destination or copyable recovery route")
 
+        # A declared local patch is exercised from actual installed bytes before
+        # replacement, then retained through real partial installation and retry.
+        repair_source = project / '.specify/extensions/program-kit-governance/scripts/tooling_witness.py'
+        original_repair = repair_source.read_bytes()
+        repaired_bytes = original_repair + b'\n# Reviewed synthetic local documentation repair; hashing behavior remains SHA-256.\n'
+        repair_source.write_bytes(repaired_bytes)
+        repair_relative = repair_source.relative_to(project).as_posix()
+        current_cases = project / 'required_local_repairs.py'
+        current_cases.write_text('import unittest, hashlib\nfrom pathlib import Path\nclass Required(unittest.TestCase):\n'
+            ' def test_installed_hash_behavior(self):\n'
+            '  path = Path(' + repr(repair_relative) + ')\n'
+            '  scope = {"__name__": "current_installed_repair", "__file__": str(path.resolve())}\n'
+            '  exec(compile(path.read_bytes(), str(path), "exec"), scope)\n'
+            '  self.assertEqual(hashlib.sha256(b"original retained bytes").hexdigest(), scope["sha"](b"original retained bytes"))\n', encoding='utf-8')
+        required_case = 'required_local_repairs.Required.test_installed_hash_behavior'
+        case_contract = project / 'local-repair-cases.json'
+        case_contract.write_text(json.dumps({'schemaVersion': 1, 'inputs': [repair_relative], 'modules': [{
+            'module': current_cases.stem, 'path': current_cases.name, 'sha256': sha256(current_cases),
+            'cases': {required_case: ['Windows', 'Linux', 'Darwin']}}]}), encoding='utf-8')
+        repair_declaration = project / 'reviewed-local-repairs.json'
+        repair_declaration.write_text(json.dumps({'schemaVersion': 1, 'contract': case_contract.name,
+            'contractSha256': sha256(case_contract), 'repairs': [{'path': repair_relative,
+            'beforeSha256': hashlib.sha256(original_repair).hexdigest(), 'afterSha256': hashlib.sha256(repaired_bytes).hexdigest(),
+            'requiredCases': [required_case], 'rationale': 'Synthetic comment-only local repair: execute the installed hashing contract and preserve original patch without changing behavior.'}]}), encoding='utf-8')
+        ordinary_command = command
+        command = (*command, '--local-repairs', repair_declaration.name, '--local-repairs-sha256', sha256(repair_declaration))
         partial_cli = project / "partial_specify.py"
         partial_cli.write_text(
             "import subprocess, sys\n"
@@ -791,8 +817,31 @@ def main() -> int:
         if (project / '.specify/governance/program-kit-upgrades.json').exists():
             raise AssertionError('Routine upgrade wrote a duplicate bootstrap acceptance record')
         installation = json.loads((project / '.program-kit/installation/migration.json').read_text())
+        executed_repair = installation['localRepairs']['execution']
+        if executed_repair['executedCases'].get(required_case) != 'passed' or installation['localRepairs']['declarationSha256'] != sha256(repair_declaration):
+            raise AssertionError('Actual local repair execution or original declaration was lost during retry')
+        command = ordinary_command
         if installation['fromVersion'] != old or installation['toVersion'] != expected:
             raise AssertionError('Installation metadata lost original migration scope')
+        specification = importlib.util.spec_from_file_location('current_original_input_witness',
+            ROOT / 'extensions/program-kit-governance/scripts/tooling_witness.py')
+        witness = importlib.util.module_from_spec(specification); specification.loader.exec_module(witness)
+        original_inputs = witness.verify_attempt_inputs(project, installation['originalInputs'], installation['originals'])
+        if original_inputs['files'].get(repair_relative) != hashlib.sha256(repaired_bytes).hexdigest() or not {
+                current_cases.name, case_contract.name, repair_declaration.name} <= set(original_inputs['files']):
+            raise AssertionError('Canonical originals omitted the exact local patch, current case body or original review contract')
+        required_originals = {'.specify/extensions/program-kit-governance/extension.yml',
+                              '.specify/workflows/workflow-registry.json', '.specify/bundle-records.json',
+                              '.specify/integration.json', '.program-kit/installation/migration.json'}
+        if not required_originals <= set(original_inputs['files']) or not any(
+                name.endswith('/SKILL.md') for name in original_inputs['files']):
+            raise AssertionError('Original canonical inventory omitted native source, registries or generated guidance')
+        original_receipt = (project / '.program-kit/installation/migration.json').read_bytes()
+        later = run(sys.executable, str(project / '.specify/extensions/program-kit-governance/scripts/tooling_witness.py'),
+                    'verify-inputs', '--project-root', str(project), '--receipt', '.program-kit/installation/migration.json', cwd=project)
+        require_success(later, 'later installed canonical original-input verification')
+        if original_receipt != (project / '.program-kit/installation/migration.json').read_bytes():
+            raise AssertionError('Canonical input verification rewrote its historical receipt')
 
         old_runtime = "0.0.0-preview.1"
         building_blocks = json.loads(

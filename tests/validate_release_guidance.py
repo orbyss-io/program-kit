@@ -12,10 +12,27 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 from build_release_guidance import build, validate_recipes
-from release_guidance import plan, load_index, require_review, completion
+from release_guidance import plan, load_index, require_review, completion, validate_completion
 
 
 class GuidanceTests(unittest.TestCase):
+    def test_migration_cannot_retire_required_checks_or_promote_tooling_to_application_acceptance(self):
+        migration = {'fromVersion': '0.13.1', 'toVersion': '0.13.2', 'migrations': [
+            {'verificationChecks': ['installation-coherence', 'dependency-verification', 'required-phase-evidence']}]}
+        valid = completion(migration, {'installation-coherence': True, 'dependency-verification': True})
+        original = json.dumps(valid, sort_keys=True)
+        self.assertEqual('completed', validate_completion(valid)['status'])
+        variants = []
+        changed = copy.deepcopy(valid); changed['retiredChecks'].append('dependency-verification')
+        changed['requiredChecks'].remove('dependency-verification'); changed['checks'].pop('dependency-verification'); variants.append(changed)
+        changed = copy.deepcopy(valid); changed['checks']['dependency-verification'] = False; variants.append(changed)
+        changed = copy.deepcopy(valid); changed['status'] = 'pending'; variants.append(changed)
+        for key in ('applicationReady', 'applicationChecksPerformed', 'releaseReadinessEstablished', 'approvalPerformed'):
+            changed = copy.deepcopy(valid); changed[key] = True; variants.append(changed)
+        for changed in variants:
+            with self.assertRaisesRegex(ValueError, 'PKU132'): validate_completion(changed)
+        self.assertEqual(original, json.dumps(valid, sort_keys=True))
+
     def test_patch_routes_unfinished_features_to_delete_only_fresh_phases(self):
         from release_guidance import semantic_changes
         with tempfile.TemporaryDirectory() as name:

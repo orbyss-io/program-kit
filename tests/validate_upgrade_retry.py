@@ -63,6 +63,19 @@ class UpgradeRetryTests(unittest.TestCase):
         archived = self.root / self.attempt['originals']['lock']['path']
         self.assertEqual(self.original, archived.read_bytes())
 
+    def test_completed_retry_supersedes_failed_attempt_for_a_new_operation_without_rewriting_history(self):
+        failed = self.attempt_path.read_bytes()
+        path, attempt = upgrade.begin_attempt(self.root, ROOT, self.version, self.version)
+        attempt.update(status='completed', outcome='offline-coherent-package-verification-pending',
+                       localRepairs={'declaration': 'original-review.json', 'declarationSha256': 'a' * 64})
+        upgrade.write_attempt(path, attempt); completed = path.read_bytes()
+        prior, _, _ = upgrade.prior_attempt(self.root, ROOT, self.version)
+        self.assertIsNone(prior)
+        next_path, fresh = upgrade.begin_attempt(self.root, ROOT, self.version, self.version)
+        self.assertIsNone(fresh['retryOf']); self.assertNotIn('localRepairs', fresh)
+        self.assertEqual(self.version, fresh['previousInstalledVersion'])
+        self.assertEqual(failed, self.attempt_path.read_bytes()); self.assertEqual(completed, path.read_bytes())
+
     def test_mixed_lock_and_changed_actual_materialization_remain_errors(self):
         target = self.apply_target()
         mixed = copy.deepcopy(target)

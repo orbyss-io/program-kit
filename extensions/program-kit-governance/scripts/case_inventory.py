@@ -119,6 +119,7 @@ def execute(root, name, expected, selected=None):
     require(current_platform in {'Windows', 'Linux', 'Darwin'}, 'current platform requires an explicit case inventory')
     directory = inside(root, 'artifacts/tests/toolkit-cases/' + uuid.uuid4().hex); directory.mkdir(parents=True)
     value = {'schemaVersion': 1, 'status': 'running', 'contractSha256': expected, 'platform': current_platform,
+             'evidencePath': (directory / 'results.json').relative_to(root).as_posix(),
              'runnerSha256': digest(Path(__file__).read_bytes()), 'python': sys.version,
              'productAcceptanceEstablished': False, 'publisherAuthenticityEstablished': False,
              'moduleSourceSha256': {}, 'requiredCases': [], 'notApplicable': [], 'executedCases': {}}

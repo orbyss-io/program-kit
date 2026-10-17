@@ -628,3 +628,55 @@ pass. CI `38979465042` passed the full three-browser matrix and native packaged
 Host/PostgreSQL qualification; later source still needs its own complete run. The
 publication guard now admits the same complete 31-package set as metadata validation:
 30 runtime packages and the analyzer. No stable tag/publication occurred.
+
+## Continuation: canonical originals, executed repairs and emitted commands
+
+New updater attempts retain a complete canonical native/managed input inventory,
+explicit absences and original aliases in a bounded immutable ZIP outside active
+build discovery. Seven source/input tests and the actual sequential updater pass,
+including later-process installed verification. The separate local-repair route
+requires an exact reviewed declaration and case-contract digest, authentic complete
+publisher originals, actual current case execution against changed source bytes,
+and stable complete installed sources. Original patches, declarations and case
+sources join the original attempt inventory before replacement. Supplied passing
+reports or an existing C# method cannot substitute for execution. Ten native
+ownership cases pass. The subsequent exact reviewed inventory run passed all 130
+required cases across seven selected modules, including additional spurious-owner
+coverage, with stable source/input hashes. Its retained receipt is
+`artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json`.
+
+The first integrated repair/retry exercise reached coherent installation, then
+exposed an older failed attempt being selected after a later attempt completed.
+That run remains failed. The corrected completed-attempt boundary passes six
+maintained retry cases; the full update rerun is still required. Canonical migration
+completion now recomputes the maintained required-check closure; a receipt cannot
+retire its own dependency check or claim application/human/release acceptance.
+All 12 migration/guidance cases pass.
+
+The actual PowerShell wrapper preserves PKV003 diagnostics; 17 portable original
+failure-scope/alias/pack/formal-boundary obligations pass. Quickstarts can query
+concrete current test/toolkit commands without SDK or test execution. All 57 scoped
+verification cases pass; bare Focused remains PKV002. Explicit browser preparation
+now uses the same cache as the emitted Test-Web entrypoint. The generated native
+composition passed project/frontend builds and authenticated HTTP, then exposed a
+persona-preparation ordering defect in the validator; its failure is retained.
+The SDK fixture now uses a shorter owned path after an existing 270-character
+assembly path was rejected by native MSBuild. No arbitrary-depth SDK claim follows.
+
+Development journal `20261016T231621Z-393ae46c` remains failed: 112/115 checks.
+Deep atomic file writes are repaired with 21 native ownership/scratch cases and an
+actual passing composition validator. The other two failures are unmodified native
+Spec Kit checkpoint replacement. A retained location diagnostic observed five
+failures in 1,000 workspace writes and zero in 1,000 owned host-temp writes; cause
+remains unproven. No installed core or machine policy was changed. Windows CI now
+also requires the post-bootstrap continuation check.
+
+Foundation CI43 (`38980752317`) passed Linux and Windows against PR merge source
+`e170b1378d96c95dcfafb7eff2b2db8bc3f55ee4`. Its tree equals branch head `3001661`;
+this does not qualify a later main/tag commit. Original artifact digests, all 31
+package source commits, Host, publisher knowledge, independent Build 0.3.2 and both
+OCI platform manifests are verified and retained under `artifacts/f-ci43/`.
+Both actual platform scans pass the High/Critical policy. Runtime 0.3.6 remains an
+unpublished candidate and draft PR14 remains open. Frozen 47 identities, prior
+approval, historical failures/profiles and unrelated work are preserved. Remaining
+implementation, exact candidate qualification and public adoption continue.

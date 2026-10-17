@@ -61,6 +61,34 @@
           "scope": "Real maintained complete sequential offline upgrade and coherence validation passed with durable archive source, historical qualified 0.12.7, unchanged accepted pins/intake/constitution/bootstrap, planned/materialized selection and invalid mutation refusal. Earlier loose-retained-source dependency admission and platform order failures remain failed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-witness-archive-final.log",
           "sha256": "c1000c57ae5e85a34209276a3aa8d74da3241f26e8ce72607da4020bc22c973d"
+        },
+        {
+          "command": "canonical-attempt-originals.log",
+          "status": "passed",
+          "scope": "Seven exact original-source/input retention cases: complete set, explicit absences, aliases, later process, removal/extra/change/duplicate archives, original record substitution and immutable receipt.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/canonical-attempt-originals.log",
+          "sha256": "4bb2867587dfa983755f242c4b99104ca739e341ca1748e27c33ec7fc1f6751c"
+        },
+        {
+          "command": "native-source-complete-inventory.log",
+          "status": "passed",
+          "scope": "Nine real native phase ownership cases, including a missing unregistered helper and spurious source addition; whole authenticated source baseline required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-source-complete-inventory.log",
+          "sha256": "4359a337ab63ee755117b7e2ad33a50f06b44df704a2439aa2c070b5e9f02459"
+        },
+        {
+          "command": "updater-canonical-originals.log",
+          "status": "passed",
+          "scope": "Actual full maintained sequential local/offline update passes with complete canonical original snapshots and actual installed later-process verification, before the subsequent explicit local-repair integration.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-canonical-originals.log",
+          "sha256": "6d9f55fa553b63755bd3868cf0bbaecdaf188a85bfdc0250ce17413be64aa5fc"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
         }
       ],
       "remainingDependencies": [
@@ -142,6 +170,41 @@
           "scope": "17 actual dependency profile regressions pass after the central owned atomic writer repair.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/dependency-profiles-atomic.log",
           "sha256": "4848dc52bf4c3955260ea84109c73589caf248fd938258ef992627ef464486f6"
+        },
+        {
+          "command": "atomic-deep-owned-lifecycle.log",
+          "status": "passed",
+          "scope": "21 owned scratch/atomic writer cases, including a real deep Windows destination, bounded native sharing retries, unreadable replacement and concurrent edit refusal.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/atomic-deep-owned-lifecycle.log",
+          "sha256": "342ad2aea2e1d80a197cbf18bfb0bf436e2e180304dd77d0c1d8dbed61cd8ed2"
+        },
+        {
+          "command": "completed-original-attempt-native.log",
+          "status": "passed",
+          "scope": "Six maintained actual materialization/retry boundary cases; later completed attempt supersedes failed mutation for a new operation without rewriting historical evidence.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/completed-original-attempt-native.log",
+          "sha256": "621245f24b987a37f94f17c958604fad90bfbdb713c6cf577ff3137db577343c"
+        },
+        {
+          "command": "updater-canonical-originals.log",
+          "status": "passed",
+          "scope": "Actual full maintained sequential local/offline update passes with complete canonical original snapshots and actual installed later-process verification, before the subsequent explicit local-repair integration.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-canonical-originals.log",
+          "sha256": "6d9f55fa553b63755bd3868cf0bbaecdaf188a85bfdc0250ce17413be64aa5fc"
+        },
+        {
+          "command": "updater-executed-local-repair-originals.log",
+          "status": "failed",
+          "scope": "Actual local repair and interrupted retry progressed through coherent installation; subsequent new operation incorrectly selected an older failed attempt. Remains failed; completed-attempt boundary repaired and rerun required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-local-repair-originals.log",
+          "sha256": "3b4eb28906ff4522ae9c8e400e3c4fdbc9e5d1e9ed4e07cbb0859d0965b2ba28"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
         }
       ],
       "remainingDependencies": [
@@ -210,6 +273,41 @@
           "scope": "29 real disposable-consumer checks, including packaged installation, exact snapshot/reproduction, deliberate partial activation, rollback, concurrent authored edit preservation and full historical installed payloads. Development inputs; no live consumer changed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-04/validate_consumer_upgrade.log",
           "sha256": "0a790cb5b788a7b22a4fba215cbdd0e872fde84f516f98b333dc662306456c8e"
+        },
+        {
+          "command": "atomic-deep-owned-lifecycle.log",
+          "status": "passed",
+          "scope": "21 owned scratch/atomic writer cases, including a real deep Windows destination, bounded native sharing retries, unreadable replacement and concurrent edit refusal.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/atomic-deep-owned-lifecycle.log",
+          "sha256": "342ad2aea2e1d80a197cbf18bfb0bf436e2e180304dd77d0c1d8dbed61cd8ed2"
+        },
+        {
+          "command": "completed-original-attempt-native.log",
+          "status": "passed",
+          "scope": "Six maintained actual materialization/retry boundary cases; later completed attempt supersedes failed mutation for a new operation without rewriting historical evidence.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/completed-original-attempt-native.log",
+          "sha256": "621245f24b987a37f94f17c958604fad90bfbdb713c6cf577ff3137db577343c"
+        },
+        {
+          "command": "updater-canonical-originals.log",
+          "status": "passed",
+          "scope": "Actual full maintained sequential local/offline update passes with complete canonical original snapshots and actual installed later-process verification, before the subsequent explicit local-repair integration.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-canonical-originals.log",
+          "sha256": "6d9f55fa553b63755bd3868cf0bbaecdaf188a85bfdc0250ce17413be64aa5fc"
+        },
+        {
+          "command": "updater-executed-local-repair-originals.log",
+          "status": "failed",
+          "scope": "Actual local repair and interrupted retry progressed through coherent installation; subsequent new operation incorrectly selected an older failed attempt. Remains failed; completed-attempt boundary repaired and rerun required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-local-repair-originals.log",
+          "sha256": "3b4eb28906ff4522ae9c8e400e3c4fdbc9e5d1e9ed4e07cbb0859d0965b2ba28"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
         }
       ],
       "remainingDependencies": [
@@ -762,6 +860,48 @@
           "scope": "25 task-generation/source knowledge routing cases pass with the explicit shared-regression guidance.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/case-knowledge-routing.log",
           "sha256": "20cbac4170c80a792d4c0bd459efb1c1eb47fdc6da9d087d89c53f6b4b33356d"
+        },
+        {
+          "command": "current-shared-obligations-native-cli.log",
+          "status": "passed",
+          "scope": "17 retained portable obligations: original task failure scopes, exact qualified xUnit aliases, actual pack source inputs, emitted PowerShell formal/named-check boundaries and preserved PKV003 diagnostics.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-shared-obligations-native-cli.log",
+          "sha256": "6971acca715028818db42b3c7644e41fac926c93ebc3b09c31900cd60e7bac37"
+        },
+        {
+          "command": "canonical-attempt-originals.log",
+          "status": "passed",
+          "scope": "Seven exact original-source/input retention cases: complete set, explicit absences, aliases, later process, removal/extra/change/duplicate archives, original record substitution and immutable receipt.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/canonical-attempt-originals.log",
+          "sha256": "4bb2867587dfa983755f242c4b99104ca739e341ca1748e27c33ec7fc1f6751c"
+        },
+        {
+          "command": "native-source-complete-inventory.log",
+          "status": "passed",
+          "scope": "Nine real native phase ownership cases, including a missing unregistered helper and spurious source addition; whole authenticated source baseline required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-source-complete-inventory.log",
+          "sha256": "4359a337ab63ee755117b7e2ad33a50f06b44df704a2439aa2c070b5e9f02459"
+        },
+        {
+          "command": "native-source-tested-local-repairs.log",
+          "status": "passed",
+          "scope": "Ten real native ownership cases before additional spurious-owner coverage: actual changed installed code executes its exact required current case; wrong before/after/canonical originals, empty identities and skipped execution fail.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-source-tested-local-repairs.log",
+          "sha256": "00295c5f7c8de4b39548486a36d4ccc41f8f4605c367fb9b93a947b21f723568"
+        },
+        {
+          "command": "canonical-migration-completion.log",
+          "status": "passed",
+          "scope": "12 maintained migration/guidance cases: canonical checks cannot be retired by their own receipt or promoted to application/human/release acceptance; historical compatibility and original authority preserved.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/canonical-migration-completion.log",
+          "sha256": "f45bb3ddc875984c772e62baf5a1116f9334c0f7e8f5ab5f8ba27e32c7570278"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
         }
       ],
       "remainingDependencies": [
@@ -776,9 +916,17 @@
       "sourceDiagnosis": "Preserve preflight; improve supported preparation recipe",
       "workPackages": "A/F/I",
       "closureRequired": "Maintained command chooses real runtime and reports exact missing preparation; attribution retained.",
-      "status": "pending",
+      "status": "implemented-native-runtime-propagation-and-common-prepared-browser-cache; real emitted full tooling rerun pending",
       "changedFiles": [],
-      "validation": [],
+      "validation": [
+        {
+          "command": "validate_browser_launch.py --engines chromium,webkit",
+          "status": "passed",
+          "scope": "Actual Chromium/WebKit launch/close, unlaunchable-file privacy, stale/missing receipt and shared explicit preparation cache; no local Firefox acceptance. Earlier invocation lacking explicit engine/cache selection failed and remains failed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/common-prepared-browser-cache-native.log",
+          "sha256": "beda3a97473b8f197cbee32329f376feb3a091947526261ab2e60a6537046b8e"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -883,9 +1031,24 @@
       "sourceDiagnosis": "Preserve scope/action/access contracts; improve commands",
       "workPackages": "F/I",
       "closureRequired": "Valid commands work; wrong payload/reason/scope still fail actionably; environment failures remain honest.",
-      "status": "pending",
+      "status": "implemented-emitted-scope diagnostics-and-concrete-owner guidance; remaining request/example integration pending",
       "changedFiles": [],
-      "validation": [],
+      "validation": [
+        {
+          "command": "current-shared-obligations-native-cli.log",
+          "status": "passed",
+          "scope": "17 retained portable obligations: original task failure scopes, exact qualified xUnit aliases, actual pack source inputs, emitted PowerShell formal/named-check boundaries and preserved PKV003 diagnostics.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-shared-obligations-native-cli.log",
+          "sha256": "6971acca715028818db42b3c7644e41fac926c93ebc3b09c31900cd60e7bac37"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -897,9 +1060,24 @@
       "sourceDiagnosis": "Correct/test emitted owner-bound commands",
       "workPackages": "I",
       "closureRequired": "Actual generated example selects a concrete configured owner; PKV002 remains enforced.",
-      "status": "pending",
+      "status": "implemented-current-configured-quickstart-owner-query; scoped-native CLI proof passed; installed/CI pending",
       "changedFiles": [],
-      "validation": [],
+      "validation": [
+        {
+          "command": "quickstart-current-owner-commands.log",
+          "status": "passed",
+          "scope": "57 scoped verification cases; actual current configured native/toolkit owner commands returned by a read-only CLI, bare Focused remains PKV002. Earlier new-test assertion omitted two real fixture owners and remains failed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/quickstart-current-owner-commands.log",
+          "sha256": "ca59e3f575e51a928bb6e539f170794d26e59e9095d8acd10d0129fdc816dba0"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -1061,7 +1239,7 @@
       "sourceDiagnosis": "Canonical full-set/source/executed-regression binding",
       "workPackages": "A/G",
       "closureRequired": "Complete attempt originals and public/guidance sets; modified/missing/spurious inputs fail; receipts unchanged.",
-      "status": "partially-implemented; restore evidence retention verified; complete integrity closure pending",
+      "status": "implemented-complete-original-inventory-and-fresh-executed-local-repair-reconciliation; final-update/CI/adoption pending",
       "changedFiles": [
         "scripts/consumer_upgrade_workspace.py",
         "tests/lock_renewal_cases.py",
@@ -1098,6 +1276,55 @@
           "scope": "Actual 508-entry native bundle, exact logical loose/packed source parity, native hidden-pack installation, 54 generated UI files byte-equal, actual installed public SDK cold recording preparation and publisher source guard refusing a rehashed virtual source edit without overwrite. All four focused tests passed. Standalone archives remain unchanged. CI checks consume verified imported publication archives before/after and never rebuild them. Full packaged component/bundle installation also passed separately.",
           "log": "artifacts/source-assets/e28adb5944bc42ad8cde7675c2b3f54d/results.json",
           "sha256": "b113c7e528404b43e18af52edb8c1e1aea58239ad3046355869d18aefd6a6a69"
+        },
+        {
+          "command": "canonical-attempt-originals.log",
+          "status": "passed",
+          "scope": "Seven exact original-source/input retention cases: complete set, explicit absences, aliases, later process, removal/extra/change/duplicate archives, original record substitution and immutable receipt.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/canonical-attempt-originals.log",
+          "sha256": "4bb2867587dfa983755f242c4b99104ca739e341ca1748e27c33ec7fc1f6751c"
+        },
+        {
+          "command": "native-source-complete-inventory.log",
+          "status": "passed",
+          "scope": "Nine real native phase ownership cases, including a missing unregistered helper and spurious source addition; whole authenticated source baseline required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-source-complete-inventory.log",
+          "sha256": "4359a337ab63ee755117b7e2ad33a50f06b44df704a2439aa2c070b5e9f02459"
+        },
+        {
+          "command": "native-source-tested-local-repairs.log",
+          "status": "passed",
+          "scope": "Ten real native ownership cases before additional spurious-owner coverage: actual changed installed code executes its exact required current case; wrong before/after/canonical originals, empty identities and skipped execution fail.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-source-tested-local-repairs.log",
+          "sha256": "00295c5f7c8de4b39548486a36d4ccc41f8f4605c367fb9b93a947b21f723568"
+        },
+        {
+          "command": "canonical-migration-completion.log",
+          "status": "passed",
+          "scope": "12 maintained migration/guidance cases: canonical checks cannot be retired by their own receipt or promoted to application/human/release acceptance; historical compatibility and original authority preserved.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/canonical-migration-completion.log",
+          "sha256": "f45bb3ddc875984c772e62baf5a1116f9334c0f7e8f5ab5f8ba27e32c7570278"
+        },
+        {
+          "command": "updater-canonical-originals.log",
+          "status": "passed",
+          "scope": "Actual full maintained sequential local/offline update passes with complete canonical original snapshots and actual installed later-process verification, before the subsequent explicit local-repair integration.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-canonical-originals.log",
+          "sha256": "6d9f55fa553b63755bd3868cf0bbaecdaf188a85bfdc0250ce17413be64aa5fc"
+        },
+        {
+          "command": "updater-executed-local-repair-originals.log",
+          "status": "failed",
+          "scope": "Actual local repair and interrupted retry progressed through coherent installation; subsequent new operation incorrectly selected an older failed attempt. Remains failed; completed-attempt boundary repaired and rerun required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-local-repair-originals.log",
+          "sha256": "3b4eb28906ff4522ae9c8e400e3c4fdbc9e5d1e9ed4e07cbb0859d0965b2ba28"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
         }
       ],
       "remainingDependencies": [
@@ -1285,6 +1512,34 @@
           "scope": "Real maintained complete sequential offline upgrade and coherence validation passed with durable archive source, historical qualified 0.12.7, unchanged accepted pins/intake/constitution/bootstrap, planned/materialized selection and invalid mutation refusal. Earlier loose-retained-source dependency admission and platform order failures remain failed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-witness-archive-final.log",
           "sha256": "c1000c57ae5e85a34209276a3aa8d74da3241f26e8ce72607da4020bc22c973d"
+        },
+        {
+          "command": "atomic-deep-owned-lifecycle.log",
+          "status": "passed",
+          "scope": "21 owned scratch/atomic writer cases, including a real deep Windows destination, bounded native sharing retries, unreadable replacement and concurrent edit refusal.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/atomic-deep-owned-lifecycle.log",
+          "sha256": "342ad2aea2e1d80a197cbf18bfb0bf436e2e180304dd77d0c1d8dbed61cd8ed2"
+        },
+        {
+          "command": "foundation-composition-deep-atomic.log",
+          "status": "passed",
+          "scope": "Actual maintained Foundation composition validator passes after short unique atomic temporary names and native extended-path filesystem I/O.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-composition-deep-atomic.log",
+          "sha256": "ad7feb01069a22cff176f7b20c48dae4264a22b7a210888aca00676181f2a496"
+        },
+        {
+          "command": "canonical-attempt-originals.log",
+          "status": "passed",
+          "scope": "Seven exact original-source/input retention cases: complete set, explicit absences, aliases, later process, removal/extra/change/duplicate archives, original record substitution and immutable receipt.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/canonical-attempt-originals.log",
+          "sha256": "4bb2867587dfa983755f242c4b99104ca739e341ca1748e27c33ec7fc1f6751c"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
         }
       ],
       "remainingDependencies": [
@@ -2349,6 +2604,24 @@
         "validate_workflow_resumption"
       ],
       "qualification": "Original failed run remains failed. Building-block atomic writer repaired with targeted native evidence; recurring installed native Spec Kit checkpoint replacement failure remains observed, cause unproven. No installed public core code changed."
+    },
+    {
+      "command": "./scripts/Test-ProgramKit.ps1 -Suite Development -BrowserEngines chromium,webkit",
+      "source": {
+        "commit": "7d3a807f3225df19877734f17cf6ffe127a86c0d",
+        "tree": "ec5f9a1988e0ee896179d4374519bfd8ea12c96b"
+      },
+      "journal": "artifacts/validation-runs/20261016T231621Z-393ae46c/journal.json",
+      "journalSha256": "c37033df77995169881636a86aad5d8052c9257b0a7fec73500a32ed65882369",
+      "status": "failed",
+      "passed": 112,
+      "total": 115,
+      "failed": [
+        "validate_foundation_composition",
+        "validate_post_bootstrap_continuation",
+        "validate_workflow_resumption"
+      ],
+      "qualification": "Original failed run remains failed. Deep atomic path failure repaired with actual targeted composition proof. Native Spec Kit inputs.json Windows replacement failures remain observed with unmodified installed core."
     }
   ],
   "continuationHistory": [
@@ -2611,6 +2884,124 @@
         }
       ],
       "qualification": "Scoped current development/installed evidence; original 166 lineage mapping, complete Development and exact candidate/public closure remain. Foundation draft PR14 remains open at 0c4939c. Previous CI38977973561 failed at obsolete JSON redirect assertion; corrected CI38979465042 has passed all native/browser/packaged PostgreSQL stages but is not reused as exact-source qualification for later commits."
+    },
+    {
+      "source": "uncommitted continuation after 7d3a807; exact source bytes bound by scoped execution inventories",
+      "implemented": [
+        "Complete canonical original attempt inputs and separately bound fresh tested local repair reconciliation",
+        "Complete authenticated native source sets; missing unregistered helpers and spurious owners reject",
+        "Canonical migration check closure and completed-attempt supersession",
+        "Concrete current test/toolkit commands for quickstarts, retained PKV002 and actual PowerShell diagnostics",
+        "Common explicit preparation/browser-cache route; actual generated composition native failure investigation"
+      ],
+      "validation": [
+        {
+          "command": "atomic-deep-owned-lifecycle.log",
+          "status": "passed",
+          "scope": "21 owned scratch/atomic writer cases, including a real deep Windows destination, bounded native sharing retries, unreadable replacement and concurrent edit refusal.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/atomic-deep-owned-lifecycle.log",
+          "sha256": "342ad2aea2e1d80a197cbf18bfb0bf436e2e180304dd77d0c1d8dbed61cd8ed2"
+        },
+        {
+          "command": "foundation-composition-deep-atomic.log",
+          "status": "passed",
+          "scope": "Actual maintained Foundation composition validator passes after short unique atomic temporary names and native extended-path filesystem I/O.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-composition-deep-atomic.log",
+          "sha256": "ad7feb01069a22cff176f7b20c48dae4264a22b7a210888aca00676181f2a496"
+        },
+        {
+          "command": "current-shared-obligations-native-cli.log",
+          "status": "passed",
+          "scope": "17 retained portable obligations: original task failure scopes, exact qualified xUnit aliases, actual pack source inputs, emitted PowerShell formal/named-check boundaries and preserved PKV003 diagnostics.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-shared-obligations-native-cli.log",
+          "sha256": "6971acca715028818db42b3c7644e41fac926c93ebc3b09c31900cd60e7bac37"
+        },
+        {
+          "command": "canonical-attempt-originals.log",
+          "status": "passed",
+          "scope": "Seven exact original-source/input retention cases: complete set, explicit absences, aliases, later process, removal/extra/change/duplicate archives, original record substitution and immutable receipt.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/canonical-attempt-originals.log",
+          "sha256": "4bb2867587dfa983755f242c4b99104ca739e341ca1748e27c33ec7fc1f6751c"
+        },
+        {
+          "command": "native-source-complete-inventory.log",
+          "status": "passed",
+          "scope": "Nine real native phase ownership cases, including a missing unregistered helper and spurious source addition; whole authenticated source baseline required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-source-complete-inventory.log",
+          "sha256": "4359a337ab63ee755117b7e2ad33a50f06b44df704a2439aa2c070b5e9f02459"
+        },
+        {
+          "command": "native-source-tested-local-repairs.log",
+          "status": "passed",
+          "scope": "Ten real native ownership cases before additional spurious-owner coverage: actual changed installed code executes its exact required current case; wrong before/after/canonical originals, empty identities and skipped execution fail.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-source-tested-local-repairs.log",
+          "sha256": "00295c5f7c8de4b39548486a36d4ccc41f8f4605c367fb9b93a947b21f723568"
+        },
+        {
+          "command": "completed-original-attempt-native.log",
+          "status": "passed",
+          "scope": "Six maintained actual materialization/retry boundary cases; later completed attempt supersedes failed mutation for a new operation without rewriting historical evidence.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/completed-original-attempt-native.log",
+          "sha256": "621245f24b987a37f94f17c958604fad90bfbdb713c6cf577ff3137db577343c"
+        },
+        {
+          "command": "canonical-migration-completion.log",
+          "status": "passed",
+          "scope": "12 maintained migration/guidance cases: canonical checks cannot be retired by their own receipt or promoted to application/human/release acceptance; historical compatibility and original authority preserved.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/canonical-migration-completion.log",
+          "sha256": "f45bb3ddc875984c772e62baf5a1116f9334c0f7e8f5ab5f8ba27e32c7570278"
+        },
+        {
+          "command": "quickstart-current-owner-commands.log",
+          "status": "passed",
+          "scope": "57 scoped verification cases; actual current configured native/toolkit owner commands returned by a read-only CLI, bare Focused remains PKV002. Earlier new-test assertion omitted two real fixture owners and remains failed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/quickstart-current-owner-commands.log",
+          "sha256": "ca59e3f575e51a928bb6e539f170794d26e59e9095d8acd10d0129fdc816dba0"
+        },
+        {
+          "command": "updater-canonical-originals.log",
+          "status": "passed",
+          "scope": "Actual full maintained sequential local/offline update passes with complete canonical original snapshots and actual installed later-process verification, before the subsequent explicit local-repair integration.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-canonical-originals.log",
+          "sha256": "6d9f55fa553b63755bd3868cf0bbaecdaf188a85bfdc0250ce17413be64aa5fc"
+        },
+        {
+          "command": "updater-executed-local-repair-originals.log",
+          "status": "failed",
+          "scope": "Actual local repair and interrupted retry progressed through coherent installation; subsequent new operation incorrectly selected an older failed attempt. Remains failed; completed-attempt boundary repaired and rerun required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-local-repair-originals.log",
+          "sha256": "3b4eb28906ff4522ae9c8e400e3c4fdbc9e5d1e9ed4e07cbb0859d0965b2ba28"
+        },
+        {
+          "command": "current exact reviewed case inventory, seven explicit modules",
+          "status": "passed",
+          "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
+          "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
+          "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "validate_browser_launch.py --engines chromium,webkit",
+          "status": "passed",
+          "scope": "Actual Chromium/WebKit launch/close, unlaunchable-file privacy, stale/missing receipt and shared explicit preparation cache; no local Firefox acceptance. Earlier invocation lacking explicit engine/cache selection failed and remains failed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/common-prepared-browser-cache-native.log",
+          "sha256": "beda3a97473b8f197cbee32329f376feb3a091947526261ab2e60a6537046b8e"
+        }
+      ],
+      "foundation": {
+        "branchHead": "3001661cf0c12c5054c233e7f8f56b9dfce73e58",
+        "testedMergeSource": "e170b1378d96c95dcfafb7eff2b2db8bc3f55ee4",
+        "sourceTree": "a089f1d0288985562f0bda7b9fdbce9f43f6d7ea",
+        "run": 38980752317,
+        "outcome": "both Linux and Windows successful",
+        "evidence": "artifacts/f-ci43/qualification-summary.json",
+        "sha256": "c8819cd62a6b4b47fd06b2fb9ccf8d76b53884ee13e9c48186295e1dada4d459",
+        "boundary": "Original artifact ZIP digests, all 31 package nuspec repository commits, native Host/knowledge/tools and both OCI platform manifests verified. Actual High/Critical scans pass. PR merge commit qualification is not future main/tag qualification; draft PR14 remains open. No publication or public/default adoption."
+      },
+      "nativeCoreDiagnostic": {
+        "path": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-core-writer-location-522ecd4223b74f99b52d400786fe6832.json",
+        "scope": "Unmodified public native writer: five failures/1000 workspace replacements; zero/1000 owned host-temp replacements. Cause/process unproven; no native patch, OS policy change or silent test relocation."
+      },
+      "qualification": "Scoped implementation progress only. Frozen 47 identities/approval preserved. Full remaining mechanisms, semantic lineage, actual installed update, exact candidate CI and public Foundation dependency adoption remain."
     }
   ]
 }

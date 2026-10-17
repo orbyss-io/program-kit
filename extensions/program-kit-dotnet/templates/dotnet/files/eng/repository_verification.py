@@ -951,10 +951,30 @@ def execute(root, selection, arguments, configuration='Debug', restore=False, re
     return {**result, **({'toolkitExecution': toolkit_result} if toolkit_result else {})}
 
 
+def owner_commands(root):
+    """Concrete current owner commands for quickstarts; no SDK/test execution."""
+    graph = validate_planned(root, read(root / 'eng/architecture.json'))
+    toolkit = toolkit_declarations(root)
+    def quoted(value): return "'" + value.replace("'", "''") + "'"
+    native, pending, shared = [], [], []
+    for project, row in sorted(graph.items()):
+        if row['role'] != 'test': continue
+        if not inside(root, project).is_file():
+            pending.append(project); continue
+        select(root, 'Focused', [project], planning=True)
+        native.append({'project': project, 'command': './eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects ' + quoted(project)})
+    for name in sorted(toolkit):
+        select(root, 'Focused', checks=[name], planning=True)
+        shared.append({'check': name, 'command': './eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Checks ' + quoted(name)})
+    return {'schemaVersion': 1, 'nativeTestOwners': native, 'toolkitOwners': shared,
+            'unmaterializedTestOwners': pending, 'readOnly': True, 'acceptanceEstablished': False}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', default='.')
     parser.add_argument('--scope', choices=('Focused', 'Affected'))
+    parser.add_argument('--list-owners', action='store_true', help='Print concrete current owner commands for a quickstart without SDK/test execution')
     parser.add_argument('--reconcile-owners', action='store_true', help='Preview successor substitutions in setup and authored verification mappings')
     parser.add_argument('--apply-digest', help='Apply only the reviewed --reconcile-owners plan through the native sync transaction')
     parser.add_argument('--project', action='append', default=[])
@@ -973,6 +993,12 @@ def main():
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
+        if args.list_owners:
+            require(not args.scope and not args.project and not args.check and not args.changed_path
+                    and not args.changed_from and not args.test_argument and not args.apply_digest
+                    and not args.reconcile_owners and not args.plan and not args.select_only,
+                    'PKV003 list-owners is a separate read-only query')
+            print(json.dumps(owner_commands(root))); return 0
         if args.reconcile_owners:
             require(not args.scope and not args.project and not args.check and not args.changed_path and not args.test_argument and not args.select_only,
                     'PKV003 ownership reconciliation is separate from test execution')

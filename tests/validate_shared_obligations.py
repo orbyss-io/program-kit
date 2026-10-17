@@ -98,4 +98,87 @@ class TestProjectAliasTests(unittest.TestCase):
             with self.subTest(package=package), self.assertRaises(ValueError): scaffold(self.project(package), pins)
 
 
+# Append to the maintained test module after the committed suite finishes.
+import os
+import shutil
+import subprocess
+from handoff_contract import source_inputs
+
+
+class PackSourceInputTests(unittest.TestCase):
+    def setUp(self):
+        self.scratch = FixtureDirectory(prefix='pack-source-'); self.addCleanup(self.scratch.cleanup)
+        self.root = Path(self.scratch.name)
+
+    def write(self, name, text):
+        target = self.root / name; target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding='utf-8')
+
+    def test_generated_engineering_props_do_not_invalidate_authored_source(self):
+        self.write('eng/inspection/Rules.props', '<Project />'); before = source_inputs(self.root)
+        for name in ('eng/inspection/obj/Tool.csproj.nuget.g.props',
+                     'eng/inspection/obj/Tool.csproj.nuget.g.targets', 'eng/inspection/bin/generated.py'):
+            self.write(name, 'derived')
+        self.assertEqual(before, source_inputs(self.root))
+
+    def test_actual_engineering_source_changes_still_invalidate_pack(self):
+        self.write('eng/inspection/Rules.props', 'before'); before = source_inputs(self.root)
+        self.write('eng/inspection/Rules.props', 'after'); self.assertNotEqual(before, source_inputs(self.root))
+
+    def test_native_application_assets_and_locks_remain_observed(self):
+        self.write('src/Owner/Owner.csproj', '<Project />')
+        self.write('src/Owner/obj/project.assets.json', '{}'); self.write('src/Owner/packages.lock.json', '{}')
+        before = source_inputs(self.root); self.assertIn('src/Owner/obj/project.assets.json', before)
+        self.write('src/Owner/obj/project.assets.json', '{"changed":true}')
+        self.assertNotEqual(before, source_inputs(self.root)); before = source_inputs(self.root)
+        self.write('src/Owner/packages.lock.json', '{"changed":true}'); self.assertNotEqual(before, source_inputs(self.root))
+
+
+class VerificationCommandTests(unittest.TestCase):
+    def setUp(self):
+        self.scratch = FixtureDirectory(prefix='typed-wrapper-', native=True); self.addCleanup(self.scratch.cleanup)
+        self.root = Path(self.scratch.name); (self.root / 'eng').mkdir()
+        source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
+        for path in (source / 'eng').iterdir():
+            if path.is_file() and path.suffix in ('.py', '.ps1', '.psm1', '.json'):
+                shutil.copyfile(path, self.root / 'eng' / path.name)
+        for name in ('.nvmrc', '.npm-version', 'global.json'): shutil.copyfile(source / name, self.root / name)
+        shutil.copyfile(ROOT / '.python-version', self.root / '.python-version')
+        (self.root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [], 'bindings': []}}))
+        self.shell = os.environ.get('PROGRAM_KIT_POWERSHELL_EXECUTABLE') or shutil.which('pwsh')
+        self.assertTrue(self.shell, 'Prepare the selected PowerShell before the emitted command contract')
+        self.environment = dict(os.environ, SPECKIT_PYTHON=sys.executable, PYTHONUTF8='1')
+
+    def invoke(self, *arguments):
+        return subprocess.run([self.shell, '-NoProfile', '-File', str(self.root / 'eng/Invoke-RepositoryVerification.ps1'),
+            *arguments], cwd=self.root, env=self.environment, capture_output=True, text=True, encoding='utf-8', timeout=30)
+
+    def test_formal_boundaries_refuse_development_narrowing(self):
+        for mode in ('CI', 'Release'):
+            with self.subTest(mode=mode):
+                result = self.invoke('-Mode', mode, '-Scope', 'Acceptance', '-Projects', 'tests/Synthetic.Tests/Synthetic.Tests.csproj')
+                self.assertNotEqual(0, result.returncode); self.assertIn('Acceptance cannot be narrowed', result.stdout + result.stderr)
+
+    def test_release_refuses_scoped_development_even_with_release_configuration(self):
+        result = self.invoke('-Mode', 'Release', '-Scope', 'Focused', '-Projects', 'tests/Synthetic.Tests/Synthetic.Tests.csproj',
+                             '-Configuration', 'Release', '-Reason', 'Synthetic command contract', '-Plan')
+        self.assertNotEqual(0, result.returncode); self.assertIn('cannot claim Release acceptance', result.stdout + result.stderr)
+
+    def test_valid_named_owner_plan_and_unknown_owner_keep_scoped_diagnostics_without_execution(self):
+        (self.root / 'docs').mkdir(); (self.root / 'docs/input.json').write_text('{}')
+        (self.root / 'eng/required.py').write_text('raise AssertionError("Plan must not execute a test")\n')
+        declaration = {'id': 'required-current', 'script': 'eng/required.py', 'arguments': [],
+                       'inputs': ['docs/input.json'], 'timeoutSeconds': 10}
+        (self.root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [declaration]}))
+        result = self.invoke('-Scope', 'Focused', '-Checks', 'required-current', '-Plan')
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        value = json.loads(result.stdout); self.assertEqual(['required-current'], value['toolkitChecks'])
+        self.assertEqual([], value['projects']); self.assertFalse(value['acceptanceEstablished'])
+        self.assertFalse((self.root / 'artifacts/tests/toolkit-runs').exists())
+        result = self.invoke('-Scope', 'Focused', '-Checks', 'unknown-owner', '-Plan')
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('PKV003 unknown named toolkit check', result.stdout + result.stderr)
+        self.assertFalse((self.root / 'artifacts/tests/toolkit-runs').exists())
+
+
 if __name__ == '__main__': unittest.main()

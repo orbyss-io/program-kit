@@ -38,7 +38,7 @@ class OwnedScratchTests(unittest.TestCase):
         with self.locked_file(target):
             with self.assertRaises(PermissionError): blocks.atomic_write(target, 'blocked binding')
         self.assertEqual(b'new binding', target.read_bytes())
-        self.assertFalse(list(self.root.glob('.dependency-profile.json.*.tmp')))
+        self.assertFalse(list(self.root.glob('.pkb-*.tmp')))
         failure = PermissionError('observed concurrent binding edit'); failure.winerror = 5
         def changed(*_):
             target.write_bytes(b'concurrent binding'); raise failure
@@ -46,7 +46,30 @@ class OwnedScratchTests(unittest.TestCase):
             with self.assertRaises(PermissionError): blocks.atomic_write(target, 'stale binding')
             replace.assert_called_once()
         self.assertEqual(b'concurrent binding', target.read_bytes())
-        self.assertFalse(list(self.root.glob('.dependency-profile.json.*.tmp')))
+        self.assertFalse(list(self.root.glob('.pkb-*.tmp')))
+
+    @unittest.skipUnless(os.name == 'nt', 'Native Windows extended atomic file paths')
+    def test_building_block_atomic_writer_handles_deep_path_and_refuses_unreadable_concurrent_destination(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('owned_scratch_deep_blocks',
+            ROOT / 'extensions/program-kit-building-blocks/scripts/building_blocks.py')
+        blocks = importlib.util.module_from_spec(spec); sys.modules[spec.name] = blocks; spec.loader.exec_module(blocks)
+        from owned_fixture import FixtureDirectory
+        deep = Path(self.enterContext(FixtureDirectory(prefix='deep-atomic-')))
+        target = deep / ('deep-owner-' * 8) / ('profile-owner-' * 6) / ('b' * 64 + '.json')
+        ordinary = Path(scratch.native_path(target)); self.assertGreater(len(str(ordinary)), 260)
+        blocks.atomic_write_bytes(ordinary, b'original profile', 'profile-capture')
+        self.assertEqual(b'original profile', target.read_bytes())
+        blocks.atomic_write_bytes(ordinary, b'current profile', 'profile-capture')
+        self.assertEqual(b'current profile', target.read_bytes())
+        self.assertFalse(list(target.parent.glob('.pkb-*.tmp')))
+        failure = PermissionError('native destination replacement blocked'); failure.winerror = 5
+        with patch.object(blocks.os, 'replace', side_effect=failure) as replace, \
+             patch.object(blocks.Path, 'read_bytes', side_effect=[b'current profile', PermissionError('unreadable concurrent destination')]):
+            with self.assertRaises(PermissionError): blocks.atomic_write_bytes(ordinary, b'stale profile', 'profile-capture')
+            replace.assert_called_once()
+        self.assertEqual(b'current profile', target.read_bytes())
+        self.assertFalse(list(target.parent.glob('.pkb-*.tmp')))
 
     @unittest.skipUnless(os.name == 'nt', 'Native Windows governance sharing')
     def test_governance_replacement_recovers_short_block_and_preserves_persistent_failure(self):

@@ -64,7 +64,7 @@ def main():
     (directory / 'positive-result.json').write_text(json.dumps(result, indent=2))
     # Acquisition and launch use Commands' one owned cache; fail launch before later effects.
     command = composition_run.Commands(directory, directory / 'processes')
-    assert command.environment['PLAYWRIGHT_BROWSERS_PATH'] == str(directory / 'artifacts/cache/browsers')
+    assert command.environment['PLAYWRIGHT_BROWSERS_PATH'] == str(directory / 'artifacts/cache/playwright-browsers')
     calls = []
     class Boundary:
         environment = command.environment

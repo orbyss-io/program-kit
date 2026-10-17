@@ -15,6 +15,25 @@ import repository_verification as verification
 
 
 class SelectionTests(unittest.TestCase):
+    def test_quickstart_owner_query_emits_actual_configured_commands_without_native_execution(self):
+        self.toolkit()
+        before = {path.relative_to(self.root).as_posix(): path.read_bytes() for path in self.root.rglob('*') if path.is_file()}
+        with patch.object(verification, 'toolchain_identity', side_effect=AssertionError('no SDK query')):
+            result = verification.owner_commands(self.root)
+        self.assertEqual({'tests/Notes.Tests/Notes.Tests.csproj', 'tests/Other.Tests/Other.Tests.csproj',
+                          'tests/Bridge.Tests/Bridge.Tests.csproj'}, {row['project'] for row in result['nativeTestOwners']})
+        self.assertIn({'project': 'tests/Notes.Tests/Notes.Tests.csproj',
+            'command': "./eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects 'tests/Notes.Tests/Notes.Tests.csproj'"}, result['nativeTestOwners'])
+        self.assertEqual([{'check': 'preservation',
+            'command': "./eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Checks 'preservation'"}], result['toolkitOwners'])
+        self.assertTrue(result['readOnly']); self.assertFalse(result['acceptanceEstablished'])
+        actual = subprocess.run([sys.executable, str(Path(verification.__file__)), '--repository', str(self.root), '--list-owners'],
+            capture_output=True, text=True, encoding='utf-8', timeout=30)
+        self.assertEqual(0, actual.returncode, actual.stdout + actual.stderr)
+        self.assertEqual(result, json.loads(actual.stdout))
+        with self.assertRaisesRegex(ValueError, 'PKV002'): verification.select(self.root, 'Focused')
+        self.assertEqual(before, {path.relative_to(self.root).as_posix(): path.read_bytes() for path in self.root.rglob('*') if path.is_file()})
+
     def toolkit(self, source='print("real named toolkit check executed")\n'):
         script = self.root / 'checks/preservation.py'; script.parent.mkdir(exist_ok=True)
         script.write_text(source)

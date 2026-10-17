@@ -28,7 +28,12 @@ stale sections require affected design review; preserve old intake, approvals, A
 Compatibility execution, delivery and production obligations retain their own proof and due phase.
 Implement behavior and
 architecture tests in the repository. Use `eng/Invoke-RepositoryVerification.ps1 -Scope Focused`
-or `-Scope Affected` while coding. Retain the complete implementation baseline and inspect selection
+or `-Scope Affected` while coding. Retain the complete implementation baseline.
+When authoring quickstart.md, run `python eng/repository_verification.py
+--repository . --list-owners` and include the relevant emitted command with its
+actual test-project path or toolkit-check ID. If the owner is not materialized,
+retain that prerequisite explicitly and refresh the quickstart after creating it;
+a bare Focused command cannot execute or establish coverage. Inspect selection
 with `-Plan`; do not select by the last edited file alone. Progress saves and resumes earn only
 checks invalidated by changes. `phase_obligations.py finish` returns progress for open tasks/drafts;
 closed features or an explicit `--handoff` run complete acceptance once.

@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import unittest
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'extensions/program-kit-governance/scripts'), str(ROOT / 'scripts'), str(ROOT / 'tests')]
@@ -15,6 +16,61 @@ import upgrade_program_kit as updater
 
 
 class WitnessTests(unittest.TestCase):
+    def attempt_inputs(self):
+        original = self.consumer / '.program-kit/installation/originals' / (witness.sha(b'original version') + '.original')
+        original.parent.mkdir(parents=True, exist_ok=True); original.write_bytes(b'original version')
+        current = self.consumer / 'eng/managed.py'; current.parent.mkdir(exist_ok=True)
+        current.write_bytes(b'original managed source\r\n')
+        attempt = {'id': 'a' * 32, 'targetVersion': '0.13.3', 'previousInstalledVersion': '0.13.2',
+            'releaseInputsSha256': self.expected, 'originals': {'version': {'path': original.relative_to(self.consumer).as_posix(),
+                'sha256': witness.sha(original.read_bytes())}}}
+        binding = witness.retain_attempt_inputs(self.consumer, ['eng/managed.py', 'eng/future.py'], attempt)
+        path = self.consumer / binding['record']
+        return attempt, binding, path
+
+    def test_canonical_attempt_inputs_bind_exact_original_set_absences_aliases_and_later_process(self):
+        attempt, binding, path = self.attempt_inputs()
+        original_record = path.read_bytes(); archive = path.parent / 'inputs.zip'; original_archive = archive.read_bytes()
+        receipt = self.consumer / 'original-input-receipt.json'
+        receipt.write_bytes(witness.encoded({'originalInputs': binding, 'originals': attempt['originals']})); raw = receipt.read_bytes()
+        (self.consumer / 'eng/managed.py').write_bytes(b'legitimate later managed update')
+        (self.consumer / 'eng/future.py').write_bytes(b'legitimate newly generated source')
+        result = witness.verify_attempt_inputs(self.consumer, binding, attempt['originals'])
+        self.assertEqual(witness.sha(b'original managed source\r\n'), result['files']['eng/managed.py'])
+        self.assertIsNone(result['files']['eng/future.py']); self.assertFalse(result['applicationAcceptanceEstablished'])
+        native = subprocess.run([sys.executable, str(ROOT / 'extensions/program-kit-governance/scripts/tooling_witness.py'),
+            'verify-inputs', '--project-root', str(self.consumer), '--receipt', receipt.name], capture_output=True,
+            text=True, encoding='utf-8', timeout=30)
+        self.assertEqual(0, native.returncode, native.stdout + native.stderr)
+        self.assertEqual(raw, receipt.read_bytes()); self.assertEqual(original_record, path.read_bytes())
+        self.assertEqual(original_archive, archive.read_bytes())
+
+    def test_canonical_attempt_input_archive_missing_extra_or_changed_member_cannot_pass_by_count(self):
+        attempt, binding, path = self.attempt_inputs(); archive = path.parent / 'inputs.zip'; original = archive.read_bytes()
+        with zipfile.ZipFile(archive) as z: values = {name: z.read(name) for name in z.namelist()}
+        for mode in ('missing', 'extra', 'changed', 'duplicate'):
+            with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_STORED) as z:
+                for name, raw in values.items():
+                    if mode == 'missing' and name == 'eng/managed.py': continue
+                    z.writestr(name, b'changed' if mode == 'changed' and name == 'eng/managed.py' else raw)
+                if mode == 'extra': z.writestr('eng/unbound.py', b'extra')
+                if mode == 'duplicate': z.writestr('eng/managed.py', values['eng/managed.py'])
+            with self.assertRaises(ValueError, msg=mode): witness.verify_attempt_inputs(self.consumer, binding, attempt['originals'])
+            archive.write_bytes(original)
+        archive.unlink()
+        with self.assertRaisesRegex(ValueError, 'missing'): witness.verify_attempt_inputs(self.consumer, binding)
+
+    def test_canonical_attempt_record_removal_rehash_and_alias_substitution_cannot_rewrite_original(self):
+        attempt, binding, path = self.attempt_inputs(); original = path.read_bytes()
+        changed = json.loads(original); changed['files'].pop('eng/managed.py'); path.write_bytes(witness.encoded(changed))
+        with self.assertRaisesRegex(ValueError, 'missing or changed'): witness.verify_attempt_inputs(self.consumer, binding)
+        path.write_bytes(original)
+        with self.assertRaisesRegex(ValueError, 'differ from their original'): witness.verify_attempt_inputs(self.consumer, binding, {})
+        with self.assertRaisesRegex(ValueError, 'original exact address'):
+            witness.verify_attempt_inputs(self.consumer, dict(binding, sha256=witness.sha(witness.encoded(changed))))
+        path.unlink()
+        with self.assertRaisesRegex(ValueError, 'missing or changed'): witness.verify_attempt_inputs(self.consumer, binding)
+
     def setUp(self):
         self.temp = FixtureDirectory(prefix='durable-witness-'); self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name); self.consumer = self.root / 'consumer'; self.consumer.mkdir()
