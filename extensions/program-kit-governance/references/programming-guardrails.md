@@ -32,10 +32,12 @@ Apply rules proportionally. Pure transformations and trivial adapters should rem
 ## Typed boundaries and design evidence
 
 <!-- program-kit:decision-rule typed-admission -->
+<!-- program-kit:knowledge-rule principle.typed-admission -->
 Known request/response/configuration envelopes use typed contracts after admission. Prove
 parser/schema/runtime parity, including valid variants and rejected inputs. Bounded
 dynamic schemas and lexical/canonical JSON processing remain legitimate exceptions when encapsulated
 and tested. A DTO alone does not establish validation, authorization or deep immutability.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 
 For .NET labels shared with browser forms, consult the supported

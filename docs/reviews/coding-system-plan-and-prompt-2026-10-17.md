@@ -24,11 +24,42 @@ The trial consumer remains stopped. No implementation, cleanup, US4 work, paid c
 
 Do not add a global file-write interceptor, universal query/storage/PDF framework, speculative production hosting framework, automatic upstream self-modification, telemetry/polling or mandatory new approval artifact. Routine engineering decisions inside accepted contracts remain the implementer's responsibility. Consequential missing product, data, security or architecture decisions return to their owning phase with a concrete diagnostic. Explicit pattern override does not change an accepted domain invariant or mandatory profile contract.
 
+## Session checkpoints and inspectable fixtures
+
+Implement F1 through F8 in separate human-led sessions, one item per session. Before implementing an item, investigate its actual implementation seams and grill only unresolved implementation choices; do not reopen the approved feature scope or decisions already settled. Confirm shared understanding at the end of the interview before implementing that item, and preserve the decisions and next-session handoff in this plan or its linked checkpoint notes. This session sequencing refines the existing implementation approval rather than asking for approval of the feature again.
+
+Each item must have a runnable, inspectable fixture demonstrating its delivered behavior before its session checkpoint is closed. Define the scenario, inputs, expected output, meaningful negative cases and proof limits during that item's interview. Run and review the actual output with the human; do not defer all observable results until the complete implementation phase. A passing test summary alone does not supply the requested walkthrough. Human inspection and automated correctness evidence remain distinct.
+
+Use both incremental fixtures and final integrated proof. Each session demonstrates its delivered behavior; the final integration demonstrates a connected journey through the completed system, supplemented by focused scenarios for contracts requiring distinct environments. Reuse maintained per-item scenarios and deterministic installed-command routes rather than build a separate final testing system. Keep the existing acceptance matrix and independent behavior tests; report the actual scope and any uncovered scenarios.
+
+Fixture review mode retains the fictional disposable consumer, actual command output and named before/after snapshots. Provide a short review index with context: what the fixture represents, where to start, links to the exact files/output to inspect, what to look for, which differences matter, expected versus actual positive/negative outcomes, rerun commands and proof limits. Walk through those concrete outputs with the human, including anomalies and open questions. Keep the review material available across turns and sessions until the human confirms that review is finished; reaching the end of the test process is not review completion. Cleanup can then remove the owned disposable consumer and scratch snapshots while preserving the bounded actual results, invocation/source identities and findings used as checkpoint proof. Ordinary non-review automated runs can retain their normal cleanup behavior.
+
+No fixture starts a coding agent, paid/provider operation or the stopped trial consumer. Do not claim unimplemented later items, real human product acceptance or complete feature acceptance from an earlier checkpoint.
+
+### Workflow learning and future repository development skill
+
+Use F1 through F8 to try and improve this contributor workflow: investigate and grill unresolved decisions, agree a plan, divide it into reviewable sections, implement and test each section with a guided output review, then run final integration and deliver the feature through the normal repository contribution route. Keep concise learning notes with each session handoff: what was tried, what the human could actually inspect, what worked, friction or failures, agreed adjustments and what to try in the next item. Preserve observed results and uncertainty; suggestions are not proven improvements. Reuse this section or linked checkpoint notes rather than introduce a campaign ledger or new consumer artifact.
+
+After the workflow has been demonstrated to work in practice and the human agrees it is useful, create a repository-scoped Program Kit development skill from the observed lessons and working fixture conventions. The future skill should help subsequent contributor work follow the proven approach, with slice size and testing proportional to the change. It is not a consumer coding rule or a speculative skill to create before the trial has produced evidence. Reference maintained validation and contribution/publication procedures instead of duplicating them; feature delivery follows the authorization for that work. Continue refining the approach during this implementation plan.
+
 ## Functional contract and implementation sequence
 
 The following sequence is implementation guidance, with one accountable feature owner. Filenames and representation are engineering choices made against current source; the behavioral contracts and proof below are required. Reuse native phase, profile, changed-input, managed-source and verification owners rather than introduce competing systems.
 
 ### F1 — discover knowledge and establish canonical ownership
+
+Current local implementation: branch `codex/coding-system-f1` carries F1. Read the
+[F1 checkpoint](coding-system-f1-checkpoint-2026-10-17.md) before continuing. Human
+fixture review and the disclosed packaged-check runtime-budget disposition remain
+open; do not restart F1 from the original base or automatically advance to F2.
+
+**F1 implementation decisions accepted in the 17 October 2026 session:**
+
+- Give a rule its own identity when its applicability, obligation level or evaluation differs. Group related rules for readable guidance and retain existing requirement identities as compatibility groupings.
+- Keep the shipped `eng/architecture_rules.py` tables authoritative for their exact executable constraints. Catalog entries address the actual symbols; prose owns broader semantic principles. Guidance resolves table values when needed, and native consumer checks remain independent of toolkit Markdown.
+- Use explicit source kinds and resolution contexts. Maintainer discovery can inspect repository sources; installed guidance resolves shipped sources and selected captures. Repository-only material keeps its discovery disposition. When active consumer guidance requires an unavailable source, report the missing dependency explicitly rather than silently substituting another source.
+
+The accepted F1 review fixture uses a fictional API task and an unrelated browser task. Inspect discovered rules from marked prose, the actual executable architecture table and an exact publisher capture, with retained history explicitly classified. Show actual produced guidance and applicability/exclusion reasons, before/after output from changing a canonical rule in the disposable fixture, and clear failures for missing or ambiguous rule sources. Preserve relevant independent negatives. This establishes scoped F1 discovery and consumption proof, not later scaffolding, application behavior or whole-feature acceptance.
 
 Discover technology, coding style, domain-modeling, architecture and engineering knowledge throughout the repository before restricting active support. Inspect normative references and accepted decisions; manifests, profiles and command/hook prompts; script and C# policy declarations; schemas, EditorConfig and build settings; templates, scaffolds and examples; tests and counterexamples; versioned publisher captures; and historical research, proposals and evidence. Separate reusable principles, provider/version facts, executable mechanisms and consumer-specific decisions. Discovery is broad; adoption into active coding support requires applicable authority and qualification. Retained history and merely mentioned technologies are not active support claims.
 

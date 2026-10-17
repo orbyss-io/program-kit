@@ -201,7 +201,7 @@ def project(root, feature, phase, affected_paths=()):
 
 
 def render(value, phase, detailed=False):
-    canonical = constraints(catalog(), value['requirements'], Path(__file__).resolve().parents[2])
+    canonical = constraints(catalog(), value['requirements'], Path(__file__).resolve().parents[2], detailed)
     lines = [f'# Applicable guidance: {phase}', '',
              'Record concrete decisions and tests in plan.md/tasks.md. No separate review receipts are required.',
              'Conditional guidance applies only when its stated conditions hold.',
@@ -210,9 +210,9 @@ def render(value, phase, detailed=False):
     actions = {
         'planning': 'Make design decisions and name their cheapest reliable tests. No application tests run during planning.',
         'after-plan': 'Review changed design decisions and the planned graph. Carry real-provider tests into the tasks.',
-        'tasks': 'Size coherent runnable stories; name risk, verification sequence and exact prerequisites. Materialize known scaffolds first, run maintained checks, then add missing consumer tests. Do not execute proofs while drafting.',
+        'tasks': 'Size coherent runnable stories; name risk, test tasks, verification sequence and exact prerequisites. Materialize known scaffolds first, run maintained checks, then add missing consumer tests. Do not execute proofs while drafting.',
         'after-tasks': 'Check the finalized graph and run normal read-only analyze once. Drafting is not implementation.',
-        'implementation': 'Use verification selected by risk. Review runnable stories with the assigned human; required checkpoints pause further product work unless explicitly deferred. Progress saves and resumes are not full acceptance boundaries.',
+        'implementation': 'Use focused verification selected by risk. Review runnable stories with the assigned human; required checkpoints pause further product work unless explicitly deferred. Progress saves and resumes are not full acceptance boundaries.',
         'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
     }
     lines += [actions[phase], '']
@@ -266,12 +266,11 @@ def render(value, phase, detailed=False):
                   proof['task'], 'Gate scope: retained roadmap-feature prerequisite; operation dependency declarations cannot defer or waive it.',
                   'A reviewed plan cannot substitute for its required proof or governing authority.', '']
     for rule in value['requirements']:
-        guidance = rule['requirement'] if detailed else rule.get('guidance', {}).get(phase, rule['requirement'])
-        lines += [f"## {rule['id']}", guidance,
+        lines += [f"## {rule['id']}",
                   'Enforcement: ' + rule['enforcement']['kind']]
         lines += canonical[rule['id']]
         if detailed:
-            lines.append('Example: ' + rule['example'])
+            lines.append('Retained illustrative example (canonical rules above remain authoritative): ' + rule['example'])
         if detailed and rule['enforcement'].get('diagnostics'):
             lines.append('Compiler diagnostics: ' + ', '.join(rule['enforcement']['diagnostics']))
         for source, sections in rule.get('sections', {}).items() if detailed else ():

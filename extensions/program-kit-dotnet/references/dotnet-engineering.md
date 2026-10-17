@@ -6,16 +6,26 @@ ownership rules are profile requirements.
 ## Async and shell-owned work
 
 <!-- program-kit:decision-rule async-ownership -->
+<!-- program-kit:knowledge-rule principle.async-representation -->
 - `Task`/`Task<T>` is the default asynchronous representation. Use `ValueTask` only for a measured hot path
   whose consumers obey its single-consumption constraints.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.bounded-async-work -->
 - `async void` is limited to event handlers. Do not use `.Result`, `.Wait()`, sync-over-async, unobserved work,
   unbounded producer queues, or unbounded fan-out.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.async-operation-policy -->
 - Propagate cancellation and define timeout, retry, idempotency, fault, terminal-state, and observability policy.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.shell-owned-work -->
 - `IHostedService` and `BackgroundService` are root-provider, process-global facilities. A CShells feature must
   register shell-owned work through `Orbyss.Foundation.Tasks`; the Generic Host does not start services registered in
   a shell provider.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.shell-task-lifetimes -->
 - Startup tasks may be scoped. Background and recurring tasks are shell-singletons owned by the task manager.
   Shutdown is idempotent, cancels, awaits with a bound, drains before provider disposal, and has disposal fallback.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 - Custom schedulers, `Task.Factory.StartNew`, invisible fire-and-forget, and runtime work without an owner require
   an Accepted ADR and measured evidence.
@@ -43,9 +53,13 @@ ownership rules are profile requirements.
 ## Resource and memory ownership
 
 <!-- program-kit:decision-rule resource-ownership -->
+<!-- program-kit:knowledge-rule principle.disposal-ownership -->
 - The creator owns disposal unless ownership is explicitly transferred. DI disposes services it creates; do not
   manually dispose them or register pre-created disposable instances without an owner.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.async-teardown -->
 - Use `IAsyncDisposable` when teardown performs asynchronous work. Constructors do not start background work.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 - Bound caches, queues, buffers, subscriptions, and retained task state. Static references, timers, event
   handlers, callbacks, threads, and outstanding work must not retain a drained shell generation.

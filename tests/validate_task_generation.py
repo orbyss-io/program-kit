@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 import os
 import shutil
+from owned_fixture import filesystem_path, FixtureDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
@@ -298,9 +299,10 @@ class TaskTests(unittest.TestCase):
     def test_installed_cli_finalizes_future_graph_in_a_fresh_unrelated_process(self):
         installed = self.root / '.specify/extensions'
         for extension, folders in {'program-kit-governance': ['scripts', 'references'],
-                                   'program-kit-dotnet': ['scripts', 'references', 'templates/dotnet/files/eng']}.items():
+                                   'program-kit-dotnet': ['scripts', 'references', 'templates/dotnet/files'],
+                                   'program-kit-building-blocks': ['scripts', 'references']}.items():
             for folder in folders:
-                shutil.copytree(ROOT / 'extensions' / extension / folder, installed / extension / folder,
+                shutil.copytree(filesystem_path(ROOT / 'extensions' / extension / folder), filesystem_path(installed / extension / folder),
                                 ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules', 'dist'))
         graph = {'runtimeComposition': {'projects': [
             {'path': 'src/Owned/Owned.csproj', 'role': 'implementation', 'projectReferences': []},
@@ -488,7 +490,7 @@ class TaskTests(unittest.TestCase):
         self.assertNotEqual(previous,draft.inputs(self.root,self.feature)[failed.relative_to(self.root).as_posix()])
 
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix='task-drafting-')
+        temporary = FixtureDirectory(prefix='task-drafting-', native=True)
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         self.feature = self.root / 'specs/002-cut-list'

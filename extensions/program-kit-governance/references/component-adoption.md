@@ -79,8 +79,10 @@ Task generation schedules compatibility/admission work; it does not execute prob
 services or claim acceptance. Execute the relevant checks before dependent implementation
 and require actual executed behavior and normal code review before completion.
 <!-- program-kit:decision-rule capability-evidence -->
+<!-- program-kit:knowledge-rule principle.capability-evidence -->
 Keep selected, materialized, activated and exercised claims separate; none substitutes
 for the next. Historical dossier readers remain available only for historical evidence.
 Compiled bindings establish structural registration possibilities; consumer composition tests must
 exercise actual public mechanisms, activation/resolution and applicable lifetime/replacement behavior.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->

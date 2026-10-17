@@ -54,11 +54,14 @@ private implementation interfaces. Do not put a type in Core merely because two 
 it today.
 
 <!-- program-kit:decision-rule compilation-responsibilities -->
+<!-- program-kit:knowledge-rule principle.compilation-boundaries -->
 Separate Core, runtime implementation, API and provider compilation projects when those responsibilities exist.
 Core owns stable contracts and pure policies, never persistence-calling orchestration or runtime effects.
 Role names, namespaces, one package or deployment do not waive separation. Declare actual responsibilities
 and complete capability bindings; a graph pass establishes structural consistency, not semantic correctness.
 Empty repositories and pure Core utilities need no invented runtime projects.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.feature-registration -->
 Features register their own services and lifecycle contributions. A provider contributes its schema
 preparation through the selected existing lifecycle interface; the application owns policy/signing
 admission and managed workers. Deployment configuration selects implementations. When the affected
@@ -66,6 +69,8 @@ design includes initialization, admission or managed workers, inspect the captur
 versioned publisher knowledge before choosing the mechanism with `publisher_knowledge.py
 --target .` and focused CShells/Foundation Tasks facts. Missing historical knowledge calls for repair of
 that exact profile, never adoption of today's default.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.captured-startup-example -->
 For the reviewed Foundation Tasks 0.3.1 / CShells 0.0.30-preview.159 baseline, the provider
 registers `AddShellInitializer<PrepareSchema>(LifecyclePhase.Prepare)` and owns its provider scope;
 application policy/signing admission uses an explicitly ordered `Default` initializer. Foundation's
@@ -74,17 +79,28 @@ Use fresh application-owned scopes per worker iteration. Read `CShells.Abstracti
 and Foundation Tasks' `FoundationTasksFeature.cs` / `ShellTaskManager.cs` through the exact selected
 publisher route before adapting this example to another baseline. Required preparation/admission
 exceptions prevent activation; lifecycle subscribers swallow failures and cannot provide that gate.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.lifecycle-admission -->
 Use explicit lifecycle phases for required ordering and failure admission, preserving scoped startup,
 fresh worker scopes and bounded cancellation/drain. DI/discovery order, constructors, root
-BackgroundService behavior and lifecycle notifications cannot establish required admission. Awaited
+BackgroundService behavior and lifecycle notifications cannot establish required admission.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.domain-event-reactions -->
+Awaited
 business events support independent reactions to immutable facts; subscriber order and zero-subscriber
-delivery do not establish an ordered mandatory workflow. Where lifecycle contributions remove a
+delivery do not establish an ordered mandatory workflow.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.semantic-provider-capability -->
+Where lifecycle contributions remove a
 cross-feature call, add no new interface; otherwise define the cohesive provider-neutral capability at
 its semantic boundary, keeping schema/ORM details private to the provider.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.composition-selection -->
 Composition is an optional reusable selection preset, not a default layer or an owner for foreign
 tasks/provider initialization. Record its concrete responsibility and rationale in existing planned
 responsibilities, and review its source ownership. Packaging collects selected runtime closures
 directly; an aggregate library is not needed to gather dependencies.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 
 Composition selects implementations; it does not contain the domain or provider implementations it selects.
@@ -233,11 +249,13 @@ Each `.Api` implementation owns its route groups, wire models, endpoint-specific
 bounds, OpenAPI metadata, stable application permission identities, and policy/rate requirements.
 Provider roles and token shapes are normalized by the host boundary; endpoints do not parse them.
 <!-- program-kit:decision-rule authorization-ownership -->
+<!-- program-kit:knowledge-rule principle.authorization-ownership -->
 Keep three owners distinct: deployment selects provider-role/scope mappings, the Program Kit
 authentication feature normalizes and evaluates dynamic `permission:<identity>` policies, and the
 owning application/domain capability evaluates resource/state/effect rules. Do not duplicate either
 of the first two or reparse canonical permission claims in a consumer feature. For a no-effect probe, the endpoint policy is the complete
 authorization decision; for a protected business effect it is only the outer gate.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 Do not create an application-root `Administration.Api` or `Platform.WebBoundary` project merely to
 repeat generic host plumbing.

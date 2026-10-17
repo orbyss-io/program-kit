@@ -81,7 +81,8 @@
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.assessment.md"
       ],
       "dependsOn": [
-        "shared-governance"
+        "shared-governance",
+        "knowledge"
       ]
     },
     "knowledge": {
@@ -90,7 +91,18 @@
         "extensions/program-kit-governance/references/knowledge/**",
         "extensions/program-kit-governance/references/phase-obligations.json",
         "extensions/program-kit-building-blocks/scripts/dependency_context.py",
-        "extensions/program-kit-building-blocks/scripts/profile_catalogs.py"
+        "extensions/program-kit-building-blocks/scripts/profile_catalogs.py",
+        "extensions/program-kit-governance/scripts/knowledge_sources.py",
+        "extensions/program-kit-governance/scripts/knowledge_discovery.py",
+        "tests/knowledge_review_fixture.py",
+        "extensions/*/references/*.md",
+        "extensions/*/references/technology-profiles/*.md",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
+        "extensions/program-kit-building-blocks/scripts/building_blocks.py",
+        "docs/decisions/*"
       ],
       "dependsOn": [
         "profiles"
@@ -552,13 +564,27 @@
     {
       "id": "validate_native_phase_baselines",
       "purpose": "Require a complete exact immediate-predecessor source witness before packaging; reject missing lineage and manifest-only substitutes.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_native_phase_baselines.py"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_native_phase_baselines.py"
+      ],
       "kind": "integration",
-      "capabilities": ["release", "upgrade"],
-      "inputs": ["tests/validate_native_phase_baselines.py"],
+      "capabilities": [
+        "release",
+        "upgrade"
+      ],
+      "inputs": [
+        "tests/validate_native_phase_baselines.py"
+      ],
       "needs": [],
-      "prerequisites": ["module:yaml", "tool:git"],
+      "prerequisites": [
+        "module:yaml",
+        "tool:git"
+      ],
       "suites": [],
       "budgetSeconds": 15,
       "timeoutSeconds": 30
@@ -1808,7 +1834,7 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
-      "manualOnly": true
+      "manualOnly": false
     },
     {
       "id": "validate_feature_knowledge",
@@ -5315,6 +5341,32 @@
         "Linux"
       ],
       "purpose": "Public delivery byte/source binding, initializer/updater orchestration and failure/timeout/cleanup guards; no public execution."
+    },
+    {
+      "id": "validate_knowledge_sources",
+      "purpose": "Canonical non-Markdown source resolution, independent negatives, scoped freshness and retained-review fixture behavior; no coding agents.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_knowledge_sources.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge"
+      ],
+      "inputs": [
+        "tests/validate_knowledge_sources.py",
+        "tests/knowledge_review_fixture.py",
+        "tests/validate_consumer_upgrade_install.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
     }
   ]
 }

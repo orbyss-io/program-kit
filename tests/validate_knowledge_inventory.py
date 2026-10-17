@@ -15,7 +15,7 @@ from decision_knowledge import decision_rule
 def validate(root, inventory, obligations):
     extensions = root / 'extensions'
     actual = {p.relative_to(extensions).as_posix() for directory in extensions.glob('*/references') for p in directory.rglob('*.md')}
-    records = inventory['sources']
+    records = [record for record in inventory['sources'] if record.get('route')]
     declared = {r['path'] for r in records}
     if len(declared) != len(records) or actual != declared:
         raise ValueError(f'Knowledge inventory mismatch: unmapped={sorted(actual-declared)}, stale={sorted(declared-actual)}')
@@ -58,6 +58,8 @@ def validate(root, inventory, obligations):
             content = path.read_text(encoding='utf-8').lower()
             if 'plan' not in content or 'test' not in content:
                 raise ValueError('Producer template lost phase obligations: ' + str(path))
+    from knowledge_discovery import validate as validate_canonical
+    validate_canonical(inventory, extensions, root)
 
 
 class InventoryTests(unittest.TestCase):
@@ -70,7 +72,7 @@ class InventoryTests(unittest.TestCase):
         validate(ROOT, self.inventory, self.obligations)
 
     def test_omitted_reference_is_visible(self):
-        self.inventory['sources'].pop()
+        self.inventory['sources'].pop(0)
         with self.assertRaisesRegex(ValueError, 'unmapped'):
             validate(ROOT, self.inventory, self.obligations)
 
