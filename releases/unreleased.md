@@ -1,9 +1,11 @@
-# Release candidate 0.13.3
+# Program Kit 0.13.3
 
-The human requested publication of the complete approved frozen 47-finding maintenance batch. See [migration guidance](migration-0.13.3.md) and the [implementation ledger](../docs/reviews/maintenance-implementation-ledger-2026-10-16.json). Existing merged repair-feedback work is retained. Later investigation and feature batches remain outside this repair campaign.
+This release carries the approved 47-finding maintenance batch and the already merged repair-feedback feature. It repairs native upgrade recovery and source ownership, structured phase evidence, generated .NET/frontend tooling, private session lifecycle, and provider isolation while retaining authored work, exact consumer locks, original obligations and historical evidence.
 
-Foundation commit `6c6b113f37e28e842af884416538f47952ac6944` is explicitly approved for runtime `v0.3.6` and independent `build-v0.3.2`. Both tagged release workflows must succeed and public bytes must be verified before final profile adoption.
+The new default profile consumes public Foundation runtime [0.3.6](https://github.com/orbyss-io/dotnet-foundation/releases/tag/v0.3.6), Build [0.3.2](https://github.com/orbyss-io/dotnet-foundation/releases/tag/build-v0.3.2) and exporter [0.2.7](https://github.com/orbyss-io/dotnet-foundation/releases/tag/exporter-v0.2.7) together with their publisher knowledge. Existing consumers retain their selected profiles until the supported reviewed transition. Foundation's independently versioned releases are verified separately from Program Kit publication.
 
-Program Kit still requires current dependency maintenance, qualified public profile/knowledge, actual installed integration and upgrade evidence, complete exact-source CI qualification, reviewed readiness and exact commit/tag approval before promotion. No partial result establishes full closure or availability.
+Supported native BFF/Hosted Pages paths, including the qualified nested shell path, retain native protocol and private-state guards. SPA source/client and Foundation protocol qualification remain separate; this release does not claim a turnkey executable SPA Host or support unqualified composition shapes.
 
-The current published release remains 0.13.2 until 0.13.3 promotion and public fresh-install/upgrade verification succeed. No active consumer, paid worker/provider, device software or historical profile is changed by release preparation.
+Upgrade through the released updater's inspectable plan. Preserve in-progress features, architectural decisions, implementation, exact original recovery context and original failed evidence. Routine maintenance does not require discarding unfinished work or restarting completed bootstrap. See [migration guidance](migration-0.13.3.md) and the [implementation ledger](../docs/reviews/maintenance-implementation-ledger-2026-10-16.json) for exact versioned guidance and evidence.
+
+Publication requires complete matching Linux/Windows/security qualification and reviewed readiness. Public availability is announced only after promotion and fresh public installation/upgrade succeed. No paid coding-agent or provider acceptance is claimed.

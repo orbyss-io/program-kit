@@ -29,6 +29,7 @@ def write(path,value): maintenance.write_json(path,value)
 
 
 def reference(path,base=ROOT,normalized=False):
+    path,base=blocks.filesystem_path(path),blocks.filesystem_path(base)
     return {'path':path.relative_to(base).as_posix(),
             'sha256':profile_catalogs.source_sha256(path) if normalized else blocks.raw_sha256(path)}
 

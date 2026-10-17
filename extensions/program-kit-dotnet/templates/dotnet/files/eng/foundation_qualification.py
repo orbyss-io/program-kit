@@ -21,6 +21,7 @@ from urllib.parse import urlsplit
 import uuid
 import xml.etree.ElementTree as ET
 import zipfile
+from owned_scratch import native_path
 
 def require(condition, message):
     if not condition:
@@ -769,7 +770,7 @@ def main():
     args=parser.parse_args()
     if args.product: os.environ['PROGRAMKIT_QUALIFY_PRODUCT']='1'
     root=Path(args.repository).resolve()
-    directory=(root/args.run_directory).resolve()
+    directory=Path(native_path((root/args.run_directory).resolve()))
     require(directory.is_relative_to(root/'artifacts/tests/runs'),'PKF101 qualification output must use normal consumer test evidence')
     require(directory.is_dir(),'PKF101 readiness coordinator must create a fresh run directory')
     # The maintained repository-isolation environment governs inline packaging,

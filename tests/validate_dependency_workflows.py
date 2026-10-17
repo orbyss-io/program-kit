@@ -23,12 +23,11 @@ import dependency_maintenance as maintenance
 class ProfilePreparationTests(unittest.TestCase):
     """Prepare isolated candidates; no public qualification or adoption is claimed."""
     def setUp(self):
-        evidence=ROOT/'artifacts/tests/dependency-workflows'
-        evidence.mkdir(parents=True,exist_ok=True)
-        self.temporary=tempfile.TemporaryDirectory(dir=evidence)
+        from owned_fixture import FixtureDirectory
+        self.temporary=FixtureDirectory(prefix='dependency-workflows-')
         self.addCleanup(self.temporary.cleanup)
-        self.registry=Path(self.temporary.name)/'registry'
-        shutil.copytree(profiles.REGISTRY,self.registry)
+        self.registry=profiles.blocks.filesystem_path(Path(self.temporary.name)/'registry')
+        shutil.copytree(profiles.blocks.filesystem_path(profiles.REGISTRY),self.registry)
         self.registry_patch=patch.object(profiles,'REGISTRY',self.registry)
         self.registry_patch.start(); self.addCleanup(self.registry_patch.stop)
         self.index=profiles.blocks.load_json(self.registry/'index.json')
@@ -138,7 +137,7 @@ class WorkflowTests(unittest.TestCase):
         triggers=workflow.get('on',workflow.get(True))
         selection=triggers['workflow_dispatch']['inputs']['validation']
         self.assertEqual({'description':'Validation selection (targeted checks do not qualify publication)',
-            'required':False,'default':'full','type':'choice','options':['full','qualify_reusable_foundations']},selection)
+            'required':False,'default':'full','type':'choice','options':['full','qualify_reusable_foundations','maintenance-failed-integrations']},selection)
         step=next(row for row in workflow['jobs']['validate']['steps']
                   if row.get('name')=='Run shared deterministic validation inventory')
         self.assertEqual('${{ inputs.validation }}',step['env']['VALIDATION_SELECTION'])
@@ -162,6 +161,18 @@ class WorkflowTests(unittest.TestCase):
                 observed.assert_called_once_with(base+expected+common,check=True)
                 self.assertNotIn('--receipt',observed.call_args.args[0])
                 self.assertNotIn('Release',observed.call_args.args[0])
+        roots=('validate_consumer_upgrade_install','qualify_reusable_foundations','validate_typed_operation')
+        for codes in ((0,0,0),(1,0,0),(0,1,0),(0,0,1)):
+            environment={'EVENT_NAME':'workflow_dispatch','VALIDATION_SELECTION':'maintenance-failed-integrations'}
+            outcomes=[subprocess.CompletedProcess([], code) for code in codes]
+            with self.subTest(diagnosticCodes=codes),patch.dict(os.environ,environment,clear=True), \
+                    patch.object(subprocess,'run',side_effect=outcomes) as observed:
+                with self.assertRaises(SystemExit) as stopped: exec(routing,{})
+                self.assertEqual(any(codes), stopped.exception.code)
+                self.assertEqual([unittest.mock.call(base+['--check',root]+common) for root in roots],observed.call_args_list)
+                self.assertTrue(all('--receipt' not in row.args[0] and 'Release' not in row.args[0] for row in observed.call_args_list))
+        self.assertEqual("github.event_name != 'workflow_dispatch' || inputs.validation != 'maintenance-failed-integrations'",
+                         workflow['jobs']['windows-bootstrap']['if'])
         for value in ('unknown','qualify_reusable_foundations; echo injected','--suite Release --receipt'):
             with self.subTest(invalid=value),patch.dict(os.environ,{'EVENT_NAME':'workflow_dispatch',
                     'VALIDATION_SELECTION':value},clear=True),patch.object(subprocess,'run') as observed:

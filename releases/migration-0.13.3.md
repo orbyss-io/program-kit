@@ -1,12 +1,12 @@
 # Program Kit 0.13.3
 
-This is release-candidate guidance. Availability requires successful exact-source CI qualification, promotion and public installation/upgrade verification.
+This guide applies to 0.13.3. Availability is established by successful exact-source CI qualification, promotion and public installation/upgrade verification.
 
 ## Maintenance repairs and safe adoption
 
 This release carries the approved frozen 47-finding maintenance batch. The maintained updater retains authentic original component source and attempt inputs, resumes verified interrupted mutation boundaries, preserves authored/custom files and rejects unexplained mixed state. Native installed phase/command loading, restore and pack closure, exact regression execution, document/task/material ownership, settings and typed client integration, prepared frontend freshness, bounded provider/file operations and disposable database lifecycle receive central repairs. The implementation ledger records their individual evidence and limits.
 
-Upgrade through the supported installer/updater. Keep existing accepted profiles and locks unless explicitly adopting the new qualified public Foundation runtime 0.3.6 and Build 0.3.2 closure. New defaults and versioned publisher knowledge are qualified together; historical profiles remain immutable.
+Upgrade through the supported installer/updater. Keep existing accepted profiles and locks unless explicitly adopting the new qualified public Foundation runtime 0.3.6, Build 0.3.2 and exporter 0.2.7 closure. New defaults and versioned publisher knowledge are qualified together; historical profiles remain immutable.
 
 Retain current application code, custom frontend/editor logic, accepted decisions, task IDs, effort, failures, data and uncertain provider outcomes. This maintenance upgrade supersedes the earlier blanket unfinished-feature delete/restart direction. It does not itself authorize consumer deletion, a bootstrap restart, paid execution or a new human acceptance decision. Separately requested consumer restart work remains separate.
 

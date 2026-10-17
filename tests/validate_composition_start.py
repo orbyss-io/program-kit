@@ -92,6 +92,34 @@ def declare_typed_settings(root, evidence):
     destination = root / 'src/Application.Api/settings.source.json'
     if destination.exists():
         raise ValueError('Refuse to overwrite an existing settings declaration')
+    # This fixture already binds private storage to its API feature. The first
+    # complete native declaration must include a real binding for that setting.
+    private_options = root / 'src/Application.Api/PrivateEvidenceOptions.cs'
+    if private_options.exists():
+        raise ValueError('Refuse to overwrite existing private storage options')
+    private_options.write_text('''using CShells;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+namespace Application.Api;
+/// <summary>Application-owned private storage configuration for this disposable fixture.</summary>
+public sealed class PrivateEvidenceOptions
+{
+    /// <summary>Private mounted storage root; never served as a hosted frontend.</summary>
+    public string Root { get; set; } = "";
+    /// <summary>Binds the composition-owned section without resolving a provider.</summary>
+    public static void Configure(IServiceCollection services, ShellSettings settings)
+    {
+        services.AddOptions<PrivateEvidenceOptions>().Bind(settings.GetConfigurationRoot().GetSection("EvidenceFiles"))
+            .Validate(value => !string.IsNullOrWhiteSpace(value.Root), "EvidenceFiles:Root is required.");
+    }
+}
+''', encoding='utf-8')
+    feature = root / 'src/Application.Api/ApiFeature.cs'
+    current = feature.read_text(encoding='utf-8')
+    seam = 'LabelEndpoints.Configure(services, settings);'
+    if current.count(seam) != 1:
+        raise ValueError('Actual owned typed registration seam is missing or ambiguous')
+    feature.write_text(current.replace(seam, seam + ' PrivateEvidenceOptions.Configure(services, settings);'), encoding='utf-8')
     command(['dotnet', 'restore', project], root, evidence / 'restore')
     command(['dotnet', 'msbuild', project, '-t:FoundationInspectSettingsSourceBindings',
              '-p:Configuration=Release'], root, evidence / 'native-inspection')
@@ -108,6 +136,14 @@ def declare_typed_settings(root, evidence):
     template = ROOT / 'extensions/program-kit-dotnet/references/examples/typed-operation/settings.source.template.json'
     declaration = json.loads(template.read_bytes())
     declaration['sourceSha256'] = report['sourceSha256']
+    declaration['contracts'].append({
+        'scope': 'private-evidence', 'typeName': 'Application.Api.PrivateEvidenceOptions', 'complete': True,
+        'settings': [{'property': 'Root', 'path': 'EvidenceFiles:Root', 'required': True, 'secret': False,
+            'constraints': {'minLength': 1}, 'binding': 'PrivateEvidenceOptions.Configure binds the selected shell EvidenceFiles section and validates Root.',
+            'precedence': ['typed source initializer', 'selected shell configuration providers'], 'reload': 'restart',
+            'description': 'Application-owned private mounted storage; an empty root is invalid.'}],
+        'semanticConstraints': ['The selected composition must supply the private mounted storage root.'],
+        'appliesTo': {'kind': 'shell', 'features': ['Application.Api'], 'configuration': ['EvidenceFiles']}})
     destination.write_text(json.dumps(declaration, indent=2) + '\n', encoding='utf-8')
     document = ET.fromstring((root / project).read_bytes())
     ET.SubElement(document.find('PropertyGroup'), 'FoundationSettingsMetadataSource').text = 'settings.source.json'
@@ -121,6 +157,19 @@ def command(arguments, root, evidence, expected=0, environment=None):
                                    stdout=stdout, stderr=stderr, timeout=1800, env=environment)
     if completed.returncode != expected:
         raise ValueError('command failed (' + str(completed.returncode) + '); inspect ' + str(evidence))
+
+
+def browser_command(arguments, root, evidence, expected=0):
+    """Use the exact owned runtime already acquired by native preparation."""
+    plan = json.loads(Path(arguments[2]).read_text(encoding='utf-8'))
+    cache = (root / 'artifacts/cache/playwright-browsers').resolve()
+    selected = plan.get('browserCache')
+    if (not isinstance(selected, str) or not cache.is_dir()
+            or not Path(selected).resolve().is_relative_to(root.resolve())
+            or not Path(selected).samefile(cache)):
+        raise ValueError("Browser check must use this consumer's actual prepared owned cache")
+    command(arguments, root, evidence, expected=expected,
+            environment=dict(os.environ, PLAYWRIGHT_BROWSERS_PATH=native_path(cache)))
 
 
 def install_native_tooling(root, directory):
@@ -468,7 +517,7 @@ public sealed class ProbeService
             plan_path = directory / 'consumer-feature-plan.json'
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
             product_result = directory / 'consumer-feature-result.json'
-            command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-feature')
+            browser_command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-feature')
             if json.loads(product_result.read_text())['status'] != 'ready':
                 raise ValueError('first consumer feature did not pass actual authenticated HTTP')
             edit_elapsed = round(time.monotonic() - edit_started, 3)
@@ -492,7 +541,7 @@ public sealed class ProbeService
                 raise ValueError('plain update did not activate every prepared host bundle')
             first['productResponse'] = {'policy': 'consumer-prepared-ready'}
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
-            command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-prepared-feature')
+            browser_command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(product_result)], root, directory / 'consumer-prepared-feature')
             if json.loads(product_result.read_text())['status'] != 'ready':
                 raise ValueError('prepared content was not served by the activated published Host')
             after = prepared_after
@@ -567,7 +616,7 @@ window.programKitTypedExample = { storeLabel };
                 first['typedOperation'] = {'body': {'policy': 'stored'}, 'response': {'policy': 'configured-stored'}}
                 typed_plan = directory / 'typed-client-plan.json'; typed_plan.write_text(json.dumps(plan), encoding='utf-8')
                 typed_result = directory / 'typed-client-result.json'
-                command(['node', 'eng/web/composition-readiness.mjs', str(typed_plan), str(typed_result)],
+                browser_command(['node', 'eng/web/composition-readiness.mjs', str(typed_plan), str(typed_result)],
                     root, directory / 'typed-client-operation')
                 first.pop('typedOperation')
                 committed = sample_database(root, directory / 'sample-committed-observation', observe=True)
@@ -578,7 +627,7 @@ window.programKitTypedExample = { storeLabel };
                 restart_plan = {**plan, 'hosts': [{**first, 'productPath': '/api/sample-label',
                     'productResponse': {'policy': 'configured-stored'}}]}
                 restart_path = directory / 'typed-operation-restart-plan.json'; restart_path.write_text(json.dumps(restart_plan), encoding='utf-8')
-                command(['node', 'eng/web/composition-readiness.mjs', str(restart_path),
+                browser_command(['node', 'eng/web/composition-readiness.mjs', str(restart_path),
                     str(directory / 'typed-operation-restart-result.json')], root, directory / 'typed-operation-retained')
                 result.update(actualTypedRequestResponse=True, actualGeneratedTypesAndClient=True,
                     actualProviderPortResolution=True, actualNondefaultScalarOptions=True,
@@ -605,7 +654,7 @@ window.programKitTypedExample = { storeLabel };
                 control_path = directory / 'native-generated-controls-plan.json'
                 control_path.write_text(json.dumps(control_plan), encoding='utf-8')
                 control_result = directory / 'native-generated-controls-result.json'
-                command(['node', 'eng/web/composition-readiness.mjs', str(control_path), str(control_result)],
+                browser_command(['node', 'eng/web/composition-readiness.mjs', str(control_path), str(control_result)],
                     root, directory / 'native-generated-controls')
                 control_observed = json.loads(control_result.read_bytes())
                 if control_observed['status'] != 'ready' or not all(check.get('nativeGeneratedControls') is True for check in control_observed['checks']):
@@ -628,14 +677,14 @@ window.programKitTypedExample = { storeLabel };
                 raise ValueError('frontend edit recreated unrelated services')
             first['expectedHeading'] = 'Consumer edited frontend'
             plan_path.write_text(json.dumps(plan), encoding='utf-8')
-            command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(directory / 'frontend-feature-result.json')], root, directory / 'frontend-feature')
+            browser_command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(directory / 'frontend-feature-result.json')], root, directory / 'frontend-feature')
             for engine in args.engines.split(','):
                 privacy = {**plan, 'engines': [engine], 'hosts': [first], 'privacyProbe': True}
                 privacy_plan = directory / ('privacy-' + engine + '.json')
                 privacy_plan.write_text(json.dumps(privacy), encoding='utf-8')
                 privacy_result = directory / ('privacy-' + engine + '-result.json')
                 evidence = directory / ('privacy-' + engine)
-                command(['node', 'eng/web/composition-readiness.mjs', str(privacy_plan), str(privacy_result)], root, evidence, expected=2)
+                browser_command(['node', 'eng/web/composition-readiness.mjs', str(privacy_plan), str(privacy_result)], root, evidence, expected=2)
                 outcome = json.loads(privacy_result.read_text())
                 if outcome['status'] != 'failed' or outcome.get('failure', {}).get('phase') != 'privacy-failure-check':
                     raise ValueError('privacy negative case did not reach the intended authenticated failure')
@@ -670,7 +719,7 @@ window.programKitTypedExample = { storeLabel };
             finally:
                 retained_root.rename(private_root)
             command([sys.executable, 'eng/composition_run.py', 'run', '--host', 'application-host'], root, directory / 'private-volume-recovery')
-            command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(directory / 'post-reconcile-feature-result.json')], root, directory / 'post-reconcile-feature')
+            browser_command(['node', 'eng/web/composition-readiness.mjs', str(plan_path), str(directory / 'post-reconcile-feature-result.json')], root, directory / 'post-reconcile-feature')
             # The ordinary product gate still rejects the incomplete binding.
             # Run this last: its metadata-helper restore legitimately adds lock
             # inputs and invalidates prior staging; do not reseal that evidence.

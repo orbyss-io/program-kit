@@ -85,6 +85,10 @@ def main():
         with zipfile.ZipFile(archive) as package: package.extractall(release)
         source.mkdir()
         flow.git(source, 'init')
+        # The synthetic source/worktree pair owns its byte policy. User-level
+        # checkout filters must not manufacture drift before activation recovery.
+        flow.git(source, 'config', '--local', 'core.autocrlf', 'false')
+        flow.git(source, 'config', '--local', 'core.eol', 'lf')
         run(['specify', 'init', '.', '--force', '--non-interactive', '--integration', 'codex', '--script', 'py', '--ignore-agent-tools'], source)
         from specify_cli._assets import get_speckit_version
         from specify_cli.bundles.adapters import DefaultPrimitiveInstaller

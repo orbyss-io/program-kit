@@ -125,6 +125,12 @@ jobs:
           path: |
             artifacts/validation-runs/
             artifacts/tests/toolkit-cases/
+            artifacts/t/**/stdout.log
+            artifacts/t/**/stderr.log
+            artifacts/t/**/process.json
+            artifacts/t/**/result.json
+            artifacts/t/**/results.json
+            artifacts/t/**/authentication.xml
             artifacts/postgresql-lifecycle/**/*.log
             artifacts/postgresql-lifecycle/**/results.json
             artifacts/tests/typed-operation/**/*.log
@@ -216,6 +222,12 @@ jobs:
           path: |
             artifacts/validation-runs/
             artifacts/tests/toolkit-cases/
+            artifacts/t/**/stdout.log
+            artifacts/t/**/stderr.log
+            artifacts/t/**/process.json
+            artifacts/t/**/result.json
+            artifacts/t/**/results.json
+            artifacts/t/**/authentication.xml
             artifacts/postgresql-lifecycle/**/*.log
             artifacts/postgresql-lifecycle/**/results.json
             artifacts/tests/typed-operation/**/*.log

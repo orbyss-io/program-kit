@@ -2023,7 +2023,7 @@
     {
       "module": "validate_release_guidance",
       "path": "tests/validate_release_guidance.py",
-      "sha256": "551ef89b37089fedf718ad0c1e621ec7d68b23b42a2a2ae6ad3577156faf64be",
+      "sha256": "cca253be795865171af7ad124e06525024b906027c3efbcdc48829874392e635",
       "cases": {
         "validate_release_guidance.GuidanceTests.test_migration_cannot_retire_required_checks_or_promote_tooling_to_application_acceptance": [
           "Windows",

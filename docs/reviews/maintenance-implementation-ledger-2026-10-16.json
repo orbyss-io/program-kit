@@ -1167,8 +1167,8 @@
         }
       ],
       "remainingDependencies": [
-        "Complete reviewed original 166-case obligation mapping, explicitly retaining consumer-specific provider/domain/history obligations and native C# bridge attribution.",
-        "Current complete required case execution, exact-candidate CI, normal released adoption; the current fixed contract declares 339 cases across 19 modules and explicit platform applicability."
+        "The reviewed mapping preserves all166 original obligations:80 shared translations and86 unchanged consumer-owned assertions; no retirement or consumer acceptance claim.",
+        "Complete current Linux/Windows execution of the439 identities across26 modules, exact-source CI qualification and released installation/upgrade remain."
       ],
       "closureEvidence": []
     },
@@ -3099,7 +3099,6 @@
         }
       ],
       "remainingDependencies": [
-        "New immutable independently versioned Build release after dependency maintenance/CI/security/review gates; private 0.3.1 archive is not publication.",
         "Program Kit selected public package/knowledge/recipe adoption and full exact-candidate qualification.",
         "Original consumer generator attribution is not established; do not label it a shipped Program Kit generator defect. Preserve original consumer/history and migrate through released tooling."
       ],
@@ -3107,7 +3106,8 @@
         "artifacts/maintenance-implementation-2026-10-16/original-settings-hash-attribution.json",
         "artifacts/maintenance-implementation-2026-10-16/foundation-settings-source-qualification.json",
         "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/settings-build/tmp1fbi0h1c/source-binding-results.json",
-        "Foundation local implementation commit 18fec64. New native inspection report never rewrites declarations or compiled provenance; UTF-8 policy is explicit, unsupported encodings reject, and actual native output matches generation."
+        "Foundation local implementation commit 18fec64. New native inspection report never rewrites declarations or compiled provenance; UTF-8 policy is explicit, unsupported encodings reject, and actual native output matches generation.",
+        "Independent public Build0.3.2 at approved6c6b113 completed Release39017641940 and public verification; Program Kit default profile adoption/current qualification remain separate."
       ]
     },
     {
@@ -4643,6 +4643,88 @@
         "Concrete reviewed Root readiness assessment and exact commit/tag approval, promotion and public installation/upgrade."
       ],
       "qualification": "No complete matching qualification, profile adoption success or public Root release claimed; all47 findings remain subject to final required evidence."
+    },
+    {
+      "date": "2026-10-17",
+      "stage": "Focused CI39030197799 failure-first repair; complete qualification remains pending",
+      "sourceCommit": "091464b25a8c59cf7a639764789be3f0f7ab0df5",
+      "originalEvidence": {
+        "retention": "artifacts/u133-focused-1/retention.json",
+        "artifactId": 12099819684,
+        "sha256": "ac0abb874497dc313ac216474cc8cf0abb9883b3cd2cfadfc9010d4b906c7312"
+      },
+      "observed": {
+        "consumerUpgradeInstall": "passed",
+        "baseColdAndPrepared": "passed",
+        "notesColdAndPrepared": "passed",
+        "notesMigration": "passed",
+        "sport": "failed native test: expected browser302 for a private machine resource whose published contract requires401",
+        "typedOperation": "failed consumer-dependencies-prepare; reproduced locally: missing EvidenceFiles:Root in first complete native settings declaration"
+      },
+      "repairs": [
+        "The Sport fixture now requires exact machine401/problem/error code, no redirect and no resource ID; the actual public endpoint-purpose contract is retained.",
+        "The fictional typed API now registers real private-storage options and declares the complete source-inspected binding alongside its typed sample options. Native declaration/source/provenance guards remain enforced.",
+        "Windows native launch normalizes only executable/current directory; Python data paths retain filesystem spelling. A real unchanged PowerShell script reproduced original failure and normalized success without execution-policy changes.",
+        "Additional nested process and native result retention is included in CI/qualification/dependency workflows. The diagnostic selector contract verifies all three roots continue after failure; ordinary PR/main and Windows routes remain required.",
+        "Deep Windows component ZIP enumeration and profile-reference spelling preserve all historical registered knowledge; fixture Git checkout explicitly owns LF policy."
+      ],
+      "validation": [
+        {
+          "status": "passed",
+          "scope": "Actual complete installed upgrade/recovery, owned LF policy, Windows SDK1.2.0; no CI qualification",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/focused-consumer-upgrade-8.log",
+          "sha256": "83d5f0b8fe88611147dce3bec1f446505425c9a3a7737b36025437e4c8d9be51"
+        },
+        {
+          "status": "passed",
+          "scope": "17 workflow/dependency-policy cases",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/final-evidence-retention-workflows-3.log",
+          "sha256": "fbc974e63e87db30f55fdaa8ec5063c539c58b364718708c9d376c177a08b58c"
+        },
+        {
+          "status": "passed",
+          "scope": "13 release-guidance/history cases",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/final-candidate-release-guidance-2.log",
+          "sha256": "ad0c2ee45b68454e33462b6001bc4e027028e55eaf2898807d4bd81445316e87"
+        },
+        {
+          "status": "passed",
+          "scope": "Exact current guidance/inventory subset at contractcf009991; no later/full acceptance",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/final-guidance-reviewed-cases-2.log",
+          "sha256": "5a513366bda536679952655b0beaf4050cd753c8d7b577d0dbba91a130299c66"
+        },
+        {
+          "status": "passed",
+          "scope": "28 real-process/privacy/readiness adapter rejection cases",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/final-native-process-path-regressions-2.log",
+          "sha256": "92b282e0a4017166577f25a47ebc93697939fafa30ffe8be99a2bbf218b699bd"
+        },
+        {
+          "status": "passed",
+          "scope": "Maintained qualification failure/privacy/bounded-evidence contracts",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/final-qualification-contract-repairs.log",
+          "sha256": "57fb86bd019593b14f77b3f8b39d987fe2935cd58eae166d056b4e67a29a1811"
+        },
+        {
+          "status": "passed",
+          "scope": "Actual real public-profile Sport native test passed, with authenticated product/restart behavior and Chromium/WebKit; short SDK path only, no default-path timing/Firefox/CI claim",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/sport-local-short-consumer-4/native-proof.json",
+          "sha256": "145eddc6cec15e2011bc5439801d4b89966233b1b22ca4048ab11c2dda4f614f"
+        },
+        {
+          "status": "passed",
+          "scope": "Exact CI typed consumer-dependencies-prepare failure reproduced and repaired locally; actual public Build compiled/packed complete source-inspected declaration",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/typed-local-repaired-prepare-2/result.json",
+          "sha256": "b27a95af6bb82f26b69e1a197a42d5769c04489374c835e65751378672a22e6b"
+        }
+      ],
+      "pending": [
+        "Complete repaired local typed flow, then fresh focused CI with all three engines; actual local Sport phase and exact typed preparation already pass.",
+        "Successful complete dependency workflow and qualified public-profile/knowledge adoption.",
+        "Complete exact-main Linux/Windows/security qualification, attributable readiness review and exact Program Kit commit/tag approval.",
+        "Tagged promotion and public fresh installation/upgrade before availability or per-finding release closure."
+      ],
+      "boundary": "All47 identities and approvals unchanged; 166 original obligations preserved. Active consumer and unrelated original checkout untouched. No paid agent/provider or device installation."
     }
   ]
 }

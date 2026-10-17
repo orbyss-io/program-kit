@@ -72,7 +72,7 @@ class GuidanceTests(unittest.TestCase):
         from build_release import deterministic_zip
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
         import building_blocks as blocks
-        source = ROOT / 'extensions/program-kit-building-blocks'
+        source = blocks.filesystem_path(ROOT / 'extensions/program-kit-building-blocks')
         with tempfile.TemporaryDirectory() as name:
             destination = Path(name)
             archive_path = destination / 'component.zip'

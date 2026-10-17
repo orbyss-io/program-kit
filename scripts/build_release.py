@@ -67,6 +67,7 @@ def require_equal(label: str, actual: object, expected: object) -> None:
 
 
 def deterministic_zip(source: Path, destination: Path) -> None:
+    source, destination = filesystem_root(source), filesystem_root(destination)
     files = sorted(
         (
             path

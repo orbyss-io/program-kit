@@ -1211,7 +1211,7 @@ def scaffold(root, shape, feed, evidence):
 /// <summary>Native product security assertion against the activated selected host.</summary>
 public sealed class ProductBoundaryTests
 {
-    /// <summary>The browser resource route challenges anonymously without disclosing the resource.</summary>
+    /// <summary>A private machine resource refuses anonymous access without a redirect or resource disclosure.</summary>
     [Xunit.Fact]
     public async System.Threading.Tasks.Task AnonymousResourceReadChallengesWithoutDisclosure()
     {
@@ -1223,15 +1223,16 @@ public sealed class ProductBoundaryTests
         };
         const string resourcePath = "/resources/fc78aeb7-529f-4906-a9a5-8db4ff8a6ead";
         using var response = await client.GetAsync(resourcePath, Xunit.TestContext.Current.CancellationToken);
-        // The selected BFF contract returns401 for /api; this browser route challenges locally.
-        Xunit.Assert.Equal(System.Net.HttpStatusCode.Found, response.StatusCode);
-        var location = response.Headers.Location;
-        Xunit.Assert.NotNull(location);
-        var target = new System.Uri(client.BaseAddress, location);
-        Xunit.Assert.Equal(client.BaseAddress.GetLeftPart(System.UriPartial.Authority), target.GetLeftPart(System.UriPartial.Authority));
-        Xunit.Assert.Equal("/bff/login", target.AbsolutePath);
-        Xunit.Assert.Equal("?ReturnUrl=" + System.Uri.EscapeDataString(resourcePath), target.Query);
-        Xunit.Assert.Empty(await response.Content.ReadAsStringAsync(Xunit.TestContext.Current.CancellationToken));
+        // Foundation redirects only explicit BrowserPage endpoints. This owned JSON
+        // resource has no browser-purpose metadata and must retain machine semantics.
+        Xunit.Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
+        Xunit.Assert.Null(response.Headers.Location);
+        Xunit.Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        using var problem = System.Text.Json.JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(Xunit.TestContext.Current.CancellationToken));
+        Xunit.Assert.Equal(401, problem.RootElement.GetProperty("status").GetInt32());
+        Xunit.Assert.Equal("authentication_required", problem.RootElement.GetProperty("code").GetString());
+        Xunit.Assert.False(problem.RootElement.TryGetProperty("id", out _));
     }
 }
 ''',encoding='utf-8')

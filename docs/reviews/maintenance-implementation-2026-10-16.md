@@ -854,3 +854,40 @@ Windows MSBuild package paths and the older device SDK are disclosed limits; Fir
 in CI. Existing failed local/CI evidence is not relabelled. All47 findings still require
 complete current-source CI and publication/public installation/upgrade closure. No active
 consumer, unrelated checkout, paid worker or device installation changed.
+
+
+## Continuation: focused native failures reproduced before CI retry
+
+Focused diagnostic CI39030197799 at091464b failed and is preserved under
+`artifacts/u133-focused-1/retention.json`. Installed consumer upgrade passed, as did
+base cold/prepared, Notes cold/prepared and Notes migration. Sport failed a native
+fixture assertion that mistook a machine resource for an explicitly marked browser
+page. All33 authentication browser cases passed; the corrected native assertion
+requires401/problem/authentication_required, no redirect and no resource ID.
+
+The typed flow's exact preparation failure was reproduced in a disposable local
+consumer: its first complete settings declaration omitted the existing
+EvidenceFiles:Root binding. The fixture now registers actual source-backed private
+storage options and declares them alongside Sample:Api:Prefix. The exact native
+preparation step passes locally with public runtime0.3.6/Build0.3.2/exporter0.2.7.
+Original incomplete declarations and failed native streams remain retained.
+
+Local Windows native launch exposed an extended-working-directory PowerShell
+SecurityError. Identical real-script reproduction failed originally and passed
+after executable/current-directory normalization; policy was unchanged and Python
+data paths retain their filesystem spelling. All28 affected adapter/rejection
+regressions and the maintained qualification failure contracts pass. Long default
+fixture paths still exceed SDK package-copy limits; a separate short owned SDK
+consumer supplies functional evidence, never default-path timing or CI authority.
+
+The complete repaired local native flows, fresh focused CI, full dependency
+maintenance/adoption, exact-main qualification/readiness and public Program Kit
+installation/upgrade remain distinct gates. No failed run is relabelled, no
+consumer-specific obligation is retired, and all47 findings remain frozen.
+
+The repaired actual Sport native phase subsequently passed at the short owned SDK
+path: its one native xUnit case, real maintained Chromium/WebKit authentication,
+authenticated product and Host/provider restart checks all passed. Exact sources
+and copied native reports are bound in
+`continuation-17/sport-local-short-consumer-4/native-proof.json`. This remains local
+functional evidence; the complete Linux/Firefox run and publication gates remain.
