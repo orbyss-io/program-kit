@@ -586,6 +586,50 @@ def begin_attempt(target: Path, release: Path, version: str, observed: str, repa
     return path, value
 
 
+def reuse_completed_preset_removal(target, release, attempt, number, total, directory):
+    """An absent preset is reusable only after the exact interrupted native removal."""
+    identity = 'program-kit-governance-preset'
+    registry = read_destination_state(target / '.specify/presets/.registry', 'native preset retry')
+    if not isinstance(registry.get('presets'), dict):
+        raise UpgradeError('PKU148 malformed native preset registry; preserve it before retry')
+    if identity in registry.get('presets', {}):
+        return False
+    if not attempt.get('retryOf'):
+        return False  # Ordinary native removal owns unknown initial absence.
+    installed = repository_relative_path(target, '.specify/presets/' + identity, 'native preset retry')
+    if installed.exists():
+        raise UpgradeError('PKU148 absent preset registration still has source bytes; preserve and reconcile before retry')
+    witness = load_release_module(release / 'extensions/program-kit-governance/scripts/tooling_witness.py', 'upgrade_removed_preset_originals')
+    original = witness.verify_attempt_inputs(target, attempt.get('originalInputs'), attempt['originals'])
+    manifest = '.specify/presets/' + identity + '/preset.yml'
+    if original['files'].get(manifest) is None or original['files'].get('.specify/presets/.registry') is None:
+        raise UpgradeError('PKU148 retry lacks its exact original installed preset inventory; never backfill from absent current state')
+    prior = attempt['retryOf']; seen = set(); proof = None
+    while prior and len(seen) < 128:
+        if prior in seen:
+            raise UpgradeError('PKU148 cyclic preset-removal retry history')
+        seen.add(prior); path = repository_relative_path(target, prior, 'preset-removal attempt')
+        value = read_destination_state(path, 'preset-removal attempt')
+        if (value.get('status') not in {'running', 'incomplete'}
+                or value.get('targetVersion') != attempt['targetVersion'] or value.get('originalInputs') != attempt['originalInputs']
+                or value.get('originals') != attempt['originals']):
+            raise UpgradeError('PKU148 preset-removal retry differs from its canonical original attempt')
+        for step in sorted(path.parent.glob('*-step.json')):
+            record = read_destination_state(step, 'native removal step')
+            if record.get('step') == 'Remove prior governance preset' and record.get('exitCode') == 0:
+                proof = {'path': step.relative_to(target).as_posix(),
+                         'sha256': hashlib.sha256(step.read_bytes()).hexdigest()}; break
+        if proof: break
+        prior = value.get('retryOf')
+    if proof is None:
+        raise UpgradeError('PKU148 absent preset has no preserved successful native removal in this original attempt chain')
+    print(f'[{number}/{total}] Remove prior governance preset: verified prior successful removal; no second native removal executed', flush=True)
+    write_attempt(directory / f'{number:02d}-step.json', {'step': 'Remove prior governance preset',
+        'mode': 'verified-prior-removal', 'exitCode': None, 'priorSuccessfulStep': proof,
+        'originalInputs': attempt['originalInputs'], 'actualSourceAbsent': True})
+    return True
+
+
 def run_step(command: list[str], target: Path, label: str, number: int, total: int, directory: Path | None = None) -> None:
     print(f"[{number}/{total}] {label}", flush=True)
     started = time.perf_counter()
@@ -1758,6 +1802,9 @@ def main() -> int:
         )
         # Seal the bundle only after actual core and contribution refresh.
         for number, (command, label) in enumerate(steps[:-1], 1):
+            if label == 'Remove prior governance preset' and reuse_completed_preset_removal(
+                    target, release, attempt, number, total, attempt_path.parent):
+                continue
             run_step(command, target, label, number, total, attempt_path.parent)
         next_step = refresh_phase_integrations(target, release, specify, phase_plan,
                                               attempt_path.parent, len(steps), total)

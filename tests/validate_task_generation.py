@@ -219,6 +219,64 @@ def operation_fixture():
 
 
 class TaskTests(unittest.TestCase):
+    def materialization_fixture(self):
+        (self.root / 'eng').mkdir(exist_ok=True)
+        (self.root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [
+            {'path': 'tests/Owned/Owned.csproj', 'role': 'test', 'projectReferences': []}], 'bindings': []}}))
+        body = '''# Tasks
+- [ ] T001 Produce the owned tests; effort and human decision pending
+- [ ] T002 Run Affected regression
+## Operation dependency map
+| Operation | Depends on operations |
+|-----------|-----------------------|
+| owned | none |
+## Task dependency map
+| Task | Operation | Depends on tasks | Requires | Provides |
+|------|-----------|------------------|----------|----------|
+| T001 | owned | none | none | none |
+| T002 | owned | T001 | none | none |
+## Verification obligations
+| Task | Scope | Baseline | Owners | Inputs |
+|------|-------|----------|--------|--------|
+| T002 | Affected | original-baseline | tests/Owned/Owned.csproj | tests/Owned/Future.cs |
+'''
+        (self.feature / 'tasks.md').write_text(body)
+        return body
+
+    def test_structured_materialization_renders_producer_without_changing_history(self):
+        body = self.materialization_fixture()
+        sentinel = self.feature / 'delivery.json'; sentinel.write_text('{"human":"pending","effort":17}')
+        result = draft.render_materialization(self.root, self.feature,
+            {'owners': [{'owner': 'tests/Owned/Owned.csproj', 'source': {'task': 'T001'}}]})
+        self.assertIn('| tests/Owned/Owned.csproj | T001 | none |', result['markdown'])
+        self.assertEqual(body, (self.feature / 'tasks.md').read_text())
+        self.assertEqual('{"human":"pending","effort":17}', sentinel.read_text())
+        self.assertFalse(result['filesChanged']); self.assertFalse(result['acceptanceEstablished'])
+        for source in ({'task': 'T001', 'evidence': 'artifacts/results.json'}, {'task': 'T002'},
+                       {'task': 'T001|existing'}, {'evidence': 'none'}, {'evidence': 'artifacts/missing.json'}):
+            with self.subTest(source=source), self.assertRaises(ValueError):
+                draft.render_materialization(self.root, self.feature,
+                    {'owners': [{'owner': 'tests/Owned/Owned.csproj', 'source': source}]})
+        self.assertEqual(body, (self.feature / 'tasks.md').read_text())
+
+    def test_structured_existing_evidence_uses_the_native_reader_and_retains_ancestry(self):
+        self.materialization_fixture()
+        # Synthetic retained receipt tests the real reader's hash/ownership guard;
+        # this fixture is not represented as native SDK or application acceptance.
+        directory = self.root / 'artifacts/verification/fixture'; directory.mkdir(parents=True)
+        evidence = directory / 'test.log'; evidence.write_bytes(b'owned fixture evidence')
+        receipt = directory / 'result.json'
+        receipt.write_text(json.dumps({'schemaVersion': 2, 'outcomes': [{'project': 'tests/Owned/Owned.csproj',
+            'status': 'completed', 'executedTests': 1, 'fingerprint': 'fixture-only',
+            'evidence': {evidence.relative_to(self.root).as_posix(): draft.hashlib.sha256(evidence.read_bytes()).hexdigest()}}]}))
+        request = {'owners': [{'owner': 'tests/Owned/Owned.csproj',
+            'source': {'evidence': receipt.relative_to(self.root).as_posix()}}]}
+        result = draft.render_materialization(self.root, self.feature, request)
+        self.assertIn('| existing | artifacts/verification/fixture/result.json |', result['markdown'])
+        evidence.write_bytes(b'changed fixture evidence')
+        with self.assertRaisesRegex(ValueError, 'valid meaningful native execution'):
+            draft.render_materialization(self.root, self.feature, request)
+
     def test_selected_build_edges_project_the_supported_recipe_before_task_authoring(self):
         parent = 'src/Owned.Provider/Owned.Provider.csproj'
         producer = 'src/Owned.Tool/Owned.Tool.csproj'

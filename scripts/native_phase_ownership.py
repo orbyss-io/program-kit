@@ -7,6 +7,7 @@ admitted merely because a registry names their destination.
 from __future__ import annotations
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -81,6 +82,14 @@ def native_source_baselines(release, kind, name, metadata, manifest_hash):
                     and all(isinstance(path, str) and isinstance(sha, str) and re.fullmatch(r'[0-9a-f]{64}', sha)
                             for path, sha in row['files'].items()), 'invalid exact native phase source witness: ' + name)
             result.append(('immutable-source-catalog', row['files']))
+    try:
+        top = subprocess.run(['git', '-C', str(release), 'rev-parse', '--show-toplevel'],
+                             capture_output=True, text=True, encoding='utf-8', timeout=15)
+        own_repository = top.returncode == 0 and os.path.samefile(top.stdout.strip(), release)
+    except (OSError, subprocess.SubprocessError):
+        own_repository = False
+    if not own_repository:
+        return result  # An extracted release must never borrow its parent's Git history.
     for reference in ('HEAD', 'v' + str(metadata.get('version', '')), str(metadata.get('version', ''))):
         if not reference or reference == 'v' or not re.fullmatch(r'[A-Za-z0-9_.-]+', reference):
             continue

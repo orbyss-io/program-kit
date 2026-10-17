@@ -10,11 +10,22 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'scripts'), str(ROOT / 'tests')]
 import native_phase_ownership as ownership
 import validate_phase_refresh as fixture
+from owned_fixture import FixtureDirectory
 
 
 def snapshot(root):
     return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in root.rglob('*') if p.is_file()}
+
+
+class SourceAuthorityTests(unittest.TestCase):
+    def test_extracted_candidate_never_borrows_the_enclosing_repository_git_history(self):
+        with FixtureDirectory(prefix='native-baseline-authority-') as directory:
+            release = Path(directory) / 'extracted-candidate'; release.mkdir()
+            manifest = ROOT / 'extensions/program-kit-governance/extension.yml'
+            result = ownership.native_source_baselines(release, 'extensions', 'program-kit-governance',
+                {'version': (ROOT / 'VERSION').read_text().strip()}, ownership.digest(manifest.read_bytes()))
+            self.assertEqual([], result)
 
 
 class NativePhaseOwnershipTests(unittest.TestCase):

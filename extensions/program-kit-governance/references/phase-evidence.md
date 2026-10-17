@@ -2,6 +2,27 @@
 
 ## Knowledge and engineering checks
 
+To repair a contradictory Test materialization map, create a request file with one
+structured source alternative per owner. For a suite produced by a prerequisite task:
+
+```json
+{"owners":[{"owner":"tests/Orders.Tests/Orders.Tests.csproj","source":{"task":"T009"}}]}
+```
+
+For an already executed suite, use `"source":{"evidence":"artifacts/verification/<run>/result.json"}`
+instead. Run the installed helper against the current task plan:
+
+```sh
+python .specify/extensions/program-kit-governance/scripts/task_draft.py render-materialization --repository . --feature-dir specs/001-orders --content-file materialization-request.json
+```
+
+The read-only result contains a proposed Markdown table. The native validator checks
+the actual selected owners, retained baseline, producing-task ancestry and existing
+receipt hashes. It rejects a source containing both a task and evidence, a suite
+produced after its gate, missing/changed evidence and a zero-test receipt. Review and
+merge that table, preserving task IDs, dependencies, effort and human decisions, then
+run normal finalization. This command executes no suite and establishes no acceptance.
+
 `phase_obligations.py project` prints concise guidance before planning and tasks. The single
 implementation preflight prints implementation guidance while validating planned architecture.
 The single upstream registry is `phase-obligations.json`. Its source routes identify every

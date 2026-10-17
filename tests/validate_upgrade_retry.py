@@ -76,6 +76,31 @@ class UpgradeRetryTests(unittest.TestCase):
         self.assertEqual(self.version, fresh['previousInstalledVersion'])
         self.assertEqual(failed, self.attempt_path.read_bytes()); self.assertEqual(completed, path.read_bytes())
 
+    def test_absent_preset_reuse_requires_exact_originals_and_successful_interrupted_native_removal(self):
+        witness = upgrade.load_release_module(ROOT / 'extensions/program-kit-governance/scripts/tooling_witness.py', 'retry_preset_originals')
+        preset = self.root / '.specify/presets/program-kit-governance-preset'
+        preset.mkdir(parents=True); (preset / 'preset.yml').write_bytes(b'original native preset bytes')
+        registry = self.root / '.specify/presets/.registry'
+        registry.write_text(json.dumps({'presets': {'program-kit-governance-preset': {'version': '0.12.6'}}}))
+        paths = ['.specify/presets/.registry', '.specify/presets/program-kit-governance-preset/preset.yml']
+        self.attempt['originalInputs'] = witness.retain_attempt_inputs(self.root, paths, self.attempt)
+        upgrade.write_attempt(self.attempt_path, self.attempt)
+        (preset / 'preset.yml').unlink(); preset.rmdir(); registry.write_text('{"presets":{}}')
+        path, retry = upgrade.begin_attempt(self.root, ROOT, self.version, self.version)
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'no preserved successful native removal'):
+            upgrade.reuse_completed_preset_removal(self.root, ROOT, retry, 5, 12, path.parent)
+        success = self.attempt_path.parent / '05-step.json'
+        success.write_text(json.dumps({'step': 'Remove prior governance preset', 'exitCode': 0}))
+        historical = {p: p.read_bytes() for p in (self.attempt_path, success)}
+        self.assertTrue(upgrade.reuse_completed_preset_removal(self.root, ROOT, retry, 5, 12, path.parent))
+        observed = json.loads((path.parent / '05-step.json').read_bytes())
+        self.assertEqual('verified-prior-removal', observed['mode']); self.assertIsNone(observed['exitCode'])
+        self.assertEqual(historical, {p: p.read_bytes() for p in historical})
+        preset.mkdir(); (preset / 'unowned.txt').write_bytes(b'preserve unknown source')
+        with self.assertRaisesRegex(upgrade.UpgradeError, 'still has source bytes'):
+            upgrade.reuse_completed_preset_removal(self.root, ROOT, retry, 5, 12, path.parent)
+        self.assertEqual(b'preserve unknown source', (preset / 'unowned.txt').read_bytes())
+
     def test_mixed_lock_and_changed_actual_materialization_remain_errors(self):
         target = self.apply_target()
         mixed = copy.deepcopy(target)

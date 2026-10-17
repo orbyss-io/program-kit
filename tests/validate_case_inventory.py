@@ -14,6 +14,28 @@ from owned_fixture import FixtureDirectory
 
 
 class CaseInventoryTests(unittest.TestCase):
+    def test_original_obligation_lineage_preserves_exact_reviewed_identities_owners_and_required_targets(self):
+        path = ROOT / 'docs/reviews/maintenance-regression-lineage-2026-10-16.json'
+        value = json.loads(path.read_bytes())
+        self.assertEqual('b27a73f7cef1bbdd47f7a6f5831bbc6da8c4ad4967fa4bbc95cddffa86d57620', value['originalPacketManifestSha256'])
+        projection = [{'module': module['originalModule'], 'source': module['originalSourceSha256'],
+            'packet': module['sanitizedSha256'], 'case': row['originalCase'], 'ast': row['originalCaseAstSha256'],
+            'owner': row['disposition'], 'targets': row['requiredCurrentCases'], 'retired': row['consumerObligationRetired']}
+            for module in value['modules'] for row in module['cases']]
+        self.assertEqual('c2dfa7e52b820fb4f0f5b9c5bebd454dbfeb0eb278dfac89603ef5c15ef8e7b7',
+            cases.digest(json.dumps(projection, sort_keys=True, separators=(',', ':')).encode()))
+        current = ROOT / 'tests/shared-regression-cases.json'; contract = json.loads(current.read_bytes())
+        self.assertEqual(cases.digest(current.read_bytes()), value['currentContractSha256'])
+        required = {case for module in contract['modules'] for case in module['cases']}
+        for row in projection:
+            self.assertIs(row['retired'], False)
+            if row['owner'] == 'current-shared-case-mapping':
+                self.assertTrue(row['targets']); self.assertTrue(set(row['targets']) <= required)
+            else:
+                self.assertEqual('consumer-owned-preserved', row['owner'])
+        # This protects the reviewed translation. It does not certify that the
+        # actual consumer-specific assertions ran or that semantic coverage is complete.
+
     def setUp(self):
         self.temp = FixtureDirectory(prefix='case-contract-'); self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name); self.module = 'synthetic_required_cases'

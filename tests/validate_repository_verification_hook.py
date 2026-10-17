@@ -115,6 +115,8 @@ def main() -> int:
         (managed / 'repository_verification.py').write_text(
             "import json,os,sys\nfrom pathlib import Path\n"
             "root=Path(sys.argv[sys.argv.index('--repository')+1]).resolve()\n"
+            "if '--select-only' in sys.argv:\n"
+            "    print(json.dumps({'projects':['tests/Notes.Tests/Notes.Tests.csproj'],'toolkitChecks':[]})); sys.exit(0)\n"
             "assert Path(os.environ['NUGET_PACKAGES']).resolve()==root/'artifacts/cache/nuget/packages'\n"
             "Path(os.environ['PROGRAMKIT_TEST_VERIFICATION_MARKER']).write_text(json.dumps(sys.argv[1:]))\n"
             "if '--plan' in sys.argv: print(json.dumps({'plan':True,'route':'native'}))\n"

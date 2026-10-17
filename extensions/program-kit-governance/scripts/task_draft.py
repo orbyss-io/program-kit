@@ -594,9 +594,43 @@ def finalize(root, feature):
             'instruction': 'Run mandatory after_tasks hooks including read-only speckit.analyze; this checkpoint claims drafting progress only.'}
 
 
+def render_materialization(root, feature, request):
+    """Render a reviewed alternative without editing task history or delivery state."""
+    require(isinstance(request, dict) and set(request) == {'owners'},
+            'PKT021 render-materialization requires {"owners": [...]}')
+    rows = request['owners']
+    require(isinstance(rows, list) and rows, 'PKT021 name the exact test owners')
+    lines = ['## Test materialization map', '| Owner | Producer | Evidence |', '|-------|----------|----------|']
+    for row in rows:
+        require(isinstance(row, dict) and set(row) == {'owner', 'source'}, 'PKT021 each owner requires one source alternative')
+        owner, source = row['owner'], row['source']
+        require(isinstance(source, dict), 'PKT021 source must be a structured task or existing-evidence alternative')
+        if set(source) == {'task'}:
+            producer, evidence = source['task'], 'none'
+        elif set(source) == {'evidence'}:
+            producer, evidence = 'existing', source['evidence']
+        else:
+            raise ValueError('PKT021 choose exactly one source: {"task":"T009"} or {"evidence":"artifacts/.../results.json"}; never both')
+        require(all(isinstance(value, str) and value.strip() == value and value
+                    and not re.search(r'[|\r\n,]', value) for value in (owner, producer, evidence)),
+                'PKT021 use single explicit owner/task/evidence values')
+        lines.append('| ' + ' | '.join((owner, producer, evidence)) + ' |')
+    content = (feature / 'tasks.md').read_text(encoding='utf-8')
+    section = re.compile(r'^## Test materialization map\s*\n.*?(?=^## |\Z)', re.M | re.S)
+    require(len(section.findall(content)) <= 1, 'PKT021 duplicate Test materialization map')
+    table = '\n'.join(lines) + '\n'
+    candidate = section.sub(lambda _: table + '\n', content) if section.search(content) else content.rstrip() + '\n\n' + table
+    validate_operation_graph(candidate, required=True, root=root)
+    return {'status': 'validated-proposal', 'markdown': table,
+            'tasksSha256': hashlib.sha256(content.encode('utf-8')).hexdigest(),
+            'candidateSha256': hashlib.sha256(candidate.encode('utf-8')).hexdigest(),
+            'filesChanged': False, 'acceptanceEstablished': False,
+            'instruction': 'Review and merge only this table into the same task plan. Preserve dependencies, original baseline, effort and human decisions; rerun finalize.'}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('prepare', 'save-phase', 'acknowledge-inputs', 'finalize', 'checkpoint', 'current', 'delivery', 'reset', 'review-material'))
+    parser.add_argument('command', choices=('prepare', 'save-phase', 'acknowledge-inputs', 'finalize', 'checkpoint', 'current', 'delivery', 'reset', 'review-material', 'render-materialization'))
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phases', nargs='+')
@@ -616,7 +650,10 @@ def main():
             raise ValueError('Feature must be an existing directory inside the repository')
         if not (feature / 'tasks.md').resolve().is_relative_to(feature):
             raise ValueError('Task path escapes feature')
-        if args.command == 'prepare':
+        if args.command == 'render-materialization':
+            require(args.content_file, 'render-materialization requires --content-file with one source alternative per owner')
+            result = render_materialization(root, feature, json.loads(Path(args.content_file).read_text(encoding='utf-8')))
+        elif args.command == 'prepare':
             result = prepare(root, feature, args.phases)
         elif args.command == 'save-phase':
             if not args.phase or not args.content_file:
@@ -1430,7 +1467,12 @@ def transition(root, feature, request, now=None, reader=github_read):
             value['clock']['waiting'] = action == 'wait' or (action == 'resume' and not _active_permitted(root, feature, value))
             value['clock']['suspended'] = action == 'suspend'
     else:
-        raise ValueError('Unknown story delivery transition')
+        raise ValueError('Unknown story delivery transition: ' + str(action) + '. '
+                         'Record engineering evidence with {"action":"engineering","checkpoint":"US1",'
+                         '"checks":["artifacts/<actual-passing-result>"]}; '
+                         'present adds the exercised walkthrough, expected results, limitations and basisPaths. '
+                         'Use a separate explicit decision for human acceptance. '
+                         'See program-kit-governance/references/phase-evidence.md for the exact action fields.')
     persist(feature, value)
     return {'delivery': value, 'warnings': warnings, 'acceptanceEstablished': False,
             'instruction': 'Engineering and human dispositions are separate; use start before each operation and finish at closure/handoff.'}

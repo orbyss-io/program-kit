@@ -115,8 +115,25 @@ try {
                 require((await context.request.get(host.origin + check.path)).status() === 403);
               }
             }
+            if (host.typedOperation) {
+              current.phase = 'typed-client-operation';
+              const tokenResponse = await context.request.get(host.origin + '/bff/antiforgery');
+              require(tokenResponse.status() === 200);
+              const token = await tokenResponse.json();
+              require(typeof token.headerName === 'string' && typeof token.requestToken === 'string');
+              current.operationDispatched = true;
+              const result = await page.evaluate(async ({ token, body }) => {
+                const adapter = window.programKitTypedExample;
+                if (!adapter || typeof adapter.storeLabel !== 'function') throw new Error('Typed example adapter is absent.');
+                return await adapter.storeLabel(body, token.headerName, token.requestToken, AbortSignal.timeout(15000));
+              }, { token, body: host.typedOperation.body });
+              require(JSON.stringify(result) === JSON.stringify(host.typedOperation.response));
+              const observed = await context.request.get(host.origin + '/api/sample-label');
+              require(observed.status() === 200 && JSON.stringify(await observed.json()) === JSON.stringify(result));
+            }
             evidence.checks.push({ engine, host: host.id, origin: host.origin, authenticated: true,
-              hostedAssetsLoaded: Boolean(host.page), consumerFeature: Boolean(host.productPath) });
+              hostedAssetsLoaded: Boolean(host.page), consumerFeature: Boolean(host.productPath),
+              typedOperation: Boolean(host.typedOperation) });
           } catch {
             current.pagePath = new URL(page.url()).pathname;
             // Retain a fixed diagnostic category, never the provider's message,

@@ -248,6 +248,16 @@ explicit constructor dependencies; never capture scoped instances at startup. Co
 operation registrations. A small/bodyless operation may remain a simple mapping with a reviewed
 rationale; do not invent empty DTOs or a mediator. Peer operations do not use each other's helpers.
 
+For a concrete native API/Core/provider slice, use the installed optional
+`program-kit-dotnet/references/examples/typed-operation/README.md` and its exact
+source-export command. It registers strict typed JSON, resolves an explicit Core
+port in the selected PostgreSQL provider, binds a real nondefault scalar option,
+and imports actual maintained OpenAPI-generated paths into a checked application
+transport adapter. Qualification includes authenticated HTTP and independent
+durable-effect observation; cold metadata export alone establishes neither.
+Export it with `python .specify/extensions/program-kit-governance/scripts/asset_sources.py
+--repository . --component program-kit-dotnet --subtree references/examples/typed-operation`.
+
 Use cohesive owner-specific Constants/keys types for route, schema, profile and replay identifiers;
 prefer exported framework constants. Deployment limits belong to typed validated options, and
 localized text to owned resources. Do not create a solution-wide Constants sink. Preserve canonical

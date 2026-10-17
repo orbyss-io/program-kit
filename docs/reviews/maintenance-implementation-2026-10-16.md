@@ -680,3 +680,40 @@ Both actual platform scans pass the High/Critical policy. Runtime 0.3.6 remains 
 unpublished candidate and draft PR14 remains open. Frozen 47 identities, prior
 approval, historical failures/profiles and unrelated work are preserved. Remaining
 implementation, exact candidate qualification and public adoption continue.
+
+
+## Continuation: complete updater fault recovery and typed first operation
+
+The full local updater now passes after the completed-attempt correction, including
+fresh current local repair execution and later-process canonical-original checks.
+The new actual fault matrix first exposed a native preset-removal retry defect.
+That failed run remains failed. Recovery now reuses only an observed successful
+prior removal bound to the exact original archive and interrupted chain; unknown
+remaining source or absent native-success proof rejects. All twelve real mutation
+boundaries now pass fresh-process retries in
+`artifacts/t/upgrade-faults-c5739b210f/results.json`.
+
+All original 166 packet obligations have a reviewed explicit lineage: 80 shared
+translations and 86 actual consumer-owned assertions, with none retired. The frozen
+original projection is checked independently of current case counts. A scoped
+51-case exact run passed; the later full 414-case contract is being executed
+separately. Extracted candidates also reject borrowing enclosing Git history.
+
+The optional shipping typed-operation source has real Core/API/provider separation,
+native typed JSON contracts, nondefault scalar options and a thin client importing
+actual generated OpenAPI types. Its public-profile native build passes. The first
+full runtime attempt failed after build/pack with Host exit 139. A matching complete
+unpublished Foundation CI43 binary diagnostic exposed a real JSON budget mismatch;
+the example now selects its own explicit bounded profiles. The full emitted tooling,
+client and independently observed PostgreSQL effect flow is running again. No
+private candidate has been promoted into the public/default profile.
+
+C11 now has a read-only structured task-or-existing-evidence table renderer. It
+uses the current native graph/evidence guards, preserves ancestry and refuses
+contradictory sources. C7 unknown check actions name actual engineering fields;
+valid technical evidence still cannot produce a human acceptance decision. Focused
+guard checks pass. Original source/receipts/failures, all 47 finding identities and
+unrelated work remain preserved. Foundation draft PR14 stays open for integration
+tuning; exact candidate qualification and public adoption remain separate work.
+
+The full current reviewed contract `f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6` subsequently passed all 412 required Windows cases across 24 modules in `artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json`. Two platform-specific cases remain not applicable locally. Source/input stability and all original obligation identities were checked; installed candidate, Linux/CI, actual consumer and public adoption claims remain separate.

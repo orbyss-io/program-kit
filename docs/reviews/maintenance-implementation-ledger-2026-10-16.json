@@ -89,6 +89,34 @@
           "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
           "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
           "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "updater-executed-repairs-completed-boundary.log",
+          "status": "passed",
+          "scope": "Actual full maintained local updater: authenticated historical 0.12.7, planned/materialized baselines, fresh current local repair cases, interrupted replacement/retry and later-process complete-original verification; no active consumer edited.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-repairs-completed-boundary.log",
+          "sha256": "45cf12464e4d12e2be8f032537bac39e4f943dc5e48cdf107f8909758cec7e87"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All twelve actual mutation boundaries interrupted and retried in fresh actual updater processes. Exact original attempts/archives/aliases preserved. Includes preset-removal recovery, all component installations, native phase refresh, synchronization and migration write. Synthetic current native installed baseline; public origin/application acceptance separate.",
+          "log": "artifacts/t/upgrade-faults-c5739b210f/results.json",
+          "sha256": "472782c757da030369323ae7aefb271d2df6c0fcf999c1a04cc8beb91d10e688"
+        },
+        {
+          "command": "staged-source-git-authority.log",
+          "status": "passed",
+          "scope": "An extracted candidate cannot borrow an enclosing checkout Git history as its source baseline.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/staged-source-git-authority.log",
+          "sha256": "af02d12217c16537cdd469c494bb59645a0f3f3288534632c418c24697130015"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
         }
       ],
       "remainingDependencies": [
@@ -105,7 +133,7 @@
       "sourceDiagnosis": "Fix authentic intermediate-state admission",
       "workPackages": "E",
       "closureRequired": "Real interrupted update resumes from original version; altered receipts/originals/checks fail.",
-      "status": "implemented-with-targeted-validation; full-update-closure-pending",
+      "status": "implemented-with-actual-twelve-boundary-fresh-process-retry; final installed candidate/CI pending",
       "changedFiles": [
         "scripts/upgrade_program_kit.py",
         "scripts/openapi_upgrade_reconciliation.py",
@@ -205,6 +233,41 @@
           "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
           "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
           "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "updater-executed-repairs-completed-boundary.log",
+          "status": "passed",
+          "scope": "Actual full maintained local updater: authenticated historical 0.12.7, planned/materialized baselines, fresh current local repair cases, interrupted replacement/retry and later-process complete-original verification; no active consumer edited.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-repairs-completed-boundary.log",
+          "sha256": "45cf12464e4d12e2be8f032537bac39e4f943dc5e48cdf107f8909758cec7e87"
+        },
+        {
+          "command": "results.json",
+          "status": "failed",
+          "scope": "Actual first five mutation boundaries passed; interruption after successful native preset removal exposed a missing-preset retry failure. Preserved failed run, not reclassified.",
+          "log": "artifacts/t/upgrade-faults-f055b6c218/results.json",
+          "sha256": "35deaadb0208dc5ae240b44dcf785352a95cdb7d42780fb415f43ef2822dd17c"
+        },
+        {
+          "command": "native-preset-removal-retry-boundaries.log",
+          "status": "passed",
+          "scope": "Seven focused retry cases. Reuse requires exact canonical original input archive, absent current source and a preserved successful native-removal step in the same interrupted chain; unknown source or absent proof rejects.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-preset-removal-retry-boundaries.log",
+          "sha256": "219fef29a9ae8c3d28b6392becf26c02a82e17b81a886fd6e49219f090c68a83"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All twelve actual mutation boundaries interrupted and retried in fresh actual updater processes. Exact original attempts/archives/aliases preserved. Includes preset-removal recovery, all component installations, native phase refresh, synchronization and migration write. Synthetic current native installed baseline; public origin/application acceptance separate.",
+          "log": "artifacts/t/upgrade-faults-c5739b210f/results.json",
+          "sha256": "472782c757da030369323ae7aefb271d2df6c0fcf999c1a04cc8beb91d10e688"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
         }
       ],
       "remainingDependencies": [
@@ -224,7 +287,7 @@
       "sourceDiagnosis": "Fix authenticated original/target transition",
       "workPackages": "E",
       "closureRequired": "Real complete target accepted only in verified retry; corrupt mixed state fails.",
-      "status": "implemented-with-targeted-validation; full-update-closure-pending",
+      "status": "implemented-with-actual-twelve-boundary-fresh-process-retry; final installed candidate/CI pending",
       "changedFiles": [
         "scripts/upgrade_program_kit.py",
         "scripts/openapi_upgrade_reconciliation.py",
@@ -308,6 +371,34 @@
           "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
           "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
           "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "updater-executed-repairs-completed-boundary.log",
+          "status": "passed",
+          "scope": "Actual full maintained local updater: authenticated historical 0.12.7, planned/materialized baselines, fresh current local repair cases, interrupted replacement/retry and later-process complete-original verification; no active consumer edited.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-repairs-completed-boundary.log",
+          "sha256": "45cf12464e4d12e2be8f032537bac39e4f943dc5e48cdf107f8909758cec7e87"
+        },
+        {
+          "command": "native-preset-removal-retry-boundaries.log",
+          "status": "passed",
+          "scope": "Seven focused retry cases. Reuse requires exact canonical original input archive, absent current source and a preserved successful native-removal step in the same interrupted chain; unknown source or absent proof rejects.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-preset-removal-retry-boundaries.log",
+          "sha256": "219fef29a9ae8c3d28b6392becf26c02a82e17b81a886fd6e49219f090c68a83"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All twelve actual mutation boundaries interrupted and retried in fresh actual updater processes. Exact original attempts/archives/aliases preserved. Includes preset-removal recovery, all component installations, native phase refresh, synchronization and migration write. Synthetic current native installed baseline; public origin/application acceptance separate.",
+          "log": "artifacts/t/upgrade-faults-c5739b210f/results.json",
+          "sha256": "472782c757da030369323ae7aefb271d2df6c0fcf999c1a04cc8beb91d10e688"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
         }
       ],
       "remainingDependencies": [
@@ -792,7 +883,7 @@
       "sourceDiagnosis": "Replace stale fixtures with preserved obligations",
       "workPackages": "G/I",
       "closureRequired": "Explicit required identities and old-to-new coverage; removal/substitution/skip/empty/failure negatives.",
-      "status": "implemented exact identity/source runner and preserved portable obligations; original 166-case semantic mapping and complete qualification pending",
+      "status": "all-166-original-obligations-preserved-and-current-412-Windows-cases-passed; installed candidate/Linux/CI qualification pending",
       "changedFiles": [
         "extensions/program-kit-governance/scripts/case_inventory.py",
         "extensions/program-kit-governance/references/consumer-upgrade.md",
@@ -902,6 +993,27 @@
           "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
           "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
           "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "51 actual exact required cases for reviewed original lineage, archive/fingerprint boundaries and portable provider isolation. Exact source contract 470c56db1153ba178a94ddd102bc44db8a5652849b6cff8161a4d3554ad6c391; not borrowed for later source.",
+          "log": "artifacts/tests/toolkit-cases/4dd08ed13bb84cebac44f94d8d14beb8/results.json",
+          "sha256": "c892e7fd074b4fbe9908719d59e813ed652ec1ad103fddc3b9996113816fcf06"
+        },
+        {
+          "command": "staged-source-git-authority.log",
+          "status": "passed",
+          "scope": "An extracted candidate cannot borrow an enclosing checkout Git history as its source baseline.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/staged-source-git-authority.log",
+          "sha256": "af02d12217c16537cdd469c494bb59645a0f3f3288534632c418c24697130015"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
         }
       ],
       "remainingDependencies": [
@@ -952,9 +1064,38 @@
       "sourceDiagnosis": "Supply qualified executable integration",
       "workPackages": "B/I",
       "closureRequired": "Real compile/export/checked client/runtime wire parity; public native seams and constraints preserved.",
-      "status": "pending",
+      "status": "shipping-typed-example-native-build-passed; actual-full-flow-in-progress",
       "changedFiles": [],
-      "validation": [],
+      "validation": [
+        {
+          "command": "shipping-typed-native-layout.log",
+          "status": "passed",
+          "scope": "Actual shipping Core/API/provider example builds under the current public native profile and analyzer; every named type has its own source file.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/shipping-typed-native-layout.log",
+          "sha256": "6a0d93b472858a10a860d5acb538ad194c0537d0e3cda5eaa4848abeeb3c625f"
+        },
+        {
+          "command": "composition-typed-prepared-dependencies.log",
+          "status": "failed",
+          "scope": "Actual restore/build/pack passed; Host exited 139 before readiness. Earlier failure preserved. Subsequent matching CI43 binary-family diagnostic exposed the explicit JSON profile budget mismatch; no conclusion from exit code alone.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-prepared-dependencies.log",
+          "sha256": "ac7c8bbdcf5df92389b50bbd8683343a9789af4299e842b6ea8ae325df5401f7"
+        },
+        {
+          "command": "inputs.json",
+          "status": "prepared",
+          "scope": "Unpublished exact Foundation CI43 binary family: runtime 0.3.6, Build 0.3.2, exporter 0.2.6 and exact OCI image. Restore, locked restore, build, versioned pack and native closure validation passed. Public/default profile unchanged; not public availability or adoption.",
+          "log": "artifacts/t/ci43-typed-596304cc/inputs.json",
+          "sha256": "a5673fff5ebd083fa547acccc2d2db86ac0c8d115f9154e957425459ece82a10"
+        },
+        {
+          "command": "observation.json",
+          "status": "failed",
+          "scope": "Matching whole-family Host diagnostic retained. Native activation reported configured JSON profile outside its contract requirements. Application example now uses separate explicit bounded profiles; full current flow rerun pending. Initial missing mountpoint diagnostic also retained.",
+          "log": "artifacts/t/ci43-typed-596304cc/execution/observation.json",
+          "sha256": "1dc3346ab7261fc8d2012fd029da8b2fbb5974c5264f993d49b0ba43dbeade63"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -966,9 +1107,38 @@
       "sourceDiagnosis": "Preserve lock requirement; prove runnable recipe",
       "workPackages": "F/I",
       "closureRequired": "Native selected generator lock and real maintained argument routing; no manual client/baseline reset.",
-      "status": "pending",
+      "status": "shipping-typed-example-native-build-passed; actual-full-flow-in-progress",
       "changedFiles": [],
-      "validation": [],
+      "validation": [
+        {
+          "command": "shipping-typed-native-layout.log",
+          "status": "passed",
+          "scope": "Actual shipping Core/API/provider example builds under the current public native profile and analyzer; every named type has its own source file.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/shipping-typed-native-layout.log",
+          "sha256": "6a0d93b472858a10a860d5acb538ad194c0537d0e3cda5eaa4848abeeb3c625f"
+        },
+        {
+          "command": "composition-typed-prepared-dependencies.log",
+          "status": "failed",
+          "scope": "Actual restore/build/pack passed; Host exited 139 before readiness. Earlier failure preserved. Subsequent matching CI43 binary-family diagnostic exposed the explicit JSON profile budget mismatch; no conclusion from exit code alone.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-prepared-dependencies.log",
+          "sha256": "ac7c8bbdcf5df92389b50bbd8683343a9789af4299e842b6ea8ae325df5401f7"
+        },
+        {
+          "command": "inputs.json",
+          "status": "prepared",
+          "scope": "Unpublished exact Foundation CI43 binary family: runtime 0.3.6, Build 0.3.2, exporter 0.2.6 and exact OCI image. Restore, locked restore, build, versioned pack and native closure validation passed. Public/default profile unchanged; not public availability or adoption.",
+          "log": "artifacts/t/ci43-typed-596304cc/inputs.json",
+          "sha256": "a5673fff5ebd083fa547acccc2d2db86ac0c8d115f9154e957425459ece82a10"
+        },
+        {
+          "command": "observation.json",
+          "status": "failed",
+          "scope": "Matching whole-family Host diagnostic retained. Native activation reported configured JSON profile outside its contract requirements. Application example now uses separate explicit bounded profiles; full current flow rerun pending. Initial missing mountpoint diagnostic also retained.",
+          "log": "artifacts/t/ci43-typed-596304cc/execution/observation.json",
+          "sha256": "1dc3346ab7261fc8d2012fd029da8b2fbb5974c5264f993d49b0ba43dbeade63"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -980,9 +1150,38 @@
       "sourceDiagnosis": "Supply shared current harness/example and fixture setup",
       "workPackages": "B/H/I",
       "closureRequired": "Nondefault scalar options activate, native public features register and durable behavior is observed.",
-      "status": "pending",
+      "status": "shipping-typed-example-native-build-passed; actual-full-flow-in-progress",
       "changedFiles": [],
-      "validation": [],
+      "validation": [
+        {
+          "command": "shipping-typed-native-layout.log",
+          "status": "passed",
+          "scope": "Actual shipping Core/API/provider example builds under the current public native profile and analyzer; every named type has its own source file.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/shipping-typed-native-layout.log",
+          "sha256": "6a0d93b472858a10a860d5acb538ad194c0537d0e3cda5eaa4848abeeb3c625f"
+        },
+        {
+          "command": "composition-typed-prepared-dependencies.log",
+          "status": "failed",
+          "scope": "Actual restore/build/pack passed; Host exited 139 before readiness. Earlier failure preserved. Subsequent matching CI43 binary-family diagnostic exposed the explicit JSON profile budget mismatch; no conclusion from exit code alone.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-prepared-dependencies.log",
+          "sha256": "ac7c8bbdcf5df92389b50bbd8683343a9789af4299e842b6ea8ae325df5401f7"
+        },
+        {
+          "command": "inputs.json",
+          "status": "prepared",
+          "scope": "Unpublished exact Foundation CI43 binary family: runtime 0.3.6, Build 0.3.2, exporter 0.2.6 and exact OCI image. Restore, locked restore, build, versioned pack and native closure validation passed. Public/default profile unchanged; not public availability or adoption.",
+          "log": "artifacts/t/ci43-typed-596304cc/inputs.json",
+          "sha256": "a5673fff5ebd083fa547acccc2d2db86ac0c8d115f9154e957425459ece82a10"
+        },
+        {
+          "command": "observation.json",
+          "status": "failed",
+          "scope": "Matching whole-family Host diagnostic retained. Native activation reported configured JSON profile outside its contract requirements. Application example now uses separate explicit bounded profiles; full current flow rerun pending. Initial missing mountpoint diagnostic also retained.",
+          "log": "artifacts/t/ci43-typed-596304cc/execution/observation.json",
+          "sha256": "1dc3346ab7261fc8d2012fd029da8b2fbb5974c5264f993d49b0ba43dbeade63"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -1031,7 +1230,7 @@
       "sourceDiagnosis": "Preserve scope/action/access contracts; improve commands",
       "workPackages": "F/I",
       "closureRequired": "Valid commands work; wrong payload/reason/scope still fail actionably; environment failures remain honest.",
-      "status": "implemented-emitted-scope diagnostics-and-concrete-owner guidance; remaining request/example integration pending",
+      "status": "implemented-current-owner-and-invalid-scope/action-diagnostics; installed/CI qualification pending",
       "changedFiles": [],
       "validation": [
         {
@@ -1047,6 +1246,20 @@
           "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
           "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
           "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "invalid-action-concrete-transition-authority.log",
+          "status": "passed",
+          "scope": "Unknown check action reports actual engineering request fields; valid engineering evidence works, missing evidence and wrong actor reject, human disposition stays pending.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/invalid-action-concrete-transition-authority.log",
+          "sha256": "00c364725234f254c2f477f514f418b3c8d7f213004a6bea9f09030d44b99b15"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
         }
       ],
       "remainingDependencies": [
@@ -1076,6 +1289,13 @@
           "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
           "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
           "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
         }
       ],
       "remainingDependencies": [
@@ -1117,9 +1337,28 @@
       "sourceDiagnosis": "Preserve guard; prevent contradictory task edits",
       "workPackages": "F/I",
       "closureRequired": "Structured valid alternatives; conflicting producer/evidence fails; human reviews/ancestry unchanged.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-structured-task-or-native-evidence-renderer; installed/CI qualification pending",
+      "changedFiles": [
+        "extensions/program-kit-governance/scripts/task_draft.py",
+        "extensions/program-kit-governance/references/phase-evidence.md",
+        "tests/validate_task_generation.py"
+      ],
+      "validation": [
+        {
+          "command": "structured-materialization-native-reader.log",
+          "status": "passed",
+          "scope": "Two structured map guard cases: task or existing native receipt alternative, exact graph/ancestry, actual reader/hash guard, contradictory source refusal and unchanged task/history/human state. Existing-receipt fixture synthetic, no SDK acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/structured-materialization-native-reader.log",
+          "sha256": "a1526f402a3f59eaa46763df51ca96e494c7a554dd8b9ad49eb3a7ae3c794ef3"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -1325,6 +1564,41 @@
           "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
           "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
           "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "updater-executed-repairs-completed-boundary.log",
+          "status": "passed",
+          "scope": "Actual full maintained local updater: authenticated historical 0.12.7, planned/materialized baselines, fresh current local repair cases, interrupted replacement/retry and later-process complete-original verification; no active consumer edited.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-repairs-completed-boundary.log",
+          "sha256": "45cf12464e4d12e2be8f032537bac39e4f943dc5e48cdf107f8909758cec7e87"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All twelve actual mutation boundaries interrupted and retried in fresh actual updater processes. Exact original attempts/archives/aliases preserved. Includes preset-removal recovery, all component installations, native phase refresh, synchronization and migration write. Synthetic current native installed baseline; public origin/application acceptance separate.",
+          "log": "artifacts/t/upgrade-faults-c5739b210f/results.json",
+          "sha256": "472782c757da030369323ae7aefb271d2df6c0fcf999c1a04cc8beb91d10e688"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "51 actual exact required cases for reviewed original lineage, archive/fingerprint boundaries and portable provider isolation. Exact source contract 470c56db1153ba178a94ddd102bc44db8a5652849b6cff8161a4d3554ad6c391; not borrowed for later source.",
+          "log": "artifacts/tests/toolkit-cases/4dd08ed13bb84cebac44f94d8d14beb8/results.json",
+          "sha256": "c892e7fd074b4fbe9908719d59e813ed652ec1ad103fddc3b9996113816fcf06"
+        },
+        {
+          "command": "staged-source-git-authority.log",
+          "status": "passed",
+          "scope": "An extracted candidate cannot borrow an enclosing checkout Git history as its source baseline.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/staged-source-git-authority.log",
+          "sha256": "af02d12217c16537cdd469c494bb59645a0f3f3288534632c418c24697130015"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
         }
       ],
       "remainingDependencies": [
@@ -3002,6 +3276,104 @@
         "scope": "Unmodified public native writer: five failures/1000 workspace replacements; zero/1000 owned host-temp replacements. Cause/process unproven; no native patch, OS policy change or silent test relocation."
       },
       "qualification": "Scoped implementation progress only. Frozen 47 identities/approval preserved. Full remaining mechanisms, semantic lineage, actual installed update, exact candidate CI and public Foundation dependency adoption remain."
+    },
+    {
+      "stage": "Complete actual upgrade fault matrix and shipping typed-operation integration",
+      "validation": [
+        {
+          "command": "updater-executed-repairs-completed-boundary.log",
+          "status": "passed",
+          "scope": "Actual full maintained local updater: authenticated historical 0.12.7, planned/materialized baselines, fresh current local repair cases, interrupted replacement/retry and later-process complete-original verification; no active consumer edited.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/updater-executed-repairs-completed-boundary.log",
+          "sha256": "45cf12464e4d12e2be8f032537bac39e4f943dc5e48cdf107f8909758cec7e87"
+        },
+        {
+          "command": "results.json",
+          "status": "failed",
+          "scope": "Actual first five mutation boundaries passed; interruption after successful native preset removal exposed a missing-preset retry failure. Preserved failed run, not reclassified.",
+          "log": "artifacts/t/upgrade-faults-f055b6c218/results.json",
+          "sha256": "35deaadb0208dc5ae240b44dcf785352a95cdb7d42780fb415f43ef2822dd17c"
+        },
+        {
+          "command": "native-preset-removal-retry-boundaries.log",
+          "status": "passed",
+          "scope": "Seven focused retry cases. Reuse requires exact canonical original input archive, absent current source and a preserved successful native-removal step in the same interrupted chain; unknown source or absent proof rejects.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-preset-removal-retry-boundaries.log",
+          "sha256": "219fef29a9ae8c3d28b6392becf26c02a82e17b81a886fd6e49219f090c68a83"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All twelve actual mutation boundaries interrupted and retried in fresh actual updater processes. Exact original attempts/archives/aliases preserved. Includes preset-removal recovery, all component installations, native phase refresh, synchronization and migration write. Synthetic current native installed baseline; public origin/application acceptance separate.",
+          "log": "artifacts/t/upgrade-faults-c5739b210f/results.json",
+          "sha256": "472782c757da030369323ae7aefb271d2df6c0fcf999c1a04cc8beb91d10e688"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "51 actual exact required cases for reviewed original lineage, archive/fingerprint boundaries and portable provider isolation. Exact source contract 470c56db1153ba178a94ddd102bc44db8a5652849b6cff8161a4d3554ad6c391; not borrowed for later source.",
+          "log": "artifacts/tests/toolkit-cases/4dd08ed13bb84cebac44f94d8d14beb8/results.json",
+          "sha256": "c892e7fd074b4fbe9908719d59e813ed652ec1ad103fddc3b9996113816fcf06"
+        },
+        {
+          "command": "staged-source-git-authority.log",
+          "status": "passed",
+          "scope": "An extracted candidate cannot borrow an enclosing checkout Git history as its source baseline.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/staged-source-git-authority.log",
+          "sha256": "af02d12217c16537cdd469c494bb59645a0f3f3288534632c418c24697130015"
+        },
+        {
+          "command": "shipping-typed-native-layout.log",
+          "status": "passed",
+          "scope": "Actual shipping Core/API/provider example builds under the current public native profile and analyzer; every named type has its own source file.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/shipping-typed-native-layout.log",
+          "sha256": "6a0d93b472858a10a860d5acb538ad194c0537d0e3cda5eaa4848abeeb3c625f"
+        },
+        {
+          "command": "composition-typed-prepared-dependencies.log",
+          "status": "failed",
+          "scope": "Actual restore/build/pack passed; Host exited 139 before readiness. Earlier failure preserved. Subsequent matching CI43 binary-family diagnostic exposed the explicit JSON profile budget mismatch; no conclusion from exit code alone.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-prepared-dependencies.log",
+          "sha256": "ac7c8bbdcf5df92389b50bbd8683343a9789af4299e842b6ea8ae325df5401f7"
+        },
+        {
+          "command": "inputs.json",
+          "status": "prepared",
+          "scope": "Unpublished exact Foundation CI43 binary family: runtime 0.3.6, Build 0.3.2, exporter 0.2.6 and exact OCI image. Restore, locked restore, build, versioned pack and native closure validation passed. Public/default profile unchanged; not public availability or adoption.",
+          "log": "artifacts/t/ci43-typed-596304cc/inputs.json",
+          "sha256": "a5673fff5ebd083fa547acccc2d2db86ac0c8d115f9154e957425459ece82a10"
+        },
+        {
+          "command": "observation.json",
+          "status": "failed",
+          "scope": "Matching whole-family Host diagnostic retained. Native activation reported configured JSON profile outside its contract requirements. Application example now uses separate explicit bounded profiles; full current flow rerun pending. Initial missing mountpoint diagnostic also retained.",
+          "log": "artifacts/t/ci43-typed-596304cc/execution/observation.json",
+          "sha256": "1dc3346ab7261fc8d2012fd029da8b2fbb5974c5264f993d49b0ba43dbeade63"
+        },
+        {
+          "command": "structured-materialization-native-reader.log",
+          "status": "passed",
+          "scope": "Two structured map guard cases: task or existing native receipt alternative, exact graph/ancestry, actual reader/hash guard, contradictory source refusal and unchanged task/history/human state. Existing-receipt fixture synthetic, no SDK acceptance claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/structured-materialization-native-reader.log",
+          "sha256": "a1526f402a3f59eaa46763df51ca96e494c7a554dd8b9ad49eb3a7ae3c794ef3"
+        },
+        {
+          "command": "invalid-action-concrete-transition-authority.log",
+          "status": "passed",
+          "scope": "Unknown check action reports actual engineering request fields; valid engineering evidence works, missing evidence and wrong actor reject, human disposition stays pending.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/invalid-action-concrete-transition-authority.log",
+          "sha256": "00c364725234f254c2f477f514f418b3c8d7f213004a6bea9f09030d44b99b15"
+        },
+        {
+          "command": "Full exact reviewed current contract f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+          "status": "passed",
+          "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
+          "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
+          "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        }
+      ],
+      "originalRegressionLineage": "docs/reviews/maintenance-regression-lineage-2026-10-16.json",
+      "boundary": "Frozen 47 unchanged. Original 166 obligations preserved: 80 explicit shared translations, 86 current consumer-owned assertions, none retired. Current full exact 414-case execution and actual emitted typed operation flow still running. Historical failures and unrelated work remain unchanged. Foundation PR14 open; no tag, publication, active consumer or paid worker/provider."
     }
   ]
 }

@@ -16,6 +16,14 @@ import task_draft as draft
 from test_project import scaffold
 
 
+class PortableProviderIsolation(unittest.TestCase):
+    def test_routine_native_wrapper_withholds_synthetic_provider_inputs_and_restores_parent(self):
+        # Reuse the maintained actual PowerShell/child-process matrix. Only
+        # fictional provider values are used; no consumer authority is copied.
+        from validate_repository_verification_hook import main
+        self.assertEqual(0, main())
+
+
 class TaskScopedFailures(unittest.TestCase):
     def setUp(self):
         self.scratch = FixtureDirectory(prefix='required-failure-'); self.addCleanup(self.scratch.cleanup)

@@ -86,6 +86,21 @@ def accepted_fixture(root, feature):
 
 
 class DeliveryTests(unittest.TestCase):
+    def test_invalid_check_action_reports_real_transition_and_keeps_review_authority(self):
+        original = delivery.load_delivery(self.feature)
+        with self.assertRaisesRegex(ValueError, 'engineering.*checkpoint.*checks.*human acceptance'):
+            self.act('check-record', checkpoint='US1', checks=['artifacts/passing.json'])
+        current = delivery.load_delivery(self.feature)
+        self.assertEqual(original['checkpoints'], current['checkpoints'])
+        self.complete('T001', 'T002')
+        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+        with self.assertRaises(ValueError):
+            self.act('engineering', checkpoint='US1', checks=['artifacts/does-not-exist.json'])
+        with self.assertRaises(ValueError):
+            self.act('decision', checkpoint='US1', verdict='accepted', actor='worker', source='fixture has no human authority')
+        self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
+
     def material_assessment(self, extra_basis=()):
         solution = self.root / 'Application.slnx'
         solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /></Solution>')

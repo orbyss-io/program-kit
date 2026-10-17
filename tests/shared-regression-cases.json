@@ -146,7 +146,7 @@
     {
       "module": "validate_task_generation",
       "path": "tests/validate_task_generation.py",
-      "sha256": "850fece7cd7a7c9c94c9410a028c9850c5453b88ccc0bcdc8b96329bf1d364af",
+      "sha256": "27ac734ec20b10464a1a7f83d67e6bbf8d85771836fab46e4fa75d52656a9173",
       "cases": {
         "validate_task_generation.TaskTests.test_selected_build_edges_project_the_supported_recipe_before_task_authoring": [
           "Windows",
@@ -269,6 +269,16 @@
           "Darwin"
         ],
         "validate_task_generation.TaskTests.test_reference_instructions_use_ordinary_artifacts_and_preserve_gates": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_structured_existing_evidence_uses_the_native_reader_and_retains_ancestry": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_task_generation.TaskTests.test_structured_materialization_renders_producer_without_changing_history": [
           "Windows",
           "Linux",
           "Darwin"
@@ -1025,7 +1035,7 @@
     {
       "module": "validate_story_delivery",
       "path": "tests/validate_story_delivery.py",
-      "sha256": "bf026493bf9199b9040b9270c40bc806466e29f194265708007c1a3702b2d445",
+      "sha256": "34b42ad4a0c9733be3b834a6f919828389121a1d287b972a76682a4e27ea33dc",
       "cases": {
         "validate_story_delivery.DeliveryTests.test_native_unrelated_solution_member_and_shared_runtime_change_have_distinct_evidence": [
           "Windows",
@@ -1335,6 +1345,11 @@
           "Windows",
           "Linux",
           "Darwin"
+        ],
+        "validate_story_delivery.DeliveryTests.test_invalid_check_action_reports_real_transition_and_keeps_review_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
         ]
       }
     },
@@ -1443,7 +1458,7 @@
     {
       "module": "validate_case_inventory",
       "path": "tests/validate_case_inventory.py",
-      "sha256": "52a99a08ca65aebe8c17427fd96f4f0c08ffc9c46b581f9fc840193cd2f5c311",
+      "sha256": "156ff7ed2658f3d3126b72e78c9a97d393c30470c76750fc4326a37bc9bfd3ed",
       "cases": {
         "validate_case_inventory.CaseInventoryTests.test_actual_case_and_fresh_process_bind_original_sources_and_leave_contract_unchanged": [
           "Windows",
@@ -1486,6 +1501,11 @@
           "Darwin"
         ],
         "validate_case_inventory.CaseInventoryTests.test_declared_mechanism_inputs_are_required_and_cannot_change_during_execution": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_case_inventory.CaseInventoryTests.test_original_obligation_lineage_preserves_exact_reviewed_identities_owners_and_required_targets": [
           "Windows",
           "Linux",
           "Darwin"
@@ -1765,7 +1785,7 @@
     {
       "module": "validate_shared_obligations",
       "path": "tests/validate_shared_obligations.py",
-      "sha256": "701c21d2b3aeb26af02ba45ac814f3738cdc2394f7a4f0e92e6e4524d3bd4ad6",
+      "sha256": "912240b06adf77fe4a52694c9e1daa9fae6f59cfa36eef8466aa161d70270b58",
       "cases": {
         "validate_shared_obligations.TaskScopedFailures.test_later_task_hint_cannot_waive_a_retained_required_failure": [
           "Windows",
@@ -1851,6 +1871,11 @@
           "Windows",
           "Linux",
           "Darwin"
+        ],
+        "validate_shared_obligations.PortableProviderIsolation.test_routine_native_wrapper_withholds_synthetic_provider_inputs_and_restores_parent": [
+          "Windows",
+          "Linux",
+          "Darwin"
         ]
       }
     },
@@ -1894,7 +1919,7 @@
     {
       "module": "validate_native_phase_ownership",
       "path": "tests/validate_native_phase_ownership.py",
-      "sha256": "d7fd5a4a6aa35fa4e88df40442abd5fd74fb4fec80a68e5a280f4b57ede2d793",
+      "sha256": "c45b23240e8651aa3600d9cae2494ed9b6708cd0e3c72ed81fb8cfabe6f87166",
       "cases": {
         "validate_native_phase_ownership.NativePhaseOwnershipTests.test_exact_native_extension_rendering_is_read_only_and_covers_every_registered_output": [
           "Windows",
@@ -1945,13 +1970,18 @@
           "Windows",
           "Linux",
           "Darwin"
+        ],
+        "validate_native_phase_ownership.SourceAuthorityTests.test_extracted_candidate_never_borrows_the_enclosing_repository_git_history": [
+          "Windows",
+          "Linux",
+          "Darwin"
         ]
       }
     },
     {
       "module": "validate_upgrade_retry",
       "path": "tests/validate_upgrade_retry.py",
-      "sha256": "3b2222a356aedf72ee2df6848e797af1c93d2f36e48f14fc013b22284d547805",
+      "sha256": "96fa84e4f88fe6e450eb7a59bc3fc2df6d0b97cffa1bf42eecd51a19eb601ae4",
       "cases": {
         "validate_upgrade_retry.UpgradeRetryTests.test_actual_original_then_complete_target_materialization_are_admitted_only_with_retry_context": [
           "Windows",
@@ -1979,6 +2009,11 @@
           "Darwin"
         ],
         "validate_upgrade_retry.UpgradeRetryTests.test_recomputed_target_cannot_borrow_changed_architecture_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_retry.UpgradeRetryTests.test_absent_preset_reuse_requires_exact_originals_and_successful_interrupted_native_removal": [
           "Windows",
           "Linux",
           "Darwin"
@@ -2051,6 +2086,128 @@
           "Darwin"
         ]
       }
+    },
+    {
+      "module": "validate_upgrade_boundaries",
+      "path": "tests/validate_upgrade_boundaries.py",
+      "sha256": "084350b397fe47833e8e1c968e8f4aeeb9e7b2d8556c67d5f21671de1a9ad120",
+      "cases": {
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_structured_unmaterialized_owner_is_deferred_despite_legacy_summary": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_previous_structured_project_cannot_be_relabelled_as_unmaterialized": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_installed_extension_version_takes_precedence_over_consumer_version": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_corrected_upgrade_requires_exact_repair_authority_and_keeps_originals": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_attempt_replacement_retries_sharing_locks_without_partial_history": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_attempt_lock_exhaustion_and_permission_failure_preserve_original": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_failed_attempt_cleanup_retains_original_error_and_temporary_evidence": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_attempt_write_tolerates_native_windows_share_lock": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_planned_unmaterialized_admission_is_deferred_without_writes": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_registered_bootstrap_probes_do_not_materialize_proposed_owners": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_unrelated_application_documentation_and_invalid_probe_history_do_not_gate_upgrade": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_materialized_proposed_owner_still_requires_real_provider_admission": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_registered_probes_do_not_waive_admitted_or_installed_transition_guards": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_unrelated_project_does_not_materialize_unassigned_future_owner": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_installed_provider_transition_requires_real_accepted_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_legacy_installed_provider_is_not_treated_as_a_future_proposal": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_real_admitted_project_graph_is_checked_against_installed_provider": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_retry_preserves_original_version_diagnostic_and_authority_binding": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_plain_python_discovers_cli_runtime_before_ownership_guard_imports": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_changed_installation_inputs_cannot_borrow_old_retry_provenance": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_release_identity_excludes_unshipped_build_caches_but_binds_helper_source": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_missing_cli_runtime_is_an_actionable_pre_mutation_failure": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_upgrade_boundaries.UpgradeBoundaryTests.test_consumer_release_staging_is_rejected_before_cli_or_component_actions": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
     }
   ],
   "inputs": [
@@ -2067,6 +2224,7 @@
     ".github/workflows/update-dependencies.yml",
     "VERSION",
     "bundle.yml",
+    "docs/reviews/maintenance-regression-lineage-2026-10-16.json",
     "extensions/program-kit-building-blocks/commands/speckit.program-kit-building-blocks.sync.md",
     "extensions/program-kit-building-blocks/extension.yml",
     "extensions/program-kit-building-blocks/references/building-block-restore-request.schema.json",
@@ -2285,6 +2443,15 @@
     "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/PrivateFilesProbe.cs",
     "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/Program.cs",
     "extensions/program-kit-dotnet/references/examples/postgresql-lifecycle/required-cases.json",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/ILabelStore.cs",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/LabelApiOptions.cs",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/LabelEndpoint.cs",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/LabelEndpoints.cs",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/LabelRequest.cs",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/LabelResponse.cs",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/PostgreSqlLabelStore.cs",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/README.md",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/client.ts",
     "extensions/program-kit-dotnet/references/foundation-compositions.md",
     "extensions/program-kit-dotnet/references/implementation-boundaries.md",
     "extensions/program-kit-dotnet/references/keycloak-admin-api.md",
@@ -3205,6 +3372,7 @@
     "tests/simulate_consumer_readiness_retry.py",
     "tests/spec_kit_source_fixture.py",
     "tests/test_workflow_shell_preflight.py",
+    "tests/upgrade_fault_matrix.py",
     "tests/upgrade_probe_fixtures.py",
     "tests/upgrade_selection_cases.py",
     "tests/validate_api_proof.py",

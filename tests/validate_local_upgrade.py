@@ -490,6 +490,10 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
 
 
 def main() -> int:
+    import argparse
+    parser = argparse.ArgumentParser(description='Actual sequential offline upgrade in disposable consumers.')
+    parser.add_argument('--fault-matrix', action='store_true', help='Inject each declared top-level owner boundary and retry in a fresh process')
+    arguments = parser.parse_args()
     timings = ROOT / 'artifacts/maintenance-flow/local-upgrade-timings.json'
     timings.unlink(missing_ok=True)
     validate_read_only_module_loading()
@@ -687,6 +691,11 @@ def main() -> int:
             raise AssertionError("destination permission preflight changed consumer file content: " + ', '.join(changed))
         if "outside this sandbox" not in destination_blocked.stderr or "SKILL.md" not in destination_blocked.stderr:
             raise AssertionError("PKU115 omitted the blocked destination or copyable recovery route")
+
+        if arguments.fault_matrix:
+            from upgrade_fault_matrix import exercise
+            exercise(project, release, sys.modules[__name__], old, expected)
+            return 0
 
         # A declared local patch is exercised from actual installed bytes before
         # replacement, then retained through real partial installation and retry.

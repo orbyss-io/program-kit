@@ -20,6 +20,66 @@ from composition_fixture import two_apps, accept_fixture
 import composition_migrate
 
 
+def add_typed_operation(root):
+    """Use the shipping example bytes in actual independent native projects."""
+    examples = ROOT / 'extensions/program-kit-dotnet/references/examples/typed-operation'
+    for name, destination in [('ILabelStore.cs', 'src/Planned.Core/ILabelStore.cs'),
+            ('PostgreSqlLabelStore.cs', 'src/Application.PostgreSql/PostgreSqlLabelStore.cs'),
+            *[(name, 'src/Application.Api/' + name) for name in ('LabelEndpoints.cs', 'LabelRequest.cs',
+                'LabelResponse.cs', 'LabelApiOptions.cs', 'LabelEndpoint.cs')]]:
+        (root / destination).write_bytes((examples / name).read_bytes())
+    provider = root / 'src/Application.PostgreSql/ProviderFeature.cs'
+    provider.write_text('using ProgramKit.Examples.TypedOperation;\n' + provider.read_text().replace(
+        'public void ConfigureServices(IServiceCollection services)\n    {',
+        'public void ConfigureServices(IServiceCollection services)\n    {\n        services.AddScoped<ILabelStore, PostgreSqlLabelStore<PolicyDbContext>>();'), encoding='utf-8')
+    project = root / 'src/Application.PostgreSql/Application.PostgreSql.csproj'
+    project.write_text(project.read_text().replace('</Project>',
+        '<ItemGroup><ProjectReference Include="../Planned.Core/Planned.Core.csproj" /></ItemGroup></Project>'), encoding='utf-8')
+    project = root / 'src/Application.Api/Application.Api.csproj'
+    text = project.read_text().replace('</Project>',
+        '<ItemGroup><PackageReference Include="Orbyss.Foundation.Json.AspNetCore" /></ItemGroup></Project>')
+    document = ET.fromstring(text); dependencies = document.find('PropertyGroup/FoundationFeatureDependencies')
+    dependencies.text = dependencies.text + ';Orbyss.Foundation.Json.AspNetCore'
+    project.write_bytes(ET.tostring(document) + b'\n')
+    architecture = root / 'eng/architecture.json'; value = json.loads(architecture.read_bytes())
+    for row in value['runtimeComposition']['projects']:
+        if row['path'] == 'src/Application.PostgreSql/Application.PostgreSql.csproj':
+            row['projectReferences'].append('src/Planned.Core/Planned.Core.csproj')
+        if row['path'] == 'src/Application.Api/Application.Api.csproj' and 'packageReferences' in row:
+            row['packageReferences'].append('Orbyss.Foundation.Json.AspNetCore')
+    architecture.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+    settings = root / 'runtime/policies/shells.json'; value = json.loads(settings.read_bytes())
+    value['CShells']['Shells']['policies'].setdefault('Configuration', {})['Sample'] = {'Api': {'Prefix': 'configured-'}}
+    value['CShells']['Shells']['policies']['Configuration'].setdefault('Foundation', {}).setdefault('Json', {})['Profiles'] = {
+        'sample-label-request': {'Preset': 'strict-request', 'MaxBytes': 1024},
+        'sample-label-response': {'Preset': 'tolerant-response', 'MaxBytes': 2048}}
+    settings.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+
+
+def sample_database(root, evidence, *, observe=False):
+    """Separate explicit disposable deployment/observation; no product startup DDL."""
+    script = '''import json,re,sys
+from pathlib import Path
+root=Path.cwd();sys.path.insert(0,str(root/'eng'))
+import composition_run as run
+graph=run.read(root/'eng/foundation-composition.json'); contract=run.read(root/run.render.CONTRACT)
+resolved=run.read(root/run.render.RESOLVED);credentials=run.private_credentials(root,graph)
+_,environment=run.compose_model(root,graph,contract,resolved,credentials)
+receipt=run.latest(root); command=run.Commands(root,root/'artifacts/composition/runs/typed-sample')
+command.secrets=tuple({*credentials.values(),*environment.values()})
+database=graph['resources']['database-1']['name']
+username=run.model.environment(graph)['database-1'].get('username',database)
+run.require(all(re.fullmatch('[a-z][a-z0-9_]{0,62}',value) for value in (database,username)),'Synthetic database identity changed')
+sql = 'SELECT json_build_object(\\'value\\',value,\\'revision\\',revision)::text FROM sample_labels WHERE id=1;' if OBSERVE else (
+ 'CREATE TABLE sample_labels(id integer PRIMARY KEY,value text NOT NULL,revision integer NOT NULL DEFAULT 0); '
+ 'INSERT INTO sample_labels(id,value) VALUES (1,\\'ready\\'); GRANT SELECT,UPDATE ON sample_labels TO "'+username+'";')
+args=[*run.compose_arguments(root,receipt),'exec','-T',run.service('postgresql'),'psql','-U','_programkit','-d',database,'-At','-v','ON_ERROR_STOP=1','-c',sql]
+print(command.output(args,environment=environment))
+'''.replace('OBSERVE', repr(observe))
+    command([sys.executable, '-c', script], root, evidence)
+    return json.loads((evidence / 'stdout.log').read_text()) if observe else None
+
+
 def command(arguments, root, evidence, expected=0):
     evidence.mkdir(parents=True, exist_ok=True)
     with (evidence / 'stdout.log').open('wb') as stdout, (evidence / 'stderr.log').open('wb') as stderr:
@@ -261,11 +321,17 @@ def main():
             before = containers(preparation['project'])
             edit_started = time.monotonic()
             feature = root / 'src/Application.Api/ApiFeature.cs'
+            add_typed_operation(root)
+            sample_database(root, directory / 'sample-schema')
             source = feature.read_text()
+            source = 'using CShells;\nusing ProgramKit.Examples.TypedOperation;\n' + source
+            source = source.replace('public sealed class ApiFeature :', 'public sealed class ApiFeature(ShellSettings settings) :')
+            source = source.replace('"Orbyss.Foundation.DomainEvents"]',
+                '"Orbyss.Foundation.DomainEvents", "Orbyss.Foundation.Json.AspNetCore"]')
             source = source.replace('using CShells.AspNetCore.Features;',
                                     'using CShells.AspNetCore.Features;\nusing Microsoft.AspNetCore.Builder;\nusing Microsoft.AspNetCore.Http;\nusing Microsoft.AspNetCore.Mvc;')
             source = source.replace('public void ConfigureServices(IServiceCollection services) { }',
-                                    'public void ConfigureServices(IServiceCollection services) { services.AddScoped<ProbeService>(); }')
+                                    'public void ConfigureServices(IServiceCollection services) { services.AddScoped<ProbeService>(); LabelEndpoints.Configure(services, settings); }')
             feature.with_name('ProbeService.cs').write_text('''namespace Application.Api;
 /// <summary>Consumer-owned service resolved only during the real operation.</summary>
 public sealed class ProbeService
@@ -280,10 +346,13 @@ public sealed class ProbeService
             if seam not in source:
                 raise ValueError('consumer-owned endpoint seam changed')
             feature.write_text(source.replace(seam, 'public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment)\n'
-                               '    {\n        endpoints.MapGet("/api/first-policy", ([FromServices] ProbeService service) => Results.Ok(new { policy = service.Policy }))'
+                               '    {\n        LabelEndpoints.Map(endpoints);\n        endpoints.MapGet("/api/first-policy", ([FromServices] ProbeService service) => Results.Ok(new { policy = service.Policy }))'
                                '.WithName("ReadFirstPolicy").RequireAuthorization();\n'
                                '        endpoints.MapGet("/api/permission-probe", () => Results.NoContent())'
                                '.WithName("ProbePermission").RequireAuthorization(policy => policy.RequireRole("admin"));\n    }'), encoding='utf-8')
+            # This new slice changes actual project/package references. Explicit
+            # preparation owns their restore; ordinary update acquires nothing.
+            command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'consumer-dependencies-prepare')
             command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'consumer-update')
             after = containers(preparation['project'])
             import hashlib
@@ -352,6 +421,9 @@ public sealed class ProbeService
                 browser_config = qualification.authentication_browser_configuration(root, projection, browser_dir, args.engines.split(','))
                 command(['node', str(root / 'eng/web/node_modules/@playwright/test/cli.js'), 'test',
                          '--config', str(browser_config), 'authentication.spec.ts'], root, browser_dir / 'execution')
+                command(['pwsh', '-NoProfile', '-File', 'eng/Test-Web.ps1', '-BaseUrl', first['origin'],
+                         '-Shell', 'application-shell', '-PermissionProbePath', '/api/permission-probe'],
+                        root, directory / 'emitted-test-web')
                 pin = (root / '.oasdiff-version').read_text().strip()
                 binary_dir = root / 'artifacts/tools/oasdiff' / pin; binary_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(args.oasdiff, binary_dir / args.oasdiff.name)
@@ -378,6 +450,42 @@ public sealed class ProbeService
                 document = json.loads((root / 'contracts/openapi/policies.json').read_text())
                 if 'requestBody' in document['paths']['/api/first-policy']['get'] or 'ProbeService' in json.dumps(document):
                     raise ValueError('service dependencies leaked into the public wire schema')
+                if 'requestBody' not in document['paths']['/api/sample-label']['post']:
+                    raise ValueError('shipping typed operation did not export its actual request contract')
+                # Compile and execute the application adapter against actual
+                # maintained generated paths, rather than a handwritten schema.
+                frontend_source = root / 'web/policy-web/src'
+                frontend_source.joinpath('client.ts').write_bytes((ROOT / 'extensions/program-kit-dotnet/references/examples/typed-operation/client.ts').read_bytes())
+                entry = frontend_source / 'app.ts'
+                entry.write_text(entry.read_text() + '''
+import { storeLabel } from './client';
+declare global { interface Window { programKitTypedExample: { storeLabel: typeof storeLabel }; } }
+window.programKitTypedExample = { storeLabel };
+''', encoding='utf-8')
+                before_effect = sample_database(root, directory / 'sample-before-operation', observe=True)
+                if before_effect != {'value': 'ready', 'revision': 0}:
+                    raise ValueError('metadata export or registration caused an application write')
+                command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'],
+                    root, directory / 'typed-client-update')
+                first['typedOperation'] = {'body': {'policy': 'stored'}, 'response': {'policy': 'configured-stored'}}
+                typed_plan = directory / 'typed-client-plan.json'; typed_plan.write_text(json.dumps(plan), encoding='utf-8')
+                typed_result = directory / 'typed-client-result.json'
+                command(['node', 'eng/web/composition-readiness.mjs', str(typed_plan), str(typed_result)],
+                    root, directory / 'typed-client-operation')
+                first.pop('typedOperation')
+                committed = sample_database(root, directory / 'sample-committed-observation', observe=True)
+                if committed != {'value': 'stored', 'revision': len(args.engines.split(','))}:
+                    raise ValueError('actual generated-client operation duplicated or lost a durable write')
+                active_host = containers(preparation['project'])[changed]
+                command(['docker', 'restart', active_host], root, directory / 'typed-operation-restart')
+                restart_plan = {**plan, 'hosts': [{**first, 'productPath': '/api/sample-label',
+                    'productResponse': {'policy': 'configured-stored'}}]}
+                restart_path = directory / 'typed-operation-restart-plan.json'; restart_path.write_text(json.dumps(restart_plan), encoding='utf-8')
+                command(['node', 'eng/web/composition-readiness.mjs', str(restart_path),
+                    str(directory / 'typed-operation-restart-result.json')], root, directory / 'typed-operation-retained')
+                result.update(actualTypedRequestResponse=True, actualGeneratedTypesAndClient=True,
+                    actualProviderPortResolution=True, actualNondefaultScalarOptions=True,
+                    independentDurableWriteObservation=True, actualHostRestartRetainsEffect=True)
                 result['toolingExercised'] = True
             frontend = root / graph['resources']['policy-web']['directory'] / graph['resources']['policy-web']['entry']
             frontend.write_text(frontend.read_text().replace("heading.textContent = 'Application foundation'", "heading.textContent = 'Consumer edited frontend'").replace("createElement('h1')", "createElement('h2')"), encoding='utf-8')
