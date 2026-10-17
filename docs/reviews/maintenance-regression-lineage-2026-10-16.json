@@ -3,7 +3,7 @@
   "status": "reviewed-source-obligation-translation; exact-current-execution-and-consumer-acceptance-separate",
   "originalPacketManifestSha256": "b27a73f7cef1bbdd47f7a6f5831bbc6da8c4ad4967fa4bbc95cddffa86d57620",
   "originalCaseCount": 166,
-  "currentContractSha256": "b47df2c11678d11bf7138c3b845a90dab810e2c3d5931a6f2b550f9ce0974955",
+  "currentContractSha256": "29e7da9d269fa15b35ec03a94b2bd744d70280e8230c6bb82944167ba7d39eaf",
   "modules": [
     {
       "originalModule": "test_central_exact_versions",

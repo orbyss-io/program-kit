@@ -1458,7 +1458,7 @@
     {
       "module": "validate_case_inventory",
       "path": "tests/validate_case_inventory.py",
-      "sha256": "156ff7ed2658f3d3126b72e78c9a97d393c30470c76750fc4326a37bc9bfd3ed",
+      "sha256": "141ea795224faa87854817b9c219bfd4af3f2f737f6918b5026e6def4d524c83",
       "cases": {
         "validate_case_inventory.CaseInventoryTests.test_actual_case_and_fresh_process_bind_original_sources_and_leave_contract_unchanged": [
           "Windows",
@@ -2133,9 +2133,7 @@
           "Darwin"
         ],
         "validate_upgrade_boundaries.UpgradeBoundaryTests.test_attempt_write_tolerates_native_windows_share_lock": [
-          "Windows",
-          "Linux",
-          "Darwin"
+          "Windows"
         ],
         "validate_upgrade_boundaries.UpgradeBoundaryTests.test_planned_unmaterialized_admission_is_deferred_without_writes": [
           "Windows",

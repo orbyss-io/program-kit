@@ -1,6 +1,7 @@
 """No count, renamed case, skip, stale source or empty execution can replace obligations."""
 from pathlib import Path
 import hashlib
+import ast
 import json
 import platform
 import subprocess
@@ -27,6 +28,20 @@ class CaseInventoryTests(unittest.TestCase):
         current = ROOT / 'tests/shared-regression-cases.json'; contract = json.loads(current.read_bytes())
         self.assertEqual(cases.digest(current.read_bytes()), value['currentContractSha256'])
         required = {case for module in contract['modules'] for case in module['cases']}
+        native_case = 'validate_upgrade_boundaries.UpgradeBoundaryTests.test_attempt_write_tolerates_native_windows_share_lock'
+        native_module = next(module for module in contract['modules'] if module['module'] == 'validate_upgrade_boundaries')
+        self.assertEqual(['Windows'], native_module['cases'][native_case])
+        tree = ast.parse((ROOT / native_module['path']).read_bytes())
+        method = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+                      and node.name == native_case.rsplit('.', 1)[1])
+        self.assertIn("unittest.skipUnless(os.name == 'nt', 'native Windows sharing semantics')",
+                      [ast.unparse(item) for item in method.decorator_list])
+        inventory = json.loads((ROOT / 'tests/validation-inventory.json').read_bytes())
+        checks = {check['id']: check for check in inventory['checks']}
+        native_windows = {module['module'] for module in contract['modules']
+                          if any(platforms == ['Windows'] for platforms in module['cases'].values())}
+        for module in native_windows:
+            self.assertTrue(checks[module]['qualification']['windows'], module)
         for row in projection:
             self.assertIs(row['retired'], False)
             if row['owner'] == 'current-shared-case-mapping':

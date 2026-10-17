@@ -4597,6 +4597,23 @@
       ],
       "currentContractSha256": "b47df2c11678d11bf7138c3b845a90dab810e2c3d5931a6f2b550f9ce0974955",
       "scopeBoundary": "Frozen47 identities unchanged. Complete dependency update, actual public-profile generated integration, exact-main Linux/Windows/security qualification, reviewed readiness, exact tag approval and public installation/upgrade remain mandatory. No active consumer or device installation changed."
+    },
+    {
+      "stage": "Reviewed native platform applicability and required Windows coverage",
+      "retentionRoot": "C:\\Users\\tech_\\.codex\\worktrees\\maintenance-release-0-13-3\\program-kit",
+      "validation": [
+        {
+          "command": "native-case-platform-review.json",
+          "status": "passed",
+          "scope": "One intrinsically Windows-only case declaration corrected; actual case source byte-for-byte unchanged and passed locally with32 other cases. All439 identities remain required across CI platforms. Three native Windows groups added to focused Windows qualification and guarded against omission.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-case-platform-review.json",
+          "sha256": "06c83eee1af41693953e8005f5fd185a4a3945ab0c17efc0d6396411f7ed97e9"
+        }
+      ],
+      "cancelledRun": 39024778254,
+      "cancellationReason": "Known invalid applicability contract found while profile qualification was active; stopped before paying for the broad full suite. No successful qualification claimed.",
+      "currentContractSha256": "29e7da9d269fa15b35ec03a94b2bd744d70280e8230c6bb82944167ba7d39eaf",
+      "nextGate": "Fresh complete dependency update, followed by exact-main complete CI qualification and approved publication."
     }
   ]
 }

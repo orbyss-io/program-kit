@@ -32,7 +32,10 @@
     "validate_workflow_resumption",
     "validate_workflow_runtimes",
     "validate_codex_worker_policy",
-    "validate_live_bootstrap_acceptance"
+    "validate_live_bootstrap_acceptance",
+    "validate_upgrade_boundaries",
+    "validate_repository_sync",
+    "validate_repository_toolchain"
   ],
   "recommendations": [
     {
