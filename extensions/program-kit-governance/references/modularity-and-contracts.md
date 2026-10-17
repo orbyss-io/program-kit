@@ -8,8 +8,6 @@
 - **Provider**: an implementation selected by technology or mechanism, such as PostgreSQL or Excel.
 - **Bridge**: consumer-owned translation and adaptation between two contexts.
 - **Helper**: opt-in reusable behavior that may depend on Core but is never required by Core.
-- **Composition preset**: a convenience package selecting coherent implementations without owning
-  their domain behavior.
 - **Feature**: a runtime-composable capability identity and activation type exposed to a host.
 - **Vertical slice**: one actor, trigger, or intent carried to an observable outcome.
 - **Shell**: a runtime isolation and configuration context, such as a tenant, plan, environment, or
@@ -96,22 +94,21 @@ cross-feature call, add no new interface; otherwise define the cohesive provider
 its semantic boundary, keeping schema/ORM details private to the provider.
 <!-- /program-kit:knowledge-rule -->
 <!-- program-kit:knowledge-rule principle.composition-selection -->
-Composition is an optional reusable selection preset, not a default layer or an owner for foreign
-tasks/provider initialization. Record its concrete responsibility and rationale in existing planned
-responsibilities, and review its source ownership. Packaging collects selected runtime closures
-directly; an aggregate library is not needed to gather dependencies.
+Select runtime features through shell/deployment configuration. Do not create C# composition-preset
+projects or use a composition role to reference peer implementations. Each feature registers its own
+services and lifecycle contributions. Packaging collects selected runtime closures directly. Retained
+composition projects require explicit responsibility repair; do not silently relabel or delete them.
 <!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 
-Composition selects implementations; it does not contain the domain or provider implementations it selects.
+Shell/deployment configuration selects implementations; it does not own their behavior.
 A capability belongs to Core and its runtime implementation belongs to a distinct implementation,
 provider or bridge project.
 
 Default activatable behavior uses the context name, such as `PriceCalculator.Catalog`. Qualify other
 implementations by what they contribute: `.Api`, `.PostgreSql`, `.Import.Excel`, `.Import.Json`, or
 another domain term. Use `<Application>.<Consumer>.<Provider>` for a consumer-owned bridge, such as
-`PriceCalculator.Forms.Catalog`. A composition preset may reference selected implementations, but
-ordinary implementations/providers/bridges never reference peer implementations.
+`PriceCalculator.Forms.Catalog`. Implementations/providers/bridges never reference peer implementations.
 
 Do not create generic `Domain`, `Contracts`, `Application`, or `Infrastructure` layer projects as the
 default topology. Do not create a solution-wide `Core`, `Common`, or `Shared` dependency sink. Split a
@@ -202,7 +199,7 @@ dead-letter behavior, versioning, retention, replay, security, and observability
 - Core references only other explicitly accepted Core packages and lightweight abstractions.
 - Helpers reference Core/helpers, never implementations.
 - Implementations, providers, and bridges reference Core/helpers, never peer implementations.
-- Only composition presets may reference selected runtime implementations/providers/bridges.
+- Shell/deployment configuration selects runtime implementations/providers/bridges without an aggregate C# project.
 - Concrete inheritance is not an automatic exception to implementation isolation. A deliberately
   extensible base must live in Core or a named helper, represent genuine substitutability or an
   owned extension protocol, and have compatibility tests; ordinary reuse uses composition.
@@ -297,7 +294,7 @@ edges and capability bindings; no additional runtimeComposition dossier or catal
 Validate that planned graph after-plan, after-tasks and before affected implementation with
 `python eng/repository_architecture.py --repository . --manifest eng/architecture.json --planned`.
 List all selected owned runtime capabilities. Reject same-project bindings, relabeled Core/API roles,
-EF in API/composition and `persistenceOwnerNamespaces` waivers. Actual activation, registration,
+EF outside providers and `persistenceOwnerNamespaces` waivers. Actual activation, registration,
 resolution and lifetime tests complement compiled interface/registration-method checks.
 Enforce names, edges, cycles, public compatibility, capability
 implementations, activation, provider-model leakage, endpoint authorization metadata, and data

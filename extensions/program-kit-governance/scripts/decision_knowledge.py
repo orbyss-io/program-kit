@@ -28,6 +28,10 @@ def constraints(catalog, requirements, extensions, detailed=False):
                 value = resolve(catalog, identity, extensions=extensions)
                 rule = catalog['rules'][identity]
                 text = value['text']
+                if not detailed and rule.get('display') == 'focused-detail':
+                    rows.append('Canonical ' + identity + ': focused detail via --only ' + requirement['id'] + '.')
+                    seen.add(identity)
+                    continue
                 if not detailed and rule.get('display') == 'focused-example':
                     rows.append('Versioned example: --only ' + requirement['id'] + '; match its captured baseline before reuse.')
                     seen.add(identity)

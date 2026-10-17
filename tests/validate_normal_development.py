@@ -152,7 +152,7 @@ class DevelopmentTests(unittest.TestCase):
         before = self.snapshot()
         with patch.object(subprocess, 'run', side_effect=AssertionError('Planned validation must not build')):
             for phase in ('after-plan', 'after-tasks', 'implementation'):
-                with self.assertRaisesRegex(ValueError, 'implementation.*role'):
+                with self.assertRaisesRegex(ValueError, 'PKA022 retired C# composition project role'):
                     knowledge.check(self.root, self.feature, phase)
             with contextlib.redirect_stdout(io.StringIO()), patch.object(sys, 'argv',
                     ['preflight', '--repository', str(self.root), '--feature-dir', 'specs/001-slots']):

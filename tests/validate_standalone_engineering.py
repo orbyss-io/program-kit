@@ -62,7 +62,7 @@ def main():
         invalid = run([sys.executable, 'eng/repository_architecture.py', '--manifest', 'eng/architecture.json', '--planned'], expected=2)
         assert 'Core project role cannot be relabeled' in invalid.stderr
         write('eng/architecture.json', json.dumps({'runtimeComposition': {'projects': [
-            {'path': 'src/Slots/Slots.csproj', 'role': 'composition',
+            {'path': 'src/Slots/Slots.csproj', 'role': 'implementation',
              'persistenceOwnerNamespaces': ['Slots.Persistence']}], 'bindings': []}}))
         invalid = run([sys.executable, 'eng/repository_architecture.py', '--manifest', 'eng/architecture.json', '--planned'], expected=2)
         assert 'namespace waiver' in invalid.stderr

@@ -23,7 +23,7 @@ consumer-owned `shells.json`. Add a reviewed selection deterministically with:
 python eng/feature_metadata.py activate --shells shells.json --shell <name> --feature <identity>
 ```
 
-An activatable implementation/provider/bridge/composition project is packable, belongs to the solution, sets `FoundationFeatureIdentity`, declares an exact matching `[ShellFeature("<FoundationFeatureIdentity>")]`, and sets
+An activatable implementation/provider/bridge project is packable, belongs to the solution, sets `FoundationFeatureIdentity`, declares an exact matching `[ShellFeature("<FoundationFeatureIdentity>")]`, and sets
 `AssemblyName` equal to `PackageId`. It references host-supplied CShells/framework abstractions with
 `PrivateAssets=all`; it does not reference the host, Nuplane runtime, or peer runtime implementations.
 The private, independently pinned `Orbyss.Foundation.Build` package owns descriptor creation and emits

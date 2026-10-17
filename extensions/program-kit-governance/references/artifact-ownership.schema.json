@@ -28,7 +28,7 @@
             "required": ["path", "role", "projectReferences", "packageReferences"],
             "properties": {
               "path": { "type": "string", "minLength": 1 },
-              "role": { "enum": ["core", "helper", "implementation", "provider", "bridge", "composition", "test"] },
+              "role": { "enum": ["core", "helper", "implementation", "provider", "bridge", "test"] },
               "featureIdentities": {
                 "type": "array",
                 "uniqueItems": true,

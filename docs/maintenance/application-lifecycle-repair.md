@@ -20,10 +20,10 @@ when an existing application has an unnecessary composition library.
    admission and bounded cancellation/drain. Use an existing lifecycle interface
    before inventing a new Core contract. Domain events describe independent reactions
    to business facts; they do not establish a mandatory initialization chain.
-4. Retain a composition preset only for a concrete selection or reuse responsibility.
-   Record its rationale in the existing plan/project responsibilities and review
-   actual behavior. A passing reference graph does not establish semantic ownership.
-   Remove an unnecessary aggregate only after its responsibilities have real owners.
+4. Retire C# composition-preset projects and their project role. Move selection into
+   shell/deployment configuration and registration into its owning feature. Review
+   actual responsibilities before explicitly repairing or removing the project; never
+   merely relabel it. Remove an aggregate only after its responsibilities have real owners.
 5. Restore and build the affected projects, then package the currently selected roots
    and their exact runtime closures. Use the maintained Build workflow's fresh pack
    inventory. For a pure library with no activatable feature, select its current

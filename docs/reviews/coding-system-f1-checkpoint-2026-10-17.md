@@ -1,8 +1,10 @@
 # F1 implementation checkpoint — 17 October 2026
 
-Status: implementation prepared; human fixture review and the packaged check's
-runtime-budget disposition remain open. Do not start F2 or clean retained review
-material until this checkpoint has been reviewed.
+Status: F1 approved. The human's final condition was retirement of C# composition-preset
+projects, then they agreed the explicit retirement boundary and authorized implementation.
+That correction is complete. The packaged-check cost issue remains disclosed below;
+approval does not convert an over-budget run into a validator pass. F2 has not started.
+Additional review material remains available; no cleanup was requested.
 
 Source base: `fc402ef784c025caced1770cd12f64af1a0bdf45`, refreshed from origin/main.
 The isolated branch `codex/coding-system-f1` starts from handoff commit
@@ -77,8 +79,7 @@ Actual local results (ignored diagnostics, not release qualification):
 
 These records bind their actual working inputs. Later narrow attribution/harness
 changes were checked by the focused follow-ups; they are not retroactively added
-to the earlier full run. The final report text was written after execution. Keep
-the packaged runtime overrun for maintainer disposition at this human checkpoint:
+to the earlier full run. The final report text was written after execution. The original review requested a maintainer cost disposition; retain that overrun as a maintenance follow-up:
 inspect/split the fixture's cost or review its budget from measured scope. No budget
 or assertion was weakened to manufacture a passing run.
 
@@ -125,3 +126,61 @@ stopped consumer, agent worker, publication or tag was touched.
 Carry these observations into F2's interview. Keep the future repository development
 skill deferred until this workflow has proved useful across actual items; do not
 turn these first observations into universal consumer rules.
+
+## Final F1 decision: retire C# composition presets
+
+The human questioned the purpose of an extra project selecting existing implementations.
+Investigation found no distinct behavior: even the positive preset fixture was an empty
+activation feature selecting Notes and PostgreSql. The human agreed Q8's complete retirement
+boundary and authorized the correction. Their conditional F1 approval is now recorded above.
+
+- Remove `composition` from C# roles, activatable roles, role-reference permissions,
+  responsibility kinds and the ownership schema. Native role admission emits `PKA022`
+  with concrete repair instructions before a generic role failure. Retained source is
+  neither relabeled nor deleted. Upgrade and historical-map tests prove preservation.
+- Select features in shell/deployment configuration. Each feature owns service/lifecycle
+  registration. Foreign-task review remains effective for normal runtime features.
+- Update active architecture/profile/bundle and repair guidance. Append the dated
+  supersession to ADR-0006, preserving its original decision. Shell/resource composition,
+  the external host and captured profiles/locks remain unchanged.
+- Keep the stable `principle.composition-selection` knowledge identity, now owning direct
+  configuration selection and preset retirement. Register the native role-admission function
+  as `native.project-role-admission`; its diagnostic implementation is a focused detail,
+  while the retirement duty stays complete in ordinary briefs. The unchanged 1,600-word
+  regression passes. No second copy of native admission policy was added to prose metadata.
+
+The new retained [review index](../../artifacts/f1-review/q8-fc1d600bae/index.md)
+adds steps **9 and 10**: actual installed activation commands select Notes and Notes.PostgreSql;
+the planned graph passes without a preset; a retained preset with a reuse rationale gets
+the retirement diagnostic; an implementation-to-provider reference is still rejected.
+Inspect the linked shells.json, graph inputs and actual stderr. This is configuration and
+planned-graph evidence, not a claim that these fictional projects compile or run an app.
+The post-commit run records its exact source commit and working-input digest.
+
+| Retirement follow-up | Actual result | Local record |
+| --- | --- | --- |
+| Final Integrity | All 7 checks passed; 6.509 seconds | [record](../../artifacts/validation-runs/20261017T204558Z-354cfa19/results.json) |
+| Full affected selection | 24 of 25 selected checks passed, including shell/resource composition and real PostgreSQL lifecycle. Bootstrap mechanics failed in the external-process context; the normal-context follow-up below passed. No source drift or coverage gaps. The original run remains needs-attention, including its explicit manual-check decisions | [record](../../artifacts/validation-runs/20261017T204117Z-b3126196/results.json) |
+| Native architecture, lifecycle, bounded guidance and retained upgrade | All four checks passed; 29 architecture cases include real SDK builds and compiled boundaries; 54.716 seconds total | [record](../../artifacts/validation-runs/20261017T204218Z-4907c085/results.json) |
+| Native standalone engineering | Passed in 29.534 seconds. The same original group had a placement-copy failure, repaired and checked separately below | [record](../../artifacts/validation-runs/20261017T203648Z-179aaca1/results.json) |
+| Placement and shell targets | Passed in 10.173 seconds after existing long-path helpers were applied to fixture source loading/copying | [record](../../artifacts/validation-runs/20261017T204056Z-66096602/results.json) |
+| Bootstrap mechanics in normal sandbox context | Passed in 26.210 seconds. Two external-process attempts denied the installed CLI's atomic inputs.json replacement; no production or installed CLI code was changed to accommodate this context difference | [record](../../artifacts/validation-runs/20261017T204427Z-c55dbf6c/results.json) |
+| Current packaged fresh/update follow-up | Archive build passed. All install/update/recovery/fresh-story assertions completed with exit 0; 177.092 seconds exceeds the 120-second budget, so this remains over-budget/needs-attention | [record](../../artifacts/validation-runs/20261017T204116Z-11bb09a5/results.json) |
+
+All seven deferred checks in the full affected report have explicit execution above;
+the package cost remains a disclosed maintenance issue. These separate local checks
+are reported with their actual scope; they do not turn the original run into a pass
+or combine into CI/release qualification. F1 approval accepts the reported checkpoint;
+no budget, timeout, assertion, production release check or dependency pin was weakened.
+
+The first broader run also found an unchanged release-workflow test whose fictional
+success omitted required `path` and `status` fields. The fixture now supplies those fields
+and explicitly rejects a wrong workflow/incomplete status. Production release policy is
+unchanged. Earlier sandbox NuGet/build failures and fixture-copy failures remain retained.
+The final validation records bind their working inputs; this report was finalized afterward.
+
+Carry two additional lessons into F2: challenge concepts with concrete owned behavior,
+and preserve independent negative checks when retiring an architecture exception.
+F2 still requires its own investigation/interview and session. The proposed development
+skill remains deferred until the process proves useful across more items. No review
+consumer, previous output or snapshots were cleaned up.

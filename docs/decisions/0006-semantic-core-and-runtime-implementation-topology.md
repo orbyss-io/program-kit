@@ -54,3 +54,15 @@ Planning and validation use the roles `core`, `helper`, `implementation`, `provi
 `composition`, and `test`. Existing consumer manifests using legacy roles and fields require an
 explicit architecture remediation. Generated project graphs communicate domain language and runtime
 selection directly, at the cost of rejecting familiar but ambiguous horizontal-layer templates.
+
+## Composition-preset retirement adopted 2026-10-17
+
+This clarification supersedes the C# composition-preset role and its peer-implementation
+reference exception in the original decision above. Select features directly through
+shell/deployment configuration; each feature registers its own services and lifecycle
+contributions. Packaging gathers selected runtime closures without an aggregate library.
+Active project roles are `core`, `helper`, `implementation`, `provider`, `bridge`, and `test`.
+
+Retained composition projects receive an actionable diagnostic and require explicit
+responsibility repair. Do not silently relabel or delete consumer source. Shell/resource
+composition, the external host, qualified captures and original decisions remain intact.

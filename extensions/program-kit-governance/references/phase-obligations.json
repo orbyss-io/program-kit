@@ -289,6 +289,7 @@
         "guidance.dotnet.modular-ddd-topology",
         "guidance.dotnet.asp-net-core-minimal-api-slices",
         "native.allowed-role-references",
+        "native.project-role-admission",
         "native.core-package-exclusions",
         "native.activatable-roles",
         "native.capability-roles"
@@ -4084,7 +4085,7 @@
       "withinDecisionRule": "compilation-responsibilities"
     },
     "principle.composition-selection": {
-      "purpose": "Composition selection",
+      "purpose": "Direct feature selection and C# preset retirement",
       "source": "program-kit-governance/references/modularity-and-contracts.md",
       "selector": {
         "kind": "markdown-marker",
@@ -4093,7 +4094,7 @@
       },
       "owner": "program-kit-governance",
       "family": "modularity",
-      "level": "recommended",
+      "level": "conditional",
       "status": "active",
       "requirements": [
         "dotnet-boundaries"
@@ -6450,6 +6451,31 @@
           "tests/validate_normal_development.py"
         ]
       }
+    },
+    "native.project-role-admission": {
+      "purpose": "C# project role admission and retained composition-preset retirement",
+      "source": "program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+      "selector": {
+        "kind": "python-symbol",
+        "name": "validate_project_role"
+      },
+      "owner": "program-kit-dotnet",
+      "family": "modularity",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [
+        "dotnet-boundaries"
+      ],
+      "applicability": "Existing responsibility selection: dotnet-boundaries",
+      "bindings": {
+        "recipes": [
+          "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py"
+        ],
+        "checks": [
+          "tests/validate_architecture_recipe.py"
+        ]
+      },
+      "display": "focused-detail"
     }
   },
   "migrations": [

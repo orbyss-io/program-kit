@@ -49,11 +49,17 @@ The following sequence is implementation guidance, with one accountable feature 
 ### F1 — discover knowledge and establish canonical ownership
 
 Current local implementation: branch `codex/coding-system-f1` carries F1. Read the
-[F1 checkpoint](coding-system-f1-checkpoint-2026-10-17.md) before continuing. Human
-fixture review and the disclosed packaged-check runtime-budget disposition remain
-open; do not restart F1 from the original base or automatically advance to F2.
+[F1 checkpoint](coding-system-f1-checkpoint-2026-10-17.md) before continuing. The human
+approved F1 conditional on retiring C# composition-preset projects and explicitly
+authorized that correction. Preserve its validation/cost disclosures and retained
+review output; do not restart F1 or automatically advance to F2.
 
 **F1 implementation decisions accepted in the 17 October 2026 session:**
+
+- Q8: retire the C# composition-preset role and its peer-reference exception. Shell/deployment
+  configuration selects features; each owning feature registers services/lifecycle contributions.
+  Retained graphs receive actionable diagnostics and explicit repair; history/captures and real
+  shell/resource/host composition remain intact. Add visible direct-selection and rejection proof.
 
 - Give a rule its own identity when its applicability, obligation level or evaluation differs. Group related rules for readable guidance and retain existing requirement identities as compatibility groupings.
 - Keep the shipped `eng/architecture_rules.py` tables authoritative for their exact executable constraints. Catalog entries address the actual symbols; prose owns broader semantic principles. Guidance resolves table values when needed, and native consumer checks remain independent of toolkit Markdown.
@@ -70,7 +76,7 @@ Produce a reviewable catalog grouped by purpose, with attributable rule-level en
 | Knowledge family | Required discovery coverage | Existing source owners to inspect |
 | --- | --- | --- |
 | Domain language and modeling | Subdomains, bounded contexts, ownership, aggregates/value objects, invariants, lifecycle states, valid outcomes and proportional use of domain patterns | governance `references/software-language.md`, `modularity-and-contracts.md`; repository `docs/decisions/` |
-| Modularity and collaboration | Core/runtime/API/provider/helper/bridge/composition roles, compile boundaries, semantic capabilities, dependency direction, accepted Core edges, inheritance and cross-context translation | governance `references/modularity-and-contracts.md`; dotnet `references/technology-profiles/dotnet.md`; shipped `eng/architecture_rules.py` and `repository_architecture.py` |
+| Modularity and collaboration | Core/runtime/API/provider/helper/bridge roles; retired C# composition-preset diagnostics, compile boundaries, semantic capabilities, dependency direction, accepted Core edges, inheritance and cross-context translation | governance `references/modularity-and-contracts.md`; dotnet `references/technology-profiles/dotnet.md`; shipped `eng/architecture_rules.py` and `repository_architecture.py` |
 | Domain and integration events | Core-owned immutable facts, selected Foundation dispatcher and typed handler registration, awaited independent reactions, failures/cancellation, and separate durable integration/outbox requirements | governance modularity reference; repository ADR 0007; selected versioned Foundation DomainEvents capture |
 | Vertical slices and endpoints | Actor-to-outcome slices, operation placement, transport admission/mapping, delegation to owned application capabilities, domain policy and provider effects | governance `references/vertical-slicing.md`, modularity reference; dotnet profile and qualified typed-operation example |
 | Features, services and lifecycle | Activation identities, feature-owned registration, explicit dependencies, root/shell/request scopes, factories/disposal, provider preparation, application admission, startup/workers, cancellation/drain and actual resolution | dotnet profile, `references/dotnet-engineering.md`; selected CShells/Foundation Tasks and registration sources |

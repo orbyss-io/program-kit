@@ -176,10 +176,52 @@ def scenario(directory):
               'except ValueError as error:\n    print("EXPECTED REJECTION:", error)\n    raise SystemExit(0)\n'
               'raise SystemExit("FAIL: invalid Core-to-provider edge was accepted")\n')
         run('16-independent-native-negative', [probe])
+        # Exercise the real installed selection and planned-graph commands.
+        engine = native.parent
+        shells_path = consumer / 'shells.json'
+        write(shells_path, {'CShells': {'Shells': {'notes': {'Features': {}}}}})
+        for name, identity in [('17-select-application', 'Notes'), ('18-select-provider', 'Notes.PostgreSql')]:
+            run(name, [engine / 'feature_metadata.py', 'activate', '--shells', shells_path,
+                       '--shell', 'notes', '--feature', identity])
+        graph = {'runtimeComposition': {'projects': [
+            {'path': 'src/Notes.Core/Notes.Core.csproj', 'role': 'core', 'projectReferences': []},
+            {'path': 'src/Notes/Notes.csproj', 'role': 'implementation',
+             'projectReferences': ['src/Notes.Core/Notes.Core.csproj']},
+            {'path': 'src/Notes.PostgreSql/Notes.PostgreSql.csproj', 'role': 'provider',
+             'projectReferences': ['src/Notes.Core/Notes.Core.csproj']}], 'bindings': []}}
+        for row in graph['runtimeComposition']['projects']:
+            write(consumer / row['path'], '<Project Sdk="Microsoft.NET.Sdk" />\n')
+        graph_path = consumer / 'eng/architecture.json'
+        write(graph_path, graph)
+        validator = [engine / 'repository_architecture.py', '--repository', consumer, '--planned']
+        run('19-direct-selection-valid', [*validator, '--manifest', 'eng/architecture.json'])
+        retired = json.loads(json.dumps(graph))
+        retired['runtimeComposition']['projects'].append({
+            'path': 'src/Notes.Bundle/Notes.Bundle.csproj', 'role': 'composition',
+            'projectReferences': ['src/Notes/Notes.csproj', 'src/Notes.PostgreSql/Notes.PostgreSql.csproj'],
+            'responsibilities': [{'name': 'ReusableNotesPreset', 'kind': 'composition', 'effects': [],
+                                  'rationale': 'Select a reusable application and provider pairing.'}]})
+        retired_path = consumer / 'eng/retired-preset.json'
+        write(retired_path, retired)
+        retired_bytes = retired_path.read_bytes()
+        run('20-retired-preset-rejected', [*validator, '--manifest', 'eng/retired-preset.json'], expected=2)
+        if 'PKA022 retired C# composition project role' not in (review / 'output/20-retired-preset-rejected.stderr.txt').read_text():
+            raise AssertionError('Retained preset did not receive its actionable retirement diagnostic')
+        if retired_path.read_bytes() != retired_bytes:
+            raise AssertionError('Retirement validation rewrote retained consumer input')
+        peer = json.loads(json.dumps(graph))
+        peer['runtimeComposition']['projects'][1]['projectReferences'].append('src/Notes.PostgreSql/Notes.PostgreSql.csproj')
+        write(consumer / 'eng/forbidden-peer.json', peer)
+        run('21-peer-implementation-rejected', [*validator, '--manifest', 'eng/forbidden-peer.json'], expected=2)
+        selected = json.loads(shells_path.read_text())['CShells']['Shells']['notes']['Features']
+        if set(selected) != {'Notes', 'Notes.PostgreSql'} or (consumer / 'src/Notes.Bundle').exists():
+            raise AssertionError('Direct selection required a synthetic composition project')
         results['observations'] = {'canonicalProseReachedActualBrief': True, 'unrelatedBrowserBriefUnchanged': True,
                                    'changedProseRules': changed_prose, 'changedNativeRules': changed_native,
                                    'priorAffectedFingerprint': 'stale after the corresponding source mutation',
                                    'fixtureSourcesRestored': True,
+                                   'directSelectionWithoutPreset': True, 'retiredPresetRejectedWithoutMutation': True,
+                                   'peerImplementationReferenceRejected': True,
                                    'limits': 'Native declaration/template resolution, not evaluated consumer configuration or DomainEvents runtime qualification.'}
         if input_snapshot()['digest'] != initial_inputs['digest']:
             raise AssertionError('Feature working inputs changed during the review fixture; rerun against stable source')
@@ -214,6 +256,8 @@ Every command, exit status and output digest is in [results.json](results.json).
 | 6. Scope and freshness | [Fingerprints before](output/07-fingerprints-before.stdout.txt), [after prose](output/10-fingerprints-after-prose.stdout.txt), [after native](output/12-fingerprints-after-native.stdout.txt) | Each mutation changes only its applicable rule fingerprint. The original full source digest remains attributable; old affected output cannot establish current proof. |
 | 7. Deliberate failures | [Missing marker](output/13-missing-rule.stdout.txt), [ambiguous marker](output/14-ambiguous-rule.stdout.txt), [missing native symbol](output/15-missing-native-symbol.stdout.txt) | Expected exit is 2. Check that the diagnostic identifies the missing/ambiguous owner. The matching input snapshots are [missing](snapshots/13-missing-rule.md), [ambiguous](snapshots/14-ambiguous-rule.md) and [native](snapshots/15-missing-native-symbol.json). |
 | 8. Independent boundary oracle | [Native rejection](output/16-independent-native-negative.stdout.txt) | A fictional Core project referencing a provider is rejected by the installed native validator. This expectation is authored independently of the catalog values. |
+| 9. Selection without a C# preset | [Application selection](output/17-select-application.stdout.txt), [provider selection](output/18-select-provider.stdout.txt), [shells.json](consumer/shells.json), [valid graph](consumer/eng/architecture.json), [validation](output/19-direct-selection-valid.stdout.txt) | The actual activation command selects Notes and Notes.PostgreSql directly. The planned graph has Core, implementation and provider projects; there is no Notes.Bundle project. This checks configuration and structure, not runtime activation. |
+| 10. Retired role and peer-reference boundary | [Retirement diagnostic](output/20-retired-preset-rejected.stderr.txt), [retained input](consumer/eng/retired-preset.json), [peer rejection](output/21-peer-implementation-rejected.stderr.txt) | Even a preset with an explicit reuse rationale is rejected with PKA022 and repair instructions. Its input is unchanged. Relabeling it as an implementation does not grant references to peer implementations. |
 
 The retained [consumer](consumer/) has its source changes restored after the
 demonstration. The exact rerun commands for each step are in results.json. Commands
@@ -227,7 +271,7 @@ application compilation, runtime registrations, DomainEvents handler behavior, b
 quality, F2–F8, agent obedience or human product acceptance. Complementary semantic
 architecture duties still require their source-backed review and behavior tests.
 
-Review stays open until you say it is finished. Inspect anomalies with the agent;
+This output stays available until you say inspection is finished. Inspect anomalies with the agent;
 then the owned disposable consumer and scratch snapshots may be cleaned up while
 retaining the bounded results/output used as proof. No cleanup has run.
 '''
