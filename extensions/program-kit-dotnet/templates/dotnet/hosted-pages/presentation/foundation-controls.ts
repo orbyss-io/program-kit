@@ -37,6 +37,8 @@ export async function bindFoundationPresentation(root: HTMLElement,
   const sources = new Set<() => void>();
   const recover = (message: string) => {
     privateCleared = true;
+    for (const unregister of sources) unregister();
+    sources.clear();
     root.hidden = true; root.inert = true; root.style.setProperty('display', 'none', 'important');
     root.replaceChildren();
     const link = document.createElement('a'); link.href = pagePrefix + '/sign-in'; link.textContent = 'Sign in';
@@ -102,7 +104,7 @@ export async function bindFoundationPresentation(root: HTMLElement,
     await observer.ready;
     return {
       registerUnsavedWork(source: Presentation.UnsavedWorkSource) {
-        if (disposed) throw new Error('The application presentation binding is disposed.');
+        if (disposed || privateCleared) throw new Error('The application private surface is no longer active.');
         const unregister = registry.register(source); sources.add(unregister);
         return () => { unregister(); sources.delete(unregister); };
       },

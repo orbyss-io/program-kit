@@ -147,9 +147,22 @@ try {
               await page.keyboard.press('Escape'); await page.getByRole('dialog').waitFor({ state: 'hidden' });
               require(await editor.inputValue() === 'Fictional retained draft' && effects.length === 0);
               require((await (await context.request.get(host.origin + '/bff/user')).json()).authenticated === true);
-              // Actual navigation/back exercises the generated binding's native
-              // lifecycle rather than injecting a replacement presentation.
+              const nativeUnsavedState = () => page.evaluate(async prefix => {
+                const response = await fetch(prefix + '/configuration', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Native presentation configuration unavailable.');
+                const selected = await response.json();
+                const native = await import(selected.modulePath);
+                return native.unsavedWork(selected.surface).getState();
+              }, host.presentationProbe.routePrefix);
+              require(await nativeUnsavedState() === 'dirty');
               await context.clearCookies();
+              // Exercise the installed observer against the actual expired
+              // session before navigation can create a fresh module registry.
+              await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+              await editor.waitFor({ state: 'detached' });
+              require(await nativeUnsavedState() === 'clean');
+              // Actual navigation/back additionally exercises native lifecycle;
+              // no replacement presentation or protocol is injected.
               await page.goto(host.origin + host.presentationProbe.routePrefix + '/expired');
               await page.goBack({ waitUntil: 'domcontentloaded' });
               await page.waitForFunction(() => {
