@@ -1,15 +1,9 @@
-# Release candidate 0.13.2
+# Release candidate 0.13.3
 
-The owner lifted the publication hold on 2026-10-15 and authorized this session to
-run `Invoke-LocalRelease.ps1 -AuthorizedCodexTask`, integrate PR #41 and publish only
-after every mandatory gate passes. See [the patch migration](migration-0.13.2.md).
+The human requested publication of the complete approved frozen 47-finding maintenance batch. See [migration guidance](migration-0.13.3.md) and the [implementation ledger](../docs/reviews/maintenance-implementation-ledger-2026-10-16.json). Existing merged repair-feedback work is retained. Later investigation and feature batches remain outside this repair campaign.
 
-Public Foundation 0.3.5 was verified, including actual seven-assembly PdfPig loading.
-The owner approved its verified Nuplane 109 loader for development, with the known
-satellite-resource limitation disclosed while the corrected upstream variant is pending.
-Mandatory dependency refresh, both Host platform scans, current-source
-CI, packaged consumer restart rehearsal and fresh local Release remain publication
-gates. Published 0.13.1 migration history is preserved. The selected unfinished
-consumer uses `fresh-feature-delete-v1`; this release session changes no consumer files.
+Foundation commit `6c6b113f37e28e842af884416538f47952ac6944` is explicitly approved for runtime `v0.3.6` and independent `build-v0.3.2`. Both tagged release workflows must succeed and public bytes must be verified before final profile adoption.
 
-Program Kit 0.13.1 remains the latest public patch until all gates succeed.
+Program Kit still requires current dependency maintenance, qualified public profile/knowledge, actual installed integration and upgrade evidence, complete exact-source CI qualification, reviewed readiness and exact commit/tag approval before promotion. No partial result establishes full closure or availability.
+
+The current published release remains 0.13.2 until 0.13.3 promotion and public fresh-install/upgrade verification succeed. No active consumer, paid worker/provider, device software or historical profile is changed by release preparation.
