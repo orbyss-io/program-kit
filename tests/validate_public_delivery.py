@@ -72,6 +72,21 @@ def previous_release(releases, current):
     return max(matches,key=lambda r:tuple(map(int,r['tag_name'][1:].split('.'))))['tag_name']
 
 
+def prepare_prior_consumer(session, project):
+    """Complete the prior initializer's documented post-bundle preparation.
+
+    These are the prior package's installed entrypoints. A bare native bundle
+    installation has neither the UTF-8 transformation nor a schema-tool baseline
+    and is not the initialized consumer whose upgrade we claim to exercise.
+    """
+    scripts = project / '.specify/extensions/program-kit-governance/scripts'
+    session.run('prepare-prior-utf8', [sys.executable, scripts / 'ensure_utf8.py', '--target', '.'], project)
+    session.run('prepare-prior-schema', [sys.executable, scripts / 'schema_runtime.py', 'setup'], project)
+    session.run('record-prior-schema', [sys.executable, scripts / 'schema_runtime.py', 'record-copy'], project)
+    session.run('check-prior-schema', [sys.executable, scripts / 'schema_runtime.py', 'check-copy'], project)
+    session.run('prior-installation-check', [sys.executable, scripts / 'governance_state.py', 'validate-installation'], project)
+
+
 def journey(session, workspace, promotion, previous):
     version = promotion['source']['version']
     tag = 'v' + version
@@ -97,6 +112,7 @@ def journey(session, workspace, promotion, previous):
     session.run('install-prior-workflow',['specify','workflow','add','program-kit-bootstrap'],upgrade)
     session.run('install-prior-bundle',['specify','bundle','install','program-kit','--integration','copilot'],upgrade)
     require(set(installed_versions(upgrade).values()) == {previous[1:]}, 'Prior public consumer baseline is incoherent')
+    prepare_prior_consumer(session, upgrade)
     authored = upgrade/'authored-consumer.txt'
     authored.write_text('Consumer-owned content must survive the public upgrade.\n',encoding='utf-8')
     before = authored.read_bytes()
