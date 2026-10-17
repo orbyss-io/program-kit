@@ -1,6 +1,7 @@
 """Install a release extension through native copy registration, without dev links."""
 from pathlib import Path
 import argparse
+import os
 import sys
 
 EXTENSIONS = ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet')
@@ -23,7 +24,16 @@ def install(target, source, identity, force=False):
     from specify_cli._assets import get_speckit_version
     from specify_cli.events import refresh_integration_events
     from specify_cli.extensions import ExtensionManager, ExtensionManifest
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'extensions/program-kit-governance/scripts'))
+    release = Path(__file__).resolve().parents[1]
+    if os.name == 'nt':
+        # Match invoke_specify's existing Windows filesystem adapter: historical
+        # profile trees need extended paths during native replacement/removal.
+        sys.path.insert(0, str(release / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+        from owned_scratch import filesystem_path
+        target, source = Path(filesystem_path(target)), Path(filesystem_path(source))
+        if os.environ.get('SPECIFY_INIT_DIR'):
+            os.environ['SPECIFY_INIT_DIR'] = filesystem_path(Path(os.environ['SPECIFY_INIT_DIR']).resolve())
+    sys.path.insert(0, str(release / 'extensions/program-kit-governance/scripts'))
     import render_profile
     manifest = ExtensionManifest(source / 'extension.yml')
     if manifest.id != identity:
