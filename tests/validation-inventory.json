@@ -17,6 +17,7 @@
     "release": {
       "inputs": [
         "scripts/build_release*.py",
+        "scripts/build_native_phase_baselines.py",
         "scripts/release_*.py",
         "scripts/publish_candidate.py",
         "scripts/security_scan.py",
@@ -546,6 +547,20 @@
       ],
       "budgetSeconds": 60,
       "timeoutSeconds": 120
+    },
+    {
+      "id": "validate_native_phase_baselines",
+      "purpose": "Require a complete exact immediate-predecessor source witness before packaging; reject missing lineage and manifest-only substitutes.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_native_phase_baselines.py"],
+      "kind": "integration",
+      "capabilities": ["release", "upgrade"],
+      "inputs": ["tests/validate_native_phase_baselines.py"],
+      "needs": [],
+      "prerequisites": ["module:yaml", "tool:git"],
+      "suites": [],
+      "budgetSeconds": 15,
+      "timeoutSeconds": 30
     },
     {
       "id": "validate_native_phase_ownership",
