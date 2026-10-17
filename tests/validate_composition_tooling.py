@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import os
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
@@ -18,10 +19,30 @@ import composition_model as model
 import composition_migrate as migrate
 import composition_render as render
 import openapi_pipeline as pipeline
+import toolchain
 from composition_fixture import two_apps
 
 
 class MigratedTooling(unittest.TestCase):
+    def test_reviewed_comparator_is_available_before_first_emitted_build(self):
+        import validate_composition_start as fixture
+        self.root.joinpath('.oasdiff-version').write_text('1.33.0\n')
+        # A deliberately renamed source checks canonical staging; a successful
+        # version probe is not evidence that this fictional comparator diffs APIs.
+        source = self.root / ('reviewed.cmd' if os.name == 'nt' else 'reviewed')
+        source.write_text('@echo oasdiff 1.33.0\n' if os.name == 'nt' else '#!/bin/sh\necho oasdiff 1.33.0\n')
+        if os.name != 'nt':
+            source.chmod(0o755)
+        staged = fixture.prepare_comparison_tool(self.root, source)
+        self.assertEqual('oasdiff.cmd' if os.name == 'nt' else 'oasdiff', staged.name)
+        self.assertEqual(source.read_bytes(), staged.read_bytes())
+        if os.name != 'nt':
+            self.assertTrue(os.access(staged, os.X_OK), 'Staging must retain POSIX execution permission')
+        self.assertEqual((staged, '1.33.0'), toolchain.resolve_oasdiff(self.root, '1.33.0', ''))
+        self.root.joinpath('.oasdiff-version').write_text('0.0.0\n')
+        with self.assertRaisesRegex(ValueError, 'PKT021'):
+            fixture.prepare_comparison_tool(self.root, source)
+
     def test_typed_flow_missing_public_problem_contract_stops_before_fixture_or_native_effects(self):
         import dependency_profile
         import validate_composition_start as fixture

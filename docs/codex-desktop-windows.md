@@ -1,9 +1,8 @@
 # Program Kit bootstrap from Windows and Codex
 
-For the deferred interpreter mismatch and protected intake-output ACL repair, see the
-[source repair and consumer recovery handoff](python-runtime-recovery-2026-10-02.md).
-For cmd.exe lookup failures with an oversized inherited PATH, see the
-[workflow shell preflight correction](windows-workflow-shell-preflight-2026-10-03.md).
+Interpreter selection, workflow shell lookup and protected output permissions are
+covered by the supported invocation and recovery steps below. Use current commands
+and diagnostics rather than historical repair journals.
 
 Program Kit requires the human to start repository initialization, Program Kit installation
 or update, and outer workflow orchestration from a normal user-owned PowerShell or WSL shell. Do not

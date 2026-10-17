@@ -17,5 +17,7 @@
   "actual-emitted-private-key-native-shell-registration",
   "invented-key-native-activation-denied-without-fallback",
   "missing-key-native-activation-denied-without-fallback",
-  "mismatched-native-source-declaration-diagnosed-before-dependent-work"
+  "mismatched-native-source-declaration-diagnosed-before-dependent-work",
+  "runtime-denied-schema-create",
+  "runtime-denied-unrelated-table"
 ]

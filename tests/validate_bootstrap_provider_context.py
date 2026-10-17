@@ -6,7 +6,7 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
-from owned_fixture import FixtureDirectory
+from owned_fixture import FixtureDirectory, filesystem_path
 import unittest
 from unittest.mock import patch
 
@@ -53,7 +53,7 @@ class ProviderContextTests(unittest.TestCase):
         self.temp = FixtureDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        shutil.copytree(ROOT / 'extensions/program-kit-building-blocks', self.root / '.specify/extensions/program-kit-building-blocks')
+        shutil.copytree(filesystem_path(ROOT / 'extensions/program-kit-building-blocks'), self.root / '.specify/extensions/program-kit-building-blocks')
         self.identity = '.specify/extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/deploy/compose.identity.yml'
         destination = self.root / self.identity
         destination.parent.mkdir(parents=True)

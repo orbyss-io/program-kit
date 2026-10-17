@@ -4,6 +4,7 @@ import json
 import hashlib
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import subprocess
 import unittest
 from pathlib import Path
@@ -18,7 +19,7 @@ from release_guidance import plan, load_index, require_review, completion, valid
 class GuidanceTests(unittest.TestCase):
     def test_maintenance_upgrade_preserves_work_without_reactivating_feature_delete(self):
         from release_guidance import semantic_changes
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             directory = build(ROOT, Path(name), '0.13.3')
             for installed in ('0.12.5', '0.12.11', '0.13.0', '0.13.1', '0.13.2'):
                 with self.subTest(installed=installed):
@@ -48,7 +49,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_patch_routes_unfinished_features_to_delete_only_fresh_phases(self):
         from release_guidance import semantic_changes
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             directory = build(ROOT, Path(name), '0.13.2')
             for installed in ('0.12.5', '0.12.11', '0.13.0', '0.13.1'):
                 with self.subTest(installed=installed):
@@ -73,7 +74,7 @@ class GuidanceTests(unittest.TestCase):
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
         import building_blocks as blocks
         source = blocks.filesystem_path(ROOT / 'extensions/program-kit-building-blocks')
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             destination = Path(name)
             archive_path = destination / 'component.zip'
             deterministic_zip(source, archive_path)
@@ -98,7 +99,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_compact_bundle_guidance_retains_verified_history_and_current_adoption(self):
         from release_guidance import semantic_changes
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             version = (ROOT / 'VERSION').read_text().strip()
             full = build(ROOT, root / 'full', version)
@@ -114,7 +115,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_semantic_changes_require_maintained_complete_recipe_contracts(self):
         import shutil
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             relative = Path('extensions/program-kit-governance/references/consumer-migration-recipes.json')
             path = root / relative
@@ -132,8 +133,8 @@ class GuidanceTests(unittest.TestCase):
 
     def test_qualification_assets_and_release_receipt_reject_missing_or_changed_bytes(self):
         from build_release import build_dependency_qualification_assets
-        from write_release_receipt import artifact_records, sha256
-        with tempfile.TemporaryDirectory() as name:
+        from release_assets import artifact_records, sha256
+        with FixtureDirectory() as name:
             root = Path(name)
             assets = build_dependency_qualification_assets(ROOT, root, '0.12.6')
             registry=ROOT/'extensions/program-kit-building-blocks/references/dependency-profiles'
@@ -167,7 +168,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_missing_verification_cannot_complete_and_pending_origin_is_preserved(self):
         from upgrade_program_kit import migration_origin, UpgradeError
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             directory = build(ROOT, root / 'guidance', '0.12.6')
             migration = plan(directory, '0.12.5', '0.12.6')
@@ -201,7 +202,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_legacy_noop_recovers_only_sealed_original_version_and_preserves_receipt(self):
         from upgrade_program_kit import migration_origin, preserve_migration_completion, UpgradeError
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             directory = build(ROOT, root / 'guidance', '0.12.6')
             noop = completion(plan(directory, '0.12.6', '0.12.6'), {})
@@ -231,7 +232,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_interrupted_components_admit_only_the_exact_archived_prior_completed_receipt(self):
         import upgrade_program_kit as upgrade
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name).resolve()
             directory = build(ROOT, root / 'guidance', '0.12.6')
             prior_plan = plan(directory, '0.12.5', '0.12.6')
@@ -265,7 +266,7 @@ class GuidanceTests(unittest.TestCase):
             with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121'):
                 upgrade.upgrade_retry_context(root, ROOT, target_version)
     def test_substantive_change_requires_exact_accepted_decision(self):
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             directory = build(ROOT, root / 'guidance', '0.12.5')
             migration = plan(directory, '0.12.3', '0.12.5')
@@ -310,7 +311,7 @@ class GuidanceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'evidence changed'): require_review(root, migration)
 
     def test_verified_baseline_is_read_only_and_old_sources_need_layout_inspection(self):
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             directory = build(ROOT, Path(name), '0.12.5')
             before = {p.name: p.read_bytes() for p in directory.iterdir()}
             result = plan(directory, '0.12.5', '0.12.5')
@@ -324,7 +325,7 @@ class GuidanceTests(unittest.TestCase):
             self.assertEqual(before, {p.name: p.read_bytes() for p in directory.iterdir()})
 
     def test_cumulative_entries_and_tamper_missing_source_and_downgrade(self):
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             directory = build(ROOT, Path(name), '0.12.5')
             path = directory / 'migration-index.json'
             index = json.loads(path.read_text())

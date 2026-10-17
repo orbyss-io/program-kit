@@ -174,7 +174,7 @@ The current release qualification pins Spec Kit 1.1.3.
 In your own terminal, upgrade an older shared user tool with
 `uv tool install specify-cli==1.1.3 --force --no-python-downloads`, then verify
 `specify version`. Component manifests require at least 1.1.1; CI and build examples use the exact
-tested version. Historical 1.0.1 patch proposals and archived evidence retain their original baseline.
+tested version.
 
 ### Device toolchain readiness
 
@@ -348,7 +348,7 @@ For supported bootstrap failures, use the installed `workflow_lifecycle.py resum
 entry point described in the [workflow resumption contract](extensions/program-kit-governance/references/workflow-resumption.md).
 It preserves successful stages, selects the affected producer and executes review, validation and
 completion through the native engine. Accepted readiness failures use an explicitly linked continuation;
-the original terminal run remains unchanged. The [older roadmap drift procedure](docs/bootstrap-recovery.md)
+the original terminal run remains unchanged. The [older roadmap drift procedure](docs/validation.md)
 is historical guidance for versions outside the supported migration contract.
 
 Program Kit prevents concurrent bootstrap runs from mutating the same governance artifacts. If a
@@ -553,46 +553,32 @@ The reusable `json_schema.py validate --schema PATH --input PATH` and `describe 
 an independently installed copy. See the extension's `references/json-schema-tools.md` for setup,
 offline upgrades, reference restrictions, and local-edit protection. No global tool install is needed.
 
-During development, run the bounded source-contract gate. It intentionally excludes browser,
-packaging, clean-install, upgrade, and public-registry release gates:
+During development, run fast integrity checks, then select affected contracts:
 
 ```powershell
 ./scripts/Test-ProgramKit.ps1
+python scripts/run_validation.py --suite Affected --changed-from <base-commit>
 ```
 
-CI owns deterministic release qualification. Main pushes run Development plus affected
-expensive checks and prerequisite closure across the whole push. For a candidate,
-run the untagged **Qualify candidate** workflow with its exact expected main commit.
-It builds one immutable payload and qualifies Linux, all three browsers, focused
-Windows compatibility and security in one run. Reuse an existing complete matching
-qualification; affected-only CI cannot claim complete acceptance.
+The [validation guide](docs/validation.md) explains the single capability map,
+representative fixtures, explicit coverage gaps and runtime budgets. Independent
+supported checks run even when another selected check lacks prerequisites. Native,
+PostgreSQL, generated-client, browser and Host integrations require an affected risk.
+Local records stay ignored; share a concise validation summary in the PR.
 
-Tagged Release verifies and publishes those exact CI-built assets. It performs no
-package build or deterministic suite. Security evidence defaults to a maximum age of
-24 hours; a separate scan-only CI refresh handles stale evidence. Missing or expired
-artifacts require a new complete CI qualification. A candidate can need no local
-execution. The old local Release commands now return migration guidance.
+PR and explicit candidate CI share one package workflow: fast integrity, one build,
+clean installation and installed entrypoints on Windows/Linux, and applicable security
+checks. There is no broad duplicate main-push suite. A native GitHub environment
+approval identifies the exact candidate and authorizes stable tag creation/publication
+of the inspected packages. Sole-maintainer operation is supported. No custom developer
+receipt transport or signed readiness form is required. A distinct public initializer and one prior-release upgrade must pass before Release
+succeeds. Dependency upgrades remain separate maintenance. See [releasing](docs/releasing.md).
 
-Optional AI trials remain individually authorized local work. Release-oriented trials
-use `python scripts/release_candidate.py prepare-trial --run-id <qualification-run>
---output artifacts/trial-preparation/<unique-name>` to download verified CI packages,
-check this host and prepare a disposable consumer. Supply the resulting record with
-`New-LiveAcceptanceAuthorization.ps1 -CiPreparation <record>` for the exact selected
-phase. Development-learning trials retain their separately labeled `-TrialReceipt`
-path. Historical `-ReleaseReceipt` evidence is read-only and retains its original
-host/source/toolchain checks. No preparation or readiness command starts paid work.
-
-The repository-only `$program-kit-release-readiness` skill recommends relevant trials
-from actual changes. Full trial evidence stays internal; a reviewed concise assessment
-records scope, outcomes, provenance and unresolved findings. Confirmed product defects
-block readiness. No trial run means no AI acceptance claim. Recording a human-attested
-statement does not independently verify a trial ran. The assessment is supplemental
-release information and never changes qualified package bytes.
-
-Follow the maintained [release procedure](docs/releasing.md). Creating tags or
-publishing still requires explicit user authority. Qualification alone creates no
-public release. Deterministic fixtures never start a coding agent; human interactive
-intake remains a foreground user-owned exercise.
+Optional live trials remain separately authorized; deterministic validation never
+starts a coding agent. The repository-only release-readiness skill can recommend
+relevant trials but grants neither paid-worker nor publication authority. No trial
+run means no AI acceptance claim. Confirmed product defects block release; maintainer
+review must explicitly address applicable coverage and harness limitations.
 
 ## Release assets
 
@@ -610,9 +596,8 @@ intake remains a foreground user-owned exercise.
 - `RELEASE-NOTES-<version>.md`, `MIGRATIONS-<version>.md`, and
   `migration-index-<version>.json`: reviewed release guidance and cumulative
   migration applicability. The same guidance is available offline in the governance extension.
-- The separate authenticated CI `qualification.json` binds exact source, successful job/platform/browser
-  coverage, original validation evidence and immutable payload IDs/digests. It remains a CI artifact;
-  historical published `release-receipt-<version>.json` files retain their original claims.
+- A separate CI source/package manifest and normal Actions logs bind candidate
+  commit, version and exact archive hashes. They remain CI artifacts.
 
 Verify a downloaded artifact:
 
@@ -639,7 +624,7 @@ the inherited Keycloak theme scaffold preserves provider flows and requires actu
 
 Consumer-owned profile/content inputs generate reproducible, conflict-protected outputs. Core
 tests cover contrast, SVG safety, metadata/private-export boundaries, browser accessibility and
-keyboard/reflow behavior. [Evidence and implementation status](docs/ui-experience-plan.md) distinguish
+keyboard/reflow behavior. [UI experience contract](extensions/program-kit-governance/references/ui-experience-v1.md) distinguish
 automated evidence from consumer journey, screen-reader and deployment acceptance.
 
 Forms and localization are supplied by the independently versioned
@@ -660,7 +645,7 @@ remains repository-only. See the [operating contract](extensions/program-kit-gov
 and [indexed unreleased guidance](releases/migration-0.13.3.md).
 The [public evidence repository](https://github.com/orbyss-io/program-kit-evidence)
 and App-bound guardian were provisioned and tested in three synthetic scenarios;
-see the [operational results](docs/reviews/repair-feedback-operational-test-results-2026-10-16.json).
+the maintained operating contract describes its supported boundaries.
 Receiving owners use the [maintenance intake procedure](docs/maintenance/repair-feedback.md)
 to register a ledger, inspect local/public packets and record request-specific decisions.
 The feature remains unreleased source; these infrastructure tests do not qualify a release.

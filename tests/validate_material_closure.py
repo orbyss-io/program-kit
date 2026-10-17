@@ -174,4 +174,12 @@ class ClosureTests(unittest.TestCase):
             print('Native material closure evidence: '+str(evidence))
 
 
-if __name__=='__main__':unittest.main()
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--native', action='store_true', help='Execute the real two-story restore/build/pack/runtime fixture')
+    args = parser.parse_args()
+    all_cases = unittest.defaultTestLoader.loadTestsFromTestCase(ClosureTests)
+    suite = unittest.TestSuite(case for case in all_cases
+        if ('test_actual_native_' in case.id()) == args.native)
+    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

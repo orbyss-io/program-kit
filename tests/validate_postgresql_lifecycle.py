@@ -181,7 +181,12 @@ GRANT CONNECT ON DATABASE "{database}" TO "{runtime}";
         result['observedConcurrentRuntimeTransactions'] = max(overlaps)
         assert sql('independent-effects',f'SELECT count(*) FROM "{database}".entries') == '8'
         cases.append('eight-concurrent-native-runtime-units-independent-committed-effects')
+        # Test grant admission against the shipped lifecycle recipe instead of
+        # maintaining a second handwritten synthetic deployment recipe.
+        sql('unrelated-table', 'CREATE TABLE public.unrelated_fixture(secret text)')
         for label, statement in [('ddl',f'CREATE TABLE "{database}".forbidden(id int)'),('journal-write',f'DELETE FROM "{database}".journal'),
+                                  ('schema-create', 'CREATE SCHEMA runtime_created'),
+                                  ('unrelated-table', 'SELECT secret FROM public.unrelated_fixture'),
                                   ('role-escalation',f'ALTER ROLE "{runtime}" SUPERUSER')]:
             sql('runtime-denied-'+label,statement,user=runtime,success=False)
             cases.append('runtime-denied-'+label)

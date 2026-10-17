@@ -338,6 +338,18 @@ def verify_build_stages(root, feature, directory):
         feature.write_bytes(original_feature)
 
 
+def prepare_comparison_tool(root, binary):
+    """Stage and probe the reviewed comparator before any emitted Build call."""
+    sys.path.insert(0, str(root / 'eng'))
+    import toolchain
+    pin = (root / '.oasdiff-version').read_text().strip()
+    toolchain.install_oasdiff(root, pin, str(binary))
+    resolved, actual = toolchain.resolve_oasdiff(root, pin, '')
+    if resolved is None or actual != pin:
+        raise ValueError('Prepared comparison binary is unavailable to the emitted toolchain')
+    return resolved
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--execute', action='store_true', help='exercise real local Docker startup in the fictional consumer')
@@ -451,6 +463,8 @@ def main():
     result = {'schemaVersion': 2, 'status': 'scaffolded', 'consumer': root.relative_to(ROOT).as_posix(),
               'scaffoldSeconds': round(time.monotonic() - started, 3), 'runtimeExercised': False,
               'engines': args.engines.split(','), 'singleHost': args.single_host, 'toolingExercised': False}
+    if args.tooling:
+        prepare_comparison_tool(root, args.oasdiff)
     if args.execute:
         command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'prepare')
         preparation = json.loads((root / 'artifacts/composition/prepared.json').read_text())
@@ -621,9 +635,6 @@ public sealed class ProbeService
                 command(['pwsh', '-NoProfile', '-File', 'eng/Test-Web.ps1', '-BaseUrl', first['origin'],
                          '-Shell', 'application-shell', '-PermissionProbePath', '/api/permission-probe'],
                         root, directory / 'emitted-test-web')
-                pin = (root / '.oasdiff-version').read_text().strip()
-                binary_dir = root / 'artifacts/tools/oasdiff' / pin; binary_dir.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(args.oasdiff, binary_dir / args.oasdiff.name)
                 for shell_id, frontend_id in [('application-shell', 'policy-web'), ('assessment-shell', 'assessment-web')]:
                     if shell_id not in graph['resources']:
                         continue

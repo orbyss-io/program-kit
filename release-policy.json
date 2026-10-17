@@ -1,117 +1,14 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "repository": "orbyss-io/program-kit",
-  "workflows": {
-    "qualification": ".github/workflows/qualify-candidate.yml",
-    "security": ".github/workflows/refresh-candidate-security.yml",
-    "assessment": ".github/workflows/record-release-assessment.yml"
-  },
+  "workflow": ".github/workflows/qualify-candidate.yml",
   "requiredJobs": [
     "build",
-    "linux",
-    "windows",
+    "install-linux",
+    "install-windows",
     "security",
-    "finalize"
+    "timings"
   ],
-  "browsers": [
-    "chromium",
-    "firefox",
-    "webkit"
-  ],
-  "securityMaxAgeHours": 24,
-  "artifactRetentionDays": 14,
-  "windowsRoots": [
-    "source-install",
-    "validate_codex_bootstrap",
-    "test_workflow_shell_preflight",
-    "validate_js_toolchain",
-    "validate_local_upgrade",
-    "validate_release_install",
-    "validate_consumer_upgrade_install",
-    "candidate-upgrade",
-    "validate_workflow_resumption",
-    "validate_workflow_runtimes",
-    "validate_codex_worker_policy",
-    "validate_live_bootstrap_acceptance",
-    "validate_upgrade_boundaries",
-    "validate_repository_sync",
-    "validate_repository_toolchain"
-  ],
-  "recommendations": [
-    {
-      "family": "bootstrap",
-      "inputs": [
-        "workflows/**",
-        "extensions/program-kit-governance/commands/*intake*",
-        "extensions/program-kit-governance/commands/*bootstrap*",
-        "extensions/program-kit-governance/scripts/workflow_lifecycle.py",
-        "extensions/program-kit-governance/scripts/bootstrap_context.py"
-      ],
-      "trials": [
-        "bootstrap-checkpoint",
-        "workflow-fresh",
-        "workflow-failure",
-        "workflow-resume"
-      ],
-      "reason": "Intake/bootstrap instructions or native workflow handoffs changed. Select applicable implemented fixtures; each command session/continuation retains its own human gate and one-use authorization.",
-      "gaps": [
-        "Fresh/failure/resume journey must match an existing scenario and oracle."
-      ]
-    },
-    {
-      "family": "building-blocks",
-      "inputs": [
-        "extensions/program-kit-building-blocks/**"
-      ],
-      "trials": [
-        "building-block-consumer"
-      ],
-      "reason": "Building-block selection or application changed; requires an exact parent bootstrap checkpoint.",
-      "gaps": []
-    },
-    {
-      "family": "lifecycle",
-      "inputs": [
-        "presets/**",
-        "extensions/program-kit-governance/commands/**"
-      ],
-      "trials": [
-        "feature-intake",
-        "feature-planning",
-        "feature-plan-tasks",
-        "feature-setup",
-        "feature-delivery"
-      ],
-      "reason": "Recommend only applicable implemented phase/scenario combinations.",
-      "gaps": [
-        "An absent phase/scenario is a coverage gap, never passing evidence."
-      ]
-    },
-    {
-      "family": "migration",
-      "inputs": [
-        "scripts/upgrade*",
-        "releases/**",
-        "extensions/program-kit-governance/references/*upgrade*",
-        "extensions/program-kit-governance/scripts/consumer_upgrade.py"
-      ],
-      "trials": [
-        "upgrade-consumer",
-        "upgrade-continuation"
-      ],
-      "reason": "Use knowledge-application/v3, actual human governance handoff and separately authorized continuation.",
-      "gaps": []
-    },
-    {
-      "family": "ci",
-      "inputs": [
-        ".github/**",
-        "scripts/release_candidate.py",
-        "release-policy.json"
-      ],
-      "trials": [],
-      "reason": "Deterministic CI and promotion verification apply; no unrelated paid trial is recommended.",
-      "gaps": []
-    }
-  ]
+  "publicationEnvironment": "publication",
+  "securityMaxAgeHours": 24
 }

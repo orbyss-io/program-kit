@@ -19,12 +19,12 @@
       "source": "https://cli.github.com/manual/gh_api"
     },
     {
-      "name": "GitHub CLI qualification and attestation verification",
-      "command": "gh api / gh attestation verify",
+      "name": "GitHub CLI package candidate inspection",
+      "command": "gh api",
       "usedBy": "scripts/release_candidate.py",
-      "scope": "Required CI artifact metadata, hard-failing archive downloads and exact producer attestations; local candidate inspection and explicitly authorized workflow dispatch.",
-      "updatePolicy": "Use the runner/device GitHub CLI; fail closed if required attestation flags or APIs are unavailable. No automatic device installation or unrelated pin update.",
-      "source": "https://cli.github.com/manual/gh_attestation_verify"
+      "scope": "Required exact-source successful CI run/job metadata and immutable artifact-digest verification; local read-only candidate inspection. Publication remains behind native GitHub environment approval.",
+      "updatePolicy": "Use the runner/device GitHub CLI; fail closed on lookup, authentication, expired artifacts or digest mismatch. No automatic device installation or unrelated pin update.",
+      "source": "https://cli.github.com/manual/gh_api"
     },
     {
       "name": "GitHub CLI",

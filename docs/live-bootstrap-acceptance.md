@@ -1,7 +1,7 @@
 # Live acceptance v2
 
 Live acceptance v2 is an optional, paid, local diagnostic for a packaged Program Kit candidate. It
-does not replace the deterministic Development or complete CI qualification, is never a publication
+does not replace selected deterministic development checks or CI package validation, is never a publication
 prerequisite, and must never run in CI or from an unattended hook.
 
 The protocol separates bootstrap from later diagnostics. A successfully bootstrapped consumer is
@@ -31,14 +31,14 @@ This is deliberately not a full feature vertical slice. A future Speckit lifecyc
 consume the same bootstrap checkpoint without changing or rerunning the bootstrap phase. Arbitrary
 existing-consumer intake, other agent providers, and POSIX qualification are also follow-up scope.
 
-## Candidate receipt
+## Candidate preparation
 
-Release-oriented preparation downloads verified complete CI qualification via
+Release-oriented preparation downloads packages from the successful exact-main-commit CI package run via
 `scripts/release_candidate.py prepare-trial`. Its separate local `ci-trial-preparation.json`
 is selected with `-CiPreparation`; it records actual host/toolchain/install operations,
 not a claim that this host executed CI acceptance. Historical `-ReleaseReceipt` records
 remain read-only. New preparation binds the clean source, actual local host and toolchains,
-CI qualification digest, exact package hashes and original preparation logs. The live
+CI package-manifest digest, exact package hashes and original preparation logs. The live
 harness installs those packages and never builds a candidate itself. Authorization and
 execution recheck the source, host, packages and tools. An unavailable historical tool
 observation remains unbound, while current live preflight still requires all live tools

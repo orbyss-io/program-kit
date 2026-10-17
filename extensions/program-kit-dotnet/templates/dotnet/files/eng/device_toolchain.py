@@ -291,7 +291,7 @@ def contributor(repository: Path, *, python_only: bool = False,
 
 
 def specify_requirement(repository: Path) -> tuple[str, str]:
-    ci = repository / '.github/workflows/ci.yml'
+    ci = repository / '.github/workflows/qualify-candidate.yml'
     if is_contributor(repository):
         pins = set(re.findall(r'specify-cli==([0-9.]+)', ci.read_text(encoding='utf-8')))
         if len(pins) != 1:

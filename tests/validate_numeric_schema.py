@@ -8,6 +8,7 @@ import sys
 import uuid
 import hashlib
 import time
+import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files'
@@ -131,8 +132,9 @@ def official_export(evidence, catalog, blocks):
 
 
 def generated_client(evidence, document):
-    generator = evidence / 'client'; generator.mkdir()
+    generator = evidence / 'client'; generator.mkdir(exist_ok=True)
     defaults = json.loads((TEMPLATE / 'eng/openapi-defaults.json').read_text())['typescriptGenerator']
+    typescript = json.loads((TEMPLATE.parent / 'web-profiles/common/eng/web/package.json').read_text())['devDependencies']['typescript']
     (generator / 'package.json').write_text(json.dumps({'name': 'numeric-parity', 'version': '1.0.0', 'private': True,
         'scripts': {'generate': 'openapi-typescript ../official-exporter/document.json -o types.ts'},
         'devDependencies': {defaults['package']: defaults['version']}}))
@@ -161,13 +163,24 @@ def generated_client(evidence, document):
         ('client-ci', ['ci', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
         ('client-generate', ['run', 'generate'])):
         run(evidence, name, [*npm, *arguments], generator, environment=environment)
+    # Keep the consumer compiler isolated from generator peers, exactly as the
+    # emitted pipeline does: openapi-typescript currently requires TypeScript5,
+    # while supported application code uses its independently pinned compiler.
+    compiler = evidence / 'compiler'; compiler.mkdir(exist_ok=True)
+    (compiler / 'package.json').write_text(json.dumps({'name': 'generated-client-compiler',
+        'version': '1.0.0', 'private': True, 'devDependencies': {'typescript': typescript}}))
+    for name, arguments in (
+        ('compiler-lock', ['install', '--package-lock-only', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
+        ('compiler-ci', ['ci', '--ignore-scripts', '--strict-peer-deps', '--engine-strict']),
+        ('client-compile', ['exec', '--', 'tsc', '--noEmit', '--strict', '--skipLibCheck', '../client/types.ts'])):
+        run(evidence, name, [*npm, *arguments], compiler, environment=environment)
     types = (generator / 'types.ts').read_text()
     for property in ('amount', 'count', 'revision'):
         import re
         lines = re.findall(r'\b' + property + r'\??: ([^;]+);', types)
         assert lines and all('number' in line and 'string' not in line for line in lines), (property, lines)
     assert 'amounts: number[]' in types
-    return {'generator': defaults, 'toolchainEvidence': str(evidence / 'artifacts/program-kit/toolchain.json'),
+    return {'generator': defaults, 'compiler': typescript, 'toolchainEvidence': str(evidence / 'artifacts/program-kit/toolchain.json'),
             'inheritedPathCharacters': inherited_path_characters,
             'npmPathCharacters': len(environment.get('PATH', '')),
             'lockSha256': hashlib.sha256((generator / 'package-lock.json').read_bytes()).hexdigest(),
@@ -175,12 +188,29 @@ def generated_client(evidence, document):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--export-client', action='store_true',
+        help='Only the real offline exporter, generated TypeScript and compiler; no runtime host, browser or database')
+    args = parser.parse_args()
     evidence = ROOT / 'artifacts/tests/numeric-schema' / uuid.uuid4().hex
     evidence.mkdir(parents=True)
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
     from dependency_profile import resolver
     blocks = resolver()
     catalog = blocks.new_project_catalog()
+    if args.export_client:
+        started = time.monotonic()
+        shutil.copyfile(TEMPLATE / 'global.json', evidence / 'global.json')
+        (evidence / 'NuGet.config').write_text('<configuration><packageSources><clear />'
+            '<add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources></configuration>')
+        document, timing = official_export(evidence, catalog, blocks)
+        client = generated_client(evidence, document)
+        (evidence / 'result.json').write_text(json.dumps({'status': 'passed',
+            'scope': 'Offline selected exporter and compiled generated TypeScript; no application runtime, database, browser or HTTP request claim.',
+            'elapsedSeconds': round(time.monotonic() - started, 3),
+            'officialExport': timing, 'generatedClient': client}, indent=2))
+        print('Offline exporter/client passed: ' + str(evidence))
+        return
     shared = blocks.effective_dependency_context(ROOT)['sharedAbi']['pins']
     version = catalog['packages']['nuget:Orbyss.Foundation.Json']['version']
     shutil.copyfile(TEMPLATE / 'global.json', evidence / 'global.json')

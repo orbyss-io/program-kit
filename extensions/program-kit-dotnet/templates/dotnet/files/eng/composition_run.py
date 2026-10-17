@@ -659,8 +659,11 @@ def run(root, selected_hosts=None, update=False):
         command.run(arguments, environment=process_env, timeout=210)
         checks = {}
         for name in hosts:
-            origin = resolved['hosts'][name]['publicOrigin']
-            foundation_fixture.poll(lambda: qualification.ready(origin, '/bff/user'), timeout=60)
+            host = resolved['hosts'][name]
+            origin = host['publicOrigin']
+            for shell_id in host['shells']:
+                path = model.shell_path_base(graph, shell_id) + '/bff/user'
+                foundation_fixture.poll(lambda: qualification.ready(origin, path), timeout=60)
             checks[name] = {'hostActivation': True, 'selectedProviderPrepare': 'required by selected feature activation', 'bffAnonymousStatus': 200}
         browser = browser_check(root, graph, resolved, command, directory, selected_hosts=hosts)
         receipt['pendingActivationHosts'] = [name for name in pending if name not in hosts]

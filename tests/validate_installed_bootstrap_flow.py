@@ -16,6 +16,7 @@ import tempfile
 import zipfile
 from pathlib import Path
 from unittest.mock import patch
+from owned_fixture import FixtureDirectory
 
 import validate_bootstrap_lifecycle as fixture
 import workflow_lifecycle as lifecycle
@@ -26,10 +27,10 @@ from specify_cli.workflows.step.shell import ShellStep
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def scenario(mode):
+def scenario(mode, *, source_payload=False):
     previous = Path.cwd()
     version = (ROOT / 'VERSION').read_text().strip()
-    with tempfile.TemporaryDirectory(prefix='pk-installed-flow-') as directory:
+    with FixtureDirectory(prefix='pk-installed-flow-', native=True) as directory:
         root = Path(directory).resolve()
         os.chdir(root)
         try:
@@ -47,18 +48,23 @@ def scenario(mode):
             decisions = fixture.lifecycle.load(decisions_path)
             decisions['default_profile']['version'] = version
             fixture.lifecycle.write(decisions_path, decisions)
-            # Replace test-helper source copies with the real distribution payload.
-            # Only these newly created, owned fixture directories can be removed.
-            for name in ('governance', 'building-blocks', 'dotnet'):
-                target = root / '.specify/extensions' / ('program-kit-' + name)
-                if root not in target.resolve().parents:
-                    raise AssertionError('Fixture path escaped its owned directory')
-                shutil.rmtree(target)
-                with zipfile.ZipFile(ROOT / 'artifacts' / f'program-kit-{name}-{version}.zip') as archive:
-                    archive.extractall(target)
             installed = root / '.specify/workflows/program-kit-bootstrap'
-            with zipfile.ZipFile(ROOT / 'artifacts' / f'program-kit-bootstrap-{version}.zip') as archive:
-                archive.extractall(installed)
+            if source_payload:
+                # Mechanical development checks execute the shipped source
+                # definition; CI separately proves archive installation fidelity.
+                shutil.copytree(ROOT / 'workflows/program-kit-bootstrap', installed, dirs_exist_ok=True)
+            else:
+                # Replace fixture copies with the actual distribution payload.
+                # These are newly created owned disposable directories only.
+                for name in ('governance', 'building-blocks', 'dotnet'):
+                    target = root / '.specify/extensions' / ('program-kit-' + name)
+                    if root not in target.resolve().parents:
+                        raise AssertionError('Fixture path escaped its owned directory')
+                    shutil.rmtree(target)
+                    with zipfile.ZipFile(ROOT / 'artifacts' / f'program-kit-{name}-{version}.zip') as archive:
+                        archive.extractall(target)
+                with zipfile.ZipFile(ROOT / 'artifacts' / f'program-kit-bootstrap-{version}.zip') as archive:
+                    archive.extractall(installed)
             for name in ('bootstrap-assessment-approval.json', 'bootstrap-approval.json', 'bootstrap-completion.json'):
                 (root / '.specify/governance' / name).unlink(missing_ok=True)
             (root / '.specify/memory/constitution-ratification.json').unlink(missing_ok=True)
@@ -129,6 +135,16 @@ def scenario(mode):
                 if mode == 'resume':
                     assert state.status.value == 'failed' and state.current_step_id == 'validate-assessment-output', state.error
                     assert not (root / fixture.governance.BOOTSTRAP_COMPLETION).exists()
+                    # The owning failed authoring stage legitimately reruns.
+                    # Earlier completed stages must retain their original result.
+                    prefix_ids = []
+                    for step in definition.data['steps']:
+                        if step['id'] == 'prepare-assessment-context':
+                            break
+                        prefix_ids.append(step['id'])
+                    completed_prefix = {identity: copy.deepcopy(state.step_results[identity]) for identity in prefix_ids
+                                        if state.step_results.get(identity, {}).get('status') == 'completed'}
+                    assert completed_prefix, 'Fixture did not complete a prefix before the injected failure'
                     state = lifecycle.resume(root, run_id)
                     reviews = {'review-assessment': ('assessment_verdict', 'approve'),
                                'review-constitution': ('constitution_verdict', 'ratify'),
@@ -138,6 +154,8 @@ def scenario(mode):
                             break
                         key, verdict = reviews[state.current_step_id]
                         state = lifecycle.resume(root, run_id, {key: verdict})
+                    assert all(state.step_results.get(identity) == value for identity, value in completed_prefix.items()), \
+                        'Resumption replaced an already completed prefix'
                 assert state.status.value == 'completed', (mode, state.current_step_id, state.error)
             lifecycle.validate_engine_completion(root)
             assert 'complete-bootstrap' in shells

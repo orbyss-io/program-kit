@@ -443,13 +443,8 @@ def main() -> int:
     args = parser.parse_args()
 
     root = filesystem_root(Path(__file__).resolve().parents[1])
-    # Local packaging cannot use a temporary tool environment as device readiness.
-    import importlib.util
-    source = root / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'
-    specification = importlib.util.spec_from_file_location('package_device_policy', source)
-    policy = importlib.util.module_from_spec(specification)
-    specification.loader.exec_module(policy)
-    policy.contributor(root)
+    # Packaging invokes Python, YAML and Spec Kit; native/browser toolchains
+    # belong to checks that execute them, not this archive builder.
     output = (root / args.output).resolve()
     try:
         output.relative_to(root)

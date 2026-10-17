@@ -1,43 +1,37 @@
-# Automatic dependency updates
+# Dependency maintenance
 
-Run this repository's **Update dependencies** workflow before preparing a release,
-or start it manually for an upstream update. It also runs weekly. This is repository
-maintenance; ordinary Spec Kit commands and implementation checkpoints do not run it.
+Dependency discovery, upgrades and profile qualification are deliberate maintenance;
+release preparation does not require upgrading every active dependency. A candidate
+uses its declared qualified dependency set and passes applicable security checks.
+An unrelated failed maintenance experiment does not block an otherwise qualified
+candidate; an applicable unresolved defect/security finding or missing required
+qualification does.
 
-The workflow discovers publisher versions, upgrades active tools, packages, actions
-and image digests, refreshes native locks, prepares and qualifies a new public
-dependency profile, captures its exact package schemas, interfaces and frozen source
-guidance, and promotes that passing profile and knowledge together. Historical
-profiles and existing consumer locks remain available.
+The **Update dependencies** workflow runs manually or weekly. It discovers publisher
+versions, upgrades active pins, refreshes native locks, qualifies the new dependency
+profile and promotes its exact captured contracts/knowledge together. Existing
+consumer locks and supported historical profile identities remain available.
+New external inputs belong in `maintenance-policy.json`. Foundation publishes
+independently; Program Kit consumes public releases and never republishes an already
+public Foundation artifact.
 
-All deterministic checks and image vulnerability scans must pass before the job
-opens an update PR. Failed lookups or incompatible contracts stop the job and preserve
-diagnostics. Fix the failure and rerun; there are no per-dependency decision forms.
-The policy explicitly selects anonymous GitHub metadata access for the public Aqua
-repositories, whose release endpoints reject the Actions integration token. Other
-GitHub lookups retain token authentication. Anonymous lookup is not an error fallback:
-unavailable releases or unresolved action tags still block the update.
+Use `python scripts/update_dependencies.py --development` for fast integrity only.
+Use `python scripts/update_dependencies.py --changed-from <base>` for affected update
+checks. These commands do not refresh locks or install toolchains. Explicit
+`--refresh-locks` updates native locks; `--upgrade` discovers pins and qualifies a new
+profile. Those operations check their actual device prerequisites and may require
+user-terminal toolchain updates under the maintained device policy. Agents never
+install device software or substitute repository-local runtimes.
 
-New external inputs belong in maintenance-policy.json. Foundation has its own
-independent workflow and publishes knowledge with each release. Program Kit adopts
-public releases: editing Foundation source does not change a published package or
-image. Run Foundation's update first when its contracts need upgrading, then rerun
-Program Kit after publication.
+The unattended workflow provisions its own selected tools, explicitly qualifies a
+changed profile, refreshes locks and runs affected contracts. Native/profile
+qualification can remain expensive because it establishes a specific dependency
+contract; it is not repeated for unrelated feature changes or every release.
+Lookup, security and test failures stop maintenance and identify the repair. A timeout
+or partial result is never accepted. Preserve actionable diagnostics in normal Actions
+artifacts, then fix/reproduce the failed focused check before retrying.
 
-For local development run `python scripts/update_dependencies.py --development`.
-On human devices, the shared readiness preflight pauses for user-terminal toolchain updates
-before qualification/restoration. After active pins change it checks again. Follow the
-[device toolchain policy](../../extensions/program-kit-governance/references/device-toolchain-policy.md):
-the agent never installs device software or substitutes repository-local SDK/Node/npm/uv tools.
-The unattended CI workflow continues provisioning its own toolchains. Metadata collection and
-pin editing in `dependency_maintenance.py` do not install software; `update_dependencies.py`
-owns the qualification gate. Preserve failed update observations and resume only after actual
-device versions and persistent executable selection pass verification.
-Complete update validation runs in Linux CI, including Firefox. Candidate qualification runs in the separate untagged CI workflow; no mandatory local
-Release repeats CI. Tagged Release promotes those exact qualified bytes and requires
-fresh security evidence. A scan-only refresh does not rerun dependency updates or product
-acceptance. See [releasing](../releasing.md).
-
-Sources: [.NET image maintenance](https://github.com/dotnet/dotnet-docker/blob/main/documentation/vulnerability-reporting.md),
-[Dependabot configuration](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference),
-[Trivy scanning](https://trivy.dev/docs/dev/guide/scanner/vulnerability/).
+Public Aqua repository metadata uses the policy's explicit anonymous lookup; other
+GitHub lookups retain authentication. Unavailable releases and unresolved action tags
+are failures, not silent fallbacks. See [validation](../validation.md) for adding a
+capability edge and [releasing](../releasing.md) for exact candidate publication.

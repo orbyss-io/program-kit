@@ -80,7 +80,8 @@ def main():
         evidence['profileOverride'] = args.baseline_profile is not None
         versions = {name: catalog['packages']['nuget:Orbyss.Foundation.' + name]['version'] for name in ['Authentication', 'Web.ProblemDetails']}
         evidence['selectedVersions'] = versions
-        evidence['unit'] = unit_checks(directory)
+        if args.unit or not args.execute:
+            evidence['unit'] = unit_checks(directory)
         if not args.execute:
             evidence['status'] = 'passed'; print('Authentication presentation admission passed: ' + str(directory)); return
         for source in [EXAMPLE, ROOT / 'tests/fixtures/authentication-presentation/Probe.cs', ROOT / 'tests/fixtures/authentication-presentation/browser.mjs', TEMPLATE / 'web-profiles/common/eng/web/authentication-recovery-focus.ts']:

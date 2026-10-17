@@ -1,9 +1,8 @@
 # Adopting reusable consumer foundations
 
-This implements the [accepted foundation plan](../reusable-consumer-foundations-plan-2026-10-10.md).
-The implementation checklist records current development qualification. Publication and an
-existing application's adoption remain separate actions. Notes and De Sportomgeving have
-not been migrated by this work.
+Use this procedure to select the published Foundation contracts and materialize a
+consumer composition. Publication and an existing application's adoption remain
+separate actions; a toolkit update does not establish that an application has migrated.
 
 For a new consumer, retain its accepted dependency profile and choose the BFF/Keycloak
 composition or its EF/PostgreSQL variant from the installed .NET composition templates.
@@ -88,5 +87,7 @@ inputs, environment or tested theme invalidate the corresponding evidence. A new
 interruption or empty test selection cannot reuse an older pass. Development candidates
 are explicit local selections, with distinct versions and exact retained bytes; they do
 not establish immutable public availability. Public adoption waits for approved Foundation
-publication and fresh exact-composition qualification, then profile and knowledge regeneration
-together. Dependency maintenance and the full Release publication gates remain mandatory.
+publication and the checks relevant to the actual composition, then profile and knowledge
+regeneration together. Dependency upgrades are deliberate maintenance; a release can use
+an unchanged qualified dependency set. See [dependency maintenance](dependency-review.md)
+and [releasing](../releasing.md) for the current validation and publication process.

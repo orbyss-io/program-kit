@@ -36,16 +36,16 @@ jobs:
       - name: Select upgraded npm and Spec Kit
         run: |
           npm install --global "npm@$(cat extensions/program-kit-dotnet/templates/dotnet/files/.npm-version)" --ignore-scripts --no-audit --no-fund
-          python -c "import re, subprocess, sys; from pathlib import Path; pins=set(re.findall(r'specify-cli==([0-9.]+)', Path('.github/workflows/ci.yml').read_text())); assert len(pins)==1, 'CI must select one exact Spec Kit pin'; subprocess.run([sys.executable, '-m', 'pip', 'install', '--disable-pip-version-check', 'specify-cli=='+pins.pop()], check=True)"
+          python -c "import re, subprocess, sys; from pathlib import Path; pins=set(re.findall(r'specify-cli==([0-9.]+)', Path('.github/workflows/qualify-candidate.yml').read_text())); assert len(pins)==1, 'CI must select one exact Spec Kit pin'; subprocess.run([sys.executable, '-m', 'pip', 'install', '--disable-pip-version-check', 'specify-cli=='+pins.pop()], check=True)"
       - name: Qualify and promote the new profile and publisher knowledge
         env:
           GH_TOKEN: ${{ github.token }}
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
         run: python scripts/update_dependency_profiles.py update --engines=chromium,firefox,webkit
-      - name: Refresh locks and run all deterministic tests
+      - name: Refresh locks and validate affected capabilities
         env:
           PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
-        run: python scripts/update_dependencies.py
+        run: python scripts/update_dependencies.py --refresh-locks
       - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567
         with:
           version: v0.76.0
@@ -63,7 +63,7 @@ jobs:
           git add -A
           git commit -m "Update dependencies, qualified profile and versioned publisher knowledge"
           git push origin "$branch"
-          gh pr create --title "Update dependencies and default profile" --body "Upgraded active tooling and packages, refreshed native locks, qualified and promoted the public profile and its publisher knowledge, passed the deterministic suite and scanned both Host platforms. Evidence is attached to this workflow run."
+          gh pr create --title "Update dependencies and default profile" --body "Upgraded active tooling and packages, refreshed native locks, qualified and promoted the public profile and its publisher knowledge, validated affected capabilities and scanned both Host platforms. Evidence is attached to this workflow run."
       - name: Preserve update evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -96,8 +96,6 @@ jobs:
             artifacts/tests/reusable-foundations/**/*.json
             artifacts/consumer-provider-runtime/
             artifacts/tests/numeric-schema/**/*.log
-            artifacts/tests/schema-role-grants/**/*.log
-            artifacts/tests/schema-role-grants/**/operations.json
             extensions/program-kit-building-blocks/references/dependency-profiles/
             extensions/program-kit-building-blocks/references/orbyss-building-blocks.json
             !artifacts/**/cache/nuget/http/**

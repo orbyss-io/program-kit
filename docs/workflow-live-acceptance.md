@@ -5,10 +5,10 @@ They are separate from deterministic Development and Release validation. A
 passing deterministic test, copied fixture or artifact-only completion is not a
 live workflow acceptance result.
 
-Prepare a clean exact candidate with `scripts/release_candidate.py prepare-trial --run-id <complete-CI-run> --output artifacts/trial-preparation/<unique-name>` first. Use the resulting host-bound record with `-CiPreparation`; no local candidate build or repeated acceptance is required. Historical `-ReleaseReceipt` records remain read-only.
+Prepare a clean exact candidate with `scripts/release_candidate.py prepare-trial --run-id <exact-candidate-package-run> --output artifacts/trial-preparation/<unique-name>` first. Use the resulting host-bound record with `-CiPreparation`; no local candidate build or repeated acceptance is required. Historical `-ReleaseReceipt` records remain read-only.
 On this Windows host the user runs Release in their own terminal with
 `-BrowserEngines 'chromium,webkit'`; Firefox remains a CI gate. Never create or
-rewrite a receipt to make it appear that Release ran against changed product code.
+rewrite preparation metadata to claim CI package checks against changed product code.
 
 ## Choosing and authorizing a case
 

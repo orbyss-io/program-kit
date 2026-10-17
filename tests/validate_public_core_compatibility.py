@@ -18,7 +18,7 @@ import codex_bootstrap_preflight as preflight
 
 def selected_cli_pin(root=ROOT):
     pins = set(re.findall(r'specify-cli==([0-9.]+)',
-                         (root / '.github/workflows/ci.yml').read_text(encoding='utf-8')))
+                         (root / '.github/workflows/qualify-candidate.yml').read_text(encoding='utf-8')))
     if len(pins) != 1:
         raise ValueError('CI must select one exact public Spec Kit version')
     return pins.pop()
@@ -61,14 +61,14 @@ class PublicCoreTests(unittest.TestCase):
                 self.assertIn(selected, supported)
                 self.assertNotIn('1.0.1', supported)
                 self.assertNotIn('2.0.0', supported)
-        for name in ('ci.yml','release.yml'):
+        for name in ('qualify-candidate.yml','release.yml'):
             text = (ROOT/'.github/workflows'/name).read_text(encoding='utf-8')
             pins = re.findall(r'specify-cli==([0-9.]+)', text)
             self.assertTrue(pins, 'Missing exact public CLI pin: ' + name)
             self.assertEqual({selected}, set(pins))
 
     def test_disagreeing_ci_pins_are_rejected(self):
-        path = self.root / '.github/workflows/ci.yml'
+        path = self.root / '.github/workflows/qualify-candidate.yml'
         path.parent.mkdir(parents=True)
         path.write_text('specify-cli==1.1.1\nspecify-cli==1.1.2\n')
         with self.assertRaisesRegex(ValueError, 'one exact'):

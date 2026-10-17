@@ -8,7 +8,7 @@ from pathlib import Path
 import shlex
 import shutil
 import sys
-import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 from unittest.mock import patch
 
@@ -129,101 +129,6 @@ class ProfilePreparationTests(unittest.TestCase):
 
 
 class WorkflowTests(unittest.TestCase):
-    def test_ci_manual_targeting_preserves_automatic_and_default_full_routes(self):
-        import os
-        import subprocess
-        import yaml
-        workflow=yaml.safe_load((ROOT/'.github/workflows/ci.yml').read_text())
-        triggers=workflow.get('on',workflow.get(True))
-        selection=triggers['workflow_dispatch']['inputs']['validation']
-        self.assertEqual({'description':'Validation selection (targeted checks do not qualify publication)',
-            'required':False,'default':'full','type':'choice','options':['full','qualify_reusable_foundations','maintenance-failed-integrations']},selection)
-        step=next(row for row in workflow['jobs']['validate']['steps']
-                  if row.get('name')=='Run shared deterministic validation inventory')
-        self.assertEqual('${{ inputs.validation }}',step['env']['VALIDATION_SELECTION'])
-        lines=step['run'].splitlines()
-        self.assertEqual("python - <<'PY'",lines[0]); self.assertEqual('PY',lines[-1])
-        routing='\n'.join(lines[1:-1])
-        base=['python','scripts/run_validation.py']; common=['--workers','4','--engines=chromium,firefox,webkit']
-        routes=[('workflow_dispatch',None,['--suite','PullRequest']),
-                ('workflow_dispatch','',['--suite','PullRequest']),
-                ('workflow_dispatch','full',['--suite','PullRequest']),
-                ('workflow_dispatch','qualify_reusable_foundations',['--check','qualify_reusable_foundations']),
-                ('pull_request','qualify_reusable_foundations',['--suite','PullRequest','--changed-from','base-commit']),
-                ('push','qualify_reusable_foundations',['--suite','PullRequest','--changed-before','push-before','--changed-to','push-after']),
-                ('push','unknown',['--suite','PullRequest','--changed-before','push-before','--changed-to','push-after'])]
-        for event,value,expected in routes:
-            environment={'EVENT_NAME':event,'BASE_SHA':'base-commit','PUSH_BEFORE':'push-before','PUSH_AFTER':'push-after'}
-            if value is not None: environment['VALIDATION_SELECTION']=value
-            with self.subTest(event=event,selection=value),patch.dict(os.environ,environment,clear=True), \
-                    patch.object(subprocess,'run') as observed:
-                exec(routing,{})
-                observed.assert_called_once_with(base+expected+common,check=True)
-                self.assertNotIn('--receipt',observed.call_args.args[0])
-                self.assertNotIn('Release',observed.call_args.args[0])
-        roots=('validate_consumer_upgrade_install','qualify_reusable_foundations','validate_typed_operation')
-        for codes in ((0,0,0),(1,0,0),(0,1,0),(0,0,1)):
-            environment={'EVENT_NAME':'workflow_dispatch','VALIDATION_SELECTION':'maintenance-failed-integrations'}
-            outcomes=[subprocess.CompletedProcess([], code) for code in codes]
-            with self.subTest(diagnosticCodes=codes),patch.dict(os.environ,environment,clear=True), \
-                    patch.object(subprocess,'run',side_effect=outcomes) as observed:
-                with self.assertRaises(SystemExit) as stopped: exec(routing,{})
-                self.assertEqual(any(codes), stopped.exception.code)
-                self.assertEqual([unittest.mock.call(base+['--check',root]+common) for root in roots],observed.call_args_list)
-                self.assertTrue(all('--receipt' not in row.args[0] and 'Release' not in row.args[0] for row in observed.call_args_list))
-        self.assertEqual("github.event_name != 'workflow_dispatch' || inputs.validation != 'maintenance-failed-integrations'",
-                         workflow['jobs']['windows-bootstrap']['if'])
-        for value in ('unknown','qualify_reusable_foundations; echo injected','--suite Release --receipt'):
-            with self.subTest(invalid=value),patch.dict(os.environ,{'EVENT_NAME':'workflow_dispatch',
-                    'VALIDATION_SELECTION':value},clear=True),patch.object(subprocess,'run') as observed:
-                with self.assertRaisesRegex(SystemExit,'Unknown manual CI validation selection'): exec(routing,{})
-                observed.assert_not_called()
-        # Exercise the real runner's selection and refusal contracts without
-        # executing runtime checks. --list exits before credentials or services.
-        runner=[sys.executable,str(ROOT/'scripts/run_validation.py'),'--check','qualify_reusable_foundations','--list']
-        listed=subprocess.run(runner,cwd=ROOT,capture_output=True,text=True,check=True)
-        self.assertEqual(['validate_foundation_composition','validate_foundation_setup','qualify_reusable_foundations'],
-                         [line.split(':',1)[0] for line in listed.stdout.splitlines()])
-        for forbidden in (['--receipt'],['--suite','Release']):
-            rejected=subprocess.run(runner+forbidden,cwd=ROOT,capture_output=True,text=True)
-            self.assertEqual(2,rejected.returncode)
-            self.assertIn('retired' if 'Release' in forbidden else 'cannot claim Release coverage',rejected.stderr)
-
-    def test_suite_boundary_rejects_missing_duplicate_and_erased_ci_inventory_routes(self):
-        import copy
-        import yaml
-        import validate_test_suites as suites
-        workflow=yaml.safe_load((ROOT/'.github/workflows/ci.yml').read_text())
-        steps=workflow['jobs']['validate']['steps']
-        invocation=suites.shared_inventory_invocation(steps,'CI')
-        suites.validate_ci_selection(invocation)
-        for altered in ([step for step in steps if step is not invocation],steps+[copy.deepcopy(invocation)]):
-            with self.assertRaisesRegex(AssertionError,'exactly once'):
-                suites.shared_inventory_invocation(altered,'CI')
-        for before,after in (("'scripts/run_validation.py'","'scripts/other_runner.py'"),
-                ("['--suite', 'PullRequest']","['--check', 'qualify_reusable_foundations']"),
-                ("'--changed-before', os.environ.get('PUSH_BEFORE', '')","'--check', 'qualify_reusable_foundations'"),
-                ("'--changed-from', os.environ['BASE_SHA']","'--check', 'qualify_reusable_foundations'"),
-                ("'--workers', '4'","'--workers', '1'"),
-                ('check=True','check=False'),
-                ("SystemExit('Unknown manual CI validation selection')",'SystemExit(0)'),
-                ("['--suite', 'PullRequest']","['--suite', 'Release', '--receipt']")):
-            altered=copy.deepcopy(invocation)
-            self.assertIn(before,altered['run'])
-            altered['run']=altered['run'].replace(before,after)
-            with self.subTest(mutation=before),self.assertRaises(AssertionError):
-                suites.validate_ci_selection(altered)
-        altered=copy.deepcopy(invocation)
-        altered['env']['VALIDATION_SELECTION']='untrusted inline interpolation'
-        with self.assertRaisesRegex(AssertionError,'environment data'): suites.validate_ci_selection(altered)
-        release=yaml.safe_load((ROOT/'.github/workflows/release.yml').read_text())
-        release_steps=next(iter(release['jobs'].values()))['steps']
-        scripts='\n'.join(step.get('run','') for step in release_steps)
-        self.assertNotIn('run_validation.py',scripts)
-        self.assertNotIn('build_release.py',scripts)
-        from release_workflow_contracts import validate_workflows
-        validate_workflows()
-
     def test_readme_updates_only_successfully_published_stable_release_examples(self):
         spec = importlib.util.spec_from_file_location('published_readme', ROOT / '.github/scripts/update_published_readme.py')
         updater = importlib.util.module_from_spec(spec)
@@ -253,18 +158,18 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError): updater.update_text(text, '0.13.1-rc.1')
         with self.assertRaises(ValueError): updater.update_text('missing marker', '0.13.1')
         release = {'tag_name': 'v0.13.1', 'draft': False, 'prerelease': False}
-        run = {'name': 'Release', 'event': 'push', 'conclusion': 'success',
-               'head_sha': 'published-commit', 'head_branch': 'v0.13.1',
+        run = {'name': 'Release', 'event': 'workflow_dispatch', 'conclusion': 'success',
+               'head_sha': 'published-commit', 'head_branch': 'main',
                'head_repository': {'full_name': 'orbyss-io/program-kit'}}
         with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}]):
             self.assertEqual('0.13.1', updater.published_version({'workflow_run': run}))
-        for changes in ({'conclusion': 'failure'}, {'head_sha': 'other-commit'},
+        for changes in ({'conclusion': 'failure'}, {'head_branch': 'other-branch'},
                         {'event': 'pull_request'}, {'head_repository': {'full_name': 'fork/repo'}}):
             with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}]):
                 with self.assertRaises(ValueError):
                     updater.published_version({'workflow_run': {**run, **changes}})
         with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}]):
-            self.assertIsNone(updater.published_version({'workflow_run': {**run, 'head_branch': 'v0.12.9'}}))
+            self.assertIsNone(updater.published_version({'workflow_run': {**run, 'head_sha': 'older-commit'}}))
         with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}, {'workflow_runs': [run]}]):
             self.assertEqual('0.13.1', updater.published_version({}))
         with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}, {'workflow_runs': []}]):
@@ -319,7 +224,7 @@ class WorkflowTests(unittest.TestCase):
                          sorted(values,key=maintenance.nuget_version_key))
 
     def test_unqualified_candidate_cannot_change_default(self):
-        with tempfile.TemporaryDirectory() as temp:
+        with FixtureDirectory() as temp:
             directory=Path(temp); profiles.write(directory/'state.json',{'status':'prepared'})
             with self.assertRaisesRegex(ValueError,'cannot become the default'): profiles.promote(directory)
 
@@ -331,7 +236,7 @@ class WorkflowTests(unittest.TestCase):
 
     def test_indexed_source_reads_only_the_selected_document_and_rejects_invalid_ranges(self):
         import building_blocks as blocks
-        with tempfile.TemporaryDirectory() as temp:
+        with FixtureDirectory() as temp:
             root=Path(temp); (root/'source.pack').write_bytes(b'first'+ 'second😀'.encode())
             document={'path':'source.pack','byteOffset':5,'byteLength':10}
             self.assertEqual('second😀',blocks.publisher_document_bytes(root,document).decode())
@@ -340,7 +245,7 @@ class WorkflowTests(unittest.TestCase):
 
     def test_indexed_package_facts_preserve_identity_and_utf8(self):
         import building_blocks as blocks
-        with tempfile.TemporaryDirectory() as temp:
+        with FixtureDirectory() as temp:
             root=Path(temp); value={'id':'Orbyss.Foundation.Json','version':'0.3.1','facts':{'readme.md':'é😀'}}
             data=json.dumps(value,ensure_ascii=False).encode(); (root/'package.pack').write_bytes(b'prefix'+data+b'suffix')
             row={'path':'package.pack','byteOffset':6,'byteLength':len(data)}
@@ -348,7 +253,7 @@ class WorkflowTests(unittest.TestCase):
 
     def test_failed_validation_retains_its_log_and_prints_the_actual_cause(self):
         import update_dependencies as updates
-        with tempfile.TemporaryDirectory() as temp:
+        with FixtureDirectory() as temp:
             output = io.StringIO()
             with patch.object(updates, 'ROOT', Path(temp)), contextlib.redirect_stdout(output):
                 with self.assertRaisesRegex(RuntimeError, 'fixture failed'):
@@ -357,10 +262,10 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn('Validation failed: actual-negative-control', output.getvalue())
             self.assertIn('actual-negative-control', (Path(temp) / 'artifacts/dependency-update-tests/fixture.log').read_text())
 
-    def test_full_update_uses_complete_deterministic_inventory_without_release_receipt(self):
+    def test_update_validates_affected_capabilities_without_release_receipt(self):
         text=(ROOT/'scripts/update_dependencies.py').read_text()
-        self.assertIn("else 'PullRequest'",text)
-        self.assertNotIn('--changed-from',text)
+        self.assertIn("else 'Affected'",text)
+        self.assertIn('--changed-from',text)
         self.assertNotIn('--receipt',text)
         self.assertNotIn('live-acceptance',text)
         workflow=(ROOT/'.github/workflows/update-dependencies.yml').read_text()

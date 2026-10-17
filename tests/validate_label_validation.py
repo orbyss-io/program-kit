@@ -269,7 +269,8 @@ def main():
     EVIDENCE.mkdir(parents=True)
     status = {'status': 'running', 'nativeExecuted': args.execute}
     try:
-        status['unit'] = unit_checks()
+        if args.unit or not args.execute:
+            status['unit'] = unit_checks()
         if args.execute:
             status['native'] = native_checks(args)
         status['status'] = 'passed'

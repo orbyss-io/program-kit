@@ -55,7 +55,7 @@ increments are provisional; no work on them is scheduled or started by this back
 
 ## PK-ARCH-003: Cumulative release migration guidance for agents
 
-- Status: Implemented in the 0.12.6 candidate; publication gate pending
+- Status: Implemented; retained as supported cumulative migration behavior
 - Input: [Maintained release procedure](releasing.md) and [migration guidance](../releases/migration-0.12.6.md)
 - Decision: The user authorized cumulative assets, offline discovery and supported updater planning.
 
@@ -65,4 +65,5 @@ machine index as GitHub assets and installed offline references. The updater's
 review, dependency verification and phase evidence distinguish coherent installation
 from completed migration. Support starts at 0.12.5. Older installations require a
 reviewed bridge, without manufactured historical support claims. The qualified
-disposable consumer verified that boundary; full tagged Release remains required.
+disposable consumer verified that boundary. Current publication follows the
+maintained release procedure; historical qualification reports are not release gates.

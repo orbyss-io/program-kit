@@ -168,12 +168,12 @@ Retrying the same `local` command with `--correlation <search.json>` appends a
 content-addressed correlation observation. The original delivery, packet and
 request revision stay unchanged; identical retries create no duplicate observation.
 
-## Deployment and verification evidence
+## Verification
 
-The public repository and dedicated App were provisioned on 16 October 2026.
-See the [provisioning record](../reviews/repair-feedback-provisioning-result-2026-10-16.json)
-and [three closed, unmerged operational scenarios](../reviews/repair-feedback-operational-test-results-2026-10-16.json).
-This feature remains unreleased source. The infrastructure tests do not qualify
-consumer repair behavior or a release candidate. Run the declared
-`validate_repair_feedback` check and bounded Development for source changes;
-exact-candidate CI owns release qualification.
+Public intake checks its current repository, App and workflow enforcement on each
+selected import. Historical infrastructure runs do not establish current acceptance
+or qualify consumer repair behavior. For source changes, run the focused
+`tests/validate_repair_feedback.py` behavioral checks and the development checks
+selected for the affected capabilities. Review their actual results and limitations.
+Release CI independently checks the exact publication packages; see
+[releasing](../releasing.md).

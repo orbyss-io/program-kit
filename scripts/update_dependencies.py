@@ -23,34 +23,34 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--development',action='store_true')
     parser.add_argument('--upgrade',action='store_true')
+    parser.add_argument('--changed-from', help='Optional committed maintenance base; working changes are always included')
+    parser.add_argument('--refresh-locks',action='store_true', help='Explicit lock maintenance, separate from validation')
     parser.add_argument('--engines',default='chromium,webkit' if os.name=='nt' else 'chromium,firefox,webkit')
     args=parser.parse_args()
-    # The same readiness gate runs before locks, profile qualification or tests.
-    import importlib.util
-    source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'
-    spec=importlib.util.spec_from_file_location('maintenance_device_policy',source)
-    policy=importlib.util.module_from_spec(spec); spec.loader.exec_module(policy)
-    policy.contributor(ROOT)
-    if not args.development and os.name=='nt':
-        parser.error('Complete update validation runs in Linux CI. Run the Update dependencies workflow; for bounded local validation use --development. After maintenance, qualify the exact main commit with qualify-candidate.yml as described in docs/releasing.md.')
-    if args.upgrade:
-        run('upgrade',[sys.executable,'scripts/dependency_maintenance.py','upgrade'])
-        policy.contributor(ROOT)  # Updated pins may require a new human device selection.
-        run('profile',[sys.executable,'scripts/update_dependency_profiles.py','update','--engines='+args.engines])
-    # CMD may discard an inherited PATH longer than 8191 characters. Use the
-    # verified active shared executable's absolute path without changing PATH.
-    npm=policy.executable('npm.cmd' if os.name=='nt' else 'npm',ROOT)
-    if npm is None: raise ValueError('PKT030 active shared npm selection changed; refresh and rerun readiness.')
-    for label, relative in (
-        ('web-acceptance', 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web'),
-        ('hosted-pages', 'extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web'),
-        ('ui-acceptance', 'extensions/program-kit-governance/templates/ui-experience/acceptance')):
-        directory=ROOT/relative
-        run('lock-'+label,[str(npm),
-            'install','--package-lock-only','--ignore-scripts','--no-audit','--no-fund','--prefix',str(directory)])
-    run('schema-runtime',[sys.executable,'extensions/program-kit-governance/scripts/schema_runtime.py','setup'])
-    arguments=[sys.executable,'scripts/run_validation.py','--suite','Development' if args.development else 'PullRequest',
-               '--workers','1' if os.name=='nt' else '4','--engines='+args.engines]
+    # Discovery/upgrades/profile qualification are deliberate maintenance. Merely
+    # checking an update does not mutate lockfiles or demand unrelated SDKs.
+    if args.upgrade or args.refresh_locks:
+        import importlib.util
+        source=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'
+        spec=importlib.util.spec_from_file_location('maintenance_device_policy',source)
+        policy=importlib.util.module_from_spec(spec); spec.loader.exec_module(policy)
+        policy.contributor(ROOT)
+        if args.upgrade:
+            run('upgrade',[sys.executable,'scripts/dependency_maintenance.py','upgrade'])
+            policy.contributor(ROOT)
+            run('profile',[sys.executable,'scripts/update_dependency_profiles.py','update','--engines='+args.engines])
+        npm=policy.executable('npm.cmd' if os.name=='nt' else 'npm',ROOT)
+        if npm is None: raise ValueError('PKT030 active shared npm selection changed; refresh and rerun readiness.')
+        for label, relative in (
+            ('web-acceptance', 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web'),
+            ('hosted-pages', 'extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web'),
+            ('ui-acceptance', 'extensions/program-kit-governance/templates/ui-experience/acceptance')):
+            run('lock-'+label,[str(npm), 'install','--package-lock-only','--ignore-scripts',
+                '--no-audit','--no-fund','--prefix',str(ROOT/relative)])
+    arguments=[sys.executable,'scripts/run_validation.py','--suite','Integrity' if args.development else 'Affected',
+               '--engines='+args.engines]
+    if args.changed_from and not args.development:
+        arguments.extend(['--changed-from',args.changed_from])
     run('deterministic-tests',arguments)
 
 
