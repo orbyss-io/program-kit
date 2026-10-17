@@ -5,6 +5,7 @@ import copy
 from datetime import timedelta
 import hashlib
 import io
+import importlib.util
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -47,6 +48,37 @@ class CandidateTests(unittest.TestCase):
     def test_native_publication_boundaries(self):
         from release_workflow_contracts import validate_workflows
         validate_workflows()
+
+    def test_published_readme_uses_release_workflow_path_and_completed_exact_source(self):
+        specification = importlib.util.spec_from_file_location('readme_release_identity', ROOT / '.github/scripts/update_published_readme.py')
+        readme = importlib.util.module_from_spec(specification); specification.loader.exec_module(readme)
+        run = {**self.run, 'name': 'Publish ' + self.identity['commit'] + ' from packages 12',
+               'path': '.github/workflows/release.yml', 'head_repository': {'full_name': readme.REPOSITORY}}
+        release = {'tag_name': 'v1.0.0', 'draft': False, 'prerelease': False}
+        def result(path, observed):
+            if path == 'releases/latest':
+                return release
+            if path == 'commits/v1.0.0':
+                return {'sha': self.identity['commit']}
+            self.assertEqual('actions/workflows/release.yml/runs?event=workflow_dispatch&status=success&head_sha='
+                             + self.identity['commit'] + '&per_page=100', path)
+            return {'workflow_runs': [observed]}
+        with patch.object(readme, 'api', side_effect=lambda path: result(path, run)):
+            self.assertEqual('1.0.0', readme.published_version({'workflow_run': run}))
+            self.assertEqual('1.0.0', readme.published_version({}))
+        mutations = {'path': '.github/workflows/other.yml', 'status': 'in_progress', 'conclusion': 'failure',
+                     'event': 'pull_request', 'head_branch': 'untrusted',
+                     'head_repository': {'full_name': 'other/repository'}, 'head_sha': 'd' * 40}
+        for key, changed in mutations.items():
+            bad = {**run, key: changed}
+            with self.subTest(key=key), patch.object(readme, 'api', side_effect=lambda path: result(path, bad)):
+                with self.assertRaisesRegex(ValueError, 'no successful complete Release workflow'):
+                    readme.published_version({})
+                if key == 'head_sha':
+                    self.assertIsNone(readme.published_version({'workflow_run': bad}))
+                else:
+                    with self.assertRaisesRegex(ValueError, 'no successful complete Release workflow'):
+                        readme.published_version({'workflow_run': bad})
 
     def test_payload_changes_and_missing_assets_block(self):
         value = self.payload()

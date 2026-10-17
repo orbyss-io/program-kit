@@ -34,8 +34,8 @@ def published_version(event):
             return None
     else:
         runs = api(f"actions/workflows/release.yml/runs?event=workflow_dispatch&status=success&head_sha={commit}&per_page=100")["workflow_runs"]
-    if not any(run["name"] == "Release" and run["event"] == "workflow_dispatch"
-               and run["conclusion"] == "success" and run["head_sha"] == commit
+    if not any(run.get("path") == ".github/workflows/release.yml" and run["event"] == "workflow_dispatch"
+               and run["status"] == "completed" and run["conclusion"] == "success" and run["head_sha"] == commit
                and run["head_branch"] == "main"
                and run["head_repository"]["full_name"] == REPOSITORY for run in runs):
         raise ValueError(f"{tag} has no successful complete Release workflow at its tag commit")
