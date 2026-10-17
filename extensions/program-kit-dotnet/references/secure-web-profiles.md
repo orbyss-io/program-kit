@@ -375,7 +375,7 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 | `hostsettings.json` | Consumer-owned host infrastructure only, including eager activation. Bundle staging projects the separately owned `nuplane.settings.json` runtime feed/loading settings into this file for the published host. It contains no auth profile configuration. |
 | `deploy/keycloak/<authority>/<realm>-realm.json` | Managed full import generated from one authority and its declared client/resource bindings. Never edit generated registrations. Preserve identity data during subsequent reconciliation. |
 | `artifacts/composition/compose.json` | Generated backend output of the typed model. It is never a consumer authoring input. |
-| `eng/composition_run.py` and `Test-Web.ps1` | One managed preparation/run/update/stop route and the maintained security test entry point. `Dev.ps1` is retired. |
+| `eng/composition_run.py`, `Prepare-Web.ps1` and `Test-Web.ps1` | Managed composition run/update/stop, explicit locked test-dependency/browser preparation, then verification without acquisition. `Dev.ps1` is retired. |
 | `eng/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
 | Consumer `vite.config` | Consumer-owned adapter point importing `programKitSpaSecurity` and the SPA session adapter. |
 | `eng/web-profile.shells.json` | Managed selected-profile contribution: activates exactly one authentication feature and supplies its shell-scoped configuration. |

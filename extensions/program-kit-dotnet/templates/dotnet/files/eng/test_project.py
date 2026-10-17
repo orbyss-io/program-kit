@@ -16,11 +16,29 @@ import xml.etree.ElementTree as ET
 from central_packages import central_package_versions
 from repository_architecture import inside, read, require, test_compile_contracts, validate_manifest
 
+# Selected identities retain their exact central pin. Additional aliases/versions
+# require scaffold/restore/build/nonempty native execution qualification.
+QUALIFIED_MTP_RUNNERS = {
+    ('xunit.v3.mtp-v2', '3.2.2'),
+    ('xunit.v3.mtp-v2', '4.0.2'),
+    ('xunit.v3', '4.0.2'),
+}
+
+
+def runner_capability(packages, pins):
+    selected = [name for name in packages if name.casefold().startswith('xunit.v3')]
+    require(len(selected) == 1, 'PKA020 select exactly one qualified xUnit runner package; missing or ambiguous runner')
+    identity = selected[0]
+    require((identity.casefold(), pins.get(identity.casefold())) in QUALIFIED_MTP_RUNNERS,
+            'PKA020 unqualified test runner identity/version: ' + identity + ' / '
+            + str(pins.get(identity.casefold())) + '; qualify the selected scaffold, restore, build and nonempty native execution before adoption')
+    return {'packageId': identity, 'version': pins[identity.casefold()], 'runner': 'Microsoft.Testing.Platform'}
+
 
 def scaffold(project, pins):
     contracts = test_compile_contracts(project, required=True)
     packages = sorted(set(project.get('packageReferences', [])) | contracts)
-    require('xunit.v3.mtp-v2' in packages, 'PKA020 supported test scaffold requires selected xunit.v3.mtp-v2; other runners need an explicit consumer scaffold')
+    runner_capability(packages, pins)
     for package in packages:
         require(package.casefold() in pins, 'PKA020 missing selected central pin: ' + project['path'] + ' / ' + package)
     document = ET.Element('Project', Sdk='Microsoft.NET.Sdk')

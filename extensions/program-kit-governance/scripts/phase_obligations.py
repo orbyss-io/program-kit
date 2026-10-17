@@ -14,8 +14,8 @@ from feature_context import context, adopted_context
 from decision_knowledge import constraints
 
 
-_engineering = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/eng'
-sys.path.insert(0, str(_engineering))
+from dotnet_adapter import bootstrap
+_engineering = bootstrap()
 from test_results import test_results, require, text
 from repository_architecture import validate_planned, lifecycle_findings
 
@@ -166,9 +166,27 @@ def model(root, feature, phase='planning', affected_paths=()):
         scoped.update(p['path'] for p in manifest.get('runtimeComposition', {}).get('projects', [])
                       if p['path'] in declarations or Path(p['path']).parent.as_posix() in declarations
                       or any(str(path).replace('\\', '/').startswith(Path(p['path']).parent.as_posix()+'/') for path in affected_paths))
+    from build_output_recipe import recovery_guidance
+    from source_quality import guidance as source_quality_guidance
+    import composition_model
+    provider_bindings = []
+    if (root / composition_model.INPUT).is_file():
+        composition = composition_model.load(root)
+        provider_bindings = [row for row in composition_model.private_file_bindings(composition)
+                             if row['featurePath'] in scoped or row['featurePath'] in declarations
+                             or Path(row['featurePath']).parent.as_posix() in declarations]
+        declarations_by_path = {row['featurePath']: row['status'] for row in composition_model.provider_binding_declarations(
+            root, composition, feature_paths={row['featurePath'] for row in provider_bindings})}
+        for binding in provider_bindings:
+            binding['nativeDeclaration'] = declarations_by_path[binding['featurePath']]
+    output_guidance = [recovery_guidance(row['path']) for row in (manifest or {}).get('runtimeComposition', {}).get('projects', [])
+                       if row['path'] in scoped and (row.get('buildProjectReferences') or row.get('buildOutputCopies'))]
     return {'schemaVersion': 1, 'feature': feature.relative_to(root).as_posix(), 'upgradeCompatibility': compatibility,
             'foundationApplicability': foundation_applicability(root, feature, inherited, tags),
             'lifecycleFindings': lifecycle_findings(root, manifest, scoped) if manifest and 'dotnet' in tags else [],
+            'buildOutputGuidance': output_guidance,
+            'sourceQuality': source_quality_guidance(root) if 'dotnet' in tags else None,
+            'providerBindings': provider_bindings,
             'context': {'sources': inherited['sources'], 'diagnostics': inherited['diagnostics']},
             'decisions': decisions(root, feature),
             'prerequisites': retained_proofs(root, feature, phase),
@@ -198,6 +216,23 @@ def render(value, phase, detailed=False):
         'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
     }
     lines += [actions[phase], '']
+    if value.get('sourceQuality'):
+        quality = value['sourceQuality']
+        lines += ['Selected source rule ' + quality['rule'] + '; '
+                  + quality['analyzerPackage'] + ' version ' + str(quality['selectedVersion'])
+                  + '; root .editorconfig declarations ' + json.dumps(quality['rootDeclarations']) + '.',
+                  *quality['guidance'], '']
+        if quality.get('diagnostic'):
+            lines += ['Source rule context unresolved: ' + quality['diagnostic'], '']
+    for binding in value.get('providerBindings', []):
+        lines += ['Selected provider ' + binding['featurePath'] + '; shell ' + binding['shellName']
+                  + '; exact configuration key ' + binding['configurationKey']
+                  + '; emitted by ' + binding['environmentKey'] + '.',
+                  'Native declaration: ' + binding.get('nativeDeclaration', 'not observed') + '.',
+                  'Use its native settings contract and actual configured registration. Missing/invented keys fail; a direct DI fixture repeating a key does not prove composition activation. Dynamic accesses need runtime proof. Preserve the selected private mount.', '']
+    if value.get('buildOutputGuidance'):
+        lines += ['Owned SDK build outputs: review the selected build edge before inventing custom publish/copy tasks.',
+                  *value['buildOutputGuidance'], '']
     if value.get('foundationApplicability'):
         brief = value['foundationApplicability']
         lines += ['Selected Foundation ' + brief['version'] + '; profile ' + str(brief['profile'])
@@ -359,7 +394,7 @@ def finish(root, feature, handoff=False):
     pending = len(re.findall(r'^\s*-\s+\[ \]\s+', content, re.M))
     draft = '> Draft:' in content or bool(draft_state and draft_state.get('status') != 'complete')
     if not handoff and (pending or draft):
-        from task_draft import current
+        from task_draft import current, current_projection
         can_proceed, review_diagnostic = False, 'Initialize fresh story delivery before implementation; old partial progress grants no continuation authority.'
         if (current(feature) or {}).get('delivery'):
             from task_draft import guard
@@ -373,7 +408,7 @@ def finish(root, feature, handoff=False):
         return {'status': 'in-progress', 'pendingTasks': pending, 'draft': draft,
                 'applicationChecksPassed': False, 'acceptanceEstablished': False,
                 'canProceed': can_proceed, 'reviewDiagnostic': review_diagnostic,
-                'currentCheckpoint': current(feature),
+                'currentCheckpoint': current_projection(current(feature)),
                 'instruction': 'Replace the compact current checkpoint in tasks.md with task_draft.py checkpoint; preserve unresolved failures and the implementation baseline. Run only checks required by changed inputs. No full acceptance at this checkpoint.'}
     require(handoff or bool(re.search(r'^\s*-\s+\[[xX]\]\s+', content, re.M)),
             'Feature closure requires completed tasks or an explicit formal handoff')

@@ -7,6 +7,7 @@ import math
 import re
 from pathlib import Path
 from xml.etree import ElementTree as ET
+import asset_sources
 
 TEMPLATES = Path(__file__).resolve().parents[1] / "templates/ui-experience"
 SVG_NAMESPACE = "http://www.w3.org/2000/svg"
@@ -76,7 +77,7 @@ def icons(profile: dict) -> dict[str, str]:
     selected = profile["brand"].get("icons", {"bundle": "lucide"})
     if selected["bundle"] == "none":
         return {}
-    assets = selected["assets"] if selected["bundle"] == "custom" else json.loads((TEMPLATES / "icons/lucide.json").read_text(encoding="utf-8"))["assets"]
+    assets = selected["assets"] if selected["bundle"] == "custom" else json.loads(asset_sources.read(TEMPLATES / "icons/lucide.json"))["assets"]
     return {name: sanitize_svg(svg, "pk-icon-" + name) for name, svg in assets.items()}
 
 

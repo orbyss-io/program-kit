@@ -8,11 +8,11 @@ import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
-from release_candidate import (ROOT, attest_verify, fetch_candidate, git, now, policy, read,
-                               require, run_metadata, sha256, source, verify_payload,
-                               verify_qualification, write)
+from release_candidate import (ROOT, fetch_candidate, git, now, read,
+                               require, sha256, source, verify_payload, write)
 
 
 def host():
@@ -34,10 +34,13 @@ def validate_preparation(root, path, schemas):
     payload_path = root / safe_relative(ci['payloadPath'])
     require(sha256(final) == ci['qualificationSha256'], 'Local preparation qualification changed')
     qualification = read(final)
-    run, jobs = run_metadata(ci['runId'])
-    verify_qualification(qualification, source(), run, jobs, policy())
-    attest_verify(final, 'qualification', value['source']['commit'], ci['runId'], qualification['producer']['attempt'])
-    require(sha256(payload_path) == qualification['payloadSha256'], 'Local preparation payload manifest changed')
+    require(qualification == read(payload_path), 'Local preparation package manifest changed')
+    # Compare the local preparation with the authenticated native CI artifact;
+    # an edited local manifest cannot borrow a real run's successful job metadata.
+    with tempfile.TemporaryDirectory(prefix='verify-trial-', dir=root / 'artifacts') as scratch:
+        original, original_digest = fetch_candidate(ci['runId'], Path(scratch) / 'candidate')
+    require(original_digest == ci['qualificationSha256'] and original == qualification,
+            'Local preparation differs from original CI package manifest')
     payload = read(payload_path)
     verify_payload(payload, root / 'artifacts', source())
     expected = [{'path': 'artifacts/' + r['name'], 'size': r['size'], 'sha256': r['sha256']} for r in payload['assets']]
@@ -64,11 +67,9 @@ def prepare(run_id, output):
                'host': host(), 'toolchains': tools, 'artifacts': [], 'preparationLogs': [], 'steps': [],
                'catalog': {}, 'startedAt': started, 'finishedAt': started,
                'ci': {'runId': int(run_id), 'qualificationSha256': digest,
-                      'qualificationPath': (output / 'candidate/qualification/qualification.json').relative_to(ROOT).as_posix(),
+                      'qualificationPath': (output / 'candidate/payload/candidate-payload.json').relative_to(ROOT).as_posix(),
                       'payloadPath': (output / 'candidate/payload/candidate-payload.json').relative_to(ROOT).as_posix()}}
     cli.preflight(ROOT, receipt)
-    from run_validation import require_device_toolchain
-    require_device_toolchain()
     payload = read(output / 'candidate/payload/candidate-payload.json')
     for record in payload['assets']:
         target = ROOT / 'artifacts' / record['name']

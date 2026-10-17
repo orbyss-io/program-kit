@@ -25,7 +25,7 @@ def selected(blocks, directory, identity, sources=None):
     lock_path = blocks.repository_path(directory, relative)
     # Native qualification recipes bind the maintained LF-normalized lock digest.
     # NuGet writes CRLF on Windows; content changes still invalidate this binding.
-    if hashlib.sha256(lock_path.read_bytes().replace(b'\r\n', b'\n')).hexdigest() != lock_ref['sha256']:
+    if hashlib.sha256(blocks.filesystem_root(lock_path).read_bytes().replace(b'\r\n', b'\n')).hexdigest() != lock_ref['sha256']:
         blocks.fail('PKB611', 'selected lifecycle dependency lock changed')
     lock = blocks.load_json(lock_path)
     versions = {row['resolved'] for target in lock['dependencies'].values()

@@ -17,6 +17,13 @@ only after the owning capability's persistence admission record is complete.
 
 ## Work
 
+For an explicitly selected first typed operation, export the installed
+`references/examples/typed-operation` sources through the maintained
+`asset_sources.py` helper. Its README binds the real generated wire types, selected
+public Foundation problem contract, native options producer and provider port.
+Example installation is not application acceptance; use its actual native flow
+after the required Foundation release and public profile qualification.
+
 Read the sibling `program-kit-building-blocks` extension before selecting packages. This command owns only
 the managed .NET repository baseline; accepted building-block selection, exact package assignment, and
 cross-ecosystem materialization belong to `speckit.program-kit-building-blocks.sync`. Treat the Foundation,
@@ -64,6 +71,15 @@ the shell-profile overlay, Keycloak realm, and browser contract are managed deri
 exact callback, silent-renew callback, post-logout routes, origins, scopes, renewal timeout, and
 session bounds in that input, then rerun the same sync command. Wildcards, cross-origin callbacks,
 contradictory lifetimes, and non-public SPA client configuration fail synchronization.
+`authenticationNavigation` optionally selects `redirect` (the historical default)
+or `popup`. Synchronization derives the matching serving contract and Vite opener
+policy; popup mode uses `same-origin-allow-popups`. Keep exact callback registrations,
+memory-only credentials and all other CSP/response policies. Requalify the selected
+native protocol client and production serving adapter after changing that topology.
+Local clearing before a provider popup must complete synchronously on the trusted
+click; an asynchronous clear is rejected before provider dispatch. Use the selected
+Foundation SPA control for shared confirmation, fresh session observation and private
+DOM recovery. A cached token or an opened logout window proves no provider termination.
 The scaffolded NuGet configuration uses nuget.org as the default public-package source while more-specific
 patterns protect the approved CShells and Nuplane preview namespaces. Consumers remain authoritative over
 their dependencies and may add private sources with namespace-specific mappings; they must preserve the

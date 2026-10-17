@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "packageId": "Application.Api",
+  "sourceSha256": {},
+  "imports": [],
+  "contracts": [
+    {
+      "scope": "sample-api",
+      "typeName": "ProgramKit.Examples.TypedOperation.LabelApiOptions",
+      "complete": true,
+      "settings": [
+        {
+          "property": "Prefix",
+          "path": "Sample:Api:Prefix",
+          "required": true,
+          "secret": false,
+          "constraints": { "minLength": 1, "maxLength": 32 },
+          "binding": "LabelEndpoints.Configure binds the selected shell's Sample:Api section and validates Prefix before operation resolution.",
+          "precedence": ["typed source initializer", "selected shell configuration providers"],
+          "reload": "restart",
+          "description": "Explicit non-secret prefix for the sample response; the empty source default requires configuration."
+        }
+      ],
+      "semanticConstraints": ["An empty source default is not a valid configured value. The selected shell must supply a Prefix of 1 to 32 characters."],
+      "appliesTo": { "kind": "shell", "features": ["Application.Api"], "configuration": ["Sample:Api"] }
+    }
+  ]
+}

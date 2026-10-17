@@ -74,12 +74,20 @@ same bytes in the package. No extra task/property/item is exempt merely because 
 Custom output/RID layouts require a separately qualified evaluated adapter; do not broaden globs
 or waive unknown build tasks. Clean/incremental builds, source changes, renamed/removed files,
 transitive test output, package layout and compiled references require actual SDK evidence.
+The installed `eng/README.md` section **Owned SDK build outputs** gives the declaration and
+preview command at the point of use. PKV003 identifies this bounded alternative for the
+owned-output-copy case while retaining the evaluated-adapter requirement for other custom
+behavior. Treat the suggestion as applicability guidance, not automatic conversion authority.
 
 This recipe does not choose a process boundary or provide a worker runtime. A normal application
 library may reference a PDF package directly. Multi-assembly runtime loading reported with PdfPig
 is tracked in [Nuplane issue 132](https://github.com/valence-works/nuplane/issues/132); do not force
 isolation, replace a parser or alter package bytes/pins to hide that loader failure. Untrusted-parser
 qualification remains the consumer owner's separate responsibility.
+For the selected PdfPig 0.1.16 decode limitation, public filter-provider adaptation,
+exact envelope/deferred-work boundaries and executable bounded example, see
+[PDF stream decoding](pdf-stream-decoding.md). Strict parsing alone is not stream
+decode evidence; unavailable work grants no paid OCR/model fallback authority.
 
 One application release produces an application-bundle.zip, not a consumer Docker image.
 Run the unchanged, digest-pinned `ghcr.io/orbyss-io/foundation-host` published by Foundation.
@@ -126,6 +134,17 @@ drafts and package availability alone are not runtime acceptance. Setup and upgr
 repository-sync mechanism; retire untouched managed image files and report conflicts for consumer edits.
 
 ## Boundaries retained from the wider .NET profile
+
+For an explicitly authorized one-page OCR operation, use the optional
+[OCR-only operation boundary](../../program-kit-governance/references/ocr-only-operations.md).
+Its recording proof supplies no paid or combined provider acceptance.
+
+Optional source examples can be stored as a bounded source pack in the composite
+installation bundle. The logical filenames and bytes remain the publisher sources;
+native preparation reads them without unpacking into installed directories. To
+inspect/export one example, run `python .specify/extensions/program-kit-governance/scripts/asset_sources.py
+--repository . --component program-kit-dotnet --subtree references/examples/<name>`.
+This writes a new artifact directory and starts no provider, build or coding agent.
 
 - Central package management, locked restore, deterministic pack, and package-source mapping are mandatory.
 - `shells.json`, `hostsettings.json` and `nuplane.settings.json` remain scaffold-once consumer-owned inputs.

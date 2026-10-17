@@ -10,12 +10,27 @@ import sys
 from pathlib import Path, PurePosixPath
 import xml.etree.ElementTree as ET
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "program-kit-governance/scripts"))
 import package_execution
+import native_restore_graph
 
 
 class RestoreError(RuntimeError):
     pass
+
+
+RESTORE_OUTPUT_PROPERTIES = {'NuGetLockFilePath', 'ProjectAssetsFile', 'MSBuildProjectExtensionsPath',
+                             'BaseIntermediateOutputPath', 'IntermediateOutputPath', 'RestoreOutputPath'}
+
+
+def admit_default_restore_outputs(path: Path) -> None:
+    """Do not infer standard output ownership for a customized native layout."""
+    if any(node.tag.rsplit('}', 1)[-1] in RESTORE_OUTPUT_PROPERTIES for node in ET.parse(path).getroot().iter()):
+        raise RestoreError('PKB621 custom/relocated restore outputs require an evaluated graph/output adapter; '
+                           'default packages.lock.json and obj paths cannot establish ownership: ' + str(path))
+    if any(key.casefold() in {name.casefold() for name in RESTORE_OUTPUT_PROPERTIES} for key in os.environ):
+        raise RestoreError('PKB621 inherited restore-output property requires an evaluated graph/output adapter')
 
 
 def load_json(path: Path) -> dict:
@@ -70,6 +85,7 @@ def reference_free_imports(repository: Path, path: Path, seen: set[Path]) -> Non
     if path in seen:
         return
     seen.add(path)
+    admit_default_restore_outputs(path)
     for node in ET.parse(path).getroot().iter():
         kind = node.tag.rsplit('}', 1)[-1]
         if kind == 'ProjectReference':
@@ -118,6 +134,7 @@ def nuget_project_graph(repository: Path, subjects: set[str]) -> dict[str, set[s
             if relative in declared and relative not in physical:
                 continue  # A removed declaration cannot restore a retired project.
             raise RestoreError('PKB621 active reference project is missing: ' + relative)
+        admit_default_restore_outputs(path)
         edges = set()
         for node in ET.parse(path).getroot().iter():
             kind = node.tag.rsplit('}', 1)[-1]
@@ -151,17 +168,84 @@ def nuget_project_graph(repository: Path, subjects: set[str]) -> dict[str, set[s
     return graph
 
 
-def nuget_subjects_with_reverse_closure(repository: Path, subjects: set[str]) -> set[str]:
+def nuget_active_inventory(repository: Path, subjects: set[str]) -> set[str]:
+    """Current declared/physical/solution roots, shared by evaluation and upgrade."""
+    declared_path = repository/'eng/architecture.json'
+    declared = {row['path'] for row in load_json(declared_path).get('runtimeComposition', {}).get('projects', [])} if declared_path.is_file() else set()
+    candidates = [*repository.glob('*.*proj')]
+    candidates.extend(path for directory in ('src', 'tests') for path in (repository/directory).rglob('*.*proj'))
+    physical = {path.relative_to(repository).as_posix() for path in candidates
+                if path.suffix.lower() in {'.csproj', '.fsproj', '.vbproj'}
+                and not native_restore_graph.IGNORED & set(path.relative_to(repository).parts)}
+    if declared and not physical <= declared:
+        raise RestoreError('PKB621 declare every active native project before evaluated restore ownership')
+    inventory = {path for path in declared if safe_path(repository, path).is_file()} | physical
+    for subject in subjects:
+        inventory.update(solution_projects(repository, subject))
+    for solution in [*repository.glob('*.sln'), *repository.glob('*.slnx')]:
+        inventory.update(solution_projects(repository, solution.relative_to(repository).as_posix()))
+    return inventory
+
+
+def nuget_restore_closure(repository: Path, subjects: set[str]) -> dict:
+    """One command and effective project inventory for the supported literal graph.
+
+    Reverse dependents are explicit restore subjects. Each native restore also
+    traverses its forward references, which are output owners even when absent
+    from the direct target list or solution membership.
+    """
     if not subjects:
-        return subjects
-    graph = nuget_project_graph(repository, subjects)
+        return {'subjects': [], 'projectsBySubject': {}, 'projects': [], 'outputs': {}}
+    evaluation, native_outputs = None, None
+    if (repository/native_restore_graph.CONFIG).is_file():
+        inventory = nuget_active_inventory(repository, subjects)
+        try:
+            graph, native_outputs, evaluation = native_restore_graph.evaluate(repository, inventory, isolated_environment(repository))
+        except ValueError as error:
+            raise RestoreError(str(error)) from error
+    else:
+        graph = nuget_project_graph(repository, subjects)
     covered = set().union(*(solution_projects(repository, subject) for subject in subjects))
     affected = set(covered)
     while True:
         expanded = affected | {project for project, edges in graph.items() if edges & affected}
         if expanded == affected:
-            return subjects | (affected - covered)
+            break
         affected = expanded
+    commands = affected if evaluation else subjects | (affected - covered)
+    by_subject = {}
+    for subject in sorted(commands):
+        projects = solution_projects(repository, subject)
+        while True:
+            expanded = projects | {dependency for project in projects for dependency in graph.get(project, set())}
+            if expanded == projects:
+                break
+            projects = expanded
+        by_subject[subject] = sorted(projects)
+    projects = sorted(set().union(*(set(values) for values in by_subject.values())))
+    outputs = {project: native_outputs[project] if native_outputs is not None else {'lock': (Path(project).parent / 'packages.lock.json').as_posix(),
+                         'assets': (Path(project).parent / 'obj/project.assets.json').as_posix()}
+               for project in projects}
+    owned = {}
+    for project, paths in (native_outputs if native_outputs is not None else outputs).items():
+        for output in paths.values():
+            if output.casefold() in owned and owned[output.casefold()] != project:
+                raise RestoreError('PKB621 multiple projects share a restore output; '
+                                   'declare distinct outputs through an evaluated graph/output adapter: ' + output)
+            owned[output.casefold()] = project
+    return {'subjects': sorted(commands, key=str.casefold), 'projectsBySubject': by_subject,
+            'projects': projects, 'outputs': outputs, **({'evaluation': evaluation} if evaluation else {})}
+
+
+def nuget_subjects_with_reverse_closure(repository: Path, subjects: set[str]) -> set[str]:
+    """Compatibility view of the canonical supported restore closure."""
+    return set(nuget_restore_closure(repository, subjects)['subjects'])
+
+
+def nuget_plan_closure(repository: Path, lock: dict) -> dict:
+    subjects = {target.get('lockRoot') or target['path'] for target in lock.get('targets', [])
+                if any(package.get('materializationKind') == 'nuget-project' for package in target.get('packages', []))}
+    return nuget_restore_closure(repository, subjects)
 
 
 def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
@@ -180,12 +264,15 @@ def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
             manifest = safe_path(repository, target["path"])
             npm_directories.add(manifest.parent.relative_to(repository.resolve()).as_posix())
     nuget_config = repository / "NuGet.config"
-    for relative in sorted(nuget_subjects_with_reverse_closure(repository, nuget_subjects), key=str.casefold):
+    closure = nuget_restore_closure(repository, nuget_subjects)
+    for relative in closure['subjects']:
         subject = safe_path(repository, relative)
         if not subject.is_file():
             raise RestoreError(f"PKB621 NuGet restore subject is missing: {relative}")
         args = ["dotnet", "restore", str(subject), "--configfile", str(nuget_config), "--use-lock-file"]
         args.append("--force-evaluate" if mode == "renew" else "--locked-mode")
+        if closure.get('evaluation'):
+            args.append('-p:Configuration='+closure['evaluation']['configuration'])
         commands.append({"ecosystem": "nuget", "cwd": str(repository), "args": args, "subject": relative})
     for relative in sorted(tool_manifests, key=str.casefold):
         manifest = safe_path(repository, relative)
@@ -239,7 +326,7 @@ def isolated_environment(repository: Path) -> dict[str, str]:
     return environment
 
 
-def native_lock_records(repository: Path) -> list[dict]:
+def native_lock_records(repository: Path, lock: dict | None = None) -> list[dict]:
     ignored = {".git", ".specify", "artifacts", "node_modules", "bin", "obj", "cache"}
     records = []
     for name in ("packages.lock.json", "package-lock.json"):
@@ -253,6 +340,14 @@ def native_lock_records(repository: Path) -> list[dict]:
                     "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                 }
             )
+    if lock is not None and (repository/native_restore_graph.CONFIG).is_file():
+        known = {row['path'] for row in records}
+        for output in nuget_plan_closure(repository, lock)['outputs'].values():
+            relative = output['lock']
+            path = safe_path(repository, relative)
+            if relative not in known and path.is_file():
+                records.append({'path': relative, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
+                known.add(relative)
     return sorted(records, key=lambda item: item["path"].casefold())
 
 
@@ -265,7 +360,7 @@ def input_basis(repository: Path, lock: dict) -> dict:
         relative = path.relative_to(repository)
         if any(part in ignored for part in relative.parts) or not path.is_file():
             continue
-        if path.name.casefold() in names or path.suffix in {".csproj", ".props", ".targets", ".sln", ".slnx"}:
+        if path.name.casefold() in names or path.suffix.casefold() in {".csproj", ".fsproj", ".vbproj", ".props", ".targets", ".sln", ".slnx"}:
             paths.add(relative.as_posix())
     for target in lock.get("targets", []):
         paths.add(target["path"])
@@ -273,6 +368,7 @@ def input_basis(repository: Path, lock: dict) -> dict:
     # outputs and verified separately so renew followed by locked can converge.
     paths.add("artifacts/program-kit/toolchain.json")
     paths.add('eng/architecture.json')
+    paths.add(native_restore_graph.CONFIG)
     records = {relative: hashlib.sha256(safe_path(repository, relative).read_bytes()).hexdigest()
                if safe_path(repository, relative).is_file() else None for relative in sorted(paths)}
     toolchain_path = repository / 'artifacts/program-kit/toolchain.json'
@@ -285,7 +381,10 @@ def input_basis(repository: Path, lock: dict) -> dict:
             manifest = load_json(path)
             npm_packages.update(name for section in ('dependencies','devDependencies','optionalDependencies') for name in manifest.get(section, {}))
     package_context = package_execution.context_proof(repository, toolchain_path, sorted(npm_packages)) if npm_packages and toolchain_path.is_file() else None
-    return {"files": records, "targets": lock.get("targets", []), "registryRequirements": lock.get("registryRequirements", []), "npmContext": package_context}
+    return {"files": records, "targets": lock.get("targets", []), "registryRequirements": lock.get("registryRequirements", []),
+            "npmContext": package_context, "nugetRestoreClosure": nuget_plan_closure(repository, lock),
+            "restoreAdapterSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            "nativeGraphAdapterSha256": hashlib.sha256(Path(native_restore_graph.__file__).read_bytes()).hexdigest()}
 
 
 def verify_evidence(repository: Path, lock: dict, evidence: dict) -> None:
@@ -298,8 +397,13 @@ def verify_evidence(repository: Path, lock: dict, evidence: dict) -> None:
     observed = {(item.get('ecosystem'), item.get('subject')) for item in evidence.get('subjects', [])}
     if not expected or observed != expected:
         raise RestoreError('PKB624 restore proof does not cover the current dependency subjects')
+    expected_outputs = {item['subject']: subject_outputs(repository, lock, item, 'locked')
+                        for item in commands if item['ecosystem'] == 'nuget'}
+    if expected_outputs and (any(not digest for outputs in expected_outputs.values() for digest in outputs.values())
+                             or evidence.get('nugetOutputs') != expected_outputs):
+        raise RestoreError('PKB624 native restore output inventory is missing, changed or outside the proved closure')
     needs_native = any(item['ecosystem'] in {'nuget','npm'} for item in commands)
-    if (needs_native and not evidence.get("nativeLocks")) or evidence.get("nativeLocks") != native_lock_records(repository):
+    if (needs_native and not evidence.get("nativeLocks")) or evidence.get("nativeLocks") != native_lock_records(repository, lock):
         raise RestoreError("PKB624 native lock files are missing or changed since verification")
 
 
@@ -311,18 +415,11 @@ def subject_outputs(repository: Path, lock: dict, command: dict, mode: str) -> d
         if mode == 'locked':
             paths.add(Path(command['cwd']) / 'node_modules/.package-lock.json')
     elif command['ecosystem'] == 'nuget':
-        graph = nuget_project_graph(repository, {command['subject']})
-        projects = solution_projects(repository, command['subject'])
-        while True:
-            expanded = projects | {dependency for project in projects for dependency in graph.get(project, set())}
-            if expanded == projects:
-                break
-            projects = expanded
-        for project in projects:
-            directory = safe_path(repository, project).parent
-            paths.add(directory / 'packages.lock.json')
+        closure = nuget_restore_closure(repository, {command['subject']})
+        for project in closure['projectsBySubject'][command['subject']]:
+            paths.add(safe_path(repository, closure['outputs'][project]['lock']))
             if mode == 'locked':
-                paths.add(directory / 'obj/project.assets.json')
+                paths.add(safe_path(repository, closure['outputs'][project]['assets']))
     return {path.relative_to(repository).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
             for path in sorted(paths)}
 
@@ -446,7 +543,9 @@ def main() -> int:
             "mode": mode,
             "planDigest": lock.get("planDigest"),
             "subjects": completed,
-            "nativeLocks": native_lock_records(repository),
+            "nugetOutputs": {command['subject']: subject_outputs(repository, lock, command, mode)
+                             for command in commands if command['ecosystem'] == 'nuget'},
+            "nativeLocks": native_lock_records(repository, lock),
             "inputDigest": package_execution.canonical_hash(input_basis(repository, lock)),
             "satisfied": True,
         }

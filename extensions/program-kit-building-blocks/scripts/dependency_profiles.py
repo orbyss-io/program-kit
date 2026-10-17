@@ -10,6 +10,11 @@ import building_blocks as blocks
 import producer_reconciliation as producers
 
 
+def filesystem_root(path):
+    """Keep native public identities while using the shipped path contract for I/O."""
+    return blocks.filesystem_root(path)
+
+
 def composition(catalog):
     return blocks.composition_projection(catalog)
 
@@ -34,6 +39,8 @@ def supported(directory, identity, catalog):
 
 
 def draft(root, catalog_path, identity, directory):
+    declared_root = Path(root)
+    root, catalog_path, directory = (filesystem_root(path) for path in (root, catalog_path, directory))
     selection_path = root / 'docs/architecture/building-block-selection.json'
     accepted = blocks.load_json(selection_path)
     if accepted.get('status') != 'Accepted': raise ValueError('PKB612 dependency transition requires an Accepted selection')
@@ -109,10 +116,11 @@ def draft(root, catalog_path, identity, directory):
         if path.exists() and blocks.load_json(path) != value:
             raise ValueError('PKB612 existing dependency transition differs; preserve it and author a new review')
         if not path.exists(): blocks.atomic_write(path, blocks.pretty_json(value))
-    return destination, packet
+    return declared_root / destination.relative_to(root), packet
 
 
 def accept(root, destination, directory, decision_id, rationale):
+    root, destination, directory = (filesystem_root(path) for path in (root, destination, directory))
     destination = destination.resolve()
     if not destination.is_relative_to(root.resolve()): raise ValueError('PKB613 dependency transition escapes consumer')
     packet = blocks.load_json(destination / 'review.json')

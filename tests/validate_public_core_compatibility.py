@@ -18,7 +18,7 @@ import codex_bootstrap_preflight as preflight
 
 def selected_cli_pin(root=ROOT):
     pins = set(re.findall(r'specify-cli==([0-9.]+)',
-                         (root / '.github/workflows/ci.yml').read_text(encoding='utf-8')))
+                         (root / '.github/workflows/qualify-candidate.yml').read_text(encoding='utf-8')))
     if len(pins) != 1:
         raise ValueError('CI must select one exact public Spec Kit version')
     return pins.pop()
@@ -37,9 +37,15 @@ class PublicCoreTests(unittest.TestCase):
             with self.subTest(python3=python3), patch.dict(os.environ, {}, clear=True), \
                     patch.object(runtime, 'device_preflight'), \
                     patch.object(runtime.shutil, 'which', side_effect=which) as lookup, \
-                    patch.object(runtime.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, sys.executable + '\n', '')):
+                    patch.object(runtime.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0,
+                        json.dumps({'executable': sys.executable,
+                                    'version': '.'.join(map(str, sys.version_info[:3])),
+                                    'modules': {'yaml': '6.0.3'}}), '')) as probe:
                 self.assertEqual(os.path.abspath(sys.executable), runtime.resolve(self.root))
                 lookup.assert_called_once_with('python')
+                self.assertEqual(sys.executable, probe.call_args.args[0][0])
+                self.assertEqual('-I', probe.call_args.args[0][1])
+                self.assertEqual('["yaml"]', probe.call_args.args[0][-1])
 
     def test_active_manifests_and_ci_share_the_public_cli_baseline(self):
         import yaml
@@ -55,14 +61,14 @@ class PublicCoreTests(unittest.TestCase):
                 self.assertIn(selected, supported)
                 self.assertNotIn('1.0.1', supported)
                 self.assertNotIn('2.0.0', supported)
-        for name in ('ci.yml','release.yml'):
+        for name in ('qualify-candidate.yml','release.yml'):
             text = (ROOT/'.github/workflows'/name).read_text(encoding='utf-8')
             pins = re.findall(r'specify-cli==([0-9.]+)', text)
             self.assertTrue(pins, 'Missing exact public CLI pin: ' + name)
             self.assertEqual({selected}, set(pins))
 
     def test_disagreeing_ci_pins_are_rejected(self):
-        path = self.root / '.github/workflows/ci.yml'
+        path = self.root / '.github/workflows/qualify-candidate.yml'
         path.parent.mkdir(parents=True)
         path.write_text('specify-cli==1.1.1\nspecify-cli==1.1.2\n')
         with self.assertRaisesRegex(ValueError, 'one exact'):
@@ -73,9 +79,10 @@ class PublicCoreTests(unittest.TestCase):
             with patch.dict(os.environ, {'SPECKIT_PYTHON': sys.executable}, clear=True), \
                     patch.object(runtime, 'device_preflight'), \
                     patch.object(runtime.subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, '', diagnostic)):
-                with self.assertRaisesRegex(ValueError, 'before agent dispatch') as error:
+                with self.assertRaisesRegex(ValueError, 'WORKFLOW_RUNTIME_PREFLIGHT: workflow readiness failed') as error:
                     runtime.resolve(self.root)
                 self.assertIn(diagnostic, str(error.exception))
+                self.assertIn('No acquisition was attempted.', str(error.exception))
 
     def test_real_native_environment_without_yaml_is_rejected(self):
         environment = self.root / 'no-yaml'

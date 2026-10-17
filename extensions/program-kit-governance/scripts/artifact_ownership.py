@@ -157,6 +157,8 @@ def extension_point(path: str) -> str:
 
 
 def validate_tasks(tasks: Path, manifest: dict, plan: Path | None) -> None:
+    import retained_inputs
+    retained_inputs.validate_document_outputs(repository_root(tasks.parent), tasks.read_text(encoding='utf-8'))
     plan_text = plan.read_text(encoding="utf-8") if plan else ""
     errors: list[str] = []
     for line_number, path, line in task_paths(tasks):

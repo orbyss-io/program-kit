@@ -43,9 +43,15 @@ class WireCapabilities(unittest.TestCase):
     def test_exact_captured_constraints_and_supported_typed_recovery(self):
         self.assertEqual(self.effective['profile'], self.capabilities['profile'])
         self.assertEqual(self.effective['publisherKnowledge']['sourceCommit'], self.capabilities['sourceCommit'])
-        self.assertEqual({'Orbyss.Foundation.Json', 'Orbyss.Foundation.Json.AspNetCore',
-                          'Orbyss.Foundation.Web.ProblemDetails', 'Orbyss.Foundation.Web.ProblemDetails.Core'},
-                         set(self.capabilities['packages']))
+        capture = self.effective['publisherKnowledge']
+        envelope = next(row for row in capture['documents'] if row['publisherPath'] ==
+            'src/Orbyss.Foundation.Web.ProblemDetails/FoundationProblemEnvelope.cs')
+        source = blocks.publisher_document_bytes(Path(self.effective['registryPath']), envelope).decode('utf-8')
+        expected = {'Orbyss.Foundation.Json', 'Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.ProblemDetails'}
+        if 'IReadOnlyList<FoundationProblemFieldError>' not in source:
+            expected.add('Orbyss.Foundation.Web.ProblemDetails.Core')
+        self.assertEqual(expected, set(self.capabilities['packages']))
+        self.assertEqual(['field', 'code', 'message'], self.capabilities['problem']['fieldErrorFields'])
         for package, version in self.capabilities['packages'].items():
             self.assertEqual(self.effective['catalog']['packages']['nuget:' + package]['version'], version, package)
         self.assertEqual({'type', 'title', 'status', 'code', 'correlationId', 'traceId', 'fieldErrors', 'detail'}, set(self.capabilities['problem']['fields']))

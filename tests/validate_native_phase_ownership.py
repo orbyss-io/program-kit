@@ -10,11 +10,22 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'scripts'), str(ROOT / 'tests')]
 import native_phase_ownership as ownership
 import validate_phase_refresh as fixture
+from owned_fixture import FixtureDirectory
 
 
 def snapshot(root):
     return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in root.rglob('*') if p.is_file()}
+
+
+class SourceAuthorityTests(unittest.TestCase):
+    def test_extracted_candidate_never_borrows_the_enclosing_repository_git_history(self):
+        with FixtureDirectory(prefix='native-baseline-authority-') as directory:
+            release = Path(directory) / 'extracted-candidate'; release.mkdir()
+            manifest = ROOT / 'extensions/program-kit-governance/extension.yml'
+            result = ownership.native_source_baselines(release, 'extensions', 'program-kit-governance',
+                {'version': (ROOT / 'VERSION').read_text().strip()}, ownership.digest(manifest.read_bytes()))
+            self.assertEqual([], result)
 
 
 class NativePhaseOwnershipTests(unittest.TestCase):
@@ -52,6 +63,84 @@ class NativePhaseOwnershipTests(unittest.TestCase):
         with self.assertRaisesRegex(ownership.OwnershipError, 'unresolved or customized.*architecture.md'):
             ownership.preflight(self.root, ROOT)
         self.assertEqual(before, snapshot(self.root))
+
+    def test_missing_unregistered_helper_or_extra_source_cannot_disappear_from_complete_publisher_inventory(self):
+        source = self.root / '.specify/extensions/program-kit-governance/scripts/case_inventory.py'
+        original = source.read_bytes(); source.unlink()
+        before = snapshot(self.root)
+        try:
+            with self.assertRaisesRegex(ownership.OwnershipError, 'customized installed.*case_inventory.py'):
+                ownership.preflight(self.root, ROOT)
+            self.assertEqual(before, snapshot(self.root))
+        finally:
+            source.write_bytes(original)
+        extra = source.with_name('unreviewed_helper.py'); extra.write_bytes(b'raise AssertionError("Never execute this unreviewed source")\n')
+        before = snapshot(self.root)
+        with self.assertRaisesRegex(ownership.OwnershipError, 'customized installed.*unreviewed_helper.py'):
+            ownership.preflight(self.root, ROOT)
+        self.assertEqual(before, snapshot(self.root))
+
+    def test_local_deviation_requires_fresh_actual_current_case_source_and_whole_original(self):
+        source = self.root / '.specify/extensions/program-kit-governance/scripts/tooling_witness.py'
+        relative = source.relative_to(self.root).as_posix(); original = source.read_bytes()
+        self.assertIn(b'hashlib.sha256(raw).hexdigest()', original)
+        source.write_bytes(original.replace(b'hashlib.sha256(raw).hexdigest()', b'hashlib.sha512(raw).hexdigest()'))
+        modified = source.read_bytes()
+        module = 'required_local_repair'
+        test_source = self.root / (module + '.py')
+        text = ('import unittest, hashlib\nfrom pathlib import Path\nclass Required(unittest.TestCase):\n'
+            ' def test_actual_repaired_hash(self):\n'
+            '  scope = {"__name__": "local_repair_under_test", "__file__": ' + repr(str(source)) + '}\n'
+            '  exec(compile(Path(' + repr(str(source)) + ').read_bytes(), ' + repr(str(source)) + ', "exec"), scope)\n'
+            '  self.assertEqual(hashlib.sha512(b"reviewed local behavior").hexdigest(), scope["sha"](b"reviewed local behavior"))\n')
+        test_source.write_text(text, encoding='utf-8')
+        case = module + '.Required.test_actual_repaired_hash'
+        contract = self.root / 'reviewed-current-cases.json'
+        contract.write_text(json.dumps({'schemaVersion': 1, 'inputs': [relative], 'modules': [{
+            'module': module, 'path': test_source.name, 'sha256': ownership.digest(test_source.read_bytes()),
+            'cases': {case: ['Windows', 'Linux', 'Darwin']}}]}), encoding='utf-8')
+        declaration = self.root / 'reviewed-local-repairs.json'
+        row = {'path': relative, 'beforeSha256': ownership.digest(original), 'afterSha256': ownership.digest(modified),
+               'requiredCases': [case], 'rationale': 'Synthetic local behavior actually loaded from the changed installed source; no publisher or product acceptance.'}
+        value = {'schemaVersion': 1, 'contract': contract.name, 'contractSha256': ownership.digest(contract.read_bytes()), 'repairs': [row]}
+        def write():
+            declaration.write_text(json.dumps(value), encoding='utf-8')
+            return ownership.digest(declaration.read_bytes())
+        anchor = write()
+        active, report = ownership.tested_deviations(self.root, ROOT, declaration.name, anchor)
+        self.assertEqual({relative}, set(active)); self.assertEqual('passed', report['execution']['executedCases'][case])
+        self.assertEqual(row['afterSha256'], report['execution']['inputSha256'][relative])
+        self.assertEqual(modified, source.read_bytes()); self.assertFalse(report['publisherAuthenticityEstablished'])
+        with self.assertRaisesRegex(ownership.OwnershipError, 'canonical original attempt'):
+            ownership.tested_deviations(self.root, ROOT, declaration.name, anchor, {'files': {relative: '0' * 64}})
+        row['beforeSha256'] = '0' * 64
+        with self.assertRaisesRegex(ownership.OwnershipError, 'one authenticated original'):
+            ownership.tested_deviations(self.root, ROOT, declaration.name, write())
+        row['beforeSha256'] = ownership.digest(original); row['requiredCases'] = []
+        with self.assertRaisesRegex(ownership.OwnershipError, 'nonempty exact'):
+            ownership.tested_deviations(self.root, ROOT, declaration.name, write())
+        row['requiredCases'] = [case]; anchor = write()
+        # A source-shaped folder is not an installed registered publisher owner.
+        ghost = self.root / '.specify/extensions/program-kit-unregistered/scripts/spurious.py'
+        ghost.parent.mkdir(parents=True); ghost.write_bytes(b'raise AssertionError("Never execute spurious repair source")\n')
+        ghost_relative = ghost.relative_to(self.root).as_posix()
+        original_contract = contract.read_bytes(); expanded = json.loads(original_contract)
+        expanded['inputs'].append(ghost_relative); contract.write_text(json.dumps(expanded), encoding='utf-8')
+        value['contractSha256'] = ownership.digest(contract.read_bytes())
+        value['repairs'].append(dict(row, path=ghost_relative, beforeSha256=None, afterSha256=ownership.digest(ghost.read_bytes())))
+        with self.assertRaisesRegex(ownership.OwnershipError, 'spurious local repair'):
+            ownership.tested_deviations(self.root, ROOT, declaration.name, write())
+        value['repairs'].pop(); contract.write_bytes(original_contract)
+        value['contractSha256'] = ownership.digest(original_contract); ghost.unlink(); anchor = write()
+        source.write_bytes(original)
+        with self.assertRaisesRegex(ownership.OwnershipError, 'reviewed after hash'):
+            ownership.tested_deviations(self.root, ROOT, declaration.name, anchor)
+        source.write_bytes(modified)
+        test_source.write_text(text.replace(' def test_actual_repaired_hash', ' @unittest.skip("method existence is insufficient")\n def test_actual_repaired_hash'), encoding='utf-8')
+        current = json.loads(contract.read_bytes()); current['modules'][0]['sha256'] = ownership.digest(test_source.read_bytes())
+        contract.write_text(json.dumps(current), encoding='utf-8'); value['contractSha256'] = ownership.digest(contract.read_bytes())
+        with self.assertRaisesRegex(ValueError, 'missing, duplicate, skipped'):
+            ownership.tested_deviations(self.root, ROOT, declaration.name, write())
 
     def test_both_installed_integrations_and_copilot_prompt_customizations_are_admitted_by_exact_bindings(self):
         self.fixture.invoke(['integration', 'install', 'copilot', '--force'])
@@ -120,6 +209,9 @@ class NativePhaseOwnershipTests(unittest.TestCase):
             validator = release / 'extensions/program-kit-governance/scripts/release_guidance.py'
             validator.parent.mkdir(parents=True)
             shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts/release_guidance.py', validator)
+            for helper in ('render_profile.py', 'asset_sources.py'):
+                shutil.copyfile(ROOT / 'extensions/program-kit-governance/scripts' / helper,
+                                validator.parent / helper)
             generated = self.root / '.specify/extensions/program-kit-governance/references/release-guidance'
             build(ROOT, generated, (ROOT / 'VERSION').read_text().strip())
             before = snapshot(self.root)

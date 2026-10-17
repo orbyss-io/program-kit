@@ -5,7 +5,6 @@ import copy
 import json
 import shutil
 import sys
-import tempfile
 import zipfile
 from pathlib import Path
 
@@ -16,11 +15,11 @@ def validate_0127_upgrade(installed: Path, upgrade_test) -> None:
     """Install the actual historical components; no metadata is injected."""
     release = upgrade_test.ROOT
     updater = upgrade_test.load_updater()
-    with tempfile.TemporaryDirectory(prefix='program-kit-0127-upgrade-') as temporary:
-        scratch = Path(temporary)
+    with upgrade_test.owned_scratch(release, 'validation-fixture') as temporary:
+        scratch = Path(upgrade_test.filesystem_path(temporary))
         archive = scratch / 'old.zip'
         upgrade_test.require_success(upgrade_test.run(
-            'git', 'archive', '--format=zip', '--output', str(archive), 'v0.12.7', cwd=release),
+            'git', 'archive', '--format=zip', '--output', upgrade_test.native_path(archive), 'v0.12.7', cwd=release),
             'historical 0.12.7 source fixture')
         old = scratch / 'release'
         with zipfile.ZipFile(archive) as source:
@@ -133,8 +132,9 @@ def validate_selection_upgrades(installed: Path, upgrade_test, release: Path | N
     blocks = blocks_test.load_module(blocks_test.RESOLVER)
     catalog = blocks.load_json(blocks_test.CATALOG)
     release = release or upgrade_test.ROOT
-    with tempfile.TemporaryDirectory(prefix="program-kit-selection-upgrade-") as temporary:
-        target = Path(temporary) / "planned"
+    with upgrade_test.owned_scratch(upgrade_test.ROOT, 'validation-fixture') as temporary:
+        temporary = Path(upgrade_test.filesystem_path(temporary))
+        target = temporary / "planned"
         shutil.copytree(installed, target)
         assert updater.building_block_upgrade_state(target, release) is None
         selection_path, architecture_path = blocks_test.accepted_fixture(blocks, target, catalog)

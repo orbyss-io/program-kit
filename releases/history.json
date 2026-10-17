@@ -249,12 +249,28 @@
       "version": "0.13.3",
       "previous": "0.13.2",
       "guide": "migration-0.13.3.md",
-      "status": "unreleased-feature-guidance",
-      "automatic": ["When released, install the native repair-request consumer command/skill and portable diagnostic/evidence tools; preserve existing selected versions and locks."],
-      "review": ["On optional first use choose consumer/contributor routing; review exact public content and destinations before real publication. Public infrastructure remains an explicit external dependency."],
-      "verification": ["Verify native installed reporter and ignored personal-state preservation; run repair-feedback deterministic fakes and bounded Development. CI qualifies exact release candidates."],
-      "verificationChecks": ["installation-coherence"],
-      "recovery": ["Keep prepared evidence and historical receipts on failure; reconcile actual remote objects before retrying the same approved identity. No public fallback for local delivery."]
+      "automatic": [
+        "When released, install the native repair-request consumer command/skill and portable diagnostic/evidence tools; preserve existing selected versions and locks.",
+        "Install the approved 47-finding maintenance repairs through the verified sequential updater, retaining exact original inputs and interrupted-attempt history.",
+        "Offer the newly qualified public Foundation runtime 0.3.6 and Build 0.3.2 profile and matching publisher knowledge to new projects; retain existing consumer locks and historical profiles."
+      ],
+      "review": [
+        "On optional first use choose consumer/contributor routing; review exact public content and destinations before real publication. Public infrastructure remains an explicit external dependency.",
+        "Reconcile only affected managed outputs, custom entrypoints, selected dependency transitions and genuinely material architecture/task changes. Preserve authored code, accepted decisions, effort, failures, data and uncertain operation outcomes.",
+        "This maintenance release does not direct a feature reset, implementation deletion or bootstrap restart. Explicit separately scoped consumer restart authority remains separate."
+      ],
+      "verification": [
+        "Verify native installed reporter and ignored personal-state preservation; run repair-feedback deterministic fakes and bounded Development. CI qualifies exact release candidates.",
+        "Verify complete installed source/coherence and actual packaged upgrade/retry, then run affected native engineering and behavior checks.",
+        "Require exact-source CI qualification, fresh security evidence and successful public installation/upgrade before availability is announced."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Keep prepared evidence and historical receipts on failure; reconcile actual remote objects before retrying the same approved identity. No public fallback for local delivery."
+      ]
     }
   ]
 }

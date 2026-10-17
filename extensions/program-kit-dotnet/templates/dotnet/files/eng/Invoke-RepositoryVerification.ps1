@@ -5,6 +5,7 @@ param(
     [ValidateSet('Acceptance', 'Focused', 'Affected')]
     [string]$Scope = 'Acceptance',
     [string[]]$Projects = @(),
+    [string[]]$Checks = @(),
     [string[]]$TestArguments = @(),
     [string[]]$ChangedPaths = @(),
     [string]$ChangedFrom = '',
@@ -20,40 +21,7 @@ $ErrorActionPreference = 'Stop'
 $repository = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $consumerPath = Join-Path $repository 'eng\verify.ps1'
 
-function Resolve-VerificationPython {
-    $recordPath = Join-Path $repository '.specify/python-runtime.json'
-    $saved = $null
-    try {
-        if (Test-Path -LiteralPath $recordPath) {
-            $saved = Get-Content -LiteralPath $recordPath -Raw | ConvertFrom-Json
-            if ($saved.contractVersion -ne 1 -or -not $saved.executable) { throw 'Unsupported core runtime record.' }
-        }
-        $executable = $env:SPECKIT_PYTHON
-        if (-not $executable -and $saved) { $executable = $saved.executable }
-        if (-not $executable) {
-            $command = Get-Command python -ErrorAction SilentlyContinue
-            if ($command) { $executable = $command.Source }
-        }
-        if (-not $executable -or -not [IO.Path]::IsPathRooted($executable) -or
-            -not (Test-Path -LiteralPath $executable -PathType Leaf)) { throw 'Selected interpreter is absent or not an absolute file.' }
-        if ($saved -and [IO.Path]::GetFullPath($executable) -ne [IO.Path]::GetFullPath($saved.executable)) {
-            throw 'SPECKIT_PYTHON differs from the core runtime record; regenerate core instructions explicitly.'
-        }
-        $probe = 'import json,sys; print(json.dumps({''executable'':sys.executable,''version'':''.''.join(map(str,sys.version_info[:3])),''supported'':sys.version_info>=(3,11)}))'
-        $output = & $executable -c $probe
-        if ($LASTEXITCODE -ne 0) { throw 'Selected interpreter did not execute the version probe.' }
-        $actual = $output | ConvertFrom-Json
-        if (-not $actual.supported) { throw 'Python >=3.11 is required.' }
-        $pin = Join-Path $repository '.python-version'
-        if ((Test-Path -LiteralPath $pin) -and $actual.version -ne (Get-Content -LiteralPath $pin -Raw).Trim()) {
-            throw "Interpreter version $($actual.version) differs from .python-version."
-        }
-        return [IO.Path]::GetFullPath($actual.executable)
-    }
-    catch {
-        throw "PKV005 verification Python is unavailable or stale. Select an installed absolute SPECKIT_PYTHON matching .specify/python-runtime.json, or regenerate core instructions after a reviewed runtime change. Verify the actual executable and .python-version in your terminal; no interpreter was installed and PATH was not changed. $($_.Exception.Message)"
-    }
-}
+Import-Module (Join-Path $PSScriptRoot 'ProgramKitPython.psm1') -Force
 
 function Invoke-ArchitectureChecks {
     & $verificationPython (Join-Path $PSScriptRoot 'repository_architecture.py') --repository $repository `
@@ -128,7 +96,8 @@ elseif ($isolationRequired) {
 }
 
 $verificationAction = {
-$verificationPython = Resolve-VerificationPython
+$verificationPython = Resolve-ProgramKitPython -Repository $repository
+$env:SPECKIT_PYTHON = $verificationPython
 if ($Scope -ne 'Acceptance') {
     if ($Mode -eq 'Release') { throw 'PKV002 scoped development checks cannot claim Release acceptance.' }
     $scopedPath = Join-Path $repository 'eng\verify-scoped.ps1'
@@ -137,6 +106,7 @@ if ($Scope -ne 'Acceptance') {
         $additional = @{}
         if ($Reason) { $additional.Reason = $Reason }
         if ($Force) { $additional.Force = $true }
+        if ($Checks.Count) { $additional.Checks = $Checks }
         & $resolved -Scope $Scope -Projects $Projects -TestArguments $TestArguments `
             -ChangedPaths $ChangedPaths -ChangedFrom $ChangedFrom -FeatureDirectory $FeatureDirectory `
             -Configuration $Configuration -Restore:$Restore -Plan:$Plan @additional
@@ -146,6 +116,7 @@ if ($Scope -ne 'Acceptance') {
         $arguments = @((Join-Path $PSScriptRoot 'repository_verification.py'), '--repository', $repository,
             '--scope', $Scope, '--configuration', $Configuration)
         foreach ($project in $Projects) { $arguments += @('--project', $project) }
+        foreach ($check in $Checks) { $arguments += @('--check', $check) }
         foreach ($path in $ChangedPaths) { $arguments += @('--changed-path', $path) }
         foreach ($argument in $TestArguments) { $arguments += "--test-argument=$argument" }
         if ($ChangedFrom) { $arguments += @('--changed-from', $ChangedFrom) }
@@ -154,15 +125,26 @@ if ($Scope -ne 'Acceptance') {
         if ($Force) { $arguments += '--force' }
         if ($Restore) { $arguments += '--restore' }
         if ($Plan) { $arguments += '--plan' }
-        & (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly
-        if (-not $?) { throw 'Could not prepare the native development environment.' }
+        $typedSelection = & $verificationPython @arguments --select-only
+        if ($LASTEXITCODE -ne 0) {
+            $selectionDiagnostic = ($typedSelection -join "`n")
+            if ($selectionDiagnostic.Length -gt 4096) { $selectionDiagnostic = $selectionDiagnostic.Substring(0, 4096) }
+            throw "Typed verification ownership selection failed; no check was dispatched. $selectionDiagnostic"
+        }
+        $selectedOwners = ($typedSelection -join "`n") | ConvertFrom-Json
+        if ($selectedOwners.projects.Count) {
+            & (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly
+            if (-not $?) { throw 'Could not prepare the native development environment.' }
+        }
         & $verificationPython @arguments
         if ($LASTEXITCODE -ne 0) { throw 'Scoped native checks failed. No full-suite fallback was executed.' }
     }
-    Write-Host "Scoped $Scope checks completed; full application acceptance is not established."
+    if (-not $Plan) {
+        Write-Host "Scoped $Scope checks completed; full application acceptance is not established."
+    }
     return
 }
-if ($Projects.Count -or $TestArguments.Count -or $ChangedPaths.Count -or $ChangedFrom -or $Plan -or $Restore -or $Reason -or $Force) {
+if ($Projects.Count -or $Checks.Count -or $TestArguments.Count -or $ChangedPaths.Count -or $ChangedFrom -or $Plan -or $Restore -or $Reason -or $Force) {
     throw 'PKV002 Acceptance cannot be narrowed by development selection parameters.'
 }
 
@@ -186,9 +168,14 @@ if (-not $?) {
     throw "Managed $Mode verification fallback failed."
 }
 }
+$previousPython = $env:SPECKIT_PYTHON
+try {
 if ($isolationCommand) {
     & $isolationCommand -Action $verificationAction
 }
 else {
     & $verificationAction
 }
+
+}
+finally { $env:SPECKIT_PYTHON = $previousPython }

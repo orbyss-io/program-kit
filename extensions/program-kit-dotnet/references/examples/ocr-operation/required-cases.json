@@ -1,0 +1,12 @@
+[
+  "native-started-one-page-read-exact-envelope-no-implicit-poll",
+  "native-envelope-owns-input-copy",
+  "native-no-sdk-retry-429",
+  "native-no-sdk-retry-503",
+  "native-physical-second-submit-denied",
+  "native-unowned-acknowledgement-foreign-origin",
+  "native-unowned-acknowledgement-foreign-model",
+  "native-unowned-acknowledgement-malformed-handle",
+  "native-retain-handle-before-bounded-response-failure",
+  "native-cancellation-before-dispatch-zero-terminal-calls"
+]

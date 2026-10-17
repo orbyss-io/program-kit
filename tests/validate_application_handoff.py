@@ -25,6 +25,32 @@ import verify_handoff
 
 
 class HandoffTests(unittest.TestCase):
+    def test_engineering_source_excludes_generated_outputs_but_binds_native_inputs(self):
+        self.write('eng/tool/Tool.csproj', '<Project/>')
+        self.write('eng/tool/Program.cs', 'class Tool {}')
+        self.write('eng/tool/Contract.schema.json', {'type': 'object'})
+        self.write('eng/__pycache__/cached.pyc', 'generated interpreter cache')
+        self.write('eng/tool/obj/generated.nuget.g.props', '<Project/>')
+        self.write('eng/tool/bin/Release/generated.targets', '<Project/>')
+        self.write('eng/tool/obj/project.assets.json', {'libraries': {}})
+        self.write('eng/tool/packages.lock.json', {'version': 1})
+        first = handoff_contract.source_inputs(self.root)
+        self.assertIn('eng/tool/Program.cs', first)
+        self.assertIn('eng/tool/Tool.csproj', first)
+        self.assertIn('eng/tool/Contract.schema.json', first)
+        self.assertNotIn('eng/__pycache__/cached.pyc', first)
+        self.assertIn('eng/tool/obj/project.assets.json', first)
+        self.assertIn('eng/tool/packages.lock.json', first)
+        self.assertNotIn('eng/tool/obj/generated.nuget.g.props', first)
+        self.assertNotIn('eng/tool/bin/Release/generated.targets', first)
+        self.write('eng/tool/obj/generated.nuget.g.props', '<Project>changed generated output</Project>')
+        self.assertEqual(first, handoff_contract.source_inputs(self.root))
+        for relative, content in [('eng/tool/Program.cs', 'class Changed {}'),
+                                  ('eng/tool/Tool.csproj', '<Project Sdk="Example"/>'),
+                                  ('eng/tool/obj/project.assets.json', {'libraries': {'Changed': {}}})]:
+            self.write(relative, content)
+            self.assertNotEqual(first[relative], handoff_contract.source_inputs(self.root)[relative])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='handoff-')
         self.addCleanup(self.temp.cleanup)

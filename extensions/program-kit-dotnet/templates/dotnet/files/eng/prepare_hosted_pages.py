@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 import shutil
 import sys
+import argparse
+import uuid
 
 import composition_model as model
 import hosted_bundle
@@ -110,3 +112,45 @@ def build(root, graph, command, restore=False, selected_hosts=None):
         runtime_closure.atomic_write(previous, {'status': 'built', 'sourceInputs': before, 'revision': revision,
                                               'manifestSha256': runtime_closure.sha256(output / 'manifest.json'),
                                               'producerSha256': BUILDER_SHA256})
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--repository', type=Path, default=Path.cwd())
+    parser.add_argument('--restore', action='store_true', help='Explicit locked npm acquisition before building')
+    parser.add_argument('--check', action='store_true', help='Read-only frontend freshness admission; never builds or acquires')
+    args = parser.parse_args()
+    if args.check and args.restore:
+        parser.error('--check cannot acquire dependencies')
+    root = args.repository.resolve()
+    if not (root / model.INPUT).is_file():
+        print(json.dumps({'status': 'not-applicable', 'reason': 'No typed frontend composition is selected'}))
+        return
+    import composition_render
+    graph, _ = composition_render.verify_outputs(root, check_frontends=False)
+    frontends = sorted({row['frontendRef'] for row in model.bindings(graph, 'frontend')})
+    if args.check:
+        for name in frontends:
+            admission(root, graph, name)
+        print(json.dumps({'status': 'verified', 'frontends': frontends, 'applicationAcceptance': False}))
+        return
+    import composition_run
+    directory = root / 'artifacts/frontend-build' / uuid.uuid4().hex
+    directory.mkdir(parents=True)
+    command = composition_run.Commands(root, directory)
+    command.run([sys.executable, 'eng/toolchain.py', '--repository', '.'])
+    build(root, graph, command, restore=args.restore)
+    for name in frontends:
+        admission(root, graph, name)
+    result = {'status': 'built', 'frontends': frontends, 'explicitRestore': args.restore, 'applicationAcceptance': False}
+    runtime_closure.atomic_write(directory / 'result.json', result)
+    print(json.dumps(result))
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError) as error:
+        print('PKC110 frontend preparation/admission failed: ' + str(error) +
+              '. Recover with: python eng/prepare_hosted_pages.py --repository . --restore', file=sys.stderr)
+        raise SystemExit(2)

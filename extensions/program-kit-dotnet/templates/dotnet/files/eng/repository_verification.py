@@ -21,6 +21,7 @@ import uuid
 import xml.etree.ElementTree as ET
 
 from repository_architecture import inside, read, require, validate_planned, is_build_reference, project_dependencies
+import toolkit_verification
 
 SHARED_INPUTS = ('global.json', '.editorconfig', 'NuGet.config', 'NuGet.Config',
                  '.globalconfig', '*.ruleset', '.config/**',
@@ -51,7 +52,8 @@ def configuration(root, normalize_owners=True):
         setup = read(setup_path)
         require(setup.get('schemaVersion') == 1 and setup.get('owner') == 'program-kit-setup',
                 'PKV003 invalid setup-owned verification mappings; rerun supported sync')
-        value = {**value, 'testGroups': [*setup.get('testGroups', []), *value.get('testGroups', [])]}
+        value = {**value, 'testGroups': [*setup.get('testGroups', []), *value.get('testGroups', [])],
+                 'toolkitChecks': [*setup.get('toolkitChecks', []), *value.get('toolkitChecks', [])]}
     require(value.get('schemaVersion') == 1, 'PKV003 unsupported verification configuration')
     require('runnerReuse' not in value or isinstance(value['runnerReuse'], bool),
             'PKV003 runnerReuse must be a boolean')
@@ -65,6 +67,10 @@ def configuration(root, normalize_owners=True):
         value = {**value, 'testGroups': [{**group, 'projects': replacement_projects(root,
                   group.get('projects', []), replacements)} for group in value.get('testGroups', [])]}
     return value
+
+
+def toolkit_declarations(root):
+    return toolkit_verification.declarations(root, configuration(root))
 
 
 def design_context(path):
@@ -363,7 +369,7 @@ def pending_failures(root, tests):
     return failed
 
 
-def select(root, scope, projects=(), changed_paths=(), baseline=None):
+def select(root, scope, projects=(), changed_paths=(), baseline=None, *, planning=False, checks=()):
     root = root.resolve()
     manifest = read(root / 'eng/architecture.json')
     graph = validate_planned(root, manifest)
@@ -374,18 +380,26 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
     replacements = ownership_replacements(root, graph)
     requested = {normalize(root, p) for p in projects}
     require(requested <= tests, 'PKV001 focused projects must have a test role in eng/architecture.json')
+    config = configuration(root)
+    toolkit = toolkit_verification.declarations(root, config)
+    selected_checks = set(checks)
+    require(selected_checks <= set(toolkit), 'PKV003 unknown named toolkit check')
+    unresolved_checks = toolkit_verification.pending(root)
+    require(unresolved_checks <= set(toolkit), 'PKV003 restore removed failing toolkit check ownership before narrowing')
     paths = {normalize(root, p) for p in changed_paths}
     if scope == 'Focused':
-        require(bool(requested), 'PKV002 Focused requires at least one named test project')
+        require(bool(requested or selected_checks), 'PKV002 Focused requires at least one named test project or toolkit check')
         selected = requested
     else:
         require(scope == 'Affected', 'PKV002 scope must be Focused or Affected')
         require(not requested, 'PKV002 Affected selects the complete dependent test set; use Focused for named projects')
+        require(not selected_checks, 'PKV002 Affected selects toolkit checks from complete input ownership; use Focused for named checks')
         require(baseline or paths, 'PKV002 Affected needs a baseline or the complete changed input paths')
         if baseline:
             paths.update(changed_inputs(root, baseline))
         require(bool(paths), 'PKV002 no changed inputs; reuse current results rather than claiming a new test run')
-        literal_edges(root, graph)
+        if not planning:
+            literal_edges(root, graph)
         known_input_owners = input_owners(root, graph)
         config = configuration(root)
         selected, affected = set(), set()
@@ -393,6 +407,10 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
         context_paths = set()
         for path in paths:
             matched = False
+            for name, row in toolkit.items():
+                if path in row['inputs']:
+                    selected_checks.add(name)
+                    matched = True
             if any(fnmatchcase(path, pattern) for pattern in SHARED_INPUTS):
                 selected.update(tests)
                 matched = True
@@ -428,10 +446,13 @@ def select(root, scope, projects=(), changed_paths=(), baseline=None):
             affected = expanded
         selected.update(tests & affected)
         selected.update(pending_failures(root, tests))
-        require(selected or len(context_paths) != len(paths),
+        selected_checks.update(unresolved_checks)
+        require(selected or selected_checks or len(context_paths) != len(paths),
                 'PKV002 only design context changed; no native run was executed. Reuse current actual results and review the changed design.')
-        require(bool(selected), 'PKV003 changed responsibilities have no dependent tests; add coverage or a scoped consumer adapter')
+        require(bool(selected or selected_checks), 'PKV003 changed responsibilities have no dependent tests; add coverage or a scoped consumer adapter')
     return {'schemaVersion': 1, 'scope': scope, 'projects': sorted(selected), 'changedInputs': sorted(paths),
+            'toolkitChecks': sorted(selected_checks),
+            **({'planningOnly': True} if planning else {}),
             'baseline': baseline, 'acceptanceEstablished': False,
             'inputMappings': sorted(mapped_groups) if scope == 'Affected' else []}
 
@@ -472,15 +493,17 @@ def file_items(root, path, graph=None):
     tree = ET.parse(path).getroot()
     if graph is None:
         graph = {row['path']: row for row in read(root / 'eng/architecture.json')['runtimeComposition']['projects']}
-    from build_output_recipe import derived_nodes
+    from build_output_recipe import derived_nodes, recovery_guidance
     derived = derived_nodes(root, path, tree, graph)
     for target in tree.iter():
         if id(target) in derived:
             continue
         if target.tag.rsplit('}', 1)[-1] == 'Target':
             for child in target:
+                relative = path.resolve().relative_to(root.resolve()).as_posix()
+                owner = relative if relative.endswith('.csproj') else '<owning-project.csproj>'
                 require(child.tag.rsplit('}', 1)[-1] in allowed_target_nodes,
-                        'PKV003 custom build tasks need an evaluated graph adapter')
+                        'PKV003 custom build tasks need an evaluated graph adapter. ' + recovery_guidance(owner))
     for node in tree.iter():
         if id(node) in derived:
             continue
@@ -716,13 +739,16 @@ def evidence_valid(root, path, outcome):
 
 
 def plan(root, selection, arguments, build_configuration='Debug', reason='', toolchain=None, force=False, native_report=None):
+    require(not selection.get('planningOnly'), 'PKV003 task planning selection is not executable evidence; select the current physical graph before verification')
     arguments = test_arguments(arguments)
     require(native_report in (None, 'xunit-trx') and (native_report is None or runner_kind(root) == 'mtp'),
             'PKV004 native report requires the selected xUnit/MTP runner capability')
-    require(selection['scope'] != 'Focused' or arguments or len(selection['projects']) == 1 or reason.strip(),
+    require(selection['scope'] != 'Focused' or arguments or len(selection['projects']) <= 1 or reason.strip(),
             'PKV002 unfiltered multi-project Focused checks need an explicit --reason for their dependency scope')
     current = fingerprints(root, selection['projects'], arguments, build_configuration,
-                           toolchain if toolchain is not None else toolchain_identity(root))
+                           toolchain if toolchain is not None else toolchain_identity(root)) if selection['projects'] else {}
+    require(selection['projects'] or not arguments and native_report is None,
+            'PKV004 native test arguments/report require a selected native project')
     reusable = {}
     invalid = set()
     for _, path, coverage, outcome in history(root):
@@ -745,7 +771,7 @@ def plan(root, selection, arguments, build_configuration='Debug', reason='', too
     if unmanaged_environment or force:
         reusable.clear()  # External dynamic execution inputs are not safe to reuse.
     nonreusable = set()
-    if unknown_arguments or runner_kind(root) == 'adapter' and config.get('runnerReuse') is not True:
+    if unknown_arguments or selection['projects'] and runner_kind(root) == 'adapter' and config.get('runnerReuse') is not True:
         nonreusable.update(selection['projects'])
     for group in config.get('testGroups', []):
         if group.get('externalState') or group.get('reuse') is False:
@@ -764,6 +790,8 @@ def plan(root, selection, arguments, build_configuration='Debug', reason='', too
                  else 'Inputs or retained evidence changed.' if p in invalid else 'No current successful result for this exact coverage.')}
               for p in selection['projects'] if p not in reusable]
     return {**selection, 'schemaVersion': 2, 'testArguments': arguments, 'configuration': build_configuration,
+            'toolkitNeeded': [{'check': name, 'fingerprint': toolkit_verification.fingerprint(root, row)}
+                              for name, row in toolkit_declarations(root).items() if name in selection.get('toolkitChecks', [])],
             'nativeReport': native_report,
             'reason': reason or ('Named Focused test projects.' if selection['scope'] == 'Focused'
                                 else 'Affected dependencies from the complete retained implementation baseline.'),
@@ -772,20 +800,28 @@ def plan(root, selection, arguments, build_configuration='Debug', reason='', too
 
 def execute(root, selection, arguments, configuration='Debug', restore=False, reason='', force=False, native_report=None):
     arguments = test_arguments(arguments)
-    observed_toolchain = toolchain_identity(root)
+    # Plan first: invalid native arguments cannot dispatch a toolkit child either.
+    observed_toolchain = toolchain_identity(root) if selection['projects'] else {}
     selection = plan(root, selection, arguments, configuration, reason, observed_toolchain, force, native_report)
     print(json.dumps(selection))
+    toolkit_result = toolkit_verification.execute(root, selection.get('toolkitChecks', []),
+                                                toolkit_declarations(root))
     projects = [row['project'] for row in selection['needed']]
     if not projects:
-        print('Reused current successful checks; no new execution receipt was created. ' +
-              json.dumps(selection['reusable']))
-        return selection
+        if toolkit_result:
+            print('Named toolkit checks completed; no new native test execution was claimed. ' + toolkit_result['run'])
+        else:
+            print('Reused current successful checks; no new execution receipt was created. ' + json.dumps(selection['reusable']))
+        return {**selection, **({'toolkitExecution': toolkit_result} if toolkit_result else {})}
     runner = runner_kind(root)
     directory = root / 'artifacts/tests/runs' / uuid.uuid4().hex
     directory.mkdir(parents=True)
     result = {**selection, 'status': 'running', 'projectsExecuted': projects,
               'startedAtUtc': datetime.now(timezone.utc).isoformat(), 'steps': [],
               'outcomes': [{'project': p, 'status': 'pending'} for p in projects]}
+    if toolkit_result:
+        result['toolkitExecution'] = {'run': toolkit_result['run'],
+                                     'sha256': digest((root/toolkit_result['run']).read_bytes())}
     output = directory / 'result.json'
     build_logs = []
     def save():
@@ -912,16 +948,37 @@ def execute(root, selection, arguments, configuration='Debug', restore=False, re
         result['finishedAtUtc'] = datetime.now(timezone.utc).isoformat()
         save()
     print('Scoped checks passed; application acceptance is not established. Logs: ' + str(directory))
-    return result
+    return {**result, **({'toolkitExecution': toolkit_result} if toolkit_result else {})}
+
+
+def owner_commands(root):
+    """Concrete current owner commands for quickstarts; no SDK/test execution."""
+    graph = validate_planned(root, read(root / 'eng/architecture.json'))
+    toolkit = toolkit_declarations(root)
+    def quoted(value): return "'" + value.replace("'", "''") + "'"
+    native, pending, shared = [], [], []
+    for project, row in sorted(graph.items()):
+        if row['role'] != 'test': continue
+        if not inside(root, project).is_file():
+            pending.append(project); continue
+        select(root, 'Focused', [project], planning=True)
+        native.append({'project': project, 'command': './eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects ' + quoted(project)})
+    for name in sorted(toolkit):
+        select(root, 'Focused', checks=[name], planning=True)
+        shared.append({'check': name, 'command': './eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Checks ' + quoted(name)})
+    return {'schemaVersion': 1, 'nativeTestOwners': native, 'toolkitOwners': shared,
+            'unmaterializedTestOwners': pending, 'readOnly': True, 'acceptanceEstablished': False}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', default='.')
     parser.add_argument('--scope', choices=('Focused', 'Affected'))
+    parser.add_argument('--list-owners', action='store_true', help='Print concrete current owner commands for a quickstart without SDK/test execution')
     parser.add_argument('--reconcile-owners', action='store_true', help='Preview successor substitutions in setup and authored verification mappings')
     parser.add_argument('--apply-digest', help='Apply only the reviewed --reconcile-owners plan through the native sync transaction')
     parser.add_argument('--project', action='append', default=[])
+    parser.add_argument('--check', action='append', default=[], help='Focused named toolkit check; no native test count is inferred')
     parser.add_argument('--changed-path', action='append', default=[])
     parser.add_argument('--changed-from')
     parser.add_argument('--feature-dir', help='Context only; never used as the sole test-selection boundary')
@@ -931,22 +988,31 @@ def main():
     parser.add_argument('--force', action='store_true', help='Execute fresh checks after external runtime/provider state changed')
     parser.add_argument('--native-report', choices=('xunit-trx',), help='Require selected xUnit/MTP named native results; reject skipped tests')
     parser.add_argument('--plan', action='store_true', help='Print selection without building or executing tests')
+    parser.add_argument('--select-only', action='store_true', help='Print typed ownership selection without observing a native SDK or executing checks')
     parser.add_argument('--test-argument', action='append', default=[])
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
+        if args.list_owners:
+            require(not args.scope and not args.project and not args.check and not args.changed_path
+                    and not args.changed_from and not args.test_argument and not args.apply_digest
+                    and not args.reconcile_owners and not args.plan and not args.select_only,
+                    'PKV003 list-owners is a separate read-only query')
+            print(json.dumps(owner_commands(root))); return 0
         if args.reconcile_owners:
-            require(not args.scope and not args.project and not args.changed_path and not args.test_argument,
+            require(not args.scope and not args.project and not args.check and not args.changed_path and not args.test_argument and not args.select_only,
                     'PKV003 ownership reconciliation is separate from test execution')
             print(json.dumps(reconcile_ownership(root, args.apply_digest)))
             return 0
         require(args.scope is not None and args.apply_digest is None,
                 'PKV002 test execution requires --scope; apply-digest belongs to --reconcile-owners')
-        selection = select(root, args.scope, args.project, args.changed_path, args.changed_from)
+        selection = select(root, args.scope, args.project, args.changed_path, args.changed_from, checks=args.check)
         if args.feature_dir:
             selection['feature'] = normalize(root, args.feature_dir)
         arguments = test_arguments(args.test_argument)
-        if args.plan:
+        if args.select_only:
+            print(json.dumps(selection))
+        elif args.plan:
             print(json.dumps(plan(root, selection, arguments, args.configuration, args.reason, force=args.force, native_report=args.native_report)))
         else:
             execute(root, selection, arguments, args.configuration, args.restore, args.reason, args.force, args.native_report)

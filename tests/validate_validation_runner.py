@@ -1,172 +1,123 @@
-"""Receipt coverage and dependency-selection regressions; no external execution."""
+"""Selection, input identity and failure semantics of local validation."""
 import copy
-import contextlib
-import hashlib
-import io
 import json
-import sys
 import tempfile
-import unittest
-import threading
 from pathlib import Path
-from types import SimpleNamespace
+import sys
+import unittest
 from unittest.mock import patch
+from owned_fixture import FixtureDirectory
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 import run_validation as runner
 
 
-class JournalTests(unittest.TestCase):
-    def test_selection_is_conservative_and_includes_prerequisites(self):
-        checks = [dict(id='dev', group='development', needs=[], inputs=['docs/**']),
-                  dict(id='build', group='package', needs=[], inputs=['bundle.yml']),
-                  dict(id='install', group='package', needs=['build'], inputs=['tests/install.py'])]
-        self.assertEqual(['dev'], [c['id'] for c in runner.affected_checks(checks, ['docs/releasing.md'])])
-        self.assertEqual(checks, runner.affected_checks(checks, ['unknown.file']))
-        self.assertEqual(checks, runner.affected_checks(checks, ['tests/install.py']))
+class SelectionTests(unittest.TestCase):
+    def definition(self):
+        return {'capabilities': {
+            'producer': {'inputs': ['producer/**'], 'dependsOn': []},
+            'client': {'inputs': ['client/**'], 'dependsOn': ['producer']},
+            'unrelated': {'inputs': ['other/**'], 'dependsOn': []}},
+            'checks': [dict(id='unit', capabilities=['producer'], inputs=['tests/unit.py'], needs=[], suites=['Integrity']),
+                       dict(id='client', capabilities=['client'], inputs=['tests/client.py'], needs=[], suites=[]),
+                       dict(id='other', capabilities=['unrelated'], inputs=[], needs=[], suites=[]),
+                       dict(id='broad', capabilities=['producer'], inputs=['tests/broad.py'], needs=[], suites=[], manualOnly=True)]}
 
-    def test_scheduler_parallelism_resource_exclusion_and_dependency_failure(self):
-        checks = [dict(id='one', needs=[], resources=['shared']),
-                  dict(id='two', needs=[], resources=['shared']),
-                  dict(id='independent', needs=[], resources=[]),
-                  dict(id='blocked', needs=['one'], resources=[])]
-        entered = threading.Event()
-        independent = threading.Event()
-        observations = []
-        def execute(check, blocked):
-            if check['id'] == 'one':
-                entered.set()
-                self.assertTrue(independent.wait(2), 'Independent work must run concurrently')
-            if check['id'] == 'independent':
-                self.assertTrue(entered.wait(2))
-                independent.set()
-            observations.append((check['id'], blocked))
-            return {'exitCode': 125 if blocked else 1 if check['id'] == 'one' else 0}
-        results, stopped = runner.schedule_checks(checks, 2, execute)
-        self.assertFalse(stopped)
-        self.assertEqual(125, results['blocked'])
-        self.assertIn(('blocked', ['one']), observations)
-        self.assertLess([x[0] for x in observations].index('one'), [x[0] for x in observations].index('two'))
+    def test_reverse_transitive_dependencies_select_consumers_but_not_unrelated_checks(self):
+        checks, gaps, reasons = runner.select_affected(self.definition(), ['producer/export.py'])
+        self.assertEqual(['unit', 'client'], [c['id'] for c in checks])
+        self.assertFalse(gaps)
+        self.assertEqual(['depends on: producer'], reasons['client'])
 
-    def test_native_browser_installers_share_the_actual_inventory_lock(self):
-        # Each of these may invoke Playwright --with-deps on Linux. They must
-        # serialize access to apt/dpkg even when their browser caches differ.
-        checks = {check['id']: check for check in runner.selected('Release', 'Linux')}
-        installers = ('ui-browser', 'validate_published_forms_browser',
-                      'validate_consumer_provider_runtime', 'qualify_reusable_foundations',
-                      'qualify_composition_start')
-        common = set.intersection(*(set(checks[name]['resources']) for name in installers))
-        self.assertTrue(common, 'Native browser installers must share a scheduler resource')
+    def test_unknown_input_does_not_select_everything(self):
+        checks, gaps, _ = runner.select_affected(self.definition(), ['new/subsystem.py'])
+        self.assertEqual(['unit'], [c['id'] for c in checks])
+        self.assertEqual(['new/subsystem.py'], gaps)
 
-    def test_scheduler_rejects_cycles_and_missing_dependencies(self):
-        for checks in ([dict(id='a', needs=['b'])],
-                       [dict(id='a', needs=['b']), dict(id='b', needs=['a'])]):
-            with self.assertRaises(ValueError): runner.schedule_checks(checks, 1, lambda *_: {'exitCode': 0})
+    def test_known_capability_without_runnable_coverage_is_still_a_gap(self):
+        definition = self.definition()
+        definition['capabilities']['uncovered'] = {'inputs': ['uncovered/**'], 'dependsOn': []}
+        checks, gaps, _ = runner.select_affected(definition, ['uncovered/runtime.py'])
+        self.assertEqual(['unit'], [c['id'] for c in checks])
+        self.assertTrue(any('capability uncovered' in gap for gap in gaps))
 
-    def test_receipt_rejects_missing_failed_changed_and_duplicate_checks(self):
-        with tempfile.TemporaryDirectory() as directory:
+    def test_check_change_selects_itself(self):
+        checks, gaps, reasons = runner.select_affected(self.definition(), ['tests/client.py'])
+        self.assertEqual(['unit', 'client'], [c['id'] for c in checks])
+        self.assertFalse(gaps)
+        self.assertIn('changed check input: tests/client.py', reasons['client'])
+
+    def test_changed_manual_check_cannot_disappear_behind_integrity(self):
+        definition = self.definition()
+        manual = definition['checks'][-1]
+        manual['command'] = ['{python}', 'tests/broad.py']
+        deferred = runner.deferred_checks(definition, ['tests/broad.py'])
+        self.assertEqual([{'id': 'broad', 'changedInputs': ['tests/broad.py']}], deferred)
+        self.assertEqual([], runner.deferred_checks(definition, ['other/change.py']))
+
+    def test_prerequisite_closure_is_ordered_and_rejects_cycles(self):
+        checks = [dict(id='consumer', needs=['producer']), dict(id='producer', needs=[])]
+        self.assertEqual(['producer', 'consumer'], [c['id'] for c in runner.closure(checks, ['consumer'])])
+        checks[1]['needs'] = ['consumer']
+        with self.assertRaisesRegex(ValueError, 'cycle'):
+            runner.closure(checks, ['consumer'])
+        with self.assertRaisesRegex(ValueError, 'Unknown checks'):
+            runner.closure(checks, ['missing'])
+
+    def test_snapshot_binds_dirty_untracked_and_deleted_contents(self):
+        with FixtureDirectory(prefix='validation-input-') as directory:
             root = Path(directory)
-            inventory = root / 'inventory.json'
-            checks = [{'id': 'one', 'command': ['{python}', 'check.py'], 'group': 'release',
-                       'needs': [], 'platforms': ['Windows', 'Linux']}]
-            inventory.write_text(json.dumps({'checks': checks}))
-            log = root / 'one.log'
-            log.write_text('actual result')
-            digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
-            step = {'id': 'one', 'command': [sys.executable, 'check.py'], 'exitCode': 0,
-                    'startedAt': 'start', 'finishedAt': 'end', 'log': 'one.log', 'logSha256': digest(log)}
-            value = {'source': {'commit': 'abc', 'tree': 'abc'}, 'platform': runner.platform.system(),
-                     'inventorySha256': digest(inventory), 'browserEngines': 'chromium', 'steps': [step]}
-            with patch.object(runner, 'ROOT', root), patch.object(runner, 'INVENTORY', inventory), patch('write_release_receipt.git', return_value='abc'):
-                self.assertEqual('one', runner.validate_journal(value)[0]['id'])
-                for mutation in ('missing', 'failed', 'command', 'duplicate', 'source', 'inventory', 'log'):
-                    bad = copy.deepcopy(value)
-                    if mutation == 'missing': bad['steps'] = []
-                    if mutation == 'failed': bad['steps'][0]['exitCode'] = 1
-                    if mutation == 'command': bad['steps'][0]['command'].append('--skip')
-                    if mutation == 'duplicate': bad['steps'].append(copy.deepcopy(step))
-                    if mutation == 'source': bad['source']['commit'] = 'old'
-                    if mutation == 'inventory': bad['inventorySha256'] = 'old'
-                    if mutation == 'log': bad['steps'][0]['logSha256'] = 'old'
-                    with self.subTest(mutation=mutation), self.assertRaises(ValueError):
-                        runner.validate_journal(bad)
+            (root / 'tracked').write_text('old')
+            (root / 'new').write_text('untracked')
+            with patch.object(runner, 'ROOT', root), patch.object(runner, 'git', return_value='tracked\0new\0deleted\0'):
+                before = runner.input_snapshot()
+                (root / 'tracked').write_text('dirty')
+                after = runner.input_snapshot()
+            self.assertNotEqual(before['digest'], after['digest'])
+            self.assertIn('new', before['files'])
+            self.assertIsNone(before['files']['deleted'])
 
-    def test_inventory_dependencies_precede_consumers_and_development_is_bounded(self):
-        for system in ('Windows', 'Linux'):
-            seen = set()
-            for check in runner.selected('Release', system):
-                self.assertTrue(set(check['needs']) <= seen, check['id'])
-                seen.add(check['id'])
-        self.assertTrue(all(c['group'] == 'development' for c in runner.selected('Development')))
+    def test_missing_prerequisites_are_per_check(self):
+        check = dict(platforms=[runner.platform.system()], prerequisites=[])
+        self.assertEqual([], runner.missing_prerequisites(check))
+        check['prerequisites'] = ['tool:program-kit-nonexistent-tool']
+        self.assertEqual(check['prerequisites'], runner.missing_prerequisites(check))
 
+    def test_active_definition_is_valid_and_integrity_has_no_integration(self):
+        definition = runner.load_definition()
+        self.assertTrue(definition['capabilities'])
+        self.assertTrue(runner.selected('Integrity'))
+        self.assertTrue(all(c['kind'] == 'unit' for c in runner.selected('Integrity')))
+        self.assertTrue(all(not c.get('manualOnly') for c in runner.selected('Baseline')))
+        self.assertEqual(6, len(runner.selected('Baseline')))
 
-class SourceGuardTests(unittest.TestCase):
-    def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
-        self.inventory = self.root / 'inventory.json'
-        self.checks = [{'id': name, 'command': ['{python}', name + '.py'],
-                       'group': 'release', 'needs': [], 'platforms': ['Windows', 'Linux']}
-                      for name in ('first', 'second')]
-        self.inventory.write_text(json.dumps({'checks': self.checks}))
-        self.state = {'HEAD': 'abc', 'HEAD^{tree}': 'tree', 'dirty': ''}
-        def fake_git(root, *args):
-            return self.state[args[1]] if args[0] == 'rev-parse' else self.state['dirty']
-        for mocked in (patch.object(runner, 'ROOT', self.root),
-                       patch.object(runner, 'INVENTORY', self.inventory),
-                       patch('write_release_receipt.git', side_effect=fake_git)):
-            mocked.start()
-            self.addCleanup(mocked.stop)
-        self.value = {'source': {'commit': 'abc', 'tree': 'tree'},
-                      'inventorySha256': hashlib.sha256(self.inventory.read_bytes()).hexdigest(),
-                      'steps': [{'id': 'first', 'exitCode': 0}]}
+    def test_feature_phase_change_does_not_select_bootstrap(self):
+        checks, gaps, _ = runner.select_affected(runner.load_definition(), [
+            'extensions/program-kit-governance/scripts/task_draft.py'])
+        ids = {c['id'] for c in checks}
+        self.assertFalse(gaps)
+        self.assertIn('mechanics-phases', ids)
+        self.assertNotIn('mechanics-bootstrap', ids)
+        self.assertFalse(any(c['kind'] == 'integration' for c in checks))
 
-    def test_clean_source_allows_continuation(self):
-        runner.require_unchanged_release_source(self.value, 'after first')
+    def test_shared_governance_change_selects_both_consumers(self):
+        checks, gaps, _ = runner.select_affected(runner.load_definition(), [
+            'extensions/program-kit-governance/scripts/governance_state.py'])
+        ids = {c['id'] for c in checks}
+        self.assertFalse(gaps)
+        self.assertTrue({'mechanics-phases', 'mechanics-bootstrap'} <= ids)
 
-    def test_commits_trees_tracked_and_untracked_edits_are_rejected(self):
-        for field, changed in (('HEAD', 'new'), ('HEAD^{tree}', 'new'),
-                               ('dirty', ' M scripts/check.py'), ('dirty', '?? new-check.py')):
-            with self.subTest(field=field, changed=changed):
-                previous = self.state[field]
-                self.state[field] = changed
-                with self.assertRaisesRegex(ValueError, 'PROGRAM_KIT_RELEASE_SOURCE_CHANGED'):
-                    runner.require_unchanged_release_source(self.value, 'after first')
-                self.state[field] = previous
-
-    def test_inventory_changes_are_rejected(self):
-        self.inventory.write_text('{}')
-        with self.assertRaisesRegex(ValueError, 'Validation inventory changed'):
-            runner.require_unchanged_release_source(self.value, 'after first')
-
-    def test_failure_preserves_check_results_and_names_the_changed_source(self):
-        self.state['dirty'] = ' M scripts/check.py'
-        journal = self.root / 'journal.json'
-        with contextlib.redirect_stdout(io.StringIO()):
-            self.assertFalse(runner.guard_release_source(self.value, journal, 'after first'))
-        result = json.loads(journal.read_text())
-        self.assertEqual([{'id': 'first', 'exitCode': 0}], result['steps'])
-        self.assertEqual('source-changed', result['status'])
-        self.assertIn('scripts/check.py', result['diagnostic'])
-        self.assertIn('cannot create a Release receipt', result['diagnostic'])
-
-    def test_edit_during_check_stops_next_check_and_receipt(self):
-        journal = self.root / 'journal.json'
-        executed = []
-        def execute(check, blocked):
-            executed.append(check['id'])
-            self.state['dirty'] = ' M scripts/other-agent-fix.py'
-            return {'exitCode': 0}
-        def after(check, result):
-            return runner.guard_release_source(self.value, journal, 'after ' + check['id'])
-        with contextlib.redirect_stdout(io.StringIO()):
-            _, stopped = runner.schedule_checks(self.checks, 1, execute, after=after)
-        self.assertTrue(stopped)
-        self.assertEqual(['first'], executed)
-        result = json.loads(journal.read_text())
-        self.assertEqual('source-changed', result['status'])
+    def test_shared_foundation_contract_selects_narrow_native_consumers(self):
+        checks, gaps, reasons = runner.select_affected(runner.load_definition(), [
+            'extensions/program-kit-dotnet/scripts/foundation_composition.py'])
+        ids = {c['id'] for c in checks}
+        self.assertFalse(gaps)
+        self.assertTrue({'validate_postgresql_lifecycle', 'validate_openapi_export_client'} <= ids)
+        self.assertIn('depends on: dotnet-runtime', reasons['validate_postgresql_lifecycle'])
+        self.assertIn('depends on: dotnet-runtime', reasons['validate_openapi_export_client'])
+        self.assertNotIn('qualify_composition_start', ids)
+        self.assertNotIn('validate_typed_operation', ids)
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)

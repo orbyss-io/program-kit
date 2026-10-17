@@ -26,6 +26,15 @@ import windows_workflow_path as windows_path
 
 @unittest.skipUnless(os.name == 'nt', 'Windows cmd.exe regression')
 class WindowsShellLaunchTests(unittest.TestCase):
+    def test_extended_filesystem_root_is_converted_only_at_native_shell_boundary(self):
+        extended = Path('\\\\?\\' + str(ROOT))
+        self.assertTrue(windows_path.native_directory(extended).samefile(ROOT))
+        result = subprocess.run('python -c "import os; print(os.getcwd())"',
+                                cwd=windows_path.native_directory(extended), shell=True,
+                                capture_output=True, text=True, timeout=30)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertTrue(Path(result.stdout.strip()).samefile(ROOT))
+
     @classmethod
     def setUpClass(cls):
         cls.python = shutil.which('python')

@@ -24,6 +24,7 @@
       "contains": { "const": "openid" }, "items": { "type": "string", "minLength": 1 }
     },
     "silentRenewTimeoutSeconds": { "type": "integer", "minimum": 1, "maximum": 60 },
+    "authenticationNavigation": { "enum": ["redirect", "popup"], "default": "redirect" },
     "session": {
       "type": "object",
       "required": [

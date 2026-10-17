@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import os
+import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
@@ -149,7 +150,11 @@ def validate_installed_workflow(project, fresh_reset=False):
             run(helper, 'prepare', *arguments)
             run(helper, 'checkpoint', *arguments, '--content-file', str(state_file))
         retained = json.loads(run(helper, 'current', *arguments))
-        if retained['failures'] != ['provider test failing: artifacts/provider.trx']:
+        history = json.loads(run(helper, 'current', *arguments, '--history'))
+        if (retained['history']['unresolvedFailures'] != 1
+                or history['current']['failures'] != ['provider test failing: artifacts/provider.trx']
+                or retained['history']['sha256'] != history['sha256']
+                or retained['history']['events'] != len(history['events'])):
             raise AssertionError('Installed checkpoint lost the unresolved provider failure on resume')
         if (feature / 'tasks.md').read_text(encoding='utf-8').count('program-kit:current-checkpoint') != 1:
             raise AssertionError('Installed current checkpoint accumulated a journal')
@@ -214,6 +219,178 @@ def operation_fixture():
 
 
 class TaskTests(unittest.TestCase):
+    def materialization_fixture(self):
+        (self.root / 'eng').mkdir(exist_ok=True)
+        (self.root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [
+            {'path': 'tests/Owned/Owned.csproj', 'role': 'test', 'projectReferences': []}], 'bindings': []}}))
+        body = '''# Tasks
+- [ ] T001 Produce the owned tests; effort and human decision pending
+- [ ] T002 Run Affected regression
+## Operation dependency map
+| Operation | Depends on operations |
+|-----------|-----------------------|
+| owned | none |
+## Task dependency map
+| Task | Operation | Depends on tasks | Requires | Provides |
+|------|-----------|------------------|----------|----------|
+| T001 | owned | none | none | none |
+| T002 | owned | T001 | none | none |
+## Verification obligations
+| Task | Scope | Baseline | Owners | Inputs |
+|------|-------|----------|--------|--------|
+| T002 | Affected | original-baseline | tests/Owned/Owned.csproj | tests/Owned/Future.cs |
+'''
+        (self.feature / 'tasks.md').write_text(body)
+        return body
+
+    def test_structured_materialization_renders_producer_without_changing_history(self):
+        body = self.materialization_fixture()
+        sentinel = self.feature / 'delivery.json'; sentinel.write_text('{"human":"pending","effort":17}')
+        result = draft.render_materialization(self.root, self.feature,
+            {'owners': [{'owner': 'tests/Owned/Owned.csproj', 'source': {'task': 'T001'}}]})
+        self.assertIn('| tests/Owned/Owned.csproj | T001 | none |', result['markdown'])
+        self.assertEqual(body, (self.feature / 'tasks.md').read_text())
+        self.assertEqual(draft.hashlib.sha256((self.feature / 'tasks.md').read_bytes()).hexdigest(), result['tasksSha256'])
+        self.assertEqual('{"human":"pending","effort":17}', sentinel.read_text())
+        self.assertFalse(result['filesChanged']); self.assertFalse(result['acceptanceEstablished'])
+        for source in ({'task': 'T001', 'evidence': 'artifacts/results.json'}, {'task': 'T002'},
+                       {'task': 'T001|existing'}, {'evidence': 'none'}, {'evidence': 'artifacts/missing.json'}):
+            with self.subTest(source=source), self.assertRaises(ValueError):
+                draft.render_materialization(self.root, self.feature,
+                    {'owners': [{'owner': 'tests/Owned/Owned.csproj', 'source': source}]})
+        self.assertEqual(body, (self.feature / 'tasks.md').read_text())
+
+    def test_structured_existing_evidence_uses_the_native_reader_and_retains_ancestry(self):
+        self.materialization_fixture()
+        # Synthetic retained receipt tests the real reader's hash/ownership guard;
+        # this fixture is not represented as native SDK or application acceptance.
+        directory = self.root / 'artifacts/verification/fixture'; directory.mkdir(parents=True)
+        evidence = directory / 'test.log'; evidence.write_bytes(b'owned fixture evidence')
+        receipt = directory / 'result.json'
+        receipt.write_text(json.dumps({'schemaVersion': 2, 'outcomes': [{'project': 'tests/Owned/Owned.csproj',
+            'status': 'completed', 'executedTests': 1, 'fingerprint': 'fixture-only',
+            'evidence': {evidence.relative_to(self.root).as_posix(): draft.hashlib.sha256(evidence.read_bytes()).hexdigest()}}]}))
+        request = {'owners': [{'owner': 'tests/Owned/Owned.csproj',
+            'source': {'evidence': receipt.relative_to(self.root).as_posix()}}]}
+        result = draft.render_materialization(self.root, self.feature, request)
+        self.assertIn('| existing | artifacts/verification/fixture/result.json |', result['markdown'])
+        evidence.write_bytes(b'changed fixture evidence')
+        with self.assertRaisesRegex(ValueError, 'valid meaningful native execution'):
+            draft.render_materialization(self.root, self.feature, request)
+
+    def test_selected_build_edges_project_the_supported_recipe_before_task_authoring(self):
+        parent = 'src/Owned.Provider/Owned.Provider.csproj'
+        producer = 'src/Owned.Tool/Owned.Tool.csproj'
+        (self.root / 'eng').mkdir(exist_ok=True)
+        (self.root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [
+            {'path': producer, 'role': 'helper', 'projectReferences': []},
+            {'path': parent, 'role': 'provider', 'projectReferences': [], 'buildProjectReferences': [producer]},
+            {'path': 'src/Unrelated/Unrelated.csproj', 'role': 'helper', 'projectReferences': [], 'buildProjectReferences': [producer]}
+        ], 'bindings': []}}))
+        plan = self.feature / 'plan.md'
+        plan.write_text(plan.read_text() + '\nOwned output boundary: ' + parent)
+        value = context.model(self.root, self.feature, 'tasks')
+        self.assertEqual(1, len(value['buildOutputGuidance']))
+        self.assertIn(parent, value['buildOutputGuidance'][0])
+        self.assertNotIn('Unrelated', value['buildOutputGuidance'][0])
+        self.assertIn('buildProjectReferences/buildOutputCopies', context.render(value, 'tasks'))
+
+    def test_installed_cli_finalizes_future_graph_in_a_fresh_unrelated_process(self):
+        installed = self.root / '.specify/extensions'
+        for extension, folders in {'program-kit-governance': ['scripts', 'references'],
+                                   'program-kit-dotnet': ['scripts', 'references', 'templates/dotnet/files/eng']}.items():
+            for folder in folders:
+                shutil.copytree(ROOT / 'extensions' / extension / folder, installed / extension / folder,
+                                ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules', 'dist'))
+        graph = {'runtimeComposition': {'projects': [
+            {'path': 'src/Owned/Owned.csproj', 'role': 'implementation', 'projectReferences': []},
+            {'path': 'tests/Owned/Owned.csproj', 'role': 'test', 'projectReferences': ['src/Owned/Owned.csproj']}
+        ], 'bindings': []}}
+        (self.root / 'eng').mkdir(exist_ok=True)
+        (self.root / 'eng/architecture.json').write_text(json.dumps(graph))
+        # An existing project has not yet materialized its planned future edge.
+        project = self.root / 'tests/Owned/Owned.csproj'
+        project.parent.mkdir(parents=True)
+        project.write_text('<Project/>')
+        body = '''## Owned operation
+- [ ] T001 Materialize owned behavior
+- [ ] T002 Run Affected regression
+## Operation dependency map
+| Operation | Depends on operations |
+|-----------|-----------------------|
+| owned | none |
+## Task dependency map
+| Task | Operation | Depends on tasks | Requires | Provides |
+|------|-----------|------------------|----------|----------|
+| T001 | owned | none | none | none |
+| T002 | owned | T001 | none | none |
+## Verification obligations
+| Task | Scope | Baseline | Owners | Inputs |
+|------|-------|----------|--------|--------|
+| T002 | Affected | original-baseline | tests/Owned/Owned.csproj | src/Owned/Future.cs |
+## Test materialization map
+| Owner | Producer | Evidence |
+|-------|----------|----------|
+| tests/Owned/Owned.csproj | T001 | none |
+'''
+        draft.prepare(self.root, self.feature, ['owned'])
+        draft.save_phase(self.root, self.feature, 'owned', body)
+        environment = {k: v for k, v in os.environ.items() if k not in ('PYTHONPATH', 'PYTHONHOME')}
+        command = [sys.executable, str(installed / 'program-kit-governance/scripts/task_draft.py'),
+                   'finalize', '--repository', str(self.root), '--feature-dir', self.feature.relative_to(self.root).as_posix()]
+        result = subprocess.run(command, cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertFalse(json.loads(result.stdout)['implementationExecuted'])
+        request = self.root / 'materialization-request.json'
+        request.write_text(json.dumps({'owners': [{'owner': 'tests/Owned/Owned.csproj', 'source': {'task': 'T001'}}]}))
+        rendering = list(command); rendering[2] = 'render-materialization'
+        before_render = (self.feature / 'tasks.md').read_bytes()
+        rendered = subprocess.run([*rendering, '--content-file', str(request)], cwd=self.root.parent,
+            env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, rendered.returncode, rendered.stdout + rendered.stderr)
+        proposed = json.loads(rendered.stdout)
+        self.assertEqual('validated-proposal', proposed['status'])
+        self.assertFalse(proposed['filesChanged']); self.assertFalse(proposed['acceptanceEstablished'])
+        self.assertEqual(before_render, (self.feature / 'tasks.md').read_bytes())
+        draft.checkpoint(self.feature, {'baseline': 'original-baseline', 'outcome': 'Owned behavior',
+            'next': 'Wait for implementation', 'decisions': ['Retain actual ownership'], 'failures': ['Owned check is still pending']})
+        current_command = [*command]
+        current_command[2] = 'current'
+        compact = subprocess.run(current_command, cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, compact.returncode, compact.stdout + compact.stderr)
+        projected = json.loads(compact.stdout)
+        self.assertEqual(1, projected['history']['unresolvedFailures'])
+        self.assertNotIn('progressHistory', projected)
+        full = subprocess.run([*current_command, '--history'], cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, full.returncode, full.stdout + full.stderr)
+        self.assertEqual(['Retain actual ownership'], json.loads(full.stdout)['current']['decisions'])
+        pinned = subprocess.run([*current_command, '--history', '--history-sha', projected['history']['sha256']],
+                                cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, pinned.returncode, pinned.stdout + pinned.stderr)
+        self.assertEqual(projected['history']['sha256'], json.loads(pinned.stdout)['sha256'])
+        # Existing-evidence admission also loads the adapter, then preserves its guard.
+        content = (self.feature / 'tasks.md').read_text().replace(
+            '| tests/Owned/Owned.csproj | T001 | none |',
+            '| tests/Owned/Owned.csproj | existing | artifacts/missing.json |')
+        (self.feature / 'tasks.md').write_text(content)
+        failed = subprocess.run(command, cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn('missing native test evidence', failed.stdout)
+        self.assertNotIn('ModuleNotFoundError', failed.stderr)
+        # P1: exercise the lazy schema-v2 shell adapter through the installed
+        # phase CLI in its own process, with no repository import inheritance.
+        from composition_fixture import two_apps
+        composition = self.root / 'eng/foundation-composition.json'
+        composition.write_text(json.dumps(two_apps(ROOT, frontends=False)), encoding='utf-8')
+        before = {path: path.read_bytes() for path in (composition, self.feature / 'tasks.md')}
+        phase = installed / 'program-kit-governance/scripts/phase_obligations.py'
+        projected = subprocess.run([sys.executable, str(phase), 'project', '--repository', str(self.root),
+            '--feature-dir', self.feature.relative_to(self.root).as_posix(), '--phase', 'planning'],
+            cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, projected.returncode, projected.stdout + projected.stderr)
+        self.assertIn('not a reading checklist', projected.stdout)
+        self.assertEqual(before, {path: path.read_bytes() for path in before})
+
     def test_broad_gate_waits_for_selected_test_materialization_preserving_task_graph(self):
         body = '''# Tasks
 - [ ] T007 Run Affected prerequisite
@@ -420,12 +597,55 @@ class TaskTests(unittest.TestCase):
         self.assertLess(path.stat().st_size, first_size + 80)
         progress = context.finish(self.root, self.feature)
         self.assertFalse(progress['acceptanceEstablished'])
-        self.assertEqual(current, progress['currentCheckpoint'])
+        self.assertEqual(draft.current_projection(current), progress['currentCheckpoint'])
         fixed = draft.checkpoint(self.feature, {'baseline': 'original-commit', 'outcome': 'Create policy',
             'next': 'Owned list', 'checks': ['green: artifacts/create-fixed.trx'],
             'resolvedFailures': initial['failures']})
         self.assertEqual([], fixed['failures'])
         self.assertEqual(['green: artifacts/create-fixed.trx'], fixed['checks'])
+
+    def test_current_projection_stays_bounded_while_complete_decision_failure_history_is_retained(self):
+        path = self.feature / 'tasks.md'
+        path.write_text(operation_fixture(), encoding='utf-8')
+        draft.checkpoint(self.feature, {'baseline': 'original', 'outcome': 'Owned work', 'next': 'Repair', 'failures': ['original unresolved failure']})
+        retained_reference = None
+        for index in range(80):
+            value = draft.checkpoint(self.feature, {'baseline': 'original', 'outcome': 'Owned work', 'next': 'Continue',
+                'decisions': [f'decision-{index}: ' + 'retained scoped reasoning ' * 6]})
+            if index == 20:
+                retained_reference = draft.current_projection(value)['history']['sha256']
+        projection = draft.current_projection(value)
+        self.assertLess(len(json.dumps(projection).encode()), draft.CURRENT_LIMIT)
+        self.assertEqual(80, projection['history']['decisions'])
+        self.assertEqual(1, projection['history']['unresolvedFailures'])
+        prefix = draft.progress_history(self.feature, retained_reference)
+        self.assertEqual(retained_reference, prefix['sha256'])
+        self.assertLess(len(prefix['events']), len(draft.progress_history(self.feature)['events']))
+        fixed = draft.checkpoint(self.feature, {'baseline': 'original', 'outcome': 'Owned work', 'next': 'Await review',
+            'checks': ['artifacts/actual-success.trx'], 'resolvedFailures': ['original unresolved failure']})
+        self.assertEqual([], fixed['failures'])
+        history = draft.progress_history(self.feature)
+        self.assertIn('original unresolved failure', json.dumps(history['events']))
+        self.assertIn('resolvedFailures', history['events'][-1]['value'])
+        with self.assertRaisesRegex(ValueError, 'Missing or tampered'):
+            draft.progress_history(self.feature, '0' * 64)
+
+    def test_history_tampering_and_retained_overflow_preserve_atomic_prior_state(self):
+        path = self.feature / 'tasks.md'
+        path.write_text(operation_fixture(), encoding='utf-8')
+        value = draft.checkpoint(self.feature, {'baseline': 'original', 'outcome': 'Owned', 'next': 'Continue', 'decisions': ['retained decision']})
+        saved = path.read_bytes()
+        tampered = copy.deepcopy(value)
+        tampered['progressHistory'][0]['value']['decisions'] = ['substituted decision']
+        with self.assertRaisesRegex(ValueError, 'Tampered retained progress history'):
+            draft.save_current(self.feature, tampered)
+        self.assertEqual(saved, path.read_bytes())
+        overflow = copy.deepcopy(value)
+        previous = overflow['progressHistory'][-1]['sha256']
+        overflow['progressHistory'].append(draft._history_event(2, previous, 'checkpoint', {'decisions': ['x' * draft.RETAINED_LIMIT]}))
+        with self.assertRaisesRegex(ValueError, 'submitted=.*merged-current=.*retained-history=.*largest-fields='):
+            draft.save_current(self.feature, overflow)
+        self.assertEqual(saved, path.read_bytes())
 
     def test_checkpoint_rejects_lossy_invalid_or_failed_updates_atomically(self):
         path = self.feature / 'tasks.md'

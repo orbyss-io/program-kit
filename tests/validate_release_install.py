@@ -12,6 +12,7 @@ import zipfile
 from pathlib import Path
 
 import yaml
+from owned_fixture import FixtureDirectory
 
 
 EXPECTED_HOOKS = {
@@ -142,7 +143,7 @@ def main() -> int:
                 f"Program Kit install bundle is missing runtime assets: {sorted(missing_runtime)}"
             )
 
-    with tempfile.TemporaryDirectory(prefix="program-kit-release-test-") as directory:
+    with FixtureDirectory(prefix="program-kit-release-test-") as directory:
         project = Path(directory)
         extracted_extension = project / "release-extension"
         extracted_building_blocks = project / "release-building-block-extension"

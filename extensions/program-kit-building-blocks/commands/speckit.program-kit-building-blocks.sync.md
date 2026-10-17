@@ -42,6 +42,14 @@ generated building-block lock records exact versions, sources, target assignment
 activation, configuration requirements, and provenance; native package locks continue to own
 transitive resolution.
 
+Restore commands, reviewed input digests, progress/output records and upgrade renewal admission
+share one project closure. It includes explicit roots, solution members, native forward references
+and required reverse dependents. Locked evidence binds actual lock and assets files for every
+restored owner; a current unrelated lock cannot substitute for a restored owner. The literal
+adapter supports standard per-project lock/obj paths. Custom or relocated outputs, shared default
+outputs and dynamic/imported project graphs need an evaluated native graph/output adapter and
+are diagnosed as unsupported here; do not guess paths or bypass the guard.
+
 A Program Kit upgrade retains the consumer's accepted exact dependency profile under
 `.program-kit/dependency-profile.json`; it does not advance Foundation, Forms, Localization,
 analyzers, exporter, or host-image pins merely because the Program Kit bundle changed.

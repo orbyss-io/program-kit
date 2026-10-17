@@ -24,8 +24,10 @@ class PendingActivationTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         self.graph = two_apps(ROOT)
-        self.hosts = {'application-host': {'runtimeStage': 'artifacts/app', 'publicOrigin': 'http://fixture-app'},
-                      'assessment-host': {'runtimeStage': 'artifacts/assessment', 'publicOrigin': 'http://fixture-assessment'}}
+        self.hosts = {'application-host': {'runtimeStage': 'artifacts/app', 'publicOrigin': 'http://fixture-app',
+                                           'shells': ['application-shell']},
+                      'assessment-host': {'runtimeStage': 'artifacts/assessment', 'publicOrigin': 'http://fixture-assessment',
+                                          'shells': ['assessment-shell']}}
         self.document = {'services': {run.service(name): {} for name in self.hosts}}
         compose = self.root / 'artifacts/composition/docker-compose.json'
         run.write(compose, self.document)

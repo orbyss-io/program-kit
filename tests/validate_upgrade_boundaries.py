@@ -392,6 +392,24 @@ class UpgradeBoundaryTests(unittest.TestCase):
             output.parent.mkdir()
             output.write_text('generated build output', encoding='utf-8')
         self.assertEqual(original, upgrade.release_fingerprint(release))
+        if os.name == 'nt':
+            from owned_fixture import filesystem_path, native_path
+            extended = Path(filesystem_path(release.absolute()))
+            deep = extended / 'extensions/governance/templates' / ('long-template-owner-' * 8) / 'source.txt'
+            deep.parent.mkdir(parents=True); deep.write_bytes(b'exact shipped deep source')
+            from build_release import repository_source_files
+            for arguments in (['init', '-q'], ['add', '--force', '--', '.']):
+                subprocess.run(['git', '-c', 'core.longpaths=true', '-C', native_path(release), *arguments],
+                               check=True, capture_output=True)
+            ordinary_inventory = repository_source_files(Path(native_path(release)))
+            self.assertEqual(ordinary_inventory, repository_source_files(extended))
+            self.assertIn(deep.relative_to(extended), ordinary_inventory)
+            complete = upgrade.release_fingerprint(Path(native_path(release)))
+            self.assertEqual(complete, upgrade.release_fingerprint(extended))
+            self.assertNotEqual(original, complete)
+            deep.write_bytes(b'changed shipped deep source')
+            self.assertNotEqual(complete, upgrade.release_fingerprint(Path(native_path(release))))
+            deep.unlink(); deep.parent.rmdir()
         archive = self.root / 'component.zip'
         deterministic_zip(component, archive)
         with zipfile.ZipFile(archive) as packed:

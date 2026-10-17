@@ -34,7 +34,15 @@ export async function localFirstProgramKitLogout(
   clearLocalAuthentication: () => void | Promise<void>,
   beginProviderLogout: () => void | Promise<void>,
 ): Promise<'provider-started' | 'provider-unavailable'> {
-  await clearLocalAuthentication();
+  // Private state and the selected client's memory store must be cleared in this
+  // event stack. Awaiting even an already resolved promise loses the popup gesture.
+  // Full confirmation/session controls belong to the selected Foundation module.
+  const cleared = clearLocalAuthentication();
+  if (cleared && typeof cleared.then === 'function') {
+    // Observe rejection without treating an asynchronous clear as completed.
+    void cleared.catch(() => undefined);
+    throw new Error('PKW107 SPA logout requires synchronous local authentication clearing.');
+  }
   try {
     await beginProviderLogout();
     return 'provider-started';

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import shutil
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 
 import validate_building_blocks as blocks_test
@@ -16,7 +17,7 @@ BLOCKS = ROOT / 'extensions/program-kit-building-blocks'
 
 class PlacementContractTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix='placement-contract-')
+        self.temporary = FixtureDirectory(prefix='placement-contract-')
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         installed = self.root / '.specify/extensions/program-kit-building-blocks/references'

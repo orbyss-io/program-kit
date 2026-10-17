@@ -23,6 +23,7 @@ import uuid
 from foundation_fixture import captured, require
 from js_toolchain import device
 from test_results import test_results
+from owned_scratch import filesystem_path
 
 
 def digest(value):
@@ -180,6 +181,7 @@ def status(root, selected):
 
 
 def execute(root, selected):
+    root = Path(filesystem_path(root.absolute()))
     stages, commands = validate(selected, root)
     directory = root / 'artifacts/tests/runs' / ('foundation-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S-') + uuid.uuid4().hex)
     directory.mkdir(parents=True)
@@ -220,7 +222,10 @@ def execute(root, selected):
         step = {'id': row.get('id', stage), 'stage': stage, 'status': 'running'}
         result['steps'].append(step)
         save()
-        command = resolved_command(root, [token.replace('{runDirectory}', directory.relative_to(root).as_posix())
+        # Child tools may use relative-path APIs with the legacy Windows limit.
+        # Give the exact owned directory an absolute filesystem spelling; evidence
+        # references below remain portable repository-relative paths.
+        command = resolved_command(root, [token.replace('{runDirectory}', str(directory))
                                          for token in row['command']])
         observed = captured(command, contained(root, row.get('cwd', '.')),
                             directory / f'command-{len(result["steps"]):02d}',

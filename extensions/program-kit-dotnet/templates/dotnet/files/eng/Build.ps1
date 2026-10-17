@@ -157,6 +157,15 @@ else {
     & (Join-Path $PSScriptRoot 'Restore.ps1') -Subject $solutions[0].FullName
 }
 if (-not $?) { throw 'Managed repository-isolated restore failed.' }
+& $buildPython (Join-Path $PSScriptRoot 'prepare_hosted_pages.py') --repository $root --check
+if ($LASTEXITCODE -ne 0) { throw 'Typed frontend inputs are stale or unprepared. Run python eng/prepare_hosted_pages.py --repository . --restore before building.' }
+if ($VerifyArchitecture) {
+    # The engineering reader is outside the consumer solution. Restore it before
+    # capturing pack inputs so architecture execution cannot introduce a new
+    # unobserved restore graph during the guarded build.
+    dotnet restore (Join-Path $PSScriptRoot 'assembly_graph/AssemblyGraph.csproj')
+    if ($LASTEXITCODE -ne 0) { throw 'Architecture reader restore failed before build/pack input capture.' }
+}
 & $buildPython (Join-Path $PSScriptRoot 'release_bundle.py') prepare-pack --repository $root --packages $packages
 if ($LASTEXITCODE -ne 0) { throw 'Fresh build/pack input capture failed.' }
 if ($VerifyArchitecture) {

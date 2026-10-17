@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sys
+import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -37,9 +38,26 @@ def fail(code: str, detail: str) -> None:
     raise ResolverError(code, detail)
 
 
+def filesystem_root(path):
+    """I/O spelling of an absolute path; repository_path still owns containment.
+
+    Keep readers independent of the optional .NET extension. Public records use
+    their original Path identities, never this implementation spelling.
+    """
+    path = Path(path).absolute()
+    value = str(path)
+    if os.name != 'nt': return path
+    if value.startswith('\\\\?\\'):
+        if re.match(r'^\\\\\?\\[A-Za-z]:\\', value) or value.startswith('\\\\?\\UNC\\'):
+            return path
+        fail('PKB612', 'unsupported device namespace is not a dependency authority path')
+    if value.startswith('\\\\.\\'): fail('PKB612', 'device namespaces are not dependency authority paths')
+    return Path('\\\\?\\UNC\\' + value[2:] if value.startswith('\\\\') else '\\\\?\\' + value)
+
+
 def load_json(path: Path) -> dict:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(filesystem_root(path).read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         fail("PKB100", f"cannot load JSON from {path}: {error}")
     if not isinstance(value, dict):
@@ -62,7 +80,7 @@ def canonical_sha256(value: object) -> str:
 
 
 def raw_sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(filesystem_root(path).read_bytes()).hexdigest()
 
 
 def pretty_json(value: object) -> str:
@@ -126,10 +144,7 @@ def repository_path(repository: Path, relative: str) -> Path:
 
 
 def atomic_write(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".program-kit.tmp")
-    temporary.write_text(content, encoding="utf-8", newline="\n")
-    temporary.replace(path)
+    atomic_write_bytes(path, content.encode('utf-8'), 'program-kit')
 
 
 def resolution_projection(catalog: dict) -> dict:
@@ -1304,11 +1319,46 @@ def reconcile_output(repository: Path, previous: dict | None, desired: dict | No
     fail("PKB401", f"unsupported managed output kind {kind!r}")
 
 
+def filesystem_path(path: Path) -> Path:
+    if os.name == 'nt':
+        spelling = os.path.abspath(path)
+        if not spelling.startswith('\\\\?\\'):
+            spelling = '\\\\?\\UNC\\' + spelling[2:] if spelling.startswith('\\\\') else '\\\\?\\' + spelling
+        path = Path(spelling)
+    return path
+
+
 def atomic_write_bytes(path: Path, content: bytes, suffix: str) -> None:
+    # This component installs independently; its file adapter stays local.
+    path = filesystem_path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f"{path.name}.{suffix}.tmp")
-    temporary.write_bytes(content)
-    os.replace(temporary, path)
+    try:
+        previous = path.read_bytes()
+    except FileNotFoundError:
+        previous = None
+    temporary = path.with_name(f".pkb-{uuid.uuid4().hex}.tmp")
+    try:
+        with temporary.open('xb') as stream:
+            stream.write(content); stream.flush(); os.fsync(stream.fileno())
+        for attempt in range(5):
+            try:
+                os.replace(temporary, path)
+                return
+            except PermissionError as error:
+                if os.name != 'nt' or getattr(error, 'winerror', None) not in (5, 32, 33) or attempt == 4:
+                    raise
+                time.sleep(.02 * (attempt + 1))
+                try:
+                    current = path.read_bytes()
+                except FileNotFoundError:
+                    current = None
+                except OSError:
+                    current = object()  # An unreadable original cannot authorize retry.
+                if current != previous:
+                    error.add_note('Building-block destination changed or became unreadable while replacement was blocked; no retry.')
+                    raise
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def transaction_root(repository: Path) -> Path:
@@ -1316,6 +1366,7 @@ def transaction_root(repository: Path) -> Path:
 
 
 def recover_materialization(repository: Path) -> list[str]:
+    repository = filesystem_path(repository)
     root = transaction_root(repository)
     if not root.is_dir():
         return []
@@ -1353,6 +1404,9 @@ def recover_materialization(repository: Path) -> list[str]:
 
 
 def commit_transaction(repository: Path, changes: list[tuple[Path, str | None]], lock_path: Path, lock: dict) -> str:
+    repository = filesystem_path(repository)
+    changes = [(filesystem_path(path), content) for path, content in changes]
+    lock_path = filesystem_path(lock_path)
     root = transaction_root(repository)
     pending = sorted(path for path in root.iterdir() if path.is_dir()) if root.is_dir() else []
     if pending:
@@ -1586,30 +1640,38 @@ def profile_entry_matches_hash(entry: dict, expected: str) -> bool:
 
 
 def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576) -> bytes:
-    """Read one frozen document from an ordinary file or an indexed source pack."""
-    source=repository_path(directory,item['path'])
+    """Read an exact document, including an unchanged packed-container range."""
+    source = filesystem_root(repository_path(directory, item['path']))
     packed = False
-    if not source.is_file() and 'byteOffset' not in item:
-        # Install packaging can compact old loose package facts while their
-        # historical manifests and original per-document hashes remain unchanged.
-        storage = repository_path(directory, 'historical-package-facts.json')
+    container = None
+    if not source.is_file():
+        storage = filesystem_root(repository_path(directory, 'historical-package-facts.json'))
         if storage.is_file():
             if storage.stat().st_size > 1_048_576:
                 fail('PKB611', 'historical package storage index exceeds its bound')
             index = load_json(storage)
             if index.get('schemaVersion') != 1 or not isinstance(index.get('entries'), dict):
                 fail('PKB611', 'historical package storage index is invalid')
-            row = index['entries'].get(item['path'])
-            if not isinstance(row, dict) or set(row) != {'byteOffset', 'byteLength', 'sha256'} or row['sha256'] != item.get('sha256'):
+            container = index['entries'].get(item['path'])
+            if (not isinstance(container, dict) or set(container) != {'byteOffset', 'byteLength', 'sha256'}
+                    or not re.fullmatch('[0-9a-f]{64}', str(container['sha256']))
+                    or ('byteOffset' not in item and container['sha256'] != item.get('sha256'))):
                 fail('PKB611', 'historical package storage differs from its original authority')
-            item = {**item, **row}
-            source = repository_path(directory, 'historical-package-facts.pack')
+            source = filesystem_root(repository_path(directory, 'historical-package-facts.pack'))
             packed = True
-    offset=item.get('byteOffset',0)
-    length=item.get('byteLength',source.stat().st_size)
-    if (type(offset) is not int or type(length) is not int or offset<0 or length<0
-            or length>limit or offset+length>source.stat().st_size):
-        fail('PKB611','publisher document range is invalid')
+    offset = item.get('byteOffset', 0)
+    length = item.get('byteLength', container['byteLength'] if container else source.stat().st_size)
+    if container:
+        base, capacity = container['byteOffset'], container['byteLength']
+        if (type(base) is not int or type(capacity) is not int or base < 0 or capacity < 0
+                or base + capacity > source.stat().st_size
+                or type(offset) is not int or type(length) is not int or offset < 0 or length < 0
+                or offset + length > capacity):
+            fail('PKB611', 'publisher document range is invalid')
+        offset += base
+    if (type(offset) is not int or type(length) is not int or offset < 0 or length < 0
+            or length > limit or offset + length > source.stat().st_size):
+        fail('PKB611', 'publisher document range is invalid')
     with source.open('rb') as stream:
         stream.seek(offset)
         result = stream.read(length)
@@ -1625,7 +1687,7 @@ def publisher_package_fact(directory: Path, item: dict) -> dict:
 
 
 def qualified_dependency_profile(directory: Path, identity: str | None, catalog: dict) -> tuple[dict, dict]:
-    directory = Path(directory).resolve()
+    directory = filesystem_root(Path(directory).resolve())
     index = load_json(directory / 'index.json')
     identity = identity or index.get('default')
     entry = index['profiles'].get(identity)
@@ -1643,8 +1705,7 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
         if facts.get('profileId') != identity or facts.get('releaseVersion') != selected['families']['foundation']['releaseVersion']:
             fail('PKB611', 'publisher knowledge differs from the selected dependency profile')
         for item in [facts[key] for key in ('sourcePack','packagePack') if facts.get(key)]:
-            source = repository_path(directory, item['path'])
-            if raw_sha256(source) != item['sha256']:
+            if hashlib.sha256(publisher_document_bytes(directory, item, 64 * 1_048_576)).hexdigest() != item['sha256']:
                 fail('PKB611', 'versioned publisher fact/source changed')
         for item in facts.get('packages',[]):
             if hashlib.sha256(publisher_document_bytes(directory,item,16*1_048_576)).hexdigest()!=item['sha256']:

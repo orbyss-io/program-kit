@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory, filesystem_path
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +16,7 @@ from repository_architecture import validate_planned
 
 class KnowledgeApplicationTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix='knowledge-application-')
+        temporary = FixtureDirectory(prefix='knowledge-application-')
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         self.feature = self.root / 'specs/001-notes'
@@ -123,7 +124,7 @@ class KnowledgeApplicationTests(unittest.TestCase):
     def test_installed_default_brief_and_graph_use_the_same_canonical_rules(self):
         self.adopted()
         for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
-            shutil.copytree(ROOT / 'extensions' / name, self.root / '.specify/extensions' / name,
+            shutil.copytree(filesystem_path(ROOT / 'extensions' / name), self.root / '.specify/extensions' / name,
                             ignore=shutil.ignore_patterns('__pycache__'))
         script = self.root / '.specify/extensions/program-kit-governance/scripts/phase_obligations.py'
         command = [sys.executable, str(script), 'project', '--repository', str(self.root),

@@ -5,6 +5,19 @@ Its commands do not import Spec Kit extensions, governance validators, decisions
 The repository's native projects, dependency locks, analyzer configuration, contract baselines,
 architecture policy and deployment inputs are the engineering authorities.
 
+PowerShell verification and browser commands share `ProgramKitPython.psm1`: the
+explicit `SPECKIT_PYTHON`, generated core runtime record, or installed fallback is
+verified against the recorded identity and `.python-version`. Child adapters use
+that absolute executable and inherit it as invocation-scoped `SPECKIT_PYTHON`.
+The calling environment and global PATH are not rewritten.
+
+For a selected web profile, run `./eng/Prepare-Web.ps1` explicitly to restore its
+locked npm dependencies and Chromium into `artifacts/cache/playwright-browsers`.
+Preparation uses the recorded exact Node/npm commands and existing TLS/cache
+policy. OS/browser dependencies require normal device preparation; this command
+does not install OS packages. `./eng/Test-Web.ps1` checks prepared dependencies
+and Chromium before type checking or browser execution, and acquires nothing.
+
 From the repository root (PowerShell and Python are normal engineering prerequisites):
 
 ```powershell
@@ -61,10 +74,17 @@ normal review must check the actual responsibilities and governing constraints.
 Development uses explicit scopes rather than the acceptance pipeline at every checkpoint:
 
 ```powershell
-./eng/Invoke-RepositoryVerification.ps1 -Scope Focused -Projects tests/Notes.Tests/Notes.Tests.csproj
+python eng/repository_verification.py --repository . --list-owners
 ./eng/Invoke-RepositoryVerification.ps1 -Scope Affected -ChangedFrom <implementation-base> -Plan
 ./eng/Invoke-RepositoryVerification.ps1 -Scope Affected -ChangedFrom <implementation-base>
 ```
+
+The owner query prints copyable Focused commands for the actual materialized test
+projects and named toolkit checks in this repository. Use the relevant emitted
+command in the feature quickstart and retain its concrete owner path/check ID.
+Unmaterialized owners remain explicitly pending; a repository with no test owner
+must declare and implement meaningful tests first. Running Focused without a named
+owner still fails with PKV002. The query executes no SDK, tests or preparation.
 
 Focused builds named test projects and runs their selected native tests; `-TestArguments` accepts the
 selected framework's filters as an argument array. An unfiltered Focused selection with multiple
@@ -348,3 +368,34 @@ Restored NuGet content hashes are computed from actual archives by the selected 
 archive SHA256 still binds the staged bytes. The small `eng/package_hash` adapter is a
 maintained development tool using SDK assemblies, with build logs under `artifacts/tools/`.
 No archive metadata or claimed signature digest substitutes for hashing actual content.
+
+## Owned SDK build outputs
+
+When a project needs files from a separately owned SDK executable, use the declared
+`buildProjectReferences`/`buildOutputCopies` recipe before writing custom publish/copy
+targets. Keep ordinary CLR references in `projectReferences`; a build-only producer
+does not become a runtime assembly dependency. In the owning project's accepted
+`eng/architecture.json` row, declare the producer and its exclusive destination:
+
+```json
+{
+  "buildProjectReferences": ["src/Owned.Tool/Owned.Tool.csproj"],
+  "buildOutputCopies": [
+    {"project": "src/Owned.Tool/Owned.Tool.csproj", "directory": "tools/owned-tool"}
+  ]
+}
+```
+
+With the verified shared Python, run
+`python eng/build_output_recipe.py --repository . --project src/Owned.Provider/Owned.Provider.csproj`.
+Review the emitted XML and merge its children into that actual owner project, retaining
+its existing SDK/properties and declared `ProjectReference` with
+`ReferenceOutputAssembly="false"`. Preview does not edit projects or run a worker.
+Run the maintained restore/build/architecture/pack route and inspect real copied,
+transitive and packaged outputs. Verify incremental changes and removal too.
+
+The recipe supports its declared standard SDK output layout and non-overlapping
+`tools/<owned-subdirectory>` destinations. It does not exempt extra custom tasks,
+dynamic inputs, external paths or another output/RID layout. Those need a separately
+qualified evaluated adapter. A PKV003 hint is conditional guidance, never permission
+to delete a custom target or assume every rejected target can use this recipe.

@@ -1,66 +1,147 @@
 name: Release
+run-name: Publish ${{ inputs.expected_commit }} from packages ${{ inputs.run_id }}
 on:
-  push:
-    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: Exact qualified main commit, matching the dispatch source
+        required: true
+        type: string
+      run_id:
+        description: Successful Qualify candidate run for that exact commit
+        required: true
+        type: string
 permissions:
-  contents: write
+  contents: read
   actions: read
   packages: read
-  id-token: write
-  attestations: write
 concurrency:
-  group: release-${{ github.ref }}
+  group: publication
   cancel-in-progress: false
+env:
+  GH_TOKEN: ${{ github.token }}
+  PYTHONUTF8: '1'
 jobs:
-  release:
+  inspect:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
+    timeout-minutes: 6
+    outputs:
+      tag: ${{ steps.identity.outputs.tag }}
+      payload: ${{ steps.identity.outputs.payload }}
+      security_at: ${{ steps.identity.outputs.security_at }}
     steps:
-      - name: Check out tagged source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
-
-      - name: Prepare publication and public installation tools
-        run: |
-          python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
-          python extensions/program-kit-governance/scripts/schema_runtime.py setup
-      - name: Resolve exact qualified source; verify trust, payload, security and readiness
-        shell: bash
-        run: |
-          run_id=$(python scripts/release_candidate.py find)
-          python scripts/release_candidate.py verify-promotion --run-id "$run_id" --output artifacts/promotion --tag "$GITHUB_REF_NAME"
-      - name: Attest publication of previously built assets
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: artifacts/promotion/payload/*
-      - name: Publish exactly the qualified GitHub assets and supplemental assessment
-        run: python scripts/publish_candidate.py --tag "$GITHUB_REF_NAME" --directory artifacts/promotion
-      - name: Validate newly public installation and upgrade
+      - name: Require exact main source and configured human approval
         env:
-          PROGRAM_KIT_PUBLIC_REF: ${{ github.ref_name }}
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
         run: |
-          python tests/validate_public_install.py
-          python tests/validate_public_upgrade.py
-          python scripts/publish_candidate.py --tag "$GITHUB_REF_NAME" --directory artifacts/promotion --verify-public-only
-      - name: Preserve promotion diagnostics
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+          python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
+          python scripts/release_candidate.py assert-environment
+      - name: Inspect successful candidate and immutable package bytes
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+        run: python scripts/release_candidate.py verify-promotion --run-id "$RUN_ID" --output artifacts/promotion
+      - name: Check candidate security freshness
+        id: security
+        run: python scripts/release_candidate.py security-status --directory artifacts/promotion
+      - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        if: steps.security.outputs.fresh != 'true'
         with:
-          name: promotion-${{ github.sha }}-${{ github.run_attempt }}
+          version: v0.76.0
+      - name: Retain current security or refresh only an expired scan
+        run: python scripts/release_candidate.py ensure-security --directory artifacts/promotion --output artifacts/security
+      - name: Present concrete publication decision
+        id: identity
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          p = json.loads(pathlib.Path('artifacts/promotion/promotion.json').read_text())
+          tag = 'v' + p['source']['version']
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('tag=' + tag + '\n')
+              out.write('payload=' + p['payloadSha256'] + '\n')
+              out.write('security_at=' + json.loads(pathlib.Path('artifacts/security/security.json').read_text())['observedAt'] + '\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write('## Publication approval\n\nApprove **' + tag + '** at **' + p['source']['commit'] + '**.\n\n')
+              out.write('Package run: https://github.com/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + str(p['runId']) + '\n\n')
+              out.write('Windows/Linux package installation and current Host security scan passed. Review the PR validation summary and its disclosed behavioral gaps before approving. Local behavioral execution is maintainer reported.\n\n')
+              for asset in p['assets']:
+                  out.write('- `' + asset['name'] + '` — `' + asset['sha256'] + '`\n')
+              out.write('\nApproval accepts those validation claims and limitations, creates the stable tag, authorizes publication of these exact bytes, and verifies the real public initializer and one previous-version upgrade.\n')
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: inspection-${{ github.run_attempt }}
           path: |
-            artifacts/promotion/promotion.json
-            artifacts/promotion/qualification/
-            artifacts/promotion/assessments/
-            artifacts/promotion/security-history/
+            artifacts/promotion/
+            artifacts/security/
+          if-no-files-found: warn
+          retention-days: 14
+  publish:
+    needs: inspect
+    environment:
+      name: publication
+      url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+      actions: read
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+      - name: Prepare actual public installer prerequisites
+        run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc
+      - name: Select installer npm prerequisite
+        run: npm install --global "npm@$(cat extensions/program-kit-dotnet/templates/dotnet/files/.npm-version)" --ignore-scripts --no-audit --no-fund
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
+      - name: Recheck inspected source after approval
+        env:
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+        run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
+      - name: Retrieve exactly the approved candidate
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+          EXPECTED_PAYLOAD: ${{ needs.inspect.outputs.payload }}
+          SECURITY_AT: ${{ needs.inspect.outputs.security_at }}
+        run: python scripts/release_candidate.py verify-promotion --run-id "$RUN_ID" --output artifacts/promotion --expected-payload "$EXPECTED_PAYLOAD" --security-observed-at "$SECURITY_AT"
+      - name: Create stable tag after human approval
+        env:
+          RELEASE_TAG: ${{ needs.inspect.outputs.tag }}
+        run: python scripts/publish_candidate.py --tag "$RELEASE_TAG" --directory artifacts/promotion --create-tag
+      - name: Publish inspected bytes without rebuilding
+        env:
+          RELEASE_TAG: ${{ needs.inspect.outputs.tag }}
+        run: python scripts/publish_candidate.py --tag "$RELEASE_TAG" --directory artifacts/promotion
+      - name: Verify public bytes
+        env:
+          RELEASE_TAG: ${{ needs.inspect.outputs.tag }}
+        run: python scripts/publish_candidate.py --tag "$RELEASE_TAG" --directory artifacts/promotion --verify-public-only
+      - name: Verify actual public initializer and one prior-release upgrade
+        run: python tests/validate_public_delivery.py --directory artifacts/promotion --budget-seconds 120
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: public-delivery-${{ github.run_attempt }}
+          path: artifacts/public-delivery/
           if-no-files-found: warn
           retention-days: 14
       - name: Report partial publication after failure
         if: failure()
-        run: echo "If assets became public, preserve this run, disclose partial publication and require exact corrected-commit/same-tag approval. Never clobber differing assets or silently move a tag." >> "$GITHUB_STEP_SUMMARY"
+        run: echo "Preserve this run and inspect public tags and assets before recovery. Never overwrite differing bytes or silently move a stable tag." >> "$GITHUB_STEP_SUMMARY"

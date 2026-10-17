@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -54,7 +55,7 @@ def brief(identity='notes-repair', due='implementation', shared=False):
 
 class ConsumerUpgradeTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='consumer-upgrade-')
+        self.temp = FixtureDirectory(native=True, prefix='consumer-upgrade-')
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve() / 'consumer'
         self.root.mkdir()
@@ -338,7 +339,7 @@ class InstalledUpgradeTests(unittest.TestCase):
         from build_release import deterministic_zip
         import zipfile
         version = (ROOT / 'VERSION').read_text().strip()
-        with tempfile.TemporaryDirectory(prefix='consumer-upgrade-installed-') as name:
+        with FixtureDirectory(native=True, prefix='consumer-upgrade-installed-') as name:
             root = Path(name).resolve()
             source = root/'consumer'
             source.mkdir()

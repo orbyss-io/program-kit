@@ -1,5 +1,6 @@
 """Focused migrated-consumer tooling contracts; no agent or paid provider."""
 from copy import deepcopy
+from types import SimpleNamespace
 import json
 import shutil
 import subprocess
@@ -7,6 +8,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import os
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
@@ -17,10 +19,41 @@ import composition_model as model
 import composition_migrate as migrate
 import composition_render as render
 import openapi_pipeline as pipeline
+import toolchain
 from composition_fixture import two_apps
 
 
 class MigratedTooling(unittest.TestCase):
+    def test_reviewed_comparator_is_available_before_first_emitted_build(self):
+        import validate_composition_start as fixture
+        self.root.joinpath('.oasdiff-version').write_text('1.33.0\n')
+        # A deliberately renamed source checks canonical staging; a successful
+        # version probe is not evidence that this fictional comparator diffs APIs.
+        source = self.root / ('reviewed.cmd' if os.name == 'nt' else 'reviewed')
+        source.write_text('@echo oasdiff 1.33.0\n' if os.name == 'nt' else '#!/bin/sh\necho oasdiff 1.33.0\n')
+        if os.name != 'nt':
+            source.chmod(0o755)
+        staged = fixture.prepare_comparison_tool(self.root, source)
+        self.assertEqual('oasdiff.cmd' if os.name == 'nt' else 'oasdiff', staged.name)
+        self.assertEqual(source.read_bytes(), staged.read_bytes())
+        if os.name != 'nt':
+            self.assertTrue(os.access(staged, os.X_OK), 'Staging must retain POSIX execution permission')
+        self.assertEqual((staged, '1.33.0'), toolchain.resolve_oasdiff(self.root, '1.33.0', ''))
+        self.root.joinpath('.oasdiff-version').write_text('0.0.0\n')
+        with self.assertRaisesRegex(ValueError, 'PKT021'):
+            fixture.prepare_comparison_tool(self.root, source)
+
+    def test_typed_flow_missing_public_problem_contract_stops_before_fixture_or_native_effects(self):
+        import dependency_profile
+        import validate_composition_start as fixture
+        resolver = SimpleNamespace(new_project_catalog=lambda: {'families': {'foundation': {'releaseVersion': '0.3.5'}}})
+        with patch.object(sys, 'argv', ['validate_composition_start.py', '--execute', '--single-host', '--tooling', '--oasdiff', sys.executable]), \
+             patch.object(dependency_profile, 'resolver', return_value=resolver), \
+             patch.object(fixture, 'install_native_tooling', side_effect=AssertionError('No native installation before public dependency admission')), \
+             patch.object(fixture, 'two_apps', side_effect=AssertionError('No graph or runtime effects before public dependency admission')):
+            with self.assertRaisesRegex(ValueError, 'released Foundation public problem wire contract.*qualified default profile'):
+                fixture.main()
+
     def setUp(self):
         scratch = ROOT / 'artifacts/tests/composition-tooling'; scratch.mkdir(parents=True, exist_ok=True)
         temporary = tempfile.TemporaryDirectory(dir=scratch); self.addCleanup(temporary.cleanup)

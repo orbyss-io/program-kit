@@ -171,3 +171,27 @@ def completion(migration_plan, outcomes):
             'retirementReason': 'Feature evidence belongs to application acceptance, not tooling migration',
             'checks': {check: outcomes.get(check) is True for check in checks}, 'pendingChecks': missing,
             'migrationCompletionEstablished': not missing, 'approvalPerformed': False}
+
+
+def validate_completion(record):
+    """Recompute canonical tooling checks; a receipt cannot retire its own gates."""
+    if not isinstance(record, dict) or not isinstance(record.get('plan'), dict):
+        raise ValueError('PKU132 migration provenance is missing or changed')
+    plan = record['plan']
+    if (not isinstance(plan.get('migrations'), list)
+            or not all(isinstance(row, dict) and isinstance(row.get('verificationChecks'), list)
+                       and all(isinstance(check, str) and check for check in row['verificationChecks'])
+                       for row in plan['migrations'])
+            or not isinstance(record.get('checks'), dict)):
+        raise ValueError('PKU132 migration required-check provenance is malformed')
+    expected = completion(plan, record['checks'])
+    fields = ('schemaVersion', 'status', 'fromVersion', 'toVersion', 'planSha256',
+              'requiredChecks', 'retiredChecks', 'checks', 'pendingChecks',
+              'migrationCompletionEstablished', 'approvalPerformed')
+    if any(record.get(key) != expected[key] for key in fields):
+        raise ValueError('PKU132 migration lacks canonical required verification provenance')
+    if (record.get('applicationReady') is not None
+            or record.get('applicationChecksPerformed', False) is not False
+            or record.get('releaseReadinessEstablished', False) is not False):
+        raise ValueError('PKU132 tooling migration cannot claim application or release acceptance')
+    return expected

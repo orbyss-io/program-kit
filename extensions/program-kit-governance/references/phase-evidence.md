@@ -2,6 +2,27 @@
 
 ## Knowledge and engineering checks
 
+To repair a contradictory Test materialization map, create a request file with one
+structured source alternative per owner. For a suite produced by a prerequisite task:
+
+```json
+{"owners":[{"owner":"tests/Orders.Tests/Orders.Tests.csproj","source":{"task":"T009"}}]}
+```
+
+For an already executed suite, use `"source":{"evidence":"artifacts/verification/<run>/result.json"}`
+instead. Run the installed helper against the current task plan:
+
+```sh
+python .specify/extensions/program-kit-governance/scripts/task_draft.py render-materialization --repository . --feature-dir specs/001-orders --content-file materialization-request.json
+```
+
+The read-only result contains a proposed Markdown table. The native validator checks
+the actual selected owners, retained baseline, producing-task ancestry and existing
+receipt hashes. It rejects a source containing both a task and evidence, a suite
+produced after its gate, missing/changed evidence and a zero-test receipt. Review and
+merge that table, preserving task IDs, dependencies, effort and human decisions, then
+run normal finalization. This command executes no suite and establishes no acceptance.
+
 `phase_obligations.py project` prints concise guidance before planning and tasks. The single
 implementation preflight prints implementation guidance while validating planned architecture.
 The single upstream registry is `phase-obligations.json`. Its source routes identify every
@@ -28,7 +49,12 @@ stale sections require affected design review; preserve old intake, approvals, A
 Compatibility execution, delivery and production obligations retain their own proof and due phase.
 Implement behavior and
 architecture tests in the repository. Use `eng/Invoke-RepositoryVerification.ps1 -Scope Focused`
-or `-Scope Affected` while coding. Retain the complete implementation baseline and inspect selection
+or `-Scope Affected` while coding. Retain the complete implementation baseline.
+When authoring quickstart.md, run `python eng/repository_verification.py
+--repository . --list-owners` and include the relevant emitted command with its
+actual test-project path or toolkit-check ID. If the owner is not materialized,
+retain that prerequisite explicitly and refresh the quickstart after creating it;
+a bare Focused command cannot execute or establish coverage. Inspect selection
 with `-Plan`; do not select by the last edited file alone. Progress saves and resumes earn only
 checks invalidated by changes. `phase_obligations.py finish` returns progress for open tasks/drafts;
 closed features or an explicit `--handoff` run complete acceptance once.
@@ -144,15 +170,22 @@ progress provide evidence; no additional checkpoint receipt or approval dossier 
 Use the existing current-checkpoint marker in tasks.md. `task_draft.py checkpoint` replaces current
 progress while preserving the embedded `delivery` state: every story/explicit early checkpoint,
 engineering/human dispositions, reviewer, presentation, decisions, basis and elapsed effort. Detailed
-outputs stay in ignored artifacts. `task_draft.py current` exposes this readable state on resume.
+outputs stay in ignored artifacts. `task_draft.py current` exposes a bounded current projection on
+resume, including unresolved-failure counts and retained-history references. Use `current --history`
+for complete progress and delivery provenance; `--history-sha <reference>` selects an earlier
+progress-history prefix. These integrity references never renew human acceptance.
 No second ledger or approval dossier is required. Never edit the marker to fabricate human decisions.
 
 The current progress summary is bounded to 8 KiB independently of the 1-MiB retained delivery
 state. Storage version 3 interns identical review bases by verified SHA-256 reference inside
-that same checkpoint; `current` expands them into independent readable objects. Legacy inline
+that same checkpoint; `current --history` expands them into independent readable objects. Legacy inline
 history remains readable and migrates only through the normal atomic save. Repeated review and
 deferral cycles preserve every original decision and basis. Missing/tampered references or a
 full retained-state budget stop the write; never delete provenance to fit another decision.
+Current prose/checks replace their projection; decision, failure and resolution records remain
+retained without appending a journal for each resume. Overflow reports submitted, merged-current,
+retained-history and retained-state sizes plus their largest contributing fields, preserving the
+prior state atomically. Open failures remain binding in normal continuation guards.
 
 Submit a small JSON request with `python .specify/extensions/program-kit-governance/scripts/task_draft.py
 delivery --feature-dir specs/<feature> --content-file artifacts/<request>.json`. These are scoped
@@ -209,6 +242,84 @@ host mounts, authentication, provider settings, outcome/expected results or limi
 review. Unknown/deleted inputs, unsupported projections and unprovable legacy history remain pending.
 An `engineering` transition renews raw-input freshness only with actual successful relevant artifacts;
 tests never create acceptance. Original decision objects and their raw basis remain unchanged.
+
+For a new review, `story-document` version 1 can project an explicitly partitioned Markdown plan.
+Its input row names `stories` (the reviewed outcome's complete story closure) and `knownStories`
+(the reviewed finite set of sibling identities). Delimit a region with exact whole lines
+`<!-- program-kit:story-start US1 -->` and `<!-- program-kit:story-end US1 -->`.
+All prose outside regions remains shared material; all selected regions remain material.
+Only bodies of already declared independent siblings are omitted. Include a sibling in `stories`
+whenever its behavior influences the reviewed outcome; markers cannot establish independence.
+Unknown, duplicate, nested, mismatched, unclosed or fenced-code markers are errors. Changing
+the finite known set, selection or projection implementation cannot manufacture acceptance.
+Do not automatically add markers or narrow an earlier review: existing whole-file authority,
+decision, reviewer, basis and effort remain historical evidence. A retrospective narrowing needs
+a separately authorized material assessment; it is not supplied by this projection.
+
+Run `task_draft.py review-material --repository . --feature-dir specs/<feature> --checkpoint US1`
+for read-only per-input raw/material diagnostics. It writes no checkpoint, grants no authority and
+does not renew engineering evidence. Its output distinguishes a changed projection policy from
+changed reviewed material. Architecture/solution/build/package/runtime closure remains under its
+existing full bindings until a supported, reviewed projection/transition establishes that scope.
+
+New presentations can explicitly select `architecture-closure` version 1 for
+`docs/architecture/architecture-map.json` with an `elements` array. The native
+validated canonical projection follows actual ownership and boundary dependencies
+to a fixed point, retains decisions and complete shared authority/configuration,
+and includes relevant journeys/contracts/provider and failure ownership. Ancestors
+remain shared without automatically owning every sibling implementation. Projection
+and native model/schema implementation hashes remain part of the original policy.
+
+For a plain C# SDK solution, `solution-closure` version 1 names its `.slnx` `path`
+and original entry `projects`. It binds selected forward project dependencies,
+source files and shared build/SDK/configuration policy, including newly added selected
+source files. Only disconnected, explicitly nonpackable library members can be
+omitted. This bounded policy rejects packages, custom/conditional/imported/dynamic
+MSBuild, alternate SDKs, solution configurations/folders, external/aliased inputs
+and broader output policy. Retain those inputs whole or use a separate explicit
+native material assessment; do not infer independence from filenames.
+Shared or unknown policy remains material. Fresh native build, package and runtime
+evidence is still required independently of an unchanged human review projection.
+
+For an existing accepted review, a separately instructed owner may use the `delivery` action
+`assess-material`. This records an exact retrospective assessment; it never narrows the old
+`basisPaths` or changes the presentation, reviewer, decision or measured effort. It grants no
+authority to perform an assessment without that actual owner instruction. Solution membership
+and architecture remain whole-file inputs. An additive member is not inherently nonmaterial.
+
+The request names `checkpoint`, `actor: "owner"`, actual instruction `source`, the SHA-256 of
+the canonical original decision (`decisionSha256`), current successful native `checks`, and a
+`changes` row for every changed basis input. Each row supplies `path`, retained exact `before`
+`{path, sha256}`, `afterSha256`, `conclusion: "nonmaterial"`, a concrete `rationale`, and separate
+`effects` conclusions for `build`, `dependencies`, `packaging` and `runtime`. Inspect the actual
+diff and effective closures to reach those conclusions. Passing regressions alone do not prove
+nonmateriality. A material change requires renewed outcome review instead.
+
+Read-only `review-material` supplies `decisionSha256` and the reviewed/current input hashes.
+Refreshing engineering checks does not turn the current raw hashes into a new human basis.
+
+The command rejects omitted/extra inputs, stale hashes, missing before bytes, failed technical
+checks, unfinished tasks, wrong actor/decision and attempted scope changes. It appends a
+separate assessment event binding those exact snapshots, evidence and current policy. Later
+input, evidence or projection-policy changes invalidate its applicability; they cannot borrow
+the earlier assessment. Preserve its before-byte and check artifacts. Deterministic fixtures
+use simulated decisions and cannot establish real consumer acceptance.
+
+The retrospective event also binds a conservative current engineering context: authored
+`src`, `tests`, `eng`, `web`, `contracts`, root inputs and native restore observations. Newly
+introduced solution-member sources and project configuration therefore cannot change later
+under the authority of an earlier solution-only assessment. This is an exact-state transition;
+further unrelated authored work can require another explicit assessment. It is not automatic
+semantic independence detection or a narrower architecture/solution projection.
+Subsequent assessments cover changes to that bound context as well as original basis inputs.
+An added context input uses `before: {"absent": true}` only when the prior complete context
+proves its absence; a removed context input has an explicit null `afterSha256`. Existing
+inputs still need retained exact before bytes. All earlier assessment originals and evidence
+must remain intact; a later event cannot hide damage to the earlier chain.
+When the outcome changes materially, a fresh `present` retains the earlier accepted
+presentation and assessment chain in `materialAssessmentHistory` and requires a new human
+decision. It cannot reuse the older decision to approve the new presentation. This preserves
+history without preventing normal renewed review.
 
 An owner's existing explicit deferral can retain permission for the same named operations while
 changed engineering or review evidence remains due. Refresh preserves that scoped permission;

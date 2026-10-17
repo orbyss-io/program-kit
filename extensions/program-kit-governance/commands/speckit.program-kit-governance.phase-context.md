@@ -53,6 +53,14 @@ with actual operation group identifiers derived from the specification. A retain
 its existing phase identifiers. Minimal enabling tasks belong to their first proving operation;
 there is no all-story foundation barrier. All progress stays in tasks.md;
 the inline checkpoint records drafting progress, not acceptance, approval or test evidence.
+`prepare` also reports configured document ownership. If original preservation records are
+declared in `eng/retained-inputs.json`, inspect the exact target with
+`python eng/retained_inputs.py inspect --repository . --path <document>`.
+Keep frozen evidence byte-identical. Declare a referenced frozen file as `read` in a
+`## Document outputs` table (`Task | Path | Mode`); put current changes in a distinct
+active index/versioned proposal linked to the preserved evidence. Draft saving, finalization
+and delivery preflight reject frozen write targets. `acknowledge-inputs` cannot remove or
+replace a previously bound frozen record. Do not regenerate a failing original hash.
 For a materialized foundation selection, inspect
 `python eng/foundation_setup.py --repository . --status` once. This read-only view
 names the latest real setup results, changed-input state and required live service checks.

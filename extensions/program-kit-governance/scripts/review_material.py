@@ -7,6 +7,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 
@@ -72,6 +73,54 @@ def composition_projection(value, hosts, environments, adapter):
                                     if key in selected} for name in sorted(environments)}}
 
 
+def story_document_projection(path, row):
+    """Retain all shared prose and the explicitly reviewed story sections.
+
+    Known sibling identities are declared in the original scope. Unknown,
+    malformed or nested regions fail rather than treating arbitrary later prose
+    as unrelated. Markers express reviewed ownership, not semantic inference.
+    """
+    require(set(row) == {'path', 'kind', 'version', 'stories', 'knownStories'}
+            and type(row['version']) is int and row['version'] == 1 and path.suffix == '.md',
+            'unsupported story-document projection')
+    for field in ('stories', 'knownStories'):
+        values = row[field]
+        require(isinstance(values, list) and values and all(isinstance(value, str)
+                and re.fullmatch(r'[A-Z][A-Z0-9_-]{0,63}', value) for value in values)
+                and len(set(values)) == len(values), 'use unique stable story identities in ' + field)
+    require(set(row['stories']) <= set(row['knownStories']), 'selected stories must be known')
+    sections, shared = {}, []
+    active = None
+    fence = None
+    for line in path.read_text(encoding='utf-8').splitlines(keepends=True):
+        delimiter = re.match(r'^[ ]{0,3}(`{3,}|~{3,})([^\n]*)\n?$', line)
+        if delimiter:
+            token, tail = delimiter.groups()
+            if fence is None:
+                fence = token
+            elif token[0] == fence[0] and len(token) >= len(fence) and not tail.strip():
+                fence = None
+        marker = re.fullmatch(r'<!-- program-kit:story-(start|end) ([A-Z][A-Z0-9_-]{0,63}) -->\n?', line)
+        if marker:
+            require(fence is None, 'story region marker inside fenced code is unsupported')
+            operation, identity = marker.groups()
+            require(identity in row['knownStories'], 'unknown story region ' + identity)
+            if operation == 'start':
+                require(active is None and identity not in sections, 'nested/duplicate story region ' + identity)
+                sections[identity] = []
+                active = identity
+            else:
+                require(active == identity, 'mismatched story region end ' + identity)
+                active = None
+        else:
+            require('program-kit:story-' not in line, 'malformed story region marker')
+            (shared if active is None else sections[active]).append(line)
+    require(active is None, 'unclosed story region ' + str(active))
+    require(set(row['stories']) <= set(sections), 'missing selected story regions')
+    return {'shared': ''.join(shared),
+            'stories': {identity: ''.join(sections[identity]) for identity in sorted(row['stories'])}}
+
+
 def basis(root, scope, paths):
     require(isinstance(scope, dict) and set(scope) == {'schemaVersion', 'inputs'} and type(scope['schemaVersion']) is int and scope['schemaVersion'] == 1,
             'unsupported scope version/fields')
@@ -91,6 +140,23 @@ def basis(root, scope, paths):
         if kind in ('file', 'json'):
             require(set(row) == {'path', 'kind'}, 'unsupported input fields')
             result[relative] = digest(read_json(path)) if kind == 'json' else hashlib.sha256(path.read_bytes()).hexdigest()
+        elif kind == 'story-document':
+            result[relative] = digest(story_document_projection(path, row))
+        elif kind in ('architecture-closure','solution-closure'):
+            import material_closure
+            implementation['material_closure.py']=hashlib.sha256(Path(material_closure.__file__).read_bytes()).hexdigest()
+            require(type(row.get('version')) is int and row['version']==1,'unsupported closure projection version')
+            if kind=='architecture-closure':
+                require(set(row)=={'path','kind','version','elements'} and relative=='docs/architecture/architecture-map.json',
+                        'unsupported architecture closure fields')
+                for name in ('architecture_map.py','feature_knowledge.py'):
+                    implementation[name]=hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
+                implementation['architecture-map.schema.json']=hashlib.sha256(
+                    Path(__file__).parents[1].joinpath('references/architecture-map.schema.json').read_bytes()).hexdigest()
+                result[relative]=digest(material_closure.architecture(root,read_json(path),row['elements']))
+            else:
+                require(set(row)=={'path','kind','version','projects'},'unsupported solution closure fields')
+                result[relative]=digest(material_closure.solution(root,path,row['projects']))
         elif kind == 'foundation-composition':
             require(set(row) == {'path', 'kind', 'version', 'hosts', 'environments'} and type(row['version']) is int and row['version'] == 1 and
                     relative == 'eng/foundation-composition.json', 'unsupported composition projection')
@@ -102,7 +168,8 @@ def basis(root, scope, paths):
                     relative in ('eng/verification.json', 'eng/verification.setup.json'), 'unsupported verification projection')
             value = read_json(path)
             require(isinstance(value, dict) and type(value.get('schemaVersion')) is int and value.get('schemaVersion') == 1 and
-                    set(value) <= {'schemaVersion', 'testGroups', 'runnerReuse', 'testOwnershipReplacements', 'owner'},
+                    set(value) <= {'schemaVersion', 'testGroups', 'runnerReuse', 'testOwnershipReplacements', 'owner',
+                                   'toolkitChecks','unmappedInputs','reason'},
                     'unknown verification version/fields')
             projects = row['projects']
             require(isinstance(projects, list) and projects and len(set(projects)) == len(projects) and
@@ -119,3 +186,66 @@ def basis(root, scope, paths):
         else:
             raise ValueError('Review material scope: unsupported projection kind ' + str(kind))
     return {'scopeSha256': digest(scope), 'implementationSha256': digest(implementation), 'inputs': result}
+
+
+def explain(root, review):
+    """Read-only per-input materiality diagnostics; never changes a disposition."""
+    scope = review.get('materialScope')
+    decision = review.get('decisions', [])
+    decision_hash = digest(decision[-1]) if decision else None
+    if review.get('materialAssessments'):
+        from task_draft import assessed_material_state
+        assessment = assessed_material_state(root, review)
+        engineering = review.get('engineeringInputBasis', {})
+        prior = review['materialAssessments'][-1]['currentBasis']
+        rows = []
+        for relative in review['basisPaths']:
+            raw = hashlib.sha256((root / relative).read_bytes()).hexdigest()
+            rows.append({'path': relative, 'kind': 'file', 'rawChanged': raw != engineering.get(relative),
+                         'materialChanged': raw != prior.get(relative), 'currentRawSha256': raw,
+                         'reviewedRawSha256': prior.get(relative), 'reason': 'exact separately assessed input'})
+        return {'readOnly': True, 'acceptanceEstablished': False, 'decisionSha256': decision_hash,
+                'projectionPolicyCurrent': assessment['policyCurrent'], 'materialUnchanged': assessment['current'],
+                'assessment': assessment, 'inputs': rows}
+    if scope is None:
+        # Whole-file historical decisions remain whole-file decisions. Diagnostics
+        # can support an exact separate human assessment without rewriting them.
+        original = review.get('presentation', {}).get('basis', {})
+        assessments = review.get('materialAssessments', [])
+        prior = assessments[-1]['currentBasis'] if assessments else original
+        engineering = review.get('engineeringInputBasis', original)
+        rows = []
+        for relative in review['basisPaths']:
+            path = root / relative
+            raw = hashlib.sha256(path.read_bytes()).hexdigest()
+            changed = raw != prior.get(relative)
+            rows.append({'path': relative, 'kind': 'file', 'rawChanged': raw != engineering.get(relative),
+                         'materialChanged': changed, 'currentRawSha256': raw, 'reviewedRawSha256': prior.get(relative),
+                         'reason': 'solution membership requires build/dependency/packaging/runtime assessment'
+                             if changed and path.suffix.casefold() in ('.sln', '.slnx') else
+                             'whole-file reviewed input changed; explicit material assessment or renewed review required'
+                             if changed else 'whole-file reviewed input unchanged'})
+        return {'readOnly': True, 'acceptanceEstablished': False, 'projectionPolicyCurrent': True,
+                'decisionSha256': decision_hash,
+                'materialUnchanged': not any(row['materialChanged'] for row in rows), 'inputs': rows}
+    presented = review.get('presentation', {})
+    prior = presented.get('materialBasis')
+    require(isinstance(prior, dict), 'checkpoint has no retained material projection; no retrospective approval inferred')
+    current = basis(root, scope, review['basisPaths'])
+    policy_current = all(current.get(key) == prior.get(key) for key in ('scopeSha256', 'implementationSha256'))
+    engineering = review.get('engineeringInputBasis', presented.get('basis', {}))
+    rows = []
+    for row in scope['inputs']:
+        relative = row['path']
+        raw = hashlib.sha256((root / relative).read_bytes()).hexdigest()
+        unchanged = current['inputs'][relative] == prior.get('inputs', {}).get(relative)
+        rows.append({'path': relative, 'kind': row['kind'], 'rawChanged': raw != engineering.get(relative),
+                     'materialChanged': not unchanged, 'currentRawSha256': raw,
+                     'reason': 'projection definition or implementation changed' if not policy_current else
+                               'selected architecture/build/package/runtime closure changed' if not unchanged
+                                   and row['kind'] in ('architecture-closure','solution-closure') else
+                               'reviewed material input changed' if not unchanged else
+                               'reviewed material projection unchanged; raw engineering freshness remains independent'})
+    return {'readOnly': True, 'acceptanceEstablished': False, 'projectionPolicyCurrent': policy_current,
+            'decisionSha256': decision_hash,
+            'materialUnchanged': policy_current and all(not row['materialChanged'] for row in rows), 'inputs': rows}

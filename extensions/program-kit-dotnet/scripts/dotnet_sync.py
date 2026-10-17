@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 from xml.etree import ElementTree
 
+# Direct installed CLI execution must not create import caches in a consumer,
+# including --check. Module callers retain their existing interpreter policy.
+if __name__ == '__main__':
+    sys.dont_write_bytecode = True
+
 import reconciliation
 import identity_fixture
 import spa_profile
@@ -248,6 +253,10 @@ def desired_content(
     spa_configuration: dict | None,
     template_root: Path,
 ) -> bytes:
+    # Extended Windows filesystem paths do not interpret dot segments. Resolve
+    # only the I/O path here; the caller retains the original publisher source
+    # identity (including its declared sourceRoot) in managed ownership records.
+    source = source.resolve()
     content = source.read_bytes()
     if relative == "global.json":
         value = load_json(source, {})
@@ -266,6 +275,8 @@ def desired_content(
         "eng/web-profile.shells.json": spa_profile.render_shell_profile,
         "eng/web-profile.json": spa_profile.render_profile,
         "eng/web/web-contract.json": spa_profile.render_web_contract,
+        "eng/web/spa-security.json": spa_profile.render_security_contract,
+        "eng/web/vite.security.mjs": spa_profile.render_vite_security,
     }
     renderer = renderers.get(relative)
     return renderer(content, spa_configuration) if renderer else content
@@ -387,6 +398,15 @@ def setup_verification_mappings(target: Path, entries: list[dict]) -> bytes:
     value = {'schemaVersion': 1, 'owner': 'program-kit-setup', 'testGroups': [],
              'reason': 'Known shared engineering, application guides and current compatibility inputs select declared native tests explicitly. This is scoped coverage, not application acceptance.',
              'unmappedInputs': [] if tests else sorted(inputs)}
+    # Derive exact toolkit ownership from original preservation records, separately
+    # from domain test projects. Do not turn arbitrary docs/future paths into matches.
+    import retained_inputs
+    retained = retained_inputs.snapshot(target)
+    if retained['configured']:
+        owned = sorted({*retained['inputs'], *retained['frozen'], 'eng/retained_inputs.py',
+                        'eng/retained_archives.py', 'eng/retained_locks.py', 'eng/owned_scratch.py'})
+        value['toolkitChecks'] = [{'id': 'retained-inputs', 'script': 'eng/retained_inputs.py',
+                                  'arguments': ['verify', '--repository', '.'], 'inputs': owned, 'timeoutSeconds': 60}]
     if tests:
         value['testGroups'].append({'id': 'program-kit-shared-setup', 'projects': tests,
                                    'inputs': sorted(inputs), 'reuse': False})
@@ -540,7 +560,7 @@ def main() -> int:
         return (isinstance(entry, dict) and entry.get('ownership') == 'scaffold'
                 and entry.get('contribution') == 'foundation'
                 and entry.get('sourceIdentity') == '../../scripts/foundation_composition.py'
-                and Path(path).suffix in {'.cs', '.csproj'})
+                and Path(path).suffix in {'.cs', '.csproj', '.ts', '.mjs'})
     if foundation_configuration is not None:
         for path, previous in old_files.items():
             if (path in foundation_outputs or Path(path).suffix != '.csproj'
@@ -832,7 +852,7 @@ def main() -> int:
                 actions.append({'kind':'update','path':relative,'content':desired})
                 final_hash = final_baseline = final_written = desired_hash
             elif (foundation_configuration is not None and relative in foundation_outputs
-                  and Path(relative).suffix in {'.csproj', '.cs'} and foundation_source(relative, previous)
+                  and Path(relative).suffix in {'.csproj', '.cs', '.ts', '.mjs'} and foundation_source(relative, previous)
                   and current_hash == last_written_hash == baseline_hash):
                 # Reconcile only authenticated untouched generated references/seams.
                 # Native selection/customization changes the bytes and retains

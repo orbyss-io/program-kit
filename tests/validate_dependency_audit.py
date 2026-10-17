@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 from unittest.mock import patch
 
@@ -167,7 +168,7 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(preserved,receipt.read_bytes())
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='program-kit-dependency-audit-')
+        self.temp = FixtureDirectory(prefix='program-kit-dependency-audit-')
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.blocks = load_module(RESOLVER)

@@ -20,7 +20,9 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 ENG = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'
-EVIDENCE = ROOT / 'artifacts/tests/foundation-setup-validator' / os.urandom(8).hex()
+sys.path.insert(0, str(ENG))
+from owned_scratch import filesystem_path
+EVIDENCE = Path(filesystem_path(ROOT / 'artifacts/tests/foundation-setup-validator' / os.urandom(8).hex()))
 
 
 def load(name, path):
@@ -78,7 +80,7 @@ class Readiness(unittest.TestCase):
         evidence_path.with_name('toolchain.satisfied.json').write_bytes(evidence_path.read_bytes())
         self.assertEqual(command,evidence['commands']['npm']+['--version'])
         self.assertEqual(environment['NPM_CONFIG_STRICT_SSL'],'true')
-        self.assertEqual(Path(environment['NPM_CONFIG_CACHE']),self.root/'artifacts/cache/npm')
+        self.assertEqual(Path(filesystem_path(Path(environment['NPM_CONFIG_CACHE']))),self.root/'artifacts/cache/npm')
         actual=fixture.captured(command,self.root,self.root/'actual-npm',environment=environment)
         self.assertEqual(actual['exitCode'],0)
         self.assertEqual((self.root/'actual-npm/stdout.log').read_text().strip(),(self.root/'.npm-version').read_text().strip())

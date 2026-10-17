@@ -139,6 +139,40 @@ def trust_environment(
     return environment, trust_mode, extra_ca
 
 
+def node_npm_recovery(repository: Path, reason: str, required=None, installed=None, commands=None) -> str:
+    """Read-only paired diagnosis; all actual device preparation stays user-owned."""
+    if required is None:
+        required = {}
+        for name, filename in (('node', '.nvmrc'), ('npm', '.npm-version')):
+            pin = repository / filename
+            required[name] = pin.read_text(encoding='utf-8').strip().removeprefix('v') if pin.is_file() else None
+    if not all(isinstance(required.get(name), str) and required[name] for name in ('node', 'npm')):
+        return reason + '\nBoth authoritative .nvmrc and .npm-version pins are required; do not infer them from stale command evidence.'
+    if installed is None:
+        node, nv = resolve_node(repository, required['node'], 'node', 'auto')
+        npm, pv = resolve_npm(repository, node, required['npm'], '') if node else (None, None)
+        installed = {'node': nv, 'npm': pv}
+        commands = {'node': [str(node)] if node else [], 'npm': npm or []}
+    commands = commands or {}
+    lines = [reason,
+        f"Recover the selected pair together: node={required['node']} (.nvmrc), npm={required['npm']} (.npm-version).",
+        'First select the required shared Node. Then inspect npm from that selection; bundled npm may differ from the independent npm pin.',
+        'Apply npm preparation only after Node selection is correct. Preserve the existing manager, ownership and shared prefix.']
+    mismatches = []
+    for name in ('node', 'npm'):
+        if installed.get(name) == required[name]:
+            continue
+        command = commands.get(name) or []
+        executable_path = command[0] if isinstance(command, list) and command else command if isinstance(command, str) else None
+        mismatches.append(device.render(device.diagnostic(name, required[name],
+            str(repository / ('.nvmrc' if name == 'node' else '.npm-version')),
+            installed.get(name), executable_path, repository)))
+    lines.extend(mismatches or ['The observed active pair matches both pins; the recorded paths still require fresh evidence.'])
+    lines.extend(['In a fresh user shell verify node --version, npm --version and npm lifecycle child Node selection together.',
+        'Only after both pins and persistent paths are valid, run eng/toolchain.py with the verified shared Python; then renew/restage affected evidence through its normal owner. No installation or evidence renewal was performed by this diagnosis.'])
+    return '\n\n'.join(lines)
+
+
 def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str, str]]:
     device.require_python(repository)
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
@@ -166,10 +200,10 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
         if index == 1 and Path(npm[index]).suffix.casefold() != ".js":
             continue
         if not Path(npm[index]).is_file():
-            raise ValueError(f"PKT016 recorded npm command path is missing: {npm[index]}")
+            raise ValueError(node_npm_recovery(repository, f"PKT016 recorded npm command path is missing: {npm[index]}"))
     node_command = commands.get("node") if isinstance(commands, dict) else None
     if not isinstance(node_command, list) or len(node_command) != 1 or not Path(node_command[0]).is_file():
-        raise ValueError("PKT016 recorded Node command is invalid or missing.")
+        raise ValueError(node_npm_recovery(repository, "PKT016 recorded Node command is invalid or missing."))
     active_node, actual_node = resolve_node(repository, required.get('node'), 'node', 'auto')
     # npm lifecycle commands resolve node through a child shell even when the
     # recorded executable itself can run with an oversized Windows PATH.
@@ -182,9 +216,13 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
             raise ValueError('PKT018 npm child PATH cannot fit safely; reduce redundant device PATH entries in your terminal. ' + str(error)) from error
     active_npm, actual_npm = resolve_npm(repository, active_node, required.get('npm'), '', child_environment) if active_node else (None, None)
     if active_node is None or [str(active_node)] != node_command or active_npm != npm:
-        raise ValueError('PKT017 device selection changed or PATH is stale; re-run eng/toolchain.py. ' + device.REFRESH)
+        raise ValueError(node_npm_recovery(repository, 'PKT017 device selection changed or PATH is stale; re-run eng/toolchain.py. ' + device.REFRESH,
+            required=required, installed={'node': actual_node, 'npm': actual_npm},
+            commands={'node': [str(active_node)] if active_node else [], 'npm': active_npm or []}))
     if actual_node != required.get('node') or actual_npm != required.get('npm'):
-        raise ValueError('PKT017 exact active device Node/npm versions no longer match evidence. ' + device.REFRESH)
+        raise ValueError(node_npm_recovery(repository, 'PKT017 exact active device Node/npm versions no longer match evidence. ' + device.REFRESH,
+            required=required, installed={'node': actual_node, 'npm': actual_npm},
+            commands={'node': node_command, 'npm': npm}))
     recorded_environment = evidence.get("environment", {})
     cache_value = recorded_environment.get("npmCache") if isinstance(recorded_environment, dict) else None
     if not isinstance(cache_value, str) or not cache_value:

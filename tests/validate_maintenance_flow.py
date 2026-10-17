@@ -40,6 +40,7 @@ class MaintenanceTests(unittest.TestCase):
         value.update(status='incomplete',diagnostic='injected deterministic interruption')
         upgrade.seal_attempt(path,value)
         failed_marker=path.parent/'run.json'
+        failed_bytes=failed_marker.read_bytes()
         # A document-byte edit is not migration authority and must not block retry.
         decisions=self.root/'docs/architecture/bootstrap-decisions.json';decisions.parent.mkdir(parents=True)
         decisions.write_text('{"mechanicalFormattingChanged":true}')
@@ -48,10 +49,26 @@ class MaintenanceTests(unittest.TestCase):
             path,value=upgrade.begin_attempt(self.root,ROOT,version,version)
             self.assertEqual('0.12.6',value['previousInstalledVersion'])
             self.assertEqual(original,value['originals']['version'])
+            self.assertIsNotNone(value['retryOf'])
+            value['status']='incomplete';upgrade.seal_attempt(path,value)
+        # A real completion ends this interrupted operation. Later invocations
+        # must capture the now-installed version rather than resume old failures.
+        path,value=upgrade.begin_attempt(self.root,ROOT,version,version)
+        self.assertEqual(original,value['originals']['version'])
+        installed=self.root/'.specify/extensions/program-kit-governance/extension.yml'
+        installed.write_text('extension:\n  version: "'+version+'"\n')
+        value['status']='completed';upgrade.seal_attempt(path,value)
+        self.preserved[installed]=installed.read_bytes()
+        for _ in range(8):
+            path,value=upgrade.begin_attempt(self.root,ROOT,version,version)
+            self.assertEqual(version,value['previousInstalledVersion'])
+            self.assertIsNone(value['retryOf'])
+            self.assertNotEqual(original,value['originals']['version'])
             value['status']='completed';upgrade.seal_attempt(path,value)
         markers=[json.loads(p.read_text()) for p in (self.root/'artifacts/program-kit/runs').glob('*/run.json')]
         self.assertEqual(5,sum(v['status']=='completed' for v in markers))
         self.assertTrue(failed_marker.is_file())
+        self.assertEqual(failed_bytes,failed_marker.read_bytes())
         original_path=self.root/original['path']
         self.assertEqual(original['sha256'],hashlib.sha256(original_path.read_bytes()).hexdigest())
         for p,payload in self.preserved.items():self.assertEqual(payload,p.read_bytes())
@@ -77,7 +94,7 @@ class MaintenanceTests(unittest.TestCase):
         class Interrupted(BaseException):pass
         def crash(path,payload,suffix):
             original_write(path,payload,suffix)
-            if path==destination:raise Interrupted()
+            if path.samefile(destination):raise Interrupted()
         with patch.object(recipe,'atomic_write',side_effect=crash),self.assertRaises(Interrupted):
             recipe.apply_plan(self.root,[{'kind':'update','path':'eng/policy.txt','content':b'candidate policy'}],b'{}')
         self.assertTrue(upgrade.pending_upgrade_transactions(self.root))

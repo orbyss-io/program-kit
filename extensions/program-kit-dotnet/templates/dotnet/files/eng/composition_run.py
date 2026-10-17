@@ -69,7 +69,7 @@ class Commands(qualification.Commands):
         # Keep acquisition and launch on one owned cache. Playwright's Windows
         # default nests under the isolated NuGet profile and can exceed native
         # executable path limits even in an ordinary managed worktree.
-        self.environment['PLAYWRIGHT_BROWSERS_PATH'] = str(root / 'artifacts/cache/browsers')
+        self.environment['PLAYWRIGHT_BROWSERS_PATH'] = str(root / 'artifacts/cache/playwright-browsers')
 
     def run(self, command, **arguments):
         # Resolution applies to every nested command, not just the outer wrapper.
@@ -112,7 +112,9 @@ def browser_check(root, graph, resolved, command, directory, launch_only=False, 
             authority = env[client['authorityRef']]
             require(authority['mode'] == 'managed', 'external authority requires its qualified authentication readiness adapter')
             pages = [row['path'] for row in model.bindings(graph, 'frontend') if row['shellRef'] == shell_id]
-            hosts.append({'id': name, 'origin': host['publicOrigin'], 'page': pages[0] if pages else None,
+            prefix = model.shell_path_base(graph, shell_id)
+            hosts.append({'id': name, 'origin': host['publicOrigin'], 'pathBase': prefix,
+                          'page': prefix + pages[0] if pages else None,
                           'realm': str(root / ('deploy/keycloak/' + client['authorityRef'] + '/' + authority['realm'] + '-realm.json'))})
     plan = directory / ('browser-launch.json' if launch_only else 'browser-plan.json')
     result = directory / ('browser-launch-result.json' if launch_only else 'browser-result.json')
@@ -278,14 +280,13 @@ def compose_model(root, graph, contract, resolved, credentials):
                 values[prefix + 'PostgreSql__Policies__' + row['policy'] + '__ConnectionString'] = '${' + key + ':?Prepare the database binding}'
         volumes = [{'type': 'bind', 'source': str(stage / file), 'target': '/app/' + file, 'read_only': True,
                     'bind': {'create_host_path': False}} for file in ('hostsettings.json', 'shells.json', 'nuplane.settings.json', 'packages')]
-        for row in model.bindings(graph, 'privateFiles'):
+        for row in model.private_file_bindings(graph):
             if row['hostRef'] != name:
                 continue
-            target = '/private-evidence/' + row['filesRef']
+            target = row['runtimePath']
             volumes.append({'type': 'bind', 'source': str(private_roots[row['filesRef']]), 'target': target,
                             'read_only': False, 'bind': {'create_host_path': False}})
-            shell = graph['resources'][row['shellRef']]['name']
-            values['CShells__Shells__' + shell + '__Configuration__' + row.get('section', 'EvidenceFiles') + '__' + row['setting']] = target
+            values[row['environmentKey']] = target
         if (stage / 'shells.json').is_file():
             import hosted_bundle
             staged_shells = shell_composition.load(stage / 'shells.json', True)
@@ -658,8 +659,11 @@ def run(root, selected_hosts=None, update=False):
         command.run(arguments, environment=process_env, timeout=210)
         checks = {}
         for name in hosts:
-            origin = resolved['hosts'][name]['publicOrigin']
-            foundation_fixture.poll(lambda: qualification.ready(origin, '/bff/user'), timeout=60)
+            host = resolved['hosts'][name]
+            origin = host['publicOrigin']
+            for shell_id in host['shells']:
+                path = model.shell_path_base(graph, shell_id) + '/bff/user'
+                foundation_fixture.poll(lambda: qualification.ready(origin, path), timeout=60)
             checks[name] = {'hostActivation': True, 'selectedProviderPrepare': 'required by selected feature activation', 'bffAnonymousStatus': 200}
         browser = browser_check(root, graph, resolved, command, directory, selected_hosts=hosts)
         receipt['pendingActivationHosts'] = [name for name in pending if name not in hosts]

@@ -5,6 +5,7 @@ import json
 import sys
 import tempfile
 import unittest
+import subprocess
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,6 +15,24 @@ import test_project
 
 
 class TestDependencies(unittest.TestCase):
+    def test_exact_qualified_alias_preserves_selected_identity_and_normal_nuget_casing(self):
+        for identity in ('xunit.v3', 'XUnit.V3', 'xunit.v3.mtp-v2'):
+            with self.subTest(identity=identity):
+                project = copy.deepcopy(self.project)
+                project['packageReferences'] = [identity]
+                payload = test_project.scaffold(project, {'xunit.v3': '4.0.2', 'xunit.v3.mtp-v2': '4.0.2',
+                    'cshells.abstractions': '0.0.30'})
+                references = [p.get('Include') for p in ET.fromstring(payload).iter('PackageReference')]
+                self.assertIn(identity, references)
+                self.assertNotIn('Microsoft.NET.Test.Sdk', references)
+        for packages, pins in ((['xunit.v3'], {'xunit.v3': '3.2.2'}),
+                               (['xunit.v3'], {'xunit.v3': '4.0.3'}),
+                               (['xunit.v3'], {}),
+                               (['xunit.v3', 'xunit.v3.mtp-v2'], {'xunit.v3': '4.0.2', 'xunit.v3.mtp-v2': '4.0.2'}),
+                               ([], {})):
+            with self.assertRaisesRegex(ValueError, 'PKA020'):
+                test_project.runner_capability(packages, pins)
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='test-dependencies-')
         self.addCleanup(temporary.cleanup)
@@ -99,5 +118,48 @@ class TestDependencies(unittest.TestCase):
         self.assertFalse((self.root / self.project['path']).exists())
 
 
+class NativeRunner(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='native-test-runner-')
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+
+    def test_qualified_runner_scaffolds_restore_build_and_execute_named_native_cases(self):
+        for index, (identity, version) in enumerate(sorted(test_project.QUALIFIED_MTP_RUNNERS)):
+            with self.subTest(identity=identity, version=version):
+                root = self.root / ('native-' + str(index))
+                (root / 'eng').mkdir(parents=True)
+                project = {'path': 'tests/Proof/Proof.csproj', 'role': 'test', 'projectReferences': [],
+                           'packageReferences': [identity], 'responsibilities': [
+                               {'name': 'named native proof', 'kind': 'test', 'effects': [], 'testSeams': ['pure-core']}]}
+                (root / 'eng/architecture.json').write_text(json.dumps({'runtimeComposition': {'projects': [project], 'bindings': []}}))
+                (root / 'global.json').write_bytes((ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/global.json').read_bytes())
+                (root / 'Directory.Build.props').write_text('<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework><NuGetAudit>false</NuGetAudit></PropertyGroup></Project>')
+                (root / 'Directory.Packages.props').write_text('<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup><PackageVersion Include="' + identity + '" Version="' + version + '" /></ItemGroup></Project>')
+                (root / 'NuGet.config').write_text('<configuration><packageSources><clear/><add key="public" value="https://api.nuget.org/v3/index.json"/></packageSources></configuration>')
+                proposal = test_project.preview(root, project['path'])
+                test_project.apply(root, project['path'], proposal['planDigest'])
+                (root / 'tests/Proof/Proof.cs').write_text('namespace RunnerProof; public class NativeCase { [Xunit.Fact] public void NamedNativeCase() { Xunit.Assert.Equal(4, 2 + 2); } }')
+                for args in (['restore', project['path'], '--use-lock-file'],
+                             ['build', project['path'], '-c', 'Release', '--no-restore'],
+                             ['test', '--project', project['path'], '-c', 'Release', '--no-build', '--no-restore',
+                              '--minimum-expected-tests', '1', '--fail-skips', 'on', '--report-xunit-trx',
+                              '--report-xunit-trx-filename', 'named.trx', '--results-directory', str(root / 'results')]):
+                    observed = subprocess.run(['dotnet', *args], cwd=root, capture_output=True, text=True, timeout=180)
+                    self.assertEqual(0, observed.returncode, str(args) + '\n' + observed.stdout + observed.stderr)
+                reports = list((root / 'results').rglob('*.trx'))
+                self.assertTrue(reports, 'Native execution must retain its actual named report')
+                cases = [row for report in reports for row in ET.parse(report).getroot().iter()
+                         if row.tag.rsplit('}', 1)[-1] == 'UnitTestResult']
+                self.assertEqual(1, len(cases))
+                self.assertIn('NamedNativeCase', cases[0].get('testName', ''))
+                self.assertEqual('Passed', cases[0].get('outcome'))
+
+
 if __name__ == '__main__':
-    unittest.main()
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--native', action='store_true', help='Restore, build and execute the qualified native runners')
+    args = parser.parse_args()
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(NativeRunner if args.native else TestDependencies)
+    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

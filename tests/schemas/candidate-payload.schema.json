@@ -25,18 +25,13 @@
         "policySha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
-        },
-        "inventorySha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
         }
       },
       "required": [
         "commit",
         "tree",
         "version",
-        "policySha256",
-        "inventorySha256"
+        "policySha256"
       ]
     },
     "assets": {

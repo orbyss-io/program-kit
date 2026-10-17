@@ -30,13 +30,13 @@ def published_version(event):
     if "workflow_run" in event:
         runs = [event["workflow_run"]]
         # A delayed older completion must never roll back the current README.
-        if runs[0]["head_branch"] != tag:
+        if runs[0]["head_sha"] != commit:
             return None
     else:
-        runs = api(f"actions/workflows/release.yml/runs?event=push&status=success&head_sha={commit}&per_page=100")["workflow_runs"]
-    if not any(run["name"] == "Release" and run["event"] == "push"
+        runs = api(f"actions/workflows/release.yml/runs?event=workflow_dispatch&status=success&head_sha={commit}&per_page=100")["workflow_runs"]
+    if not any(run["name"] == "Release" and run["event"] == "workflow_dispatch"
                and run["conclusion"] == "success" and run["head_sha"] == commit
-               and run["head_branch"] == tag
+               and run["head_branch"] == "main"
                and run["head_repository"]["full_name"] == REPOSITORY for run in runs):
         raise ValueError(f"{tag} has no successful complete Release workflow at its tag commit")
     return tag[1:]

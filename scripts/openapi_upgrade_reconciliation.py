@@ -45,6 +45,26 @@ atomic_replace = _shared.atomic_replace
 apply = _shared.apply
 
 
+def validate_exporter_catalog_transition(resolver, old: dict, new: dict, release: Path) -> tuple[str, str]:
+    """Validate the exact publisher exporter-only transform without mutating selection."""
+    resolver.validate_catalog(old)
+    resolver.validate_catalog(new)
+    before = resolver.resolution_projection(old)
+    after = resolver.resolution_projection(new)
+    old_version = before['packages'][EXPORTER_KEY]['version']
+    new_version = after['packages'][EXPORTER_KEY]['version']
+    if version_key(old_version) >= version_key(new_version) or new_version != target_exporter_version(release):
+        raise ReconciliationError('PKU116 exporter catalog and managed tool must advance together')
+    expected = copy.deepcopy(before)
+    expected['resolutionRevision'] += 1
+    expected['packages'][EXPORTER_KEY]['version'] = new_version
+    family = expected['packages'][EXPORTER_KEY]['family']
+    expected['families'][family].setdefault('toolVersions', {})[PRODUCER_KIND] = new_version
+    if after != expected:
+        raise ReconciliationError('PKU116 catalog changes exceed the exporter-only transition; renew architecture acceptance')
+    return old_version, new_version
+
+
 def catalog_transition(target: Path, release: Path, resolver, selection: dict) -> dict:
     """Admit only the reviewed exporter tool pin; retain all consumer design choices."""
     new = resolver.load_json(release / CATALOG_RELATIVE)
@@ -84,20 +104,7 @@ def catalog_transition(target: Path, release: Path, resolver, selection: dict) -
     resolver.validate_catalog(new)
     if resolver.catalog_resolution_sha256(old) != old_hash:
         raise ReconciliationError("PKU116 preserved catalog does not match accepted selection")
-    before = resolver.resolution_projection(old)
-    after = resolver.resolution_projection(new)
-    old_version = before["packages"][EXPORTER_KEY]["version"]
-    new_version = after["packages"][EXPORTER_KEY]["version"]
-    if (version_key(old_version) >= version_key(new_version)
-            or new_version != target_exporter_version(release)):
-        raise ReconciliationError("PKU116 exporter catalog and managed tool must advance together")
-    expected = copy.deepcopy(before)
-    expected["resolutionRevision"] += 1
-    expected["packages"][EXPORTER_KEY]["version"] = new_version
-    family = expected["packages"][EXPORTER_KEY]["family"]
-    expected["families"][family].setdefault("toolVersions", {})[PRODUCER_KIND] = new_version
-    if after != expected:
-        raise ReconciliationError("PKU116 catalog changes exceed the exporter-only transition; renew architecture acceptance")
+    old_version, new_version = validate_exporter_catalog_transition(resolver, old, new, release)
     architecture_path = target / selection["authority"]["architectureMap"]
     relative_path(target, architecture_path)
     paths = {"selection.json": target / "docs/architecture/building-block-selection.json",

@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +16,7 @@ import repository_architecture as architecture
 
 class LifecycleDesignTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='lifecycle-design-')
+        self.temp = FixtureDirectory(prefix='lifecycle-design-')
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.provider = 'src/Notes.PostgreSql/Notes.PostgreSql.csproj'

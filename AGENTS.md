@@ -7,59 +7,54 @@ Firefox is not runnable on the current local Windows host. Playwright reaches
 retry Firefox repeatedly, diagnose that host error as a product regression, or change production
 code to accommodate it. Where a validator exposes `--engines`, use the non-Firefox engines locally
 (for example, `--engines=chromium,webkit`), continue the remaining deterministic validators, and
-report the known local-host limitation. Keep Firefox in the CI browser matrix; CI remains the
-authority for Firefox acceptance.
+report the known local-host limitation. Retain Firefox in affected browser scenarios where browser coverage is required; the relevant
+CI scenario remains the authority for Firefox acceptance. Do not restore an automatic full browser matrix.
 
 ## Development and release validation
 
-Before selecting a release candidate, run the [dependency update workflow](docs/maintenance/dependency-review.md).
-Upgrade active external pins and lockfiles, run the deterministic tests, and regenerate the
-qualified default profile and versioned knowledge together. Add newly introduced dependencies
-to `maintenance-policy.json`. Preserve historical profiles/evidence and existing consumer locks.
-Keep update work out of ordinary Spec Kit hooks and implementation loops. Test, lookup and
-security failures block the update and identify the repair; they are never treated as success.
+Ordinary development runs `./scripts/Test-ProgramKit.ps1` (Integrity), then affected
+contracts with `python scripts/run_validation.py --suite Affected --changed-from <base>`.
+The single maintained definition is `tests/validation-inventory.json`; see
+[validation](docs/validation.md) for capability edges, fixture scope and runtime budgets.
+Unknown paths or history are explicit coverage gaps, never an instruction to run the
+full inventory. Run independent supported checks; missing prerequisites, failed tests,
+timeouts and overruns are not success. Every check owns only the prerequisites it uses.
+Do not install device toolchains from an agent or substitute local runtime copies.
 
-Ordinary development uses targeted validators plus the bounded default
-`./scripts/Test-ProgramKit.ps1` Development suite. Main pushes run Development plus
-checks affected by the whole push range and prerequisite closure. Unknown selection
-inputs select the full deterministic inventory. PR coverage remains enabled.
+The six representative mechanical families establish an initial baseline with
+`--suite Baseline`. They cover installation, phases, knowledge, bootstrap, upgrade and
+scaffolding, with explicit limits. Expensive native, database, browser and Host checks
+need a concrete affected contract; broad scenario investigations require `--check` and
+`--reason`. Do not rerun broad matrices simply because composition or a shared SDK changed.
+Use representative mechanisms and expand coverage when an observed regression warrants it.
+Local diagnostic records under ignored `artifacts/validation-runs/` bind actual working
+contents, including uncommitted edits. They are neither attestations nor publication
+authority. Report validation and gaps concisely in the PR; the maintainer accepts those
+claims through native GitHub review/publication approval. No custom remote receipt handoff.
 
-CI owns complete deterministic release qualification. Use the untagged
-`qualify-candidate.yml` workflow with the exact expected main commit. It builds one
-publication payload, runs complete Linux acceptance with Chromium/Firefox/WebKit,
-focused Windows compatibility and security checks. Reuse a complete matching
-successful qualification; partial CI runs cannot be merged into qualification.
-No mandatory local Release suite repeats CI-capable checks. A candidate may need no
-local acceptance execution. Retired local Release entry points provide migration
-guidance and cannot mint new legacy receipts. Historical receipts remain read-only.
+PRs and explicit exact-source candidates share package CI: fast integrity, one archive
+build, clean Windows/Linux installation and installed entrypoint smoke, and applicable
+security checks. Logs and package/source hash manifests stay in Actions artifacts. There
+is no duplicate broad main-push or tagged acceptance suite. Publication uses the exact
+inspected artifacts, with native `publication` environment approval before tag creation
+or publication. Do not dispatch publication, create tags or publish without user authority.
+See [releasing](docs/releasing.md). Sole-maintainer approval is supported explicitly.
 
-Tagged Release verifies exact source, trusted producer/job/coverage provenance and
-all payload hashes, a reviewed readiness disposition and fresh security evidence.
-It promotes the qualified CI artifacts without rebuilding or rerunning deterministic
-acceptance. Missing/expired/incomplete/untrusted evidence blocks publication and
-identifies the pre-tag CI recovery command. Security defaults to 24 hours; refresh
-only the scan against the unchanged candidate with `refresh-candidate-security.yml`.
-Artifact retention defaults to 14 days and is independent of scan freshness.
-Policy and required variants are enforced in `release-policy.json` and
-`scripts/release_candidate.py`; see [releasing](docs/releasing.md).
+Dependency discovery, pin upgrades, lock refresh and profile qualification are separate
+[maintenance](docs/maintenance/dependency-review.md), not mandatory release preparation.
+Retain qualified product profiles, versioned knowledge, native ownership baselines and
+existing consumer locks. New external inputs belong in `maintenance-policy.json`.
+Failed lookups, security findings or tests remain failures with actionable repairs.
+Known applicable product defects block release; missing coverage/harness limitations
+require a concrete maintainer disposition, never an implicit green result.
 
-Deterministic validation never invokes a coding agent. Only an explicitly authorized
-live-acceptance v2 phase starts automated coding-agent sessions. The repository-only
-`.agents/skills/program-kit-release-readiness/SKILL.md` recommends optional trials
-from actual changes; it grants no paid-worker or publication authority. Confirmed
-product defects block readiness until repaired; harness failures/inconclusive trials
-need explicit disposition. No trial run means no AI acceptance claim.
-
-`Start-IntakeSession.ps1` is a separate human-owned interactive intake exercise.
-Never launch its interactive mode from an agent, CI, a deterministic suite, or an unattended hook.
-Its `-PrepareOnly` setup/evidence smoke test starts no coding agent and never launches bootstrap.
-
-Release-oriented optional trials use `release_candidate.py prepare-trial` to verify
-CI packages, check actual local prerequisites and install a disposable consumer.
-The separate local preparation record binds the actual host/toolchains, original
-CI qualification digest and exact packages. It is preparation, not local execution
-of Linux qualification. Historical local-evidence reuse cannot authorize borrowing
-qualification from another commit or rewriting a receipt.
+Deterministic validation never invokes a coding agent. Optional live trials remain
+individually user-authorized; the release-readiness skill grants no paid-worker or
+publication authority. No trial run means no AI acceptance claim. Interactive intake
+and provider account/authority initialization remain human-terminal-owned.
+`Start-IntakeSession.ps1 -PrepareOnly` starts no coding agent or bootstrap. Release
+trial preparation verifies candidate packages and actual local prerequisites in a
+disposable consumer; it does not create additional release qualification.
 
 ## Consumer repair intake
 
@@ -70,7 +65,26 @@ and exact `inspect` operations. Do not infer a destination from an active chat o
 another maintenance campaign. Intake remains on demand; ordinary Spec Kit hooks and
 deterministic validation do not start agents, poll chats or contact consumers.
 
+## Repairing failed validation before retrying CI
+
+Preserve the original failed run and inspect every independent failure. Reproduce each
+supported failure through its focused entrypoint, fix the cause and run meaningful
+affected regressions before retrying CI. Inspect the whole changed upstream contract;
+do not discover adjacent broken arguments by repeatedly running broad suites.
+Missing Linux, Docker, Firefox or toolchains remain explicit local limitations. Do not
+install prohibited runtimes, weaken assertions, omit supported CI platforms or call a
+different environment an exact reproduction. Add targeted diagnostics when needed.
+Only a successful exact-source package run can supply publication bytes; targeted
+local results do not substitute for that run.
+
 ## Optional live acceptance
+
+The optional OCR-only provider operation path is separate from coding-worker
+acceptance. Its account initialization and `provider_operation_authority.py`
+interactive issuance are human-terminal-owned: never launch either from an agent,
+CI or unattended hook. Deterministic validators may issue fictional recording-mode
+manifests and run offline transports; those cannot authorize provider I/O. Preserve
+original account authority, reservations and uncertain outcomes across sessions.
 
 ### Optional non-authorizing proxy intake
 
@@ -91,7 +105,7 @@ use ordinary outer Codex bootstrap for a proxy or promote its results to consume
 Stop before feature implementation. The paid-worker manifest rules still apply to actual workers.
 
 Paid live acceptance is entirely user-invoked. Do not ask whether to run it during publication, and
-do not report it as skipped when it was not requested. Complete deterministic CI qualification remains mandatory before publication.
+do not report it as skipped when it was not requested. Successful exact-source package CI remains mandatory before publication.
 
 When the user requests paid learning trials before release preparation, use an explicitly selected
 development-trial receipt from `tests/live/v2/trial_candidate.py`. It binds clean source, platform,
@@ -119,25 +133,24 @@ sanitization into consumer setup, bootstrap guidance, or another script.
 
 ## Failed stable-release recovery
 
-A pushed stable tag is a release candidate until the complete Release workflow succeeds. NuGet and
-host-image publication must remain downstream reusable jobs of that workflow, after all deterministic
-validation and public component-release gates. Never restore independent stable-tag triggers for
+A pushed stable tag is a release candidate until the approved publication workflow succeeds. NuGet and
+host-image publication must remain downstream reusable jobs of that workflow, after exact package verification and applicable public component gates. Never restore independent stable-tag triggers for
 those irreversible publication workflows.
 
 If the Release workflow fails for a stable tag:
 
 1. Preserve and inspect the failed run evidence.
-2. Repair the failure and obtain valid complete CI qualification for the exact corrected
+2. Repair the failure and obtain a successful exact-source package CI run for the corrected
    commit, then verify promotion without publication. Preserve failed-run evidence,
    confirm whether publication steps ran and inspect public assets/immutable registries.
    Never conceal partial publication, rewrite old evidence or reuse another source's
-   qualification. A different candidate requires its own complete qualification.
+   package run. A different source requires its own package run.
 3. Obtain or confirm the user's approval for the exact corrected commit and same stable tag.
 4. Delete the failed tag locally and remotely, recreate it at the approved corrected commit, and push
    the corrected commit and recreated tag. Do not increment the stable version merely because the
    failed candidate tag existed.
 5. Do not tell consumers that the version is available, or unblock dependent work, until the recreated
-   tag's promotion and public installation/upgrade workflow succeeds.
+   tag's promotion and actual public installation/upgrade verification succeeds.
 
 Before repointing, verify whether any immutable registry artifact escaped the gate. Disclose any
 partial publication explicitly; a tag correction must never conceal that an artifact was produced

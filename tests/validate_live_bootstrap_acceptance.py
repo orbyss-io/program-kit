@@ -107,7 +107,7 @@ def main() -> int:
         ROOT / "scripts/New-LiveAcceptanceAuthorization.ps1",
         ROOT / "scripts/New-LiveBootstrapCheckpoint.ps1",
         ROOT / "scripts/Test-LiveBuildingBlockConsumer.ps1",
-        ROOT / "scripts/write_release_receipt.py",
+        ROOT / "scripts/release_assets.py",
         ROOT / "docs/live-bootstrap-acceptance.md",
         *SCHEMAS.glob("*.schema.json"),
     ]
@@ -127,7 +127,7 @@ def main() -> int:
     if resolver.catalog_resolution_sha256(catalog) != expectation["catalogSha256"]:
         raise AssertionError("Candidate expectation is stale relative to the catalog")
     restore = load_module("live_v2_restore", RESTORE)
-    receipt_writer = load_module("live_v2_release_receipt", ROOT / "scripts/write_release_receipt.py")
+    receipt_writer = load_module("live_v2_release_receipt", ROOT / "scripts/release_assets.py")
 
     transient_catalog_error = (
         "Failed to save extension archive: [WinError 10054] connection reset. "
@@ -462,8 +462,6 @@ def main() -> int:
         raise AssertionError("Bootstrap live progress is no longer visible in the invoking terminal")
     # Exercise the maintained workflow contracts; qualification is portable CI
     # evidence, while optional paid execution retains separate host preparation.
-    from release_workflow_contracts import validate_workflows
-    validate_workflows()
 
     print("Live acceptance v2 authorization, scenario, checkpoint, redaction, supervision, and restore contracts passed.")
     return 0

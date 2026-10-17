@@ -1,5 +1,92 @@
 # Typed executable Foundation composition
 
+New qualified profiles carrying `Orbyss.Foundation.Web.Presentation` enable the
+native presentation feature for supported browser shells. Historical profiles keep
+their exact original package/activation closure. The selected publisher metadata
+supplies defaults; no local source checkout substitutes for published knowledge.
+The shell resource may also set `"pathBase":"/products/orders"` (empty means root).
+The model owns that canonical prefix. Native `WebRouting:Path`, identity callback
+registrations, browser BFF endpoints, hosted page paths and the presentation
+configuration URL derive from it together. A conflicting consumer overlay requires
+reconciliation in the typed graph. Use literal segments without trailing slashes,
+encoded aliases, traversal or an origin. The root-only typed operation example is
+qualified separately from the nested native composition fixture.
+
+Release qualification distinguishes these supported seams explicitly:
+
+| Integration | Execution and evidence boundary |
+| --- | --- |
+| Typed managed BFF, native HostedPages, optional PostgreSQL | Root and configured nested shell paths require actual generated Host/browser qualification and installed migration evidence. |
+| Typed managed BFF API shell without a frontend | Native authentication readiness and owned API behavior remain separate from UI acceptance. |
+| SPA-PKCE source profile and client-owned session adapter | Exact types, redirect/popup headers and native SPA protocol are qualified at their own boundaries. The typed executable composition rejects `browser-spa` before writes; it does not dispatch a BFF substitute or promise turnkey SPA Host materialization. |
+| External authority, HTTPS certificate, delegated/API-call or multiple-shell Host execution | Declarations retain their exact capability diagnostic until a matching executable adapter is qualified. |
+
+Under the owning shell resource, configure its public option names explicitly:
+
+```json
+"presentation": {
+  "enabled": true,
+  "settings": {
+    "ApplicationName": "Orders",
+    "Locale": "en",
+    "Theme": "green",
+    "RoutePrefix": "/account",
+    "ReturnPath": "/",
+    "SignOutConfirmation": "when-unsaved"
+  }
+}
+```
+
+The native `LogoutLandingPath` follows that prefix's `signed-out` page. Native
+activation validates paths, route collisions, copy and response policies. Set
+`"presentation":{"enabled":false}` to omit this feature independently; reconcile
+any explicitly selected activation first. A custom presentation keeps the native
+public `IProblemPageRenderer` seam and normal application registration. Customize
+through that seam or admitted options instead of copying Foundation browser modules.
+Use `/account/configuration` to load its authoritative shared confirmation and
+session modules; components register their own unsaved state and private roots.
+No server page can infer a SPA client's in-memory session or provider revocation.
+
+For the qualified native BFF composition, the generated app entrypoint binds to
+Foundation's shared controls through `foundation-controls.ts`. The exact publisher
+package owns the checked ESM declarations under `foundation-browser/`; runtime
+modules remain served by the native feature. The app's frontend title, locale and
+theme supply presentation defaults independently of identity-provider branding.
+Private roots stay hidden until a fresh native session observation succeeds.
+Cancellation acquires no antiforgery token or logout action. Expiry removes private
+presentation and offers recovery without replaying an application operation.
+
+Untouched authenticated generated entrypoints update normally. Customized
+entrypoints receive their observed and proposed hashes plus concrete reconciliation
+instructions. After reviewing the native binding and retaining owned editor/draft
+logic, record the exact source hash under the shell's
+`presentation.entrypoints` map, keyed by its bound frontend resource ID. A changed
+file or foreign frontend rejects initial adoption. After the managed binding is
+installed, routine app edits remain owned; that initial hash stays historical and
+does not freeze the entrypoint or prove continued runtime usage. This records source review;
+actual type/build, browser and protocol qualification remain required. It does not
+grant approval of application behavior or turn an unqualified SPA adapter into an
+executable BFF composition. Independently disable presentation when it is not selected.
+
+The optional installed `references/examples/unsaved-editor.ts` supplies a runnable
+custom state-source seam. Copy it beside the generated app and declarations, retain
+the result of `bindFoundationPresentation(root)`, and pass that binding to
+`attachExampleEditor`. Dispose it with the editable component. A pending or uncertain
+save reports `unknown`; only the application's actual acknowledged save reports
+`clean`. This example implements no persistence, automatic save, replay or domain
+acceptance, and cancellation leaves its field value intact.
+
+Private-file provider authoring uses the exact typed binding projected into
+`eng/foundation-composition.resolved.json`, the generated configuration reference and
+scoped phase context. For a binding selecting `EvidenceFiles:Root`, read that key in
+the provider and declare it in its native settings metadata. An invented
+`PolicyEvidence:RootPath` key is not an alias. Current native source declarations are
+compared before dependent materialization; absent declarations are reported as such,
+and their presence cannot establish actual compiled registration or exhaustive
+dynamic C# access coverage. Use configured native activation to establish that proof.
+The maintained lifecycle fixture includes an actual emitted private binding and
+missing/invented-key negatives, without changing the accepted private location.
+
 The sole authoring input is schema version 2 of `eng/foundation-composition.json`.
 Start from `templates/dotnet/compositions/application-foundation.json` or its
 `application-foundation-postgresql.json` variant, then populate the consumer's Accepted

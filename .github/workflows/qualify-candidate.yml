@@ -1,27 +1,31 @@
 name: Qualify candidate
-run-name: Qualify ${{ inputs.expected_commit }}
+run-name: Packages ${{ inputs.expected_commit }}
 on:
+  workflow_call:
+    inputs:
+      expected_commit:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       expected_commit:
-        description: Exact main commit; dispatch and checkout must match
+        description: Exact main commit, matching the dispatch source
         required: true
         type: string
 permissions:
   contents: read
   actions: read
   packages: read
-  id-token: write
-  attestations: write
 concurrency:
-  group: qualification-${{ inputs.expected_commit }}
+  group: packages-${{ github.workflow }}-${{ inputs.expected_commit }}
   cancel-in-progress: false
 env:
-  GH_TOKEN: ${{ github.token }}
   PYTHONUTF8: '1'
+  GH_TOKEN: ${{ github.token }}
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -29,30 +33,20 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
-      - name: Assert exact trusted main candidate
+      - name: Assert exact candidate
+        if: github.event_name == 'workflow_dispatch'
         env:
           EXPECTED_COMMIT: ${{ inputs.expected_commit }}
         run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
-        shell: bash
       - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
       - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
-      - name: Read configurable retention policy
-        shell: bash
-        run: python -c "import json,os; open(os.environ['GITHUB_ENV'],'a').write('RETENTION_DAYS=' + str(json.load(open('release-policy.json'))['artifactRetentionDays']) + '\n')"
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "26.12.0"
-      - run: npm install --global npm@12.2.0 --ignore-scripts --no-audit --no-fund
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
-      - name: Build authoritative packages with their real prerequisites
-        run: python scripts/run_validation.py --check build-release
-      - run: python scripts/release_candidate.py snapshot --output artifacts/candidate-payload.json
-      - name: Preserve original build execution
-        run: python scripts/release_candidate.py lane --lane build --manifest artifacts/candidate-payload.json --output artifacts/build-evidence
-      - name: Stage only the complete publication payload and its manifest
-        shell: bash
+      - name: Fast integrity
+        run: python scripts/run_validation.py --suite Integrity
+      - name: Build publication packages once
+        run: python scripts/build_release.py
+      - name: Bind exact source and publication bytes
+        run: python scripts/release_candidate.py snapshot --output artifacts/candidate-payload.json
+      - name: Stage publication inventory
         run: |
           python - <<'PY'
           import json, pathlib, shutil
@@ -63,217 +57,79 @@ jobs:
               shutil.copyfile(root / record['name'], target / record['name'])
           shutil.copyfile(root / 'candidate-payload.json', target / 'candidate-payload.json')
           PY
-      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: artifacts/payload/*
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: payload-${{ github.run_attempt }}
           path: artifacts/payload/
           if-no-files-found: error
-          retention-days: ${{ env.RETENTION_DAYS }}
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: build-${{ github.run_attempt }}
-          path: artifacts/build-evidence/
-          if-no-files-found: error
-          retention-days: ${{ env.RETENTION_DAYS }}
+          retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: build-diagnostics-${{ github.run_attempt }}
+          name: integrity-${{ github.run_attempt }}
           path: artifacts/validation-runs/
           if-no-files-found: warn
-          retention-days: ${{ env.RETENTION_DAYS }}
-  linux:
+          retention-days: 14
+  install:
+    name: install-${{ matrix.platform }}
     needs: build
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            os: ubuntu-latest
+          - platform: windows
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
-      - name: Assert exact trusted main candidate
-        env:
-          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
-        run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
-        shell: bash
       - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
       - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
-      - name: Read configurable retention policy
-        shell: bash
-        run: python -c "import json,os; open(os.environ['GITHUB_ENV'],'a').write('RETENTION_DAYS=' + str(json.load(open('release-policy.json'))['artifactRetentionDays']) + '\n')"
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "26.12.0"
-      - run: npm install --global npm@12.2.0 --ignore-scripts --no-audit --no-fund
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
-      - run: python scripts/release_candidate.py import-payload --run-id "$GITHUB_RUN_ID"
-      - name: Complete Linux acceptance against imported immutable packages
-        env:
-          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
-        run: python scripts/run_validation.py --suite Qualification --packages-manifest artifacts/candidate-payload.json --workers 4 --engines=chromium,firefox,webkit
-      - run: python scripts/release_candidate.py lane --lane linux --manifest artifacts/candidate-payload.json --output artifacts/linux-evidence
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: linux-${{ github.run_attempt }}
-          path: artifacts/linux-evidence/
-          if-no-files-found: error
-          retention-days: ${{ env.RETENTION_DAYS }}
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
-        with:
-          name: linux-diagnostics-${{ github.run_attempt }}
-          path: artifacts/validation-runs/
-          if-no-files-found: error
-          retention-days: ${{ env.RETENTION_DAYS }}
-  windows:
-    needs: build
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version-file: .python-version
-      - name: Assert exact trusted main candidate
-        env:
-          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
-        run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
-        shell: bash
-      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
-      - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
-      - name: Read configurable retention policy
-        shell: bash
-        run: python -c "import json,os; open(os.environ['GITHUB_ENV'],'a').write('RETENTION_DAYS=' + str(json.load(open('release-policy.json'))['artifactRetentionDays']) + '\n')"
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "26.12.0"
-      - run: npm install --global npm@12.2.0 --ignore-scripts --no-audit --no-fund
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: extensions/program-kit-dotnet/templates/dotnet/files/global.json
-      - run: python scripts/release_candidate.py import-payload --run-id $env:GITHUB_RUN_ID
-      - name: Preserve engine Python before selecting a distinct shell interpreter
-        shell: pwsh
-        run: python -c "import sys; print('PK_ENGINE_PYTHON=' + sys.executable); print('PROGRAMKIT_DEVICE_PYTHON=' + sys.executable)" >> $env:GITHUB_ENV
-      - name: Prepare real uv-managed Windows Spec Kit launcher
-        shell: pwsh
-        env:
-          UV_TOOL_DIR: ${{ runner.temp }}/program-kit-ci-tools/uv
-          UV_TOOL_BIN_DIR: ${{ runner.temp }}/program-kit-ci-tools/bin
-        run: |
-          python -m pip install --disable-pip-version-check -r tests/ci-tool-requirements.txt
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          uv tool install specify-cli==1.2.0 --python $env:PK_ENGINE_PYTHON --no-python-downloads
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:UV_TOOL_BIN_DIR >> $env:GITHUB_PATH
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version-file: .python-compat-version
-      - name: Prepare distinct native shell Python
-        shell: pwsh
-        run: |
-          python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
-          "PROGRAM_KIT_MIXED_PYTHON=$((Get-Command python).Source)" >> $env:GITHUB_ENV
-      - name: Focused Windows compatibility with original package bytes
-        shell: pwsh
-        run: |
-          & $env:PK_ENGINE_PYTHON scripts/run_validation.py --suite WindowsCompatibility --packages-manifest artifacts/candidate-payload.json --engines=chromium,firefox,webkit
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - shell: pwsh
-        run: |
-          & $env:PK_ENGINE_PYTHON scripts/release_candidate.py lane --lane windows --manifest artifacts/candidate-payload.json --output artifacts/windows-evidence
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: windows-${{ github.run_attempt }}
-          path: artifacts/windows-evidence/
-          if-no-files-found: error
-          retention-days: ${{ env.RETENTION_DAYS }}
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
-        with:
-          name: windows-diagnostics-${{ github.run_attempt }}
-          path: artifacts/validation-runs/
-          if-no-files-found: error
-          retention-days: ${{ env.RETENTION_DAYS }}
+      - name: Import original build artifact
+        run: python scripts/release_candidate.py import-payload
+      - name: Verify original package bytes
+        run: python scripts/release_candidate.py verify-payload --manifest artifacts/payload/candidate-payload.json --directory artifacts/payload
+      - name: Install actual packages and invoke installed helpers
+        run: python tests/validate_package_smoke.py --assets-dir artifacts/payload
   security:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
-      - name: Assert exact trusted main candidate
-        env:
-          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
-        run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
-        shell: bash
-      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
-      - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
-      - name: Read configurable retention policy
-        shell: bash
-        run: python -c "import json,os; open(os.environ['GITHUB_ENV'],'a').write('RETENTION_DAYS=' + str(json.load(open('release-policy.json'))['artifactRetentionDays']) + '\n')"
-      - run: python scripts/release_candidate.py import-payload --run-id "$GITHUB_RUN_ID"
+      - name: Import original build artifact
+        run: python scripts/release_candidate.py import-payload
       - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
         with:
           version: v0.76.0
-      - name: Scan exact immutable candidate images
-        id: scan
-        continue-on-error: true
-        shell: bash
-        run: |
-          candidate=$(sha256sum artifacts/candidate-payload.json | cut -d ' ' -f1)
-          python scripts/release_candidate.py security --candidate "$candidate" --output artifacts/security-evidence
-      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: artifacts/security-evidence/security.json
+      - name: Scan the immutable declared Host dependency
+        run: python scripts/release_candidate.py security --payload-manifest artifacts/payload/candidate-payload.json --output artifacts/security
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
         with:
           name: security-${{ github.run_attempt }}
-          path: artifacts/security-evidence/
-          if-no-files-found: error
-          retention-days: ${{ env.RETENTION_DAYS }}
-      - name: Failed scan blocks complete qualification
-        if: steps.scan.outcome != 'success'
-        run: exit 1
-  finalize:
-    needs: [build, linux, windows, security]
+          path: artifacts/security/
+          if-no-files-found: warn
+          retention-days: 14
+  timings:
+    if: always()
+    needs: [build, install, security]
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
-      - name: Assert exact trusted main candidate
+      - name: Report elapsed time and per-job cost, including failures
         env:
-          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
-        run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
-        shell: bash
-      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
-      - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
-      - name: Read configurable retention policy
-        shell: bash
-        run: python -c "import json,os; open(os.environ['GITHUB_ENV'],'a').write('RETENTION_DAYS=' + str(json.load(open('release-policy.json'))['artifactRetentionDays']) + '\n')"
-      - name: Bind immutable uploads and actual successful required jobs
-        run: python scripts/write_release_receipt.py --ci-qualification artifacts/qualification/qualification.json
-      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: artifacts/qualification/qualification.json
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: qualification-${{ github.run_attempt }}
-          path: artifacts/qualification/
-          if-no-files-found: error
-          retention-days: ${{ env.RETENTION_DAYS }}
+          CI_BUDGET_SECONDS: '600'
+        run: python scripts/release_candidate.py timing

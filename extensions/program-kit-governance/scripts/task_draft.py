@@ -11,9 +11,15 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from urllib.parse import urlparse
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] in ('current', 'review-material'):
+    sys.dont_write_bytecode = True
+from dotnet_adapter import bootstrap
+
+bootstrap()
 
 PREFIX = '<!-- program-kit:tasks-draft '
 MARKER = re.compile(r'^<!-- program-kit:tasks-draft (.+) -->$', re.M)
@@ -27,17 +33,27 @@ def _basis_sites(value):
     """Only owned review fields are interned; arbitrary history remains untouched."""
     delivery = value.get('delivery', {})
     require(isinstance(delivery, dict) and isinstance(delivery.get('checkpoints', {}), dict), 'Malformed retained delivery state')
-    for review in delivery.get('checkpoints', {}).values():
-        require(isinstance(review, dict) and isinstance(review.get('decisions', []), list), 'Malformed retained review history')
-        for field in ('engineeringInputBasis', 'checkBasis'):
-            yield review, field
-        if isinstance(review.get('presentation'), dict):
-            for field in ('basis', 'materialBasis'):
-                yield review['presentation'], field
-        for decision in review.get('decisions', []):
-            require(isinstance(decision, dict), 'Malformed retained human decision')
-            for field in ('basis', 'materialBasis'):
-                yield decision, field
+    for current_review in delivery.get('checkpoints', {}).values():
+        require(isinstance(current_review, dict), 'Malformed retained review history')
+        histories = current_review.get('materialAssessmentHistory', [])
+        require(isinstance(histories, list), 'Malformed material assessment history')
+        for review in [current_review, *histories]:
+            require(isinstance(review, dict) and isinstance(review.get('decisions', []), list), 'Malformed retained review history')
+            for field in ('engineeringInputBasis', 'checkBasis'):
+                yield review, field
+            if isinstance(review.get('presentation'), dict):
+                for field in ('basis', 'materialBasis'):
+                    yield review['presentation'], field
+            for decision in review.get('decisions', []):
+                require(isinstance(decision, dict), 'Malformed retained human decision')
+                for field in ('basis', 'materialBasis'):
+                    yield decision, field
+            assessments = review.get('materialAssessments', [])
+            require(isinstance(assessments, list), 'Malformed retained material assessments')
+            for assessment in assessments:
+                require(isinstance(assessment, dict), 'Malformed retained material assessment')
+                for field in ('previousBasis', 'currentBasis', 'contextBasis', 'previousContextBasis', 'checkBasis', 'policy'):
+                    yield assessment, field
 
 
 def _basis_bytes(value):
@@ -109,6 +125,11 @@ def inputs(root, feature):
                                         'data-model.md', 'quickstart.md')]
     paths += [root / '.specify/memory/constitution.md', root / '.specify/extensions.yml']
     paths += [root/'eng/foundation-composition.json', root/'eng/foundation-composition.resolved.json']
+    import retained_inputs
+    ownership = retained_inputs.snapshot(root)
+    paths += [root / relative for relative in ownership['inputs']]
+    if (feature / 'artifact-ownership.json').is_file():
+        paths.append(feature / 'artifact-ownership.json')
     # Latest actual setup outcome is a drafting input, not a drafting action.
     # A newer failure cannot be hidden by retaining a previous successful run.
     outcomes = list((root/'artifacts/tests/runs').glob('foundation-*/result.json'))
@@ -134,11 +155,28 @@ def store(path, content, state):
 
 def atomic_write(path, content):
     # Same-directory replacement keeps either the previous or the next complete checkpoint.
+    previous = path.read_bytes() if path.is_file() else None
     descriptor, temporary = tempfile.mkstemp(prefix='.tasks-', suffix='.tmp', dir=path.parent)
     try:
         with os.fdopen(descriptor, 'w', encoding='utf-8', newline='\n') as stream:
             stream.write(content)
-        os.replace(temporary, path)
+        for attempt in range(5):
+            try:
+                os.replace(temporary, path)
+                break
+            except PermissionError as error:
+                if os.name != 'nt' or getattr(error, 'winerror', None) not in (5, 32, 33) or attempt == 4:
+                    raise
+                # A short Windows sharing/access block may clear. Retrying must
+                # never overwrite a concurrent human edit or acquire permissions.
+                time.sleep(.02 * (attempt + 1))
+                try:
+                    unchanged = (path.read_bytes() if path.is_file() else None) == previous
+                except OSError:
+                    unchanged = False
+                if not unchanged:
+                    error.add_note('Checkpoint destination changed or became unreadable while replacement was blocked; no retry/write.')
+                    raise
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
@@ -168,24 +206,89 @@ def current(feature):
             raise ValueError('Malformed current checkpoint: ' + field)
     if 'delivery' in value:
         validate(value['delivery'])
+    _progress_history(value)
     return value
 
 
-def save_current(feature, value):
+def _history_event(sequence, previous, kind, value):
+    event = {'sequence': sequence, 'previous': previous, 'kind': kind, 'value': copy.deepcopy(value)}
+    return {**event, 'sha256': hashlib.sha256(_basis_bytes(event)).hexdigest()}
+
+
+def _progress_history(value):
+    """Progress references are integrity links, never renewed human authority."""
+    history = value.get('progressHistory')
+    if history is None:
+        snapshot = {key: value[key] for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures') if key in value}
+        return [_history_event(1, None, 'retained-snapshot', snapshot)]
+    require(isinstance(history, list) and history, 'Malformed retained progress history')
+    previous = None
+    for sequence, event in enumerate(history, 1):
+        require(isinstance(event, dict) and set(event) == {'sequence', 'previous', 'kind', 'value', 'sha256'}
+                and type(event['sequence']) is int and event['sequence'] == sequence and event['previous'] == previous
+                and (event['kind'] == 'checkpoint' or sequence == 1 and event['kind'] == 'retained-snapshot')
+                and isinstance(event['sha256'], str) and re.fullmatch(r'[0-9a-f]{64}', event['sha256'])
+                and isinstance(event['value'], dict),
+                'Malformed retained progress history link')
+        expected = _history_event(sequence, previous, event['kind'], event['value'])
+        require(expected == event, 'Tampered retained progress history reference')
+        previous = event['sha256']
+    return history
+
+
+def current_projection(value):
+    if value is None:
+        return None
+    events = _progress_history(value)
+    result = {key: copy.deepcopy(value[key]) for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks')}
+    result['history'] = {'sha256': events[-1]['sha256'], 'events': len(events),
+                         'decisions': len(value['decisions']), 'unresolvedFailures': len(value['failures']),
+                         'read': 'current --history', 'authority': 'progress only; retained human decisions are unchanged'}
+    if value['failures']:
+        result['failureState'] = 'unresolved; inspect retained failures before continuation'
+    if 'delivery' in value:
+        result['retainedDelivery'] = {'checkpoints': len(value['delivery'].get('checkpoints', {})),
+                                     'read': 'current --history; normal continuation guards still apply'}
+    return result
+
+
+def progress_history(feature, reference=None):
+    value = current(feature)
+    if value is None:
+        require(reference is None, 'Missing retained progress history reference')
+        return None
+    events = _progress_history(value)
+    if reference is not None:
+        matches = [index for index, event in enumerate(events) if event['sha256'] == reference]
+        require(len(matches) == 1, 'Missing or tampered retained progress history reference')
+        events = events[:matches[0] + 1]
+    return {'scope': 'retained progress; not renewed acceptance', 'sha256': events[-1]['sha256'],
+            'events': events, 'current': value if reference is None else None}
+
+
+def save_current(feature, value, submitted=None):
     path = feature / 'tasks.md'
     content = path.read_text(encoding='utf-8')
-    summary = {key: item for key, item in value.items() if key != 'delivery'}
+    summary = current_projection(value)
     require(len(_basis_bytes(value)) <= EXPANDED_LIMIT, 'Expanded checkpoint exceeds its bounded reader limit')
     serialized = json.dumps(_store_bases(value), ensure_ascii=True, separators=(',', ':'), allow_nan=False)
-    if '-->' in serialized or len(json.dumps(summary).encode()) > CURRENT_LIMIT or len(serialized.encode()) > RETAINED_LIMIT:
-        raise ValueError('Checkpoint summary must be at most 8192 bytes and retained state 1048576 bytes; never discard unresolved decisions/failures')
+    summary_size = len(_basis_bytes(summary))
+    retained_size = len(serialized.encode())
+    if '-->' in serialized or summary_size > CURRENT_LIMIT or retained_size > RETAINED_LIMIT:
+        submitted_size = len(_basis_bytes(submitted if submitted is not None else summary))
+        history_size = len(_basis_bytes(_progress_history(value)))
+        contributors = sorted(((key, len(_basis_bytes(item))) for key, item in value.items()), key=lambda row: row[1], reverse=True)[:4]
+        raise ValueError('Checkpoint summary must be at most 8192 bytes and retained state 1048576 bytes; '
+                         f'submitted={submitted_size}, merged-current={summary_size}, retained-history={history_size}, '
+                         f'retained-state={retained_size}, largest-fields={contributors}. '
+                         'Prior state is preserved; inspect current --history and shorten current prose/references, never discard unresolved failures or human decisions.')
     marker = '<!-- program-kit:current-checkpoint ' + serialized + ' -->'
     content = CURRENT.sub(lambda _: marker, content, count=1) if CURRENT.search(content) else content.rstrip() + '\n\n' + marker + '\n'
     atomic_write(path, content)
 
 
 def checkpoint(feature, update):
-    """Replace current state, never append journals or silently discard open failures."""
+    """Replace current prose/checks; retain decisions, open failures and their history."""
     path = feature / 'tasks.md'
     if not path.is_file():
         raise ValueError('Locate existing tasks.md before saving progress')
@@ -220,7 +323,20 @@ def checkpoint(feature, update):
                                          else retained + update.get(field, [])))
     if 'delivery' in prior:
         value.update(version=2, delivery=prior['delivery'])
-    save_current(feature, value)
+    history = _progress_history(prior) if prior else []
+    delta = {field: [item for item in update.get(field, []) if item not in prior.get(field, [])]
+             for field in ('decisions', 'failures')}
+    delta = {field: items for field, items in delta.items() if items}
+    if resolved:
+        delta['resolvedFailures'] = update['resolvedFailures']
+    if 'checks' in update and update['checks'] != prior.get('checks', []):
+        delta['checks'] = update['checks']
+    if not history or delta:
+        event_value = ({key: copy.deepcopy(value[key]) for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures')}
+                       if not history else {'baseline': value['baseline'], 'outcome': value['outcome'], 'taskIds': value['taskIds'], **delta})
+        history = [*history, _history_event(len(history) + 1, history[-1]['sha256'] if history else None, 'checkpoint', event_value)]
+    value['progressHistory'] = history
+    save_current(feature, value, submitted=update)
     return value
 
 
@@ -366,7 +482,7 @@ def validate_verification_obligations(content, tasks, ancestors, root=None):
             from repository_verification import select
             inputs = paths(inputs_cell)
             actual = select(root, scope, projects=sorted(owners) if scope == 'Focused' else (),
-                            changed_paths=inputs)['projects']
+                            changed_paths=inputs, planning=True)['projects']
             if set(actual) != owners:
                 raise ValueError('PKT021 selected test owners differ from maintained selection: ' + gate + '; actual ' + ', '.join(actual))
         for owner in owners:
@@ -383,17 +499,22 @@ def validate_verification_obligations(content, tasks, ancestors, root=None):
 
 
 def prepare(root, feature, phases):
+    import retained_inputs
+    ownership = retained_inputs.snapshot(root)
     path = feature / 'tasks.md'
     content, state = load(path)
     current = inputs(root, feature)
     if state:
+        retained_inputs.validate_document_outputs(root, content, state.get('documentOwnership'))
         changed = sorted(k for k in current.keys() | state['inputs'].keys()
                          if current.get(k) != state['inputs'].get(k))
         return {'status': state['status'], 'completedPhases': state['completed'],
                 'remainingPhases': [p for p in state['phases'] if p not in state['completed']],
-                'changedInputs': changed, 'tasks': str(path)}
+                'changedInputs': changed, 'tasks': str(path), 'documentOwnership': retained_inputs.summary(ownership)}
     if content:
+        retained_inputs.validate_document_outputs(root, content)
         return {'status': 'existing', 'tasks': str(path),
+                'documentOwnership': retained_inputs.summary(ownership),
                 'instruction': 'Preserve existing tasks, IDs, checked boxes and consumer edits; review only missing or affected phases.'}
     if not phases or len(set(phases)) != len(phases) or any(not re.fullmatch(r'[A-Za-z0-9_-]+', p) for p in phases):
         raise ValueError('Supply unique operation group identifiers from the specification, e.g. US1_create US1_list closure dependencies')
@@ -403,6 +524,8 @@ def prepare(root, feature, phases):
 
     fresh = POLICY in (feature / 'spec.md').read_text(encoding='utf-8')
     state = {'version': 2, 'format': 'story-plan' if fresh else 'operation-plan', 'status': 'draft', 'phases': phases, 'completed': [], 'inputs': current}
+    if ownership['configured']:
+        state['documentOwnership'] = ownership
     store(path, f'# Tasks: {feature.name}\n\n> Draft: task generation is incomplete. Resume saved phases before analysis or implementation.\n', state)
     return prepare(root, feature, phases)
 
@@ -424,6 +547,10 @@ def save_phase(root, feature, phase, body):
     new_ids = re.findall(r'^- \[[ xX]\] (T\d+)\b', body, re.M)
     if len(set(old_ids + new_ids)) != len(old_ids + new_ids):
         raise ValueError('Duplicate task IDs; preserve saved IDs and continue numbering')
+    import retained_inputs
+    ownership = retained_inputs.validate_document_outputs(root, content.rstrip() + '\n\n' + body.strip(), state.get('documentOwnership'))
+    if ownership['configured']:
+        state['documentOwnership'] = ownership
     state['completed'].append(phase)
     store(path, content.rstrip() + '\n\n' + body.strip() + '\n', state)
 
@@ -433,6 +560,10 @@ def acknowledge(root, feature):
     content, state = load(path)
     if not state or state['status'] != 'draft':
         raise ValueError('Only an existing draft can acknowledge reviewed input changes')
+    import retained_inputs
+    ownership = retained_inputs.validate_document_outputs(root, content, state.get('documentOwnership'))
+    if ownership['configured']:
+        state['documentOwnership'] = ownership
     state['inputs'] = inputs(root, feature)
     store(path, content, state)
 
@@ -450,6 +581,8 @@ def finalize(root, feature):
     ids = [line.split()[0] for line in checklists]
     if len(ids) != len(set(ids)):
         raise ValueError('Duplicate task IDs in saved draft; resolve before analysis')
+    import retained_inputs
+    retained_inputs.validate_document_outputs(root, content, state.get('documentOwnership'))
     validate_operation_graph(content, required=state.get('format') in ('operation-plan', 'story-plan'), root=root)
     if state.get('format') == 'story-plan':
 
@@ -461,24 +594,67 @@ def finalize(root, feature):
             'instruction': 'Run mandatory after_tasks hooks including read-only speckit.analyze; this checkpoint claims drafting progress only.'}
 
 
+def render_materialization(root, feature, request):
+    """Render a reviewed alternative without editing task history or delivery state."""
+    require(isinstance(request, dict) and set(request) == {'owners'},
+            'PKT021 render-materialization requires {"owners": [...]}')
+    rows = request['owners']
+    require(isinstance(rows, list) and rows, 'PKT021 name the exact test owners')
+    lines = ['## Test materialization map', '| Owner | Producer | Evidence |', '|-------|----------|----------|']
+    for row in rows:
+        require(isinstance(row, dict) and set(row) == {'owner', 'source'}, 'PKT021 each owner requires one source alternative')
+        owner, source = row['owner'], row['source']
+        require(isinstance(source, dict), 'PKT021 source must be a structured task or existing-evidence alternative')
+        if set(source) == {'task'}:
+            producer, evidence = source['task'], 'none'
+        elif set(source) == {'evidence'}:
+            producer, evidence = 'existing', source['evidence']
+        else:
+            raise ValueError('PKT021 choose exactly one source: {"task":"T009"} or {"evidence":"artifacts/.../results.json"}; never both')
+        require(all(isinstance(value, str) and value.strip() == value and value
+                    and not re.search(r'[|\r\n,]', value) for value in (owner, producer, evidence)),
+                'PKT021 use single explicit owner/task/evidence values')
+        lines.append('| ' + ' | '.join((owner, producer, evidence)) + ' |')
+    original = (feature / 'tasks.md').read_bytes()
+    content = original.decode('utf-8')
+    section = re.compile(r'^## Test materialization map\s*\n.*?(?=^## |\Z)', re.M | re.S)
+    require(len(section.findall(content)) <= 1, 'PKT021 duplicate Test materialization map')
+    table = '\n'.join(lines) + '\n'
+    candidate = section.sub(lambda _: table + '\n', content) if section.search(content) else content.rstrip() + '\n\n' + table
+    validate_operation_graph(candidate, required=True, root=root)
+    return {'status': 'validated-proposal', 'markdown': table,
+            'tasksSha256': hashlib.sha256(original).hexdigest(),
+            'candidateSha256': hashlib.sha256(candidate.encode('utf-8')).hexdigest(),
+            'filesChanged': False, 'acceptanceEstablished': False,
+            'instruction': 'Review and merge only this table into the same task plan. Preserve dependencies, original baseline, effort and human decisions; rerun finalize.'}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('prepare', 'save-phase', 'acknowledge-inputs', 'finalize', 'checkpoint', 'current', 'delivery', 'reset'))
+    parser.add_argument('command', choices=('prepare', 'save-phase', 'acknowledge-inputs', 'finalize', 'checkpoint', 'current', 'delivery', 'reset', 'review-material', 'render-materialization'))
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phases', nargs='+')
     parser.add_argument('--phase')
     parser.add_argument('--content-file')
     parser.add_argument('--apply', action='store_true', help='Apply only an explicitly human-selected unfinished-feature file inventory')
+    parser.add_argument('--history', action='store_true', help='Current: explicitly read retained progress and complete delivery provenance')
+    parser.add_argument('--history-sha', help='Current --history: resolve an exact retained progress reference')
+    parser.add_argument('--checkpoint', help='review-material: retained checkpoint identity to diagnose without writing')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     feature = (root / args.feature_dir).resolve()
     try:
+        require(not (args.history or args.history_sha) or args.command == 'current', 'History output applies only to current')
+        require(not args.history_sha or args.history, '--history-sha requires --history')
         if not feature.is_relative_to(root) or not feature.is_dir():
             raise ValueError('Feature must be an existing directory inside the repository')
         if not (feature / 'tasks.md').resolve().is_relative_to(feature):
             raise ValueError('Task path escapes feature')
-        if args.command == 'prepare':
+        if args.command == 'render-materialization':
+            require(args.content_file, 'render-materialization requires --content-file with one source alternative per owner')
+            result = render_materialization(root, feature, json.loads(Path(args.content_file).read_text(encoding='utf-8')))
+        elif args.command == 'prepare':
             result = prepare(root, feature, args.phases)
         elif args.command == 'save-phase':
             if not args.phase or not args.content_file:
@@ -491,9 +667,15 @@ def main():
         elif args.command == 'checkpoint':
             if not args.content_file:
                 raise ValueError('checkpoint requires --content-file with concise current state JSON')
-            result = checkpoint(feature, json.loads(Path(args.content_file).read_text(encoding='utf-8')))
+            result = current_projection(checkpoint(feature, json.loads(Path(args.content_file).read_text(encoding='utf-8'))))
         elif args.command == 'current':
-            result = current(feature)
+            result = progress_history(feature, args.history_sha) if args.history else current_projection(current(feature))
+        elif args.command == 'review-material':
+            require(nonempty(args.checkpoint), 'review-material requires --checkpoint')
+            import review_material
+            reviews = load_delivery(feature)['checkpoints']
+            require(args.checkpoint in reviews, 'Unknown review checkpoint: ' + args.checkpoint)
+            result = review_material.explain(root, reviews[args.checkpoint])
         elif args.command == 'reset':
             if not args.content_file:
                 raise ValueError('reset requires the concrete reviewed inventory in --content-file')
@@ -562,9 +744,6 @@ def check_artifacts(root, references, *, freshness=True):
                 require(record['outcomes'] and all(outcome.get('status') == 'completed' for outcome in record['outcomes']),
                         'Required technical outcomes are incomplete: ' + ref)
                 # Reuse the maintained native evidence reader when its fingerprints are present.
-                from phase_obligations import _engineering
-                import sys
-                sys.path.insert(0, str(_engineering))
                 from repository_verification import evidence_valid
                 for outcome in record['outcomes']:
                     if freshness and outcome.get('fingerprint'):
@@ -652,6 +831,109 @@ def owner_continuation(review, value, operation=None):
             and (operation is None or operation in permits))
 
 
+def assessed_basis(review):
+    """An exact human material assessment never changes the original review."""
+    events = review.get('materialAssessments', [])
+    if not events:
+        return None
+    require(isinstance(events, list) and review.get('decisions') and isinstance(review.get('presentation'), dict),
+            'Material assessment requires retained accepted decision provenance')
+    previous = review.get('presentation', {}).get('basis')
+    previous_context = None
+    decision = hashlib.sha256(_basis_bytes(review['decisions'][-1])).hexdigest()
+    for event in events:
+        require(isinstance(event, dict) and event.get('version') == 1 and event.get('actor') == 'owner'
+                and nonempty(event.get('source')) and event.get('decisionSha256') == decision
+                and event.get('previousBasis') == previous and event.get('currentBasis')
+                and event.get('previousContextBasis') == previous_context
+                and event.get('checks') and event.get('checkBasis') and event.get('changes'),
+                'Malformed or rebound material assessment; retain the original decision')
+        require(isinstance(event.get('currentBasis'), dict) and set(event['currentBasis']) == set(previous)
+                and isinstance(event.get('contextBasis'), dict) and event['contextBasis']
+                and isinstance(event.get('policy'), dict) and event['policy']
+                and isinstance(event.get('changes'), list), 'Malformed retained material assessment inputs')
+        old_inputs = {**(previous_context or {}), **previous}
+        new_inputs = {**(event['contextBasis'] if previous_context is not None else {}), **event['currentBasis']}
+        changed = {name for name in set(old_inputs) | set(new_inputs) if old_inputs.get(name) != new_inputs.get(name)}
+        require(len(event['changes']) == len(changed)
+                and {row.get('path') for row in event['changes'] if isinstance(row, dict)} == changed,
+                'Retained material assessment must cover the exact changed input set')
+        for row in event['changes']:
+            before = row.get('before', {})
+            require((old_inputs.get(row['path']) is None and before == {'absent': True})
+                    or (isinstance(before, dict) and set(before) == {'path', 'sha256'}
+                        and before['sha256'] == old_inputs[row['path']]),
+                    'Retained material assessment has a changed original binding')
+            require('afterSha256' in row and row['afterSha256'] == new_inputs.get(row['path'])
+                    and row.get('conclusion') == 'nonmaterial' and nonempty(row.get('rationale'))
+                    and isinstance(row.get('effects'), dict)
+                    and set(row['effects']) == {'build', 'dependencies', 'packaging', 'runtime'}
+                    and all(nonempty(effect) for effect in row['effects'].values()),
+                    'Malformed retained material effect assessment')
+        require(event.get('presentationSha256') == hashlib.sha256(_basis_bytes(review['presentation'])).hexdigest()
+                and event.get('scopeSha256') == hashlib.sha256(_basis_bytes(review.get('materialScope'))).hexdigest(),
+                'Material assessment cannot narrow or rewrite the original presentation/scope')
+        previous = event['currentBasis']
+        previous_context = event['contextBasis']
+    return previous
+
+
+def assessment_policy():
+    import handoff_contract
+    import retained_inputs
+    return {**{name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
+               for name in ('task_draft.py', 'review_material.py', 'artifact_ownership.py')},
+            'retained_inputs.py': hashlib.sha256(Path(retained_inputs.__file__).read_bytes()).hexdigest(),
+            'handoff_contract.py': hashlib.sha256(Path(handoff_contract.__file__).read_bytes()).hexdigest()}
+
+
+def assessment_context(root):
+    """Exact conservative current closure, including newly introduced member inputs.
+
+    This assessment does not confer a standing exclusion on future sibling work.
+    Native restore observations use the same inventory as package freshness.
+    """
+    import handoff_contract
+    result = handoff_contract.source_inputs(root)
+    excluded = {'bin', 'obj', 'node_modules', 'dist', '__pycache__', '.auth'}
+    for directory in ('src', 'tests', 'eng', 'web', 'contracts'):
+        for target in (root / directory).rglob('*'):
+            relative = target.relative_to(root)
+            if target.is_file() and not excluded.intersection(relative.parts) and target.suffix not in ('.pyc', '.pyo'):
+                result[relative.as_posix()] = hashlib.sha256(path(root, relative.as_posix()).read_bytes()).hexdigest()
+    for target in root.iterdir():
+        if target.is_file():
+            result[target.name] = hashlib.sha256(path(root, target.name).read_bytes()).hexdigest()
+    return result
+
+
+def assessed_material_state(root, review, raw=None):
+    """Shared read-only applicability for refresh and explanation, without new authority."""
+    expected = assessed_basis(review)
+    require(expected is not None, 'No retained material assessment')
+    event = review['materialAssessments'][-1]
+    context = assessment_context(root)
+    previous_context = event['contextBasis']
+    changes = [{'path': name, 'reviewedSha256': previous_context.get(name), 'currentSha256': context.get(name)}
+               for name in sorted(set(previous_context) | set(context)) if previous_context.get(name) != context.get(name)]
+    try:
+        evidence_current = all(check_artifacts(root, item['checks'], freshness=False) == item['checkBasis']
+                               for item in review['materialAssessments'])
+        originals_current = all(row['before'] == {'absent': True} or
+                                hashlib.sha256(path(root, row['before']['path']).read_bytes()).hexdigest()
+                                == row['before']['sha256']
+                                for item in review['materialAssessments'] for row in item['changes'])
+    except (ValueError, OSError, KeyError, TypeError):
+        evidence_current = originals_current = False
+    result = {'rawBasisCurrent': (raw if raw is not None else basis(root, review['basisPaths'])) == expected,
+              'contextCurrent': not changes, 'policyCurrent': event['policy'] == assessment_policy(),
+              'evidenceCurrent': evidence_current, 'originalsCurrent': originals_current,
+              'changedContextInputs': changes}
+    result['current'] = all(result[name] for name in ('rawBasisCurrent', 'contextCurrent', 'policyCurrent',
+                                                     'evidenceCurrent', 'originalsCurrent'))
+    return result
+
+
 def validate(value):
     require(isinstance(value, dict) and value.get('version') == 1, 'Malformed story delivery state')
     require(isinstance(value.get('roles'), dict) and 'owner' in value['roles'] and 'requester' in value['roles'], 'Missing review roles')
@@ -679,10 +961,10 @@ def validate(value):
                     isinstance(decision.get('permits'), list) and isinstance(decision.get('at'), (int, float)),
                     'Malformed retained human decision provenance')
         if review['human'] in ('accepted', 'deferred'):
-            scoped_retained = (review.get('materialScope') and isinstance(review.get('presentation'), dict) and
+            scoped_retained = ((review.get('materialAssessments') or (review.get('materialScope') and isinstance(review.get('presentation'), dict) and
                               review['presentation'].get('materialBasis') and review.get('engineeringInputBasis') and
                               review['decisions'] and review['decisions'][-1].get('materialBasis') == review['presentation']['materialBasis'] and
-                              not review.get('stale'))
+                              not review.get('stale'))) and not review.get('stale'))
             require((review.get('engineering') == 'complete' or scoped_retained or owner_continuation(review, value))
                     and isinstance(review.get('presentation'), dict) and review['decisions'],
                     'Decision requires complete engineering, presented basis and provenance')
@@ -697,6 +979,18 @@ def validate(value):
                         ('entryPoint', 'preparedData', 'walkthrough', 'expected', 'limitations', 'outcome')) and
                     isinstance(review.get('checkBasis'), dict) and review['checkBasis'] and review.get('checks') and review.get('basisPaths'),
                     'Malformed presented journey/verification basis')
+        if review.get('materialAssessments'):
+            assessed_basis(review)
+        histories = review.get('materialAssessmentHistory', [])
+        require(isinstance(histories, list), 'Malformed retained material assessment history')
+        for archived in histories:
+            require(isinstance(archived, dict) and archived.get('version') == 1
+                    and archived.get('reviewer') in value['roles'] and archived.get('materialAssessments')
+                    and archived.get('decisions') and archived['decisions'][-1].get('verdict') == 'accepted'
+                    and not archived.get('materialAssessmentHistory')
+                    and isinstance(archived.get('supersededAt'), (int, float))
+                    and math.isfinite(archived['supersededAt']), 'Malformed archived material assessment')
+            assessed_basis(archived)
     clock = value.get('clock')
     require(isinstance(clock, dict) and isinstance(clock.get('at'), (int, float)) and math.isfinite(clock['at']) and
             isinstance(clock.get('waiting'), bool), 'Malformed active clock')
@@ -742,6 +1036,9 @@ def refresh(root, value):
                     import review_material
                     material_fresh = review_material.basis(root, review['materialScope'], review['basisPaths']) == presented['materialBasis']
                     fresh = fresh and material_fresh
+                if review.get('materialAssessments'):
+                    material_fresh = assessed_material_state(root, review, raw)['current']
+                    fresh = fresh and material_fresh
             except (ValueError, OSError, KeyError, TypeError):
                 fresh = False
                 material_fresh = False
@@ -781,7 +1078,10 @@ def accrue(value, now):
 
 
 def guard(root, feature, operation=None, closure=False, repair=False):
-    value = refresh(root, load_delivery(feature))
+    value = load_delivery(feature)
+    import retained_inputs
+    retained_inputs.validate_document_outputs(root, (feature / 'tasks.md').read_text(encoding='utf-8'))
+    value = refresh(root, value)
     from task_draft import validate_operation_graph
     content = (feature / 'tasks.md').read_text(encoding='utf-8')
     validate_operation_graph(content, required=True, root=root)
@@ -792,6 +1092,8 @@ def guard(root, feature, operation=None, closure=False, repair=False):
 
 
 def _review_guard(root, feature, value, operation=None, closure=False, repair=False):
+    import retained_inputs
+    retained_inputs.validate_document_outputs(root, (feature / 'tasks.md').read_text(encoding='utf-8'))
     if operation is None and value.get('active'):
         operation = value['active']['operation']
     content = (feature / 'tasks.md').read_text(encoding='utf-8')
@@ -947,6 +1249,7 @@ def transition(root, feature, request, now=None, reader=github_read):
             review['engineeringInputBasis'] = basis(root, review['basisPaths'])
         if action == 'present':
             prior = copy.deepcopy(review.get('presentation'))
+            prior_scope = copy.deepcopy(review.get('materialScope'))
             prior_human = review['human']
             require(all(nonempty(request.get(field)) for field in ('entryPoint', 'preparedData', 'walkthrough', 'expected', 'limitations')),
                     'Present runnable entry point, prepared data/account, walkthrough, expected results and material limitations')
@@ -966,8 +1269,69 @@ def transition(root, feature, request, now=None, reader=github_read):
                 # Preserve the exact original decision's raw basis. Current raw
                 # hashes belong to engineering freshness, not rewritten approval.
                 review['presentation']['basis'] = prior['basis']
+            elif review.get('materialAssessments'):
+                review.setdefault('materialAssessmentHistory', []).append({
+                    'version': 1, 'presentation': prior, 'materialScope': prior_scope,
+                    'reviewer': review['reviewer'], 'decisions': copy.deepcopy(review['decisions']),
+                    'materialAssessments': review.pop('materialAssessments'), 'supersededAt': now})
             review.update(human='accepted' if unchanged_acceptance else 'ready for review', stale=False, permits=[])
             value['clock']['waiting'] = True
+    elif action == 'assess-material':
+        require(owner and nonempty(request.get('source')),
+                'Material assessment requires a separate explicit owner instruction and its actual source')
+        review = value['checkpoints'][request['checkpoint']]
+        require(review.get('decisions') and review['decisions'][-1]['verdict'] == 'accepted'
+                and isinstance(review.get('presentation'), dict), 'Retain an actual prior accepted review')
+        require(review['decisions'][-1]['basis'] == review['presentation']['basis']
+                and review['decisions'][-1].get('materialBasis') == review['presentation'].get('materialBasis'),
+                'Material assessment requires the original accepted presentation; a new presentation needs its own human decision')
+        decision = hashlib.sha256(_basis_bytes(review['decisions'][-1])).hexdigest()
+        require(request.get('decisionSha256') == decision, 'Bind the exact original accepted decisionSha256')
+        require('materialScope' not in request and 'basisPaths' not in request,
+                'Material assessment cannot drop inputs or redefine the original review scope')
+        require(not load_failures(feature), 'Resolve required technical failures before material assessment')
+        completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', (feature / 'tasks.md').read_text(encoding='utf-8'), re.M))
+        require(set(review.get('taskIds', value['stories'][review['story']]['taskIds'])) <= completed,
+                'Complete checkpoint engineering tasks before material assessment')
+        before = assessed_basis(review) or review['presentation']['basis']
+        after = basis(root, review['basisPaths'])
+        current_context = assessment_context(root)
+        previous_context = review['materialAssessments'][-1]['contextBasis'] if review.get('materialAssessments') else None
+        before_inputs = {**(previous_context or {}), **before}
+        after_inputs = {**(current_context if previous_context is not None else {}), **after}
+        changes = request.get('changes')
+        changed = {name for name in set(before_inputs) | set(after_inputs)
+                   if before_inputs.get(name) != after_inputs.get(name)}
+        require(changed and isinstance(changes, list) and len(changes) == len(changed)
+                and {row.get('path') for row in changes if isinstance(row, dict)} == changed,
+                'Assess every actually changed basis input exactly once')
+        for row in changes:
+            original = row.get('before', {})
+            effects = row.get('effects', {})
+            absent = before_inputs.get(row['path']) is None and previous_context is not None
+            require((absent and original == {'absent': True}) or
+                    (not absent and isinstance(original, dict) and set(original) == {'path', 'sha256'}
+                     and original['sha256'] == before_inputs[row['path']]
+                     and hashlib.sha256(path(root, original['path']).read_bytes()).hexdigest() == original['sha256']),
+                    'Supply retained exact before bytes matching the accepted input hash')
+            require('afterSha256' in row and row['afterSha256'] == after_inputs.get(row['path']) and row.get('conclusion') == 'nonmaterial'
+                    and nonempty(row.get('rationale')) and isinstance(effects, dict)
+                    and set(effects) == {'build', 'dependencies', 'packaging', 'runtime'}
+                    and all(nonempty(effect) for effect in effects.values()),
+                    'Record exact after hash and explicit build/dependency/packaging/runtime effect assessment; tests alone are insufficient')
+        checks = check_artifacts(root, request.get('checks'))
+        event = {'version': 1, 'actor': 'owner', 'source': request['source'], 'at': now,
+                 'decisionSha256': decision, 'previousBasis': copy.deepcopy(before), 'currentBasis': after,
+                 'presentationSha256': hashlib.sha256(_basis_bytes(review['presentation'])).hexdigest(),
+                 'scopeSha256': hashlib.sha256(_basis_bytes(review.get('materialScope'))).hexdigest(),
+                 'policy': assessment_policy(), 'changes': copy.deepcopy(changes),
+                 'contextBasis': current_context,
+                 'checks': request['checks'], 'checkBasis': checks}
+        if previous_context is not None:
+            event['previousContextBasis'] = previous_context
+        review.setdefault('materialAssessments', []).append(event)
+        review.update(human='accepted', engineering='complete', stale=False, checks=request['checks'],
+                      checkBasis=checks, engineeringInputBasis=after)
     elif action == 'decision':
         key = request['checkpoint']
         review = value['checkpoints'][key]
@@ -1104,7 +1468,12 @@ def transition(root, feature, request, now=None, reader=github_read):
             value['clock']['waiting'] = action == 'wait' or (action == 'resume' and not _active_permitted(root, feature, value))
             value['clock']['suspended'] = action == 'suspend'
     else:
-        raise ValueError('Unknown story delivery transition')
+        raise ValueError('Unknown story delivery transition: ' + str(action) + '. '
+                         'Record engineering evidence with {"action":"engineering","checkpoint":"US1",'
+                         '"checks":["artifacts/<actual-passing-result>"]}; '
+                         'present adds the exercised walkthrough, expected results, limitations and basisPaths. '
+                         'Use a separate explicit decision for human acceptance. '
+                         'See program-kit-governance/references/phase-evidence.md for the exact action fields.')
     persist(feature, value)
     return {'delivery': value, 'warnings': warnings, 'acceptanceEstablished': False,
             'instruction': 'Engineering and human dispositions are separate; use start before each operation and finish at closure/handoff.'}
@@ -1202,12 +1571,14 @@ def reset(root, request, apply=False):
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(root / relative, target)
         require(hashlib.sha256(target.read_bytes()).hexdigest() == digest, 'Archive verification failed')
-    (archive / 'inventory.json').write_text(json.dumps({**request, 'preserved': preserved}, indent=2), encoding='utf-8')
+    inventory = archive / 'inventory.json'
+    inventory.write_text(json.dumps({**request, 'preserved': preserved}, indent=2), encoding='utf-8')
     for relative, digest in selected.items():
         require(hashlib.sha256((root / relative).read_bytes()).hexdigest() == digest, 'Reset input changed during archival')
     for relative in selected:
         (root / relative).unlink()
-    result.update(status='abandoned', archive=archive.relative_to(root).as_posix())
+    result.update(status='abandoned', archive=archive.relative_to(root).as_posix(),
+                  archiveInventorySha256=hashlib.sha256(inventory.read_bytes()).hexdigest())
     return result
 
 

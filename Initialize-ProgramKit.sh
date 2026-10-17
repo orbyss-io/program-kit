@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-PROGRAM_KIT_REF="v0.13.2"
+PROGRAM_KIT_REF="v0.13.3"
 program_kit_stage="prerequisite checks"
 trap 'status=$?; printf "ERROR: Program Kit initialization stopped during %s with exit code %s. Preserve the output and partial installation for diagnosis.\n" "$program_kit_stage" "$status" >&2; exit "$status"' ERR
 
@@ -107,9 +107,11 @@ fi
 program_kit_stage="read-only shared device readiness"
 "$SPECKIT_PYTHON" -c 'import sys; print(sys.executable); assert sys.version_info >= (3,11), "Python >=3.11 is required; update shared device Python in your own terminal and refresh the session"'
 if [[ -f "$script_dir/scripts/initialize_device.py" ]]; then
+  program_kit_native_helper="$script_dir/scripts/initialize_device.py"
   "$SPECKIT_PYTHON" "$script_dir/scripts/initialize_device.py" --ref "$PROGRAM_KIT_REF" --project-root "$current_root" --release-root "$script_dir"
 else
   program_kit_device_preflight="$(mktemp "${TMPDIR:-/tmp}/program-kit-device.XXXXXX")"
+  program_kit_native_helper="$program_kit_device_preflight"
   "$SPECKIT_PYTHON" -c 'import sys,urllib.request; urllib.request.urlretrieve(sys.argv[1], sys.argv[2])' \
     "https://raw.githubusercontent.com/orbyss-io/program-kit/$PROGRAM_KIT_REF/scripts/initialize_device.py" "$program_kit_device_preflight"
   "$SPECKIT_PYTHON" "$program_kit_device_preflight" --ref "$PROGRAM_KIT_REF" --project-root "$current_root"
@@ -132,9 +134,18 @@ if ! "$SPECKIT_PYTHON" -c 'import yaml' >/dev/null 2>&1; then
 fi
 catalog_root="https://raw.githubusercontent.com/orbyss-io/program-kit/${PROGRAM_KIT_REF}/catalogs"
 
+native_program_kit() {
+  local release_options=()
+  if [[ -f "$script_dir/scripts/initialize_device.py" ]]; then
+    release_options=(--release-root "$script_dir")
+  fi
+  "$SPECKIT_PYTHON" "$program_kit_native_helper" --ref "$PROGRAM_KIT_REF" --project-root "$current_root" \
+    "${release_options[@]}" --native-launcher "$(command -v specify)" --native-arguments "$@"
+}
+
 program_kit_stage="step 1/8"
 printf '[1/8] Initializing Spec Kit for %s with the Python script flavor...\n' "$program_kit_integration"
-specify init . --force --non-interactive --integration "$program_kit_integration" --script py
+native_program_kit init . --force --non-interactive --integration "$program_kit_integration" --script py
 
 program_kit_stage="step 2/8"
 printf '[2/8] Registering the Program Kit extension catalog...\n'
@@ -158,7 +169,7 @@ specify workflow add program-kit-bootstrap
 
 program_kit_stage="step 7/8"
 printf '[7/8] Installing Program Kit...\n'
-specify bundle install program-kit --integration "$program_kit_integration"
+native_program_kit bundle install program-kit --integration "$program_kit_integration"
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target .
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/schema_runtime.py setup
 "$SPECKIT_PYTHON" .specify/extensions/program-kit-governance/scripts/schema_runtime.py record-copy

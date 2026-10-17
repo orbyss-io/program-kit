@@ -510,6 +510,47 @@
         "basis": "migration-0.13.2.md and owner-directed delete-only restart with packaged updater/activation evidence",
         "route": "Consumer agent inventories and performs the selected restart; retain accepted architecture and use current installed phase guards and human story decisions."
       }
+    },
+    {
+      "id": "maintenance-recovery-preserves-authored-work",
+      "introduced": "0.13.3",
+      "kind": "contract",
+      "summary": "Apply current maintenance repairs through retained original-source recovery and scoped reconciliation while preserving authored work.",
+      "constraint": "Use the supported updater and exact installed-source witnesses. Do not reset a feature, delete implementation, restart bootstrap, relabel historical evidence, advance an unrelated baseline or infer current human acceptance from toolkit validation. A separately human-directed consumer restart remains outside this maintenance upgrade.",
+      "selectors": {
+        "paths": [
+          ".specify/**",
+          ".program-kit/**",
+          "eng/**",
+          "docs/architecture/**",
+          "specs/**",
+          "src/**",
+          "tests/**",
+          "contracts/**"
+        ],
+        "selectedDependencies": true
+      },
+      "supportedRetention": [
+        "Preserve authored/custom files, complete original attempt inputs, selected profiles and locks, accepted architecture and reviews, task identities, effort, failed evidence, live data and uncertain effects."
+      ],
+      "alternatives": [
+        "Retain supported existing selections and reconcile only actual affected owned outputs.",
+        "Adopt a new dependency profile through its reviewed exact transition; customized browser entrypoints require a concrete hash-bound reconciliation."
+      ],
+      "verification": [
+        "Verify complete installed source and native integration ownership; reject missing, modified, mixed or unauthenticated source/attempt inputs.",
+        "Run required exact regression identities and affected native build, restore, pack, frontend and behavior checks. Toolkit evidence does not replace application or human acceptance."
+      ],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "planning",
+      "supersedes": [
+        "unfinished-feature-delete-restart"
+      ],
+      "dependencies": [],
+      "review": {
+        "basis": "Approved frozen 47-finding maintenance plan and retained implementation ledger; migration-0.13.3.md.",
+        "route": "Maintained consumer updater, scoped reconciliation and existing material-change/human-review boundaries; no automatic reset or bootstrap."
+      }
     }
   ]
 }

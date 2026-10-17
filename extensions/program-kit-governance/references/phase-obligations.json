@@ -962,8 +962,8 @@
       "enforcement": "Scoped applicability review and actual consumer tests; installation/graph passes do not prove semantic acceptance.",
       "route": {
         "kind": "manual",
-        "via": ["extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "scripts/consumer_upgrade_workspace.py"],
-        "sections": ["Fresh story-delivery adoption"],
+        "via": ["extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "scripts/consumer_upgrade_workspace.py", "extensions/program-kit-governance/scripts/tooling_witness.py"],
+          "sections": ["Fresh story-delivery adoption", "Retained exact tooling source", "Required shared regression cases", "Reconcile declared local tooling repairs"],
         "requirements": [],
         "review": "Existing substantive review, scoped recovery and destination activation; no founding bootstrap restart."
       }
@@ -1119,6 +1119,18 @@
         ],
         "requirements": [],
         "review": "Preserve consumer conflicts and accepted tools; sync is not network/build acceptance."
+      }
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/typed-operation/README.md",
+      "phases": ["implementation"],
+      "enforcement": "Optional owned example, selected explicitly; real generated types, native settings provenance and provider effects require actual execution. No automatic business acceptance.",
+      "route": {
+        "kind": "manual",
+        "via": ["extensions/program-kit-governance/scripts/asset_sources.py", "tests/validate_typed_operation.py"],
+        "sections": ["Typed first operation"],
+        "requirements": [],
+        "review": "Export exact installed source into a new owned artifact directory. Adapt accepted application identities, qualify actual Build/export/client/provider behavior, and preserve historical baselines."
       }
     },
     {
@@ -1860,6 +1872,111 @@
           "capability-adoption"
         ],
         "review": "Actual selected public mechanism use/activation and consumer contract behavior."
+      }
+    },
+    {
+      "path": "program-kit-building-blocks/references/native-restore-graph.md",
+      "phases": [
+        "setup",
+        "upgrade"
+      ],
+      "enforcement": "Explicit native adapter configuration and normal restore planning; metadata ownership alone does not establish restore success.",
+      "route": {
+        "kind": "setup",
+        "via": [
+          "extensions/program-kit-building-blocks/scripts/native_restore_graph.py",
+          "extensions/program-kit-building-blocks/scripts/restore_dependencies.py"
+        ],
+        "sections": [
+          "Native evaluated restore ownership"
+        ],
+        "requirements": [],
+        "review": "Explicit native adapter configuration and normal restore planning; metadata ownership alone does not establish restore success."
+      }
+    },
+    {
+      "path": "program-kit-dotnet/references/retained-inputs.md",
+      "phases": [
+        "tasks",
+        "implementation",
+        "delivery",
+        "upgrade"
+      ],
+      "enforcement": "Configured original reset-bound inputs are projected and protected by task preparation, save and delivery. No new product acceptance is created.",
+      "route": {
+        "kind": "routing",
+        "via": [
+          "extensions/program-kit-governance/commands/speckit.program-kit-governance.phase-context.md",
+          "extensions/program-kit-governance/scripts/task_draft.py"
+        ],
+        "sections": [
+          "Document outputs"
+        ],
+        "requirements": [],
+        "review": "Configured original reset-bound inputs are projected and protected by task preparation, save and delivery. No new product acceptance is created."
+      }
+    },
+    {
+      "path": "program-kit-dotnet/references/pdf-stream-decoding.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "Optional PDF point-of-use lookup and maintained public-package example. No global PDF requirement or general document validity claim.",
+      "route": {
+        "kind": "routing",
+        "via": [
+          "extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+          "tests/validate_pdf_decoding.py"
+        ],
+        "sections": [
+          "PdfPig 0.1.16 stream decoding boundary"
+        ],
+        "requirements": [],
+        "review": "Optional PDF point-of-use lookup and maintained public-package example. No global PDF requirement or general document validity claim."
+      }
+    },
+    {
+      "path": "program-kit-dotnet/references/cross-resource-fencing.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "Persistence admission links the optional bounded physical-effect example; application storage and distributed deployment need their own qualification.",
+      "route": {
+        "kind": "routing",
+        "via": [
+          "extensions/program-kit-dotnet/references/persistence-profiles.md",
+          "tests/validate_local_fencing.py"
+        ],
+        "sections": [
+          "Physical effects of durable cross-resource work"
+        ],
+        "requirements": [],
+        "review": "Persistence admission links the optional bounded physical-effect example; application storage and distributed deployment need their own qualification."
+      }
+    },
+    {
+      "path": "program-kit-governance/references/ocr-only-operations.md",
+      "phases": [
+        "planning",
+        "implementation",
+        "delivery"
+      ],
+      "enforcement": "Optional exact provider-operation lookup; no global OCR or paid acceptance requirement.",
+      "route": {
+        "kind": "routing",
+        "via": [
+          "extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+          "tests/validate_provider_operation_accounting.py"
+        ],
+        "sections": [
+          "Bounded OCR-only provider operations"
+        ],
+        "requirements": [],
+        "review": "Explicit narrow operation admission/accounting and native recording proof; human terminal consent remains separate."
       }
     },
     {

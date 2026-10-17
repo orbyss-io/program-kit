@@ -29,6 +29,7 @@ def write(path,value): maintenance.write_json(path,value)
 
 
 def reference(path,base=ROOT,normalized=False):
+    path,base=blocks.filesystem_path(path),blocks.filesystem_path(base)
     return {'path':path.relative_to(base).as_posix(),
             'sha256':profile_catalogs.source_sha256(path) if normalized else blocks.raw_sha256(path)}
 
@@ -92,6 +93,18 @@ def prepare():
     target['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter']=exporter
     for package in target['packages'].values():
         package['version']=exporter if package['packageId']=='Orbyss.Foundation.OpenApi.Exporter' else families[package['family']]
+    # This additive publisher capability belongs only to the new immutable
+    # profile snapshot. Historical catalogs/locks retain their original meaning.
+    # Public publication is checked above; native qualification below must obtain
+    # and inspect the actual package before this candidate can be promoted.
+    if tuple(map(int, families['foundation'].split('.'))) >= (0, 3, 6):
+        identity = 'nuget:Orbyss.Foundation.Web.Presentation'
+        if identity not in target['packages']:
+            package = copy.deepcopy(target['packages']['nuget:Orbyss.Foundation.Web.ProblemDetails'])
+            package.update(packageId='Orbyss.Foundation.Web.Presentation', version=families['foundation'],
+                role='Independently selected native browser presentation, confirmation and private session lifecycle.')
+            package['activations'] = [{'featureIdentity': 'Orbyss.Foundation.Web.Presentation', 'targetSlot': 'shell'}]
+            target['packages'][identity] = package
     target['resolutionRevision']+=1
     blocks.validate_additive_profile_catalog(current_catalog,target)
     blocks.validate_additive_profile_catalog(blocks.load_json(base),target)
@@ -191,7 +204,7 @@ def publisher_knowledge(directory,native,profile,host):
         if tree.get('truncated'): raise ValueError('Publisher guidance inventory is incomplete')
         for item in tree['tree']:
             relative=item['path']
-            source=any(relative.startswith('src/'+identity+'/') for identity in identities) and relative.endswith(('.cs','.json','.md','.targets','.props'))
+            source=any(relative.startswith('src/'+identity+'/') for identity in identities) and relative.endswith(('.cs','.json','.md','.targets','.props','.mjs','.mts','.css'))
             guide=source_commit==commit and (relative in {'README.md','LICENSE','THIRD-PARTY-NOTICES.md','src/Orbyss.Foundation.Host/NOTICE.md'} or relative.startswith('docs/') and relative.endswith('.md'))
             if item['type']!='blob' or not (guide or source): continue
             url='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+source_commit+'/'+relative

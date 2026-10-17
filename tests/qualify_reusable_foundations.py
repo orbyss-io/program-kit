@@ -25,6 +25,8 @@ import foundation_composition as composition
 sys.path.insert(0,str(ROOT/'tests'))
 sys.path.insert(0,str(ROOT/'extensions/program-kit-governance/scripts'))
 from compatibility_process import run
+sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+from owned_scratch import filesystem_path, native_path
 
 
 def contract_tests():
@@ -35,7 +37,7 @@ def contract_tests():
     path=ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_qualification.py'
     spec=importlib.util.spec_from_file_location('qualification_contract_test',path)
     adapter=importlib.util.module_from_spec(spec); spec.loader.exec_module(adapter)
-    evidence=ROOT/'artifacts/tests/reusable-foundations'/('contracts-'+uuid.uuid4().hex[:16])
+    evidence=Path(filesystem_path(ROOT/'artifacts/tests/reusable-foundations'/('contracts-'+uuid.uuid4().hex[:16])))
     evidence.mkdir(parents=True)
     checks=[]
     def rejected(name,action):
@@ -155,7 +157,7 @@ def contract_tests():
                                ('bff-cookie','check'),('keycloak','check'),('postgresql','check')):
         value={**original,'steps':[{'stage':raw_stage,'exitCode':19}], 'failure':'PKF004 '+secret}
         write(receipt,value)
-        assert readiness_failure(child,set())=='stage='+expected+' stepExit=19 code=PKF004'+(' checkpoint=integration-absent childExit=unknown authentication=absent' if expected=='check' else '')
+        assert readiness_failure(child,set())=='stage='+expected+' stepExit=19 code=PKF004'+(' checkpoint=integration-absent childExit=unknown authentication=absent' if expected=='check' else ''), (expected, readiness_failure(child,set()))
     checks.append('only-known-stage-enums-and-known-error-code-prefixes-projected')
     attacks=[None, [], {'schemaVersion':True}, {**original,'status':secret},
              {**original,'steps':secret}, {**original,'steps':[secret]},
@@ -376,6 +378,7 @@ def contract_tests():
     shutil.copy2(child/'fail_setup.py',check_child/'fail_setup.py')
     check_script=check_child/'fail_check.py'
     check_script.write_text('import importlib.util,json,sys,uuid\nfrom pathlib import Path\n'
+        +'sys.path.insert(0,'+repr(str(fixture_path.parent))+')\n'
         +'spec=importlib.util.spec_from_file_location("actual_fixture",'+repr(str(fixture_path))+')\n'
         +'module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module)\n'
         +'directory=Path(sys.argv[1]); process=directory/("process-"+uuid.uuid4().hex)\n'
@@ -441,9 +444,10 @@ def contract_tests():
             directory=evidence/('cache-cold-'+str(index))
             command([sys.executable,str(script),'write','0'],consumer,directory,timeout=30)
             observed=json.loads((directory/'stdout.log').read_text())
-            expected={'PROGRAMKIT_NPM_CACHE':str(consumer/'artifacts/cache/npm'),
-                'NPM_CONFIG_CACHE':str(consumer/'artifacts/cache/npm'),
-                'PLAYWRIGHT_BROWSERS_PATH':str(consumer/'artifacts/cache/profile/local/ms-playwright')}
+            native_consumer=Path(native_path(consumer))
+            expected={'PROGRAMKIT_NPM_CACHE':str(native_consumer/'artifacts/cache/npm'),
+                'NPM_CONFIG_CACHE':str(native_consumer/'artifacts/cache/npm'),
+                'PLAYWRIGHT_BROWSERS_PATH':str(native_consumer/'artifacts/cache/profile/local/ms-playwright')}
             assert observed['paths']==expected and not any(observed['markersBefore'].values())
             assert observed['sentinel']=='unchanged unrelated environment'
             assert json.loads((directory/'result.json').read_text())['consumerAcquisitionCaches']==expected
@@ -959,8 +963,9 @@ def authentication_failure(directory, previous):
     import xml.etree.ElementTree as ET
     unknown='authentication=unknown'
     try:
-        directory=Path(directory)
-        owned=(ROOT/'artifacts/tests/reusable-foundations').resolve()
+        directory=Path(filesystem_path(Path(directory).absolute()))
+        previous={Path(filesystem_path(Path(path).absolute())) for path in previous}
+        owned=Path(filesystem_path(ROOT/'artifacts/tests/reusable-foundations')).resolve()
         if directory.resolve()!=directory.absolute() or not directory.resolve().is_relative_to(owned): return unknown
         path=directory/'authentication.xml'
         if path in previous: return unknown
@@ -1059,7 +1064,7 @@ def authentication_failure(directory, previous):
 @contextmanager
 def consumer_cache_environment(root):
     """Scope acquisition only for owned disposable consumers; restore the caller exactly."""
-    root=root.resolve()
+    root=Path(native_path(root.resolve()))
     owned=(ROOT/'artifacts/tests/reusable-foundations').resolve()
     if root==owned or not root.is_relative_to(owned):
         yield {}
@@ -1206,7 +1211,7 @@ def scaffold(root, shape, feed, evidence):
 /// <summary>Native product security assertion against the activated selected host.</summary>
 public sealed class ProductBoundaryTests
 {
-    /// <summary>The browser resource route challenges anonymously without disclosing the resource.</summary>
+    /// <summary>A private machine resource refuses anonymous access without a redirect or resource disclosure.</summary>
     [Xunit.Fact]
     public async System.Threading.Tasks.Task AnonymousResourceReadChallengesWithoutDisclosure()
     {
@@ -1218,15 +1223,16 @@ public sealed class ProductBoundaryTests
         };
         const string resourcePath = "/resources/fc78aeb7-529f-4906-a9a5-8db4ff8a6ead";
         using var response = await client.GetAsync(resourcePath, Xunit.TestContext.Current.CancellationToken);
-        // The selected BFF contract returns401 for /api; this browser route challenges locally.
-        Xunit.Assert.Equal(System.Net.HttpStatusCode.Found, response.StatusCode);
-        var location = response.Headers.Location;
-        Xunit.Assert.NotNull(location);
-        var target = new System.Uri(client.BaseAddress, location);
-        Xunit.Assert.Equal(client.BaseAddress.GetLeftPart(System.UriPartial.Authority), target.GetLeftPart(System.UriPartial.Authority));
-        Xunit.Assert.Equal("/bff/login", target.AbsolutePath);
-        Xunit.Assert.Equal("?ReturnUrl=" + System.Uri.EscapeDataString(resourcePath), target.Query);
-        Xunit.Assert.Empty(await response.Content.ReadAsStringAsync(Xunit.TestContext.Current.CancellationToken));
+        // Foundation redirects only explicit BrowserPage endpoints. This owned JSON
+        // resource has no browser-purpose metadata and must retain machine semantics.
+        Xunit.Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
+        Xunit.Assert.Null(response.Headers.Location);
+        Xunit.Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        using var problem = System.Text.Json.JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(Xunit.TestContext.Current.CancellationToken));
+        Xunit.Assert.Equal(401, problem.RootElement.GetProperty("status").GetInt32());
+        Xunit.Assert.Equal("authentication_required", problem.RootElement.GetProperty("code").GetString());
+        Xunit.Assert.False(problem.RootElement.TryGetProperty("id", out _));
     }
 }
 ''',encoding='utf-8')

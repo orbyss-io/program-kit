@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory, filesystem_path
 from unittest.mock import patch
 from pathlib import Path
 
@@ -58,7 +59,7 @@ def item(identity='provider', slices=None, disposition='architecture', trigger='
 
 def setup(root, *, web=None):
     for name in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet'):
-        shutil.copytree(ROOT / 'extensions' / name, root / '.specify/extensions' / name)
+        shutil.copytree(filesystem_path(ROOT / 'extensions' / name), filesystem_path(root / '.specify/extensions' / name))
     from schema_runtime import runtime_path
     if not runtime_path(root).exists():
         shutil.copytree(runtime_path(ROOT), runtime_path(root))
@@ -148,7 +149,7 @@ def workflow_gate(root):
 def browser_baseline_checks():
     previous = Path.cwd()
     for profile in ('none-v1', 'bff-cookie-v1', 'spa-pkce-v1'):
-        with tempfile.TemporaryDirectory(prefix='program-kit-browser-baseline-') as directory:
+        with FixtureDirectory(prefix='program-kit-browser-baseline-') as directory:
             root = Path(directory)
             os.chdir(root)
             try:
@@ -189,7 +190,7 @@ def browser_baseline_checks():
 def main():
     browser_baseline_checks()
     previous = Path.cwd()
-    with tempfile.TemporaryDirectory(prefix='program-kit-lifecycle-') as directory:
+    with FixtureDirectory(prefix='program-kit-lifecycle-') as directory:
         root = Path(directory)
         os.chdir(root)
         try:

@@ -4,6 +4,7 @@ import json
 import hashlib
 import sys
 import tempfile
+from owned_fixture import FixtureDirectory
 import subprocess
 import unittest
 from pathlib import Path
@@ -12,13 +13,43 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 from build_release_guidance import build, validate_recipes
-from release_guidance import plan, load_index, require_review, completion
+from release_guidance import plan, load_index, require_review, completion, validate_completion
 
 
 class GuidanceTests(unittest.TestCase):
+    def test_maintenance_upgrade_preserves_work_without_reactivating_feature_delete(self):
+        from release_guidance import semantic_changes
+        with FixtureDirectory() as name:
+            directory = build(ROOT, Path(name), '0.13.3')
+            for installed in ('0.12.5', '0.12.11', '0.13.0', '0.13.1', '0.13.2'):
+                with self.subTest(installed=installed):
+                    selected = {row['id']: row for row in semantic_changes(directory, installed, '0.13.3')['changes']}
+                    self.assertNotIn('unfinished-feature-delete-restart', selected)
+                    repair = selected['maintenance-recovery-preserves-authored-work']
+                    self.assertEqual('selective-feature-repair-v1', repair['method'])
+                    self.assertIn('unfinished-feature-delete-restart', repair['supersedes'])
+                    self.assertIn('authored/custom files', repair['supportedRetention'][0])
+
+    def test_migration_cannot_retire_required_checks_or_promote_tooling_to_application_acceptance(self):
+        migration = {'fromVersion': '0.13.1', 'toVersion': '0.13.2', 'migrations': [
+            {'verificationChecks': ['installation-coherence', 'dependency-verification', 'required-phase-evidence']}]}
+        valid = completion(migration, {'installation-coherence': True, 'dependency-verification': True})
+        original = json.dumps(valid, sort_keys=True)
+        self.assertEqual('completed', validate_completion(valid)['status'])
+        variants = []
+        changed = copy.deepcopy(valid); changed['retiredChecks'].append('dependency-verification')
+        changed['requiredChecks'].remove('dependency-verification'); changed['checks'].pop('dependency-verification'); variants.append(changed)
+        changed = copy.deepcopy(valid); changed['checks']['dependency-verification'] = False; variants.append(changed)
+        changed = copy.deepcopy(valid); changed['status'] = 'pending'; variants.append(changed)
+        for key in ('applicationReady', 'applicationChecksPerformed', 'releaseReadinessEstablished', 'approvalPerformed'):
+            changed = copy.deepcopy(valid); changed[key] = True; variants.append(changed)
+        for changed in variants:
+            with self.assertRaisesRegex(ValueError, 'PKU132'): validate_completion(changed)
+        self.assertEqual(original, json.dumps(valid, sort_keys=True))
+
     def test_patch_routes_unfinished_features_to_delete_only_fresh_phases(self):
         from release_guidance import semantic_changes
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             directory = build(ROOT, Path(name), '0.13.2')
             for installed in ('0.12.5', '0.12.11', '0.13.0', '0.13.1'):
                 with self.subTest(installed=installed):
@@ -42,8 +73,8 @@ class GuidanceTests(unittest.TestCase):
         from build_release import deterministic_zip
         sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
         import building_blocks as blocks
-        source = ROOT / 'extensions/program-kit-building-blocks'
-        with tempfile.TemporaryDirectory() as name:
+        source = blocks.filesystem_path(ROOT / 'extensions/program-kit-building-blocks')
+        with FixtureDirectory() as name:
             destination = Path(name)
             archive_path = destination / 'component.zip'
             deterministic_zip(source, archive_path)
@@ -68,7 +99,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_compact_bundle_guidance_retains_verified_history_and_current_adoption(self):
         from release_guidance import semantic_changes
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             version = (ROOT / 'VERSION').read_text().strip()
             full = build(ROOT, root / 'full', version)
@@ -84,7 +115,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_semantic_changes_require_maintained_complete_recipe_contracts(self):
         import shutil
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             relative = Path('extensions/program-kit-governance/references/consumer-migration-recipes.json')
             path = root / relative
@@ -102,8 +133,8 @@ class GuidanceTests(unittest.TestCase):
 
     def test_qualification_assets_and_release_receipt_reject_missing_or_changed_bytes(self):
         from build_release import build_dependency_qualification_assets
-        from write_release_receipt import artifact_records, sha256
-        with tempfile.TemporaryDirectory() as name:
+        from release_assets import artifact_records, sha256
+        with FixtureDirectory() as name:
             root = Path(name)
             assets = build_dependency_qualification_assets(ROOT, root, '0.12.6')
             registry=ROOT/'extensions/program-kit-building-blocks/references/dependency-profiles'
@@ -137,7 +168,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_missing_verification_cannot_complete_and_pending_origin_is_preserved(self):
         from upgrade_program_kit import migration_origin, UpgradeError
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             directory = build(ROOT, root / 'guidance', '0.12.6')
             migration = plan(directory, '0.12.5', '0.12.6')
@@ -171,7 +202,7 @@ class GuidanceTests(unittest.TestCase):
 
     def test_legacy_noop_recovers_only_sealed_original_version_and_preserves_receipt(self):
         from upgrade_program_kit import migration_origin, preserve_migration_completion, UpgradeError
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             directory = build(ROOT, root / 'guidance', '0.12.6')
             noop = completion(plan(directory, '0.12.6', '0.12.6'), {})
@@ -198,8 +229,44 @@ class GuidanceTests(unittest.TestCase):
             original.write_text('extension:\n  version: "0.12.4"\n', encoding='utf-8')
             with self.assertRaisesRegex(UpgradeError, 'version provenance'): migration_origin(root, '0.12.6')
             self.assertEqual(payload, path.read_bytes())
+
+    def test_interrupted_components_admit_only_the_exact_archived_prior_completed_receipt(self):
+        import upgrade_program_kit as upgrade
+        with FixtureDirectory() as name:
+            root = Path(name).resolve()
+            directory = build(ROOT, root / 'guidance', '0.12.6')
+            prior_plan = plan(directory, '0.12.5', '0.12.6')
+            receipt = completion(prior_plan, {check: True for entry in prior_plan['migrations'] for check in entry['verificationChecks']})
+            self.assertTrue(receipt['migrationCompletionEstablished'])
+            path = root / '.program-kit/installation/migration.json'
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(receipt))
+            payload = path.read_bytes()
+            manifest = root / '.specify/extensions/program-kit-governance/extension.yml'
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text('extension:\n  version: "0.12.6"\n')
+            target_version = (ROOT / 'VERSION').read_text().strip()
+            attempt_path, attempt = upgrade.begin_attempt(root, ROOT, target_version, '0.12.6')
+            attempt.update(status='incomplete', diagnostic='fixture: interrupted after component installation')
+            upgrade.write_attempt(attempt_path, attempt)
+            manifest.write_text('extension:\n  version: "' + target_version + '"\n')
+            context = upgrade.upgrade_retry_context(root, ROOT, target_version)
+            self.assertEqual('0.12.6', upgrade.migration_origin(root, target_version, '0.12.6', target_version, context))
+            self.assertEqual(payload, path.read_bytes())
+            with self.assertRaisesRegex(upgrade.UpgradeError, 'differs from installed'):
+                upgrade.migration_origin(root, target_version, '0.12.6', target_version)
+            changed = copy.deepcopy(receipt)
+            changed['checks']['dependency-verification'] = False
+            path.write_text(json.dumps(changed))
+            with self.assertRaisesRegex(upgrade.UpgradeError, 'differs from installed|required verification'):
+                upgrade.migration_origin(root, target_version, '0.12.6', target_version, context)
+            path.write_bytes(payload)
+            archived = root / attempt['originals']['migration']['path']
+            archived.write_bytes(payload + b' ')
+            with self.assertRaisesRegex(upgrade.UpgradeError, 'PKU121'):
+                upgrade.upgrade_retry_context(root, ROOT, target_version)
     def test_substantive_change_requires_exact_accepted_decision(self):
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             root = Path(name)
             directory = build(ROOT, root / 'guidance', '0.12.5')
             migration = plan(directory, '0.12.3', '0.12.5')
@@ -244,7 +311,7 @@ class GuidanceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'evidence changed'): require_review(root, migration)
 
     def test_verified_baseline_is_read_only_and_old_sources_need_layout_inspection(self):
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             directory = build(ROOT, Path(name), '0.12.5')
             before = {p.name: p.read_bytes() for p in directory.iterdir()}
             result = plan(directory, '0.12.5', '0.12.5')
@@ -258,7 +325,7 @@ class GuidanceTests(unittest.TestCase):
             self.assertEqual(before, {p.name: p.read_bytes() for p in directory.iterdir()})
 
     def test_cumulative_entries_and_tamper_missing_source_and_downgrade(self):
-        with tempfile.TemporaryDirectory() as name:
+        with FixtureDirectory() as name:
             directory = build(ROOT, Path(name), '0.12.5')
             path = directory / 'migration-index.json'
             index = json.loads(path.read_text())

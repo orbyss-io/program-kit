@@ -19,6 +19,7 @@ from xml.etree import ElementTree
 
 from central_packages import central_package_versions
 from handoff_contract import application_identity
+from owned_scratch import filesystem_path, native_path, owned_scratch
 
 import shell_composition
 import runtime_closure
@@ -593,8 +594,8 @@ def complete_external_closure(repository: Path, staging: Path, identities: dict,
     for path in identities.values():
         for item in (package_feature(path) or {}).get('hostProvidedDependencies', []):
             host_required.add((item['packageId'], item['minimumVersion']))
-    with tempfile.TemporaryDirectory(prefix='program-kit-selected-roots-', dir=artifacts) as temp_value:
-        temporary = Path(temp_value)
+    with owned_scratch(repository, 'selected-roots') as temp_value:
+        temporary = Path(filesystem_path(temp_value))
         # Host declarations are lower bounds, not exact direct pins. A direct
         # PackageReference would make NuGet's direct-dependency-wins rule choose
         # an older minimum over a stronger real transitive requirement. Keep
@@ -636,8 +637,8 @@ def complete_external_closure(repository: Path, staging: Path, identities: dict,
         source_name = 'ProgramKitOwnedSelectedRoots'
         if any(item.attrib.get('key') == source_name for item in sources):
             raise ValueError('PKR014 reserved temporary selected-root feed name is already configured')
-        ElementTree.SubElement(sources, 'add', {'key':source_name, 'value':str((staging / 'packages').resolve())})
-        ElementTree.SubElement(sources, 'add', {'key':'ProgramKitOwnedHostRequirements', 'value':str(constraint_feed)})
+        ElementTree.SubElement(sources, 'add', {'key':source_name, 'value':native_path((staging / 'packages').resolve())})
+        ElementTree.SubElement(sources, 'add', {'key':'ProgramKitOwnedHostRequirements', 'value':native_path(constraint_feed)})
         mappings = config_root.find('packageSourceMapping')
         if mappings is not None:
             owned = ElementTree.SubElement(mappings, 'packageSource', {'key':source_name})
@@ -673,7 +674,7 @@ def complete_external_closure(repository: Path, staging: Path, identities: dict,
         ElementTree.SubElement(references, 'PackageReference', {'Include':constraint_id})
         ElementTree.ElementTree(central).write(temporary/'Directory.Packages.props',encoding='utf-8')
         project_path = temporary/'SelectedRoots.csproj'; ElementTree.ElementTree(project).write(project_path,encoding='utf-8')
-        result = subprocess.run(['dotnet','restore',str(project_path),'--configfile',str(config_path),'--packages',str(temporary/'packages'),
+        result = subprocess.run(['dotnet','restore',native_path(project_path),'--configfile',native_path(config_path),'--packages',native_path(temporary/'packages'),
                                  '-p:ImportDirectoryBuildProps=false','-p:ImportDirectoryBuildTargets=false','-p:ManagePackageVersionsCentrally=true',
                                  '-p:RestoreEnablePackagePruning=false'],
                                 cwd=repository,capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=180)
@@ -740,8 +741,8 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
         if identity not in active
     }
     artifacts.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="program-kit-release-bundle-", dir=artifacts) as temp_value:
-        staging = Path(temp_value) / "release-bundle"
+    with owned_scratch(repository, 'release-bundle') as temp_value:
+        staging = Path(filesystem_path(temp_value)) / "release-bundle"
         staged_packages = staging / "packages"
         staged_packages.mkdir(parents=True)
         identities: dict[tuple[str, str], Path] = {}

@@ -1,5 +1,17 @@
 # Consumer upgrade and migration planning method
 
+The maintained initializer and native CLI bridge retain original generation
+profiles under `.specify/program-kit/render-profiles`. Each record binds actual
+native writes, the selected interpreter literal, installed producer/template hashes
+and original inputs; later component refreshes retain prior records and do not
+assign new provenance to untouched outputs. Historical comparison re-renders from
+authenticated installed sources with that recorded selection, without executing
+the old interpreter. Current device/PATH readiness remains a separate check.
+Preserve this history with the installation. Missing, changed, detached or partial
+records require explicit ownership reconciliation; never backfill an old alias
+from today's PATH, normalize arbitrary Python spellings, or rewrite historical
+records. Unwrapped third-party CLI writes supply no Program Kit generation record.
+
 Use the exact extracted release outside the consumer. The conversation owns semantic
 inspection and consequential questions; deterministic helpers inventory, persist and
 verify bounded contracts. No helper accepts an ADR or confirms product intent.
@@ -175,3 +187,122 @@ Prior phase state, checkmarks, human reviews and test receipts cannot establish 
 Keep unrelated shared work, foundations/tooling, dependency history and live data outside deletion.
 Historical recipes retain their earlier applicability; no mid-implementation continuation is offered
 for this fresh diagnostics-patch attempt.
+
+## Retained exact tooling source
+
+Before the maintained updater mutates components, it retains the complete actual
+release source under `.program-kit/tooling-witnesses/sha256/`. The original upgrade
+attempt and new migration receipt bind the exact record digest and original release
+fingerprint. This location is durable evidence, outside ordinary caches/scratch;
+retain it with its installation history. No automatic cleanup or eviction is provided.
+The composite publication includes `program-kit-source-witness.json`, generated
+from the actual packaged files and all five component inventories. Publication
+qualification authenticates its enclosing archive and producer. A checksum or
+this manifest alone cannot establish public origin; explicit local sources retain
+their disclosed local scope and gain no publisher or application acceptance.
+
+Run the current installed helper in a later session:
+
+```sh
+python .specify/extensions/program-kit-governance/scripts/tooling_witness.py verify --receipt .program-kit/installation/migration.json
+```
+
+The returned retained archive is bounded read-only comparison data. Historical
+projects/props remain inside the archive, outside active build/dependency discovery.
+Never extract into an active source tree, import or
+execute its scripts, replay local patches, renew evidence or alter an old receipt
+to make a comparison pass. Missing original staging can use the retained original;
+an existing partial or modified original fails, even when the retained copy is good.
+The complete original file set, packaged witness and both platform fingerprint
+orders are checked. Project moves preserve the relative retained binding; the
+original staging location remains historical rather than being silently rewritten.
+
+If retained source alone is missing, explicitly reacquire the original input under
+its original provenance, then run `recover --receipt <original-receipt> --candidate
+<exact-original-release>`. Recovery validates every original byte and records a
+separate location/recovery event. Wrong/rehashed candidates, modified or partial
+existing copies, missing record authority and unknown legacy receipts fail. Legacy
+receipts without this original binding require separate authenticated original
+evidence; this helper never backfills them. Historical receipts remain unchanged.
+Local repair declarations and actual executed regression coverage retain their
+separate validation requirements; source retention does not certify a local repair.
+
+## Required shared regression cases
+
+Use the current installed `scripts/case_inventory.py` through a named Python
+`toolkitChecks` owner for shared engineering regressions. Keep native application
+tests in their actual native owner; a C# wrapper calling Python is not an
+application test merely because it appears in a native test report.
+
+Commit a reviewed current contract containing `schemaVersion: 1`, `modules` and
+`inputs`. Each module declares its literal current Python path, exact source
+SHA-256, import name and complete fully qualified `module.Class.test_method` to
+platform-list mapping. `inputs` lists the actual current mechanism/helpers tested.
+Pass the original reviewed contract digest explicitly:
+
+```sh
+python .specify/extensions/program-kit-governance/scripts/case_inventory.py --contract tests/current-shared-cases.json --contract-sha256 <reviewed-contract-sha256>
+```
+
+The toolkit declaration uses that installed script and literal arguments, includes
+the contract, current cases and mechanism files in its exact owned inputs, and
+sets a bounded timeout. Select it with the existing Focused `Checks` argument.
+Review a changed contract deliberately with its obligation mapping. Do not rebuild
+the expected inventory from discovery during verification or refresh its digest
+just to make missing cases pass. The caller's authenticated source/review supplies
+the anchor; the manifest cannot authenticate its own publisher.
+
+Missing, added, renamed, duplicate, skipped, expected-failure, failing and empty
+required execution fails independently of unrelated passing counts. Every current
+platform case must actually start once and pass. Explicit other-platform cases are
+reported as not applicable and require their platform's qualification; they are
+never recorded as passed. Source and declared inputs must remain unchanged through
+execution. Each run retains source hashes, required/executed identities and bounded
+logs in a new `artifacts/tests/toolkit-cases/` directory. This establishes scoped
+regression execution, not semantic completeness or application acceptance.
+
+When replacing old shared fixtures, retain a reviewed old-obligation-to-new-case
+mapping. Preserve consumer-specific provider budgets, paid authority, domain,
+deployment and original-history checks under their actual current owners. Generic
+toolkit cases cannot replace those obligations, and archived code is never imported
+to manufacture current coverage. Preserve original failed and historical results.
+
+## Reconcile declared local tooling repairs
+
+Use the trusted staged release's updater with both `--local-repairs
+<consumer-relative-declaration.json>` and `--local-repairs-sha256
+<original-reviewed-declaration-sha256>`. Review the concrete declaration and its
+coverage rationale before selecting that digest. Preview reports that fresh
+execution is still required; it supplies no tested-source admission.
+
+The declaration has `schemaVersion: 1`, `contract`, `contractSha256` and a finite
+`repairs` array. The contract uses the current exact-case format above. Each repair
+names its exact installed machine-source `path`, `beforeSha256`, `afterSha256`,
+nonempty fully qualified `requiredCases`, and reviewed `rationale`. An explicit
+addition uses `beforeSha256: null`; deletion requires separate owner reconciliation.
+Every changed path must be a declared current case input. Generated command/skill
+customizations and manifests still pass their ordinary ownership checks.
+
+The maintained updater compares each original against one complete authenticated
+component baseline before executing current cases. Missing publisher helpers,
+unregistered/spurious repair owners, wrong original/changed bytes, absent or skipped
+required cases, and changed inputs fail. A C# method's existence or a supplied
+passing JSON report cannot substitute for fresh execution. The reviewer remains
+responsible for whether the selected cases test the repair's semantics.
+
+Before component replacement, the original attempt retains the complete exact
+managed/native input set, explicit absences, local patch, declaration, case contract
+and selected case sources as bounded data under
+`.program-kit/installation/attempt-inputs/sha256/`. The new attempt and migration
+receipt bind this original inventory; `tooling_witness.py verify-inputs --receipt
+<original-attempt-or-migration-receipt>` verifies it in a later process without
+replaying archived source. This verifies original bytes, not migration completion.
+The normal migration validator separately requires its canonical checks.
+
+An interrupted repair reconciliation retains the original arguments and canonical
+originals. Retry freshly executes the current cases against the actual remaining
+installed sources, including components already replaced by authentic target bytes.
+Original patch/evidence remains historical. Legacy partial mutations without the
+complete original input binding cannot be backfilled from current mixed state.
+Public publisher identity, local tested deviation, generated output, historical
+receipt and current application acceptance remain distinct claims.

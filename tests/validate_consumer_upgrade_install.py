@@ -16,10 +16,11 @@ RUN = ROOT/'artifacts/consumer-upgrade-package-runs'/uuid.uuid4().hex
 sys.path[:0] = [str(ROOT/'scripts'), str(ROOT/'extensions/program-kit-governance/scripts')]
 import consumer_upgrade as flow
 import schema_runtime
+from owned_fixture import FixtureDirectory, native_path
 
 
 def run(command, root, environment=None, expected_exit=0):
-    result = subprocess.run(command, cwd=root, env={**os.environ, 'SPECIFY_INIT_DIR': str(root), 'PYTHONUTF8': '1', **(environment or {})},
+    result = subprocess.run(command, cwd=native_path(root), env={**os.environ, 'SPECIFY_INIT_DIR': str(root), 'PYTHONUTF8': '1', **(environment or {})},
                             capture_output=True, text=True, encoding='utf-8', timeout=600)
     RUN.mkdir(parents=True, exist_ok=True)
     attempt = str(len(list(RUN.glob('*.json'))))
@@ -78,12 +79,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--archive', type=Path, default=ROOT/'artifacts'/f'program-kit-{version}.zip')
     archive = parser.parse_args().archive.resolve()
-    with tempfile.TemporaryDirectory(prefix='consumer-upgrade-package-') as name:
+    with FixtureDirectory(prefix='consumer-upgrade-package-') as name:
         base = Path(name).resolve()
         release, source, target = base/'release', base/'consumer', base/'upgrade'
         with zipfile.ZipFile(archive) as package: package.extractall(release)
         source.mkdir()
         flow.git(source, 'init')
+        # The synthetic source/worktree pair owns its byte policy. User-level
+        # checkout filters must not manufacture drift before activation recovery.
+        flow.git(source, 'config', '--local', 'core.autocrlf', 'false')
+        flow.git(source, 'config', '--local', 'core.eol', 'lf')
         run(['specify', 'init', '.', '--force', '--non-interactive', '--integration', 'codex', '--script', 'py', '--ignore-agent-tools'], source)
         from specify_cli._assets import get_speckit_version
         from specify_cli.bundles.adapters import DefaultPrimitiveInstaller
@@ -112,6 +117,8 @@ def main():
         flow.git(source, 'add', '.')
         flow.git(source, '-c', 'user.name=Package Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-m', 'Known installed consumer')
         before_inspection = flow.installation_inputs(source)
+        if before_inspection != flow.installation_inputs(Path(native_path(source))):
+            raise AssertionError('Installed input identity depends on Windows path spelling')
         if flow.inventory(source)['customizations']:
             raise AssertionError('Native preset rendering was misclassified as consumer customization')
         if flow.installation_inputs(source) != before_inspection:
@@ -128,7 +135,17 @@ def main():
                                    '--release-root', str(release), '--branch', 'qualified-upgrade'], source))
         if prepared['sourceCommit'] != flow.git(source, 'rev-parse', 'HEAD'): raise AssertionError('Preparation lost the known commit')
         if flow.installation_inputs(source) != original: raise AssertionError('Preparation mutated source setup')
+        placeholder = '.specify/extensions/program-kit-dotnet/templates/dotnet/files/artifacts/cache/.gitignore'
+        if (source / placeholder).read_bytes() != (target / placeholder).read_bytes():
+            raise AssertionError('Baseline reproduction lost shipped template source named cache')
         fixture_runtime(target)  # Explicit local preparation after baseline reproduction.
+        observed = {}
+        for relative in ('.agents/skills/speckit-analyze/SKILL.md', '.agents/skills/speckit-tasks/SKILL.md'):
+            observed[relative] = {'installedSha256': flow.sha(target / relative),
+                'ordinaryPresetBaseline': flow.preset_baseline(Path(native_path(target)), relative, 'codex'),
+                'filesystemPresetBaseline': flow.preset_baseline(target, relative, 'codex')}
+        RUN.mkdir(parents=True, exist_ok=True)
+        flow.atomic(RUN / 'preinstall-native-owner-audit.json', observed)
         installed = json.loads(run([sys.executable, str(adapter), 'install', '--target', str(target), '--release-root', str(release), '--offline'], target))
         if installed['updaterExitCode'] != 0:
             logs = '\n'.join((target/p).read_text(encoding='utf-8') for p in installed['updaterEvidence'])
@@ -142,6 +159,10 @@ def main():
         installed_cli = target/'.specify/extensions/program-kit-governance/scripts/consumer_upgrade.py'
         run([sys.executable, str(installed_cli), 'assess'], target)
         run([sys.executable, str(installed_cli), 'verify', '--input', 'artifacts/qualification-checks.json'], target)
+        verified = flow.read(target / flow.RECORD)
+        if any(not flow.check_inputs_current(Path(native_path(target)), check) or
+               not flow.check_inputs_current(target, check) for check in verified['checks']):
+            raise AssertionError('Verified checks changed meaning under the same Windows directory identity')
         run([sys.executable, str(adapter), 'integrate', '--target', str(target), '--destination', str(source)], target)
         flow.git(target, 'add', '.')
         flow.git(target, '-c', 'user.name=Package Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-m', 'Reviewed isolated upgrade')

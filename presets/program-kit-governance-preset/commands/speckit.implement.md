@@ -142,6 +142,10 @@ existing ignored artifacts with `baseline`, `outcome`, `next`, and applicable `t
 `decisions`, `failures`; invoke `.specify/extensions/program-kit-governance/scripts/task_draft.py
 checkpoint --feature-dir <feature> --content-file <ignored-json>`. Use `current --feature-dir <feature>`
 for read-only resume context. Add `resolvedFailures` only for failures resolved with actual evidence.
+The default output is a bounded current projection, including unresolved-failure counts and
+retained-history references. Use `current --history` for complete decisions, failures and
+delivery provenance; `--history-sha <reference>` resolves an earlier progress-history prefix.
+Current prose/checks replace; decisions and failure/resolution records remain retained.
 It records the original baseline, current outcome, delivered substeps, next
 action, unresolved failures with existing artifact references, and retained decisions. Replace the
 current checkpoint on save/resume; do not append an execution journal or create a governance

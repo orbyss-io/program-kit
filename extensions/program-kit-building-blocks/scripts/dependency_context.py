@@ -8,7 +8,7 @@ def resolve(blocks, repository, catalog_path=None):
 
     def bind(path):
         path = Path(path).resolve()
-        if not path.is_file():
+        if not blocks.filesystem_root(path).is_file():
             blocks.fail('PKB111', 'dependency authority source is missing: ' + str(path) + '; restore this exact source before continuing')
         if str(path) not in sources: sources[str(path)] = blocks.raw_sha256(path)
         return path
@@ -83,7 +83,7 @@ def resolve(blocks, repository, catalog_path=None):
                 for key, child in value.items():
                     if (key == 'path' or key.endswith('Path')) and isinstance(child, str):
                         path = directory / child
-                        if path.is_file(): bind(path)
+                        if blocks.filesystem_root(path).is_file(): bind(path)
                     entry_sources(child)
             elif isinstance(value, list):
                 for child in value: entry_sources(child)

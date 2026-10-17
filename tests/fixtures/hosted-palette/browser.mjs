@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 import { chromium, firefox, webkit } from '__PLAYWRIGHT__';
 import AxeBuilder from '__AXE__';
+import { modules } from '__PRESENTATION_RECORDING__';
 
 const [output, engines] = process.argv.slice(2);
 const requested = engines.split(',');
@@ -13,7 +14,11 @@ const server = createServer(async (request, response) => {
   const mode = url.searchParams.get('state') ?? 'mounted';
   const before = url.searchParams.has('before');
   try {
-    if (url.pathname.endsWith('.html')) {
+    if (Object.hasOwn(modules, url.pathname)) {
+      response.setHeader('Content-Type', 'text/javascript'); response.end(modules[url.pathname]);
+    } else if (url.pathname === '/auth/assets/v1/page.css') {
+      response.setHeader('Content-Type', 'text/css'); response.end('');
+    } else if (url.pathname.endsWith('.html')) {
       response.setHeader('Content-Type', 'text/html');
       response.end(await readFile(resolve(output, url.pathname.slice(1))));
     } else if (url.pathname.includes('/bootstrap/')) {

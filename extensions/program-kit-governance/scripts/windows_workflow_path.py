@@ -11,8 +11,60 @@ from pathlib import Path
 import stat
 import subprocess
 import sys
+import time
+import uuid
 
 CMD_PATH_LIMIT = 8191
+
+
+def native_directory(path):
+    """Shells require drive/UNC syntax; extended prefixes are for filesystem I/O."""
+    value = str(path)
+    if os.name == 'nt' and value.startswith('\\\\?\\'):
+        value = '\\\\' + value[8:] if value.startswith('\\\\?\\UNC\\') else value[4:]
+    return Path(value)
+
+
+def file_snapshot(path):
+    """Absence is distinct from an unreadable existing destination."""
+    try:
+        return path.read_bytes()
+    except FileNotFoundError:
+        return None
+
+
+def replace_unchanged(temporary, target, previous):
+    """Retry only an observed short Windows block without changing permissions."""
+    for attempt in range(5):
+        try:
+            os.replace(temporary, target)
+            return
+        except PermissionError as error:
+            if os.name != 'nt' or getattr(error, 'winerror', None) not in (5, 32, 33) or attempt == 4:
+                raise
+            time.sleep(.02 * (attempt + 1))
+            try:
+                unchanged = file_snapshot(target) == previous
+            except OSError:
+                unchanged = False
+            if not unchanged:
+                error.add_note('Destination changed or became unreadable while replacement was blocked; no retry.')
+                raise
+
+
+def write_bytes(path, content):
+    """Replace a complete owned output using an exclusive same-directory sibling."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    previous = file_snapshot(path)
+    temporary = path.with_name('.' + path.name + '.' + uuid.uuid4().hex + '.tmp')
+    try:
+        with temporary.open('xb') as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        replace_unchanged(temporary, path, previous)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 class WindowsPathError(ValueError):

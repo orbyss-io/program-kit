@@ -4,120 +4,37 @@
   "additionalProperties": false,
   "properties": {
     "schemaVersion": {
-      "const": 1
+      "const": 2
     },
     "repository": {
       "type": "string",
-      "minLength": 1
+      "pattern": "^[^/]+/[^/]+$"
     },
-    "workflows": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "qualification": {
-          "type": "string",
-          "minLength": 1
-        },
-        "security": {
-          "type": "string",
-          "minLength": 1
-        },
-        "assessment": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "required": [
-        "qualification",
-        "security",
-        "assessment"
-      ]
+    "workflow": {
+      "const": ".github/workflows/qualify-candidate.yml"
     },
     "requiredJobs": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
-        "type": "string",
-        "minLength": 1
-      }
+        "type": "string"
+      },
+      "minItems": 1
     },
-    "browsers": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
+    "publicationEnvironment": {
+      "const": "publication"
     },
     "securityMaxAgeHours": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "artifactRetentionDays": {
       "type": "integer",
-      "minimum": 1,
-      "maximum": 90
-    },
-    "windowsRoots": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
-    },
-    "recommendations": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "family": {
-            "type": "string",
-            "minLength": 1
-          },
-          "inputs": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "trials": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1
-          },
-          "gaps": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        },
-        "required": [
-          "family",
-          "inputs",
-          "trials",
-          "reason",
-          "gaps"
-        ]
-      }
+      "minimum": 1
     }
   },
   "required": [
     "schemaVersion",
     "repository",
-    "workflows",
+    "workflow",
     "requiredJobs",
-    "browsers",
-    "securityMaxAgeHours",
-    "artifactRetentionDays",
-    "windowsRoots",
-    "recommendations"
+    "publicationEnvironment",
+    "securityMaxAgeHours"
   ]
 }
