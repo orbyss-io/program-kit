@@ -49,6 +49,35 @@ class DeliveryTests(unittest.TestCase):
         self.assertNotIn('--offline',upgrade)
         self.assertEqual(assets,[record for _,_,record in downloads])
         self.assertTrue(catalogs.call_args.args[1].endswith('/v0.9.0/catalogs'))
+        names = [name for name, _, _ in commands]
+        preparation = ['prepare-prior-utf8', 'prepare-prior-schema', 'record-prior-schema',
+                       'check-prior-schema', 'prior-installation-check']
+        self.assertEqual(preparation, names[names.index('install-prior-bundle') + 1:names.index('install-prior-bundle') + 6])
+        self.assertLess(names.index('prior-installation-check'), names.index('public-upgrade'))
+        prior = self.root / 'public prior consumer'
+        for name in preparation:
+            _, command, cwd = next(row for row in commands if row[0] == name)
+            self.assertEqual(prior, cwd)
+            self.assertEqual(str(prior / '.specify/extensions/program-kit-governance/scripts'), str(Path(command[1]).parent))
+        self.assertEqual(['--target', '.'], next(command for name, command, _ in commands if name == preparation[0])[2:])
+        self.assertEqual(['setup', 'record-copy', 'check-copy'],
+                         [next(command for name, command, _ in commands if name == operation)[-1] for operation in preparation[1:4]])
+
+    def test_failed_prior_preparation_never_reaches_updater(self):
+        commands = []
+        def execute(name, command, cwd):
+            commands.append(name)
+            if name == 'check-prior-schema':
+                raise ValueError('SCHEMA_TOOLS_LOCALLY_EDITED')
+        session = SimpleNamespace(run=execute, download=lambda *args: None)
+        promotion = {'source': {'version': '1.0.0'}, 'assets': [
+            {'name': 'Initialize-ProgramKit-1.0.0.sh'}, {'name': 'program-kit-1.0.0.zip'}]}
+        with patch.object(delivery, 'installed_versions', side_effect=[{'all': '1.0.0'}, {'all': '0.9.0'}]), \
+                patch.object(delivery, 'replace_catalogs'):
+            with self.assertRaisesRegex(ValueError, 'LOCALLY_EDITED'):
+                delivery.journey(session, self.root, promotion, 'v0.9.0')
+        self.assertNotIn('public-upgrade', commands)
+        self.assertNotIn('prior-installation-check', commands)
 
     def test_prior_baseline_uses_latest_published_stable_below_candidate(self):
         releases = [{'tag_name':tag,'draft':draft,'prerelease':pre} for tag,draft,pre in

@@ -6,6 +6,8 @@ neither runs an initializer nor starts an agent or downloads packages.
 Adding --candidate-bundle runs one native first-install copilot consumer upgrade
 from those same public originals, using local transports and a prepared schema
 runtime. It preserves agent-context variables and never starts an initializer.
+--online provisions the prior runtime through its actual installed setup command
+and invokes the updater online, matching release CI instead of copying a cache.
 """
 from pathlib import Path
 import copy
@@ -19,6 +21,7 @@ import time
 import unittest
 import uuid
 from unittest.mock import patch
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -135,11 +138,12 @@ def public_sources(archive):
               + ', '.join(f'{identity}={len(files)}' for identity, files in admitted.items()))
 
 
-def public_upgrade(archive, candidate):
-    """One real prior-public copilot consumer, real updater, local transports only."""
+def public_upgrade(archive, candidate, online=False):
+    """One real prior-public copilot consumer, documented preparation and updater."""
     import specify_cli
     from local_bundle_fixture import install_local_bundle
     from validate_public_upgrade import installed_versions
+    from validate_public_delivery import prepare_prior_consumer
     diagnostics = ROOT / 'artifacts/release-repair/public-upgrade' / uuid.uuid4().hex
     diagnostics.mkdir(parents=True)
     started = time.monotonic()
@@ -151,14 +155,14 @@ def public_upgrade(archive, candidate):
         environment = {**os.environ, 'TEMP': str(temporary), 'TMP': str(temporary), 'PYTHONUTF8': '1'}
         bridge = [sys.executable, ROOT / 'scripts/invoke_specify.py', '--site-packages',
                   Path(specify_cli.__file__).parent.parent, '--']
-        def run(label, command):
+        def run(label, command, expected=0):
             remaining = 120 - (time.monotonic() - started)
             assert remaining > 0, 'Prior-public upgrade exceeded its 120-second family budget'
             result = subprocess.run([str(item) for item in command], cwd=project, env=environment,
                                     capture_output=True, text=True, encoding='utf-8', timeout=remaining)
             (diagnostics / (label + '.stdout.log')).write_text(result.stdout, encoding='utf-8')
             (diagnostics / (label + '.stderr.log')).write_text(result.stderr, encoding='utf-8')
-            if result.returncode:
+            if result.returncode != expected:
                 raise AssertionError(f'{label} failed: {result.stdout}\n{result.stderr}')
             return result
         run('initialize', [*bridge, 'init', '.', '--force', '--non-interactive', '--integration', 'copilot',
@@ -173,15 +177,38 @@ def public_upgrade(archive, candidate):
         authored = project / 'authored-consumer.txt'
         authored.write_bytes(b'Exact consumer bytes must survive the prior-public upgrade.\n')
         before = authored.read_bytes()
-        runtime_source = ROOT / 'extensions/program-kit-governance/scripts/schema_runtime.py'
+        scripts = project / '.specify/extensions/program-kit-governance/scripts'
+        runtime_source = scripts / 'schema_runtime.py'
+        baseline = project / '.specify/program-kit-schema-tools.json'
+        self_check = [sys.executable, runtime_source, 'check-copy']
+        files = {name: (scripts / name).read_bytes() for name in
+                 ('json_schema.py', 'schema_runtime.py', 'json-schema-requirements.txt', 'contract_shapes.py')}
+        missing = run('missing-prior-schema-baseline', self_check, expected=2)
+        assert 'SCHEMA_TOOL_BASELINE_MISSING' in missing.stderr
+        assert not baseline.exists() and all((scripts / name).read_bytes() == raw for name, raw in files.items())
         spec = importlib.util.spec_from_file_location('public_upgrade_prepared_runtime', runtime_source)
         runtime = importlib.util.module_from_spec(spec); spec.loader.exec_module(runtime)
-        target_runtime = runtime.runtime_path(project)
-        target_runtime.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(runtime.runtime_path(ROOT), target_runtime)
-        runtime.record_copy(project)
+        if not online:
+            # Explicit offline transport variation; all documented installed
+            # preparation commands still execute, including setup and record-copy.
+            target_runtime = runtime.runtime_path(project)
+            target_runtime.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(runtime.runtime_path(ROOT), target_runtime)
+        session = SimpleNamespace(run=lambda label, command, cwd: run(label, command))
+        prepare_prior_consumer(session, project)
+        recorded = baseline.read_bytes()
+        tool = scripts / 'json_schema.py'
+        customized = files['json_schema.py'] + b'\n# Consumer schema-tool customization must remain protected.\n'
+        tool.write_bytes(customized)
+        try:
+            edited = run('edited-prior-schema-refused', self_check, expected=2)
+            assert 'SCHEMA_TOOLS_LOCALLY_EDITED' in edited.stderr
+            assert tool.read_bytes() == customized and baseline.read_bytes() == recorded
+        finally:
+            tool.write_bytes(files['json_schema.py'])
+        run('restored-prior-schema-check', self_check)
         run('upgrade', [sys.executable, release / 'scripts/upgrade_program_kit.py', '--release-root', release,
-                        '--target', project, '--integration', 'copilot', '--offline',
+                        '--target', project, '--integration', 'copilot', *([] if online else ['--offline']),
                         '--specify-command-json', json.dumps([str(item) for item in bridge])])
         version = (release / 'VERSION').read_text().strip()
         assert set(installed_versions(project).values()) == {version}
@@ -192,14 +219,17 @@ def public_upgrade(archive, candidate):
     assert elapsed <= 120, 'Prior-public upgrade exceeded its 120-second family budget'
     (diagnostics / 'result.json').write_text(json.dumps({'status': 'passed', 'seconds': elapsed,
         'previous': previous_version, 'current': version, 'integration': 'copilot',
+        'mode': 'online documented preparation' if online else 'prepared offline runtime transport',
         'priorPublicBundleSha256': ownership.digest(archive.read_bytes()),
         'candidateBundleSha256': ownership.digest(candidate.read_bytes())}, indent=2) + '\n', encoding='utf-8')
     print(f'Actual public {previous_version} -> corrected {version} copilot upgrade passed in {elapsed:.3f}s; {diagnostics}')
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 5 and sys.argv[1] == '--public-bundle' and sys.argv[3] == '--candidate-bundle':
-        public_upgrade(Path(sys.argv[2]).resolve(strict=True), Path(sys.argv[4]).resolve(strict=True))
+    if len(sys.argv) in (5, 6) and sys.argv[1] == '--public-bundle' and sys.argv[3] == '--candidate-bundle':
+        if len(sys.argv) == 6 and sys.argv[5] != '--online':
+            raise SystemExit('Only --online may follow --candidate-bundle')
+        public_upgrade(Path(sys.argv[2]).resolve(strict=True), Path(sys.argv[4]).resolve(strict=True), online=len(sys.argv) == 6)
     elif len(sys.argv) == 3 and sys.argv[1] == '--public-bundle':
         public_sources(Path(sys.argv[2]).resolve(strict=True))
     else:

@@ -179,6 +179,17 @@ def command(check, engines):
     return [part.format(**values) for part in check['command']]
 
 
+def prerequisite_git_ref(value):
+    if value != 'previous-release':
+        return value
+    version = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
+    history = json.loads((ROOT / 'releases/history.json').read_text(encoding='utf-8'))
+    previous = next(row['previous'] for row in history['entries'] if row['version'] == version)
+    if not previous:
+        raise ValueError('No supported previous release is declared for this fixture')
+    return 'refs/tags/v' + previous
+
+
 def missing_prerequisites(check):
     missing = []
     if platform.system() not in check.get('platforms', ['Windows', 'Linux']):
@@ -187,7 +198,7 @@ def missing_prerequisites(check):
         kind, value = requirement.split(':', 1)
         if kind == 'git-ref':
             try:
-                git('rev-parse', '--verify', value + '^{commit}')
+                git('rev-parse', '--verify', prerequisite_git_ref(value) + '^{commit}')
             except ValueError:
                 missing.append(requirement + '; make the supported historical fixture tag available locally')
             continue
@@ -232,7 +243,7 @@ def prerequisite_versions(check):
         elif kind == 'file':
             observed[requirement] = hashlib.sha256((ROOT / value).read_bytes()).hexdigest()
         elif kind == 'git-ref':
-            observed[requirement] = git('rev-parse', '--verify', value + '^{commit}')
+            observed[requirement] = git('rev-parse', '--verify', prerequisite_git_ref(value) + '^{commit}')
         # Environment credential references are recorded by name, never value.
     return observed
 

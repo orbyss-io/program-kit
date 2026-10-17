@@ -104,10 +104,11 @@ managed-file and task/closure tests. An old test count is not an acceptance targ
 | Bootstrap/task/recovery fixtures | Small real operational journeys with fictional authoring; broader lifecycle, host and provider combinations remain selectable for concrete risks |
 | Native/runtime integrations | Retained where they detect a distinct failure: PostgreSQL, API/client, authentication/session, host activation, standalone handoff, public compatibility and dependency qualification |
 
-The representative upgrade installs actual immutable `v0.13.1` sources through native
-bundle installation, then runs the updater extracted from the candidate archive. It
-checks every component/bundle version, preserved authored feature/note bytes and native
-installation coherence/migration completion. Local Git must contain that supported
+The representative upgrade installs immutable sources for the immediate predecessor
+declared in release history through native bundle installation, then runs the updater
+extracted from the candidate archive for Copilot. It checks copied native outputs,
+customization/alias refusal, every component/bundle version, preserved authored
+feature/note bytes and native installation coherence/migration completion. Local Git must contain that supported
 historical fixture tag; its resolved commit is recorded. Additional focused cases cover
 profile transitions, managed conflicts and rollback/retry. Other historical layouts and
 owner-fault combinations remain separate investigations.

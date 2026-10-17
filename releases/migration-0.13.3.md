@@ -8,6 +8,8 @@ This release carries the approved frozen 47-finding maintenance batch. The maint
 
 Upgrade through the supported installer/updater. Keep existing accepted profiles and locks unless explicitly adopting the new qualified public Foundation runtime 0.3.6, Build 0.3.2 and exporter 0.2.7 closure. New defaults and versioned publisher knowledge are qualified together; historical profiles remain immutable.
 
+Release upgrades copy extensions through Spec Kit's native installer instead of using development-mode command links. This supports Linux Copilot registration without relaxing the updater's checks against aliased paths or customized generated files.
+
 Retain current application code, custom frontend/editor logic, accepted decisions, task IDs, effort, failures, data and uncertain provider outcomes. This maintenance upgrade supersedes the earlier blanket unfinished-feature delete/restart direction. It does not itself authorize consumer deletion, a bootstrap restart, paid execution or a new human acceptance decision. Separately requested consumer restart work remains separate.
 
 Customized managed seams receive precise reconciliation conflicts. Presentation adoption binds the actual native package contracts and reviewed entrypoint bytes; cancellation preserves local work, and expired sessions remove private presentation without replaying an operation. Check the actual supported composition/profile disposition before execution.

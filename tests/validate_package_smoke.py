@@ -72,16 +72,18 @@ def main():
         expanded = fixture / 'packages'
         for name in (*components, 'program-kit'):
             extract(assets / f'{name}-{version}.zip', expanded / name)
-        execute([*bridge, 'init', '.', '--force','--non-interactive','--integration','codex',
+        require((expanded / 'program-kit/scripts/install_local_extension.py').is_file(),
+                'Install bundle lacks its native release-copy adapter')
+        execute([*bridge, 'init', '.', '--force','--non-interactive','--integration','copilot',
                  '--script','py','--ignore-agent-tools'], project)
         # Only transport changes: native core resolves pins, installs each
         # primitive, and owns first-install contribution/ownership records.
-        from local_bundle_fixture import install_local_bundle
+        from local_bundle_fixture import install_local_bundle, verify_release_copies
         component_sources = {('extensions',name):expanded/name for name in components[:3]}
         component_sources[('presets',components[3])] = expanded/components[3]
         component_sources[('workflows',components[4])] = expanded/components[4]
         install_local_bundle(project, expanded/'program-kit', bridge,
-                             lambda label,argv:execute(argv,project), component_sources=component_sources)
+                             lambda label,argv:execute(argv,project), component_sources=component_sources, integration='copilot')
         records = json.loads((project/'.specify/bundle-records.json').read_text(encoding='utf-8'))
         record = next(item for item in records['bundles'] if item['bundle_id']=='program-kit')
         expected_components = set(component_sources)
@@ -101,8 +103,8 @@ def main():
         for relative in ('.specify/presets/program-kit-governance-preset/preset.yml',
                          '.specify/workflows/program-kit-bootstrap/workflow.yml',
                          '.specify/bundle-records.json',
-                         '.agents/skills/speckit-program-kit-governance-sync/SKILL.md',
-                         '.agents/skills/speckit-program-kit-building-blocks-sync/SKILL.md'):
+                         '.github/skills/speckit-program-kit-governance-sync/SKILL.md',
+                         '.github/skills/speckit-program-kit-building-blocks-sync/SKILL.md'):
             require((project/relative).is_file(),'Missing installed registration/entrypoint: '+relative)
         resolver = project/'.specify/scripts/python/resolve_template.py'
         resolved = execute([sys.executable,resolver,'spec-template','--json'],project)
@@ -122,6 +124,7 @@ def main():
             instance.write_text(json.dumps(value))
             result = execute([sys.executable,validator,'validate','--schema',schema,'--input',instance],project,expected)
             require(json.loads(result.stdout)['valid'] is (expected==0),'Installed validator gave inconsistent result')
+        verify_release_copies(project, expanded / 'program-kit')
     elapsed = time.monotonic()-started
     print(f'Package installation/entrypoint smoke passed in {elapsed:.3f}s; no agent, build or application acceptance claimed.')
     return 0
