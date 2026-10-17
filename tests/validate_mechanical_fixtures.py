@@ -4,7 +4,8 @@ Each family has a deliberately narrow claim. Cheap regression cases remain in
 their focused modules; this entrypoint selects only the representative journeys.
 Phase, bootstrap and upgrade journeys need the prepared Specify interpreter and
 exact project-local schema dependencies. Upgrade also consumes the built archive
-and the actual local v0.13.1 Git tag; knowledge and scaffold use Python only.
+and the actual local Git tag for the immediate supported predecessor declared in
+release history; knowledge and scaffold use Python only.
 """
 from __future__ import annotations
 
