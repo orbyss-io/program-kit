@@ -205,6 +205,19 @@ def browser_command(arguments, root, evidence, expected=0):
             environment=dict(os.environ, PLAYWRIGHT_BROWSERS_PATH=native_path(cache)))
 
 
+def wait_for_typed_host_restart(root, host, evidence):
+    """Wait for actual native HTTP readiness before checking retained product data."""
+    sys.path.insert(0, str(root / 'eng'))
+    import foundation_fixture
+    import foundation_qualification
+    elapsed = foundation_fixture.poll(
+        lambda: foundation_qualification.ready(host['origin'], (host.get('pathBase') or '') + '/bff/user'), timeout=60)
+    evidence.mkdir(parents=True, exist_ok=False)
+    (evidence / 'result.json').write_text(json.dumps({'status': 'ready', 'elapsedSeconds': elapsed,
+        'readiness': 'actual selected native BFF HTTP endpoint'}, indent=2) + '\n', encoding='utf-8')
+    return elapsed
+
+
 def install_native_tooling(root, directory):
     """Actual current packaged adapters, never a permissive OpenAPI fallback."""
     imported = os.environ.get('PROGRAM_KIT_IMPORTED_PACKAGES')
@@ -664,6 +677,8 @@ window.programKitTypedExample = { storeLabel };
                     raise ValueError('actual generated-client operation duplicated or lost a durable write')
                 active_host = containers(preparation['project'])[changed]
                 command(['docker', 'restart', active_host], root, directory / 'typed-operation-restart')
+                result['typedHostRestartReadinessSeconds'] = wait_for_typed_host_restart(
+                    root, first, directory / 'typed-operation-restart-readiness')
                 restart_plan = {**plan, 'hosts': [{**first, 'productPath': '/api/sample-label',
                     'productResponse': {'policy': 'configured-stored'}}]}
                 restart_path = directory / 'typed-operation-restart-plan.json'; restart_path.write_text(json.dumps(restart_plan), encoding='utf-8')

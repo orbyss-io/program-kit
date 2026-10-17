@@ -4742,6 +4742,17 @@
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/typed-local-browser-cache-repair/result.json",
           "sha256": "a1c643dbd6c24481617a63d92e1aee92874c00fff2fed0065a8aa283afb7dcf4",
           "scope": "Exact direct browser stage passed in Chromium/WebKit using the actual prepared owned cache, real login/product/page/privacy checks. All eight direct calls now inherit that runtime; no acquisition fallback."
+        },
+        {
+          "status": "failed",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/typed-local-complete-repaired-3-result.json",
+          "scope": "Full local flow passed native Build, emitted web tests, actual OpenAPI/client generation and typed writes; immediate post-Docker-restart browser read failed before an HTTP response. Original failed result remains unchanged."
+        },
+        {
+          "status": "passed",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/typed-local-restart-readiness-repair/result.json",
+          "sha256": "e24669273b724ddfc3fc9c89a14db753ce8edcbce70ee9d7b17963c77a7acaf5",
+          "scope": "Exact real restart/retained-read stage passed after bounded actual BFF readiness (12.164seconds). Chromium/WebKit read stored result; independent database value/revision remained stored/2 before and after, with no repeated write."
         }
       ]
     }

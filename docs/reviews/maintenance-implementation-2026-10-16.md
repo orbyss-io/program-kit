@@ -902,3 +902,13 @@ inspector/producer. It creates no consumer re-signing path. Cleanup uses retaine
 Compose authority only when the newer failed record lacks Compose fields; actual
 output hashes and owned project checks remain, and failed evidence is unchanged.
 The complete local replay and current complete CI gates remain required.
+
+The next complete local replay passed real native Build, emitted web tests,
+OpenAPI/generated-client compilation and actual typed writes. Independent SQL
+observation showed stored/2 for the two browser operations. Its next immediate
+post-restart read failed before any HTTP response. The exact repaired stage now
+waits for the maintained bounded native BFF readiness predicate, then passes both
+browsers and observes unchanged stored/2 before and after. Docker restart took
+12.164seconds to reach actual HTTP readiness; no operation was resubmitted.
+The original failed full result remains failed and complete current qualification
+is still pending.
