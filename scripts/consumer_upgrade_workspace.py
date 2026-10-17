@@ -21,7 +21,7 @@ sys.path.insert(0, str(SCRIPTS))
 import consumer_upgrade as workflow
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] /
                        'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
-from owned_scratch import filesystem_path
+from owned_scratch import filesystem_path, native_path
 
 
 def io_root(path):
@@ -50,7 +50,16 @@ def installation_files(root):
         candidates = [path] if path.is_file() else path.rglob('*') if path.is_dir() else []
         for candidate in candidates:
             name = candidate.relative_to(root).as_posix()
-            if candidate.is_file() and not candidate.name.endswith('.lock') and not SKIP.intersection(Path(name).parts):
+            parts = Path(name).parts
+            # Installed toolkit templates are source, even when their consumer
+            # destination is a cache directory. Source admission below authenticates
+            # the complete component before any baseline is reproduced.
+            import native_phase_ownership
+            native_source = (len(parts) > 3 and parts[0] == '.specify'
+                and parts[1] in {'extensions', 'presets'} and parts[2].startswith('program-kit-')
+                and native_phase_ownership.machine_source_path('/'.join(parts[3:])))
+            if candidate.is_file() and (native_source or (
+                    not candidate.name.endswith('.lock') and not SKIP.intersection(parts))):
                 if name.startswith('.specify/workflows/runs/'):
                     continue
                 workflow.inside(root, name)
@@ -199,7 +208,7 @@ def validate_installation(root, expected=None):
 
 
 def prepare(source, target, release, branch):
-    source, target, release = source.resolve(), target.resolve(), release.resolve()
+    source, target, release = (Path(native_path(p.resolve())) for p in (source, target, release))
     workflow.require(Path(workflow.git(source, 'rev-parse', '--show-toplevel')).resolve() == source,
                      'Preparation requires the actual Git/project root; assess nested consumer layouts explicitly before choosing a reproduction route')
     workflow.require(not target.exists() and not target.is_relative_to(source) and not source.is_relative_to(target),
@@ -389,7 +398,8 @@ def activation(target, destination, release, commands, extra=(), runner=None):
     workflow.require(review.get('destination') == str(destination) and review.get('combinedCandidate'), 'Reassess the combined candidate before integration')
     workflow.require(workflow.captured(target, review.get('candidateInputs')) == workflow.inputs(target), 'Combined candidate changed; reassess before integration')
     workflow.require(not review.get('installationChanges'), 'Destination installation changed concurrently; preserve both and prepare a new exact baseline')
-    workflow.require(workflow.readiness(target)['upgradePrepared'], 'Candidate readiness unresolved')
+    candidate_readiness = workflow.readiness(target)
+    workflow.require(candidate_readiness['upgradePrepared'], 'Candidate readiness unresolved: ' + json.dumps(candidate_readiness))
     workflow.require(updater.release_fingerprint(release) == value.get('releaseInputsSha256'), 'Verified release inputs changed')
     # Git merge must carry candidate source, and the original destination HEAD must remain its ancestor.
     workflow.git(destination, 'merge-base', '--is-ancestor', review['destinationCommit'], 'HEAD')

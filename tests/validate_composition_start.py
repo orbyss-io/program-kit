@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / 'extensions/program-kit-dotnet/scripts'
 sys.path.insert(0, str(SCRIPTS))
 from composition_fixture import two_apps, accept_fixture
+from owned_fixture import native_path
 import composition_migrate
 
 
@@ -116,7 +117,8 @@ def declare_typed_settings(root, evidence):
 def command(arguments, root, evidence, expected=0, environment=None):
     evidence.mkdir(parents=True, exist_ok=True)
     with (evidence / 'stdout.log').open('wb') as stdout, (evidence / 'stderr.log').open('wb') as stderr:
-        completed = subprocess.run(arguments, cwd=root, stdout=stdout, stderr=stderr, timeout=1800, env=environment)
+        completed = subprocess.run([native_path(argument) for argument in arguments], cwd=native_path(root),
+                                   stdout=stdout, stderr=stderr, timeout=1800, env=environment)
     if completed.returncode != expected:
         raise ValueError('command failed (' + str(completed.returncode) + '); inspect ' + str(evidence))
 

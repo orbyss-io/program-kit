@@ -4614,6 +4614,35 @@
       "cancellationReason": "Known invalid applicability contract found while profile qualification was active; stopped before paying for the broad full suite. No successful qualification claimed.",
       "currentContractSha256": "29e7da9d269fa15b35ec03a94b2bd744d70280e8230c6bb82944167ba7d39eaf",
       "nextGate": "Fresh complete dependency update, followed by exact-main complete CI qualification and approved publication."
+    },
+    {
+      "stage": "Failed CI39025168567 retained; failure-first focused repair and host-specific reproduction",
+      "retentionRoot": "C:\\Users\\tech_\\.codex\\worktrees\\maintenance-release-0-13-3\\program-kit",
+      "originalFailedRun": 39025168567,
+      "originalSourceCommit": "bb72715457a4c14ed844c3c3444102d1cec149e1",
+      "originalArtifact": "artifacts/u133-4/retention.json",
+      "currentContractSha256": "6c9a054350773f44646fd5c52adb0efdfaf517c94de7c4413e9b8a9631bb9f57",
+      "frozenFindings": 47,
+      "evidence": {
+        "path": "artifacts/maintenance-implementation-2026-10-16/continuation-17/failure-first-local-repair-evidence.json",
+        "sha256": "ff51871d27e8219ae4a917cb7caa0e652990d4da2fd8c2fb88ad70651638b0d3"
+      },
+      "repairs": [
+        "Full SpecKit1.2.1 recording callback signature including capture_max_bytes and timeout; actual installed bootstrap fixture now initializes native core integrity metadata.",
+        "Preserve authenticated installed template sources named cache in baseline reproduction; bind deep Windows release and installation files consistently.",
+        "Actual native callback destination from emitted per-shell web contract; asset/renderer fixtures explicitly record transport while native browser integration remains mandatory.",
+        "Reproduced PostgreSQL temporary Unix-server shutdown race; require final TCP readiness and use the same TCP boundary for lifecycle SQL.",
+        "Deep Windows building-block transaction stage/backup/recovery and exact owned scratch path spelling, with actual commit/rollback and readonly Git-object safety cases.",
+        "Retain concrete native case, PostgreSQL, palette, typed, reusable-foundation and updater failure sidecars.",
+        "User-requested persistent AGENTS policy committed4c72640: inspect all failures, pass focused local checks where supported, use focused CI for actual host limitations before retrying full CI."
+      ],
+      "validationSummary": "ExactSDK1.2.1 localLinux workflow checks passed; native new-profile Vite, PostgreSQL0.3.6 and Chromium/WebKit renderer checks passed;29 consumer upgrade regressions,19 release-candidate adversarial tests and current54 inventory/path boundary cases passed. Original failed/inconclusive runs remain distinct.",
+      "remaining": [
+        "Focused CI for actual consumer upgrade with current SDK, reusable native foundation browser integration and typed operation integration (includingFirefox).",
+        "Then complete dependency maintenance, merge and exact-main full Linux/Windows/security qualification.",
+        "Concrete reviewed Root readiness assessment and exact commit/tag approval, promotion and public installation/upgrade."
+      ],
+      "qualification": "No complete matching qualification, profile adoption success or public Root release claimed; all47 findings remain subject to final required evidence."
     }
   ]
 }

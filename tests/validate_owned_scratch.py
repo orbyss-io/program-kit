@@ -1,6 +1,7 @@
 """Owned scratch lifecycle, deep Windows paths, and separate failure observations."""
 import contextlib
 import io
+import json
 import os
 from pathlib import Path
 import shutil
@@ -63,6 +64,16 @@ class OwnedScratchTests(unittest.TestCase):
         blocks.atomic_write_bytes(ordinary, b'current profile', 'profile-capture')
         self.assertEqual(b'current profile', target.read_bytes())
         self.assertFalse(list(target.parent.glob('.pkb-*.tmp')))
+        lock = Path(scratch.native_path(deep / '.program-kit/dependency-lock.json'))
+        original_lock = {'schemaVersion': 1, 'fixture': 'original'}
+        blocks.commit_transaction(Path(scratch.native_path(deep)), [(ordinary, 'current profile')], lock, original_lock)
+        with patch.dict(os.environ, {'PROGRAMKIT_TEST_BUILDING_BLOCK_FAIL_AFTER_ACTION': '1'}):
+            with self.assertRaisesRegex(OSError, 'injected materialization interruption'):
+                blocks.commit_transaction(Path(scratch.native_path(deep)), [(ordinary, 'must roll back')], lock,
+                                          {'schemaVersion': 1, 'fixture': 'interrupted'})
+        self.assertEqual(b'current profile', target.read_bytes())
+        self.assertEqual(original_lock, json.loads(Path(scratch.filesystem_path(lock)).read_bytes()))
+
         failure = PermissionError('native destination replacement blocked'); failure.winerror = 5
         with patch.object(blocks.os, 'replace', side_effect=failure) as replace, \
              patch.object(blocks.Path, 'read_bytes', side_effect=[b'current profile', PermissionError('unreadable concurrent destination')]):
@@ -178,9 +189,10 @@ class OwnedScratchTests(unittest.TestCase):
         sentinel.write_text('preserve')
         # Exercise both actual rmtree callback APIs on the current interpreter;
         # this does not claim that a Python 3.11 interpreter was executed.
-        for version in (sys.version_info, (3, 11, 0)):
+        for version, root in ((version, root) for version in (sys.version_info, (3, 11, 0))
+                              for root in (self.root, Path(scratch.filesystem_path(self.root)))):
             with self.subTest(callbackApi=version[:2]), patch.object(scratch.sys, 'version_info', version):
-                manager = scratch.owned_scratch(self.root, 'validation-fixture')
+                manager = scratch.owned_scratch(root, 'validation-fixture')
                 with manager as directory:
                     for command in (['init', '-q'], ['hash-object', '-w', '--stdin']):
                         result = subprocess.run(['git', '-C', str(directory), *command], input=b'owned fixture object\n',

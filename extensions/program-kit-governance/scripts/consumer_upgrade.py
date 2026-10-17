@@ -71,11 +71,24 @@ def inside(root, relative):
     return path
 
 
+def io_path(path):
+    # Governance can install independently of the .NET component. This is a
+    # filesystem spelling only; project/ownership admission stays with inside().
+    if os.name == 'nt':
+        spelling = os.path.abspath(path)
+        if not spelling.startswith('\\\\?\\'):
+            spelling = '\\\\?\\UNC\\' + spelling[2:] if spelling.startswith('\\\\') else '\\\\?\\' + spelling
+        return Path(spelling)
+    return path
+
+
 def read(path, default=None):
+    path = io_path(path)
     return json.loads(path.read_text(encoding='utf-8')) if path.is_file() else default
 
 
 def sha(path):
+    path = io_path(path)
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
 
 
@@ -138,6 +151,7 @@ def captured(root, value):
 
 
 def installation_inputs(root):
+    root = io_path(root)
     files = {}
     directory = inside(root, '.specify')
     for path in directory.rglob('*') if directory.is_dir() else []:
@@ -556,8 +570,12 @@ def checks_current(root, checks):
 
 
 def check_inputs_current(root, check):
-    if check.get('executionRoot') and check['executionRoot'] != str(root):
-        return False
+    if check.get('executionRoot'):
+        try:
+            if not Path(check['executionRoot']).samefile(root):
+                return False
+        except OSError:
+            return False
     observed = inputs(root)
     expected = scoped_files(observed, check['scope']) if check.get('scope') else observed
     return expected == captured(root, check['inputs'])

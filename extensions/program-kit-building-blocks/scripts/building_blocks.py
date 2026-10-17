@@ -1319,14 +1319,18 @@ def reconcile_output(repository: Path, previous: dict | None, desired: dict | No
     fail("PKB401", f"unsupported managed output kind {kind!r}")
 
 
-def atomic_write_bytes(path: Path, content: bytes, suffix: str) -> None:
-    # This component installs independently; keep its native file adapter local.
-    # Extended spelling is only for filesystem I/O, never a NuGet/CLI URI.
+def filesystem_path(path: Path) -> Path:
     if os.name == 'nt':
         spelling = os.path.abspath(path)
         if not spelling.startswith('\\\\?\\'):
             spelling = '\\\\?\\UNC\\' + spelling[2:] if spelling.startswith('\\\\') else '\\\\?\\' + spelling
         path = Path(spelling)
+    return path
+
+
+def atomic_write_bytes(path: Path, content: bytes, suffix: str) -> None:
+    # This component installs independently; its file adapter stays local.
+    path = filesystem_path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         previous = path.read_bytes()
@@ -1362,6 +1366,7 @@ def transaction_root(repository: Path) -> Path:
 
 
 def recover_materialization(repository: Path) -> list[str]:
+    repository = filesystem_path(repository)
     root = transaction_root(repository)
     if not root.is_dir():
         return []
@@ -1399,6 +1404,9 @@ def recover_materialization(repository: Path) -> list[str]:
 
 
 def commit_transaction(repository: Path, changes: list[tuple[Path, str | None]], lock_path: Path, lock: dict) -> str:
+    repository = filesystem_path(repository)
+    changes = [(filesystem_path(path), content) for path, content in changes]
+    lock_path = filesystem_path(lock_path)
     root = transaction_root(repository)
     pending = sorted(path for path in root.iterdir() if path.is_dir()) if root.is_dir() else []
     if pending:

@@ -1,6 +1,6 @@
 import { expect, type Browser, type BrowserContext, type Download, type Page, test } from '@playwright/test';
 import { personas } from '../persona-fixture.js';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 
 // Set this in the test worker as well as the runner: provider documents and credential assertions
@@ -24,6 +24,23 @@ test.afterEach(async ({}, info) => {
 
 const identityAuthority = process.env.PROGRAMKIT_IDENTITY_AUTHORITY ?? 'http://localhost:8080/realms/program-kit';
 const identityOrigin = new URL(identityAuthority).origin;
+
+function nativeLogoutLanding(baseURL: string): string {
+  const directory = new URL('../compositions/', import.meta.url);
+  const contracts: { origins?: { application?: string }; routes?: { signedOutCallback?: { successLocation?: string } } }[] =
+    existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.json'))
+      .map(name => JSON.parse(readFileSync(new URL(name, directory), 'utf8'))) : [];
+  const selected = contracts.filter(contract => contract.origins?.application === new URL(baseURL).origin);
+  if (contracts.length && selected.length !== 1) throw new Error('Select one emitted native browser contract.');
+  const contract = selected[0] ?? JSON.parse(readFileSync(new URL('../web-contract.json', import.meta.url), 'utf8'));
+  const path: unknown = contract.routes?.signedOutCallback?.successLocation;
+  if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//'))
+    throw new Error('The native signed-out callback contract has no literal local destination.');
+  const destination = new URL(path, baseURL);
+  if (destination.origin !== new URL(baseURL).origin) throw new Error('The native logout destination is not local.');
+  return destination.href;
+}
+
 
 // Only the owner UI and its module are fixture documents. All BFF/Keycloak requests remain native.
 // Transpile the shipped adapter itself, rather than rebuilding its protocol in the journey test.
@@ -211,7 +228,7 @@ test('native logout protocol clears the local session and retains its JSON ackno
 
   const providerWindow = await submitLogoutForm(page);
   await expect.poll(async () => await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
-  await providerWindow.waitForURL(`${baseURL}/bff/signed-out`);
+  await providerWindow.waitForURL(nativeLogoutLanding(baseURL));
   const signedOutUrl = new URL('/bff/signed-out?remote=pending', baseURL).href;
   const signedOut = await page.goto(signedOutUrl);
   expect(signedOut).not.toBeNull();
@@ -469,7 +486,7 @@ async function adapterOwnerJourney(browser: Browser, baseURL: string | undefined
       adapterPhase.description = 'independent-local-session';
       expect(await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
       adapterPhase.description = 'provider-navigation-complete';
-      if (!providerUnavailable) await providerWindow.waitForURL(`${baseURL}/bff/signed-out`);
+      if (!providerUnavailable) await providerWindow.waitForURL(nativeLogoutLanding(baseURL));
       // The application page uses native session evidence, not the popup URL or a remote query hint.
       adapterPhase.description = 'owner-landing-url';
       expect(new URL(page.url()).pathname).toBe('/__program-kit-owner-session-ended');

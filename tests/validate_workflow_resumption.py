@@ -90,7 +90,7 @@ def legacy_checkpoint_cases(root):
              'options': ['approve', 'reject'], 'on_reject': 'retry', 'verdict_input': 'bootstrap_verdict'},
         ])
         calls = []
-        def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+        def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
             calls.append(args)
             if args == 'architecture-dispatch' and calls.count(args) == 2:
                 marker.write_text('corrected producer output', encoding='utf-8')
@@ -160,7 +160,7 @@ def main():
                 architecture = root / 'docs/architecture/architecture.md'
                 good_architecture = architecture.read_bytes()
                 calls = []
-                def arch_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                def arch_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                     calls.append(args)
                     if args == 'architecture-dispatch':
                         if calls.count('architecture-dispatch') == 1:
@@ -253,7 +253,7 @@ def main():
                 legacy_checkpoint_cases(root)
 
                 dispatch_count = 0
-                def readiness_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                def readiness_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                     nonlocal dispatch_count
                     dispatch_count += 1
                     if args == 'readiness':
@@ -302,7 +302,7 @@ def main():
                     # Interrupt the deterministic readiness shell; resumption
                     # must not repeat closure or start a readiness agent.
                     seen = []
-                    def interrupted(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                    def interrupted(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                         seen.append(command)
                         assert command != 'speckit.program-kit-governance.readiness'
                         return readiness_dispatch(self, command, integration, model, args, context)
@@ -334,7 +334,7 @@ def main():
                     raise AssertionError('Semantic rejection was converted into technical resumption')
                 (root / g.BOOTSTRAP_COMPLETION).unlink()
                 changed_calls = []
-                def changed_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                def changed_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                     changed_calls.append(command)
                     if command == 'speckit.program-kit-governance.bootstrap-recovery':
                         architecture.write_bytes(architecture.read_bytes() + b'\nReviewed clarification of the first-slice narrative.\n')
@@ -395,7 +395,7 @@ def main():
                                   if s['id'] == 'recovery-execute-compatibility-proofs')
                 proof_step['run'] = 'python -c "from pathlib import Path; raise SystemExit(0 if Path(\'native-proof-repaired\').exists() else 2)"'
                 native_calls = []
-                def native_proof_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                def native_proof_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                     native_calls.append(command)
                     return readiness_dispatch(self, command, integration, model, args, context)
                 approval_before_proof = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
@@ -435,7 +435,7 @@ def main():
                 legacy_readiness.update(id='recovery-readiness', type='command',
                     command='speckit.program-kit-governance.readiness', integration='{{ inputs.integration }}',
                     input={'args': 'Legacy inaccessible handoff'})
-                def legacy_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                def legacy_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                     if args == 'Legacy inaccessible handoff':
                         report.write_text('**Status**: NOT READY\n- Blocker: READINESS-CURRENT-EVIDENCE | Owner: Operator | Next: Repair input access\n', encoding='utf-8')
                         return {'exit_code': 0, 'stdout': 'incomplete assessment', 'stderr': ''}
@@ -454,7 +454,7 @@ def main():
                     fixture.fails(lambda: workflow.resume(root, legacy_source.run_id), 'stale')
                 architecture.write_bytes(old_architecture)
                 retried_commands = []
-                def repaired_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                def repaired_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                     retried_commands.append(command)
                     assert command == 'speckit.program-kit-governance.readiness'
                     return readiness_dispatch(self, command, integration, model, args, context)
@@ -509,7 +509,7 @@ def main():
                 # retaining all completed authoring and proof stages.
                 acceptance_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
                 acceptance_calls = []
-                def acceptance_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                def acceptance_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                     acceptance_calls.append(args)
                     return {'exit_code': 0, 'stdout': 'prepared', 'stderr': ''}
                 acceptance_steps = [shell('accepted-prefix', 'python -c "print(1)"'),
@@ -536,7 +536,7 @@ def main():
                 import bootstrap_proof_plan
                 closure_approval = (root / g.BOOTSTRAP_APPROVAL).read_bytes()
                 closure_calls = []
-                def closure_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+                def closure_dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                     closure_calls.append(args)
                     return {'exit_code': 0, 'stdout': 'prepared', 'stderr': ''}
                 closure_steps = [shell('accepted-prefix', 'python -c "print(1)"'),

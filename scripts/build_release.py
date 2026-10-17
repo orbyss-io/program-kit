@@ -136,9 +136,18 @@ def build_dependency_qualification_assets(root: Path, output: Path, version: str
     return [manifest, *assets]
 
 
+def filesystem_root(root: Path) -> Path:
+    if os.name != 'nt':
+        return root
+    helper = Path(__file__).resolve().parents[1] / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
+    spec = importlib.util.spec_from_file_location('release_owned_filesystem', helper)
+    filesystem = importlib.util.module_from_spec(spec); spec.loader.exec_module(filesystem)
+    return Path(filesystem.filesystem_path(root.absolute()))
+
+
 def repository_source_files(root: Path) -> list[Path]:
     """Return tracked and intentional untracked source, excluding ignored build output."""
-    repository = root.resolve()
+    repository = filesystem_root(root.resolve())
     excludes = "" if os.name == "nt" else "/dev/null"
     result = subprocess.run(
         [
@@ -267,6 +276,7 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
     specification=importlib.util.spec_from_file_location('bundle_owned_filesystem',
         root/'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
     filesystem=importlib.util.module_from_spec(specification);specification.loader.exec_module(filesystem)
+    root = Path(filesystem.filesystem_path(root.resolve()))
     # Exact owned staging also handles long-path cleanup and retains primary plus
     # cleanup failures. Historical input trees remain outside this deletion owner.
     with filesystem.owned_scratch(root, 'release-bundle') as directory:
@@ -431,7 +441,7 @@ def main() -> int:
     parser.add_argument("--output", default="artifacts", help="Output directory inside the repository")
     args = parser.parse_args()
 
-    root = Path(__file__).resolve().parents[1]
+    root = filesystem_root(Path(__file__).resolve().parents[1])
     # Local packaging cannot use a temporary tool environment as device readiness.
     import importlib.util
     source = root / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/device_toolchain.py'

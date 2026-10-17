@@ -26,6 +26,7 @@ import foundation_qualification as qualification
 sys.modules.setdefault('foundation_process', importlib.import_module('compatibility_process'))
 import foundation_fixture
 from native_start.test_hosted_frontend_update import BuildCommands
+from owned_fixture import native_path
 
 PROFILE = 'foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2'
 SOURCE_NAMES = ('HostedPageRendering.cs', 'HostedPageRevision.cs', 'HostedBrandLocale.cs', 'HostedViteChunk.cs',
@@ -43,6 +44,7 @@ def browser_matrix(args, directory, current, index, provenance, baseline, timing
     script = (ROOT / 'tests/fixtures/hosted-palette/browser.mjs').read_text()
     script = script.replace('__PLAYWRIGHT__', (browser_root / 'node_modules/playwright/index.mjs').as_uri())
     script = script.replace('__AXE__', (browser_root / 'node_modules/@axe-core/playwright/dist/index.mjs').as_uri())
+    script = script.replace('__PRESENTATION_RECORDING__', Path(native_path(ROOT / 'tests/fixtures/hosted-palette/presentation-recording.mjs')).as_uri())
     (directory / 'browser.mjs').write_text(script)
     environment = dict(os.environ)
     (directory / 'timings.json').write_text(json.dumps(timings, indent=2))

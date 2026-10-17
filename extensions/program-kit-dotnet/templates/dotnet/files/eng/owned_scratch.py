@@ -73,7 +73,7 @@ class OwnedScratch:
         repository = Path(repository)
         if not repository.is_absolute():
             raise ValueError('PKR015 staging requires an absolute repository path')
-        self.repository = repository.resolve(strict=True)
+        self.repository = Path(native_path(repository.resolve(strict=True)))
         if os.name == 'nt' and native_path(self.repository).startswith('\\\\'):
             raise ValueError('PKR015 network/UNC scratch roots are unsupported; use a local drive checkout')
         if purpose not in {'selected-roots', 'release-bundle', 'validation-fixture'}:

@@ -85,6 +85,16 @@ jobs:
           path: |
             artifacts/validation-runs/
             artifacts/tests/toolkit-cases/
+            artifacts/postgresql-lifecycle/**/*.log
+            artifacts/postgresql-lifecycle/**/results.json
+            artifacts/tests/typed-operation/**/*.log
+            artifacts/tests/typed-operation/**/results.json
+            artifacts/tests/hosted-palette/**/*.log
+            artifacts/tests/hosted-palette/**/result.json
+            artifacts/tests/hosted-palette/**/progress.json
+            artifacts/tests/hosted-palette/**/phase.json
+            artifacts/tests/reusable-foundations/**/*.log
+            artifacts/tests/reusable-foundations/**/*.json
           if-no-files-found: warn
           retention-days: ${{ env.RETENTION_DAYS }}
   linux:
@@ -133,6 +143,16 @@ jobs:
           path: |
             artifacts/validation-runs/
             artifacts/tests/toolkit-cases/
+            artifacts/postgresql-lifecycle/**/*.log
+            artifacts/postgresql-lifecycle/**/results.json
+            artifacts/tests/typed-operation/**/*.log
+            artifacts/tests/typed-operation/**/results.json
+            artifacts/tests/hosted-palette/**/*.log
+            artifacts/tests/hosted-palette/**/result.json
+            artifacts/tests/hosted-palette/**/progress.json
+            artifacts/tests/hosted-palette/**/phase.json
+            artifacts/tests/reusable-foundations/**/*.log
+            artifacts/tests/reusable-foundations/**/*.json
           if-no-files-found: error
           retention-days: ${{ env.RETENTION_DAYS }}
   windows:
@@ -207,6 +227,16 @@ jobs:
           path: |
             artifacts/validation-runs/
             artifacts/tests/toolkit-cases/
+            artifacts/postgresql-lifecycle/**/*.log
+            artifacts/postgresql-lifecycle/**/results.json
+            artifacts/tests/typed-operation/**/*.log
+            artifacts/tests/typed-operation/**/results.json
+            artifacts/tests/hosted-palette/**/*.log
+            artifacts/tests/hosted-palette/**/result.json
+            artifacts/tests/hosted-palette/**/progress.json
+            artifacts/tests/hosted-palette/**/phase.json
+            artifacts/tests/reusable-foundations/**/*.log
+            artifacts/tests/reusable-foundations/**/*.json
           if-no-files-found: error
           retention-days: ${{ env.RETENTION_DAYS }}
   security:

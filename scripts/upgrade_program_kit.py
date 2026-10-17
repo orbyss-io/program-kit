@@ -419,6 +419,11 @@ def ensure_cli_runtime(command: list[str], release: Path) -> int | None:
 
 
 def release_fingerprint(release: Path) -> str:
+    if os.name == 'nt':
+        helper = Path(__file__).resolve().parents[1] / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
+        spec = importlib.util.spec_from_file_location('fingerprint_owned_filesystem', helper)
+        filesystem = importlib.util.module_from_spec(spec); spec.loader.exec_module(filesystem)
+        release = Path(filesystem.filesystem_path(release.absolute()))
     digest = hashlib.sha256()
     # Match packaging's build/cache exclusions. Running validation must not
     # change the identity of the same shipped candidate via compiled outputs.

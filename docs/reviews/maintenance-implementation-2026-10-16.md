@@ -832,3 +832,25 @@ The isolated Root release branch prepares0.13.3, preserving the unrelated shared
 Public profile adoption39018877596 correctly failed: published exporter0.2.6 carries CShells0.0.30 and cannot inspect the0.0.31 feature ABI in runtime0.3.6. The original failed65MiB artifact is retained under `artifacts/u133-1`. Foundation independent exporter0.2.7 at ebf4387 now passes actual installation/export against public runtimes0.3.3,0.3.4,0.3.5 and0.3.6, while preserving the old public incompatibility and strict negatives. PR15/CI39019483917 add this qualifier before publication. The earlier runtime/Build approval does not approve a different exporter source/tag.
 
 All47 finding IDs remain unchanged. Root public-profile promotion, full generated integration and installed migration, exact main CI/security/readiness and Root exact tag approval remain before publication. No active consumer, paid phase or device installation was changed.
+
+
+## Continuation: failure-first local repair after CI39025168567
+
+The replacement dependency run failed. Its public profile stage passed; the complete
+suite did not. Original artifact12099420279 and digest remain in `artifacts/u133-4/retention.json`.
+All independent failures were inspected before another full run. Focused local reproduction
+found the incomplete SpecKit1.2.1 callback signature, missing native fixture metadata,
+transport assumptions in asset tests, a real PostgreSQL temporary-server readiness race,
+and Windows deep-path source/transaction/readiness identity discrepancies. Exact installed
+SDK1.2.1 workflow checks passed in a disposable Linux container; device SDK1.2.0 was unchanged.
+Actual public-profile Vite, PostgreSQL0.3.6 and Chromium/WebKit palette checks passed locally.
+Consumer-upgrade regressions and exact path/ownership/recovery guards passed independently.
+
+The remaining full native integrations use the manual `maintenance-failed-integrations`
+CI selection. It reproduces current maintenance pins/public profile and runs the existing
+three integration roots with their normal prerequisites, retaining all failures. This is
+scoped diagnosis, never combined qualification or publication authority. Deep disposable
+Windows MSBuild package paths and the older device SDK are disclosed limits; Firefox stays
+in CI. Existing failed local/CI evidence is not relabelled. All47 findings still require
+complete current-source CI and publication/public installation/upgrade closure. No active
+consumer, unrelated checkout, paid worker or device installation changed.

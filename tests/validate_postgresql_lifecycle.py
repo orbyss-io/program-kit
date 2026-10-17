@@ -20,6 +20,7 @@ import composition_model
 import composition_render
 sys.path.insert(0, str(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
 from central_packages import central_package_versions
+from owned_scratch import native_path
 import composition_run
 from composition_fixture import accept_fixture
 
@@ -60,17 +61,21 @@ def main():
               'image': image, 'selectedFoundationVersion': version, 'consumer': str(consumer), 'steps': steps, 'cases': cases, 'cleanupObserved': False}
     created = False
     def run(label, arguments, *, environment=env, expected=0, timeout=180, sql=None):
-        observed = subprocess.run(arguments, input=sql, cwd=consumer, env=environment, capture_output=True,
+        # Native executables receive native Windows spellings; filesystem reads
+        # retain the extended paths needed for complete historical knowledge.
+        arguments = [native_path(argument) if argument.startswith('\\\\?\\') else argument for argument in arguments]
+        environment = {key: native_path(value) if value.startswith('\\\\?\\') else value for key, value in environment.items()}
+        observed = subprocess.run(arguments, input=sql, cwd=native_path(consumer), env=environment, capture_output=True,
                                   text=True, encoding='utf-8', timeout=timeout)
         for stream in ('stdout', 'stderr'):
             (evidence/(label+'.'+stream+'.log')).write_text(redact(getattr(observed, stream)), encoding='utf-8')
         # SQL input and environment values stay out of evidence; redact the
         # synthetic credential in Docker's exact creation arguments as well.
         steps.append({'id': label, 'command': [redact(argument) for argument in arguments], 'exitCode': observed.returncode})
-        assert (observed.returncode == 0) == (expected == 0), str(evidence/(label+'.stderr.log'))
+        assert (observed.returncode == 0) == (expected == 0), (str(evidence/(label+'.stderr.log')) + '\n' + redact(observed.stderr))
         return observed.stdout.strip()
     def sql(label, text, user='fixture', success=True):
-        return run(label, ['docker', 'exec', '-i', name, 'psql', '-X', '-A', '-t', '-v', 'ON_ERROR_STOP=1', '-U', user, '-d', database],
+        return run(label, ['docker', 'exec', '-i', name, 'psql', '-h', '127.0.0.1', '-X', '-A', '-t', '-v', 'ON_ERROR_STOP=1', '-U', user, '-d', database],
                    sql=text, expected=0 if success else 1)
     try:
         for file in EXAMPLE.iterdir():
@@ -133,8 +138,10 @@ def main():
              '--label', 'org.orbyss.program-kit.disposable=postgresql-lifecycle', '--publish', '127.0.0.1::5432',
              '--env', 'POSTGRES_USER=fixture', '--env', 'POSTGRES_PASSWORD='+password, '--env', 'POSTGRES_DB='+database, image], timeout=90)
         created = True
+        # The entrypoint's temporary Unix-socket server accepts readiness before
+        # shutting down. TCP belongs to the final server used by native runtime.
         for attempt in range(100):
-            ready = subprocess.run(['docker','exec',name,'pg_isready','-U','fixture','-d',database], capture_output=True, timeout=5)
+            ready = subprocess.run(['docker','exec',name,'pg_isready','-h','127.0.0.1','-U','fixture','-d',database], capture_output=True, timeout=5)
             if ready.returncode == 0: break
             time.sleep(.1)
         else: raise AssertionError('Owned database did not become ready')

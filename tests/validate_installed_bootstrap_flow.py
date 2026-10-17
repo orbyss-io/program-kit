@@ -10,6 +10,7 @@ import io
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import zipfile
@@ -32,6 +33,13 @@ def scenario(mode):
         root = Path(directory).resolve()
         os.chdir(root)
         try:
+            # Install real native core metadata before the real UTF-8 integrity step.
+            # Authoring/reviews below remain fictional and cannot dispatch an agent.
+            subprocess.run([sys.executable, str(ROOT / 'scripts/invoke_specify.py'),
+                '--site-packages', str(Path(__import__('specify_cli').__file__).parent.parent), '--',
+                'init', '.', '--force', '--non-interactive', '--integration', 'claude',
+                '--script', 'py', '--ignore-agent-tools'], cwd=root, check=True,
+                capture_output=True, text=True, encoding='utf-8', timeout=180)
             with contextlib.redirect_stdout(io.StringIO()):
                 fixture.setup(root)
             fixture.fixture.write_installation(root, version)
@@ -80,7 +88,7 @@ def scenario(mode):
                     print(mode, config['id'], result.output, flush=True)
                 return result
 
-            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
+            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None, timeout=600):
                 calls.append(command)
                 allowed = {'speckit.constitution'} | {'speckit.program-kit-governance.' + name for name in
                            ('assessment', 'research', 'architecture', 'tooling', 'roadmap', 'bootstrap-closure')}

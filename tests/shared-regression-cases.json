@@ -849,7 +849,7 @@
     {
       "module": "validate_owned_scratch",
       "path": "tests/validate_owned_scratch.py",
-      "sha256": "54debe3d6f99d7582c84d82350495dd6cbc8767d0001c7c3841f2bd41067487c",
+      "sha256": "71480f5c0cb072756b03425e38edb79e7d3cc932adc733e757c0559f91022dad",
       "cases": {
         "validate_owned_scratch.OwnedScratchTests.test_building_block_writer_recovers_short_block_and_preserves_persistent_failure": [
           "Windows"
@@ -1656,7 +1656,7 @@
     {
       "module": "test_hosted_frontend_update",
       "path": "tests/native_start/test_hosted_frontend_update.py",
-      "sha256": "1999e64ea27ada829f8915ccee20c25ff281f49dbe88b6e2522c4642067f5e28",
+      "sha256": "f5b3906ef9ba7d1b969146cc7494d089df204b6be9244c78a6530bfb1cea7784",
       "cases": {
         "test_hosted_frontend_update.HostedFrontendUpdateTests.test_retained_mutable_vite_recipe_reproduces_pkc110_without_waiving_immutability": [
           "Windows",
@@ -2095,7 +2095,7 @@
     {
       "module": "validate_upgrade_boundaries",
       "path": "tests/validate_upgrade_boundaries.py",
-      "sha256": "084350b397fe47833e8e1c968e8f4aeeb9e7b2d8556c67d5f21671de1a9ad120",
+      "sha256": "2d2e144610efb5514b10f9f3e48f0ac1cd80cfb6a0212e9e0b39a2f49f562949",
       "cases": {
         "validate_upgrade_boundaries.UpgradeBoundaryTests.test_structured_unmaterialized_owner_is_deferred_despite_legacy_summary": [
           "Windows",

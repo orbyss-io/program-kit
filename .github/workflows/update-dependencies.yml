@@ -78,6 +78,16 @@ jobs:
             artifacts/bootstrap-runtime/
             artifacts/validation-runs/
             artifacts/tests/toolkit-cases/
+            artifacts/postgresql-lifecycle/**/*.log
+            artifacts/postgresql-lifecycle/**/results.json
+            artifacts/tests/typed-operation/**/*.log
+            artifacts/tests/typed-operation/**/results.json
+            artifacts/tests/hosted-palette/**/*.log
+            artifacts/tests/hosted-palette/**/result.json
+            artifacts/tests/hosted-palette/**/progress.json
+            artifacts/tests/hosted-palette/**/phase.json
+            artifacts/tests/reusable-foundations/**/*.log
+            artifacts/tests/reusable-foundations/**/*.json
             artifacts/consumer-provider-runtime/
             artifacts/tests/numeric-schema/**/*.log
             artifacts/tests/schema-role-grants/**/*.log
