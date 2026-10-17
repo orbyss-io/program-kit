@@ -92,7 +92,7 @@ def main():
         actual = json.loads(output.strip().splitlines()[-1])
         required = ('runtimeExercised', 'toolingExercised', 'actualTypedRequestResponse', 'actualGeneratedTypesAndClient',
             'actualProviderPortResolution', 'actualNondefaultScalarOptions', 'independentDurableWriteObservation',
-            'actualHostRestartRetainsEffect', 'actualPackedSettingsMetadata')
+            'actualHostRestartRetainsEffect', 'actualPackedSettingsMetadata', 'actualNativeGeneratedControls')
         if actual.get('status') != 'passed' or any(actual.get(key) is not True for key in required):
             raise ValueError('Actual required typed-operation obligations missing or unsuccessful')
         consumer = (ROOT / actual['consumer']).resolve()

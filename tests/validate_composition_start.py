@@ -244,7 +244,10 @@ def main():
     parser.add_argument('--tooling', action='store_true', help='also exercise migrated Build, fixture and OpenAPI tooling')
     parser.add_argument('--oasdiff', type=Path, help='existing exact adopted comparison binary; no pin adoption')
     parser.add_argument('--single-host', action='store_true', help='qualify the typed single-host build/export boundary')
+    parser.add_argument('--foundation-only', action='store_true', help='scaffold without the fictional unfinished product binding, for the ordinary emitted CI gate')
     args = parser.parse_args()
+    if args.foundation_only and args.execute:
+        parser.error('--foundation-only is a scaffold fixture; it cannot narrow the full runtime exercise')
     if args.tooling and (not args.execute or not args.oasdiff or not args.oasdiff.is_file()):
         parser.error('--tooling requires --execute and an existing --oasdiff binary')
     if args.tooling:
@@ -308,7 +311,8 @@ def main():
     # A second reconciliation must preserve source and produce no new contribution.
     command([*sync, '--check'], ROOT, directory / 'scaffold-check')
     command([*native, 'check', *options], ROOT, directory / 'native-check')
-    add_unimplemented_product_plan(root)
+    if not args.foundation_only:
+        add_unimplemented_product_plan(root)
     command(sync, ROOT, directory / 'product-plan-scaffold')
     command([*sync, '--check'], ROOT, directory / 'product-plan-scaffold-check')
     command([*native, 'check', *options], ROOT, directory / 'product-plan-native-check')
@@ -395,6 +399,15 @@ def main():
             edit_started = time.monotonic()
             feature = root / 'src/Application.Api/ApiFeature.cs'
             add_typed_operation(root)
+            if args.tooling:
+                entry = root / 'web/policy-web/src/app.ts'
+                source = entry.read_text(encoding='utf-8')
+                seam = 'await bindFoundationPresentation(root);'
+                if source.count(seam) != 1:
+                    raise ValueError('Expected actual generated native browser binding')
+                entry.write_text("import { attachExampleEditor } from './unsaved-editor';\n" + source.replace(seam,
+                    'const presentation = await bindFoundationPresentation(root);\n  attachExampleEditor(root, presentation);'), encoding='utf-8')
+                entry.with_name('unsaved-editor.ts').write_bytes((ROOT / 'extensions/program-kit-dotnet/references/examples/unsaved-editor.ts').read_bytes())
             sample_database(root, directory / 'sample-schema')
             source = feature.read_text()
             source = 'using CShells;\nusing ProgramKit.Examples.TypedOperation;\n' + source
@@ -577,6 +590,20 @@ window.programKitTypedExample = { storeLabel };
                         or prefix['constraints'] != {'minLength': 1, 'maxLength': 32}):
                     raise ValueError('Actual packed source-backed options metadata differs from its owner')
                 result['actualPackedSettingsMetadata'] = True
+                presentation = json.loads((root / 'eng/foundation-settings.contract.json').read_bytes())['shells']['application-shell']['browserPresentation']
+                settings = presentation['settings']
+                control_plan = {**plan, 'hosts': [{**first, 'productPath': '/api/sample-label',
+                    'productResponse': {'policy': 'configured-stored'}, 'presentationProbe': {
+                        'routePrefix': settings['RoutePrefix'], 'signOutText': settings['Copy'].get('sign-out', 'Sign out')}}]}
+                control_path = directory / 'native-generated-controls-plan.json'
+                control_path.write_text(json.dumps(control_plan), encoding='utf-8')
+                control_result = directory / 'native-generated-controls-result.json'
+                command(['node', 'eng/web/composition-readiness.mjs', str(control_path), str(control_result)],
+                    root, directory / 'native-generated-controls')
+                control_observed = json.loads(control_result.read_bytes())
+                if control_observed['status'] != 'ready' or not all(check.get('nativeGeneratedControls') is True for check in control_observed['checks']):
+                    raise ValueError('Actual generated native control binding was not qualified')
+                result['actualNativeGeneratedControls'] = True
                 result['toolingExercised'] = True
             frontend = root / graph['resources']['policy-web']['directory'] / graph['resources']['policy-web']['entry']
             frontend.write_text(frontend.read_text().replace("heading.textContent = 'Application foundation'", "heading.textContent = 'Consumer edited frontend'").replace("createElement('h1')", "createElement('h2')"), encoding='utf-8')
@@ -610,6 +637,10 @@ window.programKitTypedExample = { storeLabel };
                     raise ValueError('authenticated private DOM escaped into failure evidence')
             prior_identity = json.loads((root / 'artifacts/composition/private/identity-state.json').read_text())['product-identity']
             graph['resources']['application-client']['callbackPath'] = '/consumer-signin'
+            if args.tooling:
+                entry = root / 'web/policy-web/src/app.ts'
+                graph['resources']['application-shell'].setdefault('presentation', {'enabled': True})['entrypoints'] = {
+                    'policy-web': hashlib.sha256(entry.read_bytes()).hexdigest()}
             graph['resources']['reports-api'] = {'kind': 'protectedResource', 'authorityRef': 'product-identity',
                                                   'ownerRef': graph['resources']['application-api']['ownerRef']}
             graph['environments']['development']['resources']['reports-api'] = {'audience': 'reports-api'}

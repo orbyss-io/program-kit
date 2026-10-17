@@ -344,7 +344,8 @@ def materialize(repository, graph, template, env_name=None):
     admitted = accepted_selection(repository)
     contracts = {shell_id: foundation.publisher_contracts(repository, recipe_projection(graph, shell_id, env_name),
                  selected_packages(graph, shell_id, admitted),
-                 presentation=graph['resources'][shell_id].get('presentation')) for shell_id in model.resources(graph, 'shell')}
+                 presentation=graph['resources'][shell_id].get('presentation'),
+                 presentation_defaults=presentation_branding(graph, shell_id)) for shell_id in model.resources(graph, 'shell')}
     packages = {}
     for contract in contracts.values():
         for name, version in contract['packages'].items():
@@ -410,6 +411,8 @@ def materialize(repository, graph, template, env_name=None):
     outputs['eng/ProgramKit.Foundation.props'] = (ET.tostring(props) + b'\n', 'managed')
     frontend_template = template / 'hosted-pages/web'
     for name, frontend in model.resources(graph, 'frontend').items():
+        shell_id = next(row['shellRef'] for row in model.bindings(graph, 'frontend') if row['frontendRef'] == name)
+        selected = contracts[shell_id].get('browserPresentation', {})
         for file in frontend_template.rglob('*'):
             if not file.is_file():
                 continue
@@ -420,6 +423,8 @@ def materialize(repository, graph, template, env_name=None):
             elif relative == 'src/app.ts':
                 relative = frontend['entry']
             outputs[frontend['directory'] + '/' + relative] = (payload, 'scaffold')
+        if selected.get('enabled'):
+            outputs.update(presentation_frontend(repository, graph, name, selected, template, outputs))
     for name, feature in model.resources(graph, 'feature').items():
         project = model.project_definition(feature, repository)
         admit_runtime_reconciliation(repository, project)
@@ -490,6 +495,66 @@ def materialize(repository, graph, template, env_name=None):
     outputs[RESOLVED] = (encoded(resolved), 'managed')
     outputs['docs/architecture/foundation-configuration.md'] = (reference(graph, resolved).encode(), 'managed')
     return outputs
+
+
+def presentation_branding(graph, shell_id):
+    pages = [row for row in model.bindings(graph, 'frontend') if row['shellRef'] == shell_id]
+    if not pages:
+        return {}
+    frontend = graph['resources'][pages[0]['frontendRef']]
+    branding = frontend.get('branding', model.default_branding())
+    locale = branding['defaultLocale']
+    return {'ApplicationName': branding['locales'][locale]['title'], 'Locale': locale, 'Theme': branding['theme']}
+
+
+def presentation_frontend(repository, graph, name, selected, template, outputs):
+    """Bind the generated app to native controls; custom entrypoints stay reviewable."""
+    frontend = graph['resources'][name]
+    entry = str(PurePosixPath(frontend['directory']) / frontend['entry'])
+    folder = str(PurePosixPath(entry).parent)
+    helper = (template / 'hosted-pages/presentation/foundation-controls.ts').read_bytes()
+    settings = selected['settings']
+    helper = helper.replace(b'__CONFIGURATION_PATH__', json.dumps(settings['RoutePrefix'].rstrip('/') + '/configuration').encode())
+    helper = helper.replace(b'__SIGN_OUT_TEXT__', json.dumps(settings['Copy'].get('sign-out', 'Sign out')).encode())
+    original = outputs[entry][0]
+    seam = b'  root.replaceChildren(heading, status);'
+    require(original.count(seam) == 1, 'native browser binding requires the maintained app entry seam')
+    desired = b"import { bindFoundationPresentation } from './foundation-controls';\n" + original.replace(seam,
+        seam + b'\n  await bindFoundationPresentation(root);')
+    current = repository / entry
+    shell_id = next(row['shellRef'] for row in model.bindings(graph, 'frontend') if row['frontendRef'] == name)
+    reviewed = graph['resources'][shell_id].get('presentation', {}).get('entrypoints', {}).get(name)
+    manifest = repository / '.program-kit/managed.json'
+    state = json.loads(manifest.read_bytes()) if manifest.is_file() else {}
+    helper_path = folder + '/foundation-controls.ts'
+    installed_helper = state.get('files', {}).get(helper_path, {})
+    adopted = (installed_helper.get('ownership') == 'managed' and installed_helper.get('contribution') == 'foundation'
+        and installed_helper.get('sourceIdentity') == '../../scripts/foundation_composition.py'
+        and (repository / helper_path).is_file()
+        and hashlib.sha256((repository / helper_path).read_bytes()).hexdigest() == installed_helper.get('lastWrittenHash'))
+    if adopted and current.is_file():
+        # After this managed binding was installed, normal application edits
+        # stay owned. Initial migration review is not a permanent source freeze
+        # or proof of current runtime usage; actual verification remains due.
+        desired = current.read_bytes()
+    elif reviewed:
+        require(current.is_file() and hashlib.sha256(current.read_bytes()).hexdigest() == reviewed,
+                'reviewed custom browser entrypoint changed: ' + entry)
+        desired = current.read_bytes()
+    elif current.is_file() and current.read_bytes() != desired:
+        previous = state.get('files', {}).get(entry, {})
+        actual = hashlib.sha256(current.read_bytes()).hexdigest()
+        require(previous.get('ownership') == 'scaffold' and previous.get('contribution') == 'foundation'
+                and previous.get('sourceIdentity') == '../../scripts/foundation_composition.py'
+                and actual == previous.get('lastWrittenHash') == previous.get('baselineHash', previous.get('templateHash')),
+                'custom browser entrypoint requires reconciliation: ' + entry + ' observedSha256=' + actual
+                + ' generatedSha256=' + hashlib.sha256(desired).hexdigest()
+                + '; bind the native controls while retaining owned editor/draft logic, then record its reviewed exact bytes in'
+                + ' shell.presentation.entrypoints[' + name + ']. This records source review, not runtime or human acceptance.')
+    result = {entry: (desired, 'scaffold'), folder + '/foundation-controls.ts': (helper, 'managed')}
+    for filename, data in foundation.browser_declarations(repository).items():
+        result[folder + '/foundation-browser/' + filename] = (data, 'managed')
+    return result
 
 
 def resolve(graph, contract):

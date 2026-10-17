@@ -117,6 +117,13 @@
           "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
           "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
           "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        },
+        {
+          "command": "current-completed-retry-boundaries.log",
+          "status": "passed",
+          "scope": "All five maintenance fixtures pass. Eight interrupted retries retain original context; after a fresh completing attempt, eight new completed operations use the installed version. Failed marker exact bytes, original archive and application files retained; five completed log markers bounded. Complements actual twelve-boundary updater proof.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-completed-retry-boundaries.log",
+          "sha256": "fa3e2bdad45c1f94d2677846d9f9c0220b7a09ca84a1f04c4e62c32d8c0262e6"
         }
       ],
       "remainingDependencies": [
@@ -268,6 +275,13 @@
           "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
           "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
           "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        },
+        {
+          "command": "current-completed-retry-boundaries.log",
+          "status": "passed",
+          "scope": "All five maintenance fixtures pass. Eight interrupted retries retain original context; after a fresh completing attempt, eight new completed operations use the installed version. Failed marker exact bytes, original archive and application files retained; five completed log markers bounded. Complements actual twelve-boundary updater proof.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-completed-retry-boundaries.log",
+          "sha256": "fa3e2bdad45c1f94d2677846d9f9c0220b7a09ca84a1f04c4e62c32d8c0262e6"
         }
       ],
       "remainingDependencies": [
@@ -399,6 +413,13 @@
           "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
           "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
           "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        },
+        {
+          "command": "current-completed-retry-boundaries.log",
+          "status": "passed",
+          "scope": "All five maintenance fixtures pass. Eight interrupted retries retain original context; after a fresh completing attempt, eight new completed operations use the installed version. Failed marker exact bytes, original archive and application files retained; five completed log markers bounded. Complements actual twelve-boundary updater proof.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-completed-retry-boundaries.log",
+          "sha256": "fa3e2bdad45c1f94d2677846d9f9c0220b7a09ca84a1f04c4e62c32d8c0262e6"
         }
       ],
       "remainingDependencies": [
@@ -750,6 +771,34 @@
           "scope": "19 exact named cases through public Foundation PostgreSql 0.3.5 and native CShells 0.0.30: separate roles and distinct credentials; initial schema absence; eight first-preparation processes and eight observed overlapping runtime transactions; individual permissions/revision admission, unsafe-object/foreign-owner/unmarked-target denial; actual emitted private-provider key/native registration and missing/invented-key failures; observed schema and owned-container cleanup. Cold native restore/LockedMode, exact commands, source/fixture assembly/runtime archive DLL hashes retained. Fixed synthetic schema only; no production migration or ownership-transfer capability.",
           "log": "artifacts/postgresql-lifecycle/af85c9213c1e4471852b391aa101fe2d/results.json",
           "sha256": "645aa5684abd0dad717738614fb14d5def4feb77eb20866e57cbeeb902bb9a5a"
+        },
+        {
+          "command": "qualification-summary.json",
+          "status": "passed",
+          "scope": "Foundation exact PR CI45 succeeded on Linux and Windows for branch6c6b113 and tested mergef2b400dfd3e34cfd083ae49aa20842838038a9c7; equal source tree9710eeaaa8ba393c5f1c33c92211b9eb492d29e5 verified. All required Linux browsers, packaged/native contracts, publisher knowledge, both image platforms and scan gates passed; five original artifact digests verified and retained. No stable publication or Root public adoption.",
+          "log": "artifacts/f-ci45/qualification-summary.json",
+          "sha256": "e712eb1591c6415ece8afd6e8148052c0dc7b6e4e9aaf8f94bbfc03a1efacf40"
+        },
+        {
+          "command": "foundation-configuration-native-browser.log",
+          "status": "passed",
+          "scope": "Actual Foundation native nested-shell configuration loader, pages, secure shared sign-out, session observation and no-script recovery pass Chromium and WebKit at both measured viewports. Current source additionally qualified in complete CI45; local Firefox limitation retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-configuration-native-browser.log",
+          "sha256": "2ac93416c56d9c4f2e502a025c47a2513b98f41c9f00f9991d9cb9349b2f5ef1"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual shipping thin native frontend binding, current unpublished Foundation package declarations, shared stylesheet loading and Vite compile pass strict types including exact optional properties, unchecked index access and unused checks. Prototype scope; generated public-profile Host integration remains required.",
+          "log": "artifacts/t/native-controls-1f0dc3a4/results.json",
+          "sha256": "ee1a5c7e4c9693cf584b51e4f0141c1185330e15329609b4478dfe9861f60696"
+        },
+        {
+          "command": "current-owned-entrypoint-adoption-guards.log",
+          "status": "passed",
+          "scope": "Eight current projection/adoption cases pass: exact native declaration/package hashes, independent app branding, untouched entry migration, reviewed initial custom source, stale/foreign rejection and ordinary owned edits after managed binding adoption. No runtime acceptance inferred from source review.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-owned-entrypoint-adoption-guards.log",
+          "sha256": "bbdbf4b789f0325a732b4e14aeda9b80e578ad4026efd7412a3e6ad8682a4abc"
         }
       ],
       "remainingDependencies": [
@@ -823,6 +872,34 @@
           "scope": "19 exact named cases through public Foundation PostgreSql 0.3.5 and native CShells 0.0.30: separate roles and distinct credentials; initial schema absence; eight first-preparation processes and eight observed overlapping runtime transactions; individual permissions/revision admission, unsafe-object/foreign-owner/unmarked-target denial; actual emitted private-provider key/native registration and missing/invented-key failures; observed schema and owned-container cleanup. Cold native restore/LockedMode, exact commands, source/fixture assembly/runtime archive DLL hashes retained. Fixed synthetic schema only; no production migration or ownership-transfer capability.",
           "log": "artifacts/postgresql-lifecycle/af85c9213c1e4471852b391aa101fe2d/results.json",
           "sha256": "645aa5684abd0dad717738614fb14d5def4feb77eb20866e57cbeeb902bb9a5a"
+        },
+        {
+          "command": "qualification-summary.json",
+          "status": "passed",
+          "scope": "Foundation exact PR CI45 succeeded on Linux and Windows for branch6c6b113 and tested mergef2b400dfd3e34cfd083ae49aa20842838038a9c7; equal source tree9710eeaaa8ba393c5f1c33c92211b9eb492d29e5 verified. All required Linux browsers, packaged/native contracts, publisher knowledge, both image platforms and scan gates passed; five original artifact digests verified and retained. No stable publication or Root public adoption.",
+          "log": "artifacts/f-ci45/qualification-summary.json",
+          "sha256": "e712eb1591c6415ece8afd6e8148052c0dc7b6e4e9aaf8f94bbfc03a1efacf40"
+        },
+        {
+          "command": "foundation-configuration-native-browser.log",
+          "status": "passed",
+          "scope": "Actual Foundation native nested-shell configuration loader, pages, secure shared sign-out, session observation and no-script recovery pass Chromium and WebKit at both measured viewports. Current source additionally qualified in complete CI45; local Firefox limitation retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-configuration-native-browser.log",
+          "sha256": "2ac93416c56d9c4f2e502a025c47a2513b98f41c9f00f9991d9cb9349b2f5ef1"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual shipping thin native frontend binding, current unpublished Foundation package declarations, shared stylesheet loading and Vite compile pass strict types including exact optional properties, unchecked index access and unused checks. Prototype scope; generated public-profile Host integration remains required.",
+          "log": "artifacts/t/native-controls-1f0dc3a4/results.json",
+          "sha256": "ee1a5c7e4c9693cf584b51e4f0141c1185330e15329609b4478dfe9861f60696"
+        },
+        {
+          "command": "current-owned-entrypoint-adoption-guards.log",
+          "status": "passed",
+          "scope": "Eight current projection/adoption cases pass: exact native declaration/package hashes, independent app branding, untouched entry migration, reviewed initial custom source, stale/foreign rejection and ordinary owned edits after managed binding adoption. No runtime acceptance inferred from source review.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-owned-entrypoint-adoption-guards.log",
+          "sha256": "bbdbf4b789f0325a732b4e14aeda9b80e578ad4026efd7412a3e6ad8682a4abc"
         }
       ],
       "remainingDependencies": [
@@ -854,6 +931,34 @@
           "scope": "Required maintenance collector successfully observed 55 active pins. Five available updates: GitHub App token action, axe, both CShells ABI references and Spec Kit. No pin/device/default/publication mutation; final family adoption follows Foundation publication and complete dependency qualification.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/program-kit-current-publisher-observations.json",
           "sha256": "a6ffbdeb39fd5543cf257343958da2806f53a8b818dbd024fb922cbc38af1222"
+        },
+        {
+          "command": "qualification-summary.json",
+          "status": "passed",
+          "scope": "Foundation exact PR CI45 succeeded on Linux and Windows for branch6c6b113 and tested mergef2b400dfd3e34cfd083ae49aa20842838038a9c7; equal source tree9710eeaaa8ba393c5f1c33c92211b9eb492d29e5 verified. All required Linux browsers, packaged/native contracts, publisher knowledge, both image platforms and scan gates passed; five original artifact digests verified and retained. No stable publication or Root public adoption.",
+          "log": "artifacts/f-ci45/qualification-summary.json",
+          "sha256": "e712eb1591c6415ece8afd6e8148052c0dc7b6e4e9aaf8f94bbfc03a1efacf40"
+        },
+        {
+          "command": "foundation-configuration-native-browser.log",
+          "status": "passed",
+          "scope": "Actual Foundation native nested-shell configuration loader, pages, secure shared sign-out, session observation and no-script recovery pass Chromium and WebKit at both measured viewports. Current source additionally qualified in complete CI45; local Firefox limitation retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-configuration-native-browser.log",
+          "sha256": "2ac93416c56d9c4f2e502a025c47a2513b98f41c9f00f9991d9cb9349b2f5ef1"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual shipping thin native frontend binding, current unpublished Foundation package declarations, shared stylesheet loading and Vite compile pass strict types including exact optional properties, unchecked index access and unused checks. Prototype scope; generated public-profile Host integration remains required.",
+          "log": "artifacts/t/native-controls-1f0dc3a4/results.json",
+          "sha256": "ee1a5c7e4c9693cf584b51e4f0141c1185330e15329609b4478dfe9861f60696"
+        },
+        {
+          "command": "current-owned-entrypoint-adoption-guards.log",
+          "status": "passed",
+          "scope": "Eight current projection/adoption cases pass: exact native declaration/package hashes, independent app branding, untouched entry migration, reviewed initial custom source, stale/foreign rejection and ordinary owned edits after managed binding adoption. No runtime acceptance inferred from source review.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-owned-entrypoint-adoption-guards.log",
+          "sha256": "bbdbf4b789f0325a732b4e14aeda9b80e578ad4026efd7412a3e6ad8682a4abc"
         }
       ],
       "remainingDependencies": [
@@ -1453,19 +1558,23 @@
       "sourceDiagnosis": "Trace imports; align strict layout and real lifecycle",
       "workPackages": "A/C/D/I",
       "closureRequired": "Strict build/lint and real persisted-page/session/privacy recovery; original cause only claimed when substantiated.",
-      "status": "published-profile presentation/default-disable projection and current SPA gesture/header seams implemented; actual new-public Host/profile/adoption pending",
+      "status": "generated native BFF control binding, exact publisher types, app branding and reviewed migration implemented; public-profile Host/SPA integration and final CI/adoption pending",
       "changedFiles": [
-        "extensions/program-kit-dotnet/scripts/foundation_composition.py",
-        "extensions/program-kit-dotnet/scripts/composition_render.py",
+        "extensions/program-kit-dotnet/references/examples/unsaved-editor.ts",
         "extensions/program-kit-dotnet/scripts/composition_model.py",
-        "extensions/program-kit-dotnet/scripts/spa_profile.py",
+        "extensions/program-kit-dotnet/scripts/composition_render.py",
         "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
+        "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+        "extensions/program-kit-dotnet/scripts/spa_profile.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/web/composition-readiness.mjs",
+        "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/presentation/foundation-controls.ts",
         "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/spa-pkce.schema.json",
         "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/spa-session.ts",
         "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/tests/spa-session.spec.ts",
+        "scripts/update_dependency_profiles.py",
         "tests/validate_browser_presentation_profile.py",
-        "tests/validate_spa_session.py",
-        "scripts/update_dependency_profiles.py"
+        "tests/validate_composition_start.py",
+        "tests/validate_spa_session.py"
       ],
       "validation": [
         {
@@ -1516,6 +1625,34 @@
           "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
           "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
           "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
+        },
+        {
+          "command": "qualification-summary.json",
+          "status": "passed",
+          "scope": "Foundation exact PR CI45 succeeded on Linux and Windows for branch6c6b113 and tested mergef2b400dfd3e34cfd083ae49aa20842838038a9c7; equal source tree9710eeaaa8ba393c5f1c33c92211b9eb492d29e5 verified. All required Linux browsers, packaged/native contracts, publisher knowledge, both image platforms and scan gates passed; five original artifact digests verified and retained. No stable publication or Root public adoption.",
+          "log": "artifacts/f-ci45/qualification-summary.json",
+          "sha256": "e712eb1591c6415ece8afd6e8148052c0dc7b6e4e9aaf8f94bbfc03a1efacf40"
+        },
+        {
+          "command": "foundation-configuration-native-browser.log",
+          "status": "passed",
+          "scope": "Actual Foundation native nested-shell configuration loader, pages, secure shared sign-out, session observation and no-script recovery pass Chromium and WebKit at both measured viewports. Current source additionally qualified in complete CI45; local Firefox limitation retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-configuration-native-browser.log",
+          "sha256": "2ac93416c56d9c4f2e502a025c47a2513b98f41c9f00f9991d9cb9349b2f5ef1"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual shipping thin native frontend binding, current unpublished Foundation package declarations, shared stylesheet loading and Vite compile pass strict types including exact optional properties, unchecked index access and unused checks. Prototype scope; generated public-profile Host integration remains required.",
+          "log": "artifacts/t/native-controls-1f0dc3a4/results.json",
+          "sha256": "ee1a5c7e4c9693cf584b51e4f0141c1185330e15329609b4478dfe9861f60696"
+        },
+        {
+          "command": "current-owned-entrypoint-adoption-guards.log",
+          "status": "passed",
+          "scope": "Eight current projection/adoption cases pass: exact native declaration/package hashes, independent app branding, untouched entry migration, reviewed initial custom source, stale/foreign rejection and ordinary owned edits after managed binding adoption. No runtime acceptance inferred from source review.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-owned-entrypoint-adoption-guards.log",
+          "sha256": "bbdbf4b789f0325a732b4e14aeda9b80e578ad4026efd7412a3e6ad8682a4abc"
         }
       ],
       "remainingDependencies": [
@@ -1644,7 +1781,7 @@
       "sourceDiagnosis": "Trace ownership and reconcile stale entrypoints",
       "workPackages": "A/D/I",
       "closureRequired": "Executable current workflow command/prerequisite proof plus settings/pack/private-file boundaries.",
-      "status": "native layout, installed knowledge and native settings build/pack proven; emitted complete CI/private-file and public-profile closure pending",
+      "status": "actual emitted full CI/frontend/architecture/build/pack route passes with managed Python/npm prerequisites; new-public settings/Host/private-file closure and final candidate CI pending",
       "changedFiles": [
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
         "extensions/program-kit-building-blocks/scripts/dependency_context.py",
@@ -1653,9 +1790,17 @@
         "extensions/program-kit-dotnet/references/examples/typed-operation/README.md",
         "extensions/program-kit-dotnet/references/examples/typed-operation/settings.source.template.json",
         "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.github/workflows/application-ci.yml",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.github/workflows/application-release.yml",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.python-version",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/prepare_hosted_pages.py",
+        "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
+        "maintenance-policy.json",
         "tests/validate_composition_start.py",
         "tests/validate_composition_tooling.py",
         "tests/validate_effective_dependency_context.py",
+        "tests/validate_emitted_ci.py",
         "tests/validate_typed_operation.py"
       ],
       "validation": [
@@ -1735,6 +1880,34 @@
           "scope": "Actual unpublished Build0.3.2 native inspection, locked restore, normal build, no-build pack with assembly-bound complete options metadata, and changed-source normal-build refusal. Own new declaration only; no published profile, Host or complete application acceptance. First diagnostic assertion used the wrong envelope key and remains failed.",
           "log": "artifacts/t/typed-settings-717890cc/results.json",
           "sha256": "45c44694943a9ca181d125849d41f43d883ca88e6a1c3bcdc0664e6c1dd2d7e9"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual current emitted frontend preparation and full CI verification command pass in a fresh five-project/two-frontend foundation-only consumer, using existing selected shared runtimes. Actual architecture reader, locked restore, Release build and native pack passed. No .NET test projects or unfinished fictional product binding, application acceptance, device installers, Docker service or coding agent.",
+          "log": "artifacts/tests/emitted-ci/4f7fae2d/results.json",
+          "sha256": "d681035d2bb4968cd8173cb601079fac3513fce42b060215941593aa15edf605"
+        },
+        {
+          "command": "current-qualification-prerequisite-closure.log",
+          "status": "passed",
+          "scope": "All19 release-candidate routing/provenance cases pass, including complete declared prerequisites for Linux and focused Windows CI lanes. No local Release or publication claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-qualification-prerequisite-closure.log",
+          "sha256": "f062bf10bd85862cde726f78d2d90a9faffed57a90c74985ca562c0c90c3086b"
+        },
+        {
+          "command": "current-complete-knowledge-registration.log",
+          "status": "passed",
+          "scope": "All7 actual knowledge inventory cases pass after registering the optional typed example and current local-repair section; runtime/provider acceptance remains separately required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-complete-knowledge-registration.log",
+          "sha256": "19005e531cfc920928167e284a406cfd96dbb97e83df4c74902fd795e5f23ccc"
+        },
+        {
+          "command": "current-additive-presentation-profile-maintenance.log",
+          "status": "passed",
+          "scope": "All17 isolated maintenance cases pass: exact additive Presentation package/activation in future new snapshots, original contracts unchanged, all historical bytes retained. Public qualification/promotion remain real gates.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-additive-presentation-profile-maintenance.log",
+          "sha256": "bf6e77b8124fb462375731a66c3944b0b0b1bd31e50842cec0c862e27ba90879"
         }
       ],
       "remainingDependencies": [
@@ -1748,9 +1921,23 @@
       "sourceDiagnosis": "Preserve freshness guards and supported refresh",
       "workPackages": "F/I",
       "closureRequired": "Stale outputs reject; maintained refresh/reentry passes; no silent broad bypass.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "existing frontend/package freshness guards retained and ordinary Build now admits only prepared current frontends; fresh exact native cases and final full-flow/CI pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/prepare_hosted_pages.py",
+        "tests/native_start/test_hosted_bundle_content.py",
+        "tests/native_start/test_hosted_frontend_update.py",
+        "tests/validate_emitted_ci.py"
+      ],
+      "validation": [
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual current emitted frontend preparation and full CI verification command pass in a fresh five-project/two-frontend foundation-only consumer, using existing selected shared runtimes. Actual architecture reader, locked restore, Release build and native pack passed. No .NET test projects or unfinished fictional product binding, application acceptance, device installers, Docker service or coding agent.",
+          "log": "artifacts/tests/emitted-ci/4f7fae2d/results.json",
+          "sha256": "d681035d2bb4968cd8173cb601079fac3513fce42b060215941593aa15edf605"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -2309,6 +2496,13 @@
           "scope": "130 actual required cases passed with exact module/source identities and stable mechanism inputs. Includes complete native publisher/source sets, spurious owner rejection, real changed-source case execution, canonical attempt inputs/migration checks, scoped owner commands and original portable obligations. No unrelated passing count substitutes required identities.",
           "log": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",
           "sha256": "3cc8a529bb39c93a5798052bec4a22adb9031040254f33c787b4b535d1674962"
+        },
+        {
+          "command": "current-completed-retry-boundaries.log",
+          "status": "passed",
+          "scope": "All five maintenance fixtures pass. Eight interrupted retries retain original context; after a fresh completing attempt, eight new completed operations use the installed version. Failed marker exact bytes, original archive and application files retained; five completed log markers bounded. Complements actual twelve-boundary updater proof.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-completed-retry-boundaries.log",
+          "sha256": "fa3e2bdad45c1f94d2677846d9f9c0220b7a09ca84a1f04c4e62c32d8c0262e6"
         }
       ],
       "remainingDependencies": [
@@ -4006,6 +4200,83 @@
         }
       ],
       "boundary": "Implementation preparation only; draft stays open. Runtime0.3.6 and Build0.3.2 not published/adopted. Failed local long-path build/self-test retained, while CI source build/contracts passed. No merge/tag/publication or application acceptance."
+    },
+    {
+      "stage": "Generated native controls and actual emitted CI command route",
+      "validation": [
+        {
+          "command": "qualification-summary.json",
+          "status": "passed",
+          "scope": "Foundation exact PR CI45 succeeded on Linux and Windows for branch6c6b113 and tested mergef2b400dfd3e34cfd083ae49aa20842838038a9c7; equal source tree9710eeaaa8ba393c5f1c33c92211b9eb492d29e5 verified. All required Linux browsers, packaged/native contracts, publisher knowledge, both image platforms and scan gates passed; five original artifact digests verified and retained. No stable publication or Root public adoption.",
+          "log": "artifacts/f-ci45/qualification-summary.json",
+          "sha256": "e712eb1591c6415ece8afd6e8148052c0dc7b6e4e9aaf8f94bbfc03a1efacf40"
+        },
+        {
+          "command": "foundation-configuration-native-browser.log",
+          "status": "passed",
+          "scope": "Actual Foundation native nested-shell configuration loader, pages, secure shared sign-out, session observation and no-script recovery pass Chromium and WebKit at both measured viewports. Current source additionally qualified in complete CI45; local Firefox limitation retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-configuration-native-browser.log",
+          "sha256": "2ac93416c56d9c4f2e502a025c47a2513b98f41c9f00f9991d9cb9349b2f5ef1"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual shipping thin native frontend binding, current unpublished Foundation package declarations, shared stylesheet loading and Vite compile pass strict types including exact optional properties, unchecked index access and unused checks. Prototype scope; generated public-profile Host integration remains required.",
+          "log": "artifacts/t/native-controls-1f0dc3a4/results.json",
+          "sha256": "ee1a5c7e4c9693cf584b51e4f0141c1185330e15329609b4478dfe9861f60696"
+        },
+        {
+          "command": "current-owned-entrypoint-adoption-guards.log",
+          "status": "passed",
+          "scope": "Eight current projection/adoption cases pass: exact native declaration/package hashes, independent app branding, untouched entry migration, reviewed initial custom source, stale/foreign rejection and ordinary owned edits after managed binding adoption. No runtime acceptance inferred from source review.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-owned-entrypoint-adoption-guards.log",
+          "sha256": "bbdbf4b789f0325a732b4e14aeda9b80e578ad4026efd7412a3e6ad8682a4abc"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual current emitted frontend preparation and full CI verification command pass in a fresh five-project/two-frontend foundation-only consumer, using existing selected shared runtimes. Actual architecture reader, locked restore, Release build and native pack passed. No .NET test projects or unfinished fictional product binding, application acceptance, device installers, Docker service or coding agent.",
+          "log": "artifacts/tests/emitted-ci/4f7fae2d/results.json",
+          "sha256": "d681035d2bb4968cd8173cb601079fac3513fce42b060215941593aa15edf605"
+        },
+        {
+          "command": "current-completed-retry-boundaries.log",
+          "status": "passed",
+          "scope": "All five maintenance fixtures pass. Eight interrupted retries retain original context; after a fresh completing attempt, eight new completed operations use the installed version. Failed marker exact bytes, original archive and application files retained; five completed log markers bounded. Complements actual twelve-boundary updater proof.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-completed-retry-boundaries.log",
+          "sha256": "fa3e2bdad45c1f94d2677846d9f9c0220b7a09ca84a1f04c4e62c32d8c0262e6"
+        },
+        {
+          "command": "current-qualification-prerequisite-closure.log",
+          "status": "passed",
+          "scope": "All19 release-candidate routing/provenance cases pass, including complete declared prerequisites for Linux and focused Windows CI lanes. No local Release or publication claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-qualification-prerequisite-closure.log",
+          "sha256": "f062bf10bd85862cde726f78d2d90a9faffed57a90c74985ca562c0c90c3086b"
+        },
+        {
+          "command": "current-complete-knowledge-registration.log",
+          "status": "passed",
+          "scope": "All7 actual knowledge inventory cases pass after registering the optional typed example and current local-repair section; runtime/provider acceptance remains separately required.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-complete-knowledge-registration.log",
+          "sha256": "19005e531cfc920928167e284a406cfd96dbb97e83df4c74902fd795e5f23ccc"
+        },
+        {
+          "command": "current-additive-presentation-profile-maintenance.log",
+          "status": "passed",
+          "scope": "All17 isolated maintenance cases pass: exact additive Presentation package/activation in future new snapshots, original contracts unchanged, all historical bytes retained. Public qualification/promotion remain real gates.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-additive-presentation-profile-maintenance.log",
+          "sha256": "bf6e77b8124fb462375731a66c3944b0b0b1bd31e50842cec0c862e27ba90879"
+        },
+        {
+          "command": "journal.json",
+          "status": "failed",
+          "scope": "Historical bounded Development began at6bb9df6:108 checks passed,8 failed. Four actual source/fixture/registration failures were repaired in targeted current runs. Four exact-case checks rejected changed inputs/anchors while implementation continued. Source-stage boundary retained separately; this run cannot qualify later source and no pass is inferred.",
+          "log": "artifacts/validation-runs/20261017T023917Z-ddad0daf/journal.json",
+          "sha256": "c43d73c97a617d26aa0f92fe2fc7545faae890dae50d15b54ed9c925d0781233"
+        }
+      ],
+      "sourceStageBoundary": "artifacts/maintenance-implementation-2026-10-16/continuation-17/combined-development-source-stage-boundary.json",
+      "qualification": "Freeze and commit current source before fresh bounded Development. Foundation PR14 remains open at6c6b113, complete CI45 passed; runtime0.3.6 and Build0.3.2 not published/adopted. Frozen47 unchanged. No active consumer, paid agent/provider, device install, merge or tag."
     }
   ]
 }

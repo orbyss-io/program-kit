@@ -316,13 +316,18 @@ def validate(model, repository=None):
             require(row['source'] == 'shells.json' or row['source'].endswith('/shells.json'), 'shell source must name shells.json')
             if 'presentation' in row:
                 presentation = row['presentation']
-                object_fields(presentation, {'enabled'}, {'settings'}, name + '.presentation')
+                object_fields(presentation, {'enabled'}, {'settings', 'entrypoints'}, name + '.presentation')
                 require(type(presentation['enabled']) is bool, 'presentation.enabled must be boolean')
                 settings = presentation.get('settings', {})
                 require(isinstance(settings, dict) and set(settings) <= {'ApplicationName', 'Locale', 'Theme',
                         'RoutePrefix', 'ReturnPath', 'ResponsePolicy', 'AssetResponsePolicy', 'SignOutConfirmation', 'Copy'},
                         'presentation settings must use the native public option names')
                 require(presentation['enabled'] or not settings, 'disabled presentation cannot author active settings')
+                entrypoints = presentation.get('entrypoints', {})
+                require(isinstance(entrypoints, dict) and all(isinstance(key, str) and isinstance(value, str)
+                        and re.fullmatch(r'[a-f0-9]{64}', value) for key, value in entrypoints.items()),
+                        'custom presentation entrypoints require exact reviewed source SHA-256 values')
+                require(presentation['enabled'] or not entrypoints, 'disabled presentation cannot author client bindings')
             require(isinstance(row.get('settings', {}), dict), 'shell settings must be a typed object')
             require(set(row.get('settings', {})) <= {'DiscoveryTimeoutSeconds', 'RemoteAuthenticationTimeoutSeconds',
                     'SessionIdleMinutes', 'SessionAbsoluteMinutes'}, 'unsupported shell policy overrides')
@@ -443,6 +448,9 @@ def validate(model, repository=None):
         require(sum(row['shellRef'] == name for row in bindings(model, 'authentication')) == 1, 'each shell needs one authentication profile')
         require(shell_features(model, name), 'shell has no selected owned feature')
         pages = [row for row in bindings(model, 'frontend') if row['shellRef'] == name]
+        reviewed = model['resources'][name].get('presentation', {}).get('entrypoints', {})
+        require(set(reviewed) <= {row['frontendRef'] for row in pages},
+                'custom presentation entrypoints must belong to a frontend bound to this shell')
         require(len({row['frontendRef'] for row in pages}) <= 1, 'one selected HostedPages deployment root per shell is supported')
         require(len({row['routeId'].casefold() for row in pages}) == len(pages) and
                 len({row['path'].casefold() for row in pages}) == len(pages), 'ambiguous hosted page route identity or path')

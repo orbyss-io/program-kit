@@ -783,3 +783,39 @@ The full flow must independently verify the actual packed API assembly and setti
 metadata alongside its configured response and durable provider effect. Inspection
 does not update historical declarations or mint compiled provenance. All47 original
 finding identities remain; no active consumer or unrelated work changed.
+
+
+## Continuation: generated native controls and emitted CI commands
+
+Foundation commit `6c6b113f37e28e842af884416538f47952ac6944` adds bounded
+native browser configuration loading and checked immutable ESM types. Strict type,
+25 module, actual nested-shell browser and native probe checks pass. Complete CI45
+(`38996183323`) passes Linux and Windows. Its tested merge source
+`f2b400dfd3e34cfd083ae49aa20842838038a9c7` has the exact same source tree;
+all five retained artifact digests match. PR14 remains open; no stable release.
+
+The future qualified public profile now supplies exact native browser declarations
+to the generated frontend. A thin binding consumes native styles, confirmation,
+BFF transport and session observers without copying those implementations. App
+branding remains independent of provider branding. Untouched app seams migrate;
+custom initial adoption binds reviewed bytes, while ordinary edits after managed
+binding adoption remain owned and require real verification. The optional unsaved
+editor source and actual generated-control cancellation/expiry probe are wired into
+the full typed qualifier. Public-profile Host integration remains required.
+
+Actual emitted CI execution exposed missing generated Python selection and frontend
+preparation. The current templates emit the managed Python pin, select Python and
+npm in CI, explicitly prepare frontends, and make normal Build check their freshness
+without acquiring dependencies. A fresh five-project/two-frontend foundation-only
+consumer passes the real emitted CI command through architecture, locked restore,
+Release build and pack (`artifacts/tests/emitted-ci/4f7fae2d/results.json`). It has no
+product test project; this proves the command route, not application acceptance.
+Consumer workflow actions and the Python pin are now in dependency maintenance.
+
+The bounded Development run at6bb9df6 remains failed:108/116 passed. Four real
+inventory/fixture/knowledge/profile assertions were repaired in targeted tests;
+four later exact-case checks correctly rejected source or anchor changes made
+during the run. The source-stage boundary is explicit and this run qualifies no
+later candidate. Current source must be committed and frozen before a fresh run.
+All47 identities, original166 obligations, historical evidence and unrelated work
+remain; no active consumer, device software, paid phase, merge or tag was changed.

@@ -17,6 +17,13 @@ only after the owning capability's persistence admission record is complete.
 
 ## Work
 
+For an explicitly selected first typed operation, export the installed
+`references/examples/typed-operation` sources through the maintained
+`asset_sources.py` helper. Its README binds the real generated wire types, selected
+public Foundation problem contract, native options producer and provider port.
+Example installation is not application acceptance; use its actual native flow
+after the required Foundation release and public profile qualification.
+
 Read the sibling `program-kit-building-blocks` extension before selecting packages. This command owns only
 the managed .NET repository baseline; accepted building-block selection, exact package assignment, and
 cross-ecosystem materialization belong to `speckit.program-kit-building-blocks.sync`. Treat the Foundation,

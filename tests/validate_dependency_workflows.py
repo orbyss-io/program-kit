@@ -63,7 +63,12 @@ class ProfilePreparationTests(unittest.TestCase):
         self.assertEqual(self.current['resolutionRevision']+1,target['resolutionRevision'])
         for field in ('capabilities','compositions','sources'):
             self.assertEqual(self.current[field],target[field],field)
-        self.assertEqual(set(self.current['packages']),set(target['packages']))
+        presentation = 'nuget:Orbyss.Foundation.Web.Presentation'
+        self.assertEqual(set(self.current['packages']) | {presentation},set(target['packages']))
+        self.assertEqual('Orbyss.Foundation.Web.Presentation', target['packages'][presentation]['packageId'])
+        self.assertEqual(self.latest['foundation'], target['packages'][presentation]['version'])
+        self.assertEqual([{'featureIdentity': 'Orbyss.Foundation.Web.Presentation', 'targetSlot': 'shell'}],
+                         target['packages'][presentation]['activations'])
         for key,package in self.current['packages'].items():
             self.assertEqual({field:value for field,value in package.items() if field!='version'},
                              {field:value for field,value in target['packages'][key].items() if field!='version'},key)

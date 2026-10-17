@@ -199,7 +199,7 @@ def load_configuration(repository):
     return validate_configuration(read(Path(repository) / INPUT))
 
 
-def publisher_contracts(repository, configuration=None, selected_packages=None, presentation=None):
+def publisher_contracts(repository, configuration=None, selected_packages=None, presentation=None, presentation_defaults=None):
     import dependency_profile
     blocks = dependency_profile.resolver()
     effective = blocks.effective_dependency_context(repository)
@@ -283,9 +283,33 @@ def publisher_contracts(repository, configuration=None, selected_packages=None, 
         result['browserPresentation'] = {'enabled': presentation.get('enabled', True)}
         if result['browserPresentation']['enabled']:
             configured = defaults(result, 'Foundation:Web:Presentation:')
+            configured.update(presentation_defaults or {})
             configured.update(presentation.get('settings', {}))
             validate_bound_settings({'Foundation': {'Web': {'Presentation': configured}}}, result)
             result['browserPresentation']['settings'] = configured
+    return result
+
+
+def browser_declarations(repository):
+    """Use exact package-owned ESM declarations from the selected frozen knowledge."""
+    import dependency_profile
+    blocks = dependency_profile.resolver()
+    effective = blocks.effective_dependency_context(repository)
+    knowledge = effective['publisherKnowledge']; registry = Path(effective['registryPath'])
+    package = 'Orbyss.Foundation.Web.Presentation'
+    matches = [row for row in knowledge['packages'] if row['id'] == package]
+    require(len(matches) == 1, 'selected profile lacks one native presentation package')
+    raw = blocks.publisher_document_bytes(registry, matches[0], 16 * 1_048_576)
+    require(digest(raw) == matches[0]['sha256'], 'native browser package facts changed')
+    files = json.loads(raw)['files']; result = {}
+    for name in ('configuration.d.mts', 'presentation.d.mts', 'bff.d.mts', 'session.d.mts', 'spa.d.mts'):
+        source = 'src/' + package + '/browser/' + name
+        documents = [row for row in knowledge['documents'] if row['publisherPath'] == source]
+        require(len(documents) == 1, 'qualify current publisher browser declaration knowledge: ' + source)
+        data = blocks.publisher_document_bytes(registry, documents[0])
+        require(digest(data) == documents[0]['sha256'] == files.get('browser/' + name),
+                'publisher browser declaration differs from its exact native package: ' + name)
+        result[name] = data
     return result
 
 

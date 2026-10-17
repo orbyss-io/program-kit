@@ -203,7 +203,7 @@ def publisher_knowledge(directory,native,profile,host):
         if tree.get('truncated'): raise ValueError('Publisher guidance inventory is incomplete')
         for item in tree['tree']:
             relative=item['path']
-            source=any(relative.startswith('src/'+identity+'/') for identity in identities) and relative.endswith(('.cs','.json','.md','.targets','.props'))
+            source=any(relative.startswith('src/'+identity+'/') for identity in identities) and relative.endswith(('.cs','.json','.md','.targets','.props','.mjs','.mts','.css'))
             guide=source_commit==commit and (relative in {'README.md','LICENSE','THIRD-PARTY-NOTICES.md','src/Orbyss.Foundation.Host/NOTICE.md'} or relative.startswith('docs/') and relative.endswith('.md'))
             if item['type']!='blob' or not (guide or source): continue
             url='https://raw.githubusercontent.com/orbyss-io/dotnet-foundation/'+source_commit+'/'+relative

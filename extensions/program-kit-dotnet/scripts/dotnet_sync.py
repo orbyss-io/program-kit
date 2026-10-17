@@ -560,7 +560,7 @@ def main() -> int:
         return (isinstance(entry, dict) and entry.get('ownership') == 'scaffold'
                 and entry.get('contribution') == 'foundation'
                 and entry.get('sourceIdentity') == '../../scripts/foundation_composition.py'
-                and Path(path).suffix in {'.cs', '.csproj'})
+                and Path(path).suffix in {'.cs', '.csproj', '.ts', '.mjs'})
     if foundation_configuration is not None:
         for path, previous in old_files.items():
             if (path in foundation_outputs or Path(path).suffix != '.csproj'
@@ -852,7 +852,7 @@ def main() -> int:
                 actions.append({'kind':'update','path':relative,'content':desired})
                 final_hash = final_baseline = final_written = desired_hash
             elif (foundation_configuration is not None and relative in foundation_outputs
-                  and Path(relative).suffix in {'.csproj', '.cs'} and foundation_source(relative, previous)
+                  and Path(relative).suffix in {'.csproj', '.cs', '.ts', '.mjs'} and foundation_source(relative, previous)
                   and current_hash == last_written_hash == baseline_hash):
                 # Reconcile only authenticated untouched generated references/seams.
                 # Native selection/customization changes the bytes and retains

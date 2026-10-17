@@ -40,6 +40,10 @@
       "ownership": "managed"
     },
     {
+      "path": ".python-version",
+      "ownership": "managed"
+    },
+    {
       "path": ".nvmrc",
       "ownership": "managed"
     },

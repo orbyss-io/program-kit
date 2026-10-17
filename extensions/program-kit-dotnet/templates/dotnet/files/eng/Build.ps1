@@ -157,6 +157,8 @@ else {
     & (Join-Path $PSScriptRoot 'Restore.ps1') -Subject $solutions[0].FullName
 }
 if (-not $?) { throw 'Managed repository-isolated restore failed.' }
+& $buildPython (Join-Path $PSScriptRoot 'prepare_hosted_pages.py') --repository $root --check
+if ($LASTEXITCODE -ne 0) { throw 'Typed frontend inputs are stale or unprepared. Run python eng/prepare_hosted_pages.py --repository . --restore before building.' }
 if ($VerifyArchitecture) {
     # The engineering reader is outside the consumer solution. Restore it before
     # capturing pack inputs so architecture execution cannot introduce a new

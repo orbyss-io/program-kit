@@ -963,7 +963,7 @@
       "route": {
         "kind": "manual",
         "via": ["extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md", "extensions/program-kit-governance/scripts/consumer_upgrade.py", "scripts/consumer_upgrade_workspace.py", "extensions/program-kit-governance/scripts/tooling_witness.py"],
-          "sections": ["Fresh story-delivery adoption", "Retained exact tooling source", "Required shared regression cases"],
+          "sections": ["Fresh story-delivery adoption", "Retained exact tooling source", "Required shared regression cases", "Reconcile declared local tooling repairs"],
         "requirements": [],
         "review": "Existing substantive review, scoped recovery and destination activation; no founding bootstrap restart."
       }
@@ -1119,6 +1119,18 @@
         ],
         "requirements": [],
         "review": "Preserve consumer conflicts and accepted tools; sync is not network/build acceptance."
+      }
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/typed-operation/README.md",
+      "phases": ["implementation"],
+      "enforcement": "Optional owned example, selected explicitly; real generated types, native settings provenance and provider effects require actual execution. No automatic business acceptance.",
+      "route": {
+        "kind": "manual",
+        "via": ["extensions/program-kit-governance/scripts/asset_sources.py", "tests/validate_typed_operation.py"],
+        "sections": ["Typed first operation"],
+        "requirements": [],
+        "review": "Export exact installed source into a new owned artifact directory. Adapt accepted application identities, qualify actual Build/export/client/provider behavior, and preserve historical baselines."
       }
     },
     {

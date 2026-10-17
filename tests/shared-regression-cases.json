@@ -2212,7 +2212,7 @@
     {
       "module": "validate_browser_presentation_profile",
       "path": "tests/validate_browser_presentation_profile.py",
-      "sha256": "3e87eb5d0d6e9e21e344688f129a1ee68610a58eae228ff722fe81da8b33c088",
+      "sha256": "7771579670772cbe1836b0d0663d375e06665d65907b70eeba2cb50ed5c58419",
       "cases": {
         "validate_browser_presentation_profile.PresentationProfileTests.test_native_metadata_defaults_and_selected_theme_bind_the_actual_landing_path": [
           "Windows",
@@ -2230,6 +2230,26 @@
           "Darwin"
         ],
         "validate_browser_presentation_profile.PresentationProfileTests.test_spa_redirect_and_popup_have_distinct_matching_contract_and_vite_policies": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_browser_presentation_profile.PresentationProfileTests.test_custom_entrypoint_review_cannot_bind_a_foreign_frontend": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_browser_presentation_profile.PresentationProfileTests.test_frontend_branding_is_independent_of_identity_theme": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_browser_presentation_profile.PresentationProfileTests.test_generated_binding_updates_untouched_entry_and_refuses_unreviewed_or_stale_custom_source": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_browser_presentation_profile.PresentationProfileTests.test_native_browser_declarations_bind_exact_package_files_and_frozen_source": [
           "Windows",
           "Linux",
           "Darwin"
@@ -2562,6 +2582,7 @@
     "extensions/program-kit-dotnet/references/examples/typed-operation/README.md",
     "extensions/program-kit-dotnet/references/examples/typed-operation/client.ts",
     "extensions/program-kit-dotnet/references/examples/typed-operation/settings.source.template.json",
+    "extensions/program-kit-dotnet/references/examples/unsaved-editor.ts",
     "extensions/program-kit-dotnet/references/foundation-compositions.md",
     "extensions/program-kit-dotnet/references/implementation-boundaries.md",
     "extensions/program-kit-dotnet/references/keycloak-admin-api.md",
@@ -2698,6 +2719,7 @@
     "extensions/program-kit-dotnet/templates/dotnet/files/hostsettings.json",
     "extensions/program-kit-dotnet/templates/dotnet/files/nuplane.settings.json",
     "extensions/program-kit-dotnet/templates/dotnet/files/shells.json",
+    "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/presentation/foundation-controls.ts",
     "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/.gitignore",
     "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/package-lock.json",
     "extensions/program-kit-dotnet/templates/dotnet/hosted-pages/web/package.json",
@@ -3538,6 +3560,7 @@
     "tests/validate_dotnet_scaffold.py",
     "tests/validate_dotnet_test_discovery.py",
     "tests/validate_effective_dependency_context.py",
+    "tests/validate_emitted_ci.py",
     "tests/validate_exporter_upgrade.py",
     "tests/validate_feature_knowledge.py",
     "tests/validate_foundation_composition.py",

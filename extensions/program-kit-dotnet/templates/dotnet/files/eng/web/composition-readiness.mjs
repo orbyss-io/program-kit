@@ -131,9 +131,38 @@ try {
               const observed = await context.request.get(host.origin + '/api/sample-label');
               require(observed.status() === 200 && JSON.stringify(await observed.json()) === JSON.stringify(result));
             }
+            if (host.presentationProbe) {
+              current.phase = 'native-generated-controls';
+              const effects = [];
+              page.on('request', request => {
+                const path = new URL(request.url()).pathname;
+                if (/\/bff\/(?:antiforgery|logout)$/u.test(path) || path === '/api/sample-label' && request.method() === 'POST')
+                  effects.push(request.method());
+              });
+              const editor = page.getByRole('textbox', { name: 'Example draft', exact: true });
+              await editor.fill('Fictional retained draft');
+              const signOut = page.getByRole('button', { name: host.presentationProbe.signOutText, exact: true });
+              await signOut.click(); await page.getByRole('dialog').waitFor();
+              require(effects.length === 0);
+              await page.keyboard.press('Escape'); await page.getByRole('dialog').waitFor({ state: 'hidden' });
+              require(await editor.inputValue() === 'Fictional retained draft' && effects.length === 0);
+              require((await (await context.request.get(host.origin + '/bff/user')).json()).authenticated === true);
+              // Actual navigation/back exercises the generated binding's native
+              // lifecycle rather than injecting a replacement presentation.
+              await context.clearCookies();
+              await page.goto(host.origin + host.presentationProbe.routePrefix + '/expired');
+              await page.goBack({ waitUntil: 'domcontentloaded' });
+              await page.waitForFunction(() => {
+                const draft = document.querySelector('textarea[aria-label="Example draft"]');
+                return !draft || !draft.checkVisibility();
+              });
+              require(effects.length === 0);
+              require((await (await context.request.get(host.origin + '/bff/user')).json()).authenticated === false);
+              current.nativeGeneratedControls = true;
+            }
             evidence.checks.push({ engine, host: host.id, origin: host.origin, authenticated: true,
               hostedAssetsLoaded: Boolean(host.page), consumerFeature: Boolean(host.productPath),
-              typedOperation: Boolean(host.typedOperation) });
+              typedOperation: Boolean(host.typedOperation), nativeGeneratedControls: current.nativeGeneratedControls === true });
           } catch {
             current.pagePath = new URL(page.url()).pathname;
             // Retain a fixed diagnostic category, never the provider's message,
