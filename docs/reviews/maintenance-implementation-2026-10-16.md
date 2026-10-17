@@ -819,3 +819,16 @@ during the run. The source-stage boundary is explicit and this run qualifies no
 later candidate. Current source must be committed and frozen before a fresh run.
 All47 identities, original166 obligations, historical evidence and unrelated work
 remain; no active consumer, device software, paid phase, merge or tag was changed.
+
+
+## Continuation: approved Foundation publication and current adoption gate
+
+The human approved exact Foundation commit `6c6b113f37e28e842af884416538f47952ac6944` for runtime `v0.3.6` and independent `build-v0.3.2`. PR14 was merged; both original-source tags were pushed atomically. Complete tagged Release runs39017641714 and39017641940 passed, including public verification and publisher knowledge. Public runtime/build evidence is retained under continuation17. An initial runtime-artifact extraction WinError206 was recovered using native extended Windows I/O; original ZIP and every extracted hash were verified, with the failed extraction separately recorded.
+
+Frozen pre-release Development at dabe83d completed114/116. Its two installed Spec Kit1.2.0 checkpoint replacements failed with Windows access-denied errors; the run remains failed. Separately, every one of the435 required Windows identities across26 reviewed modules in the437-case contract passed with identical input hashes. The two POSIX cases remain explicitly not applicable locally. This is exact scoped coverage, not complete or later-candidate acceptance.
+
+The isolated Root release branch prepares0.13.3, preserving the unrelated shared-checkout documentation. Current migration guidance preserves authored work and supersedes blanket feature deletion/restart for this maintenance upgrade; historical guidance is unchanged. The current generated binding also disposes editor registrations when private presentation is removed and refuses new registrations on the cleared surface. Its exact native-type/strict Vite prototype passes; actual Host behavior remains required.
+
+Public profile adoption39018877596 correctly failed: published exporter0.2.6 carries CShells0.0.30 and cannot inspect the0.0.31 feature ABI in runtime0.3.6. The original failed65MiB artifact is retained under `artifacts/u133-1`. Foundation independent exporter0.2.7 at ebf4387 now passes actual installation/export against public runtimes0.3.3,0.3.4,0.3.5 and0.3.6, while preserving the old public incompatibility and strict negatives. PR15/CI39019483917 add this qualifier before publication. The earlier runtime/Build approval does not approve a different exporter source/tag.
+
+All47 finding IDs remain unchanged. Root public-profile promotion, full generated integration and installed migration, exact main CI/security/readiness and Root exact tag approval remain before publication. No active consumer, paid phase or device installation was changed.

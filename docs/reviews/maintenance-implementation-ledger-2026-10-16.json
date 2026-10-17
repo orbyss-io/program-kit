@@ -997,7 +997,7 @@
       "sourceDiagnosis": "Replace stale fixtures with preserved obligations",
       "workPackages": "G/I",
       "closureRequired": "Explicit required identities and old-to-new coverage; removal/substitution/skip/empty/failure negatives.",
-      "status": "all-166-original-obligations-preserved-and-current-412-Windows-cases-passed; installed candidate/Linux/CI qualification pending",
+      "status": "all-166-original-obligations-preserved; frozen-437-inventory/435-required-Windows-identities-passed; final-release-source/Linux/CI qualification pending",
       "changedFiles": [
         "extensions/program-kit-governance/scripts/case_inventory.py",
         "extensions/program-kit-governance/references/consumer-upgrade.md",
@@ -1149,6 +1149,13 @@
           "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
           "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
           "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
+        },
+        {
+          "command": "frozen-development-exact-case-coverage.json",
+          "status": "passed",
+          "scope": "All26 reviewed modules and all435 required Windows identities in the437-case contract actually passed with identical input hashes across receipts. Two explicit POSIX cases are not applicable locally. The enclosing Development suite still failed two external native checkpoint checks; no final-candidate qualification claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/frozen-development-exact-case-coverage.json",
+          "sha256": "3fb97f5f57c423936834bc6cef9fc199ce82c61aa6fc7d6db1599a3a4918cfda"
         }
       ],
       "remainingDependencies": [
@@ -1277,7 +1284,7 @@
       "sourceDiagnosis": "Supply qualified executable integration",
       "workPackages": "B/I",
       "closureRequired": "Real compile/export/checked client/runtime wire parity; public native seams and constraints preserved.",
-      "status": "shipping typed wire metadata and actual public Foundation contract repaired; fresh public-profile full-flow pending",
+      "status": "runtime0.3.6 and Build0.3.2 published; actual public adoption exposed exporter0.2.6 ABI mismatch; matching exporter0.2.7 in CI and full public-profile flow pending",
       "changedFiles": [
         "tests/validate_composition_start.py",
         "tests/validate_composition_tooling.py",
@@ -1360,6 +1367,34 @@
           "scope": "Actual Foundation public problem DTO compiler schema and HTTP writer probe passed, including closed root/field errors, strict integer status and optional Detail. Foundation branch99be8c3; fresh CI44 remains pending; no old CI43 success borrowed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-public-problem-optional-detail.log",
           "sha256": "cbae158b8fd6c40a159cb7c8afefde9a3fcbb6f110b2e9878bb3025c12b844bd"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as v0.3.6. Complete tagged Release39017641714 succeeded, including native public NuGet propagation, immutable Host and publisher knowledge. Original evidence and digests retained; extraction-path recovery is separately recorded. Downstream profile adoption remains separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-v0.3.6/publication-summary.json",
+          "sha256": "d6512b21da7fb859a2a1c463ac913e64bf09a58917d5e12feb29a3ca23b56164"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as independent build-v0.3.2. Complete Release39017641940 and public package verification succeeded; publisher knowledge exact hash retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-build-v0.3.2/publication-summary.json",
+          "sha256": "92d450be10c6f1e9cde58c3588fe79a610338ae53664f58ed4fe3d3d7552770b"
+        },
+        {
+          "command": "retention.json",
+          "status": "failed",
+          "scope": "Original failed public profile adoption39018877596 at c18d971 retained with exact65MiB artifact digest. PKO200 attributed to public exporter0.2.6 shared ABI0.0.30 versus Foundation0.3.6 feature ABI0.0.31. No profile promotion or success inferred.",
+          "log": "artifacts/u133-1/retention.json",
+          "sha256": "2f6505ce963d756caae20d46cede84eee3de0c0c7d0ee704fffd97783b8d918d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual independent exporter0.2.7 locked pack/installation at ebf4387 passes all four immutable public runtime closures0.3.3-0.3.6, strict producer/descriptor/dependency negatives and preserved old public failures. Public0.2.6 rejection for0.3.6 reproduced. New PR15/CI39019483917 pending; exporter0.2.7 not published or authorized by the earlier runtime/Build approval.",
+          "log": "artifacts/t/exporter-027/qualification-qexsccp9/results.json",
+          "sha256": "7dd6f54108ce251ca3b912268db12b6691869a9b4e5c110ab670dfac678f0bbc"
         }
       ],
       "remainingDependencies": [
@@ -1373,7 +1408,7 @@
       "sourceDiagnosis": "Preserve lock requirement; prove runnable recipe",
       "workPackages": "F/I",
       "closureRequired": "Native selected generator lock and real maintained argument routing; no manual client/baseline reset.",
-      "status": "shipping typed wire metadata and actual public Foundation contract repaired; fresh public-profile full-flow pending",
+      "status": "runtime0.3.6 and Build0.3.2 published; actual public adoption exposed exporter0.2.6 ABI mismatch; matching exporter0.2.7 in CI and full public-profile flow pending",
       "changedFiles": [
         "tests/validate_composition_start.py",
         "tests/validate_composition_tooling.py",
@@ -1456,6 +1491,34 @@
           "scope": "Actual Foundation public problem DTO compiler schema and HTTP writer probe passed, including closed root/field errors, strict integer status and optional Detail. Foundation branch99be8c3; fresh CI44 remains pending; no old CI43 success borrowed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-public-problem-optional-detail.log",
           "sha256": "cbae158b8fd6c40a159cb7c8afefde9a3fcbb6f110b2e9878bb3025c12b844bd"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as v0.3.6. Complete tagged Release39017641714 succeeded, including native public NuGet propagation, immutable Host and publisher knowledge. Original evidence and digests retained; extraction-path recovery is separately recorded. Downstream profile adoption remains separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-v0.3.6/publication-summary.json",
+          "sha256": "d6512b21da7fb859a2a1c463ac913e64bf09a58917d5e12feb29a3ca23b56164"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as independent build-v0.3.2. Complete Release39017641940 and public package verification succeeded; publisher knowledge exact hash retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-build-v0.3.2/publication-summary.json",
+          "sha256": "92d450be10c6f1e9cde58c3588fe79a610338ae53664f58ed4fe3d3d7552770b"
+        },
+        {
+          "command": "retention.json",
+          "status": "failed",
+          "scope": "Original failed public profile adoption39018877596 at c18d971 retained with exact65MiB artifact digest. PKO200 attributed to public exporter0.2.6 shared ABI0.0.30 versus Foundation0.3.6 feature ABI0.0.31. No profile promotion or success inferred.",
+          "log": "artifacts/u133-1/retention.json",
+          "sha256": "2f6505ce963d756caae20d46cede84eee3de0c0c7d0ee704fffd97783b8d918d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual independent exporter0.2.7 locked pack/installation at ebf4387 passes all four immutable public runtime closures0.3.3-0.3.6, strict producer/descriptor/dependency negatives and preserved old public failures. Public0.2.6 rejection for0.3.6 reproduced. New PR15/CI39019483917 pending; exporter0.2.7 not published or authorized by the earlier runtime/Build approval.",
+          "log": "artifacts/t/exporter-027/qualification-qexsccp9/results.json",
+          "sha256": "7dd6f54108ce251ca3b912268db12b6691869a9b4e5c110ab670dfac678f0bbc"
         }
       ],
       "remainingDependencies": [
@@ -1469,7 +1532,7 @@
       "sourceDiagnosis": "Supply shared current harness/example and fixture setup",
       "workPackages": "B/H/I",
       "closureRequired": "Nondefault scalar options activate, native public features register and durable behavior is observed.",
-      "status": "shipping typed wire metadata and actual public Foundation contract repaired; fresh public-profile full-flow pending",
+      "status": "runtime0.3.6 and Build0.3.2 published; actual public adoption exposed exporter0.2.6 ABI mismatch; matching exporter0.2.7 in CI and full public-profile flow pending",
       "changedFiles": [
         "tests/validate_composition_start.py",
         "tests/validate_composition_tooling.py",
@@ -1545,6 +1608,34 @@
           "scope": "Actual Foundation public problem DTO compiler schema and HTTP writer probe passed, including closed root/field errors, strict integer status and optional Detail. Foundation branch99be8c3; fresh CI44 remains pending; no old CI43 success borrowed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-public-problem-optional-detail.log",
           "sha256": "cbae158b8fd6c40a159cb7c8afefde9a3fcbb6f110b2e9878bb3025c12b844bd"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as v0.3.6. Complete tagged Release39017641714 succeeded, including native public NuGet propagation, immutable Host and publisher knowledge. Original evidence and digests retained; extraction-path recovery is separately recorded. Downstream profile adoption remains separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-v0.3.6/publication-summary.json",
+          "sha256": "d6512b21da7fb859a2a1c463ac913e64bf09a58917d5e12feb29a3ca23b56164"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as independent build-v0.3.2. Complete Release39017641940 and public package verification succeeded; publisher knowledge exact hash retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-build-v0.3.2/publication-summary.json",
+          "sha256": "92d450be10c6f1e9cde58c3588fe79a610338ae53664f58ed4fe3d3d7552770b"
+        },
+        {
+          "command": "retention.json",
+          "status": "failed",
+          "scope": "Original failed public profile adoption39018877596 at c18d971 retained with exact65MiB artifact digest. PKO200 attributed to public exporter0.2.6 shared ABI0.0.30 versus Foundation0.3.6 feature ABI0.0.31. No profile promotion or success inferred.",
+          "log": "artifacts/u133-1/retention.json",
+          "sha256": "2f6505ce963d756caae20d46cede84eee3de0c0c7d0ee704fffd97783b8d918d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual independent exporter0.2.7 locked pack/installation at ebf4387 passes all four immutable public runtime closures0.3.3-0.3.6, strict producer/descriptor/dependency negatives and preserved old public failures. Public0.2.6 rejection for0.3.6 reproduced. New PR15/CI39019483917 pending; exporter0.2.7 not published or authorized by the earlier runtime/Build approval.",
+          "log": "artifacts/t/exporter-027/qualification-qexsccp9/results.json",
+          "sha256": "7dd6f54108ce251ca3b912268db12b6691869a9b4e5c110ab670dfac678f0bbc"
         }
       ],
       "remainingDependencies": [
@@ -1558,7 +1649,7 @@
       "sourceDiagnosis": "Trace imports; align strict layout and real lifecycle",
       "workPackages": "A/C/D/I",
       "closureRequired": "Strict build/lint and real persisted-page/session/privacy recovery; original cause only claimed when substantiated.",
-      "status": "generated native BFF control binding, exact publisher types, app branding and reviewed migration implemented; public-profile Host/SPA integration and final CI/adoption pending",
+      "status": "native Foundation presentation published; generated binding/editor lifetime repaired and strict-compiled; current public-profile Host/SPA/nested-path and final CI/adoption obligations pending",
       "changedFiles": [
         "extensions/program-kit-dotnet/references/examples/unsaved-editor.ts",
         "extensions/program-kit-dotnet/scripts/composition_model.py",
@@ -1653,6 +1744,20 @@
           "scope": "Eight current projection/adoption cases pass: exact native declaration/package hashes, independent app branding, untouched entry migration, reviewed initial custom source, stale/foreign rejection and ordinary owned edits after managed binding adoption. No runtime acceptance inferred from source review.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-owned-entrypoint-adoption-guards.log",
           "sha256": "bbdbf4b789f0325a732b4e14aeda9b80e578ad4026efd7412a3e6ad8682a4abc"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as v0.3.6. Complete tagged Release39017641714 succeeded, including native public NuGet propagation, immutable Host and publisher knowledge. Original evidence and digests retained; extraction-path recovery is separately recorded. Downstream profile adoption remains separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-v0.3.6/publication-summary.json",
+          "sha256": "d6512b21da7fb859a2a1c463ac913e64bf09a58917d5e12feb29a3ca23b56164"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Current release binding at c18d971 passes actual strict TypeScript, strongest optional/index/unused flags and Vite compilation with exact native declarations. Removed private surfaces now dispose their registered editor sources. Actual generated Host expiry/registry behavior remains a full-flow obligation.",
+          "log": "artifacts/t/native-controls-38740b62/results.json",
+          "sha256": "6030d2668fa0f8aacc4622d0414ade1ed3da6b9c792a38bda8ff050033d5c092"
         }
       ],
       "remainingDependencies": [
@@ -1781,7 +1886,7 @@
       "sourceDiagnosis": "Trace ownership and reconcile stale entrypoints",
       "workPackages": "A/D/I",
       "closureRequired": "Executable current workflow command/prerequisite proof plus settings/pack/private-file boundaries.",
-      "status": "actual emitted full CI/frontend/architecture/build/pack route passes with managed Python/npm prerequisites; new-public settings/Host/private-file closure and final candidate CI pending",
+      "status": "runtime0.3.6 and Build0.3.2 published; actual public adoption exposed exporter0.2.6 ABI mismatch; matching exporter0.2.7 in CI and full public-profile flow pending",
       "changedFiles": [
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
         "extensions/program-kit-building-blocks/scripts/dependency_context.py",
@@ -1908,6 +2013,34 @@
           "scope": "All17 isolated maintenance cases pass: exact additive Presentation package/activation in future new snapshots, original contracts unchanged, all historical bytes retained. Public qualification/promotion remain real gates.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-additive-presentation-profile-maintenance.log",
           "sha256": "bf6e77b8124fb462375731a66c3944b0b0b1bd31e50842cec0c862e27ba90879"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as v0.3.6. Complete tagged Release39017641714 succeeded, including native public NuGet propagation, immutable Host and publisher knowledge. Original evidence and digests retained; extraction-path recovery is separately recorded. Downstream profile adoption remains separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-v0.3.6/publication-summary.json",
+          "sha256": "d6512b21da7fb859a2a1c463ac913e64bf09a58917d5e12feb29a3ca23b56164"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as independent build-v0.3.2. Complete Release39017641940 and public package verification succeeded; publisher knowledge exact hash retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-build-v0.3.2/publication-summary.json",
+          "sha256": "92d450be10c6f1e9cde58c3588fe79a610338ae53664f58ed4fe3d3d7552770b"
+        },
+        {
+          "command": "retention.json",
+          "status": "failed",
+          "scope": "Original failed public profile adoption39018877596 at c18d971 retained with exact65MiB artifact digest. PKO200 attributed to public exporter0.2.6 shared ABI0.0.30 versus Foundation0.3.6 feature ABI0.0.31. No profile promotion or success inferred.",
+          "log": "artifacts/u133-1/retention.json",
+          "sha256": "2f6505ce963d756caae20d46cede84eee3de0c0c7d0ee704fffd97783b8d918d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual independent exporter0.2.7 locked pack/installation at ebf4387 passes all four immutable public runtime closures0.3.3-0.3.6, strict producer/descriptor/dependency negatives and preserved old public failures. Public0.2.6 rejection for0.3.6 reproduced. New PR15/CI39019483917 pending; exporter0.2.7 not published or authorized by the earlier runtime/Build approval.",
+          "log": "artifacts/t/exporter-027/qualification-qexsccp9/results.json",
+          "sha256": "7dd6f54108ce251ca3b912268db12b6691869a9b4e5c110ab670dfac678f0bbc"
         }
       ],
       "remainingDependencies": [
@@ -1921,7 +2054,7 @@
       "sourceDiagnosis": "Preserve freshness guards and supported refresh",
       "workPackages": "F/I",
       "closureRequired": "Stale outputs reject; maintained refresh/reentry passes; no silent broad bypass.",
-      "status": "existing frontend/package freshness guards retained and ordinary Build now admits only prepared current frontends; fresh exact native cases and final full-flow/CI pending",
+      "status": "fresh frozen native freshness/reentry cases passed; ordinary Build preparation guard retained; final public-profile full-flow/CI pending",
       "changedFiles": [
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/prepare_hosted_pages.py",
@@ -3361,7 +3494,7 @@
   "sharedCapabilities": [
     {
       "id": "Foundation browser presentation / confirmation",
-      "status": "partially-implemented; selectable native presentation, BFF transport and private-page lifecycle; packaged/public/adoption closure pending",
+      "status": "native capability published in runtime0.3.6 with complete tagged Release/public verification; Program Kit public-profile/generated integration closure pending",
       "source": "artifacts/maintenance-implementation-2026-10-16/foundation-source",
       "validation": [
         {
@@ -3454,6 +3587,13 @@
           "scope": "Actual portable development Host: 18 root/prefixed/unknown-shell browser/machine/HEAD cases with no selected Foundation feature. This preceded an imports-only Host source change; current-source packaged qualification remains.",
           "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/neutral-browser/18cfd56ece0e4c93b9c8792c719641d6/results.json",
           "sha256": "f2cc0b424407f5d48932757b2cafa34c897f48a935b99490bb41e8036eab8986"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as v0.3.6. Complete tagged Release39017641714 succeeded, including native public NuGet propagation, immutable Host and publisher knowledge. Original evidence and digests retained; extraction-path recovery is separately recorded. Downstream profile adoption remains separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-v0.3.6/publication-summary.json",
+          "sha256": "d6512b21da7fb859a2a1c463ac913e64bf09a58917d5e12feb29a3ca23b56164"
         }
       ],
       "remaining": [
@@ -3585,6 +3725,23 @@
         "validate_workflow_resumption"
       ],
       "qualification": "Original failed run remains failed. Deep atomic path failure repaired with actual targeted composition proof. Native Spec Kit inputs.json Windows replacement failures remain observed with unmodified installed core."
+    },
+    {
+      "command": "./scripts/Test-ProgramKit.ps1 -Suite Development -BrowserEngines chromium,webkit",
+      "source": {
+        "commit": "dabe83d85da148ed426ef2fb7dff9088f2f0e5c2",
+        "tree": "0de6f5a7b542e6939e251ec1d35e2e3560424d6d"
+      },
+      "journal": "artifacts/validation-runs/20261017T082040Z-67a3cfe9/journal.json",
+      "journalSha256": "3dd3390e725be853e1f2d295c5efba9c262059c1fd3b878cc9e7ab51359f0d65",
+      "status": "failed",
+      "passed": 114,
+      "total": 116,
+      "failed": [
+        "validate_post_bootstrap_continuation",
+        "validate_workflow_resumption"
+      ],
+      "qualification": "Frozen source and exact-case inputs remained stable. Original installed Spec Kit1.2.0 WinError5 checkpoint failures retained; upgraded-baseline current CI remains required."
     }
   ],
   "continuationHistory": [
@@ -4277,6 +4434,62 @@
       ],
       "sourceStageBoundary": "artifacts/maintenance-implementation-2026-10-16/continuation-17/combined-development-source-stage-boundary.json",
       "qualification": "Freeze and commit current source before fresh bounded Development. Foundation PR14 remains open at6c6b113, complete CI45 passed; runtime0.3.6 and Build0.3.2 not published/adopted. Frozen47 unchanged. No active consumer, paid agent/provider, device install, merge or tag."
+    },
+    {
+      "stage": "Approved Foundation publication and frozen pre-release validation",
+      "retentionRoot": "C:\\Users\\tech_\\Code\\program-kit",
+      "validation": [
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as v0.3.6. Complete tagged Release39017641714 succeeded, including native public NuGet propagation, immutable Host and publisher knowledge. Original evidence and digests retained; extraction-path recovery is separately recorded. Downstream profile adoption remains separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-v0.3.6/publication-summary.json",
+          "sha256": "d6512b21da7fb859a2a1c463ac913e64bf09a58917d5e12feb29a3ca23b56164"
+        },
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Human-approved exact source6c6b113 published as independent build-v0.3.2. Complete Release39017641940 and public package verification succeeded; publisher knowledge exact hash retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-build-v0.3.2/publication-summary.json",
+          "sha256": "92d450be10c6f1e9cde58c3588fe79a610338ae53664f58ed4fe3d3d7552770b"
+        },
+        {
+          "command": "journal.json",
+          "status": "failed",
+          "scope": "Frozen pre-release Development at dabe83d (repair a394e34 plus separately owned documentation):114/116 passed. Two failures are installed Spec Kit1.2.0 Windows checkpoint os.replace WinError5. No source/anchor changes invalidated this run. It remains FAILED, and later release source requires actual upgraded-baseline CI.",
+          "log": "artifacts/validation-runs/20261017T082040Z-67a3cfe9/journal.json",
+          "sha256": "3dd3390e725be853e1f2d295c5efba9c262059c1fd3b878cc9e7ab51359f0d65"
+        },
+        {
+          "command": "frozen-development-exact-case-coverage.json",
+          "status": "passed",
+          "scope": "All26 reviewed modules and all435 required Windows identities in the437-case contract actually passed with identical input hashes across receipts. Two explicit POSIX cases are not applicable locally. The enclosing Development suite still failed two external native checkpoint checks; no final-candidate qualification claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/frozen-development-exact-case-coverage.json",
+          "sha256": "3fb97f5f57c423936834bc6cef9fc199ce82c61aa6fc7d6db1599a3a4918cfda"
+        },
+        {
+          "command": "retention.json",
+          "status": "failed",
+          "scope": "Original failed public profile adoption39018877596 at c18d971 retained with exact65MiB artifact digest. PKO200 attributed to public exporter0.2.6 shared ABI0.0.30 versus Foundation0.3.6 feature ABI0.0.31. No profile promotion or success inferred.",
+          "log": "artifacts/u133-1/retention.json",
+          "sha256": "2f6505ce963d756caae20d46cede84eee3de0c0c7d0ee704fffd97783b8d918d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual independent exporter0.2.7 locked pack/installation at ebf4387 passes all four immutable public runtime closures0.3.3-0.3.6, strict producer/descriptor/dependency negatives and preserved old public failures. Public0.2.6 rejection for0.3.6 reproduced. New PR15/CI39019483917 pending; exporter0.2.7 not published or authorized by the earlier runtime/Build approval.",
+          "log": "artifacts/t/exporter-027/qualification-qexsccp9/results.json",
+          "sha256": "7dd6f54108ce251ca3b912268db12b6691869a9b4e5c110ab670dfac678f0bbc"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Current release binding at c18d971 passes actual strict TypeScript, strongest optional/index/unused flags and Vite compilation with exact native declarations. Removed private surfaces now dispose their registered editor sources. Actual generated Host expiry/registry behavior remains a full-flow obligation.",
+          "log": "artifacts/t/native-controls-38740b62/results.json",
+          "sha256": "6030d2668fa0f8aacc4622d0414ade1ed3da6b9c792a38bda8ff050033d5c092"
+        }
+      ],
+      "qualification": "Runtime0.3.6 and Build0.3.2 are published and verified after exact human approval. Root0.13.3 source is prepared on isolated codex/maintenance-release-0.13.3. First dependency/profile CI correctly blocked on the old public exporter ABI; independent exporter0.2.7 source ebf4387 is in PR15/current CI. No Root complete qualification/publication or full47 closure yet."
     }
   ]
 }
