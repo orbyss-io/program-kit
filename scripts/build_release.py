@@ -455,6 +455,8 @@ def main() -> int:
     if not version:
         raise ValueError("VERSION is empty")
     validate_metadata(root, version)
+    from build_native_phase_baselines import validate_previous
+    validate_previous(root)
 
     output.mkdir(parents=True, exist_ok=True)
     expected = [

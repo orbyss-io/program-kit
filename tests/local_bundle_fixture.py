@@ -2,7 +2,7 @@
 from pathlib import Path
 
 
-def install_local_bundle(project, release, bridge, run, component_sources=None):
+def install_local_bundle(project, release, bridge, run, component_sources=None, integration='codex'):
     """run(label, argv) executes a real CLI child in the owned project and checks it.
 
     component_sources optionally maps (plural kind, component id) to an extracted
@@ -17,7 +17,7 @@ def install_local_bundle(project, release, bridge, run, component_sources=None):
 
     project, release = Path(project), Path(release)
     manifest = BundleManifest.from_file(release / 'bundle.yml')
-    plan = resolve_install_plan(manifest, speckit_version=get_speckit_version(), active_integration='codex')
+    plan = resolve_install_plan(manifest, speckit_version=get_speckit_version(), active_integration=integration)
 
     class LocalInstaller(DefaultPrimitiveInstaller):
         def install(self, root, component):
