@@ -1,7 +1,7 @@
 # Program Kit
 
 <!-- latest-published-release:start -->
-Latest available release: **[v0.13.2](https://github.com/orbyss-io/program-kit/releases/tag/v0.13.2)**. Before installing, follow the [current installation instructions](#install-in-a-repository), including initializer corrections. [Check the latest release](https://github.com/orbyss-io/program-kit/releases/latest) for the kit version.
+Latest available release: **[v0.13.3](https://github.com/orbyss-io/program-kit/releases/tag/v0.13.3)**. Before installing, follow the [current installation instructions](#install-in-a-repository), including initializer corrections. [Check the latest release](https://github.com/orbyss-io/program-kit/releases/latest) for the kit version.
 <!-- latest-published-release:end -->
 
 Program Kit extends Spec Kit's ordinary **specify -> plan -> tasks -> implement -> test** flow
@@ -65,7 +65,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.13.2/Initialize-ProgramKit-0.13.2.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.13.3/Initialize-ProgramKit-0.13.3.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -91,7 +91,7 @@ output and the partial installation for diagnosis.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.13.2/Initialize-ProgramKit-0.13.2.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.13.3/Initialize-ProgramKit-0.13.3.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -208,8 +208,8 @@ consumer workspace** (for example `C:\ProgramKitReleases`), then run the
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.13.2\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.13.2 `
+python C:\path\to\program-kit-0.13.3\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.13.3 `
   --target . `
   --integration codex
 ```
@@ -602,8 +602,8 @@ review must explicitly address applicable coverage and harness limitations.
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.13.2.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.13.2.zip -Algorithm SHA256
+gh attestation verify program-kit-0.13.3.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.13.3.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery
