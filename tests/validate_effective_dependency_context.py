@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'extensions/program-kit-governance/scripts')]
+from owned_fixture import FixtureDirectory
 import validate_bootstrap_provider_context as provider_tests
 from validate_building_blocks import load_module, write_json, RESOLVER, CATALOG, accepted_fixture, refresh_registration
 import bootstrap_provider_context as providers
@@ -22,6 +23,37 @@ HOST = 'oci:ghcr.io/orbyss-io/foundation-host'
 
 class EffectiveContextTests(unittest.TestCase):
     setUp = provider_tests.ProviderContextTests.setUp
+
+    def test_ordinary_native_installed_paths_read_deep_original_knowledge_without_rewriting_identities(self):
+        self.selected()
+        temporary = FixtureDirectory(); self.addCleanup(temporary.cleanup)
+        target = Path(temporary.name) / 'ordinary-consumer-entry-with-deep-current-installed-authority'
+        shutil.copytree(self.root, target)
+        self.blocks = load_module(target / '.specify/extensions/program-kit-building-blocks/scripts/building_blocks.py')
+        # FixtureDirectory supplies Windows I/O spelling. Actual user/SDK entry
+        # points pass native paths; retain that identity while reading deep facts.
+        value = str(target)
+        if sys.platform == 'win32' and value.startswith('\\\\?\\'):
+            value = '\\\\' + value[8:] if value.startswith('\\\\?\\UNC\\') else value[4:]
+        ordinary = Path(value)
+        effective = self.blocks.effective_dependency_context(ordinary)
+        registry = ordinary / '.specify/extensions/program-kit-building-blocks/references/dependency-profiles'
+        self.assertEqual(str(registry.resolve()), effective['registryPath'])
+        self.assertTrue(effective['publisherKnowledge']['sourceCommit'])
+        self.assertTrue(all(not key.startswith('\\\\?\\') for key in effective['sources']) if sys.platform == 'win32' else True)
+        index = self.blocks.load_json(registry / 'index.json')
+        reference = index['profiles'][effective['profile']]['knowledge']
+        knowledge = registry / reference['path']
+        if sys.platform == 'win32': self.assertGreater(len(str(knowledge)), 260)
+        io = self.blocks.filesystem_root(knowledge)
+        original = io.read_bytes()
+        try:
+            io.write_bytes(original + b'\n')
+            with self.assertRaisesRegex(ValueError, 'publisher knowledge changed'):
+                self.blocks.effective_dependency_context(ordinary)
+            self.assertEqual(original + b'\n', io.read_bytes())
+        finally:
+            io.write_bytes(original)
 
     def test_stale_native_sdk_fixture_pickup_preserves_inputs_and_archives(self):
         self.selected()

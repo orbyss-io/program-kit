@@ -343,7 +343,8 @@ def materialize(repository, graph, template, env_name=None):
     env = model.environment(graph, env_name)
     admitted = accepted_selection(repository)
     contracts = {shell_id: foundation.publisher_contracts(repository, recipe_projection(graph, shell_id, env_name),
-                 selected_packages(graph, shell_id, admitted)) for shell_id in model.resources(graph, 'shell')}
+                 selected_packages(graph, shell_id, admitted),
+                 presentation=graph['resources'][shell_id].get('presentation')) for shell_id in model.resources(graph, 'shell')}
     packages = {}
     for contract in contracts.values():
         for name, version in contract['packages'].items():

@@ -14,7 +14,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_shared_obligations"
       ],
@@ -52,7 +52,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_case_inventory"
       ],
@@ -83,7 +83,7 @@
         "windows": true,
         "build": false
       },
-      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6", "--module", "validate_upgrade_retry"],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a", "--module", "validate_upgrade_retry"],
       "group": "development",
       "needs": [],
       "platforms": [
@@ -112,7 +112,7 @@
         "windows": true,
         "build": false
       },
-      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6", "--module", "validate_web_runtime"],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a", "--module", "validate_web_runtime"],
       "group": "development",
       "needs": [],
       "platforms": [
@@ -155,7 +155,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_owned_scratch"
       ],
@@ -236,7 +236,7 @@
     {
       "id": "validate_native_phase_ownership",
       "qualification": {"linux": true, "windows": false, "build": false},
-      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6", "--module", "validate_native_phase_ownership"],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a", "--module", "validate_native_phase_ownership"],
       "group": "development", "needs": [], "platforms": ["Windows", "Linux"],
       "purpose": "Exact native extension/preset source and generated output ownership, customization refusal, secondary integrations and immutable archived-source witnesses before upgrade mutation.",
       "owner": "program-kit", "inputs": ["scripts/native_phase_ownership.py", "scripts/upgrade_program_kit.py", "extensions/program-kit-governance/references/native-phase-source-baselines.json", "tests/validate_native_phase_ownership.py"],
@@ -336,7 +336,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_story_delivery"
       ],
@@ -416,11 +416,8 @@
     },
     {
       "id": "validate_effective_dependency_context",
-      "qualification": {"linux": true, "windows": false, "build": false},
-      "command": [
-        "{python}",
-        "tests/validate_effective_dependency_context.py"
-      ],
+      "qualification": {"linux": true, "windows": true, "build": false},
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a", "--module", "validate_effective_dependency_context"],
       "group": "development",
       "needs": [],
       "platforms": [
@@ -431,7 +428,9 @@
       "owner": "program-kit",
       "inputs": [
         "extensions/**",
-        "tests/validate_effective_dependency_context.py"
+        "tests/validate_effective_dependency_context.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
       ],
       "outputs": [],
       "resources": [
@@ -550,7 +549,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_normal_development"
       ],
@@ -589,7 +588,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_scoped_verification"
       ],
@@ -628,7 +627,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_task_generation"
       ],
@@ -733,7 +732,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_dependency_profiles"
       ],
@@ -813,7 +812,7 @@
     {
       "id": "validate_release_guidance",
       "qualification": {"linux": true, "windows": false, "build": false},
-      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6", "--module", "validate_release_guidance"],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a", "--module", "validate_release_guidance"],
       "group": "development",
       "needs": [],
       "platforms": [
@@ -861,7 +860,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_repository_toolchain"
       ],
@@ -1060,7 +1059,7 @@
     {
       "id": "validate_upgrade_boundaries",
       "qualification": {"linux": true, "windows": false, "build": false},
-      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6", "--module", "validate_upgrade_boundaries"],
+      "command": ["{python}", "extensions/program-kit-governance/scripts/case_inventory.py", "--contract", "tests/shared-regression-cases.json", "--contract-sha256", "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a", "--module", "validate_upgrade_boundaries"],
       "group": "development",
       "needs": [],
       "platforms": [
@@ -1109,7 +1108,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_public_core_compatibility"
       ],
@@ -1999,7 +1998,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_repository_sync"
       ],
@@ -5180,7 +5179,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_document_ownership"
       ],
@@ -5409,7 +5408,7 @@
         "--contract",
         "tests/shared-regression-cases.json",
         "--contract-sha256",
-        "f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
         "--module",
         "validate_tooling_witness"
       ],
@@ -5473,6 +5472,164 @@
       ],
       "resources": [],
       "isolation": "Retained owned disposable native consumer and SDK recording HTTP only; exact source bytes, no provider/model/coding agent or publication. Imported CI archives are verified before/after and never rebuilt."
+    },
+    {
+      "id": "validate_browser_presentation_profile",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "extensions/program-kit-governance/scripts/case_inventory.py",
+        "--contract",
+        "tests/shared-regression-cases.json",
+        "--contract-sha256",
+        "3dc8a50ce72597e59bee04eda9ccea1dc6eb97c4d9ce3ff4ba40ba697077d70a",
+        "--module",
+        "validate_browser_presentation_profile"
+      ],
+      "group": "development",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Published-profile native presentation projection, independent disable and exact SPA navigation/header alternatives; synthetic source guards, not publisher acceptance.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_browser_presentation_profile.py",
+        "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+        "extensions/program-kit-dotnet/scripts/composition_model.py",
+        "extensions/program-kit-dotnet/scripts/composition_render.py",
+        "extensions/program-kit-dotnet/scripts/spa_profile.py",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/**",
+        "scripts/update_dependency_profiles.py",
+        "tests/shared-regression-cases.json",
+        "extensions/program-kit-governance/scripts/case_inventory.py"
+      ],
+      "outputs": [],
+      "resources": [],
+      "isolation": "Synthetic immutable publisher facts and current pure projection; no package acquisition, Host or coding agent."
+    },
+    {
+      "id": "validate_spa_session",
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_spa_session.py",
+        "--engines={engines}",
+        "--install-browser"
+      ],
+      "group": "release",
+      "needs": [],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Exact emitted SPA helper, strict TypeScript and all required actual browser gesture/popup/local-clear/session cases; skips/retries/missing identities fail.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_spa_session.py",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/package-lock.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/spa-session.ts",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/tests/spa-session.spec.ts",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/js_toolchain.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/foundation_fixture.py"
+      ],
+      "outputs": [
+        "artifacts/tests/spa-session"
+      ],
+      "resources": [
+        "browser-runtime"
+      ],
+      "isolation": "Unique current-source suite and locked npm graph with explicitly prepared browsers; no real identity, OIDC/Host/full consumer acceptance or coding agent."
+    },
+    {
+      "id": "validate_composition_layout",
+      "qualification": {
+        "linux": true,
+        "windows": true,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_composition_layout.py"
+      ],
+      "group": "release",
+      "needs": [
+        "validate_composition_model",
+        "validate_foundation_composition"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Actual clean six-project/two-frontend generated layout, native locked restore, SDK Release build and both Vite builds; original missing consumer definitions remain an attribution limit.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_composition_layout.py",
+        "tests/validate_composition_start.py",
+        "tests/composition_fixture.py",
+        "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-building-blocks/**"
+      ],
+      "outputs": [
+        "artifacts/tests/composition-layout"
+      ],
+      "resources": [
+        "native-build"
+      ],
+      "isolation": "New owned scaffold; no Docker infrastructure, device installation, consumer edits or runtime acceptance claim."
+    },
+    {
+      "id": "validate_typed_operation",
+      "qualification": {
+        "linux": true,
+        "windows": false,
+        "build": false
+      },
+      "command": [
+        "{python}",
+        "tests/validate_typed_operation.py",
+        "--prepare-oasdiff",
+        "--engines={engines}"
+      ],
+      "group": "release",
+      "needs": [
+        "validate_composition_layout",
+        "validate_composition_tooling"
+      ],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "purpose": "Actual current packaged adapter installation, emitted Build/Test-Web, native cold export/comparison, real generated client, nondefault options and independently observed PostgreSQL effect/restart.",
+      "owner": "program-kit",
+      "inputs": [
+        "tests/validate_typed_operation.py",
+        "tests/validate_composition_start.py",
+        "extensions/program-kit-dotnet/**",
+        "extensions/program-kit-building-blocks/**",
+        "extensions/program-kit-governance/**",
+        "scripts/build_release.py",
+        "scripts/release_candidate.py"
+      ],
+      "outputs": [
+        "artifacts/tests/typed-operation",
+        "artifacts/t/composition-<unique>"
+      ],
+      "resources": [
+        "docker",
+        "browser-runtime"
+      ],
+      "isolation": "New owned consumer, exact imported CI payload when present, explicit official pinned project-tool preparation; no device runtime install, active consumer, coding agent or paid provider. No publication or full business acceptance claim."
     }
   ],
   "groups": {

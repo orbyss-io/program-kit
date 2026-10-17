@@ -146,7 +146,7 @@
     {
       "module": "validate_task_generation",
       "path": "tests/validate_task_generation.py",
-      "sha256": "27ac734ec20b10464a1a7f83d67e6bbf8d85771836fab46e4fa75d52656a9173",
+      "sha256": "47beff2512891d7933e847cdc3338fa8526ed993bababaff2275021f6b260cde",
       "cases": {
         "validate_task_generation.TaskTests.test_selected_build_edges_project_the_supported_recipe_before_task_authoring": [
           "Windows",
@@ -2208,6 +2208,115 @@
           "Darwin"
         ]
       }
+    },
+    {
+      "module": "validate_browser_presentation_profile",
+      "path": "tests/validate_browser_presentation_profile.py",
+      "sha256": "3e87eb5d0d6e9e21e344688f129a1ee68610a58eae228ff722fe81da8b33c088",
+      "cases": {
+        "validate_browser_presentation_profile.PresentationProfileTests.test_native_metadata_defaults_and_selected_theme_bind_the_actual_landing_path": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_browser_presentation_profile.PresentationProfileTests.test_independent_disable_removes_only_the_presentation_activation": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_browser_presentation_profile.PresentationProfileTests.test_bad_public_option_type_or_theme_and_missing_published_capability_reject": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_browser_presentation_profile.PresentationProfileTests.test_spa_redirect_and_popup_have_distinct_matching_contract_and_vite_policies": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "module": "validate_effective_dependency_context",
+      "path": "tests/validate_effective_dependency_context.py",
+      "sha256": "13ab3d7eb57990d12a030e0b2abdba1091119cc207f46ca123f6ffb2fdf50e82",
+      "cases": {
+        "validate_effective_dependency_context.EffectiveContextTests.test_ordinary_native_installed_paths_read_deep_original_knowledge_without_rewriting_identities": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_stale_native_sdk_fixture_pickup_preserves_inputs_and_archives": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_foundation_and_shared_abi_fixture_pickup_uses_selected_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_fresh_scaffold_and_retained_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_draft_accepted_continuity_and_legacy_after_upgrade": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_retained_033_profile_keeps_independent_025_exporter": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_projections_and_both_ownership_audits_use_new_catalog": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_stale_summary_has_scoped_repair_and_context_sources_bind_retained_profile": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_corrupt_or_mixed_authority_never_falls_back": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_release_adapter_supplies_only_missing_supplemental_abi": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_release_adapter_does_not_replace_missing_or_corrupt_consumer_authority": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_release_adapter_respects_existing_abi_and_rejects_conflicts": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_qualification_and_shared_abi_conflicts_are_not_other_profiles": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_retained_recipe_protocols_and_abi_are_version_aware": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_effective_dependency_context.EffectiveContextTests.test_both_recipes_prepare_exact_pins_and_protocol": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ]
+      }
     }
   ],
   "inputs": [
@@ -2452,6 +2561,7 @@
     "extensions/program-kit-dotnet/references/examples/typed-operation/PostgreSqlLabelStore.cs",
     "extensions/program-kit-dotnet/references/examples/typed-operation/README.md",
     "extensions/program-kit-dotnet/references/examples/typed-operation/client.ts",
+    "extensions/program-kit-dotnet/references/examples/typed-operation/settings.source.template.json",
     "extensions/program-kit-dotnet/references/foundation-compositions.md",
     "extensions/program-kit-dotnet/references/implementation-boundaries.md",
     "extensions/program-kit-dotnet/references/keycloak-admin-api.md",
@@ -3396,6 +3506,7 @@
     "tests/validate_bootstrap_runtime_bindings.py",
     "tests/validate_bootstrap_semantics.py",
     "tests/validate_browser_launch.py",
+    "tests/validate_browser_presentation_profile.py",
     "tests/validate_building_block_availability.py",
     "tests/validate_building_blocks.py",
     "tests/validate_c4_view.py",
@@ -3405,6 +3516,7 @@
     "tests/validate_codex_worker_policy.py",
     "tests/validate_components.py",
     "tests/validate_composition_activation.py",
+    "tests/validate_composition_layout.py",
     "tests/validate_composition_model.py",
     "tests/validate_composition_start.py",
     "tests/validate_composition_tooling.py",
@@ -3508,6 +3620,7 @@
     "tests/validate_scoped_verification.py",
     "tests/validate_settings_authorities.py",
     "tests/validate_shared_obligations.py",
+    "tests/validate_spa_session.py",
     "tests/validate_specification_intake.py",
     "tests/validate_standalone_engineering.py",
     "tests/validate_story_delivery.py",
@@ -3518,6 +3631,7 @@
     "tests/validate_test_dependencies.py",
     "tests/validate_test_suites.py",
     "tests/validate_tooling_witness.py",
+    "tests/validate_typed_operation.py",
     "tests/validate_ui_browser.py",
     "tests/validate_ui_experience.py",
     "tests/validate_upgrade_boundaries.py",

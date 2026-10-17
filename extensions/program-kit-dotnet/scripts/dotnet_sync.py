@@ -275,6 +275,8 @@ def desired_content(
         "eng/web-profile.shells.json": spa_profile.render_shell_profile,
         "eng/web-profile.json": spa_profile.render_profile,
         "eng/web/web-contract.json": spa_profile.render_web_contract,
+        "eng/web/spa-security.json": spa_profile.render_security_contract,
+        "eng/web/vite.security.mjs": spa_profile.render_vite_security,
     }
     renderer = renderers.get(relative)
     return renderer(content, spa_configuration) if renderer else content

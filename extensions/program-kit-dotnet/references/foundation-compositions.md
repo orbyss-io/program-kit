@@ -1,5 +1,35 @@
 # Typed executable Foundation composition
 
+New qualified profiles carrying `Orbyss.Foundation.Web.Presentation` enable the
+native presentation feature for supported browser shells. Historical profiles keep
+their exact original package/activation closure. The selected publisher metadata
+supplies defaults; no local source checkout substitutes for published knowledge.
+Under the owning shell resource, configure its public option names explicitly:
+
+```json
+"presentation": {
+  "enabled": true,
+  "settings": {
+    "ApplicationName": "Orders",
+    "Locale": "en",
+    "Theme": "green",
+    "RoutePrefix": "/account",
+    "ReturnPath": "/",
+    "SignOutConfirmation": "when-unsaved"
+  }
+}
+```
+
+The native `LogoutLandingPath` follows that prefix's `signed-out` page. Native
+activation validates paths, route collisions, copy and response policies. Set
+`"presentation":{"enabled":false}` to omit this feature independently; reconcile
+any explicitly selected activation first. A custom presentation keeps the native
+public `IProblemPageRenderer` seam and normal application registration. Customize
+through that seam or admitted options instead of copying Foundation browser modules.
+Use `/account/configuration` to load its authoritative shared confirmation and
+session modules; components register their own unsaved state and private roots.
+No server page can infer a SPA client's in-memory session or provider revocation.
+
 Private-file provider authoring uses the exact typed binding projected into
 `eng/foundation-composition.resolved.json`, the generated configuration reference and
 scoped phase context. For a binding selecting `EvidenceFiles:Root`, read that key in

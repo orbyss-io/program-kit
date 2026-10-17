@@ -92,6 +92,18 @@ def prepare():
     target['families']['foundation']['toolVersions']['Orbyss.Foundation.OpenApi.Exporter']=exporter
     for package in target['packages'].values():
         package['version']=exporter if package['packageId']=='Orbyss.Foundation.OpenApi.Exporter' else families[package['family']]
+    # This additive publisher capability belongs only to the new immutable
+    # profile snapshot. Historical catalogs/locks retain their original meaning.
+    # Public publication is checked above; native qualification below must obtain
+    # and inspect the actual package before this candidate can be promoted.
+    if tuple(map(int, families['foundation'].split('.'))) >= (0, 3, 6):
+        identity = 'nuget:Orbyss.Foundation.Web.Presentation'
+        if identity not in target['packages']:
+            package = copy.deepcopy(target['packages']['nuget:Orbyss.Foundation.Web.ProblemDetails'])
+            package.update(packageId='Orbyss.Foundation.Web.Presentation', version=families['foundation'],
+                role='Independently selected native browser presentation, confirmation and private session lifecycle.')
+            package['activations'] = [{'featureIdentity': 'Orbyss.Foundation.Web.Presentation', 'targetSlot': 'shell'}]
+            target['packages'][identity] = package
     target['resolutionRevision']+=1
     blocks.validate_additive_profile_catalog(current_catalog,target)
     blocks.validate_additive_profile_catalog(blocks.load_json(base),target)

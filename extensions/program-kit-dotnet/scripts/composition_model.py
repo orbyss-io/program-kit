@@ -17,7 +17,7 @@ INPUT = 'eng/foundation-composition.json'
 VERSION = 2
 RESOURCE_FIELDS = {
     'host': ({'kind', 'runtimeDirectory'}, {'ownerRef'}),
-    'shell': ({'kind', 'name', 'source'}, {'ownerRef', 'settings'}),
+    'shell': ({'kind', 'name', 'source'}, {'ownerRef', 'settings', 'presentation'}),
     'feature': ({'kind', 'path', 'packageId', 'featureIdentity', 'role'}, {'ownerRef', 'responsibility', 'capabilityPackages'}),
     'databaseServer': ({'kind', 'engine'}, {'ownerRef'}),
     'database': ({'kind', 'engine', 'name'}, {'ownerRef'}),
@@ -314,6 +314,15 @@ def validate(model, repository=None):
             shell_names.add(row['name'].casefold())
             local_path(row['source'], name + '.source')
             require(row['source'] == 'shells.json' or row['source'].endswith('/shells.json'), 'shell source must name shells.json')
+            if 'presentation' in row:
+                presentation = row['presentation']
+                object_fields(presentation, {'enabled'}, {'settings'}, name + '.presentation')
+                require(type(presentation['enabled']) is bool, 'presentation.enabled must be boolean')
+                settings = presentation.get('settings', {})
+                require(isinstance(settings, dict) and set(settings) <= {'ApplicationName', 'Locale', 'Theme',
+                        'RoutePrefix', 'ReturnPath', 'ResponsePolicy', 'AssetResponsePolicy', 'SignOutConfirmation', 'Copy'},
+                        'presentation settings must use the native public option names')
+                require(presentation['enabled'] or not settings, 'disabled presentation cannot author active settings')
             require(isinstance(row.get('settings', {}), dict), 'shell settings must be a typed object')
             require(set(row.get('settings', {})) <= {'DiscoveryTimeoutSeconds', 'RemoteAuthenticationTimeoutSeconds',
                     'SessionIdleMinutes', 'SessionAbsoluteMinutes'}, 'unsupported shell policy overrides')

@@ -38,9 +38,26 @@ def fail(code: str, detail: str) -> None:
     raise ResolverError(code, detail)
 
 
+def filesystem_root(path):
+    """I/O spelling of an absolute path; repository_path still owns containment.
+
+    Keep readers independent of the optional .NET extension. Public records use
+    their original Path identities, never this implementation spelling.
+    """
+    path = Path(path).absolute()
+    value = str(path)
+    if os.name != 'nt': return path
+    if value.startswith('\\\\?\\'):
+        if re.match(r'^\\\\\?\\[A-Za-z]:\\', value) or value.startswith('\\\\?\\UNC\\'):
+            return path
+        fail('PKB612', 'unsupported device namespace is not a dependency authority path')
+    if value.startswith('\\\\.\\'): fail('PKB612', 'device namespaces are not dependency authority paths')
+    return Path('\\\\?\\UNC\\' + value[2:] if value.startswith('\\\\') else '\\\\?\\' + value)
+
+
 def load_json(path: Path) -> dict:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(filesystem_root(path).read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         fail("PKB100", f"cannot load JSON from {path}: {error}")
     if not isinstance(value, dict):
@@ -63,7 +80,7 @@ def canonical_sha256(value: object) -> str:
 
 
 def raw_sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(filesystem_root(path).read_bytes()).hexdigest()
 
 
 def pretty_json(value: object) -> str:
@@ -1616,12 +1633,12 @@ def profile_entry_matches_hash(entry: dict, expected: str) -> bool:
 
 def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576) -> bytes:
     """Read one frozen document from an ordinary file or an indexed source pack."""
-    source=repository_path(directory,item['path'])
+    source=filesystem_root(repository_path(directory,item['path']))
     packed = False
     if not source.is_file() and 'byteOffset' not in item:
         # Install packaging can compact old loose package facts while their
         # historical manifests and original per-document hashes remain unchanged.
-        storage = repository_path(directory, 'historical-package-facts.json')
+        storage = filesystem_root(repository_path(directory, 'historical-package-facts.json'))
         if storage.is_file():
             if storage.stat().st_size > 1_048_576:
                 fail('PKB611', 'historical package storage index exceeds its bound')
@@ -1632,7 +1649,7 @@ def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576
             if not isinstance(row, dict) or set(row) != {'byteOffset', 'byteLength', 'sha256'} or row['sha256'] != item.get('sha256'):
                 fail('PKB611', 'historical package storage differs from its original authority')
             item = {**item, **row}
-            source = repository_path(directory, 'historical-package-facts.pack')
+            source = filesystem_root(repository_path(directory, 'historical-package-facts.pack'))
             packed = True
     offset=item.get('byteOffset',0)
     length=item.get('byteLength',source.stat().st_size)
@@ -1654,7 +1671,7 @@ def publisher_package_fact(directory: Path, item: dict) -> dict:
 
 
 def qualified_dependency_profile(directory: Path, identity: str | None, catalog: dict) -> tuple[dict, dict]:
-    directory = Path(directory).resolve()
+    directory = filesystem_root(Path(directory).resolve())
     index = load_json(directory / 'index.json')
     identity = identity or index.get('default')
     entry = index['profiles'].get(identity)

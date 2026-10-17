@@ -615,14 +615,15 @@ def render_materialization(root, feature, request):
                     and not re.search(r'[|\r\n,]', value) for value in (owner, producer, evidence)),
                 'PKT021 use single explicit owner/task/evidence values')
         lines.append('| ' + ' | '.join((owner, producer, evidence)) + ' |')
-    content = (feature / 'tasks.md').read_text(encoding='utf-8')
+    original = (feature / 'tasks.md').read_bytes()
+    content = original.decode('utf-8')
     section = re.compile(r'^## Test materialization map\s*\n.*?(?=^## |\Z)', re.M | re.S)
     require(len(section.findall(content)) <= 1, 'PKT021 duplicate Test materialization map')
     table = '\n'.join(lines) + '\n'
     candidate = section.sub(lambda _: table + '\n', content) if section.search(content) else content.rstrip() + '\n\n' + table
     validate_operation_graph(candidate, required=True, root=root)
     return {'status': 'validated-proposal', 'markdown': table,
-            'tasksSha256': hashlib.sha256(content.encode('utf-8')).hexdigest(),
+            'tasksSha256': hashlib.sha256(original).hexdigest(),
             'candidateSha256': hashlib.sha256(candidate.encode('utf-8')).hexdigest(),
             'filesChanged': False, 'acceptanceEstablished': False,
             'instruction': 'Review and merge only this table into the same task plan. Preserve dependencies, original baseline, effort and human decisions; rerun finalize.'}

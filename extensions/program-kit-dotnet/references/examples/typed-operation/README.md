@@ -17,7 +17,12 @@ Core project references in the native projects and `eng/architecture.json`. Regi
 `FoundationPostgreSqlDbContext`; each operation owns a bounded public unit lease.
 
 The selected API feature calls `LabelEndpoints.Configure(services, settings)` and
-`LabelEndpoints.Map(endpoints)`, and declares the selected Foundation JSON feature.
+`LabelEndpoints.Map(endpoints)`, and declares the selected Foundation JSON and
+ProblemDetails features and direct package references. The public
+`FoundationProblemEnvelope` is supplied by the new Foundation closure; consume its
+released package rather than copying an internal writer shape. Endpoint metadata
+declares actual admission, authentication/authorization and server errors alongside
+the typed success contract. Strict request DTO metadata disallows unknown members.
 Its shell configuration sets `Sample:Api:Prefix` explicitly and selects the example's
 own bounded JSON profiles. Merge these values under that shell's `Configuration`:
 
@@ -39,9 +44,23 @@ The contract's supported maximum and the configured budget must agree. Binding t
 small contract to a larger default profile correctly fails shell activation.
 No provider is created,
 schema deployed or operation executed while registering or exporting metadata.
+The scoped endpoint factory resolves its real provider port only for an admitted
+request. This preserves cold metadata export when runtime-only providers are
+excluded; never register a fake provider to make export pass. Actual request and
+durable-effect qualification must prove that the selected provider supplies the port.
 Declare applicable native settings metadata using its maintained producer/inspection
 contract. A typed options class alone supplies no independently verified settings
 manifest. Preserve original source hashes and review actual generated changes.
+For a new declaration, adapt `settings.source.template.json` to the actual package
+and feature identities. After restore, run
+`dotnet msbuild <api-project> -t:FoundationInspectSettingsSourceBindings -p:Configuration=Release`
+with the released Foundation Build producer. Review its separate
+`obj/Release/<tfm>/orbyss-foundation/settings-source-bindings.json` report and merge
+the complete current source inventory into `sourceSha256`. Set
+`FoundationSettingsMetadataSource` to `settings.source.json` in the owning project.
+The template's empty inventory intentionally cannot pass normal build. Build and
+pack validate actual compiled provenance separately; inspection never authorizes
+rewriting an established declaration or accepting a changed historical receipt.
 
 Explicit fixture deployment creates `sample_labels(id integer PRIMARY KEY, value
 text NOT NULL, revision integer NOT NULL DEFAULT 0)` and inserts `(1, 'ready', 0)`, granting only the runtime operations it

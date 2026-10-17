@@ -35,7 +35,8 @@ assets, not a platform product.
 
 Prerequisites:
 
-- Spec Kit `1.1.1` or a compatible newer `1.x` release. CI and release builds pin `specify-cli==1.1.3`.
+- Spec Kit `1.1.1` or a compatible newer `1.x` release. The repository's candidate
+  qualification workflow records the exact Spec Kit pin used for CI and release validation.
 - The coding-agent tooling required by the selected Spec Kit integration; `specify init` validates
   it (for example, `codex` for Codex or `claude` for Claude).
 - Git, available as the `git` command.

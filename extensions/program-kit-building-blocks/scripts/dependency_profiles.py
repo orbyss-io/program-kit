@@ -5,7 +5,6 @@ import copy
 import hashlib
 import json
 import importlib.util
-import os
 from pathlib import Path
 import building_blocks as blocks
 import producer_reconciliation as producers
@@ -13,16 +12,7 @@ import producer_reconciliation as producers
 
 def filesystem_root(path):
     """Keep native public identities while using the shipped path contract for I/O."""
-    path = Path(path).absolute()
-    if os.name != 'nt':
-        return path
-    source = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py'
-    if not source.is_file():
-        raise ValueError('PKB612 shared Windows path provider is missing; restore the complete Program Kit installation')
-    spec = importlib.util.spec_from_file_location('profile_transition_paths', source)
-    provider = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(provider)
-    return Path(provider.filesystem_path(path))
+    return blocks.filesystem_root(path)
 
 
 def composition(catalog):

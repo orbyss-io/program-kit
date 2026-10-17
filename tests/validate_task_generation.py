@@ -250,6 +250,7 @@ class TaskTests(unittest.TestCase):
             {'owners': [{'owner': 'tests/Owned/Owned.csproj', 'source': {'task': 'T001'}}]})
         self.assertIn('| tests/Owned/Owned.csproj | T001 | none |', result['markdown'])
         self.assertEqual(body, (self.feature / 'tasks.md').read_text())
+        self.assertEqual(draft.hashlib.sha256((self.feature / 'tasks.md').read_bytes()).hexdigest(), result['tasksSha256'])
         self.assertEqual('{"human":"pending","effort":17}', sentinel.read_text())
         self.assertFalse(result['filesChanged']); self.assertFalse(result['acceptanceEstablished'])
         for source in ({'task': 'T001', 'evidence': 'artifacts/results.json'}, {'task': 'T002'},
@@ -340,6 +341,17 @@ class TaskTests(unittest.TestCase):
         result = subprocess.run(command, cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertFalse(json.loads(result.stdout)['implementationExecuted'])
+        request = self.root / 'materialization-request.json'
+        request.write_text(json.dumps({'owners': [{'owner': 'tests/Owned/Owned.csproj', 'source': {'task': 'T001'}}]}))
+        rendering = list(command); rendering[2] = 'render-materialization'
+        before_render = (self.feature / 'tasks.md').read_bytes()
+        rendered = subprocess.run([*rendering, '--content-file', str(request)], cwd=self.root.parent,
+            env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, rendered.returncode, rendered.stdout + rendered.stderr)
+        proposed = json.loads(rendered.stdout)
+        self.assertEqual('validated-proposal', proposed['status'])
+        self.assertFalse(proposed['filesChanged']); self.assertFalse(proposed['acceptanceEstablished'])
+        self.assertEqual(before_render, (self.feature / 'tasks.md').read_bytes())
         draft.checkpoint(self.feature, {'baseline': 'original-baseline', 'outcome': 'Owned behavior',
             'next': 'Wait for implementation', 'decisions': ['Retain actual ownership'], 'failures': ['Owned check is still pending']})
         current_command = [*command]

@@ -717,3 +717,69 @@ unrelated work remain preserved. Foundation draft PR14 stays open for integratio
 tuning; exact candidate qualification and public adoption remain separate work.
 
 The full current reviewed contract `f56b0bcf19f93061388ec6122750b8726966d38bd4d667826284e2661f115fc6` subsequently passed all 412 required Windows cases across 24 modules in `artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json`. Two platform-specific cases remain not applicable locally. Source/input stability and all original obligation identities were checked; installed candidate, Linux/CI, actual consumer and public adoption claims remain separate.
+
+
+## Continuation: native layouts, profile presentation and installed knowledge
+
+The actual six-project/two-frontend generated layout passes restore, locked restore,
+SDK Release build and both native Vite builds. Full current scaffold lifecycle and
+typed composition reconciliation also pass. These current source proofs do not
+reconstruct missing original consumer definitions or establish runtime acceptance.
+
+Future published qualified profiles carrying the native presentation package now
+project its authoritative defaults, configured branding and signed-out landing, with
+independent explicit disable. The profile updater adds that package only to a new
+snapshot after verified publication; historical catalogs/locks remain unchanged.
+SPA navigation now explicitly selects redirect or popup serving headers, and the
+current helper refuses asynchronous local clearing before provider dispatch. Its
+maintained strict-type/native-browser proof passes all 14 required Chromium/WebKit
+cases. Actual new-public Host/profile and full SPA/OIDC adoption remain separate.
+
+The actual installed task-map helper now passes a fresh unrelated-process proof,
+including exact original task bytes and preserved history. The typed first-operation
+flow exposed two further concrete boundaries: cold export needed a request-time
+scoped endpoint factory rather than a constructor dependency on an excluded runtime
+provider; after that export passed, the fixture lacked actual installed capability
+knowledge. The fixture now performs real native installation from the current
+production bundle. It exposed ordinary-path reads of deep immutable installed
+knowledge on Windows. Central bounded readers now use native I/O spelling while
+preserving original public identities, exact hashes and standalone building-block
+operation. Fourteen context cases and the real over-260-character ordinary-path
+tamper regression pass. All 73 exact current selected cases pass in receipt
+`artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json`.
+
+The full installed typed flow is rerunning; no intermediate export/build is called
+complete application acceptance. Failed original runs, including the mismatched
+retained comparison binary and incomplete fixture/path attempts, remain failed.
+The exact official oasdiff 1.33.0 project tool is verified and retained without a
+device runtime installation. Maintenance collected 55 current publisher pins and
+five available updates. Spec Kit1.2.1 still uses a direct checkpoint replacement,
+so prior unmodified native Windows failures are not assumed repaired. Final family
+adoption and full dependency/candidate CI remain. Foundation PR14 stays open; all
+47 finding identities, historical evidence and unrelated work are preserved.
+
+
+## Continuation: authoritative public wire contracts and native settings ownership
+
+The installed native typed flow reached cold OpenAPI export and correctly failed
+wire admission for missing problem metadata and unknown-member request semantics.
+Foundation now exposes its actual closed problem envelope and field-error wire type;
+its native writer and compiler-schema probes pass. Foundation commit
+`99be8c3a7b96ce934f324f005b308f875fd87b7c` is pushed to draft PR14, kept open.
+Fresh CI44 (`38995075862`) is in progress; both source Release builds passed and
+Linux browser qualification passed. CI43 belongs to the earlier source and is not
+qualification for this commit. Local deep-path Host build/guard-self-test failures
+remain failed; the short owned Host build and actual public problem probe passed.
+
+The shipping example uses that public type and declares its actual problem responses,
+strict request shape and deferred real provider factory. The maintained full flow
+refuses before native effects until Foundation0.3.6 is released and publicly qualified.
+All eight current tooling contract cases pass. This is not end-to-end acceptance.
+
+A new reviewable source declaration template covers the actual scalar options.
+Actual unpublished Build0.3.2 inspection, locked restore, normal build, no-build pack
+and changed-source refusal pass in `artifacts/t/typed-settings-717890cc/results.json`.
+The full flow must independently verify the actual packed API assembly and settings
+metadata alongside its configured response and durable provider effect. Inspection
+does not update historical declarations or mint compiled provenance. All47 original
+finding identities remain; no active consumer or unrelated work changed.

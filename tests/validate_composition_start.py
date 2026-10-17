@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import uuid
+import zipfile
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,16 +38,16 @@ def add_typed_operation(root):
         '<ItemGroup><ProjectReference Include="../Planned.Core/Planned.Core.csproj" /></ItemGroup></Project>'), encoding='utf-8')
     project = root / 'src/Application.Api/Application.Api.csproj'
     text = project.read_text().replace('</Project>',
-        '<ItemGroup><PackageReference Include="Orbyss.Foundation.Json.AspNetCore" /></ItemGroup></Project>')
+        '<ItemGroup><PackageReference Include="Orbyss.Foundation.Json.AspNetCore" /><PackageReference Include="Orbyss.Foundation.Web.ProblemDetails" /></ItemGroup></Project>')
     document = ET.fromstring(text); dependencies = document.find('PropertyGroup/FoundationFeatureDependencies')
-    dependencies.text = dependencies.text + ';Orbyss.Foundation.Json.AspNetCore'
+    dependencies.text = dependencies.text + ';Orbyss.Foundation.Json.AspNetCore;Orbyss.Foundation.Web.ProblemDetails'
     project.write_bytes(ET.tostring(document) + b'\n')
     architecture = root / 'eng/architecture.json'; value = json.loads(architecture.read_bytes())
     for row in value['runtimeComposition']['projects']:
         if row['path'] == 'src/Application.PostgreSql/Application.PostgreSql.csproj':
             row['projectReferences'].append('src/Planned.Core/Planned.Core.csproj')
         if row['path'] == 'src/Application.Api/Application.Api.csproj' and 'packageReferences' in row:
-            row['packageReferences'].append('Orbyss.Foundation.Json.AspNetCore')
+            row['packageReferences'].extend(['Orbyss.Foundation.Json.AspNetCore', 'Orbyss.Foundation.Web.ProblemDetails'])
     architecture.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
     settings = root / 'runtime/policies/shells.json'; value = json.loads(settings.read_bytes())
     value['CShells']['Shells']['policies'].setdefault('Configuration', {})['Sample'] = {'Api': {'Prefix': 'configured-'}}
@@ -80,12 +81,74 @@ print(command.output(args,environment=environment))
     return json.loads((evidence / 'stdout.log').read_text()) if observe else None
 
 
-def command(arguments, root, evidence, expected=0):
+def declare_typed_settings(root, evidence):
+    """Review a first declaration against actual native Compile inspection.
+
+    This owns only the new fictional API declaration. It never refreshes an
+    existing declaration, nor treats inspection as compiled/packed provenance.
+    """
+    project = 'src/Application.Api/Application.Api.csproj'
+    destination = root / 'src/Application.Api/settings.source.json'
+    if destination.exists():
+        raise ValueError('Refuse to overwrite an existing settings declaration')
+    command(['dotnet', 'restore', project], root, evidence / 'restore')
+    command(['dotnet', 'msbuild', project, '-t:FoundationInspectSettingsSourceBindings',
+             '-p:Configuration=Release'], root, evidence / 'native-inspection')
+    reports = list((root / 'src/Application.Api/obj').rglob('settings-source-bindings.json'))
+    if len(reports) != 1:
+        raise ValueError('Native settings inspection must produce one current report')
+    report = json.loads(reports[0].read_bytes())
+    expected = {path.relative_to(root / 'src/Application.Api').as_posix()
+                for path in (root / 'src/Application.Api').rglob('*.cs')
+                if not {'obj', 'bin'}.intersection(path.relative_to(root / 'src/Application.Api').parts)}
+    if (report.get('schemaVersion') != 1 or report.get('contract') != 'utf8-optional-bom-crlf-to-lf-v1'
+            or set(report.get('sourceSha256', {})) != expected):
+        raise ValueError('Native settings inspection differs from the new owned API sources')
+    template = ROOT / 'extensions/program-kit-dotnet/references/examples/typed-operation/settings.source.template.json'
+    declaration = json.loads(template.read_bytes())
+    declaration['sourceSha256'] = report['sourceSha256']
+    destination.write_text(json.dumps(declaration, indent=2) + '\n', encoding='utf-8')
+    document = ET.fromstring((root / project).read_bytes())
+    ET.SubElement(document.find('PropertyGroup'), 'FoundationSettingsMetadataSource').text = 'settings.source.json'
+    (root / project).write_bytes(ET.tostring(document) + b'\n')
+
+
+def command(arguments, root, evidence, expected=0, environment=None):
     evidence.mkdir(parents=True, exist_ok=True)
     with (evidence / 'stdout.log').open('wb') as stdout, (evidence / 'stderr.log').open('wb') as stderr:
-        completed = subprocess.run(arguments, cwd=root, stdout=stdout, stderr=stderr, timeout=1800)
+        completed = subprocess.run(arguments, cwd=root, stdout=stdout, stderr=stderr, timeout=1800, env=environment)
     if completed.returncode != expected:
         raise ValueError('command failed (' + str(completed.returncode) + '); inspect ' + str(evidence))
+
+
+def install_native_tooling(root, directory):
+    """Actual current packaged adapters, never a permissive OpenAPI fallback."""
+    imported = os.environ.get('PROGRAM_KIT_IMPORTED_PACKAGES')
+    if imported:
+        script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); from release_candidate import read,source,verify_payload; verify_payload(read(Path(sys.argv[1])),Path.cwd()/'artifacts',source())"
+        command([sys.executable, '-c', script, imported], ROOT, directory / 'imported-payload-verification')
+    else:
+        script = "import sys; from pathlib import Path; sys.path.insert(0,str(Path.cwd()/'scripts')); import build_release; build_release.build_bundle_from_source(Path.cwd(),Path(sys.argv[1]))"
+        command([sys.executable, '-c', script, str(directory)], ROOT, directory / 'current-bundle-build')
+    sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
+    from owned_scratch import filesystem_path
+    release = Path(filesystem_path(directory / 'release')); release.mkdir()
+    version = (ROOT / 'VERSION').read_text(encoding='utf-8').strip()
+    bundle = (ROOT / 'artifacts' if imported else directory) / ('program-kit-' + version + '.zip')
+    with zipfile.ZipFile(bundle) as archive:
+        for name in archive.namelist():
+            path = (release / name).resolve()
+            if not path.is_relative_to(release.resolve()): raise ValueError('Owned bundle entry escaped its release directory')
+        archive.extractall(release)
+    import specify_cli
+    site = str(Path(specify_cli.__file__).parent.parent)
+    environment = dict(os.environ, SPECIFY_INIT_DIR=filesystem_path(root), PROGRAM_KIT_SPECIFY_SITE_PACKAGES=site)
+    cli = [sys.executable, str(ROOT / 'scripts/invoke_specify.py'), '--site-packages', site, '--']
+    command([*cli, 'init', '.', '--force', '--non-interactive', '--integration', 'codex', '--script', 'py', '--ignore-agent-tools'],
+        root, directory / 'native-init', environment=environment)
+    for component in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet'):
+        command([*cli, 'extension', 'add', str(release / 'extensions' / component), '--dev'],
+            root, directory / ('native-' + component), environment=environment)
 
 
 def containers(project):
@@ -184,12 +247,22 @@ def main():
     args = parser.parse_args()
     if args.tooling and (not args.execute or not args.oasdiff or not args.oasdiff.is_file()):
         parser.error('--tooling requires --execute and an existing --oasdiff binary')
+    if args.tooling:
+        import dependency_profile
+        selected = dependency_profile.resolver().new_project_catalog()
+        version = selected['families']['foundation']['releaseVersion']
+        if tuple(map(int, version.split('-')[0].split('.'))) < (0, 3, 6):
+            raise ValueError('Typed operation requires the released Foundation public problem wire contract (0.3.6 or later) '
+                             'in the qualified default profile. Publish Foundation and qualify its public profile first; '
+                             'no private package or duplicated problem schema substitutes for it.')
     # Native MSBuild assembly probing on Windows still rejects some ordinary
     # package paths over MAX_PATH. Keep this retained SDK fixture short; this
     # qualifies the stated native path envelope, not arbitrary-depth SDK builds.
     directory = ROOT / 'artifacts/t' / ('composition-' + uuid.uuid4().hex[:12])
     root = directory / 'consumer'
     (root / 'eng').mkdir(parents=True)
+    if args.tooling:
+        install_native_tooling(root, directory)
     started = time.monotonic()
     graph = two_apps(ROOT, dynamic_ports=True)
     graph['resources']['ordinary-provider'] = {'kind': 'feature', 'role': 'provider', 'responsibility': 'runtime',
@@ -327,7 +400,7 @@ def main():
             source = 'using CShells;\nusing ProgramKit.Examples.TypedOperation;\n' + source
             source = source.replace('public sealed class ApiFeature :', 'public sealed class ApiFeature(ShellSettings settings) :')
             source = source.replace('"Orbyss.Foundation.DomainEvents"]',
-                '"Orbyss.Foundation.DomainEvents", "Orbyss.Foundation.Json.AspNetCore"]')
+                '"Orbyss.Foundation.DomainEvents", "Orbyss.Foundation.Json.AspNetCore", "Orbyss.Foundation.Web.ProblemDetails"]')
             source = source.replace('using CShells.AspNetCore.Features;',
                                     'using CShells.AspNetCore.Features;\nusing Microsoft.AspNetCore.Builder;\nusing Microsoft.AspNetCore.Http;\nusing Microsoft.AspNetCore.Mvc;')
             source = source.replace('public void ConfigureServices(IServiceCollection services) { }',
@@ -347,11 +420,13 @@ public sealed class ProbeService
                 raise ValueError('consumer-owned endpoint seam changed')
             feature.write_text(source.replace(seam, 'public void MapEndpoints(IEndpointRouteBuilder endpoints, IHostEnvironment? environment)\n'
                                '    {\n        LabelEndpoints.Map(endpoints);\n        endpoints.MapGet("/api/first-policy", ([FromServices] ProbeService service) => Results.Ok(new { policy = service.Policy }))'
-                               '.WithName("ReadFirstPolicy").RequireAuthorization();\n'
+                               '.WithName("ReadFirstPolicy").RequireAuthorization().ExcludeFromDescription();\n'
                                '        endpoints.MapGet("/api/permission-probe", () => Results.NoContent())'
-                               '.WithName("ProbePermission").RequireAuthorization(policy => policy.RequireRole("admin"));\n    }'), encoding='utf-8')
+                               '.WithName("ProbePermission").RequireAuthorization(policy => policy.RequireRole("admin")).ExcludeFromDescription();\n    }'), encoding='utf-8')
             # This new slice changes actual project/package references. Explicit
             # preparation owns their restore; ordinary update acquires nothing.
+            if args.tooling:
+                declare_typed_settings(root, directory / 'typed-settings-source')
             command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'consumer-dependencies-prepare')
             command([sys.executable, 'eng/composition_run.py', 'update', '--host', 'application-host'], root, directory / 'consumer-update')
             after = containers(preparation['project'])
@@ -448,8 +523,10 @@ public sealed class ProbeService
                 if 'TOOLING_SERVICE_ACTIVATED' in export_output:
                     raise ValueError('offline export constructed the consumer operation service')
                 document = json.loads((root / 'contracts/openapi/policies.json').read_text())
-                if 'requestBody' in document['paths']['/api/first-policy']['get'] or 'ProbeService' in json.dumps(document):
+                if 'requestBody' in document['paths']['/api/sample-label']['get'] or 'ProbeService' in json.dumps(document):
                     raise ValueError('service dependencies leaked into the public wire schema')
+                if any(path in document['paths'] for path in ('/api/first-policy', '/api/permission-probe')):
+                    raise ValueError('test-only diagnostics leaked into the public generated client')
                 if 'requestBody' not in document['paths']['/api/sample-label']['post']:
                     raise ValueError('shipping typed operation did not export its actual request contract')
                 # Compile and execute the application adapter against actual
@@ -486,6 +563,20 @@ window.programKitTypedExample = { storeLabel };
                 result.update(actualTypedRequestResponse=True, actualGeneratedTypesAndClient=True,
                     actualProviderPortResolution=True, actualNondefaultScalarOptions=True,
                     independentDurableWriteObservation=True, actualHostRestartRetainsEffect=True)
+                resolved = json.loads((root / 'eng/foundation-composition.resolved.json').read_bytes())
+                archives = list((root / resolved['hosts']['application-host']['runtimeStage'] / 'packages').glob('Application.Api.*.nupkg'))
+                if len(archives) != 1:
+                    raise ValueError('Expected one actual packed API settings owner')
+                with zipfile.ZipFile(archives[0]) as archive:
+                    metadata = json.loads(archive.read('orbyss-foundation/settings.json'))
+                    assembly = archive.read('lib/net10.0/Application.Api.dll')
+                options = next(row for row in metadata['contracts'] if row['scope'] == 'sample-api')
+                prefix = next(row for row in options['settings'] if row['path'] == 'Sample:Api:Prefix')
+                if (metadata['assembly']['sha256'] != hashlib.sha256(assembly).hexdigest()
+                        or not options['complete'] or prefix['default'] != '' or not prefix['required']
+                        or prefix['constraints'] != {'minLength': 1, 'maxLength': 32}):
+                    raise ValueError('Actual packed source-backed options metadata differs from its owner')
+                result['actualPackedSettingsMetadata'] = True
                 result['toolingExercised'] = True
             frontend = root / graph['resources']['policy-web']['directory'] / graph['resources']['policy-web']['entry']
             frontend.write_text(frontend.read_text().replace("heading.textContent = 'Application foundation'", "heading.textContent = 'Consumer edited frontend'").replace("createElement('h1')", "createElement('h2')"), encoding='utf-8')

@@ -837,7 +837,9 @@
       "workPackages": "A/I/J",
       "closureRequired": "No false inheritance rule; central real tests assert effective viewports; no duplicate consumer Playwright tests.",
       "status": "withdrawn-cause-disposition-retained; measured-central-native-viewports-verified; emitted-profile/CI pending",
-      "changedFiles": [],
+      "changedFiles": [
+        "README.md"
+      ],
       "validation": [
         {
           "command": "configured-native-browser",
@@ -845,6 +847,13 @@
           "scope": "Actual source-built BFF pages and combined native prefixes; measured 1280x720/390x844; zero acquisition pending/cancelled confirmation followed by one native GET/POST; independently observed local logout, no-script forms and synthetic provider. Real Chromium persisted restore after native ticket revocation; WebKit fresh history navigation. No packaged Host, SPA provider, public release or consumer acceptance claim.",
           "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/native/1792169903404-a3cf06e9-553c-46b4-aa2e-570bbf34522d/results.json",
           "sha256": "38bc652bc5e0c5a7c1fbce1f17e0eb48c393c750e4cc1f698ad59e4eba638307"
+        },
+        {
+          "command": "program-kit-current-publisher-observations.json",
+          "status": "observed",
+          "scope": "Required maintenance collector successfully observed 55 active pins. Five available updates: GitHub App token action, axe, both CShells ABI references and Spec Kit. No pin/device/default/publication mutation; final family adoption follows Foundation publication and complete dependency qualification.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/program-kit-current-publisher-observations.json",
+          "sha256": "a6ffbdeb39fd5543cf257343958da2806f53a8b818dbd024fb922cbc38af1222"
         }
       ],
       "remainingDependencies": [
@@ -1014,6 +1023,27 @@
           "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
           "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
           "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        },
+        {
+          "command": "native-knowledge-io-public-identities.log",
+          "status": "passed",
+          "scope": "Fourteen effective dependency-context cases pass with independent building-block Windows readers and unchanged original source identities. The first attempted cross-extension path dependency broke partial fixtures and remains failed; it was removed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-knowledge-io-public-identities.log",
+          "sha256": "f62da158a6888f6f523bfe6ecc183fe424e527f5701a3737dbf999d62f808435"
+        },
+        {
+          "command": "deep-native-installed-authority-identity.log",
+          "status": "passed",
+          "scope": "Actual ordinary native Windows path to an installed knowledge file over 260 characters reads successfully, retains original public identities, rejects changed exact bytes and preserves the change until explicit fixture restoration. Earlier too-short fixture/import failures retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/deep-native-installed-authority-identity.log",
+          "sha256": "8d936ee5cfb7fdf74440aca0c31ebb56e25f52955f7a81436ac753ba7881c266"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
         }
       ],
       "remainingDependencies": [
@@ -1029,7 +1059,11 @@
       "workPackages": "A/F/I",
       "closureRequired": "Maintained command chooses real runtime and reports exact missing preparation; attribution retained.",
       "status": "implemented-native-runtime-propagation-and-common-prepared-browser-cache; real emitted full tooling rerun pending",
-      "changedFiles": [],
+      "changedFiles": [
+        "tests/validate_composition_start.py",
+        "tests/validate_composition_tooling.py",
+        "tests/validate_typed_operation.py"
+      ],
       "validation": [
         {
           "command": "validate_browser_launch.py --engines chromium,webkit",
@@ -1037,6 +1071,55 @@
           "scope": "Actual Chromium/WebKit launch/close, unlaunchable-file privacy, stale/missing receipt and shared explicit preparation cache; no local Firefox acceptance. Earlier invocation lacking explicit engine/cache selection failed and remains failed.",
           "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/common-prepared-browser-cache-native.log",
           "sha256": "beda3a97473b8f197cbee32329f376feb3a091947526261ab2e60a6537046b8e"
+        },
+        {
+          "command": "current-presentation-spa-scaffold.log",
+          "status": "passed",
+          "scope": "Full actual current scaffold lifecycle, identity projections, repaired-template convergence, genuine customization conflicts and profile transitions pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-spa-scaffold.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
+        },
+        {
+          "command": "verified.json",
+          "status": "prepared",
+          "scope": "Official exact pinned project analysis binary retained after GitHub asset digest and release checksum verification; no device runtime installed.",
+          "log": "artifacts/toolchains/oasdiff-1.33.0-windows-amd64/verified.json",
+          "sha256": "47c8b0fd78bcf1876e7b67d60c124d527f1e5fa4dd1312c576f0be143275eec8"
+        },
+        {
+          "command": "composition-typed-exact-openapi-tool.log",
+          "status": "failed",
+          "scope": "Real configured Host/browser/build/pack and exact oasdiff preparation passed; cold exporter rejected endpoint constructor dependency on excluded runtime provider. Shipping endpoint now uses actual request-time scoped factory; no fake provider admitted.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-exact-openapi-tool.log",
+          "sha256": "638c77a17150f55eda69d5c9cae6e0d7609aa887f2cf193ab039cf72245a164c"
+        },
+        {
+          "command": "composition-typed-deferred-provider-native.log",
+          "status": "failed",
+          "scope": "Real cold export succeeded after scoped-factory repair, then correctly rejected the fixture missing its installed building-block capability adapter. Full fixture now installs actual current packaged adapters; production PKO220 guard unchanged.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-deferred-provider-native.log",
+          "sha256": "64c8daa76b851469398ea91fa78a6336d468039ed9e6bcb1c34c1d57e117aa14"
+        },
+        {
+          "command": "composition-typed-native-installed-source.log",
+          "status": "failed",
+          "scope": "Actual packaged native component installation succeeded; ordinary consumer projection exposed deep installed knowledge read failure. Bounded native document reads and filesystem I/O spelling now repaired without changing original public identities or hashes. Full installed typed flow rerunning.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-native-installed-source.log",
+          "sha256": "b5db662bc96e5828336dcb5b995520d97f104a0fd76149c18707f0646fda9488"
+        },
+        {
+          "command": "composition-native-installed-knowledge-io.log",
+          "status": "failed",
+          "scope": "Actual installed current adapters, native build, cold export and emitted browser checks reached wire admission. Missing actual 4xx/5xx problem metadata and request unknown-member schema blocked acceptance. Public Foundation wire DTO and shipping endpoint metadata now repaired; full flow requires released Foundation 0.3.6 and qualified public adoption, and remains pending.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-native-installed-knowledge-io.log",
+          "sha256": "0fce9aabd3ba31d4f278eb52ebcfd081267548e82ee85272572ceb04a2ddd39b"
+        },
+        {
+          "command": "current-public-wire-tooling-contracts.log",
+          "status": "passed",
+          "scope": "All eight current migrated-tooling cases pass, including missing-public-contract refusal before native fixture effects; actual cold-export/runtime still require public adoption.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-public-wire-tooling-contracts.log",
+          "sha256": "ba6a103801f35f16c0e75dcd8f41276829cf37400fb449ffe9ea1da7e0c53f5d"
         }
       ],
       "remainingDependencies": [
@@ -1050,9 +1133,34 @@
       "sourceDiagnosis": "Trace provenance; fix generation or update if implicated",
       "workPackages": "A/D/I",
       "closureRequired": "Clean actual generated composition builds on accepted pins; stale-owned-file transition tested.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "implemented-with-actual-six-project-two-frontend-SDK-build-and-current-template-transitions; final candidate/CI pending",
+      "changedFiles": [
+        "tests/validate_composition_layout.py",
+        "tests/validation-inventory.json"
+      ],
+      "validation": [
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual clean generated six native projects, two frontends: restore, locked restore, SDK Release build and both native Vite builds/admissions. No services started or application runtime acceptance. Missing original consumer definitions remain an attribution limit.",
+          "log": "artifacts/tests/composition-layout/f4f9d615/results.json",
+          "sha256": "ecf26934a1b2e21abe330bd5de9b60dd1b443ab63b9f28a3b764a31f2430c9b1"
+        },
+        {
+          "command": "current-presentation-spa-scaffold.log",
+          "status": "passed",
+          "scope": "Full actual current scaffold lifecycle, identity projections, repaired-template convergence, genuine customization conflicts and profile transitions pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-spa-scaffold.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
+        },
+        {
+          "command": "current-presentation-native-composition.log",
+          "status": "passed",
+          "scope": "Actual current typed native composition reconciliation, owned template transitions and preserved source/security conflicts pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-native-composition.log",
+          "sha256": "ae7d0a40b1bbda62ccbf187f2a7618a368643ac2af03450dc24025d00f8aabc6"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -1064,8 +1172,12 @@
       "sourceDiagnosis": "Supply qualified executable integration",
       "workPackages": "B/I",
       "closureRequired": "Real compile/export/checked client/runtime wire parity; public native seams and constraints preserved.",
-      "status": "shipping-typed-example-native-build-passed; actual-full-flow-in-progress",
-      "changedFiles": [],
+      "status": "shipping typed wire metadata and actual public Foundation contract repaired; fresh public-profile full-flow pending",
+      "changedFiles": [
+        "tests/validate_composition_start.py",
+        "tests/validate_composition_tooling.py",
+        "tests/validate_typed_operation.py"
+      ],
       "validation": [
         {
           "command": "shipping-typed-native-layout.log",
@@ -1094,6 +1206,55 @@
           "scope": "Matching whole-family Host diagnostic retained. Native activation reported configured JSON profile outside its contract requirements. Application example now uses separate explicit bounded profiles; full current flow rerun pending. Initial missing mountpoint diagnostic also retained.",
           "log": "artifacts/t/ci43-typed-596304cc/execution/observation.json",
           "sha256": "1dc3346ab7261fc8d2012fd029da8b2fbb5974c5264f993d49b0ba43dbeade63"
+        },
+        {
+          "command": "verified.json",
+          "status": "prepared",
+          "scope": "Official exact pinned project analysis binary retained after GitHub asset digest and release checksum verification; no device runtime installed.",
+          "log": "artifacts/toolchains/oasdiff-1.33.0-windows-amd64/verified.json",
+          "sha256": "47c8b0fd78bcf1876e7b67d60c124d527f1e5fa4dd1312c576f0be143275eec8"
+        },
+        {
+          "command": "composition-typed-exact-openapi-tool.log",
+          "status": "failed",
+          "scope": "Real configured Host/browser/build/pack and exact oasdiff preparation passed; cold exporter rejected endpoint constructor dependency on excluded runtime provider. Shipping endpoint now uses actual request-time scoped factory; no fake provider admitted.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-exact-openapi-tool.log",
+          "sha256": "638c77a17150f55eda69d5c9cae6e0d7609aa887f2cf193ab039cf72245a164c"
+        },
+        {
+          "command": "composition-typed-deferred-provider-native.log",
+          "status": "failed",
+          "scope": "Real cold export succeeded after scoped-factory repair, then correctly rejected the fixture missing its installed building-block capability adapter. Full fixture now installs actual current packaged adapters; production PKO220 guard unchanged.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-deferred-provider-native.log",
+          "sha256": "64c8daa76b851469398ea91fa78a6336d468039ed9e6bcb1c34c1d57e117aa14"
+        },
+        {
+          "command": "composition-typed-native-installed-source.log",
+          "status": "failed",
+          "scope": "Actual packaged native component installation succeeded; ordinary consumer projection exposed deep installed knowledge read failure. Bounded native document reads and filesystem I/O spelling now repaired without changing original public identities or hashes. Full installed typed flow rerunning.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-native-installed-source.log",
+          "sha256": "b5db662bc96e5828336dcb5b995520d97f104a0fd76149c18707f0646fda9488"
+        },
+        {
+          "command": "composition-native-installed-knowledge-io.log",
+          "status": "failed",
+          "scope": "Actual installed current adapters, native build, cold export and emitted browser checks reached wire admission. Missing actual 4xx/5xx problem metadata and request unknown-member schema blocked acceptance. Public Foundation wire DTO and shipping endpoint metadata now repaired; full flow requires released Foundation 0.3.6 and qualified public adoption, and remains pending.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-native-installed-knowledge-io.log",
+          "sha256": "0fce9aabd3ba31d4f278eb52ebcfd081267548e82ee85272572ceb04a2ddd39b"
+        },
+        {
+          "command": "current-public-wire-tooling-contracts.log",
+          "status": "passed",
+          "scope": "All eight current migrated-tooling cases pass, including missing-public-contract refusal before native fixture effects; actual cold-export/runtime still require public adoption.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-public-wire-tooling-contracts.log",
+          "sha256": "ba6a103801f35f16c0e75dcd8f41276829cf37400fb449ffe9ea1da7e0c53f5d"
+        },
+        {
+          "command": "foundation-public-problem-optional-detail.log",
+          "status": "passed",
+          "scope": "Actual Foundation public problem DTO compiler schema and HTTP writer probe passed, including closed root/field errors, strict integer status and optional Detail. Foundation branch99be8c3; fresh CI44 remains pending; no old CI43 success borrowed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-public-problem-optional-detail.log",
+          "sha256": "cbae158b8fd6c40a159cb7c8afefde9a3fcbb6f110b2e9878bb3025c12b844bd"
         }
       ],
       "remainingDependencies": [
@@ -1107,8 +1268,12 @@
       "sourceDiagnosis": "Preserve lock requirement; prove runnable recipe",
       "workPackages": "F/I",
       "closureRequired": "Native selected generator lock and real maintained argument routing; no manual client/baseline reset.",
-      "status": "shipping-typed-example-native-build-passed; actual-full-flow-in-progress",
-      "changedFiles": [],
+      "status": "shipping typed wire metadata and actual public Foundation contract repaired; fresh public-profile full-flow pending",
+      "changedFiles": [
+        "tests/validate_composition_start.py",
+        "tests/validate_composition_tooling.py",
+        "tests/validate_typed_operation.py"
+      ],
       "validation": [
         {
           "command": "shipping-typed-native-layout.log",
@@ -1137,6 +1302,55 @@
           "scope": "Matching whole-family Host diagnostic retained. Native activation reported configured JSON profile outside its contract requirements. Application example now uses separate explicit bounded profiles; full current flow rerun pending. Initial missing mountpoint diagnostic also retained.",
           "log": "artifacts/t/ci43-typed-596304cc/execution/observation.json",
           "sha256": "1dc3346ab7261fc8d2012fd029da8b2fbb5974c5264f993d49b0ba43dbeade63"
+        },
+        {
+          "command": "verified.json",
+          "status": "prepared",
+          "scope": "Official exact pinned project analysis binary retained after GitHub asset digest and release checksum verification; no device runtime installed.",
+          "log": "artifacts/toolchains/oasdiff-1.33.0-windows-amd64/verified.json",
+          "sha256": "47c8b0fd78bcf1876e7b67d60c124d527f1e5fa4dd1312c576f0be143275eec8"
+        },
+        {
+          "command": "composition-typed-exact-openapi-tool.log",
+          "status": "failed",
+          "scope": "Real configured Host/browser/build/pack and exact oasdiff preparation passed; cold exporter rejected endpoint constructor dependency on excluded runtime provider. Shipping endpoint now uses actual request-time scoped factory; no fake provider admitted.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-exact-openapi-tool.log",
+          "sha256": "638c77a17150f55eda69d5c9cae6e0d7609aa887f2cf193ab039cf72245a164c"
+        },
+        {
+          "command": "composition-typed-deferred-provider-native.log",
+          "status": "failed",
+          "scope": "Real cold export succeeded after scoped-factory repair, then correctly rejected the fixture missing its installed building-block capability adapter. Full fixture now installs actual current packaged adapters; production PKO220 guard unchanged.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-deferred-provider-native.log",
+          "sha256": "64c8daa76b851469398ea91fa78a6336d468039ed9e6bcb1c34c1d57e117aa14"
+        },
+        {
+          "command": "composition-typed-native-installed-source.log",
+          "status": "failed",
+          "scope": "Actual packaged native component installation succeeded; ordinary consumer projection exposed deep installed knowledge read failure. Bounded native document reads and filesystem I/O spelling now repaired without changing original public identities or hashes. Full installed typed flow rerunning.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-native-installed-source.log",
+          "sha256": "b5db662bc96e5828336dcb5b995520d97f104a0fd76149c18707f0646fda9488"
+        },
+        {
+          "command": "composition-native-installed-knowledge-io.log",
+          "status": "failed",
+          "scope": "Actual installed current adapters, native build, cold export and emitted browser checks reached wire admission. Missing actual 4xx/5xx problem metadata and request unknown-member schema blocked acceptance. Public Foundation wire DTO and shipping endpoint metadata now repaired; full flow requires released Foundation 0.3.6 and qualified public adoption, and remains pending.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-native-installed-knowledge-io.log",
+          "sha256": "0fce9aabd3ba31d4f278eb52ebcfd081267548e82ee85272572ceb04a2ddd39b"
+        },
+        {
+          "command": "current-public-wire-tooling-contracts.log",
+          "status": "passed",
+          "scope": "All eight current migrated-tooling cases pass, including missing-public-contract refusal before native fixture effects; actual cold-export/runtime still require public adoption.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-public-wire-tooling-contracts.log",
+          "sha256": "ba6a103801f35f16c0e75dcd8f41276829cf37400fb449ffe9ea1da7e0c53f5d"
+        },
+        {
+          "command": "foundation-public-problem-optional-detail.log",
+          "status": "passed",
+          "scope": "Actual Foundation public problem DTO compiler schema and HTTP writer probe passed, including closed root/field errors, strict integer status and optional Detail. Foundation branch99be8c3; fresh CI44 remains pending; no old CI43 success borrowed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-public-problem-optional-detail.log",
+          "sha256": "cbae158b8fd6c40a159cb7c8afefde9a3fcbb6f110b2e9878bb3025c12b844bd"
         }
       ],
       "remainingDependencies": [
@@ -1150,8 +1364,12 @@
       "sourceDiagnosis": "Supply shared current harness/example and fixture setup",
       "workPackages": "B/H/I",
       "closureRequired": "Nondefault scalar options activate, native public features register and durable behavior is observed.",
-      "status": "shipping-typed-example-native-build-passed; actual-full-flow-in-progress",
-      "changedFiles": [],
+      "status": "shipping typed wire metadata and actual public Foundation contract repaired; fresh public-profile full-flow pending",
+      "changedFiles": [
+        "tests/validate_composition_start.py",
+        "tests/validate_composition_tooling.py",
+        "tests/validate_typed_operation.py"
+      ],
       "validation": [
         {
           "command": "shipping-typed-native-layout.log",
@@ -1180,6 +1398,48 @@
           "scope": "Matching whole-family Host diagnostic retained. Native activation reported configured JSON profile outside its contract requirements. Application example now uses separate explicit bounded profiles; full current flow rerun pending. Initial missing mountpoint diagnostic also retained.",
           "log": "artifacts/t/ci43-typed-596304cc/execution/observation.json",
           "sha256": "1dc3346ab7261fc8d2012fd029da8b2fbb5974c5264f993d49b0ba43dbeade63"
+        },
+        {
+          "command": "composition-typed-exact-openapi-tool.log",
+          "status": "failed",
+          "scope": "Real configured Host/browser/build/pack and exact oasdiff preparation passed; cold exporter rejected endpoint constructor dependency on excluded runtime provider. Shipping endpoint now uses actual request-time scoped factory; no fake provider admitted.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-exact-openapi-tool.log",
+          "sha256": "638c77a17150f55eda69d5c9cae6e0d7609aa887f2cf193ab039cf72245a164c"
+        },
+        {
+          "command": "composition-typed-deferred-provider-native.log",
+          "status": "failed",
+          "scope": "Real cold export succeeded after scoped-factory repair, then correctly rejected the fixture missing its installed building-block capability adapter. Full fixture now installs actual current packaged adapters; production PKO220 guard unchanged.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-deferred-provider-native.log",
+          "sha256": "64c8daa76b851469398ea91fa78a6336d468039ed9e6bcb1c34c1d57e117aa14"
+        },
+        {
+          "command": "composition-typed-native-installed-source.log",
+          "status": "failed",
+          "scope": "Actual packaged native component installation succeeded; ordinary consumer projection exposed deep installed knowledge read failure. Bounded native document reads and filesystem I/O spelling now repaired without changing original public identities or hashes. Full installed typed flow rerunning.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-native-installed-source.log",
+          "sha256": "b5db662bc96e5828336dcb5b995520d97f104a0fd76149c18707f0646fda9488"
+        },
+        {
+          "command": "composition-native-installed-knowledge-io.log",
+          "status": "failed",
+          "scope": "Actual installed current adapters, native build, cold export and emitted browser checks reached wire admission. Missing actual 4xx/5xx problem metadata and request unknown-member schema blocked acceptance. Public Foundation wire DTO and shipping endpoint metadata now repaired; full flow requires released Foundation 0.3.6 and qualified public adoption, and remains pending.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-native-installed-knowledge-io.log",
+          "sha256": "0fce9aabd3ba31d4f278eb52ebcfd081267548e82ee85272572ceb04a2ddd39b"
+        },
+        {
+          "command": "current-public-wire-tooling-contracts.log",
+          "status": "passed",
+          "scope": "All eight current migrated-tooling cases pass, including missing-public-contract refusal before native fixture effects; actual cold-export/runtime still require public adoption.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-public-wire-tooling-contracts.log",
+          "sha256": "ba6a103801f35f16c0e75dcd8f41276829cf37400fb449ffe9ea1da7e0c53f5d"
+        },
+        {
+          "command": "foundation-public-problem-optional-detail.log",
+          "status": "passed",
+          "scope": "Actual Foundation public problem DTO compiler schema and HTTP writer probe passed, including closed root/field errors, strict integer status and optional Detail. Foundation branch99be8c3; fresh CI44 remains pending; no old CI43 success borrowed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-public-problem-optional-detail.log",
+          "sha256": "cbae158b8fd6c40a159cb7c8afefde9a3fcbb6f110b2e9878bb3025c12b844bd"
         }
       ],
       "remainingDependencies": [
@@ -1193,8 +1453,20 @@
       "sourceDiagnosis": "Trace imports; align strict layout and real lifecycle",
       "workPackages": "A/C/D/I",
       "closureRequired": "Strict build/lint and real persisted-page/session/privacy recovery; original cause only claimed when substantiated.",
-      "status": "partially-implemented; native BFF plus actual selected SPA protocol/private lifecycle proof; emitted frontend/profile/adoption pending",
-      "changedFiles": [],
+      "status": "published-profile presentation/default-disable projection and current SPA gesture/header seams implemented; actual new-public Host/profile/adoption pending",
+      "changedFiles": [
+        "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+        "extensions/program-kit-dotnet/scripts/composition_render.py",
+        "extensions/program-kit-dotnet/scripts/composition_model.py",
+        "extensions/program-kit-dotnet/scripts/spa_profile.py",
+        "extensions/program-kit-dotnet/scripts/dotnet_sync.py",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/spa-pkce.schema.json",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/spa-session.ts",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce/eng/web/tests/spa-session.spec.ts",
+        "tests/validate_browser_presentation_profile.py",
+        "tests/validate_spa_session.py",
+        "scripts/update_dependency_profiles.py"
+      ],
       "validation": [
         {
           "command": "configured-native-browser",
@@ -1216,6 +1488,34 @@
           "scope": "Real locked oidc-client-ts 3.5.0 public ESM and jwt-decode with a synthetic two-origin code/PKCE provider: nine named cases, actual native popup activation, original raw invalid draft, cancel zero effects, in-memory local clearing, provider unavailable versus independently confirmed termination, fresh userinfo unavailable/deadline, native invalid nonce and actual history/private revalidation in Chromium/WebKit at two measured viewports. COOP same-origin-allow-popups; current Program Kit SPA header/profile not qualified. No native SPA Host/API/public/consumer acceptance.",
           "log": "artifacts/maintenance-implementation-2026-10-16/foundation-source/artifacts/browser-presentation/spa-client/1792188686482-396246dd-79d6-4ba4-bdd1-5455d9b40972/results.json",
           "sha256": "95f1eb7eb248442b5a89832a77daa553025bd4d3fe00501b3a35ac90dd8563fc"
+        },
+        {
+          "command": "current-presentation-spa-scaffold.log",
+          "status": "passed",
+          "scope": "Full actual current scaffold lifecycle, identity projections, repaired-template convergence, genuine customization conflicts and profile transitions pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-spa-scaffold.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
+        },
+        {
+          "command": "current-presentation-native-composition.log",
+          "status": "passed",
+          "scope": "Actual current typed native composition reconciliation, owned template transitions and preserved source/security conflicts pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-native-composition.log",
+          "sha256": "ae7d0a40b1bbda62ccbf187f2a7618a368643ac2af03450dc24025d00f8aabc6"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Maintained shipping SPA helper: actual strict TypeScript and all seven required cases in each of Chromium and WebKit, including trusted-click popup, synchronous local clear, async-clear rejection and no-token logout channel. Exact package/lock/TS inputs stable and pinned shared Node/npm retained. No native OIDC/Host/full consumer qualification.",
+          "log": "artifacts/tests/spa-session/fe7aa589/results.json",
+          "sha256": "aa58d0169e5a635808c7ab1b85cb94a9fabff8ed8d4617c8243878f827df266a"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
         }
       ],
       "remainingDependencies": [
@@ -1260,6 +1560,20 @@
           "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
           "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
           "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        },
+        {
+          "command": "installed-current-task-map-renderer.log",
+          "status": "passed",
+          "scope": "Actual current installed helper in a fresh unrelated process renders/validates a producer alternative, preserves task bytes/history and reports exact original byte hash. Native evidence/ancestry and human-review authority retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/installed-current-task-map-renderer.log",
+          "sha256": "b79d3cc8a4e382c09e17e7887c59512d1beb182ac71afe385d123f80461763fa"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
         }
       ],
       "remainingDependencies": [
@@ -1296,6 +1610,27 @@
           "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
           "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
           "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        },
+        {
+          "command": "current-presentation-spa-scaffold.log",
+          "status": "passed",
+          "scope": "Full actual current scaffold lifecycle, identity projections, repaired-template convergence, genuine customization conflicts and profile transitions pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-spa-scaffold.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
+        },
+        {
+          "command": "installed-current-task-map-renderer.log",
+          "status": "passed",
+          "scope": "Actual current installed helper in a fresh unrelated process renders/validates a producer alternative, preserves task bytes/history and reports exact original byte hash. Native evidence/ancestry and human-review authority retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/installed-current-task-map-renderer.log",
+          "sha256": "b79d3cc8a4e382c09e17e7887c59512d1beb182ac71afe385d123f80461763fa"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
         }
       ],
       "remainingDependencies": [
@@ -1309,9 +1644,99 @@
       "sourceDiagnosis": "Trace ownership and reconcile stale entrypoints",
       "workPackages": "A/D/I",
       "closureRequired": "Executable current workflow command/prerequisite proof plus settings/pack/private-file boundaries.",
-      "status": "pending",
-      "changedFiles": [],
-      "validation": [],
+      "status": "native layout, installed knowledge and native settings build/pack proven; emitted complete CI/private-file and public-profile closure pending",
+      "changedFiles": [
+        "extensions/program-kit-building-blocks/scripts/building_blocks.py",
+        "extensions/program-kit-building-blocks/scripts/dependency_context.py",
+        "extensions/program-kit-building-blocks/scripts/dependency_profiles.py",
+        "extensions/program-kit-building-blocks/scripts/lifecycle_knowledge.py",
+        "extensions/program-kit-dotnet/references/examples/typed-operation/README.md",
+        "extensions/program-kit-dotnet/references/examples/typed-operation/settings.source.template.json",
+        "extensions/program-kit-dotnet/scripts/foundation_composition.py",
+        "tests/validate_composition_start.py",
+        "tests/validate_composition_tooling.py",
+        "tests/validate_effective_dependency_context.py",
+        "tests/validate_typed_operation.py"
+      ],
+      "validation": [
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual clean generated six native projects, two frontends: restore, locked restore, SDK Release build and both native Vite builds/admissions. No services started or application runtime acceptance. Missing original consumer definitions remain an attribution limit.",
+          "log": "artifacts/tests/composition-layout/f4f9d615/results.json",
+          "sha256": "ecf26934a1b2e21abe330bd5de9b60dd1b443ab63b9f28a3b764a31f2430c9b1"
+        },
+        {
+          "command": "current-presentation-spa-scaffold.log",
+          "status": "passed",
+          "scope": "Full actual current scaffold lifecycle, identity projections, repaired-template convergence, genuine customization conflicts and profile transitions pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-spa-scaffold.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
+        },
+        {
+          "command": "current-presentation-native-composition.log",
+          "status": "passed",
+          "scope": "Actual current typed native composition reconciliation, owned template transitions and preserved source/security conflicts pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-native-composition.log",
+          "sha256": "ae7d0a40b1bbda62ccbf187f2a7618a368643ac2af03450dc24025d00f8aabc6"
+        },
+        {
+          "command": "native-knowledge-io-public-identities.log",
+          "status": "passed",
+          "scope": "Fourteen effective dependency-context cases pass with independent building-block Windows readers and unchanged original source identities. The first attempted cross-extension path dependency broke partial fixtures and remains failed; it was removed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-knowledge-io-public-identities.log",
+          "sha256": "f62da158a6888f6f523bfe6ecc183fe424e527f5701a3737dbf999d62f808435"
+        },
+        {
+          "command": "deep-native-installed-authority-identity.log",
+          "status": "passed",
+          "scope": "Actual ordinary native Windows path to an installed knowledge file over 260 characters reads successfully, retains original public identities, rejects changed exact bytes and preserves the change until explicit fixture restoration. Earlier too-short fixture/import failures retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/deep-native-installed-authority-identity.log",
+          "sha256": "8d936ee5cfb7fdf74440aca0c31ebb56e25f52955f7a81436ac753ba7881c266"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
+        },
+        {
+          "command": "composition-typed-deferred-provider-native.log",
+          "status": "failed",
+          "scope": "Real cold export succeeded after scoped-factory repair, then correctly rejected the fixture missing its installed building-block capability adapter. Full fixture now installs actual current packaged adapters; production PKO220 guard unchanged.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-deferred-provider-native.log",
+          "sha256": "64c8daa76b851469398ea91fa78a6336d468039ed9e6bcb1c34c1d57e117aa14"
+        },
+        {
+          "command": "composition-typed-native-installed-source.log",
+          "status": "failed",
+          "scope": "Actual packaged native component installation succeeded; ordinary consumer projection exposed deep installed knowledge read failure. Bounded native document reads and filesystem I/O spelling now repaired without changing original public identities or hashes. Full installed typed flow rerunning.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-native-installed-source.log",
+          "sha256": "b5db662bc96e5828336dcb5b995520d97f104a0fd76149c18707f0646fda9488"
+        },
+        {
+          "command": "composition-native-installed-knowledge-io.log",
+          "status": "failed",
+          "scope": "Actual installed current adapters, native build, cold export and emitted browser checks reached wire admission. Missing actual 4xx/5xx problem metadata and request unknown-member schema blocked acceptance. Public Foundation wire DTO and shipping endpoint metadata now repaired; full flow requires released Foundation 0.3.6 and qualified public adoption, and remains pending.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-native-installed-knowledge-io.log",
+          "sha256": "0fce9aabd3ba31d4f278eb52ebcfd081267548e82ee85272572ceb04a2ddd39b"
+        },
+        {
+          "command": "current-public-wire-tooling-contracts.log",
+          "status": "passed",
+          "scope": "All eight current migrated-tooling cases pass, including missing-public-contract refusal before native fixture effects; actual cold-export/runtime still require public adoption.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-public-wire-tooling-contracts.log",
+          "sha256": "ba6a103801f35f16c0e75dcd8f41276829cf37400fb449ffe9ea1da7e0c53f5d"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual unpublished Build0.3.2 native inspection, locked restore, normal build, no-build pack with assembly-bound complete options metadata, and changed-source normal-build refusal. Own new declaration only; no published profile, Host or complete application acceptance. First diagnostic assertion used the wrong envelope key and remains failed.",
+          "log": "artifacts/t/typed-settings-717890cc/results.json",
+          "sha256": "45c44694943a9ca181d125849d41f43d883ca88e6a1c3bcdc0664e6c1dd2d7e9"
+        }
+      ],
       "remainingDependencies": [
         "Specified implementation/investigation and required closure evidence remain; see closureRequired."
       ],
@@ -1337,7 +1762,7 @@
       "sourceDiagnosis": "Preserve guard; prevent contradictory task edits",
       "workPackages": "F/I",
       "closureRequired": "Structured valid alternatives; conflicting producer/evidence fails; human reviews/ancestry unchanged.",
-      "status": "implemented-structured-task-or-native-evidence-renderer; installed/CI qualification pending",
+      "status": "implemented-with-actual-installed-fresh-process structured map and unchanged native guards/history; final candidate/CI pending",
       "changedFiles": [
         "extensions/program-kit-governance/scripts/task_draft.py",
         "extensions/program-kit-governance/references/phase-evidence.md",
@@ -1357,6 +1782,20 @@
           "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
           "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
           "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        },
+        {
+          "command": "installed-current-task-map-renderer.log",
+          "status": "passed",
+          "scope": "Actual current installed helper in a fresh unrelated process renders/validates a producer alternative, preserves task bytes/history and reports exact original byte hash. Native evidence/ancestry and human-review authority retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/installed-current-task-map-renderer.log",
+          "sha256": "b79d3cc8a4e382c09e17e7887c59512d1beb182ac71afe385d123f80461763fa"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
         }
       ],
       "remainingDependencies": [
@@ -1599,6 +2038,34 @@
           "scope": "412 actual required Windows cases passed in all 24 modules; two POSIX/symlink cases explicitly not applicable, not counted as passes. All case/source/input hashes stable. Original 166 obligation identities and reviewed mappings preserved; no native business/consumer/public acceptance inferred.",
           "log": "artifacts/tests/toolkit-cases/070f541137ab4f5ea28cb63be97c24c8/results.json",
           "sha256": "30dc7ace55dab3e9d34a9f69d7287d522acf5e8c55e4ebfb281a889c79789d0b"
+        },
+        {
+          "command": "native-knowledge-io-public-identities.log",
+          "status": "passed",
+          "scope": "Fourteen effective dependency-context cases pass with independent building-block Windows readers and unchanged original source identities. The first attempted cross-extension path dependency broke partial fixtures and remains failed; it was removed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-knowledge-io-public-identities.log",
+          "sha256": "f62da158a6888f6f523bfe6ecc183fe424e527f5701a3737dbf999d62f808435"
+        },
+        {
+          "command": "deep-native-installed-authority-identity.log",
+          "status": "passed",
+          "scope": "Actual ordinary native Windows path to an installed knowledge file over 260 characters reads successfully, retains original public identities, rejects changed exact bytes and preserves the change until explicit fixture restoration. Earlier too-short fixture/import failures retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/deep-native-installed-authority-identity.log",
+          "sha256": "8d936ee5cfb7fdf74440aca0c31ebb56e25f52955f7a81436ac753ba7881c266"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
+        },
+        {
+          "command": "composition-typed-native-installed-source.log",
+          "status": "failed",
+          "scope": "Actual packaged native component installation succeeded; ordinary consumer projection exposed deep installed knowledge read failure. Bounded native document reads and filesystem I/O spelling now repaired without changing original public identities or hashes. Full installed typed flow rerunning.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-native-installed-source.log",
+          "sha256": "b5db662bc96e5828336dcb5b995520d97f104a0fd76149c18707f0646fda9488"
         }
       ],
       "remainingDependencies": [
@@ -1626,6 +2093,34 @@
           "scope": "exact native-manifest-bound UTF-8 transform, cp1252 subprocess, original manifest preservation and unknown edit rejection",
           "log": "artifacts/maintenance-implementation-2026-10-16/core-utf8-2.log",
           "sha256": "dca462aa5b262bd2dbca5a91d32d5eb3b9f593b6636deb2a252179b10af6d2ef"
+        },
+        {
+          "command": "native-knowledge-io-public-identities.log",
+          "status": "passed",
+          "scope": "Fourteen effective dependency-context cases pass with independent building-block Windows readers and unchanged original source identities. The first attempted cross-extension path dependency broke partial fixtures and remains failed; it was removed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-knowledge-io-public-identities.log",
+          "sha256": "f62da158a6888f6f523bfe6ecc183fe424e527f5701a3737dbf999d62f808435"
+        },
+        {
+          "command": "deep-native-installed-authority-identity.log",
+          "status": "passed",
+          "scope": "Actual ordinary native Windows path to an installed knowledge file over 260 characters reads successfully, retains original public identities, rejects changed exact bytes and preserves the change until explicit fixture restoration. Earlier too-short fixture/import failures retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/deep-native-installed-authority-identity.log",
+          "sha256": "8d936ee5cfb7fdf74440aca0c31ebb56e25f52955f7a81436ac753ba7881c266"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
+        },
+        {
+          "command": "composition-typed-native-installed-source.log",
+          "status": "failed",
+          "scope": "Actual packaged native component installation succeeded; ordinary consumer projection exposed deep installed knowledge read failure. Bounded native document reads and filesystem I/O spelling now repaired without changing original public identities or hashes. Full installed typed flow rerunning.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-native-installed-source.log",
+          "sha256": "b5db662bc96e5828336dcb5b995520d97f104a0fd76149c18707f0646fda9488"
         }
       ],
       "remainingDependencies": [
@@ -3374,6 +3869,143 @@
       ],
       "originalRegressionLineage": "docs/reviews/maintenance-regression-lineage-2026-10-16.json",
       "boundary": "Frozen 47 unchanged. Original 166 obligations preserved: 80 explicit shared translations, 86 current consumer-owned assertions, none retired. Current full exact 414-case execution and actual emitted typed operation flow still running. Historical failures and unrelated work remain unchanged. Foundation PR14 open; no tag, publication, active consumer or paid worker/provider."
+    },
+    {
+      "stage": "Native six-project layout, published-profile presentation and installed knowledge I/O",
+      "validation": [
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual clean generated six native projects, two frontends: restore, locked restore, SDK Release build and both native Vite builds/admissions. No services started or application runtime acceptance. Missing original consumer definitions remain an attribution limit.",
+          "log": "artifacts/tests/composition-layout/f4f9d615/results.json",
+          "sha256": "ecf26934a1b2e21abe330bd5de9b60dd1b443ab63b9f28a3b764a31f2430c9b1"
+        },
+        {
+          "command": "current-presentation-spa-scaffold.log",
+          "status": "passed",
+          "scope": "Full actual current scaffold lifecycle, identity projections, repaired-template convergence, genuine customization conflicts and profile transitions pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-spa-scaffold.log",
+          "sha256": "30428c3aa89c630a0eade5c9e9ad55cfd326b0edcc1a918c6f53ebe0841daca2"
+        },
+        {
+          "command": "current-presentation-native-composition.log",
+          "status": "passed",
+          "scope": "Actual current typed native composition reconciliation, owned template transitions and preserved source/security conflicts pass.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-presentation-native-composition.log",
+          "sha256": "ae7d0a40b1bbda62ccbf187f2a7618a368643ac2af03450dc24025d00f8aabc6"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Maintained shipping SPA helper: actual strict TypeScript and all seven required cases in each of Chromium and WebKit, including trusted-click popup, synchronous local clear, async-clear rejection and no-token logout channel. Exact package/lock/TS inputs stable and pinned shared Node/npm retained. No native OIDC/Host/full consumer qualification.",
+          "log": "artifacts/tests/spa-session/fe7aa589/results.json",
+          "sha256": "aa58d0169e5a635808c7ab1b85cb94a9fabff8ed8d4617c8243878f827df266a"
+        },
+        {
+          "command": "installed-current-task-map-renderer.log",
+          "status": "passed",
+          "scope": "Actual current installed helper in a fresh unrelated process renders/validates a producer alternative, preserves task bytes/history and reports exact original byte hash. Native evidence/ancestry and human-review authority retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/installed-current-task-map-renderer.log",
+          "sha256": "b79d3cc8a4e382c09e17e7887c59512d1beb182ac71afe385d123f80461763fa"
+        },
+        {
+          "command": "native-knowledge-io-public-identities.log",
+          "status": "passed",
+          "scope": "Fourteen effective dependency-context cases pass with independent building-block Windows readers and unchanged original source identities. The first attempted cross-extension path dependency broke partial fixtures and remains failed; it was removed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/native-knowledge-io-public-identities.log",
+          "sha256": "f62da158a6888f6f523bfe6ecc183fe424e527f5701a3737dbf999d62f808435"
+        },
+        {
+          "command": "deep-native-installed-authority-identity.log",
+          "status": "passed",
+          "scope": "Actual ordinary native Windows path to an installed knowledge file over 260 characters reads successfully, retains original public identities, rejects changed exact bytes and preserves the change until explicit fixture restoration. Earlier too-short fixture/import failures retained.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/deep-native-installed-authority-identity.log",
+          "sha256": "8d936ee5cfb7fdf74440aca0c31ebb56e25f52955f7a81436ac753ba7881c266"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All 73 exact current required Windows cases passed for effective installed dependency context, public-profile projection, task generation/fresh-process rendering, semantic lineage and immutable profile transitions. Contract 2e8bf01cc4493911fd48e8c6067490cf81c5dab4595ba01247462c46460aee7f; source/input hashes stable.",
+          "log": "artifacts/tests/toolkit-cases/8e07aebcc9d448219d059ad77eea628c/results.json",
+          "sha256": "281b899860392d251bced8ca95179b2252f9677d200148c2e3b888e669365a34"
+        },
+        {
+          "command": "program-kit-current-publisher-observations.json",
+          "status": "observed",
+          "scope": "Required maintenance collector successfully observed 55 active pins. Five available updates: GitHub App token action, axe, both CShells ABI references and Spec Kit. No pin/device/default/publication mutation; final family adoption follows Foundation publication and complete dependency qualification.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/program-kit-current-publisher-observations.json",
+          "sha256": "a6ffbdeb39fd5543cf257343958da2806f53a8b818dbd024fb922cbc38af1222"
+        },
+        {
+          "command": "verified.json",
+          "status": "prepared",
+          "scope": "Official exact pinned project analysis binary retained after GitHub asset digest and release checksum verification; no device runtime installed.",
+          "log": "artifacts/toolchains/oasdiff-1.33.0-windows-amd64/verified.json",
+          "sha256": "47c8b0fd78bcf1876e7b67d60c124d527f1e5fa4dd1312c576f0be143275eec8"
+        },
+        {
+          "command": "composition-typed-exact-openapi-tool.log",
+          "status": "failed",
+          "scope": "Real configured Host/browser/build/pack and exact oasdiff preparation passed; cold exporter rejected endpoint constructor dependency on excluded runtime provider. Shipping endpoint now uses actual request-time scoped factory; no fake provider admitted.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-exact-openapi-tool.log",
+          "sha256": "638c77a17150f55eda69d5c9cae6e0d7609aa887f2cf193ab039cf72245a164c"
+        },
+        {
+          "command": "composition-typed-deferred-provider-native.log",
+          "status": "failed",
+          "scope": "Real cold export succeeded after scoped-factory repair, then correctly rejected the fixture missing its installed building-block capability adapter. Full fixture now installs actual current packaged adapters; production PKO220 guard unchanged.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-deferred-provider-native.log",
+          "sha256": "64c8daa76b851469398ea91fa78a6336d468039ed9e6bcb1c34c1d57e117aa14"
+        },
+        {
+          "command": "composition-typed-native-installed-source.log",
+          "status": "failed",
+          "scope": "Actual packaged native component installation succeeded; ordinary consumer projection exposed deep installed knowledge read failure. Bounded native document reads and filesystem I/O spelling now repaired without changing original public identities or hashes. Full installed typed flow rerunning.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-typed-native-installed-source.log",
+          "sha256": "b5db662bc96e5828336dcb5b995520d97f104a0fd76149c18707f0646fda9488"
+        }
+      ],
+      "qualification": "Frozen 47 unchanged. Current full installed typed flow remains in progress; independent source/ABI/provider guards unchanged. Foundation PR14 remains open at 3001661 with CI43 merge-source evidence; no public/default adoption, merge/tag/publication, active consumer or paid worker/provider."
+    }
+  ],
+  "continuations": [
+    {
+      "stage": "Public wire ownership and native settings declaration",
+      "foundationCommit": "99be8c3a7b96ce934f324f005b308f875fd87b7c",
+      "foundationPr": "https://github.com/orbyss-io/dotnet-foundation/pull/14",
+      "foundationCiRun": 38995075862,
+      "ciStatusAtRecord": "in progress; Linux browser contract passed, package/image acceptance pending",
+      "validation": [
+        {
+          "command": "composition-native-installed-knowledge-io.log",
+          "status": "failed",
+          "scope": "Actual installed current adapters, native build, cold export and emitted browser checks reached wire admission. Missing actual 4xx/5xx problem metadata and request unknown-member schema blocked acceptance. Public Foundation wire DTO and shipping endpoint metadata now repaired; full flow requires released Foundation 0.3.6 and qualified public adoption, and remains pending.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/composition-native-installed-knowledge-io.log",
+          "sha256": "0fce9aabd3ba31d4f278eb52ebcfd081267548e82ee85272572ceb04a2ddd39b"
+        },
+        {
+          "command": "foundation-public-problem-optional-detail.log",
+          "status": "passed",
+          "scope": "Actual Foundation public problem DTO compiler schema and HTTP writer probe passed, including closed root/field errors, strict integer status and optional Detail. Foundation branch99be8c3; fresh CI44 remains pending; no old CI43 success borrowed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/foundation-public-problem-optional-detail.log",
+          "sha256": "cbae158b8fd6c40a159cb7c8afefde9a3fcbb6f110b2e9878bb3025c12b844bd"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Actual unpublished Build0.3.2 native inspection, locked restore, normal build, no-build pack with assembly-bound complete options metadata, and changed-source normal-build refusal. Own new declaration only; no published profile, Host or complete application acceptance. First diagnostic assertion used the wrong envelope key and remains failed.",
+          "log": "artifacts/t/typed-settings-717890cc/results.json",
+          "sha256": "45c44694943a9ca181d125849d41f43d883ca88e6a1c3bcdc0664e6c1dd2d7e9"
+        },
+        {
+          "command": "current-public-wire-tooling-contracts.log",
+          "status": "passed",
+          "scope": "All eight current migrated-tooling cases pass, including missing-public-contract refusal before native fixture effects; actual cold-export/runtime still require public adoption.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-public-wire-tooling-contracts.log",
+          "sha256": "ba6a103801f35f16c0e75dcd8f41276829cf37400fb449ffe9ea1da7e0c53f5d"
+        }
+      ],
+      "boundary": "Implementation preparation only; draft stays open. Runtime0.3.6 and Build0.3.2 not published/adopted. Failed local long-path build/self-test retained, while CI source build/contracts passed. No merge/tag/publication or application acceptance."
     }
   ]
 }

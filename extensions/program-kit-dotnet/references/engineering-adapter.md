@@ -64,6 +64,15 @@ the shell-profile overlay, Keycloak realm, and browser contract are managed deri
 exact callback, silent-renew callback, post-logout routes, origins, scopes, renewal timeout, and
 session bounds in that input, then rerun the same sync command. Wildcards, cross-origin callbacks,
 contradictory lifetimes, and non-public SPA client configuration fail synchronization.
+`authenticationNavigation` optionally selects `redirect` (the historical default)
+or `popup`. Synchronization derives the matching serving contract and Vite opener
+policy; popup mode uses `same-origin-allow-popups`. Keep exact callback registrations,
+memory-only credentials and all other CSP/response policies. Requalify the selected
+native protocol client and production serving adapter after changing that topology.
+Local clearing before a provider popup must complete synchronously on the trusted
+click; an asynchronous clear is rejected before provider dispatch. Use the selected
+Foundation SPA control for shared confirmation, fresh session observation and private
+DOM recovery. A cached token or an opened logout window proves no provider termination.
 The scaffolded NuGet configuration uses nuget.org as the default public-package source while more-specific
 patterns protect the approved CShells and Nuplane preview namespaces. Consumers remain authoritative over
 their dependencies and may add private sources with namespace-specific mappings; they must preserve the

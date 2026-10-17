@@ -81,8 +81,10 @@ def validate_configuration(value: dict) -> dict:
         "silentRenewTimeoutSeconds",
         "session",
     }
-    if value.get("$schema") != "./spa-pkce.schema.json" or value.get("schemaVersion") != 1 or set(value) != required:
+    if value.get("$schema") != "./spa-pkce.schema.json" or value.get("schemaVersion") != 1 or not required <= set(value) or set(value) - required - {'authenticationNavigation'}:
         raise ValueError("PKW100 SPA-PKCE configuration must use schemaVersion 1 and the exact supported fields")
+    if value.get('authenticationNavigation', 'redirect') not in ('redirect', 'popup'):
+        raise ValueError('PKW113 authenticationNavigation must select redirect or popup')
     application_origin = exact_origin(value["applicationOrigin"], "applicationOrigin")
     exact_origin(value["apiOrigin"], "apiOrigin")
     identity_origin = exact_origin(value["identityOrigin"], "identityOrigin")
@@ -230,11 +232,29 @@ def render_web_contract(source: bytes, configuration: dict) -> bytes:
             "silentRenewTimeoutSeconds": configuration["silentRenewTimeoutSeconds"],
         }
     )
+    contract['client']['authenticationNavigation'] = configuration.get('authenticationNavigation', 'redirect')
     contract["session"] = configuration["session"] | {
         "authoritativeEnforcement": ["keycloak-sso-session", "browser-spa-session-adapter", "api-token-lifetime"],
         "silentRenewRule": "preserve-original-auth_time-and-never-extend-absolute-deadline",
     }
     return json_bytes(contract)
+
+
+def opener_policy(configuration):
+    return 'same-origin-allow-popups' if configuration.get('authenticationNavigation', 'redirect') == 'popup' else 'same-origin'
+
+
+def render_security_contract(source: bytes, configuration: dict) -> bytes:
+    value = json.loads(source)
+    value['headers']['Cross-Origin-Opener-Policy'] = opener_policy(configuration)
+    return json_bytes(value)
+
+
+def render_vite_security(source: bytes, configuration: dict) -> bytes:
+    before = b"'Cross-Origin-Opener-Policy': 'same-origin'"
+    if source.count(before) != 1:
+        raise ValueError('PKW113 maintained SPA opener-policy field is missing or ambiguous')
+    return source.replace(before, ("'Cross-Origin-Opener-Policy': '" + opener_policy(configuration) + "'").encode())
 
 
 def verify_outputs(repository: Path, configuration: dict) -> None:
@@ -300,6 +320,12 @@ def verify_outputs(repository: Path, configuration: dict) -> None:
             raise ValueError(f"PKW111 authentication evidence must configure {secure_default}")
     contract = load_object(repository / "eng/web/web-contract.json")
     client = contract.get("client", {})
+    security = load_object(repository / 'eng/web/spa-security.json')
+    expected_policy = opener_policy(configuration)
+    if security.get('headers', {}).get('Cross-Origin-Opener-Policy') != expected_policy:
+        raise ValueError('PKW113 serving contract does not match the selected authentication navigation')
+    if ("'Cross-Origin-Opener-Policy': '" + expected_policy + "'") not in (repository / 'eng/web/vite.security.mjs').read_text(encoding='utf-8'):
+        raise ValueError('PKW113 Vite opener policy differs from the selected authentication navigation')
     if (
         client.get("redirectUris") != configuration["redirectUris"]
         or client.get("postLogoutRedirectUris") != configuration["postLogoutRedirectUris"]

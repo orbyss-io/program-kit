@@ -199,28 +199,35 @@ def load_configuration(repository):
     return validate_configuration(read(Path(repository) / INPUT))
 
 
-def publisher_contracts(repository, configuration=None, selected_packages=None):
+def publisher_contracts(repository, configuration=None, selected_packages=None, presentation=None):
     import dependency_profile
-    effective = dependency_profile.resolver().effective_dependency_context(repository)
+    blocks = dependency_profile.resolver()
+    effective = blocks.effective_dependency_context(repository)
     knowledge = effective['publisherKnowledge']
     require(isinstance(knowledge, dict), 'selected profile has no publisher knowledge; repair that profile')
     registry = Path(effective['registryPath'])
     package_facts, package_rows, descriptors, feature_owners = {}, {}, {}, {}
     for row in knowledge['packages']:
-        packed = (registry/row['path']).read_bytes()
-        payload = packed[row['byteOffset']:row['byteOffset']+row['byteLength']]
+        payload = blocks.publisher_document_bytes(registry, row, 16 * 1_048_576)
         require(digest(payload)==row['sha256'], 'publisher facts hash changed: '+row['id'])
         facts = json.loads(payload)['facts']; package_facts[row['id']] = facts; package_rows[row['id']] = row
         descriptor = json.loads(facts['orbyss-foundation/feature.json']) if 'orbyss-foundation/feature.json' in facts else {}
         descriptors[row['id']] = descriptor
         for feature in descriptor.get('features',[]): feature_owners[feature['identity']] = row['id']
     documents = []
-    selected_packages = selected_packages or BASE_PACKAGES + (['Orbyss.Foundation.PostgreSql', 'Orbyss.Foundation.Execution'] if configuration and configuration['compositionId'].endswith('-postgresql') else [])
+    selected_packages = list(selected_packages or BASE_PACKAGES + (['Orbyss.Foundation.PostgreSql', 'Orbyss.Foundation.Execution'] if configuration and configuration['compositionId'].endswith('-postgresql') else []))
+    presentation = presentation or {}
+    available = 'Orbyss.Foundation.Web.Presentation' in package_facts
+    require(not presentation or available, 'browser presentation settings require a published qualified Foundation presentation profile')
+    require(presentation.get('enabled', True) or 'Orbyss.Foundation.Web.Presentation' not in selected_packages,
+            'disabled browser presentation conflicts with an explicitly selected activation; review the selection')
+    if available and presentation.get('enabled', True):
+        selected_packages.append('Orbyss.Foundation.Web.Presentation')
+    selected_packages = list(dict.fromkeys(selected_packages))
     for package in selected_packages:
         row = next((p for p in knowledge['packages'] if p['id'] == package), None)
         require(row is not None, 'selected profile is missing package knowledge: ' + package)
-        packed = (registry / row['path']).read_bytes()
-        payload = packed[row['byteOffset']:row['byteOffset'] + row['byteLength']]
+        payload = blocks.publisher_document_bytes(registry, row, 16 * 1_048_576)
         require(digest(payload) == row['sha256'], 'publisher package facts hash changed: ' + package)
         facts = json.loads(payload)['facts']
         settings = facts.get('orbyss-foundation/settings.json')
@@ -272,6 +279,13 @@ def publisher_contracts(repository, configuration=None, selected_packages=None):
             active.add(dependency); pending.append(dependency)
     result['activations'] = sorted(active)
     result['featureDescriptors'] = {package:descriptors[package] for package in result['packages'] if descriptors[package].get('features')}
+    if available:
+        result['browserPresentation'] = {'enabled': presentation.get('enabled', True)}
+        if result['browserPresentation']['enabled']:
+            configured = defaults(result, 'Foundation:Web:Presentation:')
+            configured.update(presentation.get('settings', {}))
+            validate_bound_settings({'Foundation': {'Web': {'Presentation': configured}}}, result)
+            result['browserPresentation']['settings'] = configured
     return result
 
 
@@ -331,6 +345,10 @@ def web_settings(configuration, contract):
     # Render the exact named-policy owner defaults, including candidate crawler/
     # response-local capability admission, rather than a second hand-written policy.
     result['ResponsePolicies'] = defaults(contract,'Foundation:Web:ResponsePolicies:')
+    if contract.get('browserPresentation', {}).get('enabled'):
+        presentation = contract['browserPresentation']['settings']
+        result['Presentation'] = presentation
+        result['LogoutLandingPath'] = presentation['RoutePrefix'].rstrip('/') + '/signed-out'
     validate_bound_settings({'Foundation':{'Web':result}},contract)
     require(result['SessionAbsoluteMinutes'] >= result['SessionIdleMinutes'], 'SessionAbsoluteMinutes must not be shorter than SessionIdleMinutes')
     return result

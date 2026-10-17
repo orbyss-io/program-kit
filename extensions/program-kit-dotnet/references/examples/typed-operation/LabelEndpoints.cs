@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Orbyss.Foundation.Json;
 using Orbyss.Foundation.Json.AspNetCore;
+using Orbyss.Foundation.Web.ProblemDetails;
 
 namespace ProgramKit.Examples.TypedOperation;
 
@@ -24,16 +25,30 @@ public static class LabelEndpoints
             new(JsonProfileKeys.StrictRequest, maximumBytes: 1024));
         services.AddJsonResponseContract<LabelResponse>(new("sample-label-response"),
             new(JsonProfileKeys.TolerantResponse, maximumBytes: 2048));
-        services.AddScoped<LabelEndpoint>();
+        services.AddScoped(provider => new LabelEndpoint(provider.GetRequiredService<ILabelStore>(),
+            provider.GetRequiredService<IJsonRequestReader<LabelRequest>>(),
+            provider.GetRequiredService<IJsonResponseFactory<LabelResponse>>(),
+            provider.GetRequiredService<IOptions<LabelApiOptions>>()));
     }
 
     /// <summary>Publishes typed wire contracts; service parameters are explicitly excluded from request binding.</summary>
     public static void Map(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("/api/sample-label", ([FromServices] LabelEndpoint endpoint, HttpContext http) => endpoint.ReadAsync(http))
-            .WithName("ReadSampleLabel").RequireAuthorization().WithJsonResponse<LabelResponse>();
+            .WithName("ReadSampleLabel").RequireAuthorization().WithJsonResponse<LabelResponse>()
+            .Produces<FoundationProblemEnvelope>(401, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(403, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(500, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(503, "application/problem+json");
         endpoints.MapPost("/api/sample-label", ([FromServices] LabelEndpoint endpoint, HttpContext http) => endpoint.WriteAsync(http))
-            .WithName("WriteSampleLabel").RequireAuthorization().WithJsonRequest<LabelRequest>().WithJsonResponse<LabelResponse>();
+            .WithName("WriteSampleLabel").RequireAuthorization().WithJsonRequest<LabelRequest>().WithJsonResponse<LabelResponse>()
+            .Produces<FoundationProblemEnvelope>(400, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(401, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(403, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(413, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(415, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(500, "application/problem+json")
+            .Produces<FoundationProblemEnvelope>(503, "application/problem+json");
     }
 }
 
