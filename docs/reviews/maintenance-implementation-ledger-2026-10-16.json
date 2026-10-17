@@ -4724,7 +4724,26 @@
         "Complete exact-main Linux/Windows/security qualification, attributable readiness review and exact Program Kit commit/tag approval.",
         "Tagged promotion and public fresh installation/upgrade before availability or per-finding release closure."
       ],
-      "boundary": "All47 identities and approvals unchanged; 166 original obligations preserved. Active consumer and unrelated original checkout untouched. No paid agent/provider or device installation."
+      "boundary": "All47 identities and approvals unchanged; 166 original obligations preserved. Active consumer and unrelated original checkout untouched. No paid agent/provider or device installation.",
+      "additionalLocalFailureFirstRepairs": [
+        {
+          "status": "failed",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/typed-local-complete-repaired-2-result.json",
+          "scope": "Full local flow reached later intentional ProbeService edit. Native source metadata correctly rejected its stale original binding. Separate cleanup failed because the new honest failure state had no Compose fields. Both original errors remain retained."
+        },
+        {
+          "status": "passed",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/typed-local-response-review-repair/result.json",
+          "sha256": "104c32cbc9bedeb30b5c7b42157ef810bda3f3d8ed1e18f04b865a860a00da29",
+          "scope": "Exact failed prepare passed after explicit native review of the one known fictional response literal. No options/binding source may change. Original declaration and failed state preserved; cleanup verified against retained exact owned Compose output without rewriting failure."
+        },
+        {
+          "status": "passed",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/typed-local-browser-cache-repair/result.json",
+          "sha256": "a1c643dbd6c24481617a63d92e1aee92874c00fff2fed0065a8aa283afb7dcf4",
+          "scope": "Exact direct browser stage passed in Chromium/WebKit using the actual prepared owned cache, real login/product/page/privacy checks. All eight direct calls now inherit that runtime; no acquisition fallback."
+        }
+      ]
     }
   ]
 }

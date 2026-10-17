@@ -150,6 +150,39 @@ public sealed class PrivateEvidenceOptions
     (root / project).write_bytes(ET.tostring(document) + b'\n')
 
 
+def review_fixture_response_edit(root, original, evidence):
+    """Review only the known fictional response edit; no consumer re-signing path."""
+    import hashlib
+    source = root / 'src/Application.Api/ProbeService.cs'
+    if (original.count(b'"consumer-ready"') != 1 or source.read_bytes()
+            != original.replace(b'"consumer-ready"', b'"consumer-prepared-ready"')):
+        raise ValueError('Expected exact owned fixture response edit before source review')
+    declaration = root / 'src/Application.Api/settings.source.json'
+    previous = declaration.read_bytes(); value = json.loads(previous)
+    original_hash = hashlib.sha256(original.decode('utf-8-sig').replace('\r\n', '\n').encode('utf-8')).hexdigest()
+    if value['sourceSha256'].get('ProbeService.cs') != original_hash:
+        raise ValueError('Original fixture source differs from its reviewed declaration')
+    command(['dotnet', 'msbuild', 'src/Application.Api/Application.Api.csproj',
+             '-t:FoundationInspectSettingsSourceBindings', '-p:Configuration=Release'], root, evidence / 'native-inspection')
+    reports = list((root / 'src/Application.Api/obj').rglob('settings-source-bindings.json'))
+    if len(reports) != 1:
+        raise ValueError('One current native source inspection is required for the known edit')
+    report = json.loads(reports[0].read_bytes()); current = report.get('sourceSha256', {})
+    changed = {name for name in set(current) | set(value['sourceSha256'])
+               if current.get(name) != value['sourceSha256'].get(name)}
+    if (report.get('schemaVersion') != 1 or report.get('contract') != 'utf8-optional-bom-crlf-to-lf-v1'
+            or set(current) != set(value['sourceSha256']) or changed != {'ProbeService.cs'}):
+        raise ValueError('Known fixture edit cannot refresh any other source or option binding')
+    (evidence / 'previous-declaration.json').write_bytes(previous)
+    value['sourceSha256'] = current
+    declaration.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+    (evidence / 'review.json').write_text(json.dumps({
+        'scope': 'Explicit review of one owned fictional Policy response literal; option/binding sources unchanged',
+        'changedSources': sorted(changed), 'previousDeclarationSha256': hashlib.sha256(previous).hexdigest(),
+        'currentDeclarationSha256': hashlib.sha256(declaration.read_bytes()).hexdigest(),
+        'nativeCompiledAndPackedProvenanceStillRequired': True}, indent=2) + '\n', encoding='utf-8')
+
+
 def command(arguments, root, evidence, expected=0, environment=None):
     evidence.mkdir(parents=True, exist_ok=True)
     with (evidence / 'stdout.log').open('wb') as stdout, (evidence / 'stderr.log').open('wb') as stderr:
@@ -221,6 +254,10 @@ root=Path.cwd(); sys.path.insert(0,str(root/'eng'))
 import composition_run as run
 graph=run.read(root/'eng/foundation-composition.json')
 receipt=run.read(root/run.STATE)
+# A failed build can leave an honest failure record without Compose fields.
+# Use the retained successful preparation for cleanup only; its exact output
+# hash/owned project checks still run, and the failed record stays untouched.
+if not {'compose','composeSha256','project'} <= set(receipt): receipt=json.loads(sys.argv[1])
 credentials=run.private_credentials(root,graph)
 contract=run.read(root/run.render.CONTRACT)
 resolved=run.read(root/run.render.RESOLVED)
@@ -229,7 +266,7 @@ command=run.Commands(root,root/'artifacts/composition/runs/test-disposal')
 command.secrets=tuple({*credentials.values(),*environment.values()})
 command.run([*run.compose_arguments(root,receipt),'down'],environment=environment,timeout=120)
 '''
-    command([sys.executable, '-c', script], root, evidence)
+    command([sys.executable, '-c', script, json.dumps(preparation)], root, evidence)
 
 
 def add_unimplemented_product_plan(root):
@@ -524,7 +561,10 @@ public sealed class ProbeService
             # Separately prepare changed content. Preparation marks every staged
             # host pending, so plain update must activate that full prepared set.
             probe = feature.with_name('ProbeService.cs')
+            previous_probe = probe.read_bytes()
             probe.write_text(probe.read_text().replace('consumer-ready', 'consumer-prepared-ready'), encoding='utf-8')
+            if args.tooling:
+                review_fixture_response_edit(root, previous_probe, directory / 'reviewed-response-edit')
             prepared_before = containers(preparation['project'])
             command([sys.executable, 'eng/composition_run.py', 'prepare'], root, directory / 'consumer-edit-prepare')
             prepared_edit = json.loads((root / 'artifacts/composition/prepared.json').read_text())

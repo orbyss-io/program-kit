@@ -891,3 +891,14 @@ authenticated product and Host/provider restart checks all passed. Exact sources
 and copied native reports are bound in
 `continuation-17/sport-local-short-consumer-4/native-proof.json`. This remains local
 functional evidence; the complete Linux/Firefox run and publication gates remain.
+
+The complete local typed replay exposed two further fixture failures before any
+CI retry: direct browser children lacked the prepared runtime environment, and a
+later intentional ProbeService response edit left a stale complete source binding.
+Both exact failed stages now pass locally. The source review accepts only that
+known response-literal change, requires every other source and option binding to
+remain unchanged, retains the original declaration and invokes the actual native
+inspector/producer. It creates no consumer re-signing path. Cleanup uses retained
+Compose authority only when the newer failed record lacks Compose fields; actual
+output hashes and owned project checks remain, and failed evidence is unchanged.
+The complete local replay and current complete CI gates remain required.
