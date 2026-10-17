@@ -146,7 +146,7 @@
     {
       "module": "validate_task_generation",
       "path": "tests/validate_task_generation.py",
-      "sha256": "47beff2512891d7933e847cdc3338fa8526ed993bababaff2275021f6b260cde",
+      "sha256": "91de459c44b900154676ee3bd5467e46c899eb459435ad23307be66ffd220aa8",
       "cases": {
         "validate_task_generation.TaskTests.test_selected_build_edges_project_the_supported_recipe_before_task_authoring": [
           "Windows",

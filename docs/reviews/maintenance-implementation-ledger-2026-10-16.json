@@ -576,10 +576,11 @@
       "sourceDiagnosis": "Fix installed canonical adapter bootstrap",
       "workPackages": "F",
       "closureRequired": "Fresh installed schema-v2 phase subprocess succeeds without ambient imports.",
-      "status": "implemented-with-targeted-validation; not-closed",
+      "status": "implemented-with-explicit-installed-schema-v2-fresh-process-proof; final-candidate-CI pending",
       "changedFiles": [
         "extensions/program-kit-governance/scripts/dotnet_adapter.py",
-        "extensions/program-kit-governance/scripts/phase_obligations.py"
+        "extensions/program-kit-governance/scripts/phase_obligations.py",
+        "tests/validate_task_generation.py"
       ],
       "validation": [
         {
@@ -588,10 +589,17 @@
           "scope": "22 task drafting tests including installed fresh-process finalize and missing-existing-evidence guard; no application execution",
           "log": "artifacts/maintenance-implementation-2026-10-16/task-generation-3.log",
           "sha256": "60f4f66decd27b98f3c5996a8632cd6971b45c66955e89c2e84391f0da93c0c8"
+        },
+        {
+          "command": "current exact task-generation and inventory cases",
+          "status": "passed",
+          "scope": "37 exact required cases passed in the isolated release checkout, including actual installed schema-v2 phase CLI from an unrelated working directory with PYTHONPATH/PYTHONHOME absent. Read-only task/composition bytes preserved. Initial new fixture omitted shipped dotnet references and failed; complete installed fixture passed. Full candidate CI/public package provenance remain separate.",
+          "log": "C:/Users/tech_/.codex/worktrees/maintenance-release-0-13-3/program-kit/artifacts/tests/toolkit-cases/9516b9a8f76642c29c0b68e440ec6337/results.json",
+          "sha256": "1f2eea98bcbfe7b239e5b271d0239a43dd677bef68771817774e64bbdc0477aa"
         }
       ],
       "remainingDependencies": [
-        "Fresh installed schema-v2 phase path and full installed integration still require explicit validation."
+        "Exact current candidate CI and complete installed publication/adoption qualification remain."
       ],
       "closureEvidence": []
     },

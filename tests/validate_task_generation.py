@@ -297,8 +297,8 @@ class TaskTests(unittest.TestCase):
 
     def test_installed_cli_finalizes_future_graph_in_a_fresh_unrelated_process(self):
         installed = self.root / '.specify/extensions'
-        for extension, folders in {'program-kit-governance': ['scripts'],
-                                   'program-kit-dotnet': ['scripts', 'templates/dotnet/files/eng']}.items():
+        for extension, folders in {'program-kit-governance': ['scripts', 'references'],
+                                   'program-kit-dotnet': ['scripts', 'references', 'templates/dotnet/files/eng']}.items():
             for folder in folders:
                 shutil.copytree(ROOT / 'extensions' / extension / folder, installed / extension / folder,
                                 ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules', 'dist'))
@@ -377,6 +377,19 @@ class TaskTests(unittest.TestCase):
         self.assertNotEqual(0, failed.returncode)
         self.assertIn('missing native test evidence', failed.stdout)
         self.assertNotIn('ModuleNotFoundError', failed.stderr)
+        # P1: exercise the lazy schema-v2 shell adapter through the installed
+        # phase CLI in its own process, with no repository import inheritance.
+        from composition_fixture import two_apps
+        composition = self.root / 'eng/foundation-composition.json'
+        composition.write_text(json.dumps(two_apps(ROOT, frontends=False)), encoding='utf-8')
+        before = {path: path.read_bytes() for path in (composition, self.feature / 'tasks.md')}
+        phase = installed / 'program-kit-governance/scripts/phase_obligations.py'
+        projected = subprocess.run([sys.executable, str(phase), 'project', '--repository', str(self.root),
+            '--feature-dir', self.feature.relative_to(self.root).as_posix(), '--phase', 'planning'],
+            cwd=self.root.parent, env=environment, capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, projected.returncode, projected.stdout + projected.stderr)
+        self.assertIn('not a reading checklist', projected.stdout)
+        self.assertEqual(before, {path: path.read_bytes() for path in before})
 
     def test_broad_gate_waits_for_selected_test_materialization_preserving_task_graph(self):
         body = '''# Tasks
