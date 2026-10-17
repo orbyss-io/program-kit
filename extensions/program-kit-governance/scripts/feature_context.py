@@ -138,6 +138,8 @@ MECHANISMS = {
 
 def affirmative(text):
     """Exclude explicit non-goals from prose inference, never actual package evidence."""
+    # Retained task/approval history is not current affirmative feature intent.
+    text = re.sub(r'<!--.*?-->', '', text, flags=re.S)
     excluded_depth = None
     lines = []
     for line in text.splitlines():
@@ -170,14 +172,19 @@ def frontend_only_declaration(prose):
     return False
 
 
-def context(root, feature, phase, affected_paths=()):
+def context(root, feature, phase, affected_paths=(), prose_override=None, actual_source=None):
     prose = '\n'.join(affirmative(path.read_text(encoding='utf-8'))
-                      for name in ('spec.md', 'plan.md', 'research.md', 'data-model.md', 'quickstart.md')
+                      for name in ('spec.md', 'plan.md', 'research.md', 'data-model.md', 'quickstart.md', 'tasks.md')
                       if (path := feature / name).is_file())
+    if prose_override is not None:
+        prose = affirmative(prose_override)
     projects = [p for p in (root / 'src').rglob('*.csproj') if not {'bin', 'obj'} & set(p.parts)]
     projects += [p for p in feature.rglob('*.csproj') if not {'bin', 'obj'} & set(p.parts)]
     selected = [p for p in set(projects) if p.relative_to(root).as_posix() in prose
-                or p.parent.relative_to(root).as_posix() in prose]
+                or p.parent.relative_to(root).as_posix() in prose
+                or any(str(item).replace('\\', '/') == p.relative_to(root).as_posix()
+                       or str(item).replace('\\', '/').startswith(p.parent.relative_to(root).as_posix() + '/')
+                       for item in affected_paths)]
     engineering, source = [], []
     for project in selected:
         engineering.append(project.read_text(encoding='utf-8'))
@@ -194,6 +201,8 @@ def context(root, feature, phase, affected_paths=()):
                 continue
             if package.relative_to(root).as_posix() in prose or package.parent.relative_to(root).as_posix() in prose:
                 engineering.append(package.read_text(encoding='utf-8'))
+    if actual_source is not None:
+        source = actual_source
     content = '\n'.join([prose, *engineering, *source]).lower()
     inherited = adopted_context(root, feature)
     frontend_only = frontend_only_declaration(prose)

@@ -152,8 +152,9 @@ def foundation_applicability(root, feature, inherited, tags):
             'wireCapabilities': capabilities, 'guidance': guidance}
 
 
-def model(root, feature, phase='planning', affected_paths=()):
-    tags = intent(root, feature, phase, affected_paths)
+def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), selected_tags=None):
+    tags = set(selected_tags) if selected_tags is not None else intent(root, feature, phase, affected_paths)
+    tags.update(extra_tags)
     registry_phase = 'after-plan' if phase == 'tasks' else phase
     inherited = adopted_context(root, feature)
     from feature_plan_decisions import project as decisions
@@ -216,6 +217,10 @@ def render(value, phase, detailed=False):
         'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
     }
     lines += [actions[phase], '']
+    if value.get('coding'):
+        coding = value['coding']
+        lines += ['Apply composed coding units: ' + ', '.join(u['id'] for u in coding['skills']) + '.',
+                  'Context/reasons/routes/evaluation: prepare --format json; reconcile before completion. Routing is not application proof.', '']
     if value.get('sourceQuality'):
         quality = value['sourceQuality']
         lines += ['Selected source rule ' + quality['rule'] + '; '
@@ -279,7 +284,7 @@ def render(value, phase, detailed=False):
     return '\n'.join(lines)
 
 
-def check(root, feature, phase, affected_paths=(), operation=None, repair=False):
+def check(root, feature, phase, affected_paths=(), operation=None, repair=False, configuration='Debug', framework=None, coding_stage='source'):
     graph_checked, execution = None, None
     from consumer_upgrade import scan, request_scope
     compatibility = scan(root, request_scope(root, feature=feature), {'after-plan': 'planning', 'after-tasks': 'tasks'}.get(phase, phase))
@@ -305,7 +310,12 @@ def check(root, feature, phase, affected_paths=(), operation=None, repair=False)
         guard(root, feature, operation=operation, closure=phase == 'delivery', repair=repair)
     if phase == 'delivery':
         execution = execute(root, feature)
-    value = model(root, feature, phase, affected_paths)
+    if phase == 'implementation':
+        from coding_context import prepare, require_ready
+        value = prepare(root, feature, operation=operation, affected_paths=affected_paths, reconcile=True, configuration=configuration, framework=framework, stage=coding_stage)
+        require_ready(value)
+    else:
+        value = model(root, feature, phase, affected_paths)
     if phase in ('after-plan', 'after-tasks', 'implementation'):
         value['validation'] = {'declaredGraphPassed': True if graph_checked else None, 'semanticReviewEstablished': False,
                                'scope': 'Declared structure; actual semantic ownership requires normal review.'}
@@ -384,14 +394,20 @@ def execute(root, feature, scope='Acceptance', changed_from=None):
             'instruction': 'Engineering command passed for its stated scope. Complete required consumer behavior and normal semantic/human review before overall acceptance.'}
 
 
-def finish(root, feature, handoff=False):
+def finish(root, feature, handoff=False, configuration='Debug', framework=None):
     """A task checkpoint is progress; only actual closure/handoff runs acceptance."""
     tasks = feature / 'tasks.md'
     require(tasks.is_file(), 'Locate tasks.md before claiming feature closure')
     from task_draft import load, current
     content, draft_state = load(tasks)
+    from coding_context import prepare, require_ready
+    coding = prepare(root, feature, reconcile=True, configuration=configuration, framework=framework)['coding']
     pending = len(re.findall(r'^\s*-\s+\[ \]\s+', content, re.M))
     draft = '> Draft:' in content or bool(draft_state and draft_state.get('status') != 'complete')
+    if not coding['canProceed']:
+        return {'status': 'needs-attention', 'coding': coding, 'pendingTasks': pending, 'draft': draft,
+                'applicationChecksPassed': False, 'acceptanceEstablished': False, 'canProceed': False,
+                'instruction': 'Resolve affected coding findings in their existing owners. Progress is preserved; independent scopes may continue.'}
     if not handoff and (pending or draft):
         from task_draft import current, current_projection
         can_proceed, review_diagnostic = False, 'Initialize fresh story delivery before implementation; old partial progress grants no continuation authority.'
@@ -405,6 +421,7 @@ def finish(root, feature, handoff=False):
                     raise
                 can_proceed, review_diagnostic = False, str(error)
         return {'status': 'in-progress', 'pendingTasks': pending, 'draft': draft,
+                'coding': coding,
                 'applicationChecksPassed': False, 'acceptanceEstablished': False,
                 'canProceed': can_proceed, 'reviewDiagnostic': review_diagnostic,
                 'currentCheckpoint': current_projection(current(feature)),
@@ -414,13 +431,14 @@ def finish(root, feature, handoff=False):
     from task_draft import guard
     guard(root, feature, closure=True)
     result = execute(root, feature)
+    result['coding'] = coding
     result['humanReviewsPassed'] = True
     return result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('project', 'check', 'verify', 'finish'))
+    parser.add_argument('command', choices=('project', 'check', 'verify', 'finish', 'prepare', 'reconcile'))
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phase', default='planning', choices=('planning','after-plan','tasks','after-tasks','implementation','delivery'))
@@ -431,21 +449,37 @@ def main():
     parser.add_argument('--handoff', action='store_true', help='Explicit formal review handoff, including intentionally unfinished work')
     parser.add_argument('--operation', help='Explicit operation for scoped deferred work or repair')
     parser.add_argument('--repair', action='store_true', help='Repair/diagnose only the active presented outcome')
+    parser.add_argument('--format', choices=('text', 'json'), default='text', help='Detailed regenerable coding context, never an approval artifact')
+    parser.add_argument('--unit', help='Focused selected coding unit; use with prepare/reconcile --format json')
+    parser.add_argument('--configuration', default='Debug', help='Native coding context configuration')
+    parser.add_argument('--framework', help='Explicit target for multi-target native coding preparation')
+    parser.add_argument('--stage', choices=('setup', 'source'), default='source', help='Setup permits project/input materialization, never a waiver for changed source')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     feature = inside(root, args.feature_dir)
     try:
         affected = [inside(root, p).relative_to(root).as_posix() for p in args.affected_path]
-        result = (finish(root, feature, args.handoff) if args.command == 'finish' else
+        if args.command in ('prepare', 'reconcile'):
+            from coding_context import prepare
+            result = prepare(root, feature, operation=args.operation, affected_paths=affected, reconcile=args.command == 'reconcile', configuration=args.configuration, framework=args.framework, stage=args.stage)
+            if args.unit:
+                units = [u for u in result['coding']['skills'] if u['id'] == args.unit]
+                if not units:
+                    raise ValueError('PKC013 coding unit is not selected in this scope: ' + args.unit)
+                result['coding']['skills'] = units
+            print(json.dumps(result, indent=2) if args.format == 'json' else render(result, 'implementation')
+                  if result['coding']['canProceed'] else 'Coding preparation blocked: ' + json.dumps(result['coding']['blockers']))
+            return 0 if result['coding']['canProceed'] else 2
+        result = (finish(root, feature, args.handoff, args.configuration, args.framework) if args.command == 'finish' else
                   execute(root, feature, args.scope, changed_from=args.changed_from) if args.command == 'verify' else
                   project(root, feature, args.phase, affected) if args.command == 'project' else
-                  check(root, feature, args.phase, affected, args.operation, args.repair))
+                  check(root, feature, args.phase, affected, args.operation, args.repair, args.configuration, args.framework, args.stage))
         if args.only and args.command not in ('verify', 'finish'):
             result['requirements'] = [r for r in result['requirements'] if r['id'] == args.only]
             if not result['requirements']:
                 raise ValueError('Requested obligation is not applicable in this phase')
-        print(json.dumps(result) if args.command in ('verify', 'finish') else render(result, args.phase, bool(args.only)))
-        return 0
+        print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else render(result, args.phase, bool(args.only)))
+        return 2 if result.get('coding', {}).get('canProceed') is False else 0
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(str(error))
         return 2

@@ -33,13 +33,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
-    parser.add_argument('--stage', choices=('setup','source'), default='source', help='Compatibility option; neither stage consumes governance receipts')
+    parser.add_argument('--stage', choices=('setup','source'), default='source', help='Setup permits native project materialization; source requires evaluated selected projects. Neither consumes governance receipts')
     parser.add_argument('--operation', help='Operation explicitly permitted by scoped deferral, or active repair')
     parser.add_argument('--repair', action='store_true', help='Repair/diagnose the active presented outcome only')
+    parser.add_argument('--configuration', default='Debug')
+    parser.add_argument('--framework', help='Select the applicable target for a multi-target coding context')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
-        result = check(root, inside(root, args.feature_dir), 'implementation', operation=args.operation, repair=args.repair)
+        result = check(root, inside(root, args.feature_dir), 'implementation', operation=args.operation, repair=args.repair,
+                       configuration=args.configuration, framework=args.framework, coding_stage=args.stage)
         if not args.repair:
             foundation_readiness(root)
         print(render(result, 'implementation'))

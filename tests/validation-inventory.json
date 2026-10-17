@@ -78,7 +78,9 @@
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.specification-intake.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.research.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.roadmap.md",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.assessment.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.assessment.md",
+        "extensions/program-kit-governance/scripts/implementation_preflight.py",
+        "extensions/program-kit-governance/extension.yml"
       ],
       "dependsOn": [
         "shared-governance",
@@ -102,7 +104,9 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
-        "docs/decisions/*"
+        "docs/decisions/*",
+        "extensions/program-kit-governance/scripts/coding_context.py",
+        "tests/coding_review_fixture.py"
       ],
       "dependsOn": [
         "profiles"
@@ -5366,6 +5370,36 @@
       ],
       "needs": [],
       "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_context",
+      "purpose": "Extensible canonical-bound coding units, real native evaluation, scoped preparation and installed progress reconciliation with independent negative cases. No agents or application services.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_context.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge",
+        "phases",
+        "architecture"
+      ],
+      "inputs": [
+        "tests/validate_coding_context.py",
+        "tests/coding_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240

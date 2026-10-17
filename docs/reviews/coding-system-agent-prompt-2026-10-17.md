@@ -12,7 +12,16 @@ Read AGENTS.md and these complete current documents:
 - docs/releasing.md: exact-source package CI, local validation claims, maintainer disposition and publication authority.
 - docs/consumer-engineering.md: ordinary native engineering ownership without duplicate governance lifecycles.
 
-Local continuation: F1 is implemented on `codex/coding-system-f1`. The human approved F1 conditional on retiring C# composition-preset projects, then explicitly agreed the retirement boundary and authorized implementation. Read `docs/reviews/coding-system-f1-checkpoint-2026-10-17.md` for the completed correction, validation and disclosed cost limits. Keep the additional review output available; no cleanup was requested. Continue from this branch for the next explicitly selected item. Do not recreate F1 or start F2 in this session.
+Local continuation: reuse `codex/coding-system-f1` in `artifacts/coding-system-f1`.
+F1 is approved, including retirement of C# composition-preset projects; preserve its
+checkpoint, validation/cost disclosures and retained review output. F2 was approved
+on 18 October 2026 and its commit was explicitly authorized. Its status is recorded in
+`docs/reviews/coding-system-f2-checkpoint-2026-10-17.md`. Read that checkpoint and
+`docs/coding-context.md` before continuation. The human requested F3 in a fresh session;
+that session investigates/interviews F3 against this same worktree, preserves F1/F2
+decisions, defines its inspectable fixture and confirms understanding before implementation.
+Stop at F3's human review checkpoint; do not automatically advance to F4.
+No review cleanup was requested, and the shared dirty checkout remains separate.
 
 Deliver the plan's integrated accepted-context -> applicable composable skills -> safe scaffold/edit -> actual-change reconciliation -> appropriate evaluation route, with private consumer-local patterns and teach/qualify/adopt/improve/retire behavior. Discover rules across references/decisions, prompts/scripts, schemas/build/analyzer settings, templates/examples/tests and exact publisher captures. Extend the existing registry; one authoritative source per rule supplies attributable selection, realization and checks. Resolve generated guidance from canonical sources and remove duplicate/hidden policy only after replacement proof. Preserve independent negative oracles.
 

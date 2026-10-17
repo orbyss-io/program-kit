@@ -1211,6 +1211,12 @@ def initialize(root, feature, request, now):
 def transition(root, feature, request, now=None, reader=github_read):
     now = time.time() if now is None else now
     action = request.get('action')
+    if action in ('engineering', 'present'):
+        # Direct supported completion/presentation must see manual changes too,
+        # even when a host does not run the optional after-implement hook.
+        from coding_context import prepare as coding_prepare, require_ready
+        require_ready(coding_prepare(root, feature, affected_paths=request.get('basisPaths', []), reconcile=True,
+                                     configuration=request.get('configuration', 'Debug'), framework=request.get('framework')))
     if action == 'initialize':
         return {'delivery': initialize(root, feature, request, now), 'acceptanceEstablished': False}
     value = refresh(root, load_delivery(feature))

@@ -10,6 +10,18 @@ invokes the prepared native `eng/composition_run.py run` route and requires its
 current host/provider/authentication readiness before consumer coding. First-use
 acquisition belongs to explicit `prepare`; the hook never installs device tools.
 Reuse current spec.md, plan.md, tasks.md and applicable accepted decisions already loaded by implement.
+Apply every selected coding unit printed by this command, across its actual semantic owners.
+The ordinary brief is bounded. For missing details use
+`python .specify/extensions/program-kit-governance/scripts/phase_obligations.py prepare --feature-dir <feature> --operation <operation> --unit <selected-unit> --format json`.
+Omit operation only when no operation map/active operation exists. This is focused read-only lookup,
+not another preflight or approval. Inspect that unit's canonical rules, context, reasons, selected
+manual-edit/recipe route and evaluation. Never infer implementation success from selection.
+Units are extended through canonical-bound `codingUnits` in the existing responsibility registry;
+declarations cannot execute submitted code. F3 owns richer pattern qualification and alternatives.
+Missing mandatory context or native evaluation blocks only the affected work with its named repair.
+Before source work, native evaluation inspects selected imported/conditional project settings,
+dependencies and Compile membership without a build/restore target; planned-only projects remain
+explicitly unevaluated until materialized. Actual Foundation readiness retains its existing route below.
 Read only changed inputs or the relevant operation when resuming. This is the sole pre-implementation
 guidance/structural check; do not independently invoke phase-context or repeat preflight afterward.
 Apply the contextual programming rules before editing the affected code. Preserve DDD ownership,

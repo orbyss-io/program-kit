@@ -41,6 +41,10 @@ Do not first run project and then check for the same event, or reread entire ref
 During specification and planning, present design findings without requiring application builds,
 tests or completion evidence. At after-implement run `{SCRIPT} finish --feature-dir <feature>`.
 Pending tasks or a draft return progress without full engineering acceptance. State remaining work;
+Progress and closure first reconcile retained-baseline changes (including untracked and both rename
+owners), actual Compile ownership, native dependencies and newly selected coding duties. An unresolved
+finding returns needs-attention and preserves source/task progress; independent owned scopes remain
+available. This does not intercept arbitrary writes or establish arbitrary-language semantics.
 do not claim completion. An explicit formal review handoff adds `--handoff`; neither a status request
 nor a task batch is a handoff. Completed feature/domain work runs the full engineering command once.
 Reuse its current result in the final report; do not separately invoke verify or that command again.

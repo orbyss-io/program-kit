@@ -144,8 +144,25 @@ class DeliveryTests(unittest.TestCase):
         solution = self.root / 'Application.slnx'
         solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /></Solution>')
         commands = []
+        # This real native case supplies the actual ownership/baseline now consumed
+        # by direct presentation; the other state-machine cases remain fictional.
+        graph = self.root / 'eng/architecture.json'
+        graph.parent.mkdir(exist_ok=True)
+        graph.write_text(json.dumps({'runtimeComposition': {'projects': [
+            {'path': 'src/' + name + '/' + name + '.csproj', 'role': 'implementation', 'projectReferences': [],
+             'responsibilities': [{'name': name + 'Work', 'kind': 'runtime', 'effects': []}]}
+            for name in ('Create', 'Unrelated')], 'bindings': []}}))
+        (self.root / '.gitignore').write_text('**/bin/\n**/obj/\nartifacts/\n')
+        for arguments in (['init', '-q'], ['add', 'src', 'eng/architecture.json', 'Directory.Build.props', 'Application.slnx', '.gitignore'],
+                          ['-c', 'user.name=Fictional Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Native fixture baseline'],
+                          ['tag', 'original-commit']):
+            subprocess.run(['git', *arguments], cwd=self.root, check=True, capture_output=True, timeout=30)
         def native(*args):
             command = ['dotnet', *args]
+            if args[0] in ('restore', 'build'):
+                # This bounded output/review case does not qualify parallel
+                # MSBuild scheduling. Serialize its two-project local fixture.
+                command.append('-m:1')
             completed = subprocess.run(command, cwd=self.root, capture_output=True, text=True, encoding='utf-8', timeout=120)
             log = evidence / ('command-' + str(len(commands)) + '.log')
             log.write_text(completed.stdout + completed.stderr, encoding='utf-8')

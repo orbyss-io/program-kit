@@ -94,6 +94,23 @@ For each source, distinguish available, selected/routed, observed consultation a
 
 ### F2 — prepare the task and compose applicable coding skills
 
+**F2 interview decisions accepted on 17 October 2026:** prepare the current operation
+and tasks while retaining feature constraints; compose actionable canonical-bound units
+through the existing command/registry rather than independent static skill policy files.
+The human explicitly confirmed that F2 includes the extensible application mechanism:
+adding a declaration selects a new unit without changing the composer algorithm. F3
+retains richer teaching, evidence qualification, local/shared alternatives and retirement.
+Use the retained task baseline for actual-change reconciliation before progress/closure
+and direct engineering/presentation admission. Missing mandatory context blocks affected
+work with its owner/repair; unknown semantic findings stay honest. The agreed fixture is
+a fictional private-notes HTTP/PostgreSQL task plus unrelated browser scope, extension
+selection/exclusion, evaluated imports, manual changes, deliberate failures and explicit
+proof limits. The human confirmed shared understanding and authorized implementation.
+See the [F2 checkpoint](coding-system-f2-checkpoint-2026-10-17.md) for actual output,
+validation, limitations and review status. Preserve all settled F1 decisions.
+The human approved F2 on 18 October 2026, authorized its commit and requested F3
+in a fresh session. Preserve the disclosed limits and retained review material.
+
 Extend the actual plan/task-to-implementation route so its prepared context identifies the request and boundaries, accepted specification and decisions, model/contract/schema ownership, affected projects/operations, selected effective profiles/packages/toolchains, current verification ownership, local patterns and material uncertainties. Keep the ordinary agent view bounded and link attributable detailed context; do not embed repeated complete histories.
 
 Compose skills by actual semantic responsibility across files and projects. Before code production, expose the selected obligations, chosen alternatives and why, required scaffold/edit route and evaluation. An endpoint may have no body or be small; a helper is not automatically a new composition library. Use evaluated project settings and selected native APIs, not guessed names or package documentation from another version. The preparation path should be reusable for a feature, repair and refactor; do not require a new human approval for every method or local choice.

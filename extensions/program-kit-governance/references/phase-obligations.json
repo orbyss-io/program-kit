@@ -7118,5 +7118,259 @@
       "recipes": [],
       "review": "Review actual source/behavior for this responsibility; routing/selector tests establish only their stated mechanical scope."
     }
-  }
+  },
+  "codingUnits": [
+    {
+      "id": "story-delivery",
+      "requirementIds": [
+        "story-delivery"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "domain-semantics",
+      "requirementIds": [
+        "domain-semantics"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "implementation-quality",
+      "requirementIds": [
+        "implementation-quality"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "architecture-authority",
+      "requirementIds": [
+        "architecture-authority"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-boundaries",
+      "requirementIds": [
+        "dotnet-boundaries"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "api-contracts",
+      "requirementIds": [
+        "api-contracts"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "browser-experience",
+      "requirementIds": [
+        "browser-experience"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "capability-adoption",
+      "requirementIds": [
+        "capability-adoption"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-async",
+      "requirementIds": [
+        "dotnet-async"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-concurrency",
+      "requirementIds": [
+        "dotnet-concurrency"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-lifetime",
+      "requirementIds": [
+        "dotnet-lifetime"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-construction",
+      "requirementIds": [
+        "dotnet-construction"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-queries",
+      "requirementIds": [
+        "dotnet-queries"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-runtime-io",
+      "requirementIds": [
+        "dotnet-runtime-io"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-runtime-security",
+      "requirementIds": [
+        "dotnet-runtime-security"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "dotnet-source-quality",
+      "requirementIds": [
+        "dotnet-source-quality"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "persistence-adoption",
+      "requirementIds": [
+        "persistence-adoption"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "http-operation-contracts",
+      "requirementIds": [
+        "http-operation-contracts"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "typescript-boundaries",
+      "requirementIds": [
+        "typescript-boundaries"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "identity-administration",
+      "requirementIds": [
+        "identity-administration"
+      ],
+      "route": "manual-edit",
+      "requiredContext": [
+        "request"
+      ]
+    },
+    {
+      "id": "owned-native-work",
+      "ruleIds": [
+        "principle.compilation-boundaries"
+      ],
+      "when": {
+        "all": [
+          "evaluated-dotnet"
+        ],
+        "any": [
+          "api",
+          "persistence"
+        ]
+      },
+      "requiredContext": [
+        "model-owner",
+        "verification-owner"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "owned-provider-contract",
+      "ruleIds": [
+        "principle.compilation-boundaries"
+      ],
+      "when": {
+        "all": [
+          "evaluated-dotnet",
+          "persistence"
+        ]
+      },
+      "requiredContext": [
+        "contract-owner"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "source-native-context",
+      "ruleIds": [
+        "principle.compilation-boundaries"
+      ],
+      "when": {
+        "all": [
+          "dotnet",
+          "source-production"
+        ]
+      },
+      "requiredContext": [
+        "effective-projects"
+      ],
+      "route": "manual-edit"
+    }
+  ]
 }

@@ -408,6 +408,36 @@ def validate_graph(root, manifest, evaluated, compiled):
     return {'evaluated-and-compiled-graph', 'compiled-capability-bindings'}
 
 
+def evaluate_project(root, relative, configuration='Debug', version=None, framework=None):
+    """Query actual imported/conditional settings without executing a target or restore.
+
+    This is evaluation, not compiled dependency or runtime acceptance. MSBuild
+    remains the native project owner; callers must select trusted repository input.
+    """
+    path = inside(root, relative)
+    require(path.is_file(), 'Missing project for native evaluation: ' + relative)
+    require(bool(re.fullmatch(r'[A-Za-z0-9_. -]+', configuration)), 'Select one native configuration identity')
+    if framework:
+        declared = evaluate_project(root, relative, configuration, version)
+        properties = declared['Properties']
+        targets = (properties.get('TargetFrameworks') or properties.get('TargetFramework', '')).split(';')
+        require(framework in targets, 'Selected target framework is not declared by the project')
+        if not properties.get('TargetFrameworks'):
+            return declared
+    from owned_scratch import native_path
+    command = ['dotnet', 'msbuild', native_path(path), '-nologo', f'-p:Configuration={configuration}',
+               '-getProperty:AssemblyName,TargetPath,Configuration,ManagePackageVersionsCentrally,TargetFramework,TargetFrameworks,NETCoreSdkVersion,MSBuildProjectFullPath',
+               '-getItem:ProjectReference,PackageReference,PackageVersion,FrameworkReference,InternalsVisibleTo,AssemblyAttribute,Compile']
+    if version:
+        command.append('-p:Version=' + version)
+    if framework:
+        require(bool(re.fullmatch(r'[A-Za-z0-9.\-]+', framework)), 'Select a native target framework identity')
+        command.append('-p:TargetFramework=' + framework)
+    result = subprocess.run(command, cwd=native_path(root), capture_output=True, text=True, encoding='utf-8',
+                            check=True, timeout=120)
+    return json.loads(result.stdout)
+
+
 def execute(root, manifest, configuration, feature=None, build_subject=None, version=None):
     validate_planned(root, manifest)
     declared = [p['path'] for p in manifest['runtimeComposition']['projects']]
@@ -454,13 +484,7 @@ def execute(root, manifest, configuration, feature=None, build_subject=None, ver
     paths = []
     for project in manifest['runtimeComposition']['projects']:
         path = inside(root, project['path'])
-        command = ['dotnet', 'msbuild', str(path), '-nologo', f'-p:Configuration={configuration}',
-                   '-getProperty:AssemblyName,TargetPath,ManagePackageVersionsCentrally',
-                   '-getItem:ProjectReference,PackageReference,PackageVersion,InternalsVisibleTo,AssemblyAttribute']
-        if version:
-            command.append('-p:Version=' + version)
-        result = subprocess.run(command, cwd=root, capture_output=True, text=True, encoding='utf-8', check=True, timeout=120)
-        data = json.loads(result.stdout)
+        data = evaluate_project(root, project['path'], configuration, version)
         evaluated[project['path']] = data
         assembly = Path(data['Properties']['TargetPath']).resolve()
         require(assembly.is_relative_to(root) and assembly.is_file(), 'Build current assemblies before architecture verification')

@@ -126,7 +126,7 @@ class DevelopmentTests(unittest.TestCase):
         with (self.feature / 'plan.md').open('a') as stream:
             stream.write('\nC# policy in src/Policy/Policy.csproj.\n')
         command = [sys.executable, str(ROOT / 'extensions/program-kit-governance/scripts/implementation_preflight.py'),
-                   '--repository', str(self.root), '--feature-dir', 'specs/001-slots']
+                   '--repository', str(self.root), '--feature-dir', 'specs/001-slots', '--stage', 'setup']
         failed = subprocess.run(command, cwd=self.root, capture_output=True, text=True)
         self.assertEqual(2, failed.returncode, failed.stdout + failed.stderr)
         self.assertIn('responsibilities', failed.stdout)
@@ -161,7 +161,7 @@ class DevelopmentTests(unittest.TestCase):
         graph['runtimeComposition']['projects'][1]['role'] = 'implementation'
         path.write_text(json.dumps(graph))
         for phase in ('after-plan', 'after-tasks', 'implementation'):
-            knowledge.check(self.root, self.feature, phase)
+            knowledge.check(self.root, self.feature, phase, coding_stage='setup')
 
     def test_planned_source_requires_manifest_but_empty_repository_is_valid(self):
         (self.feature / 'plan.md').write_text('Implement src/Notes.Core/Notes.Core.csproj in C#.')
