@@ -526,6 +526,9 @@ def collect_lane(lane, manifest, output):
     verify_lane(value, lane, source(), sha256(manifest), ROOT)
     output.mkdir(parents=True, exist_ok=True)
     shutil.copytree(ROOT / 'artifacts/validation-runs', output / 'artifacts/validation-runs', dirs_exist_ok=True)
+    cases = ROOT / 'artifacts/tests/toolkit-cases'
+    if cases.is_dir():
+        shutil.copytree(cases, output / 'artifacts/tests/toolkit-cases', dirs_exist_ok=True)
     write(output / 'lane.json', value)
 
 

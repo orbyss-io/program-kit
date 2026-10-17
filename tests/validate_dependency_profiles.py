@@ -29,7 +29,11 @@ class ProfileTests(unittest.TestCase):
             registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'
             shutil.copytree(blocks.profile_registry(), registry)
             before = {path.relative_to(registry).as_posix(): path.read_bytes() for path in registry.rglob('*') if path.is_file()}
-            pack_historical_package_facts(staging)
+            original_registry = registry
+            staging = pack_historical_package_facts(staging)
+            registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'
+            for relative, original in before.items():
+                self.assertEqual(original, (original_registry / relative).read_bytes(), relative)
             storage = blocks.load_json(registry / 'historical-package-facts.json')
             self.assertGreater(len(storage['entries']), 19)
             for relative, original in before.items():
@@ -42,6 +46,27 @@ class ProfileTests(unittest.TestCase):
             for identity, entry in index['profiles'].items():
                 if entry['status'] == 'qualified':
                     blocks.qualified_dependency_profile(registry, identity, blocks.load_json(fixtures.CATALOG))
+            # Read a real indexed source through its unchanged original range,
+            # then prove it cannot escape its own container into adjacent bytes.
+            for entry in index['profiles'].values():
+                if not entry.get('knowledge'):
+                    continue
+                manifest = blocks.load_json(registry / entry['knowledge']['path'])
+                ranged = next((item for item in manifest.get('documents', []) if 'byteOffset' in item), None)
+                if ranged is None:
+                    continue
+                original_container = (original_registry / ranged['path']).read_bytes()
+                self.assertFalse((registry / ranged['path']).exists())
+                self.assertEqual(original_container[ranged['byteOffset']:ranged['byteOffset'] + ranged['byteLength']],
+                                 blocks.publisher_document_bytes(registry, ranged))
+                for offset in (-1, len(original_container), True):
+                    with self.assertRaisesRegex(ValueError, 'range is invalid'):
+                        blocks.publisher_document_bytes(registry, {**ranged, 'byteOffset': offset, 'byteLength': 1})
+                with self.assertRaisesRegex(ValueError, 'historical publisher package fact changed'):
+                    blocks.publisher_document_bytes(registry, {**ranged, 'sha256': '0' * 64})
+                break
+            else:
+                self.fail('The compaction fixture must exercise an actual indexed source container')
             relative, row = next(iter(storage['entries'].items()))
             item = {'path': relative, 'sha256': row['sha256']}
             pack = registry / 'historical-package-facts.pack'

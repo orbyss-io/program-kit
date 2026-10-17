@@ -348,7 +348,14 @@ def validate_populated_repository_initializer(root: Path) -> None:
         # validate_repository_toolchain.py using disposable shared installations.
         preflight = project / "scripts/initialize_device.py"
         preflight.parent.mkdir()
-        preflight.write_text("raise RuntimeError('Fixture Python must intercept this policy call')\n")
+        preflight.write_text(
+            'import os, subprocess, sys\n'
+            'arguments = sys.argv[1:]\n'
+            'if "--native-arguments" in arguments:\n'
+            '    launcher = arguments[arguments.index("--native-launcher") + 1]\n'
+            '    native = arguments[arguments.index("--native-arguments") + 1:]\n'
+            '    command = [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", "call", launcher, *native] if os.name == "nt" else [launcher, *native]\n'
+            '    raise SystemExit(subprocess.call(command))\n', encoding='utf-8')
         if suffix == "cmd":
             stub = tool_dir / "specify.cmd"
             stub.write_text(
@@ -363,7 +370,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
             python_stub.write_text(
                 "@echo off\n"
                 "if \"%1\"==\"--version\" exit /b 0\n"
-                "if \"%~nx1\"==\"initialize_device.py\" exit /b 0\n"
+                "if \"%~nx1\"==\"initialize_device.py\" goto fixture_policy\n"
                 "if \"%1\"==\"-c\" (\n"
                 "  echo %2 | findstr /c:sys.executable >nul && (echo %~dp0python.cmd & exit /b 0)\n"
                 "  echo %2 | findstr /c:version_info >nul && exit /b 0\n"
@@ -384,7 +391,10 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 "  >>\"%PROGRAM_KIT_TEST_LOG%\" echo python %*\n"
                 "  exit /b 0\n"
                 ")\n"
-                "exit /b 1\n",
+                "exit /b 1\n"
+                ":fixture_policy\n"
+                f'"{sys.executable}" %*\n'
+                "exit /b %errorlevel%\n",
                 encoding="utf-8",
             )
             command = [
@@ -407,7 +417,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
             python_stub.write_text(
                 "#!/usr/bin/env sh\n"
                 "if [ \"${1:-}\" = '--version' ]; then exit 0; fi\n"
-                "case \"${1:-}\" in *initialize_device.py) exit 0;; esac\n"
+                f"case \"${{1:-}}\" in *initialize_device.py) exec '{sys.executable}' \"$@\";; esac\n"
                 "if [ \"${1:-}\" = '-c' ]; then\n"
                 "  case \"${2:-}\" in *sys.executable*) printf '%s\\n' \"$0\"; exit 0;; *version_info*) exit 0;; esac\n"
                 "  [ -f \"$PROGRAM_KIT_TEST_PYYAML\" ]\n"
@@ -803,7 +813,8 @@ def main() -> int:
         # Check the invocation contracts after normalizing the Windows resolver's
         # absolute executable variables to their command names.
         initializer = initializer.replace('"%PROGRAM_KIT_SPECIFY%"', 'specify').replace(
-            '"%PROGRAM_KIT_GIT%"', 'git')
+            '"%PROGRAM_KIT_GIT%"', 'git').replace('call :profiled_native ', 'specify ').replace(
+                'native_program_kit ', 'specify ')
         require_phrases(
             label,
             initializer,

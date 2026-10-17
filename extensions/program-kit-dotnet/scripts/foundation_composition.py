@@ -301,7 +301,10 @@ def browser_declarations(repository):
     require(len(matches) == 1, 'selected profile lacks one native presentation package')
     raw = blocks.publisher_document_bytes(registry, matches[0], 16 * 1_048_576)
     require(digest(raw) == matches[0]['sha256'], 'native browser package facts changed')
-    files = json.loads(raw)['files']; result = {}
+    facts = json.loads(raw)
+    files = facts.get('payloadFiles')
+    require(isinstance(files, dict), 'native browser package facts require the published payloadFiles manifest')
+    result = {}
     for name in ('configuration.d.mts', 'presentation.d.mts', 'bff.d.mts', 'session.d.mts', 'spa.d.mts'):
         source = 'src/' + package + '/browser/' + name
         documents = [row for row in knowledge['documents'] if row['publisherPath'] == source]

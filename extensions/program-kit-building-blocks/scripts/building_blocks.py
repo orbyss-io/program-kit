@@ -1632,12 +1632,11 @@ def profile_entry_matches_hash(entry: dict, expected: str) -> bool:
 
 
 def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576) -> bytes:
-    """Read one frozen document from an ordinary file or an indexed source pack."""
-    source=filesystem_root(repository_path(directory,item['path']))
+    """Read an exact document, including an unchanged packed-container range."""
+    source = filesystem_root(repository_path(directory, item['path']))
     packed = False
-    if not source.is_file() and 'byteOffset' not in item:
-        # Install packaging can compact old loose package facts while their
-        # historical manifests and original per-document hashes remain unchanged.
+    container = None
+    if not source.is_file():
         storage = filesystem_root(repository_path(directory, 'historical-package-facts.json'))
         if storage.is_file():
             if storage.stat().st_size > 1_048_576:
@@ -1645,17 +1644,26 @@ def publisher_document_bytes(directory: Path, item: dict, limit: int = 1_048_576
             index = load_json(storage)
             if index.get('schemaVersion') != 1 or not isinstance(index.get('entries'), dict):
                 fail('PKB611', 'historical package storage index is invalid')
-            row = index['entries'].get(item['path'])
-            if not isinstance(row, dict) or set(row) != {'byteOffset', 'byteLength', 'sha256'} or row['sha256'] != item.get('sha256'):
+            container = index['entries'].get(item['path'])
+            if (not isinstance(container, dict) or set(container) != {'byteOffset', 'byteLength', 'sha256'}
+                    or not re.fullmatch('[0-9a-f]{64}', str(container['sha256']))
+                    or ('byteOffset' not in item and container['sha256'] != item.get('sha256'))):
                 fail('PKB611', 'historical package storage differs from its original authority')
-            item = {**item, **row}
             source = filesystem_root(repository_path(directory, 'historical-package-facts.pack'))
             packed = True
-    offset=item.get('byteOffset',0)
-    length=item.get('byteLength',source.stat().st_size)
-    if (type(offset) is not int or type(length) is not int or offset<0 or length<0
-            or length>limit or offset+length>source.stat().st_size):
-        fail('PKB611','publisher document range is invalid')
+    offset = item.get('byteOffset', 0)
+    length = item.get('byteLength', container['byteLength'] if container else source.stat().st_size)
+    if container:
+        base, capacity = container['byteOffset'], container['byteLength']
+        if (type(base) is not int or type(capacity) is not int or base < 0 or capacity < 0
+                or base + capacity > source.stat().st_size
+                or type(offset) is not int or type(length) is not int or offset < 0 or length < 0
+                or offset + length > capacity):
+            fail('PKB611', 'publisher document range is invalid')
+        offset += base
+    if (type(offset) is not int or type(length) is not int or offset < 0 or length < 0
+            or length > limit or offset + length > source.stat().st_size):
+        fail('PKB611', 'publisher document range is invalid')
     with source.open('rb') as stream:
         stream.seek(offset)
         result = stream.read(length)
@@ -1689,8 +1697,7 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
         if facts.get('profileId') != identity or facts.get('releaseVersion') != selected['families']['foundation']['releaseVersion']:
             fail('PKB611', 'publisher knowledge differs from the selected dependency profile')
         for item in [facts[key] for key in ('sourcePack','packagePack') if facts.get(key)]:
-            source = repository_path(directory, item['path'])
-            if raw_sha256(source) != item['sha256']:
+            if hashlib.sha256(publisher_document_bytes(directory, item, 64 * 1_048_576)).hexdigest() != item['sha256']:
                 fail('PKB611', 'versioned publisher fact/source changed')
         for item in facts.get('packages',[]):
             if hashlib.sha256(publisher_document_bytes(directory,item,16*1_048_576)).hexdigest()!=item['sha256']:

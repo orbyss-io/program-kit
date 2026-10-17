@@ -189,6 +189,11 @@ def execute(root, name, expected, selected=None):
         value['evidence'] = {'execution.log': digest(logs.read_bytes())} if logs.is_file() else {}
         (directory / 'results.json').write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
         print('Case inventory evidence: ' + str(directory / 'results.json'))
+        if value['status'] != 'passed':
+            failed = [{'id': case, 'status': status} for case, status in sorted(value.get('executedCases', {}).items())
+                      if status != 'passed']
+            print('Required case failures: ' + json.dumps({'cases': failed[:20], 'total': len(failed)}))
+            print('Bounded execution details: ' + str(directory / 'execution.log'))
 
 
 def main():

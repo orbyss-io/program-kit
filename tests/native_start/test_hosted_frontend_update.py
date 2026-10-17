@@ -4,7 +4,6 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -13,6 +12,7 @@ sys.path.insert(0, str(ROOT / 'tests'))
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/scripts'))
 sys.path.insert(0, str(TEMPLATE / 'files/eng'))
 from composition_fixture import two_apps
+from owned_fixture import FixtureDirectory, native_path
 import composition_render
 import composition_model
 import prepare_hosted_pages
@@ -24,7 +24,7 @@ class BuildCommands:
         self.root = root
 
     def run(self, arguments, cwd=None, environment=None, timeout=300):
-        result = subprocess.run(arguments, cwd=cwd or self.root, env=environment,
+        result = subprocess.run(arguments, cwd=native_path(cwd or self.root), env=environment,
                                 capture_output=True, text=True, encoding='utf-8', timeout=timeout)
         if result.returncode:
             raise ValueError(result.stdout + '\n' + result.stderr)
@@ -32,9 +32,7 @@ class BuildCommands:
 
 class HostedFrontendUpdateTests(unittest.TestCase):
     def test_retained_mutable_vite_recipe_reproduces_pkc110_without_waiving_immutability(self):
-        scratch = ROOT / 'artifacts/cache/hosted-bundle-tests'
-        scratch.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+        with FixtureDirectory() as temporary:
             root = Path(temporary)
             graph = two_apps(ROOT)
             frontend = graph['resources']['policy-web']
@@ -60,9 +58,7 @@ class HostedFrontendUpdateTests(unittest.TestCase):
                 prepare_hosted_pages.build(root, graph, commands, selected_hosts=['application-host'])
 
     def test_prepare_source_edit_update_retains_previous_assets_and_mount(self):
-        scratch = ROOT / 'artifacts/cache/hosted-bundle-tests'
-        scratch.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+        with FixtureDirectory() as temporary:
             root = Path(temporary)
             graph = two_apps(ROOT)
             generated = composition_render.materialize(root, graph, TEMPLATE)

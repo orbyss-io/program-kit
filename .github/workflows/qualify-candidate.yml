@@ -82,7 +82,9 @@ jobs:
         if: always()
         with:
           name: build-diagnostics-${{ github.run_attempt }}
-          path: artifacts/validation-runs/
+          path: |
+            artifacts/validation-runs/
+            artifacts/tests/toolkit-cases/
           if-no-files-found: warn
           retention-days: ${{ env.RETENTION_DAYS }}
   linux:
@@ -128,7 +130,9 @@ jobs:
         if: always()
         with:
           name: linux-diagnostics-${{ github.run_attempt }}
-          path: artifacts/validation-runs/
+          path: |
+            artifacts/validation-runs/
+            artifacts/tests/toolkit-cases/
           if-no-files-found: error
           retention-days: ${{ env.RETENTION_DAYS }}
   windows:
@@ -200,7 +204,9 @@ jobs:
         if: always()
         with:
           name: windows-diagnostics-${{ github.run_attempt }}
-          path: artifacts/validation-runs/
+          path: |
+            artifacts/validation-runs/
+            artifacts/tests/toolkit-cases/
           if-no-files-found: error
           retention-days: ${{ env.RETENTION_DAYS }}
   security:

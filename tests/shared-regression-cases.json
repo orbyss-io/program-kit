@@ -943,7 +943,7 @@
     {
       "module": "validate_dependency_profiles",
       "path": "tests/validate_dependency_profiles.py",
-      "sha256": "83d93a99d375ac670d6046a9c107904d659e38e628ce0ecbb0dd338919482e6b",
+      "sha256": "486e06d3d7bcf6238cd50171a70c711218b5ccbb842bc0a3b2c39de91fa256af",
       "cases": {
         "validate_dependency_profiles.ProfileTests.test_bundle_compaction_preserves_all_historical_authorities_and_fact_bytes": [
           "Windows",
@@ -1656,7 +1656,7 @@
     {
       "module": "test_hosted_frontend_update",
       "path": "tests/native_start/test_hosted_frontend_update.py",
-      "sha256": "c2b33f3a6e994c11518bca424eede9a57bb8b2550378b7658408c5c400069c41",
+      "sha256": "1999e64ea27ada829f8915ccee20c25ff281f49dbe88b6e2522c4642067f5e28",
       "cases": {
         "test_hosted_frontend_update.HostedFrontendUpdateTests.test_retained_mutable_vite_recipe_reproduces_pkc110_without_waiving_immutability": [
           "Windows",
@@ -2217,7 +2217,7 @@
     {
       "module": "validate_browser_presentation_profile",
       "path": "tests/validate_browser_presentation_profile.py",
-      "sha256": "add8d217dbe0ad3039a05f698c273788024b51f8c771b82c39362272ee3318c6",
+      "sha256": "b468356ee5f1f08f31832f098aa7da1c12545e8f2ee00afc9cec6b3e2c76c09d",
       "cases": {
         "validate_browser_presentation_profile.PresentationProfileTests.test_native_metadata_defaults_and_selected_theme_bind_the_actual_landing_path": [
           "Windows",

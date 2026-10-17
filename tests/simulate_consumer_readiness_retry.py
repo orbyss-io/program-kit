@@ -57,7 +57,7 @@ def main():
         config['run'] = config['run'].replace('python ', f'"{sys.executable}" ', 1)
         return original_shell(self, config, context)
 
-    def producer(self, command, integration, model, arguments, context, integration_args=None, integration_options=None):
+    def producer(self, command, integration, model, arguments, context, integration_args=None, integration_options=None, capture_max_bytes=None):
         assert command == 'speckit.program-kit-governance.readiness', command
         dispatches.append(command)
         match = re.search(r'Read (\S+/program-kit-context/readiness.json) first', arguments)

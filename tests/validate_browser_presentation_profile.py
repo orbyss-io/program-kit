@@ -94,12 +94,12 @@ class PresentationProfileTests(unittest.TestCase):
 
     def test_native_browser_declarations_bind_exact_package_files_and_frozen_source(self):
         row = next(row for row in self.effective['publisherKnowledge']['packages'] if row['id'].endswith('.Presentation'))
-        path = self.root / row['path']; value = json.loads(path.read_bytes()); value['files'] = {}
+        path = self.root / row['path']; value = json.loads(path.read_bytes()); value['payloadFiles'] = {}
         documents = []; expected = {}
         for name in ('configuration.d.mts', 'presentation.d.mts', 'bff.d.mts', 'session.d.mts', 'spa.d.mts'):
             data = ('// synthetic package-owned declaration: ' + name + '\n').encode()
             source = self.root / name; source.write_bytes(data); expected[name] = data
-            digest = hashlib.sha256(data).hexdigest(); value['files']['browser/' + name] = digest
+            digest = hashlib.sha256(data).hexdigest(); value['payloadFiles']['browser/' + name] = digest
             documents.append({'publisherPath': 'src/Orbyss.Foundation.Web.Presentation/browser/' + name,
                 'path': name, 'sha256': digest})
         raw = json.dumps(value).encode(); path.write_bytes(raw)

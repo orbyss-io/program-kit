@@ -80,7 +80,7 @@ def scenario(mode):
                     print(mode, config['id'], result.output, flush=True)
                 return result
 
-            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
+            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
                 calls.append(command)
                 allowed = {'speckit.constitution'} | {'speckit.program-kit-governance.' + name for name in
                            ('assessment', 'research', 'architecture', 'tooling', 'roadmap', 'bootstrap-closure')}

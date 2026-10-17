@@ -1005,7 +1005,7 @@
       "sourceDiagnosis": "Replace stale fixtures with preserved obligations",
       "workPackages": "G/I",
       "closureRequired": "Explicit required identities and old-to-new coverage; removal/substitution/skip/empty/failure negatives.",
-      "status": "all-166-original-obligations-preserved; frozen-437-inventory/435-required-Windows-identities-passed; final-release-source/Linux/CI qualification pending",
+      "status": "all-166-original-obligations-and439-identities-preserved; failed-case/CI-retention-repaired; fresh-complete-Linux/Windows execution pending",
       "changedFiles": [
         "extensions/program-kit-governance/scripts/case_inventory.py",
         "extensions/program-kit-governance/references/consumer-upgrade.md",
@@ -1292,7 +1292,7 @@
       "sourceDiagnosis": "Supply qualified executable integration",
       "workPackages": "B/I",
       "closureRequired": "Real compile/export/checked client/runtime wire parity; public native seams and constraints preserved.",
-      "status": "runtime0.3.6 and Build0.3.2 published; actual public adoption exposed exporter0.2.6 ABI mismatch; matching exporter0.2.7 in CI and full public-profile flow pending",
+      "status": "all-three-Foundation-components-public; actual-public-profile-qualified; native-contract-readers-repaired; full-generated-flow/current-CI pending",
       "changedFiles": [
         "tests/validate_composition_start.py",
         "tests/validate_composition_tooling.py",
@@ -1416,7 +1416,7 @@
       "sourceDiagnosis": "Preserve lock requirement; prove runnable recipe",
       "workPackages": "F/I",
       "closureRequired": "Native selected generator lock and real maintained argument routing; no manual client/baseline reset.",
-      "status": "runtime0.3.6 and Build0.3.2 published; actual public adoption exposed exporter0.2.6 ABI mismatch; matching exporter0.2.7 in CI and full public-profile flow pending",
+      "status": "all-three-Foundation-components-public; actual-public-profile-qualified; native-contract-readers-repaired; full-generated-flow/current-CI pending",
       "changedFiles": [
         "tests/validate_composition_start.py",
         "tests/validate_composition_tooling.py",
@@ -1540,7 +1540,7 @@
       "sourceDiagnosis": "Supply shared current harness/example and fixture setup",
       "workPackages": "B/H/I",
       "closureRequired": "Nondefault scalar options activate, native public features register and durable behavior is observed.",
-      "status": "runtime0.3.6 and Build0.3.2 published; actual public adoption exposed exporter0.2.6 ABI mismatch; matching exporter0.2.7 in CI and full public-profile flow pending",
+      "status": "all-three-Foundation-components-public; actual-public-profile-qualified; native-contract-readers-repaired; full-generated-flow/current-CI pending",
       "changedFiles": [
         "tests/validate_composition_start.py",
         "tests/validate_composition_tooling.py",
@@ -1657,7 +1657,7 @@
       "sourceDiagnosis": "Trace imports; align strict layout and real lifecycle",
       "workPackages": "A/C/D/I",
       "closureRequired": "Strict build/lint and real persisted-page/session/privacy recovery; original cause only claimed when substantiated.",
-      "status": "native Foundation presentation published; generated binding/editor lifetime repaired and strict-compiled; current public-profile Host/SPA/nested-path and final CI/adoption obligations pending",
+      "status": "native-presentation-public; actual-payloadFiles/declaration-bindings-proved; generated Host/root/nested lifecycle and current CI pending",
       "changedFiles": [
         "extensions/program-kit-dotnet/references/examples/unsaved-editor.ts",
         "extensions/program-kit-dotnet/scripts/composition_model.py",
@@ -1894,7 +1894,7 @@
       "sourceDiagnosis": "Trace ownership and reconcile stale entrypoints",
       "workPackages": "A/D/I",
       "closureRequired": "Executable current workflow command/prerequisite proof plus settings/pack/private-file boundaries.",
-      "status": "runtime0.3.6 and Build0.3.2 published; actual public adoption exposed exporter0.2.6 ABI mismatch; matching exporter0.2.7 in CI and full public-profile flow pending",
+      "status": "all-three-Foundation-components-public; actual-public-profile-qualified; native-contract-readers-repaired; full-generated-flow/current-CI pending",
       "changedFiles": [
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
         "extensions/program-kit-building-blocks/scripts/dependency_context.py",
@@ -3142,7 +3142,7 @@
       "sourceDiagnosis": "Reported WinError 145 after restore; long paths are plausible but original failing logs do not establish cause. Consumer finally/rmtree may obscure the operation error and does not fully prove scratch ownership or UNC handling.",
       "workPackages": "F/G; path handling related to N2",
       "closureRequired": "Actual deep Windows paths, exact scratch identity/substitution guards, dual and cleanup-only failure observations, real maintained native update route, installed-template and CI coverage.",
-      "status": "implemented-with-targeted-validation; not-closed",
+      "status": "owned-native-bundle-and-frontend-Windows-lifecycles-passed; original-dual-cleanup-failures-retained; full-installed/current-CI pending",
       "changedFiles": [
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/release_bundle.py",
@@ -4498,6 +4498,105 @@
         }
       ],
       "qualification": "Runtime0.3.6 and Build0.3.2 are published and verified after exact human approval. Root0.13.3 source is prepared on isolated codex/maintenance-release-0.13.3. First dependency/profile CI correctly blocked on the old public exporter ABI; independent exporter0.2.7 source ebf4387 is in PR15/current CI. No Root complete qualification/publication or full47 closure yet."
+    },
+    {
+      "stage": "Public exporter closure and actual public-profile consumer repair",
+      "retentionRoot": "C:\\Users\\tech_\\.codex\\worktrees\\maintenance-release-0-13-3\\program-kit",
+      "validation": [
+        {
+          "command": "publication-summary.json",
+          "status": "passed",
+          "scope": "Exact human-approved exporter ebf4387183aad573ee119df02c0f0edfa9dd9a2c published as exporter-v0.2.7. Complete release39021020372 and actual installed public exporter/runtime0.3.3-0.3.6 matrix succeeded. No Root adoption/qualification claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/published-foundation-exporter-v0.2.7/publication-summary.json",
+          "sha256": "254d0657b77c4f0a9fefbc5437dfae4dc63f5b887d8cc98bf81c4dbd92e62318"
+        },
+        {
+          "command": "retention.json",
+          "status": "failed",
+          "scope": "Original update39021602835 retained: public profile stage passed; complete Linux update failed134/164 with30 failed or prerequisite-blocked checks. Original artifact12097343366 SHA92e5d2f9fd768916b0d4b9a95fb9dee635532d64a287757fe7469c279d9147c6 retained. Failed case detail files were omitted by that workflow and cannot be reconstructed; later retention is prospective.",
+          "log": "artifacts/u133-2/retention.json",
+          "sha256": "5e0bd4449412fb99f6ac0a04016400e437f644b44b7652c79b2f95bdab8f8b52"
+        },
+        {
+          "command": "actual-public-profile-readers.json",
+          "status": "passed",
+          "scope": "Current consumer readers verify the actual new public profile, native bounded problem fields and all five browser declaration hashes. Original failed overall update remains failed; generated native Host integration is separate.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/actual-public-profile-readers.json",
+          "sha256": "ab55c2aa8e66b865e1a64c6fc99777e6e4fcd1d805e39f4d3a954eb579281fae"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Native development bundle510/512 entries. All nine qualified immutable profile authorities and source/fact bytes verify after lossless nested container compaction. Original files preserved in a separate input tree. Owned staging cleanup succeeds. No public Root release/installation claim.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/public-profile-native-bundle-v2/results.json",
+          "sha256": "2cbca7b8adbd715b6c05680eb4a27dc4cb8f132c170ce2a8e0e1762f91a9ff25"
+        },
+        {
+          "command": "public-profile-native-bundle.log",
+          "status": "failed",
+          "scope": "Earlier development bundle produced510 entries but primary and enclosing TemporaryDirectory cleanup failedWinError145. Both traces retained. New owned-staging result is separate; this run stays failed.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/public-profile-native-bundle.log",
+          "sha256": "ffadab9360564efabaf924eda82380474827026fd42f73c39f6bd85017b8333b"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "59 required Windows cases passed for then-current contract285630b5: dependency/profile authority preservation, public declarations, inventory guards and upgrade boundaries. Later native fixture source anchor is separate.",
+          "log": "artifacts/tests/toolkit-cases/f5b981d81f154efb8f1f0dae36a9bcb0/results.json",
+          "sha256": "c31c32aba331db0ba41908c4eb1b925f6d8d0fd081fb31010629fc516362bf6e"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "All44 current native-start required Windows cases passed under contractb47df2c1, including real Vite revision builds/mounts and retained mutable-recipe rejection using owned paths and native CMD cwd spelling.",
+          "log": "artifacts/tests/toolkit-cases/4e1947e794af4115bd8a4e17f90e2fdf/results.json",
+          "sha256": "51939bcfe912d9f553323e59bd62bf573ee17447447bc99ab7bb8181f2d2d00b"
+        },
+        {
+          "command": "results.json",
+          "status": "passed",
+          "scope": "Ten current exact-inventory safeguards passed under contractb47df2c1. All439 case identities and166 original obligations remain required.",
+          "log": "artifacts/tests/toolkit-cases/8b9cac47502c48df94febe8dc69c3501/results.json",
+          "sha256": "941e21aa08a526c7804e8291a98914a85f7264d5b2f81bfe9e68b0ec73bcb12e"
+        },
+        {
+          "command": "actual-public-wire-admission-cases.log",
+          "status": "passed",
+          "scope": "All11 existing wire-admission positive/negative cases against actual verified public0.3.6 profile data. Existing old-profile11 cases also pass separately; actual native export/runtime proof remains a CI obligation.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/actual-public-wire-admission-cases.log",
+          "sha256": "4784c7b627e6c6fd28e8f75d3e0287df4e81bde765edf6490a029d67656fb868"
+        },
+        {
+          "command": "complete-build-contract-fixture.log",
+          "status": "passed",
+          "scope": "Actual native restricted-profile Build wrapper passes with complete maintained frontend-preparation dependencies and recording SDK; guard remains enforced.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/complete-build-contract-fixture.log",
+          "sha256": "be8c524190634634d497b8d3fbab208d4c76fb1e542b93fe7aa1c8e6c986549d"
+        },
+        {
+          "command": "complete-test-discovery-fixture.log",
+          "status": "passed",
+          "scope": "Actual native Build/test-discovery wrapper passes zero/one/multiple tests under .sln and .slnx with complete maintained preparation dependencies.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/complete-test-discovery-fixture.log",
+          "sha256": "6bd328d708589c7266a2a3a6ed29f5f48c362d6620ff06637f7fd768c0baa937"
+        },
+        {
+          "command": "current-initializer-profiled-fake-policy.log",
+          "status": "passed",
+          "scope": "Current CMD initializer executes its profiled native routing through recording fake tools; exact invocation and environment-preservation assertions pass. No actual device setup, interactive intake or coding agent.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/current-initializer-profiled-fake-policy.log",
+          "sha256": "666c4b0116ac81606ecbe357b15b672d58af2f6274e81a31a804920ae1241b44"
+        },
+        {
+          "command": "release-retained-case-evidence-candidate-tests.log",
+          "status": "passed",
+          "scope": "All19 adversarial qualification/promotion prerequisite cases pass after adding exact-case evidence retention; no gates weakened and no paid session starts.",
+          "log": "artifacts/maintenance-implementation-2026-10-16/continuation-17/release-retained-case-evidence-candidate-tests.log",
+          "sha256": "9b13ca85538e71ac3832b564b88686faac311a92ca34e7edc4532f31f2cf5271"
+        }
+      ],
+      "currentContractSha256": "b47df2c11678d11bf7138c3b845a90dab810e2c3d5931a6f2b550f9ce0974955",
+      "scopeBoundary": "Frozen47 identities unchanged. Complete dependency update, actual public-profile generated integration, exact-main Linux/Windows/security qualification, reviewed readiness, exact tag approval and public installation/upgrade remain mandatory. No active consumer or device installation changed."
     }
   ]
 }

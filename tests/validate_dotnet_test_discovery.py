@@ -17,7 +17,7 @@ BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.p
 RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/Restore.ps1"
 
 
-PACK_ENGINE_FILES = ('release_bundle.py', 'central_packages.py', 'handoff_contract.py',
+PACK_ENGINE_FILES = ('release_bundle.py', 'composition_model.py', 'foundation_qualification.py', 'prepare_hosted_pages.py', 'owned_scratch.py', 'central_packages.py', 'handoff_contract.py',
                      'shell_composition.py', 'runtime_closure.py', 'hosted_bundle.py', 'device_toolchain.py', 'program_kit_version.py')
 
 
@@ -25,7 +25,8 @@ def materialize_pack_engine(managed: Path) -> None:
     # Exercise actual maintained prepare/seal input capture, while this fixture's
     # fake SDK remains limited to wrapper routing and native project discovery.
     for name in PACK_ENGINE_FILES:
-        shutil.copyfile(BUILD.parent / name, managed / name)
+        source = ROOT / 'extensions/program-kit-dotnet/scripts/composition_model.py' if name == 'composition_model.py' else BUILD.parent / name
+        shutil.copyfile(source, managed / name)
     shutil.copyfile(BUILD.parent / 'legacy-feature-bridge.json', managed / 'legacy-feature-bridge.json')
     shutil.copyfile(ROOT / 'extensions/program-kit-dotnet/extension.yml', managed.parent / 'extension.yml')
 

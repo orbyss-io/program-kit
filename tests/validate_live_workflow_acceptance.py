@@ -93,7 +93,7 @@ def main():
                 config = copy.deepcopy(config)
                 config['run'] = config['run'].replace('python ', f'"{sys.executable}" ', 1)
                 return original_shell(self, config, context)
-            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None):
+            def dispatch(self, command, integration, model, args, context, integration_args=None, integration_options=None, capture_max_bytes=None):
                 (project / fixture.g.READINESS_REPORT).write_text('**Status**: READY\n\nCurrent test authority agrees.\n', encoding='utf-8')
                 return {'exit_code': 0, 'stdout': event, 'stderr': ''}
             with patch.object(CommandStep, '_try_dispatch', dispatch), patch.object(ShellStep, 'execute', execute):

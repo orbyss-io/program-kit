@@ -98,6 +98,7 @@ jobs:
           name: program-kit-${{ github.sha }}
           path: |
             artifacts/validation-runs/
+            artifacts/tests/toolkit-cases/
             artifacts/bootstrap-postgresql/
             artifacts/tests/numeric-schema/**/*.log
             artifacts/tests/schema-role-grants/**/*.log
@@ -169,5 +170,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: windows-validation-${{ github.sha }}
-          path: artifacts/validation-runs/
+          path: |
+            artifacts/validation-runs/
+            artifacts/tests/toolkit-cases/
           if-no-files-found: warn

@@ -26,7 +26,7 @@ def project(blocks, effective):
                       'src/Orbyss.Foundation.Web.ProblemDetails/FoundationProblemEnvelope.cs')
     match = re.search(r'FoundationProblemEnvelope\((.*?)\);', envelope, re.S)
     if match:
-        members = re.findall(r'(string\??|int|IReadOnlyList<ProblemFieldError>)\s+(\w+)', match[1])
+        members = re.findall(r'(string\??|int|IReadOnlyList<(?:Foundation)?ProblemFieldError>)\s+(\w+)', match[1])
         fields = [name for _, name in members]
         if fields and 'closed bounded wire shape' in envelope:
             result['problem'] = {'fields': [f[0].lower() + f[1:] for f in fields],
@@ -35,8 +35,14 @@ def project(blocks, effective):
     if not result['problem']:
         result['unresolved'].append('problem writer closed envelope could not be established from selected source')
     else:
-        fields = source('Orbyss.Foundation.Web.ProblemDetails.Core', 'src/Orbyss.Foundation.Web.ProblemDetails.Core/ProblemFieldError.cs')
-        names = re.findall(r'public string (\w+) \{ get; \}', fields)
+        if 'IReadOnlyList<FoundationProblemFieldError>' in match[1]:
+            fields = source('Orbyss.Foundation.Web.ProblemDetails',
+                            'src/Orbyss.Foundation.Web.ProblemDetails/FoundationProblemFieldError.cs')
+            declaration = re.search(r'public sealed record FoundationProblemFieldError\((.*?)\);', fields, re.S)
+            names = re.findall(r'string (\w+)', declaration[1]) if declaration else []
+        else:
+            fields = source('Orbyss.Foundation.Web.ProblemDetails.Core', 'src/Orbyss.Foundation.Web.ProblemDetails.Core/ProblemFieldError.cs')
+            names = re.findall(r'public string (\w+) \{ get; \}', fields)
         result['problem']['fieldErrorFields'] = [name[0].lower() + name[1:] for name in names]
         if not names: result['unresolved'].append('selected bounded field-error structure could not be established')
     parser = source('Orbyss.Foundation.Json', 'src/Orbyss.Foundation.Json/JsonProfile.cs')

@@ -209,52 +209,73 @@ def install_asset(root: Path, relative: Path) -> bool:
     return True
 
 
-def pack_historical_package_facts(staging: Path) -> None:
-    """Compact legacy loose facts without changing any profile, index or fact hash."""
-    registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'
+def pack_historical_package_facts(staging: Path) -> Path:
+    """Copy a compact publication tree; retain every original staging file intact."""
+    registry_relative = Path('extensions/program-kit-building-blocks/references/dependency-profiles')
+    registry = staging / registry_relative
     index = load_json(registry / 'index.json')
     facts = {}
+    def retain(item):
+        path = (registry / item['path']).resolve()
+        if not path.is_relative_to(registry.resolve()) or path.suffix not in {'.json', '.pack'}:
+            raise ValueError('Historical publisher fact container escapes its registry')
+        raw = path.read_bytes()
+        if len(raw) > 64 * 1_048_576 or hashlib.sha256(raw).hexdigest() != item['sha256']:
+            raise ValueError('Historical publisher fact container differs from its immutable authority')
+        if item['path'] in facts and facts[item['path']] != raw:
+            raise ValueError('Historical publisher fact container is ambiguous')
+        facts[item['path']] = raw
     for entry in index['profiles'].values():
         if not entry.get('knowledge'):
             continue
         manifest = load_json(registry / entry['knowledge']['path'])
         for item in manifest.get('packages', []):
-            if 'byteOffset' in item:
-                continue  # Already uses the maintained indexed pack format.
-            path = (registry / item['path']).resolve()
-            if not path.is_relative_to(registry.resolve()) or path.suffix != '.json':
-                raise ValueError('Historical package fact escapes its registry')
-            raw = path.read_bytes()
-            if len(raw) > 16 * 1_048_576 or hashlib.sha256(raw).hexdigest() != item['sha256']:
-                raise ValueError('Historical package fact differs from its immutable authority')
-            facts[item['path']] = raw
+            if 'byteOffset' not in item:
+                retain(item)
+        for key in ('sourcePack', 'packagePack'):
+            if manifest.get(key):
+                retain(manifest[key])
     if not facts:
-        return
+        return staging
+    publication = staging / '.program-kit-publication'
+    if publication.exists():
+        raise ValueError('Choose a fresh disposable publication tree')
+    # Enumerate before creating the child. Copying never removes or modifies an
+    # original profile, manifest, source container, or fact in the input tree.
+    original_files = [path for path in staging.rglob('*') if path.is_file()]
+    publication.mkdir()
+    omitted = {registry_relative / relative for relative in facts}
+    for source in original_files:
+        relative = source.relative_to(staging)
+        if relative not in omitted:
+            target = publication / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
     packed, entries = bytearray(), {}
     for relative, raw in sorted(facts.items()):
         entries[relative] = {'byteOffset': len(packed), 'byteLength': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
         packed.extend(raw)
-    (registry / 'historical-package-facts.pack').write_bytes(packed)
-    (registry / 'historical-package-facts.json').write_text(
+    target_registry = publication / registry_relative
+    (target_registry / 'historical-package-facts.pack').write_bytes(packed)
+    (target_registry / 'historical-package-facts.json').write_text(
         json.dumps({'schemaVersion': 1, 'entries': entries}, indent=2) + '\n', encoding='utf-8', newline='\n')
-    for relative in facts:
-        (registry / relative).unlink()  # Only the verified disposable packaging tree.
+    return publication
 
 
 def build_bundle_from_source(root: Path, output: Path) -> None:
     """Build the composite bundle from source files, never local caches or build output."""
-    with tempfile.TemporaryDirectory(prefix="program-kit-release-source-") as directory:
-        # Use the same owned Windows filesystem adapter as full installed fixtures;
-        # do not shorten or omit historical profile/package evidence paths.
-        specification=importlib.util.spec_from_file_location('bundle_owned_filesystem',
-            root/'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
-        filesystem=importlib.util.module_from_spec(specification);specification.loader.exec_module(filesystem)
-        staging = Path(filesystem.filesystem_path(Path(directory)))
+    specification=importlib.util.spec_from_file_location('bundle_owned_filesystem',
+        root/'extensions/program-kit-dotnet/templates/dotnet/files/eng/owned_scratch.py')
+    filesystem=importlib.util.module_from_spec(specification);specification.loader.exec_module(filesystem)
+    # Exact owned staging also handles long-path cleanup and retains primary plus
+    # cleanup failures. Historical input trees remain outside this deletion owner.
+    with filesystem.owned_scratch(root, 'release-bundle') as directory:
+        staging = Path(filesystem.filesystem_path(directory))
         for relative in bundle_source_files(root):
             destination = staging / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
-        pack_historical_package_facts(staging)
+        staging = pack_historical_package_facts(staging)
         # Keep exact optional example/UI source bytes without spending one outer
         # bundle entry per asset. Native component archives remain unchanged.
         asset_spec=importlib.util.spec_from_file_location('bundle_asset_sources',
