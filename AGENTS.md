@@ -70,6 +70,30 @@ and exact `inspect` operations. Do not infer a destination from an active chat o
 another maintenance campaign. Intake remains on demand; ordinary Spec Kit hooks and
 deterministic validation do not start agents, poll chats or contact consumers.
 
+## Repairing failed validation before retrying CI
+
+When CI fails, preserve the original run, logs and available case evidence and inspect
+all failed checks. Separate independent causes from checks blocked by prerequisites;
+never treat failed, skipped or partial runs as passing qualification.
+
+Reproduce each failing check with the same check entry point and relevant inputs locally
+where the current host supports it. Fix the cause and require that focused check to pass
+before retrying the full pipeline. Inspect the complete changed upstream contract when
+adapting to a dependency update; do not repair one argument or symptom and discover the
+rest by repeatedly rerunning the full suite. Run affected prerequisites and meaningful
+regressions, without repeating unrelated broad local suites.
+
+Respect device toolchain policy and known platform limitations. If exact reproduction
+requires unavailable Linux, Docker, Firefox or upgraded tooling, identify that limitation
+and use an existing targeted CI selection with retained actionable diagnostics first.
+Add narrowly scoped diagnostic retention or a targeted selection when the existing
+workflow cannot expose or run the failing check. Do not install or substitute prohibited
+device runtimes, weaken assertions, omit required platforms or report a different local
+environment as exact reproduction. Retry full CI after every observed independent cause
+has a focused passing result, or an explicit evidence-based explanation of why only the
+complete CI job can exercise it. Complete matching exact-source CI qualification remains
+the final publication gate; targeted results cannot be combined into qualification.
+
 ## Optional live acceptance
 
 The optional OCR-only provider operation path is separate from coding-worker
