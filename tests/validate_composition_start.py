@@ -245,7 +245,10 @@ def main():
     parser.add_argument('--oasdiff', type=Path, help='existing exact adopted comparison binary; no pin adoption')
     parser.add_argument('--single-host', action='store_true', help='qualify the typed single-host build/export boundary')
     parser.add_argument('--foundation-only', action='store_true', help='scaffold without the fictional unfinished product binding, for the ordinary emitted CI gate')
+    parser.add_argument('--nested-shell', action='store_true', help='qualify native BFF/HostedPages paths below a non-root shell prefix')
     args = parser.parse_args()
+    if args.nested_shell and (args.tooling or args.foundation_only):
+        parser.error('--nested-shell uses the full native runtime fixture; the root-only typed example is a separate qualifier')
     if args.foundation_only and args.execute:
         parser.error('--foundation-only is a scaffold fixture; it cannot narrow the full runtime exercise')
     if args.tooling and (not args.execute or not args.oasdiff or not args.oasdiff.is_file()):
@@ -268,6 +271,8 @@ def main():
         install_native_tooling(root, directory)
     started = time.monotonic()
     graph = two_apps(ROOT, dynamic_ports=True)
+    if args.nested_shell:
+        graph['resources']['application-shell']['pathBase'] = '/products/orders'
     graph['resources']['ordinary-provider'] = {'kind': 'feature', 'role': 'provider', 'responsibility': 'runtime',
         'path': 'src/Owned.Files/Owned.Files.csproj', 'packageId': 'Owned.Files', 'featureIdentity': 'Owned.Files'}
     graph['bindings'].append({'kind': 'featureShell', 'featureRef': 'ordinary-provider', 'shellRef': 'application-shell'})
@@ -674,7 +679,7 @@ window.programKitTypedExample = { storeLabel };
             if 'Binding must name real compiled interface and implementation types' not in (directory / 'pending-product-architecture/stderr.log').read_text():
                 raise ValueError('ordinary product architecture gate failed before the intended unimplemented binding')
             run_result = json.loads((directory / 'run/stdout.log').read_text().splitlines()[-1])
-            result.update(status='passed', runtimeExercised=True, preparation=preparation['timings'],
+            result.update(status='passed', runtimeExercised=True, nestedShellQualified=args.nested_shell, preparation=preparation['timings'],
                           preparationSeconds=preparation['elapsedSeconds'], preparedStartupSeconds=run_result['elapsedSeconds'],
                           editToWorkingConsumerSeconds=edit_elapsed, authenticatedPrivacyFailureChecked=True,
                           unchangedServiceCount=len(before) - 1, infrastructureRepairsAfterReadiness=0,

@@ -112,7 +112,9 @@ def browser_check(root, graph, resolved, command, directory, launch_only=False, 
             authority = env[client['authorityRef']]
             require(authority['mode'] == 'managed', 'external authority requires its qualified authentication readiness adapter')
             pages = [row['path'] for row in model.bindings(graph, 'frontend') if row['shellRef'] == shell_id]
-            hosts.append({'id': name, 'origin': host['publicOrigin'], 'page': pages[0] if pages else None,
+            prefix = model.shell_path_base(graph, shell_id)
+            hosts.append({'id': name, 'origin': host['publicOrigin'], 'pathBase': prefix,
+                          'page': prefix + pages[0] if pages else None,
                           'realm': str(root / ('deploy/keycloak/' + client['authorityRef'] + '/' + authority['realm'] + '-realm.json'))})
     plan = directory / ('browser-launch.json' if launch_only else 'browser-plan.json')
     result = directory / ('browser-launch-result.json' if launch_only else 'browser-result.json')

@@ -1882,7 +1882,7 @@
     {
       "module": "validate_web_runtime",
       "path": "tests/validate_web_runtime.py",
-      "sha256": "630ad282c4a4035f7271a40a5fe916edaa028ba71c788df172e6b594bbc1d0eb",
+      "sha256": "deb853d78959601e8316d3d19ebac77a53ade7bf3500f84176e05bf511eb5d4e",
       "cases": {
         "validate_web_runtime.WebRuntimeTests.test_verification_propagates_absolute_runtime_to_children_and_grandchildren_without_acquisition": [
           "Windows",
@@ -2023,7 +2023,7 @@
     {
       "module": "validate_release_guidance",
       "path": "tests/validate_release_guidance.py",
-      "sha256": "a1f3bdca505729eb6d0b218ec9731c6f9be8e6cf687bdc9526c1247e60cfe823",
+      "sha256": "551ef89b37089fedf718ad0c1e621ec7d68b23b42a2a2ae6ad3577156faf64be",
       "cases": {
         "validate_release_guidance.GuidanceTests.test_migration_cannot_retire_required_checks_or_promote_tooling_to_application_acceptance": [
           "Windows",
@@ -2081,6 +2081,11 @@
           "Darwin"
         ],
         "validate_release_guidance.GuidanceTests.test_cumulative_entries_and_tamper_missing_source_and_downgrade": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_release_guidance.GuidanceTests.test_maintenance_upgrade_preserves_work_without_reactivating_feature_delete": [
           "Windows",
           "Linux",
           "Darwin"
@@ -2212,7 +2217,7 @@
     {
       "module": "validate_browser_presentation_profile",
       "path": "tests/validate_browser_presentation_profile.py",
-      "sha256": "7771579670772cbe1836b0d0663d375e06665d65907b70eeba2cb50ed5c58419",
+      "sha256": "add8d217dbe0ad3039a05f698c273788024b51f8c771b82c39362272ee3318c6",
       "cases": {
         "validate_browser_presentation_profile.PresentationProfileTests.test_native_metadata_defaults_and_selected_theme_bind_the_actual_landing_path": [
           "Windows",
@@ -2250,6 +2255,11 @@
           "Darwin"
         ],
         "validate_browser_presentation_profile.PresentationProfileTests.test_native_browser_declarations_bind_exact_package_files_and_frozen_source": [
+          "Windows",
+          "Linux",
+          "Darwin"
+        ],
+        "validate_browser_presentation_profile.PresentationProfileTests.test_nested_shell_binding_uses_the_effective_native_configuration_route": [
           "Windows",
           "Linux",
           "Darwin"

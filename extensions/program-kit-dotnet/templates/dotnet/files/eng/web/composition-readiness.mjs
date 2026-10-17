@@ -24,7 +24,7 @@ try {
           current = { engine, host: host.id, phase: 'anonymous-entry' };
           const anonymous = await browser.newContext();
           try {
-            const session = await anonymous.request.get(host.origin + '/bff/user');
+            const session = await anonymous.request.get(host.origin + (host.pathBase ?? '') + '/bff/user');
             current.sessionStatus = session.status();
             current.cacheControl = session.headers()['cache-control'] ?? null;
             require(session.status() === 200);
@@ -35,17 +35,17 @@ try {
               current.entryStatus = entry.status();
               const target = entry.headers().location ? new URL(entry.headers().location, host.origin) : null;
               current.challengePath = target?.pathname ?? null;
-              require(entry.status() === 302 && target?.origin === host.origin && target.pathname === '/bff/login');
+              require(entry.status() === 302 && target?.origin === host.origin && target.pathname === (host.pathBase ?? '') + '/bff/login');
             }
           } finally { await anonymous.close(); }
           current.phase = 'login';
           const page = await context.newPage();
           try {
-            const navigation = await page.goto(host.origin + '/bff/login?returnUrl=' + encodeURIComponent(host.page ?? '/'), { waitUntil: 'domcontentloaded' });
+            const navigation = await page.goto(host.origin + (host.pathBase ?? '') + '/bff/login?returnUrl=' + encodeURIComponent(host.page ?? (host.pathBase ?? '') + '/'), { waitUntil: 'domcontentloaded' });
             current.navigationStatus = navigation?.status() ?? null;
             current.pagePath = new URL(page.url()).pathname;
             const username = page.locator('#username');
-            const targetUrl = host.origin + (host.page ?? '/');
+            const targetUrl = host.origin + (host.page ?? (host.pathBase ?? '') + '/');
             const loginRequired = await Promise.race([
               username.waitFor({ state: 'visible', timeout: 30000 }).then(() => true),
               page.waitForURL(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 }).then(() => false),
@@ -72,9 +72,9 @@ try {
               current.pagePath = new URL(page.url()).pathname;
             }
             current.phase = 'login-callback';
-            await page.waitForURL(host.origin + (host.page ?? '/'), { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForURL(host.origin + (host.page ?? (host.pathBase ?? '') + '/'), { waitUntil: 'domcontentloaded', timeout: 30000 });
             current.phase = 'authenticated-session';
-            const session = await context.request.get(host.origin + '/bff/user');
+            const session = await context.request.get(host.origin + (host.pathBase ?? '') + '/bff/user');
             require(session.status() === 200 && (await session.json()).authenticated === true);
             if (plan.privacyProbe) {
               current.phase = 'privacy-failure-check';
@@ -96,28 +96,28 @@ try {
             }
             // The already-authenticated first app must survive signing into the second.
             for (const previous of evidence.checks.filter(value => value.engine === engine)) {
-              require((await (await context.request.get(previous.origin + '/bff/user')).json()).authenticated === true);
+              require((await (await context.request.get(previous.origin + (previous.pathBase ?? '') + '/bff/user')).json()).authenticated === true);
             }
             if (host.productPath) {
               current.phase = 'consumer-feature';
-              const response = await context.request.get(host.origin + host.productPath);
+              const response = await context.request.get(host.origin + (host.pathBase ?? '') + host.productPath);
               require(response.status() === 200);
               require(JSON.stringify(await response.json()) === JSON.stringify(host.productResponse));
             }
             for (const check of host.pageChecks ?? []) {
               current.phase = 'additional-page-access';
-              const response = await context.request.get(host.origin + check.path, { maxRedirects: 0 });
+              const response = await context.request.get(host.origin + (host.pathBase ?? '') + check.path, { maxRedirects: 0 });
               current.additionalPageStatus = response.status();
               require(response.status() === check.status);
               if (check.denialPath) {
                 const target = new URL(response.headers().location, host.origin);
-                require(target.origin === host.origin && target.pathname === check.denialPath);
-                require((await context.request.get(host.origin + check.path)).status() === 403);
+                require(target.origin === host.origin && target.pathname === (host.pathBase ?? '') + check.denialPath);
+                require((await context.request.get(host.origin + (host.pathBase ?? '') + check.path)).status() === 403);
               }
             }
             if (host.typedOperation) {
               current.phase = 'typed-client-operation';
-              const tokenResponse = await context.request.get(host.origin + '/bff/antiforgery');
+              const tokenResponse = await context.request.get(host.origin + (host.pathBase ?? '') + '/bff/antiforgery');
               require(tokenResponse.status() === 200);
               const token = await tokenResponse.json();
               require(typeof token.headerName === 'string' && typeof token.requestToken === 'string');
@@ -128,7 +128,7 @@ try {
                 return await adapter.storeLabel(body, token.headerName, token.requestToken, AbortSignal.timeout(15000));
               }, { token, body: host.typedOperation.body });
               require(JSON.stringify(result) === JSON.stringify(host.typedOperation.response));
-              const observed = await context.request.get(host.origin + '/api/sample-label');
+              const observed = await context.request.get(host.origin + (host.pathBase ?? '') + '/api/sample-label');
               require(observed.status() === 200 && JSON.stringify(await observed.json()) === JSON.stringify(result));
             }
             if (host.presentationProbe) {
@@ -136,7 +136,7 @@ try {
               const effects = [];
               page.on('request', request => {
                 const path = new URL(request.url()).pathname;
-                if (/\/bff\/(?:antiforgery|logout)$/u.test(path) || path === '/api/sample-label' && request.method() === 'POST')
+                if (/\/bff\/(?:antiforgery|logout)$/u.test(path) || path === (host.pathBase ?? '') + '/api/sample-label' && request.method() === 'POST')
                   effects.push(request.method());
               });
               const editor = page.getByRole('textbox', { name: 'Example draft', exact: true });
@@ -146,7 +146,7 @@ try {
               require(effects.length === 0);
               await page.keyboard.press('Escape'); await page.getByRole('dialog').waitFor({ state: 'hidden' });
               require(await editor.inputValue() === 'Fictional retained draft' && effects.length === 0);
-              require((await (await context.request.get(host.origin + '/bff/user')).json()).authenticated === true);
+              require((await (await context.request.get(host.origin + (host.pathBase ?? '') + '/bff/user')).json()).authenticated === true);
               const nativeUnsavedState = () => page.evaluate(async prefix => {
                 const response = await fetch(prefix + '/configuration', { cache: 'no-store' });
                 if (!response.ok) throw new Error('Native presentation configuration unavailable.');
@@ -170,10 +170,10 @@ try {
                 return !draft || !draft.checkVisibility();
               });
               require(effects.length === 0);
-              require((await (await context.request.get(host.origin + '/bff/user')).json()).authenticated === false);
+              require((await (await context.request.get(host.origin + (host.pathBase ?? '') + '/bff/user')).json()).authenticated === false);
               current.nativeGeneratedControls = true;
             }
-            evidence.checks.push({ engine, host: host.id, origin: host.origin, authenticated: true,
+            evidence.checks.push({ engine, host: host.id, origin: host.origin, pathBase: host.pathBase ?? '', authenticated: true,
               hostedAssetsLoaded: Boolean(host.page), consumerFeature: Boolean(host.productPath),
               typedOperation: Boolean(host.typedOperation), nativeGeneratedControls: current.nativeGeneratedControls === true });
           } catch {

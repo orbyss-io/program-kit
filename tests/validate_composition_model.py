@@ -18,6 +18,41 @@ def example():
 
 
 class ResourceModel(unittest.TestCase):
+    def test_shell_path_base_rejects_aliases_traversal_and_nonlocal_values(self):
+        for prefix in ('/', '/a/', '//a', '/../a', '/a//b', '/a%2fb', '/a?b', '/a#b', '/a\\b', True, 7):
+            with self.subTest(prefix=prefix):
+                graph = example(); graph['resources']['application-shell']['pathBase'] = prefix
+                with self.assertRaisesRegex(ValueError, 'shell.pathBase'): model.validate(graph)
+        for prefix in ('', '/products/orders'):
+            graph = example(); graph['resources']['application-shell']['pathBase'] = prefix
+            model.validate(graph); self.assertEqual(prefix, model.shell_path_base(graph, 'application-shell'))
+
+    def test_nested_shell_projects_native_profile_callbacks_and_rejects_overlay_drift(self):
+        import composition_render as renderer
+        graph = example(); graph['resources']['application-shell']['pathBase'] = '/products/orders'
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            files = renderer.materialize(root, graph, ROOT / 'extensions/program-kit-dotnet/templates/dotnet')
+            profile = json.loads(files['eng/web-profile.shells.json'][0])
+            shell = graph['resources']['application-shell']['name']
+            configuration = profile['CShells']['Shells'][shell]['Configuration']
+            self.assertEqual('products/orders', configuration['WebRouting']['Path'])
+            contract = json.loads(files['eng/foundation-settings.contract.json'][0])
+            renderer.validate_consumer_configuration(graph, 'application-shell', contract['shells']['application-shell'],
+                configuration, contract['environment'])
+            configuration['WebRouting']['Path'] = 'unreviewed'
+            with self.assertRaisesRegex(ValueError, 'canonical WebRouting:Path'):
+                renderer.validate_consumer_configuration(graph, 'application-shell', contract['shells']['application-shell'],
+                    configuration, contract['environment'])
+            auth = renderer.auth_binding(graph, 'application-shell')
+            client_id = model.environment(graph)[auth['clientRef']]['clientId']
+            realm = json.loads(next(data[0] for name, data in files.items() if name.startswith('deploy/keycloak/') and name.endswith('-realm.json')))
+            client = next(row for row in realm['clients'] if row['clientId'] == client_id)
+            self.assertTrue(client['redirectUris'][0].endswith('/products/orders/signin-oidc'))
+            self.assertTrue(client['attributes']['post.logout.redirect.uris'].endswith('/products/orders/signout-callback-oidc'))
+            web = json.loads(files['eng/web/compositions/application-shell.json'][0])
+            self.assertTrue(all(row['path'].startswith('/products/orders/') for row in web['routes'].values()))
+
     def test_private_provider_binding_projects_exact_key_and_discloses_static_limit(self):
         graph = example()
         shell = next(iter(model.resources(graph, 'shell')))

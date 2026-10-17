@@ -10,6 +10,6 @@ sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
 if __name__ == '__main__':
     from case_inventory import execute
     execute(ROOT, 'tests/shared-regression-cases.json',
-            '7b4d8c367095c9c96192b092f0f429e256fc81b0634ce382ee27e57d7199e98c',
+            '5a70e9018b908a4957db875df2900c661f5a1548d0d0c3a4eec2db6220df890a',
             ['test_central_exact_versions', 'test_hosted_bundle_content', 'test_hosted_frontend_update',
              'test_pending_activation', 'test_private_files', 'test_selected_shell_composition'])

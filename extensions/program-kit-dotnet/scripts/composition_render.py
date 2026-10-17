@@ -237,9 +237,9 @@ def realm_import(graph, authority_id, template, contracts, env_name=None):
         item['clientId'] = env[name]['clientId']
         projection = recipe_projection(graph, shell_id, env_name)
         public = projection['application']['publicOrigin']
-        item['redirectUris'] = [public + web['CallbackPath']]
+        item['redirectUris'] = [public + model.shell_path_base(graph, shell_id) + web['CallbackPath']]
         item['webOrigins'] = [public]
-        item['attributes']['post.logout.redirect.uris'] = public + web['SignedOutCallbackPath']
+        item['attributes']['post.logout.redirect.uris'] = public + model.shell_path_base(graph, shell_id) + web['SignedOutCallbackPath']
         item['attributes']['client.session.idle.timeout'] = str(web['SessionIdleMinutes'] * 60)
         item['attributes']['client.session.max.lifespan'] = str(web['SessionAbsoluteMinutes'] * 60)
         require(web['SessionIdleMinutes'] <= session['idleMinutes'] and web['SessionAbsoluteMinutes'] <= session['absoluteMinutes'],
@@ -374,7 +374,8 @@ def materialize(repository, graph, template, env_name=None):
         selected = contracts[shell_id]
         features = {identity: {} for identity in selected['activations']}
         features.update({graph['resources'][name]['featureIdentity']: {} for name in model.shell_features(graph, shell_id)})
-        configuration = {'WebRouting': {'Path': ''}, 'Foundation': {'Web': web_settings(graph, shell_id, selected, env_name)}}
+        configuration = {'WebRouting': {'Path': model.shell_path_base(graph, shell_id).lstrip('/')},
+                         'Foundation': {'Web': web_settings(graph, shell_id, selected, env_name)}}
         postgres = [row for row in model.bindings(graph, 'databaseProvider') if row['shellRef'] == shell_id]
         if postgres:
             policies = {}
@@ -487,6 +488,14 @@ def materialize(repository, graph, template, env_name=None):
         web_contract['origins'] = {'application': projection['application']['publicOrigin'], 'identity': projection['identity']['publicOrigin']}
         web_contract['routes']['oidcCallback']['path'] = projection['application']['callbackPath']
         web_contract['routes']['signedOutCallback']['path'] = projection['application']['signedOutCallbackPath']
+        web_contract['routes']['signedOutCallback']['successLocation'] = web_settings(
+            graph, shell_id, contracts[shell_id], env_name).get('LogoutLandingPath', '/bff/signed-out')
+        prefix = model.shell_path_base(graph, shell_id)
+        for route in web_contract['routes'].values():
+            route['path'] = prefix + route['path']
+            if 'successLocation' in route: route['successLocation'] = prefix + route['successLocation']
+        web_contract['ownership']['managedExactPaths'] = [route['path'] for route in web_contract['routes'].values()]
+        web_contract['ownership']['featureOwnedPrefix'] = prefix + '/api/'
         outputs['eng/web/compositions/' + shell_id + '.json'] = (encoded(web_contract), 'managed')
     contract['managedOutputs'] = {path: hashlib.sha256(payload).hexdigest()
                                   for path, (payload, ownership) in outputs.items() if ownership == 'managed'}
@@ -514,7 +523,9 @@ def presentation_frontend(repository, graph, name, selected, template, outputs):
     folder = str(PurePosixPath(entry).parent)
     helper = (template / 'hosted-pages/presentation/foundation-controls.ts').read_bytes()
     settings = selected['settings']
-    helper = helper.replace(b'__CONFIGURATION_PATH__', json.dumps(settings['RoutePrefix'].rstrip('/') + '/configuration').encode())
+    shell_id = next(row['shellRef'] for row in model.bindings(graph, 'frontend') if row['frontendRef'] == name)
+    helper = helper.replace(b'__CONFIGURATION_PATH__', json.dumps(model.shell_path_base(graph, shell_id)
+        + settings['RoutePrefix'].rstrip('/') + '/configuration').encode())
     helper = helper.replace(b'__SIGN_OUT_TEXT__', json.dumps(settings['Copy'].get('sign-out', 'Sign out')).encode())
     original = outputs[entry][0]
     seam = b'  root.replaceChildren(heading, status);'
@@ -635,6 +646,8 @@ def validate_consumer_shell(graph, shell_id, selected, shell, env_name):
 
 
 def validate_consumer_configuration(graph, shell_id, selected, configuration, env_name):
+    require(configuration.get('WebRouting', {}).get('Path') == model.shell_path_base(graph, shell_id).lstrip('/'),
+            'consumer overlay conflicts with canonical WebRouting:Path; reconcile shell.pathBase in the typed graph')
     foundation.validate_bound_settings(configuration, selected)
     expected = web_settings(graph, shell_id, selected, env_name)
     protected = {'Authority', 'BackchannelAuthority', 'ClientId', 'Audience', 'Scopes', 'CallbackPath',

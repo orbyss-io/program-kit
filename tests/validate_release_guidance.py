@@ -16,6 +16,19 @@ from release_guidance import plan, load_index, require_review, completion, valid
 
 
 class GuidanceTests(unittest.TestCase):
+    def test_maintenance_upgrade_preserves_work_without_reactivating_feature_delete(self):
+        from release_guidance import semantic_changes
+        with tempfile.TemporaryDirectory() as name:
+            directory = build(ROOT, Path(name), '0.13.3')
+            for installed in ('0.12.5', '0.12.11', '0.13.0', '0.13.1', '0.13.2'):
+                with self.subTest(installed=installed):
+                    selected = {row['id']: row for row in semantic_changes(directory, installed, '0.13.3')['changes']}
+                    self.assertNotIn('unfinished-feature-delete-restart', selected)
+                    repair = selected['maintenance-recovery-preserves-authored-work']
+                    self.assertEqual('selective-feature-repair-v1', repair['method'])
+                    self.assertIn('unfinished-feature-delete-restart', repair['supersedes'])
+                    self.assertIn('authored/custom files', repair['supportedRetention'][0])
+
     def test_migration_cannot_retire_required_checks_or_promote_tooling_to_application_acceptance(self):
         migration = {'fromVersion': '0.13.1', 'toVersion': '0.13.2', 'migrations': [
             {'verificationChecks': ['installation-coherence', 'dependency-verification', 'required-phase-evidence']}]}

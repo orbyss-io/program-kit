@@ -17,7 +17,7 @@ INPUT = 'eng/foundation-composition.json'
 VERSION = 2
 RESOURCE_FIELDS = {
     'host': ({'kind', 'runtimeDirectory'}, {'ownerRef'}),
-    'shell': ({'kind', 'name', 'source'}, {'ownerRef', 'settings', 'presentation'}),
+    'shell': ({'kind', 'name', 'source'}, {'ownerRef', 'settings', 'presentation', 'pathBase'}),
     'feature': ({'kind', 'path', 'packageId', 'featureIdentity', 'role'}, {'ownerRef', 'responsibility', 'capabilityPackages'}),
     'databaseServer': ({'kind', 'engine'}, {'ownerRef'}),
     'database': ({'kind', 'engine', 'name'}, {'ownerRef'}),
@@ -115,6 +115,10 @@ def require(condition, message):
 def object_fields(value, required, optional=(), label='object'):
     require(isinstance(value, dict) and set(required) <= set(value) <= set(required) | set(optional),
             label + ' has missing or unsupported fields')
+
+
+def shell_path_base(graph, shell_id):
+    return graph['resources'][shell_id].get('pathBase', '')
 
 
 def local_path(value, label, allow_dot=False):
@@ -314,6 +318,10 @@ def validate(model, repository=None):
             shell_names.add(row['name'].casefold())
             local_path(row['source'], name + '.source')
             require(row['source'] == 'shells.json' or row['source'].endswith('/shells.json'), 'shell source must name shells.json')
+            prefix = row.get('pathBase', '')
+            require(isinstance(prefix, str) and len(prefix) <= 512 and (prefix == ''
+                    or re.fullmatch(r'/[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*', prefix)),
+                    'shell.pathBase must be empty for root or a canonical local path without trailing slash')
             if 'presentation' in row:
                 presentation = row['presentation']
                 object_fields(presentation, {'enabled'}, {'settings', 'entrypoints'}, name + '.presentation')

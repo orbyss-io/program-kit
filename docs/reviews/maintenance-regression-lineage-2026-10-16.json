@@ -3,7 +3,7 @@
   "status": "reviewed-source-obligation-translation; exact-current-execution-and-consumer-acceptance-separate",
   "originalPacketManifestSha256": "b27a73f7cef1bbdd47f7a6f5831bbc6da8c4ad4967fa4bbc95cddffa86d57620",
   "originalCaseCount": 166,
-  "currentContractSha256": "7b4d8c367095c9c96192b092f0f429e256fc81b0634ce382ee27e57d7199e98c",
+  "currentContractSha256": "5a70e9018b908a4957db875df2900c661f5a1548d0d0c3a4eec2db6220df890a",
   "modules": [
     {
       "originalModule": "test_central_exact_versions",
@@ -1910,7 +1910,7 @@
     "nativeApplicationAcceptanceEstablished": false
   },
   "boundary": "Original packet is sanitized comparison data, with original-source and sanitized hashes retained separately; it is not publisher authentication. No historical code executes. Every original obligation remains required. Shared source translation is not full product/consumer acceptance, and no consumer-specific obligation is retired.",
-  "currentRequiredCaseCount": 437,
+  "currentRequiredCaseCount": 439,
   "currentExecution": {
     "status": "pending full exact current contract execution",
     "priorScopedReceipt": "artifacts/tests/toolkit-cases/fc3c729a0ef54ddaa7e53f34d58c2e27/results.json",

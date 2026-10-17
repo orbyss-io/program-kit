@@ -159,6 +159,17 @@ class PresentationProfileTests(unittest.TestCase):
         self.assertEqual({'ApplicationName': 'Owned application', 'Locale': 'en-GB', 'Theme': 'green'},
             render.presentation_branding(graph, 'application-shell'))
 
+    def test_nested_shell_binding_uses_the_effective_native_configuration_route(self):
+        graph = two_apps(ROOT); graph['resources']['application-shell']['pathBase'] = '/products/orders'
+        template = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
+        frontend = graph['resources']['policy-web']; entry = frontend['directory'] + '/' + frontend['entry']
+        original = (template / 'hosted-pages/web/src/app.ts').read_bytes()
+        selected = {'settings': {'RoutePrefix': '/account', 'Copy': {}}}
+        with patch.object(foundation, 'browser_declarations', return_value={}):
+            files = render.presentation_frontend(self.root, graph, 'policy-web', selected, template, {entry: (original, 'scaffold')})
+        helper = files[(Path(entry).parent / 'foundation-controls.ts').as_posix()][0]
+        self.assertIn(b'configurationPath = "/products/orders/account/configuration"', helper)
+
     def test_custom_entrypoint_review_cannot_bind_a_foreign_frontend(self):
         graph = two_apps(ROOT)
         graph['resources']['application-shell']['presentation'] = {'enabled': True, 'entrypoints': {'assessment-web': 'a' * 64}}

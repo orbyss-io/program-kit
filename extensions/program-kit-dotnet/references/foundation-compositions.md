@@ -4,6 +4,23 @@ New qualified profiles carrying `Orbyss.Foundation.Web.Presentation` enable the
 native presentation feature for supported browser shells. Historical profiles keep
 their exact original package/activation closure. The selected publisher metadata
 supplies defaults; no local source checkout substitutes for published knowledge.
+The shell resource may also set `"pathBase":"/products/orders"` (empty means root).
+The model owns that canonical prefix. Native `WebRouting:Path`, identity callback
+registrations, browser BFF endpoints, hosted page paths and the presentation
+configuration URL derive from it together. A conflicting consumer overlay requires
+reconciliation in the typed graph. Use literal segments without trailing slashes,
+encoded aliases, traversal or an origin. The root-only typed operation example is
+qualified separately from the nested native composition fixture.
+
+Release qualification distinguishes these supported seams explicitly:
+
+| Integration | Execution and evidence boundary |
+| --- | --- |
+| Typed managed BFF, native HostedPages, optional PostgreSQL | Root and configured nested shell paths require actual generated Host/browser qualification and installed migration evidence. |
+| Typed managed BFF API shell without a frontend | Native authentication readiness and owned API behavior remain separate from UI acceptance. |
+| SPA-PKCE source profile and client-owned session adapter | Exact types, redirect/popup headers and native SPA protocol are qualified at their own boundaries. The typed executable composition rejects `browser-spa` before writes; it does not dispatch a BFF substitute or promise turnkey SPA Host materialization. |
+| External authority, HTTPS certificate, delegated/API-call or multiple-shell Host execution | Declarations retain their exact capability diagnostic until a matching executable adapter is qualified. |
+
 Under the owning shell resource, configure its public option names explicitly:
 
 ```json
