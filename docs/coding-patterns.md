@@ -1,5 +1,8 @@
 # Versioned coding pattern inputs
 
+[Completion evaluation](coding-evaluation.md) keeps pattern qualification separate
+from actual task evidence, scoped source review and human product acceptance.
+
 For explicit teaching/improvement, versioned adoption/retirement and privacy-safe
 shared preparation, see [coding learning](coding-learning.md).
 

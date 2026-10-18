@@ -301,7 +301,7 @@ def check(root, feature, phase, affected_paths=(), operation=None, repair=False,
         require_resolved(root, feature)
         require_due_proofs(root, feature, phase)
         from task_draft import guard
-        guard(root, feature, operation=operation, closure=phase == 'delivery', repair=repair)
+        guard(root, feature, operation=operation, closure=phase == 'delivery', repair=repair, configuration=configuration, framework=framework)
     if phase == 'delivery':
         execution = execute(root, feature)
     if phase == 'implementation':
@@ -333,6 +333,9 @@ def validate_planned_architecture(root, feature):
     scoped = {p for s in adopted_context(root, feature)['sources'] for p in s.get('targetPaths', [])}
     scoped.update(p['path'] for p in manifest.get('runtimeComposition', {}).get('projects', [])
                   if p['path'] in declarations or str(Path(p['path']).parent).replace('\\', '/') in declarations)
+    tags = intent(root, feature)
+    if not scoped and 'web' in tags and 'dotnet' not in tags:
+        return False
     # Existing unrelated manifests retain their structural scope; review metadata
     # is added to the selected design rather than migrating every old project.
     required = (scoped or True) if 'dotnet' in intent(root, feature) else False
@@ -394,8 +397,8 @@ def finish(root, feature, handoff=False, configuration='Debug', framework=None):
     require(tasks.is_file(), 'Locate tasks.md before claiming feature closure')
     from task_draft import load, current, current_projection
     content, draft_state = load(tasks)
-    from coding_context import prepare, require_ready
-    coding = prepare(root, feature, reconcile=True, configuration=configuration, framework=framework)['coding']
+    from coding_context import prepare, require_ready, require_evaluated, retained_evaluations
+    coding = prepare(root, feature, reconcile=True, configuration=configuration, framework=framework, feature_wide=True)['coding']
     pending = len(re.findall(r'^\s*-\s+\[ \]\s+', content, re.M))
     draft = '> Draft:' in content or bool(draft_state and draft_state.get('status') != 'complete')
     if not coding['canProceed']:
@@ -403,6 +406,17 @@ def finish(root, feature, handoff=False, configuration='Debug', framework=None):
                 'currentCheckpoint': current_projection(current(feature)),
                 'applicationChecksPassed': False, 'acceptanceEstablished': False, 'canProceed': False,
                 'instruction': 'Resolve affected coding findings in their existing owners. Progress is preserved; independent scopes may continue.'}
+    completed = re.findall(r'^\s*- \[[xX]\] (T\d+)(?=\s|$)', content, re.M)
+    if completed or handoff:
+        evaluation = coding if not pending or handoff else prepare(root, feature, reconcile=True, task_ids=completed,
+            configuration=configuration, framework=framework)['coding']
+        try:
+            require_ready({'coding': evaluation})
+            require_evaluated(root, feature, evaluation, retained_evaluations(feature))
+        except ValueError as error:
+            return {'status': 'needs-attention', 'coding': evaluation, 'pendingTasks': pending, 'draft': draft,
+                    'currentCheckpoint': current_projection(current(feature)), 'applicationChecksPassed': False,
+                    'acceptanceEstablished': False, 'canProceed': False, 'instruction': str(error)}
     if not handoff and (pending or draft):
         from task_draft import current, current_projection
         can_proceed, review_diagnostic = False, 'Initialize fresh story delivery before implementation; old partial progress grants no continuation authority.'
@@ -424,7 +438,7 @@ def finish(root, feature, handoff=False, configuration='Debug', framework=None):
     require(handoff or bool(re.search(r'^\s*-\s+\[[xX]\]\s+', content, re.M)),
             'Feature closure requires completed tasks or an explicit formal handoff')
     from task_draft import guard
-    guard(root, feature, closure=True)
+    guard(root, feature, closure=True, configuration=configuration, framework=framework)
     result = execute(root, feature)
     result['coding'] = coding
     result['humanReviewsPassed'] = True
@@ -474,7 +488,7 @@ def main():
             if not result['requirements']:
                 raise ValueError('Requested obligation is not applicable in this phase')
         print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else render(result, args.phase, bool(args.only)))
-        return 2 if result.get('coding', {}).get('canProceed') is False else 0
+        return 2 if result.get('coding', {}).get('canProceed') is False or result.get('status') == 'needs-attention' else 0
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(str(error))
         return 2

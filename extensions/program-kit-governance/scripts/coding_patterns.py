@@ -204,7 +204,7 @@ def compatibility(pattern, observed):
     return reasons
 
 
-def current_check(root, declaration, retained=None):
+def current_check(root, declaration, retained=None, *, handoff=False):
     """Inspect existing owners. This function never dispatches a check."""
     from dotnet_adapter import bootstrap
     bootstrap()
@@ -212,13 +212,27 @@ def current_check(root, declaration, retained=None):
     root = Path(native_path(root)).resolve()
     import repository_verification as native
     import toolkit_verification as toolkit
+    observation_only = False
     if declaration['kind'] == 'native':
         project = declaration['project']
         require(confined(root, project).is_file(), 'missing native test owner')
         selection = {'scope': 'Focused', 'projects': [project], 'toolkitChecks': []}
         planned = native.plan(root, selection, declaration['arguments'], declaration['configuration'])
-        require(len(planned['reusable']) == 1 and not planned['needed'], 'native evidence missing, stale or unresolved')
-        run = planned['reusable'][0]['run']
+        if len(planned['reusable']) != 1 or planned['needed']:
+            limits = planned.get('reuseLimits', {})
+            require(handoff and retained and project in limits.get('nonReusableProjects', [])
+                    and not limits.get('unknownArguments') and not limits.get('unmanagedEnvironment')
+                    and not any(r['project'] == project or project in r.get('pendingSuccessors', []) for r in planned['unresolved']),
+                    'native evidence missing, stale or unresolved; owner: native verification owner. Non-reusable execution needs its explicit current handoff artifact; repair unsupported arguments/environment or unresolved failures through that owner.')
+            path = confined(root, retained)
+            require(path.name == 'result.json' and path.parent.parent == root / 'artifacts/tests/runs', 'native evidence has no retained owner')
+            rows = [(candidate, outcome) for _, candidate, coverage, outcome in native.history(root)
+                    if coverage == tuple(declaration['arguments']) and outcome.get('project') == project]
+            require(bool(rows) and rows[-1][0] == path and rows[-1][1].get('fingerprint') == planned['fingerprints'][project]
+                    and native.evidence_valid(root, path, rows[-1][1]), 'explicit native handoff must name the latest intact source-current execution')
+            run, observation_only = retained, True
+        else:
+            run = planned['reusable'][0]['run']
         if retained and retained != run:
             path = confined(root, retained)
             require(path.name == 'result.json' and path.parent.parent == root / 'artifacts/tests/runs', 'native evidence has no retained owner')
@@ -243,13 +257,11 @@ def current_check(root, declaration, retained=None):
                     candidates.append((value.get('startedAtUtc', ''), path.as_posix(), path, value, outcome))
         require(bool(candidates), 'check execution evidence missing')
         _, _, path, value, outcome = sorted(candidates)[-1]
-        require(value.get('status') == 'completed' and outcome.get('status') == 'completed' and outcome.get('exitCode') == 0
-                and outcome.get('fingerprint') == expected and bool(outcome.get('evidence')), 'check evidence missing or stale')
-        for relative, digest in outcome['evidence'].items():
-            target = confined(root, relative)
-            require(target.is_relative_to(path.parent) and target.is_file() and sha(target.read_bytes()) == digest, 'check evidence changed')
+        require(value.get('status') == 'completed' and value.get('schemaVersion') == 1
+                and outcome.get('fingerprint') == expected and toolkit.evidence_valid(root, path, outcome), 'check evidence missing, stale or changed')
         run = path.relative_to(root).as_posix()
-    return {'check': declaration, 'run': run, 'sha256': sha(confined(root, run).read_bytes())}
+    return {'check': declaration, 'run': run, 'sha256': sha(confined(root, run).read_bytes()),
+            **({'reuse': 'execution-observation-only'} if observation_only else {})}
 
 
 def binding(unit, rules, root, extensions, observed):

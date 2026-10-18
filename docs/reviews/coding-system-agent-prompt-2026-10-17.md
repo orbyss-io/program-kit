@@ -1,5 +1,17 @@
 Implement the approved Program Kit coding-system feature in an isolated feature branch/worktree.
 
+**F7 approval update, 18 October 2026:** F1–F7 are human approved. The human approved
+F7 after guided actual-output review and explanation of its foundations, journey,
+independent proof and limits, authorized its commit and requested a separate F8
+session prompt. Read the
+[F7 checkpoint](coding-system-f7-checkpoint-2026-10-18.md) and
+[F8 session prompt](coding-system-f8-session-prompt-2026-10-18.md). This is the current
+continuation boundary, superseding older wording below. F8 is the final planned
+item, including integrated acceptance across F1–F8. Do not begin it in the F7 commit
+session, create the deferred development skill or clean retained review material.
+Approval preserves every failure, cost disclosure and proof limit; it does not
+establish complete feature acceptance or publication authority.
+
 **Continuation update, 18 October 2026:** F1–F6 are human approved. The human
 approved F6 after guided/inline source/output review, authorized its commit and
 requested a fresh F7 session. Read the [F6 checkpoint](coding-system-f6-checkpoint-2026-10-18.md)

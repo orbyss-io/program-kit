@@ -1,5 +1,8 @@
 # Coding preparation and skill composition
 
+[Evaluation and completion](coding-evaluation.md) accounts for applicable mandatory
+duties through the same preparation, native evidence and task/delivery owners.
+
 The initial [semantic coding families](coding-seeds.md) extend this same composer
 with scoped manual recipes and separately inspectable execution proof.
 

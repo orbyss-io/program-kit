@@ -30,19 +30,23 @@ def source(root, path):
             'sha256': hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None}
 
 
-def task_scope(feature, operation):
+def task_scope(feature, operation, task_ids=None, feature_wide=False):
     from task_draft import current, _table
     state = current(feature) or {}
     active = (state.get('delivery') or {}).get('active') or {}
-    operation = operation or active.get('operation')
+    operation = None if task_ids is not None or feature_wide else operation or active.get('operation')
     content = (feature / 'tasks.md').read_text(encoding='utf-8') if (feature / 'tasks.md').is_file() else ''
     ids = {row[0] for row in _table(content, 'Task dependency map', 5) if row[1] == operation} if operation else set()
     if operation and not ids:
         raise ValueError('PKC002 unknown operation; use the existing Task dependency map: ' + operation)
     tasks = [line for line in content.splitlines() if re.match(r'^- \[[ xX]\] T\d+\b', line)]
-    selected = [line for line in tasks if not operation or any(re.match(r'^- \[[ xX]\] ' + re.escape(i) + r'\b', line) for i in ids)]
-    return {'operation': operation, 'taskIds': sorted(ids) if operation else re.findall(r'^- \[[ xX]\] (T\d+)\b', content, re.M),
-            'tasks': selected, 'baseline': state.get('baseline'), 'mode': 'operation' if operation else 'feature'}
+    if task_ids is not None:
+        ids = set(task_ids)
+        if not ids <= set(re.findall(r'^- \[[ xX]\] (T\d+)\b', content, re.M)):
+            raise ValueError('PKC002 evaluation scope names unknown tasks')
+    selected = [line for line in tasks if (not operation and task_ids is None) or any(re.match(r'^- \[[ xX]\] ' + re.escape(i) + r'\b', line) for i in ids)]
+    return {'operation': operation, 'taskIds': sorted(ids) if operation or task_ids is not None else re.findall(r'^- \[[ xX]\] (T\d+)\b', content, re.M),
+            'tasks': selected, 'baseline': state.get('baseline'), 'mode': 'tasks' if task_ids is not None else 'operation' if operation else 'feature'}
 
 
 def validate_units(catalog):
@@ -148,7 +152,7 @@ def compose(catalog, requirements, tags, facts, extensions, repository=None):
     return selected, excluded, blockers
 
 
-def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False, configuration='Debug', framework=None, stage='source'):
+def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False, configuration='Debug', framework=None, stage='source', task_ids=None, feature_wide=False):
     from dotnet_adapter import bootstrap
     bootstrap()
     from repository_architecture import evaluate_project, is_build_reference, validate_planned
@@ -156,12 +160,13 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
     from owned_scratch import native_path
     # Use one identity spelling when joining evaluated native paths back to input.
     root, feature = Path(native_path(root)).resolve(), Path(native_path(feature)).resolve()
-    scope = task_scope(feature, operation)
+    scope = task_scope(feature, operation, task_ids, feature_wide)
     scoped = feature_scope(root, feature)
     inherited = adopted_context(root, feature)
     documents = [feature / name for name in ('spec.md', 'plan.md', 'tasks.md', 'data-model.md', 'research.md', 'quickstart.md')]
     prose = '\n'.join(affirmative(path.read_text(encoding='utf-8')) for path in documents if path.is_file())
-    selection_text = '\n'.join(scope['tasks']) if scope['operation'] else prose
+    scoped_tasks = scope['operation'] or task_ids is not None
+    selection_text = '\n'.join(scope['tasks']) if scoped_tasks else prose
     paths = {inside(root, p).relative_to(root).as_posix() for p in affected_paths}
     blockers, gaps = [], []
     changed = []
@@ -194,9 +199,9 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
                   if not {'bin', 'obj'} & set(p.parts)} | set(declarations)
     selected = {p for p in candidates if p in selection_text or Path(p).parent.as_posix() in selection_text
                 or any(item == p or item.startswith(Path(p).parent.as_posix() + '/') for item in paths)}
-    if not scope['operation']:
+    if not scoped_tasks:
         selected.update(p for s in inherited['sources'] for p in s.get('targetPaths', []) if p.endswith('.csproj'))
-    tags = context(root, feature, 'implementation', paths, prose_override=selection_text if scope['operation'] else None)
+    tags = context(root, feature, 'implementation', paths, prose_override=selection_text if scoped_tasks else None)
     native_source_task = bool(selected or re.search(r'[\w./-]+\.cs(?:proj)?\b', '\n'.join(scope['tasks'])))
     if native_source_task:
         tags.add('dotnet')
@@ -318,7 +323,7 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
     unowned = sorted(p for p in paths if p.endswith('.cs') and inside(root, p).is_file() and p not in owned_compile)
     if unowned:
         blockers.append({'code': 'PKC011', 'paths': unowned, 'owner': 'source/project owner', 'repair': 'Assign changed C# source to its actual evaluated Compile owner or explicitly remove it from implementation scope in normal source review.'})
-    if declarations:
+    if declarations and (selected or 'dotnet' in tags or 'web' not in tags):
         try:
             validate_planned(root, {'runtimeComposition': graph}, require_responsibilities=selected)
         except ValueError as error:
@@ -354,6 +359,7 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
     blockers += pattern_blockers
     from coding_scaffold import routes
     routes(units, registry)
+    duties = evaluation_duties(registry, value['requirements'], units, root, Path(__file__).resolve().parents[2], blockers)
     inputs = [source(root, p) for p in documents + [root / 'eng/architecture.json', root / 'global.json',
               root / 'Directory.Packages.props', root / 'docs/architecture/bootstrap-decisions.json',
               root / 'docs/architecture/architecture-map.json', verify]]
@@ -369,6 +375,7 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
                           'declaration': source(root, root / 'docs/architecture/coding-patterns.json'),
                           'sources': sorted(set(re.findall(r'(?:docs|specs)/[\w./-]*pattern[\w./-]*\.md', prose)))},
         'patterns': pattern_reports, 'patternsContext': observed_patterns,
+        'evaluation': {'duties': duties, 'authority': 'Scoped engineering evidence and authored source review; human product acceptance stays in story delivery.'},
         'verification': source(root, verify), 'changedInputs': changed, 'affectedPaths': sorted(paths),
         'independentChangedInputs': independent, 'sourceObservations': observations,
         'blockers': blockers, 'gaps': gaps, 'canProceed': not blockers,
@@ -381,3 +388,154 @@ def require_ready(value):
     coding = value['coding']
     if coding['blockers']:
         raise ValueError('Coding work blocked for the affected scope; independent scopes may continue. ' + json.dumps(coding['blockers']))
+
+
+def evaluation_duties(registry, requirements, units, root, extensions, blockers):
+    """Derive coverage from canonical applicability, including rules without a unit/check."""
+    identities = {identity for row in requirements for identity in row.get('ruleIds', [])}
+    identities.update(rule['id'] for unit in units for rule in unit['rules'])
+    behavior = {identity for row in requirements if row.get('proof') == 'behavior' for identity in row.get('ruleIds', [])}
+    duties = []
+    for identity in sorted(identities):
+        rule = effective_rule(registry, identity)
+        if rule.get('status', 'active') != 'active':
+            continue
+        try:
+            resolved = resolve(registry, identity, extensions=extensions, repository=root)
+        except (OSError, ValueError, KeyError, TypeError, SyntaxError):
+            blockers.append({'code': 'PKC019', 'rule': identity, 'owner': rule['owner'],
+                             'repair': 'Restore this applicable canonical source before completing its duty.'})
+            continue
+        duties.append({'rule': identity, 'fingerprint': resolved['fingerprint'], 'owner': rule['owner'],
+                       'required': rule['level'] in ('mandatory', 'conditional'), 'level': rule['level'],
+                       'technicalRequired': identity in behavior,
+                       'maintainerChecks': rule['bindings'].get('checks', []),
+                       'review': rule['bindings'].get('review'), 'limits': rule['limits']})
+    return duties
+
+
+def evaluation_basis(root, feature, coding):
+    """Current scoped source/context identity; task checkmarks/progress are not source edits."""
+    paths = {row['path'] for row in coding['inputs']}
+    paths.update(('.editorconfig', 'Directory.Build.props', 'Directory.Build.targets', 'NuGet.Config'))
+    for project in coding['projects']:
+        paths.update(project.get('compile', []))
+        paths.update(row['path'] for row in project.get('declarationSources', []))
+        paths.add(project['path'])
+    for project in coding['frontendProjects']:
+        paths.add(project['package']['path'])
+        paths.update(row['path'] for row in project['locks'])
+        paths.update(project['changedSource'])
+    values = {}
+    for relative in sorted(paths):
+        target = inside(root, relative)
+        if target == feature / 'tasks.md' and target.is_file():
+            from task_draft import CURRENT, MARKER
+            content = MARKER.sub('', CURRENT.sub('', target.read_text(encoding='utf-8')))
+            content = re.sub(r'(?m)^(\s*- )\[[ xX]\]', r'\1[ ]', content).strip()
+            values['source:' + relative] = hashlib.sha256(content.encode()).hexdigest()
+        else:
+            values['source:' + relative] = source(root, target)['sha256']
+    for project in coding['projects']:
+        state = {k: v for k, v in project.items() if k != 'changedCompile'}
+        values['project:' + project['path']] = hashlib.sha256(json.dumps(state, sort_keys=True).encode()).hexdigest()
+    for key in ('profiles', 'architecture'):
+        values[key] = hashlib.sha256(json.dumps(coding[key], sort_keys=True).encode()).hexdigest()
+    # Package/framework/SDK sets differ between independently reviewed projects.
+    # Their evaluated facts are already bound per project above; hashing their
+    # union would falsely stale correct separate handoffs at feature closure.
+    if coding['nativeContext'].get('applicable'):
+        runtimes = coding['patternsContext'].get('runtimeInventory', [])
+        values['runtimeInventory'] = hashlib.sha256(json.dumps(runtimes).encode()).hexdigest()
+        values.update(configuration=coding['nativeContext']['configuration'], framework=coding['nativeContext']['framework'])
+    return values
+
+
+def bind_evaluation(root, feature, coding, claims, artifacts=()):
+    """Attach ordinary authored claims to existing progress/delivery, never approve them."""
+    from coding_patterns import current_check
+    if not isinstance(claims, list) or not claims:
+        raise ValueError('PKC020 supply scoped evaluation claims in the existing checkpoint/delivery request')
+    duties = {row['rule']: row for row in coding['evaluation']['duties']}
+    result = []
+    for claim in claims:
+        if not isinstance(claim, dict) or set(claim) != {'rules', 'checks', 'review', 'conclusion', 'limits'}:
+            raise ValueError('PKC020 evaluation needs rules, checks, review, conclusion and limits')
+        rules = claim['rules']
+        if not isinstance(rules, list) or not rules or not all(isinstance(i, str) and i in duties for i in rules) or len(set(rules)) != len(rules):
+            raise ValueError('PKC020 name unique applicable canonical duties, never an unknown duty or wildcard')
+        if not all(isinstance(claim[k], str) and claim[k].strip() for k in ('review', 'conclusion', 'limits')):
+            raise ValueError('PKC020 supply actual scoped authored review, conclusion and proof limits')
+        reviewed = source(root, inside(root, claim['review']))
+        if reviewed['status'] != 'available' or not inside(root, claim['review']).read_text(encoding='utf-8').strip():
+            raise ValueError('PKC020 missing scoped source review; owner: semantic source reviewer')
+        checks = claim['checks']
+        if not isinstance(checks, list) or (not checks and any(duties[i]['technicalRequired'] for i in rules)):
+            raise ValueError('PKC020 actual behavior checks remain due; source review cannot waive them')
+        if any(not isinstance(c, dict) or (set(c) != {'kind', 'id'} if c.get('kind') == 'toolkit' else
+                c.get('kind') != 'native' or set(c) != {'kind', 'project', 'arguments', 'configuration'}) for c in checks):
+            raise ValueError('PKC020 unsupported actual check mechanism; use the maintained native/toolkit owner')
+        evidence = []
+        for declaration in checks:
+            if declaration['kind'] == 'native' and declaration['configuration'] != coding['nativeContext']['configuration']:
+                raise ValueError('PKC020 native check configuration differs from the selected coding context; owner: native verification owner; run the selected configuration')
+            candidates = []
+            for ref in artifacts:
+                if not ref.endswith('.json'):
+                    continue
+                value = read(inside(root, ref), {})
+                if declaration['kind'] == 'native':
+                    matches = (value.get('testArguments') == declaration['arguments'] and value.get('configuration') == declaration['configuration']
+                               and any(o.get('project') == declaration['project'] for o in value.get('outcomes', [])))
+                else:
+                    matches = any(o.get('check') == declaration['id'] for o in value.get('outcomes', []))
+                if matches:
+                    candidates.append((value.get('startedAtUtc', ''), ref))
+            retained = max(candidates)[1] if candidates else None
+            evidence.append(current_check(root, declaration, retained, handoff=bool(retained and declaration['kind'] == 'native')))
+        result.append({'rules': {i: duties[i]['fingerprint'] for i in rules}, 'checks': evidence,
+                       'review': reviewed, 'conclusion': claim['conclusion'], 'limits': claim['limits'],
+                       'basis': evaluation_basis(root, feature, coding), 'taskIds': coding['scope']['taskIds'],
+                       'authority': 'Authored review and local freshness only; no authenticated reviewer, agent obedience or human acceptance.'})
+    return result
+
+
+def require_evaluated(root, feature, coding, records):
+    """Completion consumes current ordinary evidence; preparation does not require it."""
+    from coding_patterns import current_check
+    required = [row for row in coding['evaluation']['duties'] if row['required']]
+    expected_basis = evaluation_basis(root, feature, coding)
+    covered, covered_tasks, covered_basis, findings = set(), set(), set(), []
+    for record in records:
+        try:
+            common = expected_basis.keys() & record['basis'].keys()
+            if any(record['basis'][k] != expected_basis[k] for k in common) or not set(coding['scope']['taskIds']) & set(record['taskIds']):
+                continue
+            reviewed = record['review']
+            if source(root, inside(root, reviewed['path'])) != reviewed:
+                continue
+            if any(current_check(root, item['check'], item['run'], handoff=item.get('reuse') == 'execution-observation-only') != item for item in record['checks']):
+                continue
+            covered_tasks.update(record['taskIds'])
+            covered_basis.update(common)
+            covered.update(identity for identity, fingerprint in record['rules'].items()
+                           if any(row['rule'] == identity and row['fingerprint'] == fingerprint
+                                  and (record['checks'] or not row['technicalRequired']) for row in required))
+        except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+            continue
+    for duty in required:
+        if duty['rule'] not in covered or not set(coding['scope']['taskIds']) <= covered_tasks or expected_basis.keys() - covered_basis:
+            findings.append({'code': 'PKC020', 'rule': duty['rule'], 'owner': duty['owner'],
+                             'repair': 'Complete this applicable duty with current maintained checks where required and scoped authored source review in checkpoint/delivery evaluation; preserve prior evidence. A checked box supplies no waiver.'})
+    coding['evaluation']['completionFindings'] = findings
+    if findings:
+        raise ValueError('Coding evaluation incomplete for affected scope; independent scopes may continue. ' + json.dumps(findings))
+
+
+def retained_evaluations(feature):
+    from task_draft import current
+    saved = current(feature) or {}
+    result = list(saved.get('evaluation', []))
+    for review in saved.get('delivery', {}).get('checkpoints', {}).values():
+        result.extend(review.get('evaluation', []))
+    return result

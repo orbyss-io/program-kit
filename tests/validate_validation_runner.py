@@ -108,7 +108,17 @@ class SelectionTests(unittest.TestCase):
         self.assertFalse(gaps)
         self.assertIn('mechanics-phases', ids)
         self.assertNotIn('mechanics-bootstrap', ids)
-        self.assertFalse(any(c['kind'] == 'integration' for c in checks))
+        self.assertEqual({'validate_coding_evaluation_journey'}, {c['id'] for c in checks if c['kind'] == 'integration'})
+
+    def test_native_evidence_owners_have_focused_affected_coverage(self):
+        checks, gaps, _ = runner.select_affected(runner.load_definition(), [
+            'extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py',
+            'extensions/program-kit-dotnet/templates/dotnet/files/eng/toolkit_verification.py'])
+        self.assertFalse(gaps)
+        ids = {c['id'] for c in checks}
+        self.assertIn('validate_coding_evaluation', ids)
+        self.assertIn('validate_test_dependencies', ids)
+        self.assertNotIn('mechanics-bootstrap', ids)
 
     def test_shared_governance_change_selects_both_consumers(self):
         checks, gaps, _ = runner.select_affected(runner.load_definition(), [

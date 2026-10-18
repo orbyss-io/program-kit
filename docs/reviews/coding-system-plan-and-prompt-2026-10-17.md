@@ -220,6 +220,26 @@ Use maintained extensions for new technologies/pattern adapters: same context, o
 
 ### F7 — independent evaluation and completion
 
+**18 October 2026: F7 human approved; commit and separate F8 prompt authorized.**
+The human reviewed the actual output and explanation of F7's journey, foundations,
+independent proof and limits. The human answered yes to all four recommendations
+before implementation. Use
+the [F7 checkpoint](coding-system-f7-checkpoint-2026-10-18.md) and
+[review handoff](coding-system-f7-review-handoff-2026-10-18.md). Derive applicable
+mandatory/conditional duties from existing canonical owners, bind ordinary scoped
+review and actual native/toolkit evidence in existing task/delivery state, and
+enforce them at completion. Preparation remains usable before execution. Reuse a
+new fictional owner-report consumer, fixed compiled positive/negative oracles,
+disposable canonical role-table mutation and unrelated browser scope. Preserve
+strict qualification, source ownership and human review/waiting boundaries; an
+explicit native execution observation supplies no reusable qualification.
+The installed journey retains a 120s budget/240s timeout. Integrity retains 60s;
+Affected uses approved F6 `f2cb90b8f6254cb61052d1b49e6e189e2206e652` as its base.
+F8 has not started; use its separate
+[session prompt](coding-system-f8-session-prompt-2026-10-18.md). The development
+skill remains deferred. Earlier approvals, raw failures, costs, qualification limits
+and review material remain unchanged. F7 approval is not complete feature acceptance.
+
 Evaluation combines appropriate compiler/schema/analyzer/tool checks, actual provider/browser/native behavior, source/semantic review and consumer human review where necessary. Keep each obligation's evidence source and scope visible. A satisfied structural checker does not prove semantic correctness. An agent report that it selected guidance is routing evidence; independent negative examples and actual consumer execution are application evidence. Unknown obligations cannot disappear because no check was listed.
 
 For canonical ownership, change one rule in a disposable qualified fixture and show the affected task brief and linked scaffold/check expectations reflect that source without edits to duplicate policy strings. Unrelated tasks remain unaffected and prior affected proof becomes stale. Retain independent negative behavior oracles so a mistaken rule, generator or adapter cannot manufacture its own success. This qualification does not require executing every check for every task or treating every rule as mechanically decidable.
@@ -227,6 +247,13 @@ For canonical ownership, change one rule in a disposable qualified fixture and s
 Use existing verification selectors and prerequisite closure. Do not run every deterministic test after each task or start coding agents from deterministic validators. Completion must reject an applicable mandatory duty that was omitted, incompatible/stale inputs, unsupported actual mechanisms and fabricated/replayed qualification. Report a concrete owner/repair route. Do not make human approval loops consume engineering time after an engineering task has handed off correctly.
 
 ### F8 — cleanup, installation, adoption and migration
+
+F8 is the final planned implementation item. It requires a separate human-led
+session and final integrated acceptance review across the existing matrix, using
+maintained per-item proof and actual installed routes. F1–F7 are approved; do not
+reopen their settled decisions. See the
+[F8 session prompt](coding-system-f8-session-prompt-2026-10-18.md). The F7 commit
+session does not begin F8 or authorize review-material cleanup or the deferred skill.
 
 After replacement routes have actual proof, consolidate/remove obsolete active guidance, duplicate rules/examples and stale routes. Keep a reviewed old-to-new/retire mapping with purpose and retained coverage. Useful but unrouted knowledge is wired into actual applicability; intentionally manual or conditional knowledge is honestly classified. Do not copy all unused text to an archive to claim cleanup, manufacture use or delete history. Preserve captures/profiles needed by existing consumer locks, diagnostics, approvals, decisions and accounting.
 

@@ -50,15 +50,27 @@ def pending(root):
     for _, _, path, value in sorted(rows):
         for outcome in value['outcomes']:
             name = outcome['check']
-            valid = outcome.get('status') == 'completed' and outcome.get('evidence')
-            for relative, expected in outcome.get('evidence', {}).items():
-                target = contained(root, relative)
-                valid = valid and target.is_relative_to(path.parent) and target.is_file() and file_hash(target) == expected
+            valid = evidence_valid(root, path, outcome)
             if valid:
                 unresolved.discard(name)
             else:
                 unresolved.add(name)
     return unresolved
+
+
+def evidence_valid(root, path, outcome):
+    """Retained execution integrity only; current fingerprints belong to the planner."""
+    if (path.name != 'result.json' or path.parent.parent != root / 'artifacts/tests/toolkit-runs'
+            or outcome.get('status') != 'completed' or outcome.get('exitCode') != 0 or not outcome.get('fingerprint')):
+        return False
+    logs = outcome.get('evidence', {})
+    if not isinstance(logs, dict) or len(logs) != 2 or {Path(p).name.split('.')[-2] for p in logs} != {'stdout', 'stderr'}:
+        return False
+    for relative, expected in logs.items():
+        target = contained(root, relative)
+        if not target.is_relative_to(path.parent) or not target.is_file() or file_hash(target) != expected:
+            return False
+    return True
 
 
 def fingerprint(root, row):

@@ -215,7 +215,9 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_project.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/verification*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/test*",
-        "tests/verification_isolation_cases.py"
+        "tests/verification_isolation_cases.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolkit_verification.py"
       ],
       "dependsOn": [
         "architecture",
@@ -373,6 +375,17 @@
       ],
       "dependsOn": [
         "knowledge"
+      ]
+    },
+    "coding-evaluation": {
+      "inputs": [
+        "tests/evaluation_review_fixture.py",
+        "tests/validate_coding_evaluation.py"
+      ],
+      "dependsOn": [
+        "knowledge",
+        "phases",
+        "test-generation"
       ]
     }
   },
@@ -5723,6 +5736,58 @@
       "inputs": [
         "tests/learning_review_fixture.py",
         "extensions/program-kit-dotnet/references/examples/snapshot-query/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_evaluation",
+      "purpose": "F7 canonical duty completeness, current maintained evidence and supported admission; fictional review, no agents/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_evaluation.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-evaluation"
+      ],
+      "inputs": [
+        "tests/validate_coding_evaluation.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_coding_evaluation_journey",
+      "purpose": "F7 canonical duty completeness, current maintained evidence and supported admission; fictional review, no agents/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/evaluation_review_fixture.py",
+        "--review"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-evaluation"
+      ],
+      "inputs": [
+        "tests/evaluation_review_fixture.py"
       ],
       "needs": [],
       "prerequisites": [

@@ -155,6 +155,12 @@ def affirmative(text):
     lines = []
     for line in text.splitlines():
         heading = re.match(r'^\s*(#+)\s', line)
+        # Native task-plan headings/table labels describe workflow, not Task/async usage.
+        # Keep real task descriptions and source untouched, including Task<T> code.
+        if heading:
+            line = re.sub(r'\btasks?\b', '', line, flags=re.I)
+        if re.match(r'^\s*\|\s*Task\s*\|', line, re.I):
+            continue
         if heading:
             depth = len(heading[1])
             if excluded_depth is not None and depth <= excluded_depth:
