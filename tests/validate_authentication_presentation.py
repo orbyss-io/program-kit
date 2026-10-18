@@ -6,6 +6,7 @@ archives can be supplied explicitly. No device installation, provider login or c
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -55,8 +56,8 @@ def main():
     parser.add_argument('--unit', action='store_true', help='Fast package-admission contracts; no package restore or browser launch')
     parser.add_argument('--execute', action='store_true', help='Compile and run native presentation/browser proof')
     parser.add_argument('--baseline-profile', help='Explicit retained qualified profile instead of the current qualified default')
-    parser.add_argument('--package-root', type=Path, help='Explicit prepared NuGet package cache matching the selected profile')
-    parser.add_argument('--browser-root', type=Path, default=ROOT / 'artifacts/ui-browser/web/generated/program-kit/acceptance/tests')
+    parser.add_argument('--package-root', type=Path, default=os.environ.get('PROGRAMKIT_NUGET_PACKAGE_ROOT'), help='Explicit prepared NuGet package cache matching the selected profile')
+    parser.add_argument('--browser-root', type=Path, default=os.environ.get('PROGRAMKIT_BROWSER_ROOT', ROOT / 'artifacts/ui-browser/web/generated/program-kit/acceptance/tests'))
     parser.add_argument('--engines', default='chromium,firefox,webkit')
     args = parser.parse_args()
     engines = args.engines.split(',')
@@ -157,7 +158,8 @@ def main():
         hook = authentication[hook_start:hook_end]
         if 'test.afterEach(' not in hook: raise ValueError('Maintained authentication privacy hook is absent')
         secret = 'synthetic-private-credential-' + uuid.uuid4().hex
-        (directory / 'privacy.spec.ts').write_text(f"import {{expect,test}} from {json.dumps(test_import)};\n" + hook
+        suppressor = (TEMPLATE / 'web-profiles/common/eng/web/private-diagnostics.mjs').as_posix()
+        (directory / 'privacy.spec.ts').write_text(f"import {{expect,test}} from {json.dumps(test_import)};\nimport {{suppressPrivateErrors}} from {json.dumps(suppressor)};\n" + hook
             + "test('owned credential assertion privacy proof',async({page})=>{await page.setContent('<input aria-label=Credential>');"
             + 'await page.getByLabel("Credential").fill(' + json.dumps(secret) + ');'
             + 'await expect(page.getByLabel("Credential")).toHaveValue("unrelated-public-expectation",{timeout:100});});\n')
@@ -166,6 +168,7 @@ def main():
             'use': {'browserName': engines[0], 'trace': 'off', 'screenshot': 'off', 'video': 'off'}}
         (directory / 'privacy.config.mjs').write_text('export default ' + json.dumps(privacy_config) + ';\n')
         privacy_index = len(evidence['commands'])
+        (directory / 'package.json').write_text('{"private":true,"type":"module"}\n')
         privacy_stdout = run(['node', str(browser_root / 'node_modules/playwright/cli.js'), 'test', '--config', 'privacy.config.mjs'], expected=1)
         report_bytes = (directory / 'privacy.xml').read_bytes()
         report = ET.fromstring(report_bytes)
@@ -174,7 +177,7 @@ def main():
             raise ValueError('Credential assertion must remain an actual failed test')
         if secret in privacy_stdout or secret in (directory / f'command-{privacy_index}.log').read_text() or secret.encode() in report_bytes:
             raise ValueError('Credential assertion escaped authentication privacy controls')
-        if not any(category in report_bytes for category in (b'expect(private authentication assertion)', b'Private authentication check failed; payload suppressed.')):
+        if b'Private check failed.' not in report_bytes:
             raise ValueError('Safe authentication assertion classification disappeared from its failed report')
         if list((directory / 'privacy-results').rglob('error-context.md')):
             raise ValueError('Automatic authentication DOM failure snapshot was retained')

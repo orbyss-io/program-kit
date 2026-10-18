@@ -1,19 +1,22 @@
 Implement the approved Program Kit coding-system feature in an isolated feature branch/worktree.
 
-Current continuation boundary: F1/F2/F3/F4 are approved. On 18 October 2026 the human
-approved F4 after its readability follow-up and authorized its commit and an F5
-prompt for a new session. Reuse `artifacts/coding-system-f1` on
-`codex/coding-system-f1` at the approved F4 commit; do not reset to an older base.
-Read `docs/reviews/coding-system-f5-session-prompt-2026-10-18.md` and all four
-checkpoints, including F4's retained guided indices. The user explicitly requested the Foundation baseline correction;
+Current continuation boundary: F1/F2/F3/F4/F5 are approved. On 18 October 2026 the
+human approved F5 after guided and inline source/output review, authorized its
+commit and requested an F6 prompt for a new session. Reuse
+`artifacts/coding-system-f1` on `codex/coding-system-f1` at the approved F5 commit;
+do not reset to an older base. Read
+`docs/reviews/coding-system-f6-session-prompt-2026-10-18.md` and all five
+checkpoints, including retained guided indices. The user explicitly requested the Foundation baseline correction;
 the qualified default now selects Foundation 0.3.6, Build 0.3.2 and Exporter 0.2.7.
 The unchanged Forms evidence has an explicit human-authorized historical disposition.
 Native behavior completed but its direct 986.955-second run exceeds the registered
 budget/runner limit; do not call that a passing named check or repeat it automatically.
-F5 starts in the new session with investigation and grilling of only its unsettled
-choices, followed by shared-understanding confirmation before implementation.
-Stop at F5's human review checkpoint; do not begin F6, clean retained review
-consumers or create the deferred development skill. Approval preserves every
+F5 investigation, shared-understanding confirmation, implementation and human
+review are complete within its recorded scope; read
+`docs/reviews/coding-system-f5-checkpoint-2026-10-18.md` and its guided actual output.
+The next fresh session handles F6 only after its own investigation/interview and
+shared-understanding confirmation. Do not implement it in the F5 commit session,
+clean retained review consumers or create the deferred development skill. Approval preserves every
 failure, budget disclosure and proof limit; it does not reclassify old evidence.
 
 F4 review follow-up: the human endorsed the rest and required gentler invocation
@@ -54,8 +57,9 @@ F3's interview is now settled: the human accepted all recommendations on 18 Octo
 `docs/coding-patterns.md` for implementation, actual proof, remaining limits and the
 next-session boundary. F3 approval preserves its proof limits and failure disclosures.
 Preserve all retained consumers/output and prior failures/budget disclosures. The
-next fresh session handles F5 only. Do not create the deferred development skill
-or advance beyond F5 from this handoff.
+current continuation is the separately requested F6 session. Read the approved F5
+checkpoint and F6 prompt first. Do not create the deferred development skill or
+advance beyond F6 from that session.
 
 Deliver the plan's integrated accepted-context -> applicable composable skills -> safe scaffold/edit -> actual-change reconciliation -> appropriate evaluation route, with private consumer-local patterns and teach/qualify/adopt/improve/retire behavior. Discover rules across references/decisions, prompts/scripts, schemas/build/analyzer settings, templates/examples/tests and exact publisher captures. Extend the existing registry; one authoritative source per rule supplies attributable selection, realization and checks. Resolve generated guidance from canonical sources and remove duplicate/hidden policy only after replacement proof. Preserve independent negative oracles.
 

@@ -1,0 +1,14 @@
+{
+  "owner": "Evidence",
+  "schema": "evidence",
+  "table": "entries",
+  "columns": {
+    "identity": "text",
+    "owner": "text",
+    "packet": "jsonb",
+    "accepted": "boolean",
+    "revision": "integer"
+  },
+  "primaryKey": ["identity"],
+  "concurrencyToken": "revision"
+}

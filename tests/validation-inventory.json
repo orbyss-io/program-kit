@@ -127,7 +127,9 @@
         "scripts/proxy_bootstrap.py",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap*.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy*.md",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.readiness.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.readiness.md",
+        "extensions/program-kit-governance/examples/bootstrap-runtime/**",
+        "extensions/program-kit-governance/examples/bootstrap-identity/**"
       ],
       "dependsOn": [
         "shared-governance"
@@ -346,6 +348,21 @@
       "dependsOn": [
         "knowledge",
         "architecture"
+      ]
+    },
+    "coding-seeds": {
+      "inputs": [
+        "extensions/program-kit-dotnet/references/examples/evidence-submission/**",
+        "extensions/program-kit-governance/references/file-selection-example.mjs",
+        "tests/evidence_review_fixture.py",
+        "tests/fixtures/evidence-submission/**",
+        "tests/validate_coding_seeds.py",
+        "tests/evidence_context_review.py",
+        "docs/coding-seeds.md"
+      ],
+      "dependsOn": [
+        "knowledge",
+        "web"
       ]
     }
   },
@@ -3109,7 +3126,8 @@
         "release"
       ],
       "inputs": [
-        "tests/validate_public_component_use.py"
+        "tests/validate_public_component_use.py",
+        "tests/fixtures/knowledge-application/components/**"
       ],
       "needs": [],
       "prerequisites": [
@@ -3934,7 +3952,9 @@
       ],
       "inputs": [
         "tests/validate_authentication_presentation.py",
-        "tests/fixtures/authentication-presentation/**"
+        "tests/fixtures/authentication-presentation/**",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/private-diagnostics*",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"
       ],
       "needs": [],
       "prerequisites": [
@@ -5515,6 +5535,136 @@
       "reviewInputs": [
         "tests/scaffold_review_fixture.py"
       ]
+    },
+    {
+      "id": "validate_coding_seed_native",
+      "purpose": "F5 actual current native feature/application/model/HTTP proof; fictional identity, no paid worker.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/evidence_review_fixture.py",
+        "--review",
+        "--native-only",
+        "--mutations"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-seeds"
+      ],
+      "inputs": [
+        "tests/evidence_review_fixture.py",
+        "tests/fixtures/evidence-submission/**",
+        "extensions/program-kit-dotnet/references/examples/evidence-submission/**",
+        "extensions/program-kit-governance/references/file-selection-example.mjs"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:docker"
+      ],
+      "suites": [],
+      "budgetSeconds": 300,
+      "timeoutSeconds": 600,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_seed_journey",
+      "purpose": "F5 actual current native feature/application/model/HTTP proof and retained browser product journey; fictional identity, no paid worker.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/evidence_review_fixture.py",
+        "--review",
+        "--engines={engines}"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-seeds"
+      ],
+      "inputs": [
+        "tests/evidence_review_fixture.py",
+        "tests/fixtures/evidence-submission/**",
+        "extensions/program-kit-dotnet/references/examples/evidence-submission/**",
+        "extensions/program-kit-governance/references/file-selection-example.mjs",
+        "tests/evidence_context_review.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:docker",
+        "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 300,
+      "timeoutSeconds": 600,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_private_browser_diagnostics",
+      "purpose": "Actual failed setup/assertion/timeout/retry browser cases, trusted source inventory, unknown locations and private canaries in attachments and both streams.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/private_diagnostics_check.py"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "web",
+        "coding-seeds"
+      ],
+      "inputs": [
+        "tests/private_diagnostics_check.py",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/private-diagnostics*",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_seeds",
+      "purpose": "Complete canonical F5 family routing/exclusions, actual file-selection algorithm and independent stale/syntax controls.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_seeds.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-seeds"
+      ],
+      "inputs": [
+        "tests/validate_coding_seeds.py",
+        "tests/csharp_readability_check.py",
+        "tests/fixtures/evidence-submission/**",
+        "extensions/program-kit-dotnet/references/examples/evidence-submission/**",
+        "extensions/program-kit-governance/references/file-selection-example.mjs"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
     }
   ]
 }

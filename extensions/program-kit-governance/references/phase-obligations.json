@@ -3886,6 +3886,89 @@
       "owner": "program-kit-governance",
       "disposition": "active",
       "purpose": "Executable versioned pattern-input contract; submitted source is not executed."
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/evidence-submission/README.md",
+      "phases": [
+        "implementation"
+      ],
+      "enforcement": "Scoped manual source recipe/review, with actual native/browser and independent negative evidence. Routing and authored attribution do not establish human acceptance or agent obedience.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "extensions/program-kit-governance/scripts/asset_sources.py",
+          "tests/evidence_review_fixture.py",
+          "tests/validate_coding_seeds.py"
+        ],
+        "sections": [
+          "Owners and actual behavior",
+          "Integration and proof boundaries"
+        ],
+        "requirements": [],
+        "review": "Adapt only through accepted consumer owners; inspect actual source and focused evidence, preserve fictional identity and unsupported-profile/privacy limits."
+      },
+      "id": "program-kit-dotnet/references/examples/evidence-submission/README.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-dotnet/references/examples/evidence-submission/README.md"
+      },
+      "owner": "program-kit-dotnet",
+      "disposition": "manual",
+      "sections": {
+        "Owners and actual behavior": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Integration and proof boundaries": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      }
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/evidence-submission/ownership-review.md",
+      "phases": [
+        "implementation"
+      ],
+      "enforcement": "Scoped manual source recipe/review, with actual native/browser and independent negative evidence. Routing and authored attribution do not establish human acceptance or agent obedience.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "extensions/program-kit-governance/scripts/asset_sources.py",
+          "tests/evidence_review_fixture.py",
+          "tests/validate_coding_seeds.py"
+        ],
+        "sections": [
+          "Scoped ownership review and rejected source cases"
+        ],
+        "requirements": [],
+        "review": "Adapt only through accepted consumer owners; inspect actual source and focused evidence, preserve fictional identity and unsupported-profile/privacy limits."
+      },
+      "id": "program-kit-dotnet/references/examples/evidence-submission/ownership-review.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-dotnet/references/examples/evidence-submission/ownership-review.md"
+      },
+      "owner": "program-kit-dotnet",
+      "disposition": "manual",
+      "sections": {
+        "Scoped ownership review and rejected source cases": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      }
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
@@ -4016,8 +4099,12 @@
       "bindings": {
         "checks": [
           "tests/validate_architecture_recipe.py",
-          "tests/validate_standalone_engineering.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_standalone_engineering.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "compilation-responsibilities"
@@ -4041,8 +4128,12 @@
       "bindings": {
         "checks": [
           "tests/validate_architecture_recipe.py",
-          "tests/validate_standalone_engineering.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_standalone_engineering.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "compilation-responsibilities"
@@ -4093,8 +4184,12 @@
       "bindings": {
         "checks": [
           "tests/validate_architecture_recipe.py",
-          "tests/validate_standalone_engineering.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_standalone_engineering.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "compilation-responsibilities"
@@ -4193,7 +4288,11 @@
       "applicability": "Existing responsibility selection: implementation-quality",
       "bindings": {
         "checks": [
+          "tests/validate_coding_seeds.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "typed-admission"
@@ -4384,8 +4483,12 @@
       "applicability": "Existing responsibility selection: persistence-adoption",
       "bindings": {
         "checks": [
-          "tests/validate_persistence_runtime.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_persistence_runtime.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "persistence-admission"
@@ -4408,8 +4511,12 @@
       "applicability": "Existing responsibility selection: persistence-adoption",
       "bindings": {
         "checks": [
-          "tests/validate_persistence_runtime.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_persistence_runtime.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "persistence-admission"
@@ -4432,8 +4539,12 @@
       "applicability": "Existing responsibility selection: persistence-adoption",
       "bindings": {
         "checks": [
-          "tests/validate_persistence_runtime.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_persistence_runtime.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "persistence-admission"
@@ -4480,8 +4591,12 @@
       "applicability": "Existing responsibility selection: persistence-adoption",
       "bindings": {
         "checks": [
-          "tests/validate_persistence_runtime.py",
+          "tests/validate_coding_seeds.py",
+          "tests/validate_local_fencing.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "persistence-admission"
@@ -4504,8 +4619,12 @@
       "applicability": "Existing responsibility selection: capability-adoption",
       "bindings": {
         "checks": [
+          "tests/validate_coding_seeds.py",
           "tests/validate_default_dependency_profile.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "capability-evidence"
@@ -4528,8 +4647,12 @@
       "applicability": "Existing responsibility selection: browser-experience",
       "bindings": {
         "checks": [
-          "tests/validate_ui_browser.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_ui_browser.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "ui-outcome-ownership"
@@ -4651,9 +4774,13 @@
       "applicability": "Existing responsibility selection: typescript-boundaries",
       "bindings": {
         "checks": [
-          "tests/validate_ui_experience.py",
+          "tests/validate_coding_seeds.py",
           "tests/validate_dotnet_scaffold.py",
-          "tests/validate_knowledge_application.py"
+          "tests/validate_knowledge_application.py",
+          "tests/validate_ui_experience.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "typescript-admission"
@@ -4893,7 +5020,11 @@
       "applicability": "Existing responsibility selection: domain-semantics",
       "bindings": {
         "checks": [
+          "tests/validate_coding_seeds.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       }
     },
@@ -5264,9 +5395,13 @@
       "applicability": "Existing responsibility selection: api-contracts",
       "bindings": {
         "checks": [
+          "tests/validate_coding_seeds.py",
           "tests/validate_default_dependency_profile.py",
           "tests/validate_dotnet_build_contract.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       }
     },
@@ -5407,8 +5542,12 @@
       "applicability": "Existing responsibility selection: browser-experience",
       "bindings": {
         "checks": [
-          "tests/validate_ui_browser.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_ui_browser.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       }
     },
@@ -5430,8 +5569,12 @@
       "applicability": "Existing responsibility selection: browser-experience",
       "bindings": {
         "checks": [
-          "tests/validate_ui_browser.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_ui_browser.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       }
     },
@@ -5568,10 +5711,12 @@
       "applicability": "Existing responsibility selection: capability-adoption",
       "bindings": {
         "checks": [
+          "tests/validate_coding_seeds.py",
           "tests/validate_default_dependency_profile.py",
           "tests/validate_normal_development.py"
         ],
         "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md",
           "extensions/program-kit-dotnet/references/examples/typed-operation/README.md"
         ]
       }
@@ -5709,8 +5854,12 @@
       "applicability": "Existing responsibility selection: dotnet-construction",
       "bindings": {
         "checks": [
+          "tests/validate_coding_seeds.py",
           "tests/validate_dotnet_engineering.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       }
     },
@@ -5778,8 +5927,12 @@
       "applicability": "Existing responsibility selection: dotnet-runtime-io",
       "bindings": {
         "checks": [
+          "tests/validate_coding_seeds.py",
           "tests/validate_dotnet_engineering.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       }
     },
@@ -5801,8 +5954,12 @@
       "applicability": "Existing responsibility selection: dotnet-runtime-security",
       "bindings": {
         "checks": [
+          "tests/validate_coding_seeds.py",
           "tests/validate_dotnet_engineering.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       }
     },
@@ -6373,8 +6530,13 @@
       "bindings": {
         "checks": [
           "tests/validate_architecture_recipe.py",
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
           "tests/validate_standalone_engineering.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_application_lifecycle.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "compilation-responsibilities"
@@ -6398,8 +6560,12 @@
       "bindings": {
         "checks": [
           "tests/validate_architecture_recipe.py",
-          "tests/validate_standalone_engineering.py",
-          "tests/validate_normal_development.py"
+          "tests/validate_coding_seeds.py",
+          "tests/validate_normal_development.py",
+          "tests/validate_standalone_engineering.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/evidence-submission/README.md"
         ]
       },
       "withinDecisionRule": "compilation-responsibilities"
@@ -7702,6 +7868,248 @@
       },
       "requiredContext": [
         "effective-projects"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-owned-slice",
+      "ruleIds": [
+        "principle.compilation-boundaries",
+        "principle.semantic-provider-capability"
+      ],
+      "when": {
+        "all": [
+          "dotnet"
+        ],
+        "any": [
+          "api",
+          "persistence"
+        ]
+      },
+      "requiredContext": [
+        "request",
+        "model-owner",
+        "verification-owner"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-thin-transport",
+      "ruleIds": [
+        "guidance.modularity-and-contracts.runtime-and-http-ownership"
+      ],
+      "when": {
+        "all": [
+          "dotnet",
+          "api"
+        ]
+      },
+      "requiredContext": [
+        "request",
+        "model-owner",
+        "contract-owner"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-independent-events",
+      "ruleIds": [
+        "principle.domain-event-reactions"
+      ],
+      "when": {
+        "all": [
+          "dotnet",
+          "domain-events"
+        ]
+      },
+      "requiredContext": [
+        "request",
+        "model-owner",
+        "verification-owner"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-service-activation",
+      "ruleIds": [
+        "principle.feature-registration",
+        "principle.lifecycle-admission"
+      ],
+      "when": {
+        "all": [
+          "dotnet",
+          "capabilities"
+        ]
+      },
+      "requiredContext": [
+        "request",
+        "effective-projects",
+        "verification-owner"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-browser-journey",
+      "ruleIds": [
+        "guidance.ui-design-model.layers-and-choices",
+        "guidance.ui-experience-v1.quality-and-evidence"
+      ],
+      "when": {
+        "all": [
+          "web"
+        ]
+      },
+      "requiredContext": [
+        "request"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-confirmation-options",
+      "ruleIds": [
+        "guidance.component-adoption.foundation-web-and-json",
+        "guidance.dotnet-engineering.time-configuration-and-i-o"
+      ],
+      "when": {
+        "any": [
+          "web",
+          "dotnet-io"
+        ]
+      },
+      "requiredContext": [
+        "request"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-valid-construction",
+      "ruleIds": [
+        "guidance.dotnet-engineering.type-and-construction-choices"
+      ],
+      "when": {
+        "all": [
+          "dotnet"
+        ]
+      },
+      "requiredContext": [
+        "request"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-relational-conformance",
+      "ruleIds": [
+        "principle.provider-outcomes",
+        "principle.query-shape",
+        "principle.transaction-replay"
+      ],
+      "when": {
+        "all": [
+          "persistence"
+        ]
+      },
+      "requiredContext": [
+        "request",
+        "model-owner",
+        "contract-owner",
+        "verification-owner"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-browser-selection",
+      "ruleIds": [
+        "principle.ui-state-recovery"
+      ],
+      "when": {
+        "all": [
+          "web",
+          "file-selection"
+        ]
+      },
+      "requiredContext": [
+        "request"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-private-diagnostics",
+      "ruleIds": [
+        "guidance.dotnet-engineering.secure-runtime-boundaries-and-observability"
+      ],
+      "when": {
+        "all": [
+          "web"
+        ]
+      },
+      "requiredContext": [
+        "request"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-journey-context",
+      "ruleIds": [
+        "guidance.vertical-slicing.slice-contract",
+        "guidance.ui-design-model.layers-and-choices"
+      ],
+      "when": {
+        "all": [
+          "web"
+        ]
+      },
+      "requiredContext": [
+        "request"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-native-protocol",
+      "ruleIds": [
+        "guidance.component-adoption.foundation-web-and-json",
+        "principle.typed-admission"
+      ],
+      "when": {
+        "any": [
+          "api",
+          "pdf-decoding",
+          "recording-ocr"
+        ]
+      },
+      "requiredContext": [
+        "request"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-resource-recovery",
+      "ruleIds": [
+        "principle.physical-effect-fencing"
+      ],
+      "when": {
+        "all": [
+          "resource-fencing"
+        ]
+      },
+      "requiredContext": [
+        "request",
+        "verification-owner"
+      ],
+      "route": "manual-edit"
+    },
+    {
+      "id": "seed-selected-inputs",
+      "ruleIds": [
+        "principle.capability-evidence"
+      ],
+      "when": {
+        "any": [
+          "dotnet",
+          "web"
+        ]
+      },
+      "requiredContext": [
+        "request"
       ],
       "route": "manual-edit"
     }

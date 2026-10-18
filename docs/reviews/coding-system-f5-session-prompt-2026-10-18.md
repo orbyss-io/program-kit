@@ -1,5 +1,13 @@
 # F5 new-session prompt
 
+Continuation status: the session below was confirmed and implemented on 18 October
+2026. The human subsequently approved F5, authorized its commit and requested the
+[F6 session prompt](coding-system-f6-session-prompt-2026-10-18.md). Start with the
+[checkpoint](coding-system-f5-checkpoint-2026-10-18.md) and its guided actual output;
+do not repeat F5 investigation/confirmation or rerun passing expensive checks
+without a changed contract. F6 requires its own new session; its implementation
+has not started. The original F5 session instructions remain below.
+
 Continue Program Kit's coding-system implementation with **F5 only**.
 
 Reuse `C:\Users\tech_\Code\program-kit\artifacts\coding-system-f1`, branch

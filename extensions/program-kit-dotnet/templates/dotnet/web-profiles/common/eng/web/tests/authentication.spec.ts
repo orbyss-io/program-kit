@@ -2,25 +2,12 @@ import { expect, type Browser, type BrowserContext, type Download, type Page, te
 import { personas } from '../persona-fixture.js';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
+import { suppressPrivateErrors } from '../private-diagnostics.mjs';
 
 // Set this in the test worker as well as the runner: provider documents and credential assertions
 // must not become an automatic failure DOM artifact. Keep only finite diagnostic categories.
 process.env.PLAYWRIGHT_NO_COPY_PROMPT = '1';
-test.afterEach(async ({}, info) => {
-  for (const error of info.errors) {
-    const message = info.status === 'timedOut'
-      ? `Test timeout of ${info.timeout}ms exceeded. Private authentication payload suppressed.`
-      : /^(?:Error: )?browserType\.launch:/.test(error.message ?? '')
-        ? 'Error: browserType.launch: Private authentication payload suppressed.'
-        : /^(?:Error: )?expect\(/.test(error.message ?? '')
-          ? 'Error: expect(private authentication assertion).toPass(); payload suppressed.'
-          : 'Private authentication check failed; payload suppressed.';
-    for (const key of Object.keys(error)) Reflect.deleteProperty(error, key);
-    // Reporters accept the public thrown-value shape. A message would also trigger
-    // Playwright's automatic error-context document despite its DOM opt-out.
-    error.value = message;
-  }
-});
+test.afterEach(async ({}, info) => { suppressPrivateErrors(info); });
 
 const identityAuthority = process.env.PROGRAMKIT_IDENTITY_AUTHORITY ?? 'http://localhost:8080/realms/program-kit';
 const identityOrigin = new URL(identityAuthority).origin;

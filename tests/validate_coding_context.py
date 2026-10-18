@@ -44,7 +44,12 @@ class CodingContextTests(unittest.TestCase):
     def test_missing_recipe_and_canonical_source_cannot_pass(self):
         data = copy.deepcopy(catalog())
         data['codingUnits'] = [{'id': 'recipe-only', 'ruleIds': ['principle.compilation-boundaries'], 'route': 'bound-recipes'}]
+        # F5 now legitimately supplies a recipe for this rule. Construct the
+        # independent missing-binding control explicitly instead of assuming none.
+        data['rules']['principle.compilation-boundaries']['bindings']['recipes'] = []
         self.assertTrue(compose(data, [], set(), {}, ROOT / 'extensions')[2])
+        data['rules']['principle.compilation-boundaries']['bindings']['recipes'] = ['extensions/program-kit-dotnet/references/fictional-missing-recipe.md']
+        self.assertTrue(any(b['code'] == 'PKC004' for b in compose(data, [], set(), {}, ROOT / 'extensions')[2]))
         with patch('coding_context.resolve', side_effect=ValueError('missing canonical owner')):
             units, excluded, blockers = compose(data, [], set(), {}, ROOT / 'extensions')
             self.assertTrue(any(b['code'] == 'PKC019' and b['owner'] == 'program-kit-governance' for b in blockers))

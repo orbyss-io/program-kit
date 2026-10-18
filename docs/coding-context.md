@@ -1,5 +1,8 @@
 # Coding preparation and skill composition
 
+The initial [semantic coding families](coding-seeds.md) extend this same composer
+with scoped manual recipes and separately inspectable execution proof.
+
 The implementation prehook supplies the bounded ordinary brief once. Apply its
 selected coding units across semantic owners. Guidance, source text and native
 constraints resolve from the existing responsibility/source registry; routing is

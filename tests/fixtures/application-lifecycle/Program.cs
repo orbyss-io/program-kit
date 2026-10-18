@@ -1,3 +1,4 @@
+using ProgramKit.Examples.Events;
 using CShells.AspNetCore.Configuration;
 using CShells.DependencyInjection;
 using CShells.Features;
@@ -7,24 +8,26 @@ using Orbyss.Foundation.DomainEvents;
 
 var registrationOrders = new HashSet<string>();
 ProbeState.BreakSchemaOrder = args.Contains("--break-schema-order", StringComparer.Ordinal);
+ProbeState.MissingHandler = args.Contains("--missing-handler", StringComparer.Ordinal);
+ProbeState.MissingDispatcher = args.Contains("--missing-dispatcher", StringComparer.Ordinal);
 foreach (var reverse in new[] { false, true })
 foreach (var failure in new[] { "none", "schema", "signing", "startup" })
 {
     ProbeState.Reset(failure);
     var configuration = new Dictionary<string, string?>();
-    var features = new[] { reverse ? "ZProvider" : "AProvider", reverse ? "Application" : "ApplicationAfter", "FoundationTasks" };
+    var features = new[] { reverse ? "ZProvider" : "AProvider", reverse ? "Application" : "ApplicationAfter", "FoundationTasks", "Orbyss.Foundation.DomainEvents", "Note.Application", "Note.Reactions" };
     if (reverse) Array.Reverse(features);
     foreach (var feature in features) configuration[$"CShells:Shells:notes:Features:{feature}"] = "true";
-    // A warranted preset declares only reusable selection, with no runtime orchestration.
-    if (!reverse)
-    {
-        configuration.Clear(); configuration["CShells:Shells:notes:Features:NotesPreset"] = "true";
-    }
+    configuration["CShells:Shells:notes:Configuration:Fixture:MissingHandler"] = ProbeState.MissingHandler ? "true" : "false";
+    if (ProbeState.MissingDispatcher) configuration.Remove("CShells:Shells:notes:Features:Orbyss.Foundation.DomainEvents");
     var builder = WebApplication.CreateBuilder();
     builder.Logging.ClearProviders();
     builder.Configuration.AddInMemoryCollection(configuration);
-    builder.Services.AddCShells(shells => shells.WithAssemblies(typeof(Program).Assembly, typeof(FoundationTasksFeature).Assembly)
-        .WithConfigurationProvider(builder.Configuration));
+    System.Reflection.Assembly[] assemblies = [typeof(Program).Assembly, typeof(FoundationTasksFeature).Assembly, typeof(FoundationDomainEventsFeature).Assembly, typeof(NoteApplicationFeature).Assembly];
+    Action<CShellsBuilder> configure = shells => shells
+        .WithAssemblies(assemblies)
+        .WithConfigurationProvider(builder.Configuration);
+    builder.Services.AddCShells(configure);
     await using var host = builder.Build();
     var registry = host.Services.GetRequiredService<IShellRegistry>();
     registry.Subscribe(new FaultingNotification());
@@ -58,10 +61,44 @@ foreach (var failure in new[] { "none", "schema", "signing", "startup" })
     Require(ProbeState.WorkerScopesDisposed == 2, "worker iterations leaked their owned scopes");
     await using (var scope = shell!.ServiceProvider.CreateAsyncScope())
     {
-        var publisher = scope.ServiceProvider.GetRequiredService<IDomainEventPublisher>();
-        await publisher.PublishAsync(new NoSubscribers("immutable fact"));
-        await publisher.PublishAsync(new NoteSaved("note-1"));
-        Require(ProbeState.Events.Contains("reaction:note-1"), "publisher did not await the independent business reaction");
+        var publisher = scope.ServiceProvider.GetService<IDomainEventPublisher>();
+        if (ProbeState.MissingDispatcher && publisher is null)
+        {
+            Console.Error.WriteLine("Missing selected native dispatcher observed.");
+            return 1;
+        }
+        var unobserved = new NoSubscribers("immutable fact");
+        await publisher!.PublishAsync(unobserved);
+        var saved = new NoteSaved("note-1");
+        var application = scope.ServiceProvider.GetRequiredService<NoteApplication>();
+        var observed = scope.ServiceProvider.GetRequiredService<ReactionObservation>();
+        await application.SaveAsync("note-1", CancellationToken.None);
+        if (ProbeState.MissingHandler && !observed.Events.Contains("reaction:note-1"))
+        {
+            Console.Error.WriteLine("Missing typed reaction registration observed.");
+            return 1;
+        }
+        Require(observed.Events.Contains("reaction:note-1"), "publisher did not await the independent business reaction");
+        Require(observed.Events.Contains("observer:note-1"), "independent second observer did not run");
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        var before = observed.Events.Count;
+        try { await publisher.PublishAsync(saved, cancelled.Token); throw new Exception("cancelled publication admitted"); }
+        catch (OperationCanceledException) { Require(observed.Events.Count == before, "cancelled publication executed a reaction"); }
+        var fault = new ReactionFault("immutable failure case");
+        try { await publisher.PublishAsync(fault); throw new Exception("reaction failure was swallowed"); }
+        catch (InvalidOperationException error) when (error.Message == "fictional reaction failure") { }
+        using var waitingCancellation = new CancellationTokenSource();
+        var waiting = new WaitingFact("immutable waiting case");
+        var dispatch = publisher.PublishAsync(waiting, waitingCancellation.Token);
+        var completion = dispatch.AsTask();
+        var entered = observed.HandlerEntered.Task;
+        var limit = TimeSpan.FromSeconds(3);
+        await entered.WaitAsync(limit);
+        Require(!completion.IsCompleted, "publisher returned before its handler completed");
+        waitingCancellation.Cancel();
+        try { await completion; throw new Exception("handler cancellation was swallowed"); }
+        catch (OperationCanceledException) { }
     }
     using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
     var drain = await registry.DrainAsync(shell!, timeout.Token);
@@ -69,7 +106,7 @@ foreach (var failure in new[] { "none", "schema", "signing", "startup" })
     Require(ProbeState.Events.Contains("cancelled") && ProbeState.Events.Contains("drained"), "manager did not cancel and await worker drain");
 }
 Require(registrationOrders.Count == 2, "fixture did not exercise distinct actual feature registration orders");
-Console.WriteLine("Actual CShells 0.0.30-preview.159 / Foundation Tasks 0.3.1 lifecycle: registration permutations, schema/signing/startup admission, provider/startup/worker scopes and cancellation/drain passed.");
+Console.WriteLine("Actual selected CShells / Foundation lifecycle: registration permutations, schema/signing/startup admission, provider/startup/worker scopes and cancellation/drain passed; exact resolved versions are retained by the runner.");
 
 return 0;
 
@@ -90,6 +127,7 @@ public static class ProbeState
     public static string Failure = "none";
     public static bool ProviderDisposed, StartupDisposed;
     public static bool BreakSchemaOrder;
+    public static bool MissingHandler, MissingDispatcher;
     public static int WorkerScopesDisposed;
     public static void Reset(string failure) { Events.Clear(); Registrations.Clear(); WorkerScopes.Clear(); WorkerScopesDisposed = 0; Failure = failure; ProviderDisposed = StartupDisposed = false; }
 }
@@ -134,8 +172,7 @@ public abstract class ApplicationFeature : IShellFeature
         services.AddScoped<WorkerSession>();
         services.AddScoped<IStartupTask, ApplicationStartup>();
         services.AddSingleton<IBackgroundTask, ApplicationWorker>();
-        services.AddFoundationDomainEvents();
-        services.AddScoped<IDomainEventHandler<NoteSaved>, NoteSavedReaction>();
+
     }
 }
 public sealed class PolicyAdmission : IShellInitializer
@@ -181,20 +218,8 @@ public sealed class ApplicationWorker(IServiceScopeFactory scopes) : IBackground
 public class ZProviderFeature : ProviderFeature;
 [ShellFeature("ApplicationAfter", DependsOn = ["AProvider"])]
 public class ApplicationAfterFeature : ApplicationFeature;
-[ShellFeature("NotesPreset", DependsOn = ["AProvider", "ApplicationAfter", "FoundationTasks"])]
-public sealed class NotesPreset : IShellFeature { public void ConfigureServices(IServiceCollection services) { } }
 public sealed class FaultingNotification : IShellLifecycleSubscriber
 {
     public Task OnStateChangedAsync(IShell shell, ShellLifecycleState previous, ShellLifecycleState current, CancellationToken token)
         => throw new InvalidOperationException("notification is not an admission gate");
-}
-public sealed record NoteSaved(string Id) : IDomainEvent;
-public sealed record NoSubscribers(string Value) : IDomainEvent;
-public sealed class NoteSavedReaction : IDomainEventHandler<NoteSaved>
-{
-    public async ValueTask HandleAsync(NoteSaved fact, DomainEventContext context, CancellationToken token)
-    {
-        await Task.Yield(); token.ThrowIfCancellationRequested();
-        ProbeState.Events.Add("reaction:" + fact.Id);
-    }
 }

@@ -13,6 +13,10 @@ passes cancellation; the application capability performs write-then-read. This
 promises no atomic write/read snapshot, retry or general transaction contract.
 Broader semantic families remain separate qualification work.
 
+F5's [initial semantic families](coding-seeds.md) now supply a connected manual
+evidence-desk recipe and focused companions. They reuse this route; they do not
+expand the finite label renderer into a generic generator.
+
 Supply one optional JSON convenience input with existing native paths:
 
 ```json

@@ -163,6 +163,9 @@ def scenario(directory):
         focused = run('04b-focused-unit', [*command('prepare'), '--unit', 'fixture-query-review'])
         assert len(focused['coding']['skills']) == 1 and focused['coding']['skills'][0]['rules']
         data['codingUnits'][-1]['route'] = 'bound-recipes'
+        # Explicitly remove the recipe that F5 now supplies; preserve this missing
+        # binding oracle instead of treating an available recipe as unsupported.
+        data['rules']['principle.compilation-boundaries']['bindings']['recipes'] = []
         write(catalog, data)
         unsupported = run('04c-missing-recipe', command('prepare'), 2)
         assert any(b['code'] == 'PKC004' for b in unsupported['coding']['blockers'])

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidence desk · Fieldwork</title><link rel="stylesheet" href="/native.css"><link rel="stylesheet" href="/desk.css">
+<script type="module" src="/desk.mjs"></script></head>
+<body><a class="skip" href="#workspace">Skip to workspace</a>
+<header><a href="/" class="brand">FIELDWORK <span>Evidence desk</span></a><span class="badge">Fictional review fixture</span></header>
+<main id="workspace"><div id="private-workspace">
+<nav aria-label="Workspace"><a href="#inbox">Inbox</a><a href="#submission">New submission</a></nav>
+<section class="intro"><p class="eyebrow">REVIEW WORKSPACE</p><h1>Put the right evidence in view.</h1>
+<p>Prepare a small text file, check its details, then submit it to your review desk.</p></section>
+<div class="columns"><section id="submission" aria-labelledby="new-title"><h2 id="new-title">Prepare evidence</h2>
+<p id="input-contract">Loading file limits. Use only fictional UTF-8 text.</p>
+<form novalidate><div data-pk-error-summary tabindex="-1" role="alert" hidden><h3>Check your submission</h3><ul></ul></div>
+<label for="title">Evidence title</label><input id="title" name="title" aria-describedby="title-hint">
+<p id="title-hint" class="hint">Give the reviewer a short, specific title.</p><p id="title-error" class="error" hidden></p>
+<label for="date">Evidence date</label><input id="date" name="date" type="date"><p id="date-error" class="error" hidden></p>
+<label for="file">Text file</label><input id="file" name="file" type="file" accept=".txt,text/plain" aria-describedby="file-hint">
+<p id="file-hint" class="hint">File preparation runs locally before you confirm.</p><p id="file-error" class="error" hidden></p>
+<p id="selection" role="status">Choose a file and date to begin.</p><button id="review" type="submit">Review submission</button></form>
+<section class="recovery" aria-labelledby="outcome-title"><h3 id="outcome-title">Submission status</h3><p id="status" role="status">Nothing has been submitted.</p>
+<button id="reconcile" type="button" hidden>Check retained submission</button><button id="new" type="button" hidden>Prepare another</button></section></section>
+<aside id="inbox" aria-labelledby="inbox-title"><p class="eyebrow">YOUR DESK</p><h2 id="inbox-title">Review inbox</h2>
+<p id="empty">No submissions in this session yet. Your first confirmed item will appear here.</p><ol id="receipts"></ol>
+<div class="note"><h3>A clear handoff</h3><p>Your title, date and file fingerprint stay attached to one submission. If the response is lost, check that submission before starting another.</p></div></aside></div>
+<footer>Review demonstration · Use fictional text only.</footer></div></main>
+<dialog id="confirm" aria-labelledby="confirm-title"><h2 id="confirm-title">Submit this evidence?</h2><p id="preview"></p>
+<p>The confirmed file and details will be retained together. Later edits cannot change this submission.</p>
+<button id="cancel" type="button">Keep editing</button><button id="accept" type="button">Confirm and submit</button></dialog>
+<noscript>This workspace needs JavaScript to prepare and confirm evidence. No submission has been made.</noscript></body></html>

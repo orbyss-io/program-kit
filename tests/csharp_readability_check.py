@@ -11,7 +11,7 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def check():
+def check(extra_paths=()):
     sys.path[:0] = [str(ROOT / 'extensions/program-kit-dotnet/scripts'),
                    str(ROOT / 'extensions/program-kit-governance/scripts')]
     import typed_operation
@@ -46,6 +46,7 @@ def check():
     oracle = directory / 'LabelBehavior.cs'
     oracle.write_text(ORACLE, encoding='utf-8')
     paths.append(str(oracle))
+    paths.extend(str(path) for path in extra_paths)
     run = subprocess.run(['dotnet', 'run', '--project', str(project), '--configuration', 'Release', '--', *paths],
                          cwd=ROOT, capture_output=True, text=True, encoding='utf-8', timeout=90)
     print(run.stdout, end='')

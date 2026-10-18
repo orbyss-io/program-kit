@@ -158,9 +158,10 @@ new lock/captures and explicit historical browser provenance. Read the
 its native cost overrun. The final review also approved mandatory invocation
 readability rules and their template/oracle follow-up. Approval preserves the
 reported limitations and failed/over-budget statuses. Preserve review material,
-the shared dirty checkout and earlier failures/budgets. F5 has not started; use the
-[new-session prompt](coding-system-f5-session-prompt-2026-10-18.md) for its separate
-investigation/interview. The proposed development skill remains deferred.
+the shared dirty checkout and earlier failures/budgets. F5's separately confirmed
+implementation is now human approved; read its
+[checkpoint](coding-system-f5-checkpoint-2026-10-18.md) and guided output.
+The proposed development skill remains deferred.
 
 Build or consolidate small scripts/recipes for supported structures where generation improves consistency. Inputs come from F2 accepted context and F3 selection. Qualify endpoint/DTO/operation boundaries, owned provider query/mapping/transaction responsibilities, typed options/native binding consumption, selected browser/UI integration and project/test ownership. Prefer extending existing native generators and typed-operation examples once their owner has qualified them.
 
@@ -169,6 +170,15 @@ An HTTP endpoint is a transport adapter. Its code admits the wire request, appli
 Mark source ownership accurately. Created application/business code belongs to the consumer. Subsequent edits/refactors use the same skills and evaluation. Regeneration or supported transformations need explicit managed boundaries, inspectable changes, preconditions, idempotence where applicable and conflict diagnostics preserving customizations. No framework update overwrites business logic because a scaffold originally created it. Missing supported scaffolding is distinguishable from a required missing invariant: a compatible manual coding route may satisfy a recommendation; it cannot silently waive a mandatory check.
 
 ### F5 — concrete initial pattern families and related repairs
+
+**18 October 2026: human approved F5; commit and a new-session F6 prompt authorized.**
+The human confirmed shared understanding before implementation, separately
+authorized correcting stale active Foundation pins, and approved the delivered
+work after the guided and inline happy-path review. Read the
+[F5 checkpoint](coding-system-f5-checkpoint-2026-10-18.md), complete
+[family table](../coding-seeds.md) and linked actual-output guide. Approval retains
+all proof limits/failures/budgets. F6 has not started; retain every fixture/failure
+and use its [separate session prompt](coding-system-f6-session-prompt-2026-10-18.md).
 
 These are required investigations and qualified reusable outcomes, with proportional adapters for applicable supported profiles. They are not mandates to transplant the stopped consumer's domain model. Existing qualified examples should be reused and strengthened rather than replicated. Historical N/D/C/R finding IDs below retain traceability to the original investigation; they are not current maintenance-ledger gates. Recheck every claimed defect or missing mechanism against the implementation base before choosing work. Preserve qualified current native mechanisms and repair only actual remaining gaps.
 

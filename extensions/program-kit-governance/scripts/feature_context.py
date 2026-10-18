@@ -11,6 +11,11 @@ CAPABILITIES = {
     'capabilities': r'\b(?:capability|building.block|shellfeature|composition|activation)\b',
     'typescript': r'\btypescript\b',
     'identity-admin': r'\b(?:keycloak admin|identity administration|realm provisioning|admin rest)\b',
+    'domain-events': r'\b(?:idomainevent(?:publisher|handler)?|independent domain.event reactions)\b',
+    'file-selection': r'\b(?:filereader|file.selection generations?)\b',
+    'resource-fencing': r'\b(?:resource.side fencing|physical (?:publish|erase) fencing)\b',
+    'pdf-decoding': r'\b(?:pdfpig|flatedecode|finite pdf decod(?:er|ing))\b',
+    'recording-ocr': r'\b(?:recording.only ocr|offline ocr sdk)\b',
 }
 
 
