@@ -2866,6 +2866,7 @@
           "extensions/program-kit-governance/scripts/phase_obligations.py"
         ],
         "sections": [
+          "Immediate phase actions",
           "Knowledge and engineering checks",
           "Reusable foundation proof and operation prerequisites",
           "Story delivery and human review"
@@ -2892,6 +2893,10 @@
           "route": "phase"
         },
         "Story delivery and human review": {
+          "disposition": "active",
+          "route": "phase"
+        },
+        "Immediate phase actions": {
           "disposition": "active",
           "route": "phase"
         }
@@ -3871,6 +3876,16 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "not-established"
       }
+    },
+    {
+      "id": "program-kit-governance/scripts/coding_patterns.py",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-governance/scripts/coding_patterns.py"
+      },
+      "owner": "program-kit-governance",
+      "disposition": "active",
+      "purpose": "Executable versioned pattern-input contract; submitted source is not executed."
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
@@ -6476,6 +6491,305 @@
         ]
       },
       "display": "focused-detail"
+    },
+    "phase-action.planning": {
+      "purpose": "phase action planning",
+      "source": "program-kit-governance/references/phase-evidence.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "phase-action.planning"
+      },
+      "owner": "program-kit-governance",
+      "family": "verification",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "phase-action.after-plan": {
+      "purpose": "phase action after plan",
+      "source": "program-kit-governance/references/phase-evidence.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "phase-action.after-plan"
+      },
+      "owner": "program-kit-governance",
+      "family": "verification",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "phase-action.tasks": {
+      "purpose": "phase action tasks",
+      "source": "program-kit-governance/references/phase-evidence.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "phase-action.tasks"
+      },
+      "owner": "program-kit-governance",
+      "family": "verification",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "phase-action.after-tasks": {
+      "purpose": "phase action after tasks",
+      "source": "program-kit-governance/references/phase-evidence.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "phase-action.after-tasks"
+      },
+      "owner": "program-kit-governance",
+      "family": "verification",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "phase-action.implementation": {
+      "purpose": "phase action implementation",
+      "source": "program-kit-governance/references/phase-evidence.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "phase-action.implementation"
+      },
+      "owner": "program-kit-governance",
+      "family": "verification",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "phase-action.delivery": {
+      "purpose": "phase action delivery",
+      "source": "program-kit-governance/references/phase-evidence.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "phase-action.delivery"
+      },
+      "owner": "program-kit-governance",
+      "family": "verification",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "principle.source-file-context": {
+      "purpose": "principle source file context",
+      "source": "program-kit-dotnet/references/dotnet-engineering.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.source-file-context"
+      },
+      "owner": "program-kit-dotnet",
+      "family": "construction",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "principle.private-provider-binding": {
+      "purpose": "principle private provider binding",
+      "source": "program-kit-dotnet/references/foundation-compositions.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.private-provider-binding"
+      },
+      "owner": "program-kit-dotnet",
+      "family": "configuration",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "principle.strict-profile-schema": {
+      "purpose": "principle strict profile schema",
+      "source": "program-kit-dotnet/references/foundation-compositions.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "principle.strict-profile-schema"
+      },
+      "owner": "program-kit-dotnet",
+      "family": "technology",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "adapter.foundation-response": {
+      "purpose": "adapter foundation response",
+      "source": "program-kit-governance/references/component-adoption.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "adapter.foundation-response"
+      },
+      "owner": "program-kit-governance",
+      "family": "security",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "adapter.hosted-pages": {
+      "purpose": "adapter hosted pages",
+      "source": "program-kit-governance/references/component-adoption.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "adapter.hosted-pages"
+      },
+      "owner": "program-kit-governance",
+      "family": "browser",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "adapter.foundation-settings": {
+      "purpose": "Selected shell settings ownership",
+      "source": "program-kit-governance/references/component-adoption.md",
+      "selector": {
+        "kind": "markdown-marker",
+        "marker": "knowledge-rule",
+        "id": "adapter.foundation-settings"
+      },
+      "owner": "program-kit-governance",
+      "family": "configuration",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit canonical adapter binding; observed facts retain their native owner.",
+      "limits": "Canonical source/routing proof only; native behavior and consumer semantic review remain independent.",
+      "bindings": {
+        "checks": [
+          "tests/validate_coding_patterns.py",
+          "tests/validate_knowledge_application.py",
+          "tests/validate_normal_development.py"
+        ]
+      }
+    },
+    "native.pattern-input-contract": {
+      "purpose": "Versioned pattern input admission",
+      "source": "program-kit-governance/scripts/coding_patterns.py",
+      "selector": {
+        "kind": "python-symbol",
+        "name": "validate"
+      },
+      "owner": "program-kit-governance",
+      "family": "verification",
+      "level": "conditional",
+      "status": "active",
+      "requirements": [],
+      "applicability": "Explicit shared/local pattern declarations through coding_context.prepare",
+      "bindings": {
+        "producers": [
+          "extensions/program-kit-governance/scripts/coding_context.py"
+        ],
+        "checks": [
+          "tests/validate_coding_patterns.py"
+        ],
+        "review": "Review declared semantics, evidence and compatibility; structural input admission is not application acceptance."
+      }
     }
   },
   "migrations": [
@@ -6891,17 +7205,23 @@
         "guidance.secure-web-profiles.security-assurance-contract",
         "guidance.secure-web-profiles.mandatory-verification",
         "guidance.web-security-threat-model.assumptions-and-out-of-scope-risks",
-        "guidance.web-security-threat-model.project-adoption"
+        "guidance.web-security-threat-model.project-adoption",
+        "adapter.foundation-response",
+        "adapter.hosted-pages",
+        "principle.strict-profile-schema",
+        "guidance.component-adoption.foundation-web-and-json",
+        "adapter.foundation-settings"
       ],
       "replacementConsumers": [
         "phase_obligations.py",
         "bootstrap_context.py"
       ],
-      "status": "owner-established; producer-replacement-pending",
+      "status": "canonical-producer-replacement; scoped F3 installed-layout proof",
       "replacementProof": [
-        "tests/validate_knowledge_sources.py"
+        "tests/validate_knowledge_sources.py",
+        "tests/validate_coding_patterns.py"
       ],
-      "retirement": "F3 version adapter migration pending; preserve exact captured API diagnostics."
+      "retirement": "F3 resolves canonical policy; capture/native observation algorithms retained. F8 packaged adoption proof remains due."
     },
     {
       "oldLocation": "phase_obligations.py:render phase actions/provider binding strings",
@@ -6924,17 +7244,25 @@
         "native.allowed-role-references",
         "native.core-package-exclusions",
         "native.activatable-roles",
-        "native.capability-roles"
+        "native.capability-roles",
+        "phase-action.planning",
+        "phase-action.after-plan",
+        "phase-action.tasks",
+        "phase-action.after-tasks",
+        "phase-action.implementation",
+        "phase-action.delivery",
+        "principle.private-provider-binding"
       ],
       "replacementConsumers": [
         "phase_obligations.py",
         "bootstrap_context.py"
       ],
-      "status": "owner-established; producer-replacement-pending",
+      "status": "canonical-producer-replacement; scoped F3 installed-layout proof",
       "replacementProof": [
-        "tests/validate_knowledge_sources.py"
+        "tests/validate_knowledge_sources.py",
+        "tests/validate_coding_patterns.py"
       ],
-      "retirement": "F3 focused producer migration pending; no early deletion."
+      "retirement": "F3 resolves canonical policy; capture/native observation algorithms retained. F8 packaged adoption proof remains due."
     },
     {
       "oldLocation": "eng/source_quality.py:guidance",
@@ -6944,17 +7272,19 @@
         "guidance.dotnet-engineering.orbyss-style-overlay",
         "guidance.dotnet-engineering.enforcement-classification",
         "native.analyzer-severity",
-        "native.build-warnings"
+        "native.build-warnings",
+        "principle.source-file-context"
       ],
       "replacementConsumers": [
         "phase_obligations.py",
         "bootstrap_context.py"
       ],
-      "status": "owner-established; producer-replacement-pending",
+      "status": "canonical-producer-replacement; scoped F3 installed-layout proof",
       "replacementProof": [
-        "tests/validate_knowledge_sources.py"
+        "tests/validate_knowledge_sources.py",
+        "tests/validate_coding_patterns.py"
       ],
-      "retirement": "F3 source-style adapter migration pending; native declarations remain authority."
+      "retirement": "F3 resolves canonical policy; capture/native observation algorithms retained. F8 packaged adoption proof remains due."
     },
     {
       "oldLocation": "commands and presets: phase/task guidance",

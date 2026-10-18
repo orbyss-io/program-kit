@@ -206,6 +206,7 @@ not automatically justified: it must make the caller easier to read or own an in
 
 ## Source files and documentation
 
+<!-- program-kit:knowledge-rule principle.source-file-context -->
 Task context projects the actual selected `Orbyss.Foundation.Analyzers` pin and root
 `.editorconfig` declarations. ORB1003 is the one-type-per-file rule. Write an interface,
 request record, decision enum and failure record in four files, including support and
@@ -213,6 +214,7 @@ test types. The maintained [contract example](examples/contract-layout/) compile
 the selected pin; `python tests/validate_contract_layout.py` also proves that combining
 those valid types fails ORB1003. Nested configuration and suppressions still require
 the actual native build; declared root settings alone establish no effective-policy pass.
+<!-- /program-kit:knowledge-rule -->
 
 - A C# source file declares exactly one named type: class, record, struct, interface, enum, or delegate. Nested and
   supporting type declarations use their own files as well. Anonymous types and tuples are expressions and do not

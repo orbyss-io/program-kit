@@ -14,6 +14,9 @@ requires:
 
 provides:
   scripts:
+    - name: "coding-patterns"
+      file: "scripts/coding_patterns.py"
+      description: "Prepare pattern drafts and inspect/bind ordinary scoped evidence without executing submissions."
     - name: "json-schema"
       file: "scripts/json_schema.py"
       description: "Read-only JSON Schema validation and focused descriptions."
@@ -21,6 +24,9 @@ provides:
       file: "scripts/schema_runtime.py"
       description: "Explicit project-local dependency setup and installed-copy checks."
   commands:
+    - name: "speckit.program-kit-governance.coding-patterns"
+      file: "commands/speckit.program-kit-governance.coding-patterns.md"
+      description: "Assist shared/private pattern authoring through the existing coding context and normal verification owners."
     - name: "speckit.program-kit-governance.repair-request"
       file: "commands/speckit.program-kit-governance.repair-request.md"
       description: "Prepare repair observations, queue local evidence, review public issue/fork submissions and retrieve fresh status."

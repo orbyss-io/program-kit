@@ -12,6 +12,7 @@ import subprocess
 from pathlib import Path
 from feature_context import context, adopted_context
 from decision_knowledge import constraints
+from knowledge_sources import resolve
 
 
 from dotnet_adapter import bootstrap
@@ -32,6 +33,10 @@ def read(path, default=None):
 
 def catalog():
     return read(Path(__file__).resolve().parents[1] / 'references/phase-obligations.json')
+
+
+def canonical_rules(identities):
+    return [resolve(catalog(), identity, extensions=Path(__file__).resolve().parents[2]) for identity in identities]
 
 
 def intent(root, feature, phase='implementation', affected_paths=()):
@@ -107,7 +112,7 @@ def foundation_applicability(root, feature, inherited, tags):
     capture = effective['publisherKnowledge']
     if not capture:
         return {'version': version, 'profile': effective['profile'], 'sourceCommit': None,
-                'guidance': ['This exact selection has no captured publisher mechanism knowledge. Resolve its exact profile before choosing an unverified Foundation mechanism; no newer default is substituted.']}
+                'facts': {'captureAvailable': False}, 'canonicalRules': canonical_rules(['guidance.component-adoption.foundation-web-and-json'])}
     capabilities = provider('program-kit-building-blocks/scripts/wire_capabilities.py').project(blocks, effective)
     registry = Path(effective['registryPath'])
     def document(name):
@@ -116,20 +121,15 @@ def foundation_applicability(root, feature, inherited, tags):
     metadata = document('src/Orbyss.Foundation.WebDefaults/WebResponseMetadata.cs')
     writer = document('src/Orbyss.Foundation.WebDefaults/WebResponsePoliciesMiddleware.cs')
     permission = document('src/Orbyss.Foundation.Authentication/PermissionPolicyProvider.cs')
-    guidance = []
-    if 'WebResponseMetadata' in metadata and 'OnStarting' in writer:
-        guidance += ['Shell Foundation:Web:ResponsePolicies selects response policies; endpoints declare WebResponseMetadata(Private: true). WebDefaults owns the final header writer across success, denial, error and redirect. Admit public immutable assets separately.']
-    else:
-        guidance += ['This exact capture does not expose the current response-policy/private-metadata/final-writer contract. Resolve that capability before relying on it; headers alone supply no admission.']
-    if 'permission:' in permission:
-        guidance += ['Where BFF is selected, it supplies session admission; endpoints require canonical permission:<owned id> through Foundation authorization. Application code retains resource/state/effect checks.']
-    guidance += ['Use the exact package schemas and typed configuration for shell deployment values. Keep application permission/route identities in owned constants and use captured framework identifiers; literals are assessed by ownership and lifecycle.']
-    if capabilities['problem']:
-        guidance += ['Selected problem writer fields: ' + ', '.join(capabilities['problem']['fields'])
-                     + '; closed envelope. Put recovery metadata in typed operation responses/UI with retained server-issued operation identity.']
+    facts = {'captureAvailable': True, 'responsePolicyWriter': 'WebResponseMetadata' in metadata and 'OnStarting' in writer,
+             'permissionPolicy': 'permission:' in permission,
+             'problemFields': capabilities['problem']['fields'] if capabilities['problem'] else [],
+             'jsonProfiles': bool(capabilities['json']), 'unresolvedWireCapabilities': capabilities['unresolved']}
+    rule_ids = ['guidance.component-adoption.foundation-web-and-json', 'principle.authorization-ownership', 'adapter.foundation-settings']
+    if facts['responsePolicyWriter']:
+        rule_ids.append('adapter.foundation-response')
     if capabilities['json']:
-        guidance += ['Selected JSON profiles require Strict numeric tokens. Use demonstrated scoped JsonNumberHandling.Strict DTO metadata; regenerate actual producer/client output and prove reader/writer parity. Custom converters or shared types under distinct profiles require exact binding proof.']
-    guidance += ['Unresolved selected wire capability: ' + message for message in capabilities['unresolved']]
+        rule_ids.append('principle.strict-profile-schema')
     prose = '\n'.join((feature / name).read_text(encoding='utf-8') for name in ('spec.md', 'plan.md') if (feature / name).is_file())
     hosted = [instance for instance in instances if instance['composition'] == 'hosted_pages']
     if hosted:
@@ -144,12 +144,11 @@ def foundation_applicability(root, feature, inherited, tags):
             private_intent = bool(re.search(r'(?:private|authenticated)\s+(?:html\s+)?(?:pages?|entries|bootstrap)', identity + ' ' + purpose + ' ' + prose, re.I))
             if private_intent and not public_assets and not private_contract:
                 raise ValueError('Foundation ' + version + ' HostedPages is public-only in its exact captured contract; selected private-page intent requires a demonstrated qualified private-page mechanism before affected source work. Public immutable assets remain separately valid.')
+        facts['hostedPages'] = {'typedPrivateRoutes': private_contract, 'anonymousFeature': 'AllowAnonymous' in feature_source}
         if private_contract:
-            guidance += ['This capture exposes typed HostedPages Routes. Bind distinct route IDs/paths/revisions and page/bootstrap access; qualify the actual admission behavior, including inherited bootstrap requirements and shared-revision isolation.']
-        elif 'AllowAnonymous' in feature_source:
-            guidance += ['HostedPages in this exact capture serves public HTML/bootstrap. An instance name or response policy cannot confer private admission.']
+            rule_ids.append('adapter.hosted-pages')
     return {'version': version, 'profile': effective['profile'], 'sourceCommit': capture['sourceCommit'],
-            'wireCapabilities': capabilities, 'guidance': guidance}
+            'wireCapabilities': capabilities, 'facts': facts, 'canonicalRules': canonical_rules(rule_ids)}
 
 
 def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), selected_tags=None):
@@ -208,15 +207,7 @@ def render(value, phase, detailed=False):
              'Conditional guidance applies only when its stated conditions hold.',
              'Canonical decision constraints below apply before choosing a design. Use focused lookup for an unresolved mechanism; this is not a reading checklist.',
              'Use --only <id> for its example, diagnostics and focused reference sections.', '']
-    actions = {
-        'planning': 'Make design decisions and name their cheapest reliable tests. No application tests run during planning.',
-        'after-plan': 'Review changed design decisions and the planned graph. Carry real-provider tests into the tasks.',
-        'tasks': 'Size coherent runnable stories; name risk, test tasks, verification sequence and exact prerequisites. Materialize known scaffolds first, run maintained checks, then add missing consumer tests. Do not execute proofs while drafting.',
-        'after-tasks': 'Check the finalized graph and run normal read-only analyze once. Drafting is not implementation.',
-        'implementation': 'Use focused verification selected by risk. Review runnable stories with the assigned human; required checkpoints pause further product work unless explicitly deferred. Progress saves and resumes are not full acceptance boundaries.',
-        'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
-    }
-    lines += [actions[phase], '']
+    lines += [canonical_rules(['phase-action.' + phase])[0]['text'], '']
     if value.get('coding'):
         coding = value['coding']
         lines += ['Apply composed coding units: ' + ', '.join(u['id'] for u in coding['skills']) + '.',
@@ -226,7 +217,7 @@ def render(value, phase, detailed=False):
         lines += ['Selected source rule ' + quality['rule'] + '; '
                   + quality['analyzerPackage'] + ' version ' + str(quality['selectedVersion'])
                   + '; root .editorconfig declarations ' + json.dumps(quality['rootDeclarations']) + '.',
-                  *quality['guidance'], '']
+                  *[r['text'] for r in canonical_rules(quality['canonicalRuleIds'])], '']
         if quality.get('diagnostic'):
             lines += ['Source rule context unresolved: ' + quality['diagnostic'], '']
     for binding in value.get('providerBindings', []):
@@ -234,14 +225,17 @@ def render(value, phase, detailed=False):
                   + '; exact configuration key ' + binding['configurationKey']
                   + '; emitted by ' + binding['environmentKey'] + '.',
                   'Native declaration: ' + binding.get('nativeDeclaration', 'not observed') + '.',
-                  'Use its native settings contract and actual configured registration. Missing/invented keys fail; a direct DI fixture repeating a key does not prove composition activation. Dynamic accesses need runtime proof. Preserve the selected private mount.', '']
+                  *[r['text'] for r in canonical_rules(['principle.private-provider-binding'])], '']
     if value.get('buildOutputGuidance'):
         lines += ['Owned SDK build outputs: review the selected build edge before inventing custom publish/copy tasks.',
                   *value['buildOutputGuidance'], '']
     if value.get('foundationApplicability'):
         brief = value['foundationApplicability']
         lines += ['Selected Foundation ' + brief['version'] + '; profile ' + str(brief['profile'])
-                  + '; captured source ' + str(brief['sourceCommit']) + '.', *brief['guidance'], '']
+                  + '; captured source ' + str(brief['sourceCommit']) + '.',
+                  'Observed capture capabilities: ' + json.dumps(brief['facts'], sort_keys=True) + '.',
+                  *[r['text'] for r in brief['canonicalRules'] if r['id'].startswith('adapter.')],
+                  'Canonical mechanisms: --only capability-adoption; full attributable rules in --format json.', '']
     if value.get('validation'):
         lines += [('Declared graph: PASS.' if value['validation']['declaredGraphPassed'] else
                    'Declared graph: not supplied; no graph check was established.')
@@ -398,7 +392,7 @@ def finish(root, feature, handoff=False, configuration='Debug', framework=None):
     """A task checkpoint is progress; only actual closure/handoff runs acceptance."""
     tasks = feature / 'tasks.md'
     require(tasks.is_file(), 'Locate tasks.md before claiming feature closure')
-    from task_draft import load, current
+    from task_draft import load, current, current_projection
     content, draft_state = load(tasks)
     from coding_context import prepare, require_ready
     coding = prepare(root, feature, reconcile=True, configuration=configuration, framework=framework)['coding']
@@ -406,6 +400,7 @@ def finish(root, feature, handoff=False, configuration='Debug', framework=None):
     draft = '> Draft:' in content or bool(draft_state and draft_state.get('status') != 'complete')
     if not coding['canProceed']:
         return {'status': 'needs-attention', 'coding': coding, 'pendingTasks': pending, 'draft': draft,
+                'currentCheckpoint': current_projection(current(feature)),
                 'applicationChecksPassed': False, 'acceptanceEstablished': False, 'canProceed': False,
                 'instruction': 'Resolve affected coding findings in their existing owners. Progress is preserved; independent scopes may continue.'}
     if not handoff and (pending or draft):

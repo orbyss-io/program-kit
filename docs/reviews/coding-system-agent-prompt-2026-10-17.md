@@ -17,11 +17,21 @@ F1 is approved, including retirement of C# composition-preset projects; preserve
 checkpoint, validation/cost disclosures and retained review output. F2 was approved
 on 18 October 2026 and its commit was explicitly authorized. Its status is recorded in
 `docs/reviews/coding-system-f2-checkpoint-2026-10-17.md`. Read that checkpoint and
-`docs/coding-context.md` before continuation. The human requested F3 in a fresh session;
-that session investigates/interviews F3 against this same worktree, preserves F1/F2
-decisions, defines its inspectable fixture and confirms understanding before implementation.
-Stop at F3's human review checkpoint; do not automatically advance to F4.
+`docs/coding-context.md` before continuation. F3 was approved on 18 October 2026,
+and the human authorized its commit and requested F4 in a fresh session. That session
+investigates/interviews F4 against this same worktree, preserves F1/F2/F3 decisions,
+defines its inspectable fixture and confirms understanding before implementation.
+Stop at F4's human review checkpoint; do not automatically advance to F5.
 No review cleanup was requested, and the shared dirty checkout remains separate.
+
+F3's interview is now settled: the human accepted all recommendations on 18 October
+2026 and confirmed shared understanding before implementation. Read the
+`docs/reviews/coding-system-f3-checkpoint-2026-10-18.md` checkpoint and
+`docs/coding-patterns.md` for implementation, actual proof, remaining limits and the
+next-session boundary. F3 approval preserves its proof limits and failure disclosures.
+Preserve all retained consumers/output and prior failures/budget disclosures. The
+requested fresh session handles F4 only. Do not create the deferred development skill
+or advance beyond F4 from this handoff.
 
 Deliver the plan's integrated accepted-context -> applicable composable skills -> safe scaffold/edit -> actual-change reconciliation -> appropriate evaluation route, with private consumer-local patterns and teach/qualify/adopt/improve/retire behavior. Discover rules across references/decisions, prompts/scripts, schemas/build/analyzer settings, templates/examples/tests and exact publisher captures. Extend the existing registry; one authoritative source per rule supplies attributable selection, realization and checks. Resolve generated guidance from canonical sources and remove duplicate/hidden policy only after replacement proof. Preserve independent negative oracles.
 

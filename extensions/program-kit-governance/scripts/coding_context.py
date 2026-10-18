@@ -52,7 +52,7 @@ def validate_units(catalog):
     requirements = {r['id'] for r in catalog['requirements']}
     contexts = {'request', 'model-owner', 'contract-owner', 'effective-projects', 'verification-owner'}
     for row in rows:
-        allowed = {'id', 'requirementIds', 'ruleIds', 'when', 'requiredContext', 'route'}
+        allowed = {'id', 'requirementIds', 'ruleIds', 'when', 'requiredContext', 'route', 'pattern'}
         if not isinstance(row, dict) or set(row) - allowed or not isinstance(row.get('id'), str) or not re.fullmatch(r'[a-z][a-z0-9.-]*', row['id']):
             raise ValueError('PKC003 invalid coding unit declaration')
         if row['id'] in identities:
@@ -81,6 +81,7 @@ def compose(catalog, requirements, tags, facts, extensions, repository=None):
     selected_requirements = {r['id']: r for r in requirements}
     selected, excluded, blockers = [], [], []
     for unit in validate_units(catalog):
+        unit_blockers = []
         when = unit.get('when', {})
         missing = set(unit.get('requirementIds', [])) - selected_requirements.keys()
         absent = set(when.get('all', [])) - tags
@@ -91,16 +92,17 @@ def compose(catalog, requirements, tags, facts, extensions, repository=None):
                 'anyMatched': bool(set(when.get('any', [])) & tags)}})
             continue
         rule_ids = set(unit.get('ruleIds', []))
+        rule_ids.update(unit.get('pattern', {}).get('invariantRuleIds', []))
         for identity in unit.get('requirementIds', []):
             rule_ids.update(selected_requirements[identity].get('ruleIds', []))
         rules, recipes, checks, reviews = [], set(), set(), set()
         for identity in sorted(rule_ids):
             try:
                 owner_source = next(s for s in catalog['sources'] if s['id'] == catalog['rules'][identity]['source'])
-                selected_consumer = repository if owner_source['locator']['kind'] == 'publisher-capture' else None
+                selected_consumer = repository if owner_source['locator']['kind'] in ('publisher-capture', 'repository') else None
                 resolved = resolve(catalog, identity, extensions=extensions, repository=selected_consumer)
-            except (OSError, ValueError):
-                blockers.append({'code': 'PKC019', 'unit': unit['id'], 'rule': identity,
+            except (OSError, ValueError, SyntaxError, TypeError, KeyError, StopIteration):
+                unit_blockers.append({'code': 'PKC019', 'unit': unit['id'], 'rule': identity,
                                  'owner': effective_rule(catalog, identity)['owner'],
                                  'repair': 'Restore the selected canonical source/selector dependency and reprepare this scope; no substitute guidance or waiver is inferred.'})
                 continue
@@ -111,18 +113,18 @@ def compose(catalog, requirements, tags, facts, extensions, repository=None):
             if binding.get('review'):
                 reviews.add(binding['review'])
         if unit['route'] == 'bound-recipes' and not recipes:
-            blockers.append({'code': 'PKC004', 'unit': unit['id'], 'owner': 'coding unit maintainer',
+            unit_blockers.append({'code': 'PKC004', 'unit': unit['id'], 'owner': 'coding unit maintainer',
                              'repair': 'Bind an available maintained recipe or explicitly select the compatible manual-edit route.'})
         if unit['route'] == 'bound-recipes':
             for recipe in recipes:
                 relative = recipe.removeprefix('extensions/')
                 location = (extensions / relative).resolve()
                 if not location.is_relative_to(extensions.resolve()) or not location.is_file():
-                    blockers.append({'code': 'PKC004', 'unit': unit['id'], 'owner': 'recipe/adapter maintainer',
+                    unit_blockers.append({'code': 'PKC004', 'unit': unit['id'], 'owner': 'recipe/adapter maintainer',
                                      'repair': 'Restore the selected maintained recipe dependency: ' + recipe})
         unresolved = [key for key in unit.get('requiredContext', []) if not facts.get(key)]
         for key in unresolved:
-            blockers.append({'code': 'PKC005', 'unit': unit['id'], 'context': key,
+            unit_blockers.append({'code': 'PKC005', 'unit': unit['id'], 'context': key,
                 'owner': {'model-owner': 'architecture/model owner', 'contract-owner': 'contract/schema owner',
                           'verification-owner': 'native verification owner', 'effective-projects': 'native project/toolchain owner',
                           'request': 'specification owner'}[key],
@@ -136,6 +138,10 @@ def compose(catalog, requirements, tags, facts, extensions, repository=None):
             'requiredContext': unit.get('requiredContext', []), 'unresolvedContext': unresolved,
             'alternativeReason': 'Explicit maintained coding route; no automatic ranking or F3 qualification inferred.',
             'applicationObserved': False})
+        if 'pattern' in unit:
+            selected[-1]['blockers'] = unit_blockers
+        else:
+            blockers += unit_blockers
     return selected, excluded, blockers
 
 
@@ -331,10 +337,18 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
              'model-owner': any(c.get('element') in owned_elements and c.get('status') == 'accepted' for c in projection.get('strategic_model', {}).get('bounded_contexts', [])),
              'contract-owner': bool(contract_owners), 'effective-projects': bool(selected) and set(evaluated) == selected, 'verification-owner': verify.is_file()}
     from phase_obligations import catalog, model
-    registry = catalog()
+    from coding_patterns import merge, validate, context as pattern_context, choices, apply
+    registry = merge(catalog(), root)
+    validate_units(registry)
+    validate(registry)
     value = model(root, feature, 'implementation', sorted(paths), extra_tags=tags, selected_tags=tags)
     units, excluded, unit_blockers = compose(registry, value['requirements'], tags, facts, Path(__file__).resolve().parents[2], repository=root)
     blockers += unit_blockers
+    profiles = read(root / 'docs/architecture/bootstrap-decisions.json', {}).get('selected_profiles', [])
+    observed_patterns = pattern_context(profiles, projects, configuration, framework)
+    units, pattern_reports, pattern_blockers = apply(registry, units, excluded, root,
+        Path(__file__).resolve().parents[2], observed_patterns, choices(feature))
+    blockers += pattern_blockers
     inputs = [source(root, p) for p in documents + [root / 'eng/architecture.json', root / 'global.json',
               root / 'Directory.Packages.props', root / 'docs/architecture/bootstrap-decisions.json',
               root / 'docs/architecture/architecture-map.json', verify]]
@@ -343,15 +357,18 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
                           'sourceReady': facts['effective-projects'], 'setupLimit': 'Setup can materialize native projects/inputs; it does not waive context for actual source production.'},
         'registry': {'path': 'program-kit-governance/references/phase-obligations.json',
                      'sha256': hashlib.sha256((Path(__file__).resolve().parents[1] / 'references/phase-obligations.json').read_bytes()).hexdigest()},
-        'profiles': read(root / 'docs/architecture/bootstrap-decisions.json', {}).get('selected_profiles', []),
+        'profiles': profiles,
         'architecture': projection, 'contractOwners': contract_owners, 'facts': facts,
         'projects': projects, 'frontendProjects': frontend, 'responsibilities': sorted(tags), 'skills': units, 'excludedSkills': excluded,
-        'localPatterns': {'status': 'linked-only; F3 qualification is not inferred', 'sources': sorted(set(re.findall(r'(?:docs|specs)/[\w./-]*pattern[\w./-]*\.md', prose)))},
+        'localPatterns': {'status': 'versioned declarations use the same coding-unit composer; loose references remain unqualified',
+                          'declaration': source(root, root / 'docs/architecture/coding-patterns.json'),
+                          'sources': sorted(set(re.findall(r'(?:docs|specs)/[\w./-]*pattern[\w./-]*\.md', prose)))},
+        'patterns': pattern_reports, 'patternsContext': observed_patterns,
         'verification': source(root, verify), 'changedInputs': changed, 'affectedPaths': sorted(paths),
         'independentChangedInputs': independent, 'sourceObservations': observations,
         'blockers': blockers, 'gaps': gaps, 'canProceed': not blockers,
         'reconciliation': 'baseline-to-working-tree including untracked; no rename collapsing' if reconcile and not gaps else 'explicit paths/preparation; actual-change completeness not established',
-        'limits': 'Routing and native evaluation only. Source mechanisms are bounded lexical observations, not arbitrary language semantics. No agent obedience, compiled/runtime/provider/browser correctness, F3 qualification or universal write interception is established.'}
+        'limits': 'Routing, scoped pattern evidence and native evaluation only. Source mechanisms are bounded lexical observations, not arbitrary language semantics. No agent obedience, universal semantic/compiled/runtime/provider/browser correctness or universal write interception is established.'}
     return value
 
 

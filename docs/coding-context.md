@@ -84,9 +84,10 @@ identities, routes, duplicates and unavailable dependencies fail explicitly. A u
 cannot submit code for execution. New semantic detectors require an adapter change
 with its own proof; data extensibility is not universal language understanding.
 
-F3 owns richer versioned pattern submissions, evidence qualification, consumer-local
-precedence/alternatives and retirement. Existing private local references remain local
-and are not automatically qualified or promoted by this F2 view.
+Versioned shared/private pattern declarations now enrich these units through the
+same composer. See [coding patterns](coding-patterns.md) for submission assistance,
+explicit alternatives, scoped evidence, staleness and retirement. Loose private
+references remain unqualified; no local lesson is automatically promoted upstream.
 
 ## Inspectable contributor fixture
 

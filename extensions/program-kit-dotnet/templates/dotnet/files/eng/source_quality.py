@@ -28,8 +28,5 @@ def guidance(root: Path):
     return {'analyzerPackage': 'Orbyss.Foundation.Analyzers', 'selectedVersion': version,
             'rule': 'ORB1003', 'rootDeclarations': declarations, 'diagnostic': diagnostic,
             'effectiveProjectConfigurationQualified': False,
-            'guidance': [
-                'Write one named type per C# file, including enums, records, interfaces, nested and test helper types. Keep generated output separate; do not hand-edit it.',
-                'For a label contract use ILabelRule.cs, LabelRequest.cs, LabelDecision.cs and LabelFailure.cs. See program-kit-dotnet/references/examples/contract-layout; pass the actual selected analyzer pin to its qualification command.',
-                'The root declarations shown here are task context. Project configuration, nested editorconfig, generated-code classification and scoped suppression remain subject to the actual selected native compiler/analyzer build. Missing or unsupported pins are unresolved, not an analyzer pass.'
-            ]}
+            'canonicalRuleIds': ['principle.source-file-context'],
+            'guidance': []}

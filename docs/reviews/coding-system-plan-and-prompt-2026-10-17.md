@@ -119,6 +119,23 @@ After code production, inspect changed source, evaluated project roles and actua
 
 ### F3 — maintained shared and consumer-owned pattern inputs
 
+**F3 interview decisions accepted on 18 October 2026:** the human answered yes to
+all recommendations and confirmed the implementation frontier. A single qualified
+applicable local pattern can join the existing composition route; replacement or
+competing contextual alternatives require an explicit scoped choice. Precedence,
+suitability and qualification remain separate, without weakening F1/F2 contracts.
+Use actual maintained checks and ordinary semantic-review evidence with content-bound
+freshness and declared expiry where needed. Selected stale/missing proof blocks the
+affected scope without fallback; unrelated work remains independent. A single editable
+draft assists prose/code submissions without executing them or inferring semantics.
+The agreed inspectable private-notes fixture includes shared/local choices, later-task
+use, unrelated exclusion, an independent invalid implementation, stale/incompatible
+inputs, retirement and privacy limits. The human confirmed shared understanding before
+implementation. See the [F3 checkpoint](coding-system-f3-checkpoint-2026-10-18.md).
+The human approved F3 on 18 October 2026, authorized its commit and requested F4
+in a fresh session. Preserve its proof limits, failures and retained review material.
+This session does not start F4.
+
 Implement a versioned pattern contract for semantic identity/invariants, applicability and exclusions, compatible alternatives, provenance/owner, required context, recipe or transformation if any, positive/counterexamples, actual checks/review, evidence/freshness and limits. Permit human-friendly plain-language/code submissions; tools help prepare the maintained fields and reveal missing proof rather than demand expert manual editing across scattered files. Keep executable scaffold/check code owned and reviewed through existing repository mechanisms; recording a submitted pattern does not authorize executing arbitrary supplied code.
 
 Give each active rule one authoritative location. Registry entries hold routing and execution/evaluation bindings, not independent restatements of the rule. Generated briefs resolve relevant canonical text and observed version facts with provenance. Migrate policy hidden in script strings, hard-coded policy tables and prompts through the reviewed mapping; keep mechanism algorithms and version adapters in code with attributable rule bindings. Executable schemas, analyzer settings or native publisher contracts may already own a constraint: reference that authority rather than restating its values as a new rule. Do not build a universal prose interpreter or reimplement native frameworks. Rule/profile/source changes invalidate affected derived views and qualification; tests must still detect incorrect implementations independently of generated policy/scaffold data.

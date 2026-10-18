@@ -106,7 +106,10 @@
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
         "docs/decisions/*",
         "extensions/program-kit-governance/scripts/coding_context.py",
-        "tests/coding_review_fixture.py"
+        "tests/coding_review_fixture.py",
+        "extensions/program-kit-governance/scripts/coding_patterns.py",
+        "tests/pattern_review_fixture.py",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.coding-patterns.md"
       ],
       "dependsOn": [
         "profiles"
@@ -5394,6 +5397,35 @@
       "inputs": [
         "tests/validate_coding_context.py",
         "tests/coding_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_patterns",
+      "purpose": "Versioned shared/private pattern inputs through existing composition; current check evidence, invariant protection and guided installed negatives. No agents/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_patterns.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge",
+        "source-quality"
+      ],
+      "inputs": [
+        "tests/validate_coding_patterns.py",
+        "tests/pattern_review_fixture.py"
       ],
       "needs": [],
       "prerequisites": [

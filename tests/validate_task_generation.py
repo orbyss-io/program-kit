@@ -599,6 +599,9 @@ class TaskTests(unittest.TestCase):
         self.assertLess(path.stat().st_size, first_size + 80)
         progress = context.finish(self.root, self.feature)
         self.assertFalse(progress['acceptanceEstablished'])
+        self.assertEqual('needs-attention', progress['status'])
+        self.assertFalse(progress['canProceed'])
+        self.assertTrue(progress['coding']['blockers'], 'Fictional source context must not bypass reconciliation')
         self.assertEqual(draft.current_projection(current), progress['currentCheckpoint'])
         fixed = draft.checkpoint(self.feature, {'baseline': 'original-commit', 'outcome': 'Create policy',
             'next': 'Owned list', 'checks': ['green: artifacts/create-fixed.trx'],

@@ -1,5 +1,26 @@
 # Engineering and foundation evidence
 
+## Immediate phase actions
+
+<!-- program-kit:knowledge-rule phase-action.planning -->
+Make design decisions and name their cheapest reliable tests. No application tests run during planning.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule phase-action.after-plan -->
+Review changed design decisions and the planned graph. Carry real-provider tests into the tasks.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule phase-action.tasks -->
+Size coherent runnable stories; name risk, test tasks, verification sequence and exact prerequisites. Materialize known scaffolds first, run maintained checks, then add missing consumer tests. Do not execute proofs while drafting.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule phase-action.after-tasks -->
+Check the finalized graph and run normal read-only analyze once. Drafting is not implementation.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule phase-action.implementation -->
+Use focused verification selected by risk. Review runnable stories with the assigned human; required checkpoints pause further product work unless explicitly deferred. Progress saves and resumes are not full acceptance boundaries.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule phase-action.delivery -->
+Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.
+<!-- /program-kit:knowledge-rule -->
+
 ## Knowledge and engineering checks
 
 To repair a contradictory Test materialization map, create a request file with one
