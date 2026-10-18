@@ -364,6 +364,16 @@
         "knowledge",
         "web"
       ]
+    },
+    "coding-learning": {
+      "inputs": [
+        "extensions/program-kit-dotnet/references/examples/snapshot-query/**",
+        "tests/learning_review_fixture.py",
+        "tests/validate_coding_learning.py"
+      ],
+      "dependsOn": [
+        "knowledge"
+      ]
     }
   },
   "checks": [
@@ -5661,6 +5671,63 @@
       "prerequisites": [
         "tool:dotnet",
         "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_learning_contracts",
+      "purpose": "Teaching intent/version preservation, explicit shared-file boundaries, history/evidence-transfer rejection and detector/runtime freshness. No submissions execute.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_learning.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-learning"
+      ],
+      "inputs": [
+        "tests/validate_coding_learning.py",
+        "tests/csharp_readability_check.py",
+        "tests/fixtures/csharp-readability/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
+      "suites": [],
+      "budgetSeconds": 60,
+      "timeoutSeconds": 120
+    },
+    {
+      "id": "validate_coding_learning",
+      "purpose": "Retained installed F6 teaching, qualification, version adoption, actual compiled later-task application, independent invalid controls, bounded performance and isolated shared preparation. No agents/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/learning_review_fixture.py",
+        "--review"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-learning"
+      ],
+      "inputs": [
+        "tests/learning_review_fixture.py",
+        "extensions/program-kit-dotnet/references/examples/snapshot-query/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
       ],
       "suites": [],
       "budgetSeconds": 120,

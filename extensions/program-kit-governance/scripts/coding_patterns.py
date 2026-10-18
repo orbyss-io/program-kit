@@ -177,7 +177,12 @@ def validate(catalog):
 
 
 def context(profiles, projects, configuration='Debug', framework=None):
+    evaluated = [p for p in projects if p.get('status') == 'evaluated']
+    # Reuse native evaluated SDK facts and the installed runtime's read-only inventory.
+    # A retained text file alone must not conceal a changed runtime installation.
+    runtimes = subprocess.check_output(['dotnet', '--list-runtimes'], text=True, encoding='utf-8', timeout=10).splitlines() if evaluated else []
     return {'profiles': sorted(profiles), 'configuration': configuration, 'framework': framework,
+            'sdks': sorted({p['properties'].get('NETCoreSdkVersion', '') for p in evaluated}), 'runtimeInventory': runtimes,
             'frameworks': sorted({p['properties'].get('TargetFramework', '') for p in projects if p.get('status') == 'evaluated'}),
             'packages': sorted({(r['id'], r.get('version')) for p in projects for r in p.get('packages', [])})}
 
@@ -256,7 +261,7 @@ def binding(unit, rules, root, extensions, observed):
              'rules': {r['id']: r['fingerprint'] for r in rules},
              'inputs': [referenced(r, root, extensions) for r in refs], 'context': observed,
              'adapters': {name: sha(Path(__file__).with_name(name).read_bytes())
-                          for name in ('coding_patterns.py', 'coding_context.py', 'knowledge_sources.py')}}
+                          for name in ('coding_patterns.py', 'coding_context.py', 'knowledge_sources.py', 'feature_context.py')}}
     return fingerprint(state)
 
 
@@ -341,6 +346,9 @@ def apply(catalog, selected, excluded, root, extensions, observed, chosen):
                 winner = candidates[0]
         if winner:
             p = patterns[winner['id']]
+            # Preserve actionable context/source findings even when qualification
+            # also fails. A stale pattern must not hide the missing canonical owner.
+            blockers += applicable[winner['id']].get('blockers', [])
             others = {r['id'] for r in candidates} - {winner['id']}
             related = set(p['alternatives']) | set(p['replaces']) | {i for i in others
                 if winner['id'] in patterns[i]['alternatives'] + patterns[i]['replaces']}
@@ -351,7 +359,6 @@ def apply(catalog, selected, excluded, root, extensions, observed, chosen):
             else:
                 winner['selected'] = True
                 unit = applicable[winner['id']]
-                blockers += unit.get('blockers', [])
                 unit['pattern'] = copy.deepcopy(winner)
                 unit['alternativeReason'] = choice['reason'] if choice else 'Single applicable qualified pattern; no replacement inferred.'
                 output.append(unit)
@@ -384,9 +391,133 @@ def draft(root, submission, identity, invariants):
                     'provenance': 'Explicit local submission; source remains private; no upstream promotion.'}}]}
 
 
+def teach(root, request_path, catalog):
+    """Prepare a single editable contribution. Never register or execute its inputs."""
+    request = load(confined(root, request_path))
+    allowed = {'schemaVersion', 'id', 'intent', 'problem', 'submission', 'invariants', 'basedOn', 'changes', 'performance'}
+    require(isinstance(request, dict) and set(request) <= allowed
+            and {'schemaVersion', 'id', 'intent', 'problem', 'changes'} <= set(request)
+            and type(request['schemaVersion']) is int and request['schemaVersion'] == 1, 'invalid teaching request')
+    require(request['intent'] in ('new', 'refine', 'replace', 'retire') and isinstance(request['problem'], str)
+            and request['problem'].strip() and len(request['problem']) <= 8192, 'teaching needs a bounded problem and intent')
+    invariants = request.get('invariants', [])
+    require(strings(invariants) and set(invariants) <= catalog['rules'].keys(), 'unknown teaching invariant')
+    identity = request['id']
+    require(isinstance(identity, str) and IDENTITY.fullmatch(identity) and len(identity) <= 70, 'invalid teaching identity')
+    changes = request['changes']
+    require(isinstance(changes, dict) and set(changes) == {'guidance', 'scaffolds', 'checks', 'examples', 'acceptedArtifacts'}, 'teaching needs a complete change plan')
+    for refs in changes.values():
+        require(isinstance(refs, list), 'invalid teaching change plan')
+        for ref in refs:
+            referenced(ref, root, Path(__file__).resolve().parents[2])
+    submission = request.get('submission', request_path)
+    proposal = draft(root, submission, identity, invariants)
+    if request['intent'] != 'new':
+        base = request.get('basedOn')
+        require(isinstance(base, dict) and set(base) == {'id', 'version'}, 'improvement needs an exact prior version')
+        prior = next((u for u in catalog['codingUnits'] if u['id'] == base['id'] and u.get('pattern', {}).get('version') == base['version']), None)
+        require(prior is not None, 'prior pattern/version unavailable')
+        require(request['intent'] == 'retire' or identity != prior['id'], 'preserve prior version under its original identity')
+        require(request['intent'] != 'retire' or identity == prior['id'], 'retirement keeps its original identity')
+        unit = copy.deepcopy(prior)
+        unit['id'] = identity
+        if request['intent'] != 'retire':
+            unit['pattern']['evidence'] = []
+        unit['pattern']['status'] = 'retired' if request['intent'] == 'retire' else 'draft'
+        unit['pattern']['replaces'] = [prior['id']] if request['intent'] == 'replace' else []
+        unit['pattern']['alternatives'] = [prior['id']] if request['intent'] == 'refine' else []
+        proposal = {'schemaVersion': 1, 'sources': [], 'rules': {}, 'codingUnits': [unit]}
+    else:
+        require(not request.get('basedOn'), 'new teaching cannot imply replacement')
+    if 'performance' in request:
+        referenced(request['performance'], root, Path(__file__).resolve().parents[2])
+    return {'schemaVersion': 1, 'intent': request['intent'], 'problem': request['problem'], 'basedOn': request.get('basedOn'),
+            'proposal': proposal, 'changes': changes, 'performance': request.get('performance'),
+            'executionAuthorized': False, 'approvalInferred': False,
+            'missingProof': ['Review canonical guidance, applicability/exclusions, exact new version and compatibility.',
+                             'Review relevant scaffold/check/example changes; explain empty change categories.',
+                             'Route changed architectural invariants through existing accepted plans/ADRs.',
+                             'Run independent positive/negative checks; review workload/runtime/resources, correctness, adverse cases and counterexamples for performance claims.',
+                             'Merge reviewed declarations explicitly; append current evidence and adopt exact versions in the existing plan. Retirement changes status in place and preserves the original declaration/evidence; refinement/replacement keeps prior versions/failures.']}
+
+
+def prepare_shared(root, selection_path, output, catalog):
+    """Copy only an explicitly authored publishable set into a new local contribution.
+
+    This is an allowlist, not a private-text sanitizer. The author reviews every
+    selected byte. No consumer registry, inspection view or evidence is exported.
+    """
+    selection = load(confined(root, selection_path))
+    require(isinstance(selection, dict) and set(selection) == {'schemaVersion', 'declaration', 'files'}
+            and type(selection['schemaVersion']) is int and selection['schemaVersion'] == 1
+            and isinstance(selection['files'], list) and 0 < len(selection['files']) <= 64, 'invalid publishable selection')
+    declaration_path = confined(root, selection['declaration'])
+    require(declaration_path.relative_to(root).parts[0] not in ('artifacts', '.program-kit', '.specify', '.git'), 'publishable declaration needs an authored source')
+    additions = load(declaration_path)
+    require(isinstance(additions, dict) and set(additions) == {'schemaVersion', 'sources', 'rules', 'codingUnits'}
+            and type(additions['schemaVersion']) is int and additions['schemaVersion'] == 1
+            and isinstance(additions['sources'], list) and isinstance(additions['rules'], dict)
+            and isinstance(additions['codingUnits'], list) and len(additions['codingUnits']) == 1, 'select one standalone publishable lesson')
+    payload, total = {}, 0
+    for item in selection['files']:
+        require(isinstance(item, dict) and set(item) == {'source', 'target'}, 'invalid publishable file selection')
+        source = confined(root, item['source'])
+        target = item['target']
+        require(isinstance(target, str) and '\\' not in target and target == Path(target).as_posix()
+                and not Path(target).is_absolute() and '..' not in Path(target).parts
+                and target.split('/')[0] in ('extensions', 'tests'), 'invalid shared contribution target')
+        require(source.relative_to(root).parts[0] not in ('artifacts', '.program-kit', '.specify', '.git')
+                and not {'.git', 'node_modules', '__pycache__'} & set(source.relative_to(root).parts), 'execution history is not a publishable lesson source')
+        require(target.casefold() not in {p.casefold() for p in payload}, 'duplicate shared target')
+        raw = source.read_bytes()
+        total += len(raw)
+        require(0 < len(raw) <= 262144 and total <= 1048576, 'publishable lesson exceeds bounded source size')
+        payload[target] = raw
+    merged = copy.deepcopy(catalog)
+    require(not set(additions['rules']) & set(merged['rules']), 'shared rule cannot shadow an owner')
+    source_ids = {s['id'] for s in merged['sources']}
+    for source in additions['sources']:
+        require(isinstance(source, dict) and set(source) == {'id', 'locator'} and source['id'] not in source_ids, 'invalid shared source identity')
+        locator = source['locator']
+        require(isinstance(locator, dict) and set(locator) == {'kind', 'path'} and locator['kind'] == 'extension'
+                and 'extensions/' + locator['path'] in payload, 'shared canonical source must be explicitly selected')
+        source_ids.add(source['id'])
+    for rule in additions['rules'].values():
+        require(isinstance(rule, dict) and rule.get('source') in {s['id'] for s in additions['sources']}, 'shared rule needs its selected canonical source')
+    for unit in additions['codingUnits']:
+        p = unit.get('pattern', {})
+        require(p.get('evidence') == [] and p.get('status') == 'draft', 'shared contribution must start draft with no consumer evidence')
+        refs = p.get('inputs', []) + p.get('examples', {}).get('positive', []) + p.get('examples', {}).get('negative', [])
+        if p.get('review'):
+            refs += [p['review']]
+        for ref in refs:
+            reference(ref)
+            target = ('extensions/' if ref['root'] == 'extensions' else '') + ref['path']
+            require(target in payload, 'shared proof reference needs an explicitly selected publishable file')
+    merged['sources'].extend(additions['sources'])
+    merged['rules'].update(additions['rules'])
+    merged['codingUnits'].extend(additions['codingUnits'])
+    from coding_context import validate_units
+    validate_units(merged)
+    validate(merged)
+    require(not output.exists(), 'shared preparation output exists; preserve prior contribution')
+    output.mkdir(parents=True)
+    for relative, raw in payload.items():
+        path = confined(output, relative)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+    (output / 'catalog-additions.json').write_text(json.dumps(additions, indent=2) + '\n', encoding='utf-8')
+    manifest = {'status': 'prepared-for-source-review', 'files': {p: sha(raw) for p, raw in payload.items()},
+                'evidenceTransferred': False, 'publicationAuthorized': False, 'authorshipAuthenticated': False,
+                'limits': 'Only explicitly selected bytes; author must review them for privacy. No automatic secret detection, upstream adoption or execution.',
+                'next': 'Review these files and catalog-additions.json in a normal Program Kit source diff. Merge additions into phase-obligations.json without shadowing owners; maintain checks/examples, run installed proof and bind fresh shared evidence through binding/current_check in reviewed source. Adoption is a separate exact-version plan/update decision.'}
+    (output / 'contribution.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+    return manifest
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('draft', 'inspect', 'bind-evidence'))
+    parser.add_argument('command', choices=('draft', 'teach', 'prepare-shared', 'inspect', 'bind-evidence'))
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir')
     parser.add_argument('--operation')
@@ -397,9 +528,25 @@ def main():
     parser.add_argument('--configuration', default='Debug')
     parser.add_argument('--framework')
     parser.add_argument('--expires-at')
+    parser.add_argument('--request')
+    parser.add_argument('--selection')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     try:
+        if args.command in ('teach', 'prepare-shared'):
+            from phase_obligations import catalog
+            require(bool(args.output), 'contribution needs a new local output')
+            output = confined(root, args.output)
+            if args.command == 'prepare-shared':
+                require(bool(args.selection), 'shared preparation needs explicitly selected publishable inputs')
+                value = prepare_shared(root, args.selection, output, catalog())
+            else:
+                require(bool(args.request) and not output.exists(), 'teaching needs a request and new output')
+                value = teach(root, args.request, merge(catalog(), root))
+                output.parent.mkdir(parents=True, exist_ok=True)
+                output.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+            print(json.dumps(value, indent=2))
+            return 0
         if args.command == 'draft':
             require(bool(args.submission and args.id and args.output), 'draft needs submission, identity and output')
             from phase_obligations import catalog

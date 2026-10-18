@@ -72,6 +72,9 @@ def validate_units(catalog):
         if not isinstance(when, dict) or set(when) - {'all', 'any', 'not'} or any(
                 not isinstance(v, list) or not all(isinstance(i, str) and i for i in v) for v in when.values()):
             raise ValueError('PKC003 invalid applicability: ' + row['id'])
+        from feature_context import responsibility_tags
+        if any(set(values) - responsibility_tags() for values in when.values()):
+            raise ValueError('PKC003 unknown applicability adapter; owner: context adapter maintainer; add a maintained detector with installed positive/negative proof: ' + row['id'])
         if row.get('route') not in ('manual-edit', 'bound-recipes'):
             raise ValueError('PKC003 unsupported coding route: ' + row['id'])
     return rows

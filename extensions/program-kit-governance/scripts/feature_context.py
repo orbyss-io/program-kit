@@ -16,6 +16,7 @@ CAPABILITIES = {
     'resource-fencing': r'\b(?:resource.side fencing|physical (?:publish|erase) fencing)\b',
     'pdf-decoding': r'\b(?:pdfpig|flatedecode|finite pdf decod(?:er|ing))\b',
     'recording-ocr': r'\b(?:recording.only ocr|offline ocr sdk)\b',
+    'snapshot-query': r'\bimmutable snapshot quer(?:y|ies)\b',
 }
 
 
@@ -139,6 +140,11 @@ MECHANISMS = {
     'io': r'\b(?:i/o|io|httpclient|file|stream|timeout|deadline|options|configuration)\b',
     'security': r'\b(?:authorization|authentication|identity|secret|untrusted|security|permission|process|url|path admission)\b',
 }
+
+
+def responsibility_tags():
+    """Vocabulary supplied by this detector, not a second extension registry."""
+    return set(CAPABILITIES) | {'all', 'http-api', 'source-production', 'evaluated-dotnet'} | {'dotnet-' + name for name in MECHANISMS}
 
 
 def affirmative(text):

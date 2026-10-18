@@ -1,5 +1,8 @@
 # Versioned coding pattern inputs
 
+For explicit teaching/improvement, versioned adoption/retirement and privacy-safe
+shared preparation, see [coding learning](coding-learning.md).
+
 Patterns enrich the existing `codingUnits` in the responsibility/source registry.
 `prepare`, `reconcile`, progress and completion use the same composer. F2 units
 without pattern metadata retain their existing behavior and proof scope. F3 does

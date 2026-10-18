@@ -64,6 +64,12 @@ acceptance follows from preparation.
 
 ## Extending selected coding units
 
+The [learning round](coding-learning.md) supplies a practical finite extension
+example with actual installed .NET application/negative proof. Applicability
+labels must belong to the maintained context detector; unknown labels diagnose
+the adapter owner instead of silently excluding a declaration. Detection remains
+bounded and lexical, not universal semantic understanding or application proof.
+
 Extend `codingUnits` in the maintained `phase-obligations.json`, using existing or
 new F1 canonical bindings. No composer algorithm change is needed:
 

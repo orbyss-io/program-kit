@@ -203,6 +203,15 @@ For every seed, state whether the historical cause is confirmed, a consumer erro
 
 ### F6 — teaching, qualification, adoption and retirement
 
+**18 October 2026: human approved F6; commit and a new-session F7 prompt authorized.**
+The human confirmed all four recommendations before implementation and approved
+the delivered guided/inline source/output review. Read the
+[F6 checkpoint](coding-system-f6-checkpoint-2026-10-18.md) and
+[F7 session prompt](coding-system-f7-session-prompt-2026-10-18.md). F7 requires its
+own investigation/interview/confirmation in a fresh session; do not start it in
+the F6 commit session. Earlier approvals, failures, cost disclosures and retained
+consumers remain unchanged. The development skill remains deferred.
+
 Provide an explicit teach/improve workflow taking a problem, supplied code/evidence or known gap and preparing one reviewable contribution: pattern, applicability, guidance, scaffold/check/example updates and missing proof. Support refining/replacing/retiring an existing pattern and preserving alternatives. Route proposed architectural changes through normal accepted artifacts. Ordinary maintained review/qualification/versioned adoption supplies authority; do not invent another approval ceremony per pattern or make learning automatic unreviewed self-modification.
 
 Qualify a proposed performance improvement against identified workloads/runtime/resources with correctness, adverse tradeoffs and counterexamples. A local benchmark cannot create a universal rule. Demonstrate an end-to-end learning round: a supported task exposes a gap, a new local pattern is taught and qualified, a later fresh task selects and applies it, an incompatible task does not, a changed input marks proof stale, and an explicitly selected publishable lesson can follow normal shared promotion without exporting unrelated private material.

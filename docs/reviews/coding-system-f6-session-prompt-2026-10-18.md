@@ -1,5 +1,12 @@
 # F6 new-session prompt
 
+**Continuation status:** F6 is human approved following guided/inline review; its
+commit and a new-session F7 prompt are authorized. Use the
+[checkpoint](coding-system-f6-checkpoint-2026-10-18.md) and
+[F7 prompt](coding-system-f7-session-prompt-2026-10-18.md). The original F6 session
+instructions below remain historical context. Do not start F7 in this commit
+session, advance to F8 or clean retained material.
+
 Continue Program Kit's coding-system implementation with **F6 only**.
 
 Reuse `C:\Users\tech_\Code\program-kit\artifacts\coding-system-f1`, branch

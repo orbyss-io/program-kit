@@ -3969,6 +3969,45 @@
         "observedConsultation": "unknown",
         "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
       }
+    },
+    {
+      "path": "program-kit-dotnet/references/examples/snapshot-query/README.md",
+      "phases": [
+        "implementation"
+      ],
+      "enforcement": "Manual finite .NET learning recipe, installed positive/negative application and bounded performance observations; no automatic adoption, human acceptance or universal optimization.",
+      "route": {
+        "kind": "manual",
+        "via": [
+          "extensions/program-kit-governance/scripts/coding_patterns.py",
+          "tests/learning_review_fixture.py",
+          "tests/validate_coding_learning.py"
+        ],
+        "sections": [
+          "Immutable snapshot query lesson"
+        ],
+        "requirements": [],
+        "review": "Review accepted immutable snapshot semantics, actual source/oracles, workload/runtime/resource tradeoffs and privacy-safe explicitly selected contribution."
+      },
+      "id": "program-kit-dotnet/references/examples/snapshot-query/README.md",
+      "locator": {
+        "kind": "extension",
+        "path": "program-kit-dotnet/references/examples/snapshot-query/README.md"
+      },
+      "owner": "program-kit-dotnet",
+      "disposition": "manual",
+      "sections": {
+        "Immutable snapshot query lesson": {
+          "disposition": "manual",
+          "route": "manual"
+        }
+      },
+      "evidence": {
+        "available": true,
+        "selectedRouted": true,
+        "observedConsultation": "unknown",
+        "demonstratedApplication": "see-bound-checks-not-inferred-from-registration"
+      }
     }
   ],
   "scope": "Upstream knowledge routing and engineering coverage; no consumer evidence declarations required.",
