@@ -1,0 +1,1994 @@
+{
+  "activationMatrix": [
+    {
+      "activation": "FoundationTasks",
+      "closure": [
+        "FoundationTasks",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "503394b502d0a036d5e5e708f9e0414794710fc25692ac200437a855c3997fab"
+    },
+    {
+      "activation": "Orbyss.Forms.JsonForms",
+      "closure": [
+        "Orbyss.Forms.JsonForms",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "0feabee569213945c00d463ab11278f768c4f953175586785d099af4415240c5"
+    },
+    {
+      "activation": "Orbyss.Forms.Localization",
+      "closure": [
+        "Orbyss.Forms.Localization",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "d686f513f48ae685abf8e651f6a22c14bf7f722007440fadcf4e1365a39b3e8f"
+    },
+    {
+      "activation": "Orbyss.Forms.Management",
+      "closure": [
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Management",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "f994816221aa9bdb7ebdaf28a18d03c4539a2cf67f89d8de780b1ed38655b536"
+    },
+    {
+      "activation": "Orbyss.Forms.Management.Mcp.AspNetCore",
+      "closure": [
+        "Orbyss.Forms.Management.Mcp.AspNetCore",
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "b3060f24ed5a937a9ebba37152084f1a256522f6240e2a90888a3c298de02be6"
+    },
+    {
+      "activation": "Orbyss.Forms.Storage.FileSystem",
+      "closure": [
+        "Orbyss.Forms.Storage.FileSystem",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "182d676bba9913ca6480350611004e5618d740a897af1bac7aca7c7117075fda"
+    },
+    {
+      "activation": "Orbyss.Forms.Storage.InMemory",
+      "closure": [
+        "Orbyss.Forms.Storage.InMemory",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "4df9e45c9fe96fbffde9feba719f7f9b57b155d7bf45ddb52cb8bd98fba40415"
+    },
+    {
+      "activation": "Orbyss.Forms.Submissions",
+      "closure": [
+        "Orbyss.Forms.Submissions",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "b759c7ab8fbef6cb75196e9b71575e8e552eae0d72a1973f7d3ec406ff66b081"
+    },
+    {
+      "activation": "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+      "closure": [
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "1fed4c68c08ca7d3b97f8abcb674a0ebea9324a79e1aa6fcf4427bd503fcb331"
+    },
+    {
+      "activation": "Orbyss.Forms.Web.Management",
+      "closure": [
+        "Orbyss.Forms.Web.Management",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "45e6f1c45ac7872a0af6480ed4af41c2288157a52e241af4929b9668325e263f"
+    },
+    {
+      "activation": "Orbyss.Forms.Web.Runtime",
+      "closure": [
+        "Orbyss.Forms.Web.Runtime",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "f17e9793d8263d9e1b0fa58f7c3a9eb2a122aad6ac1612bed22d3181052fac76"
+    },
+    {
+      "activation": "Orbyss.Forms.Web.Submissions",
+      "closure": [
+        "Orbyss.Forms.Web.Submissions",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "9aed9353d7d33c019b41bc4e12e86d43db9a7594c13be2e638681279e0dc7454"
+    },
+    {
+      "activation": "Orbyss.Foundation.Authentication",
+      "closure": [
+        "Orbyss.Foundation.Authentication",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "9bac88d16025a74c4078d723e00a296f965af780ea28dfb1bd48c2bfd28a1d96"
+    },
+    {
+      "activation": "Orbyss.Foundation.Authentication.Assurance",
+      "closure": [
+        "Orbyss.Foundation.Authentication.Assurance",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "008a9c97bfc67ee876b13c6b5894a04c699223f0a87bc3eda8c7aa57ca99fd18"
+    },
+    {
+      "activation": "Orbyss.Foundation.Authentication.BffCookie",
+      "closure": [
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Json.AspNetCore",
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "577713be8b5bb2eb161bba4b75deec8c3b6eb6e9a146c24f6aae4a03354f64b4"
+    },
+    {
+      "activation": "Orbyss.Foundation.Authentication.ClientCredentials",
+      "closure": [
+        "Orbyss.Foundation.Authentication.ClientCredentials",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "f033b5c8dfba8bf0ffe4d1327abadf1faf94c865ff6b123f8fc9eac819651045"
+    },
+    {
+      "activation": "Orbyss.Foundation.Authentication.DPoP",
+      "closure": [
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.DPoP",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "cca15b5f53485036bd3eacccedc54248489dd99280516a514af8629ccfccb7e9"
+    },
+    {
+      "activation": "Orbyss.Foundation.Authentication.DownstreamApi",
+      "closure": [
+        "Orbyss.Foundation.Authentication.DownstreamApi",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "fc8a5f8e429dd20b5448087e5b8357c1b4604c28bb36b9891c9f4f43e9f895c4"
+    },
+    {
+      "activation": "Orbyss.Foundation.Authentication.SpaPkce",
+      "closure": [
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "d265fe918468354fb92ca0e72c304b9b251817c9ae4eb7b29ca8267622918cfd"
+    },
+    {
+      "activation": "Orbyss.Foundation.Authentication.TokenExchange",
+      "closure": [
+        "Orbyss.Foundation.Authentication.TokenExchange",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "260692e184f5bc1de1e8cda76750745f39143986076013871c4bb9329d03d00a"
+    },
+    {
+      "activation": "Orbyss.Foundation.DomainEvents",
+      "closure": [
+        "Orbyss.Foundation.DomainEvents",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "1c019698d51c7a02600ffbcf2b806541b3fada9e0c60f74202ba24eb67b6efb4"
+    },
+    {
+      "activation": "Orbyss.Foundation.Execution",
+      "closure": [
+        "Orbyss.Foundation.Execution",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "95364fc4bdc2ab6737fe5472e509fb673f7522c3b52f177e15445cded8e2dc9d"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.Access",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Access",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "5f4136c2044f9347046ff52780f5c3bb8206ea04cc258902cf91ed359cfafb1d"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.Applications",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Applications",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "c0160f4181acf0bf07af2948386aafdb4fffc9418a82c0f6f23e12cb3b97dc9f"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.AuthenticationFlows",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.AuthenticationFlows",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "a4aff8bd0690347ddb8774af2b2b6ff5982fce010f6f6233d83b000be7e3354b"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.Enrollment",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Enrollment",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "1348bb9954cfc2f23bba34f4aa6baad2ee5a81188ca0d59eb6c01ec75f8f6854"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.IdentityProviders",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.IdentityProviders",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "c876deda21a407a94d9bc83f3e689f4a1610116f5d169c9010e27c620b37f95f"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.Organizations",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Organizations",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "43d65b8887dee8043be7ad288a840c4f954f795a1cc4552307f3ff37e7af92a4"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.RealmOperations",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.RealmOperations",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "f899a63e216fb506ffc480bb31f39048b25e7868d3af5a4b64d6060babdd21d6"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.Scopes",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Scopes",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "e46551a26a2563f6d73e3bcc463344fb7d697083bfd9c6ed93144b82a2d68d3d"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.Sessions",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Sessions",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "fe9668e98e9aa1b4195ccf616a5358778fbdc09ea031734d6c56cad5b05e1716"
+    },
+    {
+      "activation": "Orbyss.Foundation.Identity.Keycloak.Admin.Users",
+      "closure": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin.Users",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "3e05501ab9df88bde5e9f5467ac31068d72f0caa31599b34872fc782c52a8a87"
+    },
+    {
+      "activation": "Orbyss.Foundation.Json.AspNetCore",
+      "closure": [
+        "Orbyss.Foundation.Json.AspNetCore",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "3fb19e3560c1438364da34971a43b325eaf65114301a5c2b6abf0fbcc734ad70"
+    },
+    {
+      "activation": "Orbyss.Foundation.Mcp.AspNetCore",
+      "closure": [
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "c417b95e56b7389536088a04b77ac7787f371f98b7a61d0049fe6c06b5a76bcf"
+    },
+    {
+      "activation": "Orbyss.Foundation.Web.Discovery",
+      "closure": [
+        "Orbyss.Foundation.Web.Discovery",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "c7891c593c48720f68f86b454b96cf6c52196d64f6e8646cc1f4a56099042f05"
+    },
+    {
+      "activation": "Orbyss.Foundation.Web.HostedPages",
+      "closure": [
+        "Orbyss.Foundation.Web.HostedPages",
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "551181f0bba96ed9f58a2422a3bef684469ac907437d36895ce58e45d86bf010"
+    },
+    {
+      "activation": "Orbyss.Foundation.Web.OpenApi",
+      "closure": [
+        "Orbyss.Foundation.Web.OpenApi",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "702b6b9db41152cc941967400d2ed1008ff5d80b520cbed9efa5ce1b499cc29d"
+    },
+    {
+      "activation": "Orbyss.Foundation.Web.Presentation",
+      "closure": [
+        "Orbyss.Foundation.Json.AspNetCore",
+        "Orbyss.Foundation.Web.Presentation",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "3dcb334f036e09bf28150158aa4785954379a73ae3f8d3a26a9d4449c804010f"
+    },
+    {
+      "activation": "Orbyss.Foundation.Web.ProblemDetails",
+      "closure": [
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "4ed17a7c170d448a3ae3ccdc0a932a95bb98cee6c7e47e34de11b379077154fe"
+    },
+    {
+      "activation": "Orbyss.Foundation.WebDefaults",
+      "closure": [
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "c211f5a3cf9665055ba85049c43816a0b68f69659e6b44281cf33d7b287076a2"
+    },
+    {
+      "activation": "Orbyss.Localization.Formats",
+      "closure": [
+        "Orbyss.Localization.Formats",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "d5f05ff0bc7fee3225d15e0e145120d9da5d5e3898ab126e95a12fa1ad0c6713"
+    },
+    {
+      "activation": "Orbyss.Localization.Management",
+      "closure": [
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "251b658e38adf786cc55ce9baee9f8cda889d00dbac6533558a552e5ba63dd87"
+    },
+    {
+      "activation": "Orbyss.Localization.Management.Mcp.AspNetCore",
+      "closure": [
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Management.Mcp.AspNetCore",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "b5cce3321bc03279c2cd67ef65e1feb1d1e95c76273b274ae93549c9a0524783"
+    },
+    {
+      "activation": "Orbyss.Localization.Runtime",
+      "closure": [
+        "Orbyss.Localization.Runtime",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "0d2deb9b9f433396023a7fc1bad20572335f417c7a8e45d32ecebfe78eff0007"
+    },
+    {
+      "activation": "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+      "closure": [
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "0bffeffb83a992f5783860de008ca43dcd7f3ca7bf3132c7a077e018bf0f657e"
+    },
+    {
+      "activation": "Orbyss.Localization.Storage.FileSystem",
+      "closure": [
+        "Orbyss.Localization.Storage.FileSystem",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "05ba12df5a5055e212e957d13abb3a73dfafdc4f6cb7675192432766dd22beed"
+    },
+    {
+      "activation": "Orbyss.Localization.Storage.InMemory",
+      "closure": [
+        "Orbyss.Localization.Storage.InMemory",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "ace86530adb158b9951df38aceec5f4a898f2a15e7d7c901077ee92422d7590d"
+    },
+    {
+      "activation": "Orbyss.Localization.Web.Management",
+      "closure": [
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Web.Management",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "f6c47ef3afd65fe1fe16ea85ba622b3e6acbfaf969ffbb9386a0ccd68d372cbe"
+    },
+    {
+      "activation": "Orbyss.Localization.Web.Runtime",
+      "closure": [
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Web.Runtime",
+        "ProgramKitQualificationProbe"
+      ],
+      "evidenceSha256": "8e342bd63705ef9426345680728608da34b42e2cae9eb6063a355e05625d60fe"
+    }
+  ],
+  "artifacts": {
+    "CShells.Abstractions": {
+      "sha256": "bcedbe8df744b088652e84d9355ccf35cc403bb0bd8951fdb5965d28702b1999",
+      "version": "0.0.31"
+    },
+    "CShells.AspNetCore.Abstractions": {
+      "sha256": "7e08103b6cb4f32cecfbb6a8bb9e62ed41961cbeb69b32b0aab3b83d181e95ae",
+      "version": "0.0.31"
+    },
+    "JetBrains.Annotations": {
+      "sha256": "609a52efb507f6d4c44c2287af933e6d039ac7504b3c5a88aff8be28b37db442",
+      "version": "2025.2.4"
+    },
+    "Microsoft.AspNetCore.Authentication.JwtBearer": {
+      "sha256": "eb64a9d755a6c66d54e377294a53230dc5d8fbbc30b046c7e78cb965e236c7d5",
+      "version": "10.0.13"
+    },
+    "Microsoft.AspNetCore.Authentication.OpenIdConnect": {
+      "sha256": "317e2f65bff5b70cd586a548b521c482388c02d8d85e09426291cce4dd53e276",
+      "version": "10.0.13"
+    },
+    "Microsoft.AspNetCore.OpenApi": {
+      "sha256": "470047f0f9ed297c261c5b62b67a934e6af2d42f212d3faf9430808d20b43f14",
+      "version": "10.0.11"
+    },
+    "Microsoft.Bcl.Cryptography": {
+      "sha256": "f8e62d716b1dd6a65c11769d61e038b7afa9c800e0d403d00b1a4a52d3f4d363",
+      "version": "10.0.2"
+    },
+    "Microsoft.EntityFrameworkCore": {
+      "sha256": "20dbb8ca069284fe2d6f327f090f3915142ff8e9d69bd2fc94cc8ff9e392ea21",
+      "version": "10.0.13"
+    },
+    "Microsoft.EntityFrameworkCore.Abstractions": {
+      "sha256": "0b08e68d97e1907d0b04a9a135a10122b083fc069e4e380e2ba43f2fe057f3e1",
+      "version": "10.0.13"
+    },
+    "Microsoft.EntityFrameworkCore.Analyzers": {
+      "sha256": "6ec765e9d86354e574768c0a4622ebfd0cb480b1c0641574c62f9403fc1de74c",
+      "version": "10.0.13"
+    },
+    "Microsoft.EntityFrameworkCore.Relational": {
+      "sha256": "7e3c45c2109c21c1ebcbe8e9d29d5177811ec78b4e367d8095418ad8128815f6",
+      "version": "10.0.13"
+    },
+    "Microsoft.Extensions.AI.Abstractions": {
+      "sha256": "7be7e10d0663efb94ddbed605d5c03ccfe80bb6852ca44cdba1dd1e78ee7ca76",
+      "version": "10.8.3"
+    },
+    "Microsoft.IdentityModel.Abstractions": {
+      "sha256": "bcd18aeaee95f92d0c21a61383eb129111785d48ccd4af9c2ae4756bd69108bb",
+      "version": "8.19.2"
+    },
+    "Microsoft.IdentityModel.JsonWebTokens": {
+      "sha256": "8fd6a2d0dae0cad0ec7d08888a3a7521be234465fd960444401a04e975bd48e7",
+      "version": "8.19.2"
+    },
+    "Microsoft.IdentityModel.Logging": {
+      "sha256": "8daf0f01850dc257c8ae42fa10eb99ed28197d127020e4461bf1130c3d41b511",
+      "version": "8.19.2"
+    },
+    "Microsoft.IdentityModel.Protocols": {
+      "sha256": "b2800311442c3a9d47cadb75a8ba3e8ce39eabbbb2ec8eed50e5a88177905c56",
+      "version": "8.19.2"
+    },
+    "Microsoft.IdentityModel.Protocols.OpenIdConnect": {
+      "sha256": "b92acde71946f925e5c60e0d002154d854a50b7577858a2376153c95473af3ba",
+      "version": "8.19.2"
+    },
+    "Microsoft.IdentityModel.Tokens": {
+      "sha256": "3ce8b74b370adfe881df5d38c17621de8a150f519b96dc1351ff8a323fff5185",
+      "version": "8.19.2"
+    },
+    "Microsoft.OpenApi": {
+      "sha256": "a18791ffcb68cb6dc6f986d559f25474c1cf29d6df698536fb4b10f53217d320",
+      "version": "2.7.5"
+    },
+    "ModelContextProtocol": {
+      "sha256": "d9704e12d5412c97147c74dd89524410bbad86e09bc96472134d9c7269d5c6fc",
+      "version": "2.2.0"
+    },
+    "ModelContextProtocol.AspNetCore": {
+      "sha256": "71b8670f302813f3765e4ba868524aea7f08e6d225290e685cdc2313e9bd8e27",
+      "version": "2.2.0"
+    },
+    "ModelContextProtocol.Core": {
+      "sha256": "146b28079d752ce216651f48287f5846e9061e1525c08181c3854fef1a1b7aba",
+      "version": "2.2.0"
+    },
+    "Npgsql": {
+      "sha256": "75d0970923a8c9fcbbd37e4ebe72fee0b10362a1e36723e86777df1b6728316d",
+      "version": "10.0.3"
+    },
+    "Npgsql.EntityFrameworkCore.PostgreSQL": {
+      "sha256": "d889af8847c9db50e4ee98cb2511429dd8b97ea0cb3a5e20926b46c47dcee3c4",
+      "version": "10.0.3"
+    },
+    "Orbyss.Forms.Abstractions": {
+      "sha256": "216ad0f25f1cc7747ee14158a06657e0e32894619159892a26b6c18e20181a7d",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.JsonForms": {
+      "sha256": "c81d57892a03c22d9a995bccc35b15df26f267b455324e6bf49d72596d2b4b68",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Localization": {
+      "sha256": "ac334cf00240ddf8a73bc41d7f0ed830ae58267485666522f98f95cfc6663f1a",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Management": {
+      "sha256": "ef5d8fe1b67572e434cdccae99dd2c33a083f15bff325a4ac45645c6e59b28a9",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Management.Mcp.AspNetCore": {
+      "sha256": "a5821d3560bc7bd2de28cea66d176c0df778ecde9e17cd82984be87193dc1b0f",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Management.Tool": {
+      "sha256": "79c1f4dddd2589fc2797db7cd6bded17c19c44e584a7b69b0b8ae540a8b94a10",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Storage.Abstractions": {
+      "sha256": "73e21f9e914dc93d37fbf3ac2b3ac462c0f9bdaa00e7c4e199a5bbc9f0777529",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Storage.FileSystem": {
+      "sha256": "bbfe258cfe2802eecef2d7f78aa17b22b0609158ae342942b8cd8b5bd4ebb348",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Storage.InMemory": {
+      "sha256": "2b5025ca50b02f268955c8905cabbb3ecb9199c6a0ebbb287e455a3cef41b67e",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Submissions": {
+      "sha256": "7673469a61bf46a50bc89f0c8c73bd6918892b07c9fb4f526c5534e3f3117fb0",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Submissions.Mcp.AspNetCore": {
+      "sha256": "2adb7e402f5cb1db8148cc3d10f94612daa7b9301c43e09e7b9453574d5ec739",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Submissions.Tool": {
+      "sha256": "13ccd87ab6daba8a2515c10beb60e6ecf94c689671aff0d6188a8391769e2103",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Web.Management": {
+      "sha256": "a3e8a375718d2302d6abf31ba066bd075ff160128586edefa5f46aebf8d82569",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Web.Runtime": {
+      "sha256": "b068c020fb538464b9e9ecbe53171968c6fab6ea7a9b0cdd228ba4e19db569fc",
+      "version": "0.2.1"
+    },
+    "Orbyss.Forms.Web.Submissions": {
+      "sha256": "138c36fa3513f319c5282ac0515c53dc755e733f78be7873bdd353ef1337b038",
+      "version": "0.2.1"
+    },
+    "Orbyss.Foundation.Authentication": {
+      "sha256": "62e560b13eba5b2c3e46db50ab0e05b9465ce189e2862885e84fdf6513999d65",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Authentication.Assurance": {
+      "sha256": "b52daebf9a09129833958bffb991a34e694a16b80ade17f2f819803c29597d35",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Authentication.BffCookie": {
+      "sha256": "d1fdf34f0cd10f7f1078f1bb6e427a401202a80829a08d630f84666b5f864942",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Authentication.ClientCredentials": {
+      "sha256": "9fc0b048f0836908f503b78a4a2a272279e2c667eb073bb4988b67b50aaedd53",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Authentication.Core": {
+      "sha256": "46eb3e542825058f3b24bf4e273ebcddd30c8e042fa7f00c9f700912a4c9df03",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Authentication.DPoP": {
+      "sha256": "84dbc964669cb178943c3d2fa8582372adc84166252637909018cd2778534219",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Authentication.DownstreamApi": {
+      "sha256": "dd2908a154870136c4e9d356eabf15b8314ba1c1be8c14cd74191560035fe6b7",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Authentication.SpaPkce": {
+      "sha256": "f68c809b7ecd7e04b8a7f16713ef0595b1219875ff510d1402c183f383d0fe96",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Authentication.TokenExchange": {
+      "sha256": "866b17947f975817a0d7c24ca778f6347927f45359d23ca259fc1f1c5413ca9f",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Build": {
+      "sha256": "53ef46c3719751a6e6072f15c108b31094983c97e0bec933384c318f70e8b5e3",
+      "version": "0.3.2"
+    },
+    "Orbyss.Foundation.Collections.Core": {
+      "sha256": "dee43c1dc461835cce86572be7230feb7c78fbcd210d42dd06577c13c9360f70",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.DomainEvents": {
+      "sha256": "dc401711bc8b9cab9d6272656af3b3f56a1138a0c3dc9df9b86ea1ecd8a02e86",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.DomainEvents.Abstractions": {
+      "sha256": "f6959ca382a37dec2092b343c80d194ec56d1a2d124af05de145516885d49d12",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Execution": {
+      "sha256": "1ba55d75a2bf661932bbe3ebc53817242874f1cae5990c3308ccede3da53d204",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Execution.Core": {
+      "sha256": "d128d1c96d47227694b8b8dd28a5c707b994172e121e4ef57b56c2939e4d9e10",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Identity.Admin.Abstractions": {
+      "sha256": "f9725aa86e01cdf21ea15a70518761a8780c1d55f2aef1c7ad6914b66a81dbba",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Identity.Keycloak.Admin": {
+      "sha256": "4d71a6b4d0910143697022e932fa40a2e16ae5c025775cffe738ae2c1f30eeb2",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Json": {
+      "sha256": "03cc7d1fe0b943048e0b9ffb73c9e229e4cbecb3d145b0b4f1a613a4b7e886bd",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Json.AspNetCore": {
+      "sha256": "d954c024512e06e8d2df54ec5c41407d97f4e0dd51be6bb33acf017579bb5e32",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Mcp.AspNetCore": {
+      "sha256": "81975d7c85bb305464e4640a14ccfd49702aa989b1e3a136347ea597503f71dc",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.OpenApi.Exporter": {
+      "sha256": "70180d3719e8e6247a4a99619381b837bcf4a5f7f1920c617b3d861da2ddf755",
+      "version": "0.2.7"
+    },
+    "Orbyss.Foundation.PostgreSql": {
+      "sha256": "3393d712803b4ac7fe3c7cd99f19729d2f75a257a96a7aa3a1b0ea61a69720ee",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Tasks": {
+      "sha256": "ca1e734226ea4b33957b73fc33aba068b0b3ec38d903e7fd1bd13ac8b2ceb240",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Tasks.Abstractions": {
+      "sha256": "854f4d5e8723134be1587ed6581c351d2f2624a97dd25875b38e449963a13324",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Web.Discovery": {
+      "sha256": "06083881744a078b504896b9c8458daaa67ecd7ac5fca11a68a7308c109fe1be",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Web.Discovery.Abstractions": {
+      "sha256": "ab27728ad4fb8b110586191f8deb4036cb4d12fc1aa171a5abd0ee09e5c6b94e",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Web.HostedPages": {
+      "sha256": "2bb366384d0a8144ba358dbaeadfd74f26cf13366c4c334d45fd7075c01266db",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Web.OpenApi": {
+      "sha256": "1e8e8b4c7a2edc068dc44314131e7d2f73c3276af39ce79198530e42ce6cd043",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Web.Presentation": {
+      "sha256": "2f87b77106bbbe48498e6782cf3395addf2ba4ab0655cc83ce717708696bc1fd",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Web.ProblemDetails": {
+      "sha256": "1e18b0df5ec0f6b234b6af9b139ac780bc4446ab10464b5b9975cca6984addec",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.Web.ProblemDetails.Core": {
+      "sha256": "59e055660e6162903b2916916b0858329b8fe95cc4bfb2ddebcf0fb18999eaee",
+      "version": "0.3.6"
+    },
+    "Orbyss.Foundation.WebDefaults": {
+      "sha256": "81592c0e97534f3f7b3ac8ab3d7828670971daca28535f2c5604efcf67b13eb6",
+      "version": "0.3.6"
+    },
+    "Orbyss.Localization.Abstractions": {
+      "sha256": "0e8e1ba6fc15682c8a6398f1261c39724933bcb962b4961773e8bc39d6a85aa8",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Formats": {
+      "sha256": "c4a2983d66cad2eb4eaa78c044cef39fe3aafd583ebe52dbc475ca2dbee8e896",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Management": {
+      "sha256": "7c12a1c0133488c281a8fe03fb4d801363509c02518319349ba93b68e4acfdbf",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Management.Mcp.AspNetCore": {
+      "sha256": "d8fda8ca46b5a808127e5dfc3b563a2bb48f01f79b1bcd89378df126078c498a",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Management.Tool": {
+      "sha256": "7d2e02c77834a7417d0911671611537017dc667523868bdd881b92965cdb595c",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Runtime": {
+      "sha256": "f6e41baad49c902411fac32a309f98d4314722882b339802969e3b8574e4082d",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Runtime.Mcp.AspNetCore": {
+      "sha256": "1b70da96ce42d0bfa90ec959b5679716890dbcdc871c3d7449db279e5948cb43",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Runtime.Tool": {
+      "sha256": "b5394e67c797e99ef6c899a51ab63f9fe314e42c39f862bb434bf94ae6f0cc27",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Storage.Abstractions": {
+      "sha256": "7bd1eba12c087532a3a012adadd34a5bbb36af34e62ef905094d3243ad39b49d",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Storage.FileSystem": {
+      "sha256": "5747d740c21990b762b4bfa7ba36f8d272fdf9cf0686de8c309c9ddcbf5be0ab",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Storage.InMemory": {
+      "sha256": "3f5fbdc8faae6d61d05a7d967664bcb2d9e59939e55a00d8c5efedafe68c4f05",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Web.Management": {
+      "sha256": "8e315f40f143cb7b5ea32532214ef23ca4ca7d603bf5897e839a6e16a6631a32",
+      "version": "0.1.2"
+    },
+    "Orbyss.Localization.Web.Runtime": {
+      "sha256": "41b10259d7785cc94925a8b47774ae1391253b4c2c5f433ee39a4f3b5ae28ae8",
+      "version": "0.1.2"
+    },
+    "System.IdentityModel.Tokens.Jwt": {
+      "sha256": "904a9f1225a4a2d7c3503a619f432c32a84e73cdaa40b5e56e8e57620e7cfe2a",
+      "version": "8.19.2"
+    }
+  },
+  "catalog": {
+    "sha256": "b279e1e2f100d7ee8c51f5c9c68433b714a6509f7caf0b118be1c182e0002d48"
+  },
+  "compositionMatrix": [
+    {
+      "closure": [
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Json.AspNetCore",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "composition": "bff-assurance",
+      "evidenceSha256": "b3d75253d721cb05e3bc5836150bc3394a3be5d8ffb65cf5b52f339d198ead34"
+    },
+    {
+      "closure": [
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Storage.InMemory",
+        "Orbyss.Forms.Web.Management",
+        "Orbyss.Forms.Web.Runtime",
+        "Orbyss.Forms.Web.Submissions",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Storage.InMemory",
+        "Orbyss.Localization.Web.Management",
+        "Orbyss.Localization.Web.Runtime",
+        "ProgramKitQualificationProbe"
+      ],
+      "composition": "forms-localization",
+      "evidenceSha256": "9ffae5b1997c34cac9bfe1e30a412fa31e5211cd619bb8b1a74e033e5e7cb7b9"
+    },
+    {
+      "closure": [
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "composition": "minimal-web",
+      "evidenceSha256": "dd1c2d4db716ea42c38f4e54dcdeeaaaca1c259b3b94e49571f9b629cdbf8a3e"
+    },
+    {
+      "closure": [
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "ProgramKitQualificationProbe"
+      ],
+      "composition": "spa-assurance",
+      "evidenceSha256": "2db962884c3be58c209487736634c439d36d2ee73ea0c9f96b33b138f88e2cdd"
+    }
+  ],
+  "schemaVersion": 2,
+  "scope": {
+    "allowedActivations": [
+      "FoundationTasks",
+      "Orbyss.Forms.JsonForms",
+      "Orbyss.Forms.Localization",
+      "Orbyss.Forms.Management",
+      "Orbyss.Forms.Management.Mcp.AspNetCore",
+      "Orbyss.Forms.Storage.FileSystem",
+      "Orbyss.Forms.Storage.InMemory",
+      "Orbyss.Forms.Submissions",
+      "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+      "Orbyss.Forms.Web.Management",
+      "Orbyss.Forms.Web.Runtime",
+      "Orbyss.Forms.Web.Submissions",
+      "Orbyss.Foundation.Authentication",
+      "Orbyss.Foundation.Authentication.Assurance",
+      "Orbyss.Foundation.Authentication.BffCookie",
+      "Orbyss.Foundation.Authentication.ClientCredentials",
+      "Orbyss.Foundation.Authentication.DPoP",
+      "Orbyss.Foundation.Authentication.DownstreamApi",
+      "Orbyss.Foundation.Authentication.SpaPkce",
+      "Orbyss.Foundation.Authentication.TokenExchange",
+      "Orbyss.Foundation.DomainEvents",
+      "Orbyss.Foundation.Execution",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.Access",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.Applications",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.AuthenticationFlows",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.Enrollment",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.IdentityProviders",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.Organizations",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.RealmOperations",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.Scopes",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.Sessions",
+      "Orbyss.Foundation.Identity.Keycloak.Admin.Users",
+      "Orbyss.Foundation.Json.AspNetCore",
+      "Orbyss.Foundation.Mcp.AspNetCore",
+      "Orbyss.Foundation.Web.Discovery",
+      "Orbyss.Foundation.Web.HostedPages",
+      "Orbyss.Foundation.Web.OpenApi",
+      "Orbyss.Foundation.Web.Presentation",
+      "Orbyss.Foundation.Web.ProblemDetails",
+      "Orbyss.Foundation.WebDefaults",
+      "Orbyss.Localization.Formats",
+      "Orbyss.Localization.Management",
+      "Orbyss.Localization.Management.Mcp.AspNetCore",
+      "Orbyss.Localization.Runtime",
+      "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+      "Orbyss.Localization.Storage.FileSystem",
+      "Orbyss.Localization.Storage.InMemory",
+      "Orbyss.Localization.Web.Management",
+      "Orbyss.Localization.Web.Runtime"
+    ],
+    "claim": "publisher-metadata-and-exporter-admission"
+  },
+  "source": {
+    "kind": "generic-publisher-integration",
+    "lockSha256": "9393b88a99e70e845fbd8a8f65e1fd2d0bc64b101cd809028436427016e5ad7e",
+    "officialTools": {
+      "Orbyss.Foundation.Build": {
+        "archiveUrl": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.build/0.3.2/orbyss.foundation.build.0.3.2.nupkg",
+        "id": "Orbyss.Foundation.Build",
+        "nativeProvenanceSha256": "d096ac73fe7733d9cfe3737fb473c2a82deec0ae8dc255fe6c394912df07e52f",
+        "nativeSource": "https://api.nuget.org/v3/index.json",
+        "sha256": "53ef46c3719751a6e6072f15c108b31094983c97e0bec933384c318f70e8b5e3",
+        "source": "https://api.nuget.org/v3/index.json",
+        "version": "0.3.2"
+      },
+      "Orbyss.Foundation.OpenApi.Exporter": {
+        "archiveUrl": "https://api.nuget.org/v3-flatcontainer/orbyss.foundation.openapi.exporter/0.2.7/orbyss.foundation.openapi.exporter.0.2.7.nupkg",
+        "id": "Orbyss.Foundation.OpenApi.Exporter",
+        "nativeProvenanceSha256": "f272f6daa5306f1f2c523bcee8d3ca24b3273f80899ed14b2c5688bed7b12a1c",
+        "nativeSource": null,
+        "sha256": "70180d3719e8e6247a4a99619381b837bcf4a5f7f1920c617b3d861da2ddf755",
+        "source": "https://api.nuget.org/v3/index.json",
+        "version": "0.2.7"
+      }
+    },
+    "officialToolsSha256": "6a01023b61a952274af68393b29ea32174cbe3fabbd3d25030ffdce1bf60554b",
+    "qualificationRecipeSha256": "12ca51acf8e6488d2f7a870ceecbbc1139594cfa333f36db4b3a5866c7059408",
+    "recipeSha256": "586bf26bb2d51066e08e213d404521e62f4bfc0cbaa290080290fbe441d32b44"
+  },
+  "status": "dependency-profile-qualified",
+  "steps": [
+    {
+      "evidenceSha256": "fbf833b142fd6ef1e3bdf28e3abfa90e51fb54dfa252616b6a2212e8af004308",
+      "exitCode": 0,
+      "id": "locked-restore"
+    },
+    {
+      "evidenceSha256": "64d1cbb27311c849dcaa7af0efc02f81261cc1ca3f17d7b76042fa80493f5be7",
+      "exitCode": 0,
+      "id": "consumer-build-pack"
+    },
+    {
+      "evidenceSha256": "81de87fc078248c1fae028e59bffb223d6dbe6c78d9301488c072151f20f3de9",
+      "exitCode": 0,
+      "id": "publisher-descriptors"
+    },
+    {
+      "evidenceSha256": "14f28383d7731af735eea96a100cdecbf9b62a597f85f62c0625bf6dc27b6d6c",
+      "exitCode": 0,
+      "id": "public-exporter-restore"
+    },
+    {
+      "evidenceSha256": "1f4bed2fb2b57a943fae827abcd8f2320873d0a8a9520ae00d086679d3fa9636",
+      "exitCode": 0,
+      "id": "activation-export-matrix"
+    },
+    {
+      "evidenceSha256": "28b6a3c5ed8cd9b67ef469c2a4a7d7037026d57bfcc7dfee9d8bd77206e10163",
+      "exitCode": 0,
+      "id": "producer-version-rejection",
+      "observedExitCode": 2
+    },
+    {
+      "id": "published-forms-browser",
+      "exitCode": 0,
+      "evidenceSha256": "f905011bf6e98abf309808b60db70a6da53827b15365b0b3f115209db5783901"
+    },
+    {
+      "id": "public-artifact-availability",
+      "exitCode": 0,
+      "evidenceSha256": "0e9637a57415c18c41b249c148a34b4a7e63f191dc311a0d4c7441c2e7dcdf79"
+    },
+    {
+      "id": "published-host-runtime",
+      "exitCode": 0,
+      "evidenceSha256": "8eba979f55c9003da34640f1ef716993d7db1be0d3539230fca8375b4007bd6a"
+    }
+  ],
+  "browserIntegration": {
+    "stages": {
+      "strict-graph": "cd4e85c3c1a21f6524012faf063453bcf8dd8d8cbffdceb24ccba1e6b160e86d",
+      "renew": "9ed380a404235ab60faccceace6c2faca2e0a80d229b3a4d9ab37305342b4c54",
+      "locked": "53b79d58c54662b3533042150fb944917008f717048e8d2bd76c0f2f2940013d",
+      "bundle": "f800d593c4a73e85dc36db53e3c0d515fd99ffd4ea4c2c6827de90055574e35a",
+      "browser": "cdc3062f0cad80afaf20fe485c917d2b60b7b206933e1a7ca279ec0c4313ecce"
+    },
+    "profile": {
+      "catalogResolutionSha256": "221a3da562dd7b9eb82c72caea522fa085da126ef00dc827837e02ab947e1f3d",
+      "packages": {
+        "@orbyss-io/forms-actions": "0.2.1",
+        "@orbyss-io/forms-ajv-build": "0.2.1",
+        "@orbyss-io/forms-contracts": "0.2.1",
+        "@orbyss-io/forms-jsonforms-runtime": "0.2.1",
+        "@orbyss-io/forms-react": "0.2.1",
+        "@orbyss-io/forms-renderer-registry": "0.2.1",
+        "@orbyss-io/forms-wizard": "0.2.1"
+      }
+    },
+    "engines": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "retainedFrom": {
+      "profileId": "foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2",
+      "evidence": {
+        "path": "candidates/foundation-0.3.5-build-0.3.1-exporter-0.2.6-forms-0.2.1-localization-0.1.2/qualification.json",
+        "sha256": "bd3af5514eac92b5e1f84d51f963fda19de19978d7a895231ec92676a7d9c3a9"
+      },
+      "reason": "Human explicitly authorized skipping unchanged Forms/browser packages after the GitHub CLI token lacked package scope; retain original browser evidence and its source identity.",
+      "inputRevision": "9584849edf5533a8e9b9646242887aee0ff046f2",
+      "inputs": {
+        "tests/validate_published_forms_browser.py": "efd1caed3fc1c433d0a089f928a96668a5bc561832e8de60570506a7632a5602",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc": "b20a182c7b42cbf1ab3e380c2a050d469f6b5eacdf55dff575afb3ca372b6f2b",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.npm-version": "4211530c8fb0d148aab950b0005433a64dd6f19f26460831515c07d12fc826a9",
+        "tests/fixtures/knowledge-application/forms-browser-packages/package.json": "73c68db0af360c3cd87452b7af3f77cc736c2b93791e5066ffb7622806e55835",
+        "tests/fixtures/knowledge-application/forms-browser-packages/provenance.json": "1d622d1b6ec2fb4685d5dac1bf1e2aa40f8c78632de7d3e2ef58ef25888e9806",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/fixtures/published-product.json": "3444562dda9bee2502ca8e59d5969c54c0d0bd65eae146274110709d33893731",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/app.tsx": "4b9b26cb98066e92ffca24189193c0f6bee27743095fa7c4d80931dcd4f22efc",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/browser.mjs": "a946b583ae808c789dd34828f0e2d455f8c76830a352b6e6ebbb0fb1c245e96a",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/build.mjs": "233fe6852cdda893620361dae94616bf7b081edec0d4cd73f2a33690452e008f",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/deployment.mjs": "d1c73a01706e4b16c8836b87ea6738f2528605b8d84e22656d873d419d329ddc",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/index.html": "c73cc412311cfd21d3afa06f05b5d31ef2792a9d652b787ebbf59643d182a045",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/locales.mjs": "43f38b3be5e17b77d58f368f554e5b620968586d7ad00218c9699aedf234363c",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/program-kit-validator.d.ts": "73b1da90e8bc03c965a4d5f572df3a8edcbfa030f91aae31483b1bebae6ea168",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/reference-theme.css": "4d4d3985be3987fceb15c7282b040e7086eb87818f32ac8124afe8591c500e3c",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/schema.mjs": "5a2492589665068eef7cc275a6536abb6bc275f53aae428450711284eaa413ac",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/styles.css": "bb44749ee2a9eb33913d898a4a19bcbeabfd41965f89ebf3516a4d5868c5b27b",
+        "tests/fixtures/knowledge-application/forms-browser-packages/tests/forms-browser/tsconfig.json": "aac0935ad113a321ffd4dc2c4a321b390eeb9871de5815d5f86c29daba4751e0"
+      }
+    }
+  },
+  "availableArtifacts": [
+    {
+      "packageKey": "nuget:Orbyss.Forms.Abstractions",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.JsonForms",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Localization",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Management",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Management.Mcp.AspNetCore",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Management.Tool",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Storage.Abstractions",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Storage.FileSystem",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Storage.InMemory",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Submissions",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Submissions.Mcp.AspNetCore",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Submissions.Tool",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Web.Management",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Web.Runtime",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Forms.Web.Submissions",
+      "version": "0.2.1",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Analyzers",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.Assurance",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.BffCookie",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.ClientCredentials",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.Core",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.DPoP",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.DownstreamApi",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.SpaPkce",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Authentication.TokenExchange",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Build",
+      "version": "0.3.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Collections.Core",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.DomainEvents",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.DomainEvents.Abstractions",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Execution",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Execution.Core",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Identity.Admin.Abstractions",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Identity.Keycloak.Admin",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Json",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Json.AspNetCore",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Mcp.AspNetCore",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.OpenApi.Exporter",
+      "version": "0.2.7",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.PostgreSql",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Tasks",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Tasks.Abstractions",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.Discovery",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.Discovery.Abstractions",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.HostedPages",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.OpenApi",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.Presentation",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.ProblemDetails",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.Web.ProblemDetails.Core",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Foundation.WebDefaults",
+      "version": "0.3.6",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Abstractions",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Formats",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Management",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Management.Mcp.AspNetCore",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Management.Tool",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Runtime",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Runtime.Mcp.AspNetCore",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Runtime.Tool",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Storage.Abstractions",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Storage.FileSystem",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Storage.InMemory",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Web.Management",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "nuget:Orbyss.Localization.Web.Runtime",
+      "version": "0.1.2",
+      "status": "listed-restorable"
+    },
+    {
+      "packageKey": "oci:ghcr.io/orbyss-io/foundation-host",
+      "version": "0.3.6",
+      "reference": "ghcr.io/orbyss-io/foundation-host@sha256:ab75cc2d5e9321bd18aa2c8dac8cca053413793d2849af2bef8cfab3938ebffa",
+      "status": "manifest-digest"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-actions",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-actions/0.2.1/8eac74331738b010ff7e4ba21137bd31f5b51115"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-ajv-build",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-ajv-build/0.2.1/7f5caf660249c97b40dad1f22a01aca78c5db7ea"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-angular",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-angular/0.2.1/4ad86c5fd205f2008fcb25a81493f3a22c974187"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-contracts",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-contracts/0.2.1/2224a819e57f8f3af69d06e88400707526845c03"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-editor-contracts",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-editor-contracts/0.2.1/f00d0370a1bb08d8d226968bf42f5c386a845517"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-jsonforms-runtime",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-jsonforms-runtime/0.2.1/f77210a26d3597b7e5dacfb67d3ab07e183945b2"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-lookups",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-lookups/0.2.1/e84f93ca269221f631393db7f61bb2cd3470c268"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-react",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-react/0.2.1/c84f71f9ab1abb44b7cfdd347de3ed8630de83b6"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-renderer-registry",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-renderer-registry/0.2.1/af49da0cf46d1bc51c4277b9befcc2d6624498c4"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-ui-theme",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-ui-theme/0.2.1/af0731b42386c8d632a7e15b041b548e8f7aabbf"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-vue",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-vue/0.2.1/ac4fe071931b5539d0bafc5371f5e9dc60fba40b"
+    },
+    {
+      "packageKey": "npm:@orbyss-io/forms-wizard",
+      "version": "0.2.1",
+      "status": "metadata-tarball",
+      "tarball": "https://npm.pkg.github.com/download/@orbyss-io/forms-wizard/0.2.1/4740f14f4387e7782b2206af8bb1fa74abf17170"
+    }
+  ],
+  "hostRuntime": {
+    "cases": [
+      "PublishedHost.bundle_restart",
+      "PublishedHost.exact_image_activation",
+      "PublishedHost.http_profiles_headers_openapi",
+      "Shell.actual_registration_and_replacement",
+      "Shell.compiled_boundary_positive_and_negative"
+    ],
+    "inputs": {
+      "catalogResolutionSha256": "b279e1e2f100d7ee8c51f5c9c68433b714a6509f7caf0b118be1c182e0002d48",
+      "credentialEnvironmentNames": [
+        "PROGRAM_KIT_NPM_TOKEN"
+      ],
+      "dependencyProfile": "foundation-0.3.6-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2",
+      "foundationRelease": "0.3.6",
+      "hostImage": "ghcr.io/orbyss-io/foundation-host@sha256:ab75cc2d5e9321bd18aa2c8dac8cca053413793d2849af2bef8cfab3938ebffa",
+      "hostPayload": {
+        "inputs": "public-host-inputs.json",
+        "inputsSha256": "1a603fa8e6ec21cfdd770865523b059c0938c4a34c7374765fc26358afd919ad",
+        "path": "public-host-payload"
+      },
+      "restoreEnablePackagePruning": false,
+      "runtimeContainer": "pk-compat-4aeed9f3ca714f91ae17646851b6b4e9"
+    },
+    "publicHostEvidence": {
+      "capture": {
+        "hostRuntimeFiles": {
+          ".orbyss-foundation/host-native.settings.json": "14f3fa2266b5303c4848d42a937a67fb9303eaeb05b34e58be5b2157837e3a1a",
+          ".orbyss-foundation/host-settings.json": "41420ef02ee64ceb1b5d30c85d8634ab8b52cc189cdce946af2d983f37c4fd44",
+          ".orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticConstants.cs.txt": "5af617c572571e482817af0eaa8094097066ce03363cae443f15ab9ca6fb2f25",
+          ".orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticLogger.cs.txt": "573885ff6fef8517d7da3233734a558acfb18aea5b6f96372b1f3d37faf4741d",
+          ".orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticLoggerFactory.cs.txt": "24dfc4a31933434c74785e9e9bcf315282f78582045d564b5cc2d05a609005a3",
+          ".orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticRedactionExtensions.cs.txt": "da9e4ff8ed0b5b5a0326716c423c7b3f67abc92a1e3073d4c512bbc3fb9fd3a0",
+          ".orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticRedactionRegistration.cs.txt": "2aec2fb08271ba111c7f652697c5f655811d0ed00a27c2c5f82c36ae8314887e",
+          ".orbyss-foundation/settings-sources/host/Diagnostics/NeutralBrowserFailureMiddleware.cs.txt": "815ff7d974d5a4f451b13529ee5de33464e3596325a79b996b02e895b19e5888",
+          ".orbyss-foundation/settings-sources/host/Feed/NuplaneAssemblyProvider.cs.txt": "a9b450d527431cf6333ccbdf02c61e70a7bd199be3ff672a17ba5b7f85384e7c",
+          ".orbyss-foundation/settings-sources/host/Program.cs.txt": "54f40c525323411c52a8097f5582860c335971a69d71f46e8f3ab65dc8aad964",
+          ".orbyss-foundation/settings-sources/host/Shells/EagerShellActivationHostedService.cs.txt": "365cee121a2245e06f169d61c1d754e68a4e04516ae99402e48f16461ce31e04",
+          ".orbyss-foundation/settings-sources/host/Shells/FoundationBootOptions.cs.txt": "5e1a1845c43f5c0f103d141edf3b39e6bad780a17a34ef0cd325c2ab521a7186",
+          ".orbyss-foundation/settings-sources/host/Transport/FoundationTransportOptions.cs.txt": "4d3cf053174973aeacd9418fe6088fac59cec7f568aaa5f17696206b986430fb",
+          ".orbyss-foundation/settings-sources/host/compiler/Microsoft.NET.Sdk.CSharp.props.txt": "f87d2992560b148e39c472da8ffb352d979bdafd6d2e7ee05aed842ad3d3e53c",
+          ".orbyss-foundation/settings-sources/host/compiler/Microsoft.NETCoreSdk.BundledVersions.props.txt": "9082008cb32243b7702f87a4c7b8729853873017e2bad59fb57842c4581c2599",
+          ".orbyss-foundation/settings-sources/host/compiler/global.json.txt": "ab4eed8da9aaee0671a10b49fe4ff1b27b3341b264f317ee88785607c0711e9a",
+          ".orbyss-foundation/settings-sources/host/metadata/vendor-settings/inputs.json.txt": "ec1514f2ef61a3fb190a03720fde7a0a112d6e95ba2c80b005852ab39b6e0329",
+          ".orbyss-foundation/settings-sources/host/metadata/vendor-settings/integration.json.txt": "42982840925637e4dc3dfe57ca73fdecd39cdf8a3db586b652302c452aea3607",
+          ".orbyss-foundation/settings-sources/host/producer/InspectSettingsSourceGraph.cs.txt": "a94b683c182b1209682251d4b7e37d6066539a551fea7902308766374c380f95",
+          ".orbyss-foundation/settings-sources/host/producer/SourceSettingsDefaults.cs.txt": "92926bf4c7eff2fda1883a8323109ed90f2f13d1dd134152f44863fd239d060f",
+          ".orbyss-foundation/settings-sources/host/producer/assemble_host_settings_metadata.py.txt": "846ea1d7094c05207ac11d01ee94ceae56d9a013ef8844f34bddf13ae17f6828",
+          ".orbyss-foundation/settings-sources/host/producer/emit_host_vendor_settings.py.txt": "a7f843dd8a8948e7a2fe0a91d8d2e8cee5a520c0195428a41b89c68a8baeaa26",
+          ".orbyss-foundation/settings-sources/host/settings.source.json.txt": "578c7530cd11bea5b207cd297acbdada230c41696c6d1d21f70e13ed49b882f6",
+          ".orbyss-foundation/settings-sources/vendor/CShells.Abstractions/Directory.Build.props.txt": "13585498f482dca22e36d8853ea11c240c354ea7b71e4a707e871b4b2de44b2f",
+          ".orbyss-foundation/settings-sources/vendor/CShells.Abstractions/Features/ISharedAssemblySelector.cs.txt": "f909697f6d86dac3cf440675c44f796906d3a2358ce41fcbeab3ec7b030f4633",
+          ".orbyss-foundation/settings-sources/vendor/CShells.Abstractions/LICENSE.txt": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d",
+          ".orbyss-foundation/settings-sources/vendor/CShells.Abstractions/ShellSettings.cs.txt": "a7ae14b61219308e216bdefcd5e01ebf4d1a23ca61dd00f1aa73ce01f20725fe",
+          ".orbyss-foundation/settings-sources/vendor/CShells.Abstractions/ShellSettingsExtensions.cs.txt": "cb58626729ec6303d35cadda72b26f0c9722076c1f64b1009b91b2288d68dab7",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore.Abstractions/Directory.Build.props.txt": "13585498f482dca22e36d8853ea11c240c354ea7b71e4a707e871b4b2de44b2f",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore.Abstractions/LICENSE.txt": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore.Abstractions/Routing/ShellRouteCriteria.cs.txt": "d6653507037ff6b81c4f2796cb67370c4303b8235da4e5f52ff392b6cc6c4a28",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore.Abstractions/Routing/ShellRoutingMode.cs.txt": "5c2da1ed48856362d26ff73a2eef95f7a7b1bddd606e575654ebf11c496e92ac",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Configuration/CShellsBuilderExtensions.cs.txt": "4d9cd127d5746e042fdd2196df266c00f849387d269e874cc592da9e7ca7de06",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Directory.Build.props.txt": "13585498f482dca22e36d8853ea11c240c354ea7b71e4a707e871b4b2de44b2f",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/LICENSE.txt": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Notifications/ShellEndpointRegistrationHandler.cs.txt": "6f3cd589f849d076ad5d9a691916718654f92d161e54f9a1f780f37e8252985e",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Resolution/WebRoutingShellResolver.cs.txt": "f521016f064737052d6786512a865c71a863ca661bdff8e1e112686f0159e900",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Resolution/WebRoutingShellResolverOptions.cs.txt": "13882193fc790c1c5874fb04bf8403c81ae0705d77b7f10a398ce6d0b109ce95",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Routing/DefaultShellRouteIndex.cs.txt": "87119a7aa4570a27dd488ba9d9996afc170042036af1ed456d12f421bc73147c",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Routing/ShellRouteIndexBuilder.cs.txt": "a913304393adc0f5d8c70549b8eb7c16d33277877cf63e95b58c031f76d1b1dd",
+          ".orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/WebRoutingShellOptions.cs.txt": "2a2ce850aa8333e0157137521bc7cb246b25c83cb0b8c3277eab2f0fe3f416ae",
+          ".orbyss-foundation/settings-sources/vendor/CShells/Configuration/CShellsOptions.cs.txt": "e1d5749e10581e0edee2b94eb0f967411654125327af033e2a8c494d17d8cd92",
+          ".orbyss-foundation/settings-sources/vendor/CShells/Configuration/ConfigurationHelper.cs.txt": "9af667700e9cef984a99288e7c645dfe4a4aeecc4c08d525e26927b0a9597859",
+          ".orbyss-foundation/settings-sources/vendor/CShells/Configuration/FeatureEntry.cs.txt": "9aaf0579446ee839aa1840c5be6714c63ea4531abddcac74e2fcc904ab69750e",
+          ".orbyss-foundation/settings-sources/vendor/CShells/Configuration/ShellConfig.cs.txt": "45af36189e765e5503df3f50b32c48257bcd3d98c97858cc196ecc000d876659",
+          ".orbyss-foundation/settings-sources/vendor/CShells/DependencyInjection/CShellsBuilderExtensions.cs.txt": "194073a11dd778e927720b1100ee431cabd34c1811963a6b5a8db01a3c777e79",
+          ".orbyss-foundation/settings-sources/vendor/CShells/Directory.Build.props.txt": "13585498f482dca22e36d8853ea11c240c354ea7b71e4a707e871b4b2de44b2f",
+          ".orbyss-foundation/settings-sources/vendor/CShells/Features/SharedAssemblySelector.cs.txt": "65ef54a1cd4c9d1ad9312f14aeb172282d806e389598594eaa8cca7c5577483c",
+          ".orbyss-foundation/settings-sources/vendor/CShells/LICENSE.txt": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d",
+          ".orbyss-foundation/settings-sources/vendor/CShells/Lifecycle/Blueprints/ConfigurationShellBlueprint.cs.txt": "a344e44fa68a5c3d40a3f381c20b7ac2b5f09009ff5262dfc7c7cf6144d072e2",
+          ".orbyss-foundation/settings-sources/vendor/CShells/Lifecycle/Providers/ConfigurationShellBlueprintProvider.cs.txt": "053b2349acfa70f2053c692da757322ff184ec2678c331082e68828702d5d11e",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Abstractions/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Abstractions/FeedDefinition.cs.txt": "51c7b4c2a82456c3625fe8505a825e1c98e38296192896927e2a51624a95f080",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Abstractions/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/PackageLoadMode.cs.txt": "37e87ee108679c3c49ea0b63c52c5eba7e67b69d2ccc56a03ca770617583ff28",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/PackageLoadModeSelectionPolicy.cs.txt": "29747ac60de9b32b40cb6fff9cf1861da85de2b7af7085a58ad5d838a273e5b4",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/SharedAssemblyIdentity.cs.txt": "a039911318c977e461ad6aa55765cec09979048ab3bfdb8c3e9ed8e4437cbeec",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading/Builder/NuplaneBuilderLoadingExtensions.cs.txt": "2b33557badd4894fe1b51a09864d993938e2a06c2eff6b8ebd978ef694b7b9d2",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading/LoadingOptions.cs.txt": "dfc2e1deb3bcbe1b2b999bbb79871da7412d6d3f825db7c2c07983956b4e9676",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading/LoadingOptionsConfigurationBinder.cs.txt": "8a545814a1bb0f2ab5d08b6d732078efbeba4bb56445fd3df016e4be0c4a39c5",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading/LoadingOptionsValidator.cs.txt": "d59e6f9894a49862cc5e41227a47f5b52217457104da9cbc6bd332f86d910bda",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading/PackageLoadModeOverrideOptions.cs.txt": "a2293c3d33314ed79bc9a1d640566a46ef6fce7c6fbbd440d2ac7a312a021bac",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Loading/Registration/LoadingRegistrationServices.cs.txt": "deb7a68a204af811feb19ebceb47c70832f7fc078829c4a1cdd259a42fe70288",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/Builder/NuplaneDirectoryFeedOptions.cs.txt": "15588a27d283fde053798f5d8600a73f82a89fd5d03fa3046d5fca06e9055907",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/Configuration/NuplaneDirectoryFeedSetupConfiguration.cs.txt": "83447038e89cdc2ab8e2b7404c6794bc37ee1e9b95869618536dd21dc302b620",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/DirectorySourceOptions.cs.txt": "5c98b426ed017814290cfcd9e42d3bdca0389c0cdb1b4094d2375cabb333ddac",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/Registration/DirectorySourceRegistrationServices.cs.txt": "c3d9e7e437205607599d6c14268c2cba0409969e143cb98559a955bbb8b26ec8",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Builder/NuplaneBuilder.cs.txt": "421a7e2c3bfc971862fdd80a13aeafe52d3846d7a4da7b005e74ad4f26d5e64a",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/FeedCredentialOptionsValidator.cs.txt": "ca7e0f6f3c47e220a12599af0613fa11b3166322879a21a78517c5ff78f7ef6d",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/FeedResolutionOptions.cs.txt": "346ad30540a68f4e32b29e5e769a810729185fefc2d188829ce40f2e832585ef",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/FeedResolutionOptionsValidator.cs.txt": "f807df84f21cd7fc1e819b6abab46c475d2eda1bdf0f620aaaf8de696e19d2b7",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/FeedResolutionPolicyMode.cs.txt": "811b84b6ac81802e58eb4e09dbe235aa768f01c601c8e420f96645d51d85a44c",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/RemoteFallbackMode.cs.txt": "a5355a2259c68c71a308746e94d32b86422643756c7949e3ba64db0ccaa152bb",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/DirectoryFeedRole.cs.txt": "4a0e6d9615d7f0640c0344d6f1516dedfd45d6dd56c3a9dbcce86e712f29573d",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneDirectoryFeedSetupOptions.cs.txt": "073aa37f0de7149a48210e7409a09386a57640c4d104260ed8596375ca3edb53",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneFeedSetupConfiguration.cs.txt": "fabae0473ae177b51c940377b31baf9222ba5f4f4d5b1a4219b6864710f3d10d",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneFeedSetupDeclaration.cs.txt": "5d36741c1b4979ae30024bcbfc8ec287e9ff2abc43c9d8722a20b345eab7bad9",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneFeedSetupDeclarationReader.cs.txt": "c1883e23751c45770f6aee2240afb8036dd95fc9e2ff4ffcebaa9c4e9a2cce52",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneFeedSetupOptions.cs.txt": "5befff0912370df8e8e7329c922d4736fb8ac770b2eae516ca05a0ac5f5aa537",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Hosting/NuplaneStartupHostedService.cs.txt": "92268c82fdc6934e26fc86399a83682e4e65bcab9d66af522f17e3451a4ea56c",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/NuplaneServiceCollectionExtensions.cs.txt": "0cf299de240a24401ece8d6a3864b0ed880540ca7039a15f863614d5a55636e7",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Configuration/ReconciliationOptions.cs.txt": "40aa6a9b71931552b2d82610de48144a976c90174b211393912b05175f607173",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Configuration/StartupFailurePolicy.cs.txt": "24e5570e7b3ea451e2337bd6dd9c9b89458dd77c02195c575567f14f75258eba",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Convergence/ConvergenceOptions.cs.txt": "27fb6ddbc68adde169df88383cc303a4e31bb78e691712d5c074fbe980dd0b05",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/LockFile/LockFileMode.cs.txt": "00e61c2dfeea71fdc6f0d061ab2902a19bf78a43a4cb332174607b8f4598549b",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/LockFile/LockFileOptions.cs.txt": "db9f2dd4a78036e40b74fda405de1ed4b7a3b6e8a7946130bd0a152da66c4159",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Validation/ConvergenceOptionsValidator.cs.txt": "8a84b941d73c5a08c2874d68cb177490f92944e2f02468acb807734cf1b3c75a",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Validation/LockFileOptionsValidator.cs.txt": "e17980371a48949b173b56108cf9775c4ffdcf96baf8df903d03c9cefb29f93c",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Validation/ReconciliationOptionsValidator.cs.txt": "3f5e37c08f4da4e6ede56f0c8abf1606b88389c69b7d75df6f65bd63bbc09396",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Registration/NuplaneOptionsRegistrationServices.cs.txt": "d81f1140561e9dd1a09b9b9feab20b4f75e4932a6b575b91c30279197d07ab25",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Registration/NuplaneRuntimeRegistrationServices.cs.txt": "9541dd9cfcd70798ad14f70ae0b036e4246cefa1e775912bed11942f72f27a32",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Registration/NuplaneSetupConfigurationServices.cs.txt": "fb043044c0bddb287fb52c66ff86790f62048dd07cd050f386ed703f8ace043c",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Setup/NuplaneSetupOptions.cs.txt": "b8d7528cf7a6b1ee9d4812679238a1ce8cf818da28e8e9bb5e6a99fa98510cee",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Setup/NuplaneSetupOptionsValidator.cs.txt": "6639a37644101acea063a7904160709eabbcfb6105016b9dd624953f71e2c3dc",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Sources/ManifestOptions.cs.txt": "16a924292e17ff602695763a371983f43eaec87bd84ac874232de6e59274a06d",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Store/Cleanup/CleanupExecutionMode.cs.txt": "24caf61ccd2ffd29ebeb588346d525d6f66c286599c376df21dd712d8de62c13",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Store/Cleanup/CleanupPolicyOptions.cs.txt": "d3fb5a84bb21a50536f7de9055f08176bee634af411d18666635ac82b27768e2",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Store/State/EffectiveStorePersistenceSettings.cs.txt": "8a050f0796e2ad4a863fb019e0483e56016981c2220ca9ac2aa64b308ad51a8c",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Store/State/StoreRegistryOptions.cs.txt": "1574e79b65401b76ceb852bbb0fdf626269bb07c23ed7e152c2a6a2278895be4",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Store/State/StoreRegistryOptionsValidator.cs.txt": "3d45de29835dffcfc5b26be356e0f9919b76759fdea55750b6dfdcd926e33a62",
+          ".orbyss-foundation/settings-sources/vendor/Nuplane/Store/Validation/CleanupPolicyOptionsValidator.cs.txt": "9b168872d1a1182db1606410b649ee3f4d43b6a0085a10c4c1f034e5a306c555",
+          "CShells.Abstractions.dll": "dbcf0e5d572791124ac582e3a10519d80f01b9f2e4228cffadb61171f796b5a0",
+          "CShells.AspNetCore.Abstractions.dll": "3b0062c2ad98dc96471a1cb18527855c4a06eb7220cda44c48e89e13cb816084",
+          "CShells.AspNetCore.dll": "88d7fdcb2776870c9934b0cec9a2bd29e74599c96436f31b99d191adb23d44c6",
+          "CShells.dll": "b0afda775aa0c330f982856ebfaeb461c7ea1c5d201998351ba7ca105f69ebc0",
+          "JetBrains.Annotations.dll": "8f2c837af3f4f61b1726a2e67eafcf5bae23debd9e1de425bb5ce1d4837508d6",
+          "Microsoft.Extensions.Compliance.Abstractions.dll": "0e563bd78c48881463abda90b94fa1cd37cd55a1f0658eb26125727fbff32a88",
+          "Microsoft.Extensions.DependencyModel.dll": "76f6e973e2dcb09a893745f4fb730863d55298e9485cc96e29b124a743ca795d",
+          "Microsoft.Extensions.Diagnostics.ExceptionSummarization.dll": "d237bc38bf6ae1d83a8094ca9358b8634383a6a51d7310c14e23573bc8aa4388",
+          "Microsoft.Extensions.Resilience.dll": "ed4482d3d462a400ed8c6e17dee9339e55757e388336c29f7e4d7d6e20d8852a",
+          "Microsoft.Extensions.Telemetry.Abstractions.dll": "b509bb9f7a8c0bcc6b15f2144147f262e8bb619c2c147e0fa52a2e7bb1904cc5",
+          "Newtonsoft.Json.dll": "22c649f75fce5be7c7ccda8880473b634ef69ecf33f5d1ab8ad892caf47d5a07",
+          "NuGet.Common.dll": "4134339735c6268fa0531fc99d50912477a4e361e0b5bf585815b5c0d52f1cd9",
+          "NuGet.Configuration.dll": "50e8989369403fb4e014d06369decb8be8be4e737ce374a05a135091a506ab2b",
+          "NuGet.Frameworks.dll": "b85df18649cd9261dac5603a712b986c18c8d9b9f3000fea57ffae6f9d591cbe",
+          "NuGet.Packaging.dll": "825f825fe271585a2cce2b1890a445e9fd27b122bc034d6febdb4231b1d89d4b",
+          "NuGet.Protocol.dll": "1185a5658e886f4476a4b14eb2ac67f62783cd1e304a418794d3d3fed899e5c2",
+          "NuGet.Resolver.dll": "9fca0b3617ccd63919ae9cb64d8810e45c89e04436fdcae380d36610dd577321",
+          "NuGet.Versioning.dll": "83a2b7f97cb9ab52a4a75ab7948c123f6049b421c4b0f09552c83d5522cb1255",
+          "Nuplane.Abstractions.dll": "64d89c8b0a3718675e65763f2ed43e51c952df017d76be836f94bc1a1dee47f9",
+          "Nuplane.Loading.Abstractions.dll": "6a8a668eb29633e53e28d6516f8c8ba61df553e7b8f1c19bd9580be8858463e3",
+          "Nuplane.Loading.dll": "9f366e3a69b29e5f38a175f34917ad4732caeb3163abca6f06d021682a2b3888",
+          "Nuplane.Sources.Directory.dll": "d4492157c35a81de4e1953e36d2eefe7e8da8e891ee40a256282f92446e33a80",
+          "Nuplane.dll": "70a9f3374e2befc4c8714c96f31357193092a85c2a1a2370365a5b94ebe100e7",
+          "Orbyss.Foundation.Host.deps.json": "ff5c67b7cabdc3cfab64377c5d05adfcc8bbea19e9d4f2425b0ed74981f9e0d7",
+          "Orbyss.Foundation.Host.dll": "700cad876c268514091aaa1efe1550b83d25f03f0ef2abba36857d4e969e062e",
+          "Orbyss.Foundation.Host.runtimeconfig.json": "f71b4c67b5233a19be9131b5fe4b45fe7829997cf2b42e762d6baa037da93863",
+          "Orbyss.Foundation.Host.staticwebassets.endpoints.json": "c1686417e8d5c31bba969f12b6f3d2b35e6609adb5ca42f212261a3a02771aac",
+          "Polly.Core.dll": "7d5bf167f967457370f5d7d0a209e07673fa92a3304961b74dd9e27cd432db29",
+          "Polly.Extensions.dll": "620afd797c79f4f0eeacb1d4954620bc18d4c5e0b3a2531b363ee4ef2d7e22a9",
+          "Polly.RateLimiting.dll": "afe3042cd4062438857d42880623845f32575375f460fd1ac07f705ea0211804",
+          "System.Security.Cryptography.ProtectedData.dll": "81a0385cf1fed22f3153789d4ae1fee75719f23e72cd543edba1af48926fbf24",
+          "appsettings.json": "5363ca561f5f7f962ee7e34ef9cecf3f20841c0cea4f2a65c41c92ab190cd521",
+          "hostsettings.json": "cd3237f3a473e944e7527e30e5427d7e9416f1026c03c225f076db26bd7a512a",
+          "runtimes/osx-arm64/native/libnuplane_store_native.dylib": "1bc00a1c290354386672ba7de29d53fb6ca37d1f730072672693a558e2406997",
+          "runtimes/osx-x64/native/libnuplane_store_native.dylib": "1bc00a1c290354386672ba7de29d53fb6ca37d1f730072672693a558e2406997",
+          "runtimes/win/lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll": "1c73a1b016cfc8d497106eec08af07616f2f4c07e4ddc807c9f120ceacd0a53a",
+          "shells.json": "6e40927e5fdb2988767c0ddddaf5374255e3e1cc591d439285ff678d5651cac7"
+        },
+        "image": "ghcr.io/orbyss-io/foundation-host@sha256:ab75cc2d5e9321bd18aa2c8dac8cca053413793d2849af2bef8cfab3938ebffa",
+        "imageId": "sha256:ab75cc2d5e9321bd18aa2c8dac8cca053413793d2849af2bef8cfab3938ebffa",
+        "schemaVersion": 1,
+        "sharedAssemblies": [
+          {
+            "MajorVersion": 0,
+            "Name": "CShells.Abstractions",
+            "PublicKeyToken": null
+          },
+          {
+            "MajorVersion": 0,
+            "Name": "CShells.AspNetCore.Abstractions",
+            "PublicKeyToken": null
+          }
+        ]
+      },
+      "cleanup": {
+        "absent": true,
+        "container": "pk-compat-4aeed9f3ca714f91ae17646851b6b4e9",
+        "operations": [
+          {
+            "args": [
+              "docker",
+              "ps",
+              "--all",
+              "--filter",
+              "name=^/pk-compat-4aeed9f3ca714f91ae17646851b6b4e9$",
+              "--format",
+              "{{.ID}}"
+            ],
+            "exitCode": 0
+          },
+          {
+            "args": [
+              "docker",
+              "ps",
+              "--all",
+              "--filter",
+              "name=^/pk-compat-4aeed9f3ca714f91ae17646851b6b4e9$",
+              "--format",
+              "{{.ID}}"
+            ],
+            "exitCode": 0
+          }
+        ],
+        "removed": false
+      },
+      "packages": [
+        {
+          "archive": "cshells.abstractions.0.0.31.nupkg",
+          "id": "CShells.Abstractions/0.0.31",
+          "nativeProvenance": "cshells.abstractions.0.0.31.nupkg.metadata.json",
+          "nativeProvenanceSha256": "ec955811a81a3465327c04d064244895d214cc55195bf0b955abf610241d1de4",
+          "nativeSource": "https://f.feedz.io/valence-works/cshells/nuget/index.json",
+          "sha256": "bcedbe8df744b088652e84d9355ccf35cc403bb0bd8951fdb5965d28702b1999"
+        },
+        {
+          "archive": "cshells.aspnetcore.abstractions.0.0.31.nupkg",
+          "id": "CShells.AspNetCore.Abstractions/0.0.31",
+          "nativeProvenance": "cshells.aspnetcore.abstractions.0.0.31.nupkg.metadata.json",
+          "nativeProvenanceSha256": "851c76087d726fac55afb0b9feeafd7b27860e71be475c451b20de93691c1192",
+          "nativeSource": "https://f.feedz.io/valence-works/cshells/nuget/index.json",
+          "sha256": "7e08103b6cb4f32cecfbb6a8bb9e62ed41961cbeb69b32b0aab3b83d181e95ae"
+        },
+        {
+          "archive": "jetbrains.annotations.2025.2.4.nupkg",
+          "id": "JetBrains.Annotations/2025.2.4",
+          "sha256": "609a52efb507f6d4c44c2287af933e6d039ac7504b3c5a88aff8be28b37db442"
+        },
+        {
+          "archive": "microsoft.aspnetcore.openapi.10.0.13.nupkg",
+          "id": "Microsoft.AspNetCore.OpenApi/10.0.13",
+          "sha256": "355d1297f4ef020f16a91a44822130d0fb14d739ce53abd44e81f9878f438fd3"
+        },
+        {
+          "archive": "microsoft.extensions.configuration.10.0.0.nupkg",
+          "id": "Microsoft.Extensions.Configuration/10.0.0",
+          "sha256": "32c2ec9153e9902be8bf9f835886802c2b75a9f4515f8bb6dbc787c6fa44d1d8"
+        },
+        {
+          "archive": "microsoft.extensions.configuration.abstractions.10.0.0.nupkg",
+          "id": "Microsoft.Extensions.Configuration.Abstractions/10.0.0",
+          "sha256": "19c82b9d302278257b0154f5df3c8e8dfc302fce9ef7d8a23bf32230ec4f186d"
+        },
+        {
+          "archive": "microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg",
+          "id": "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.0",
+          "sha256": "f62a1d5cfdfd62a831a269ce3cec5dfe6cdb1b425f3925f3168354de8993d8fb"
+        },
+        {
+          "archive": "microsoft.extensions.options.10.0.0.nupkg",
+          "id": "Microsoft.Extensions.Options/10.0.0",
+          "sha256": "8f930ea9948a794b71c739998f364c1b2d2f10b1ddbcfadaab04d0410355b180"
+        },
+        {
+          "archive": "microsoft.extensions.primitives.10.0.0.nupkg",
+          "id": "Microsoft.Extensions.Primitives/10.0.0",
+          "sha256": "0eea74f0a729b4b8e59e9379b79ffffa9e27f0551381102ae27ff0d6ceaeb3e2"
+        },
+        {
+          "archive": "microsoft.openapi.2.12.2.nupkg",
+          "id": "Microsoft.OpenApi/2.12.2",
+          "sha256": "3a35b85631e1c7b877b61244ca93e042f6a249ca2e055fd5c3d92b54f1b247a9"
+        },
+        {
+          "archive": "orbyss.foundation.collections.core.0.3.6.nupkg",
+          "id": "Orbyss.Foundation.Collections.Core/0.3.6",
+          "sha256": "dee43c1dc461835cce86572be7230feb7c78fbcd210d42dd06577c13c9360f70"
+        },
+        {
+          "archive": "orbyss.foundation.json.0.3.6.nupkg",
+          "id": "Orbyss.Foundation.Json/0.3.6",
+          "sha256": "03cc7d1fe0b943048e0b9ffb73c9e229e4cbecb3d145b0b4f1a613a4b7e886bd"
+        },
+        {
+          "archive": "orbyss.foundation.json.aspnetcore.0.3.6.nupkg",
+          "id": "Orbyss.Foundation.Json.AspNetCore/0.3.6",
+          "sha256": "d954c024512e06e8d2df54ec5c41407d97f4e0dd51be6bb33acf017579bb5e32"
+        },
+        {
+          "archive": "orbyss.foundation.web.openapi.0.3.6.nupkg",
+          "id": "Orbyss.Foundation.Web.OpenApi/0.3.6",
+          "sha256": "1e8e8b4c7a2edc068dc44314131e7d2f73c3276af39ce79198530e42ce6cd043"
+        },
+        {
+          "archive": "orbyss.foundation.web.problemdetails.0.3.6.nupkg",
+          "id": "Orbyss.Foundation.Web.ProblemDetails/0.3.6",
+          "sha256": "1e18b0df5ec0f6b234b6af9b139ac780bc4446ab10464b5b9975cca6984addec"
+        },
+        {
+          "archive": "orbyss.foundation.web.problemdetails.core.0.3.6.nupkg",
+          "id": "Orbyss.Foundation.Web.ProblemDetails.Core/0.3.6",
+          "sha256": "59e055660e6162903b2916916b0858329b8fe95cc4bfb2ddebcf0fb18999eaee"
+        },
+        {
+          "archive": "orbyss.foundation.webdefaults.0.3.6.nupkg",
+          "id": "Orbyss.Foundation.WebDefaults/0.3.6",
+          "sha256": "81592c0e97534f3f7b3ac8ab3d7828670971daca28535f2c5604efcf67b13eb6"
+        },
+        {
+          "archive": "system.text.json.10.0.11.nupkg",
+          "id": "System.Text.Json/10.0.11",
+          "sha256": "6ce27e07fce25c7c3e572f22f20824f87906eb38ee52a83f4a87ad90ea296ebc"
+        }
+      ],
+      "process": {
+        "boundedTimeoutExitCode": 124,
+        "exitCode": 0
+      },
+      "retainedFiles": {
+        "Feature/obj/project.assets.json": "bbdb8e12880d8372ca03ad12566807fa676998639fdc056b5a07e41b30c0a3cc",
+        "Feature/packages.lock.json": "e0ee3e4869acffce88dcc44d6a9b0c092f5bcf684dcaa01db4239a2312b3ecba",
+        "artifacts/program-kit/building-block-restore.json": "439ccc0aae1cf5e240a143a12f2bb847eec57bb36f75e2231031a8b962c22e87",
+        "bundle/hostsettings.json": "39effea6bbc148db352c6af013c06e31d7fb10d7184db7d38e10d7a2fe93c0d4",
+        "bundle/nuplane.settings.json": "39effea6bbc148db352c6af013c06e31d7fb10d7184db7d38e10d7a2fe93c0d4",
+        "bundle/packages/ProgramKit.Compatibility.Core.1.0.0.nupkg": "5c89205d6ba48ebc6646ca5fa5f34b6c828fe80b0acdf3fa65b6ca1696170c04",
+        "bundle/packages/ProgramKit.Compatibility.Feature.1.0.0.nupkg": "be6d2458fb0527af5eb95bcf3b65ee11cf5590fb85a85250e0c059c27f9e0a21",
+        "bundle/packages/jetbrains.annotations.2025.2.4.nupkg": "609a52efb507f6d4c44c2287af933e6d039ac7504b3c5a88aff8be28b37db442",
+        "bundle/packages/microsoft.aspnetcore.openapi.10.0.13.nupkg": "355d1297f4ef020f16a91a44822130d0fb14d739ce53abd44e81f9878f438fd3",
+        "bundle/packages/microsoft.extensions.configuration.10.0.0.nupkg": "32c2ec9153e9902be8bf9f835886802c2b75a9f4515f8bb6dbc787c6fa44d1d8",
+        "bundle/packages/microsoft.extensions.configuration.abstractions.10.0.0.nupkg": "19c82b9d302278257b0154f5df3c8e8dfc302fce9ef7d8a23bf32230ec4f186d",
+        "bundle/packages/microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg": "f62a1d5cfdfd62a831a269ce3cec5dfe6cdb1b425f3925f3168354de8993d8fb",
+        "bundle/packages/microsoft.extensions.options.10.0.0.nupkg": "8f930ea9948a794b71c739998f364c1b2d2f10b1ddbcfadaab04d0410355b180",
+        "bundle/packages/microsoft.extensions.primitives.10.0.0.nupkg": "0eea74f0a729b4b8e59e9379b79ffffa9e27f0551381102ae27ff0d6ceaeb3e2",
+        "bundle/packages/microsoft.openapi.2.12.2.nupkg": "3a35b85631e1c7b877b61244ca93e042f6a249ca2e055fd5c3d92b54f1b247a9",
+        "bundle/packages/orbyss.foundation.collections.core.0.3.6.nupkg": "dee43c1dc461835cce86572be7230feb7c78fbcd210d42dd06577c13c9360f70",
+        "bundle/packages/orbyss.foundation.json.0.3.6.nupkg": "03cc7d1fe0b943048e0b9ffb73c9e229e4cbecb3d145b0b4f1a613a4b7e886bd",
+        "bundle/packages/orbyss.foundation.json.aspnetcore.0.3.6.nupkg": "d954c024512e06e8d2df54ec5c41407d97f4e0dd51be6bb33acf017579bb5e32",
+        "bundle/packages/orbyss.foundation.web.openapi.0.3.6.nupkg": "1e8e8b4c7a2edc068dc44314131e7d2f73c3276af39ce79198530e42ce6cd043",
+        "bundle/packages/orbyss.foundation.web.problemdetails.0.3.6.nupkg": "1e18b0df5ec0f6b234b6af9b139ac780bc4446ab10464b5b9975cca6984addec",
+        "bundle/packages/orbyss.foundation.web.problemdetails.core.0.3.6.nupkg": "59e055660e6162903b2916916b0858329b8fe95cc4bfb2ddebcf0fb18999eaee",
+        "bundle/packages/orbyss.foundation.webdefaults.0.3.6.nupkg": "81592c0e97534f3f7b3ac8ab3d7828670971daca28535f2c5604efcf67b13eb6",
+        "bundle/packages/system.text.json.10.0.11.nupkg": "6ce27e07fce25c7c3e572f22f20824f87906eb38ee52a83f4a87ad90ea296ebc",
+        "bundle/shells.json": "32d80b32c64f28a8cf116d3aab9311dcb5327dd8de08de2f3c88059c211b0abd",
+        "command-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-1.stdout": "c543609a0cf5683e48ce376ba6ef1691b1bb37b5133f6d4250632245a098f7ee",
+        "command-10.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-10.stdout": "b0a84664484875cd68faeee72d98f6705a7056dc715dad2b6e01d8ec22ee8df4",
+        "command-11.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-11.stdout": "19993650f398bb5b2d14ca5660884e45c03f9425ab79869cb5c1d0caab99514e",
+        "command-12.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-12.stdout": "828dbc8f9729b8c2e94767c6d59b1f65470b1c5338b1dcc1bf8de77b0ed77b81",
+        "command-13.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-13.stdout": "19993650f398bb5b2d14ca5660884e45c03f9425ab79869cb5c1d0caab99514e",
+        "command-2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-2.stdout": "8e4a79363da18a0012ab3456d9c3841bdb3f5b9751faea3673f27789cb2dcaba",
+        "command-3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-3.stdout": "58b068020d6ddd932c29e5732275ba8feb2911bc781b928ed5f53e695dc4fd3f",
+        "command-4.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-4.stdout": "4109e061817cdc1962a891d31be6226849c71f44c2916725e07269723447b563",
+        "command-5.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-5.stdout": "881552d7ee5d2abef33d14a7b7e7490c7cf4dd31bb7fda1ae77675bccb5e29a7",
+        "command-6.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-6.stdout": "b8a80c3a9f16433f2fa57ebd40cbf6a24edeb54265d5ac7a4fdaaa4f16ea8f33",
+        "command-7.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-7.stdout": "b98d051a32883dfd345776abed0555a2aabd8cdacf85457e6807f38f688bf4ab",
+        "command-8.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-8.stdout": "557afc549de87d6f17d35965b29e044383736529118747b439ab0e86fbb84238",
+        "command-9.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-9.stdout": "5583b570fa809c4b05bfe6111c562f5614ce08b14b94e99ab162bf50d2960bc9",
+        "image-capture-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "image-capture-1.stdout": "bfd0be227c48b5d8468a03334c54c7ccdb3072b824f212a05cb19c33eba30b1b",
+        "image-capture-2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "image-capture-2.stdout": "0d3bbc16b87d17f6ab03a380f174eb40847b862928eea010e08e428fff3f4cde",
+        "image-capture-3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "image-capture-3.stdout": "761a6971c2497f021655194126ca81b3049cba311a837f8065a86ba7cd576da9",
+        "image-capture-4.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "image-capture-4.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "image-capture-5.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "image-capture-5.stdout": "09c8acf66a21fb4cdc8b8e5529478cd7c1a6d7e1cfe40fc8f1d9f29cd22808b8",
+        "image-capture-operations.json": "33198dbac830506916654a64c0ace32720abeb74de203339f72234002297693f",
+        "public-host-inputs.json": "1a603fa8e6ec21cfdd770865523b059c0938c4a34c7374765fc26358afd919ad",
+        "public-host-payload/.orbyss-foundation/host-native.settings.json": "14f3fa2266b5303c4848d42a937a67fb9303eaeb05b34e58be5b2157837e3a1a",
+        "public-host-payload/.orbyss-foundation/host-settings.json": "41420ef02ee64ceb1b5d30c85d8634ab8b52cc189cdce946af2d983f37c4fd44",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticConstants.cs.txt": "5af617c572571e482817af0eaa8094097066ce03363cae443f15ab9ca6fb2f25",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticLogger.cs.txt": "573885ff6fef8517d7da3233734a558acfb18aea5b6f96372b1f3d37faf4741d",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticLoggerFactory.cs.txt": "24dfc4a31933434c74785e9e9bcf315282f78582045d564b5cc2d05a609005a3",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticRedactionExtensions.cs.txt": "da9e4ff8ed0b5b5a0326716c423c7b3f67abc92a1e3073d4c512bbc3fb9fd3a0",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Diagnostics/FoundationRequestDiagnosticRedactionRegistration.cs.txt": "2aec2fb08271ba111c7f652697c5f655811d0ed00a27c2c5f82c36ae8314887e",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Diagnostics/NeutralBrowserFailureMiddleware.cs.txt": "815ff7d974d5a4f451b13529ee5de33464e3596325a79b996b02e895b19e5888",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Feed/NuplaneAssemblyProvider.cs.txt": "a9b450d527431cf6333ccbdf02c61e70a7bd199be3ff672a17ba5b7f85384e7c",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Program.cs.txt": "54f40c525323411c52a8097f5582860c335971a69d71f46e8f3ab65dc8aad964",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Shells/EagerShellActivationHostedService.cs.txt": "365cee121a2245e06f169d61c1d754e68a4e04516ae99402e48f16461ce31e04",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Shells/FoundationBootOptions.cs.txt": "5e1a1845c43f5c0f103d141edf3b39e6bad780a17a34ef0cd325c2ab521a7186",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/Transport/FoundationTransportOptions.cs.txt": "4d3cf053174973aeacd9418fe6088fac59cec7f568aaa5f17696206b986430fb",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/compiler/Microsoft.NET.Sdk.CSharp.props.txt": "f87d2992560b148e39c472da8ffb352d979bdafd6d2e7ee05aed842ad3d3e53c",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/compiler/Microsoft.NETCoreSdk.BundledVersions.props.txt": "9082008cb32243b7702f87a4c7b8729853873017e2bad59fb57842c4581c2599",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/compiler/global.json.txt": "ab4eed8da9aaee0671a10b49fe4ff1b27b3341b264f317ee88785607c0711e9a",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/metadata/vendor-settings/inputs.json.txt": "ec1514f2ef61a3fb190a03720fde7a0a112d6e95ba2c80b005852ab39b6e0329",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/metadata/vendor-settings/integration.json.txt": "42982840925637e4dc3dfe57ca73fdecd39cdf8a3db586b652302c452aea3607",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/producer/InspectSettingsSourceGraph.cs.txt": "a94b683c182b1209682251d4b7e37d6066539a551fea7902308766374c380f95",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/producer/SourceSettingsDefaults.cs.txt": "92926bf4c7eff2fda1883a8323109ed90f2f13d1dd134152f44863fd239d060f",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/producer/assemble_host_settings_metadata.py.txt": "846ea1d7094c05207ac11d01ee94ceae56d9a013ef8844f34bddf13ae17f6828",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/producer/emit_host_vendor_settings.py.txt": "a7f843dd8a8948e7a2fe0a91d8d2e8cee5a520c0195428a41b89c68a8baeaa26",
+        "public-host-payload/.orbyss-foundation/settings-sources/host/settings.source.json.txt": "578c7530cd11bea5b207cd297acbdada230c41696c6d1d21f70e13ed49b882f6",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.Abstractions/Directory.Build.props.txt": "13585498f482dca22e36d8853ea11c240c354ea7b71e4a707e871b4b2de44b2f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.Abstractions/Features/ISharedAssemblySelector.cs.txt": "f909697f6d86dac3cf440675c44f796906d3a2358ce41fcbeab3ec7b030f4633",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.Abstractions/LICENSE.txt": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.Abstractions/ShellSettings.cs.txt": "a7ae14b61219308e216bdefcd5e01ebf4d1a23ca61dd00f1aa73ce01f20725fe",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.Abstractions/ShellSettingsExtensions.cs.txt": "cb58626729ec6303d35cadda72b26f0c9722076c1f64b1009b91b2288d68dab7",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore.Abstractions/Directory.Build.props.txt": "13585498f482dca22e36d8853ea11c240c354ea7b71e4a707e871b4b2de44b2f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore.Abstractions/LICENSE.txt": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore.Abstractions/Routing/ShellRouteCriteria.cs.txt": "d6653507037ff6b81c4f2796cb67370c4303b8235da4e5f52ff392b6cc6c4a28",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore.Abstractions/Routing/ShellRoutingMode.cs.txt": "5c2da1ed48856362d26ff73a2eef95f7a7b1bddd606e575654ebf11c496e92ac",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Configuration/CShellsBuilderExtensions.cs.txt": "4d9cd127d5746e042fdd2196df266c00f849387d269e874cc592da9e7ca7de06",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Directory.Build.props.txt": "13585498f482dca22e36d8853ea11c240c354ea7b71e4a707e871b4b2de44b2f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/LICENSE.txt": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Notifications/ShellEndpointRegistrationHandler.cs.txt": "6f3cd589f849d076ad5d9a691916718654f92d161e54f9a1f780f37e8252985e",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Resolution/WebRoutingShellResolver.cs.txt": "f521016f064737052d6786512a865c71a863ca661bdff8e1e112686f0159e900",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Resolution/WebRoutingShellResolverOptions.cs.txt": "13882193fc790c1c5874fb04bf8403c81ae0705d77b7f10a398ce6d0b109ce95",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Routing/DefaultShellRouteIndex.cs.txt": "87119a7aa4570a27dd488ba9d9996afc170042036af1ed456d12f421bc73147c",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/Routing/ShellRouteIndexBuilder.cs.txt": "a913304393adc0f5d8c70549b8eb7c16d33277877cf63e95b58c031f76d1b1dd",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells.AspNetCore/WebRoutingShellOptions.cs.txt": "2a2ce850aa8333e0157137521bc7cb246b25c83cb0b8c3277eab2f0fe3f416ae",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/Configuration/CShellsOptions.cs.txt": "e1d5749e10581e0edee2b94eb0f967411654125327af033e2a8c494d17d8cd92",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/Configuration/ConfigurationHelper.cs.txt": "9af667700e9cef984a99288e7c645dfe4a4aeecc4c08d525e26927b0a9597859",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/Configuration/FeatureEntry.cs.txt": "9aaf0579446ee839aa1840c5be6714c63ea4531abddcac74e2fcc904ab69750e",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/Configuration/ShellConfig.cs.txt": "45af36189e765e5503df3f50b32c48257bcd3d98c97858cc196ecc000d876659",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/DependencyInjection/CShellsBuilderExtensions.cs.txt": "194073a11dd778e927720b1100ee431cabd34c1811963a6b5a8db01a3c777e79",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/Directory.Build.props.txt": "13585498f482dca22e36d8853ea11c240c354ea7b71e4a707e871b4b2de44b2f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/Features/SharedAssemblySelector.cs.txt": "65ef54a1cd4c9d1ad9312f14aeb172282d806e389598594eaa8cca7c5577483c",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/LICENSE.txt": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/Lifecycle/Blueprints/ConfigurationShellBlueprint.cs.txt": "a344e44fa68a5c3d40a3f381c20b7ac2b5f09009ff5262dfc7c7cf6144d072e2",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/CShells/Lifecycle/Providers/ConfigurationShellBlueprintProvider.cs.txt": "053b2349acfa70f2053c692da757322ff184ec2678c331082e68828702d5d11e",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Abstractions/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Abstractions/FeedDefinition.cs.txt": "51c7b4c2a82456c3625fe8505a825e1c98e38296192896927e2a51624a95f080",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Abstractions/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/PackageLoadMode.cs.txt": "37e87ee108679c3c49ea0b63c52c5eba7e67b69d2ccc56a03ca770617583ff28",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/PackageLoadModeSelectionPolicy.cs.txt": "29747ac60de9b32b40cb6fff9cf1861da85de2b7af7085a58ad5d838a273e5b4",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading.Abstractions/SharedAssemblyIdentity.cs.txt": "a039911318c977e461ad6aa55765cec09979048ab3bfdb8c3e9ed8e4437cbeec",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading/Builder/NuplaneBuilderLoadingExtensions.cs.txt": "2b33557badd4894fe1b51a09864d993938e2a06c2eff6b8ebd978ef694b7b9d2",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading/LoadingOptions.cs.txt": "dfc2e1deb3bcbe1b2b999bbb79871da7412d6d3f825db7c2c07983956b4e9676",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading/LoadingOptionsConfigurationBinder.cs.txt": "8a545814a1bb0f2ab5d08b6d732078efbeba4bb56445fd3df016e4be0c4a39c5",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading/LoadingOptionsValidator.cs.txt": "d59e6f9894a49862cc5e41227a47f5b52217457104da9cbc6bd332f86d910bda",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading/PackageLoadModeOverrideOptions.cs.txt": "a2293c3d33314ed79bc9a1d640566a46ef6fce7c6fbbd440d2ac7a312a021bac",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Loading/Registration/LoadingRegistrationServices.cs.txt": "deb7a68a204af811feb19ebceb47c70832f7fc078829c4a1cdd259a42fe70288",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/Builder/NuplaneDirectoryFeedOptions.cs.txt": "15588a27d283fde053798f5d8600a73f82a89fd5d03fa3046d5fca06e9055907",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/Configuration/NuplaneDirectoryFeedSetupConfiguration.cs.txt": "83447038e89cdc2ab8e2b7404c6794bc37ee1e9b95869618536dd21dc302b620",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/DirectorySourceOptions.cs.txt": "5c98b426ed017814290cfcd9e42d3bdca0389c0cdb1b4094d2375cabb333ddac",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane.Sources.Directory/Registration/DirectorySourceRegistrationServices.cs.txt": "c3d9e7e437205607599d6c14268c2cba0409969e143cb98559a955bbb8b26ec8",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Builder/NuplaneBuilder.cs.txt": "421a7e2c3bfc971862fdd80a13aeafe52d3846d7a4da7b005e74ad4f26d5e64a",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Directory.Build.props.txt": "f2b70ee7c746112d345d279d2b21c149e35124eeb7ea6f88b5fd0ab39810cdbf",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/FeedCredentialOptionsValidator.cs.txt": "ca7e0f6f3c47e220a12599af0613fa11b3166322879a21a78517c5ff78f7ef6d",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/FeedResolutionOptions.cs.txt": "346ad30540a68f4e32b29e5e769a810729185fefc2d188829ce40f2e832585ef",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/FeedResolutionOptionsValidator.cs.txt": "f807df84f21cd7fc1e819b6abab46c475d2eda1bdf0f620aaaf8de696e19d2b7",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/FeedResolutionPolicyMode.cs.txt": "811b84b6ac81802e58eb4e09dbe235aa768f01c601c8e420f96645d51d85a44c",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Configuration/RemoteFallbackMode.cs.txt": "a5355a2259c68c71a308746e94d32b86422643756c7949e3ba64db0ccaa152bb",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/DirectoryFeedRole.cs.txt": "4a0e6d9615d7f0640c0344d6f1516dedfd45d6dd56c3a9dbcce86e712f29573d",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneDirectoryFeedSetupOptions.cs.txt": "073aa37f0de7149a48210e7409a09386a57640c4d104260ed8596375ca3edb53",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneFeedSetupConfiguration.cs.txt": "fabae0473ae177b51c940377b31baf9222ba5f4f4d5b1a4219b6864710f3d10d",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneFeedSetupDeclaration.cs.txt": "5d36741c1b4979ae30024bcbfc8ec287e9ff2abc43c9d8722a20b345eab7bad9",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneFeedSetupDeclarationReader.cs.txt": "c1883e23751c45770f6aee2240afb8036dd95fc9e2ff4ffcebaa9c4e9a2cce52",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Feeds/Setup/NuplaneFeedSetupOptions.cs.txt": "5befff0912370df8e8e7329c922d4736fb8ac770b2eae516ca05a0ac5f5aa537",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Hosting/NuplaneStartupHostedService.cs.txt": "92268c82fdc6934e26fc86399a83682e4e65bcab9d66af522f17e3451a4ea56c",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/LICENSE.txt": "0b984d4125bdf7b7852f858e6e8bd66704ed3d501527f1dc3de25f8eabd69a4f",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/NuplaneServiceCollectionExtensions.cs.txt": "0cf299de240a24401ece8d6a3864b0ed880540ca7039a15f863614d5a55636e7",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Configuration/ReconciliationOptions.cs.txt": "40aa6a9b71931552b2d82610de48144a976c90174b211393912b05175f607173",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Configuration/StartupFailurePolicy.cs.txt": "24e5570e7b3ea451e2337bd6dd9c9b89458dd77c02195c575567f14f75258eba",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Convergence/ConvergenceOptions.cs.txt": "27fb6ddbc68adde169df88383cc303a4e31bb78e691712d5c074fbe980dd0b05",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/LockFile/LockFileMode.cs.txt": "00e61c2dfeea71fdc6f0d061ab2902a19bf78a43a4cb332174607b8f4598549b",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/LockFile/LockFileOptions.cs.txt": "db9f2dd4a78036e40b74fda405de1ed4b7a3b6e8a7946130bd0a152da66c4159",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Validation/ConvergenceOptionsValidator.cs.txt": "8a84b941d73c5a08c2874d68cb177490f92944e2f02468acb807734cf1b3c75a",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Validation/LockFileOptionsValidator.cs.txt": "e17980371a48949b173b56108cf9775c4ffdcf96baf8df903d03c9cefb29f93c",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Reconciliation/Validation/ReconciliationOptionsValidator.cs.txt": "3f5e37c08f4da4e6ede56f0c8abf1606b88389c69b7d75df6f65bd63bbc09396",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Registration/NuplaneOptionsRegistrationServices.cs.txt": "d81f1140561e9dd1a09b9b9feab20b4f75e4932a6b575b91c30279197d07ab25",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Registration/NuplaneRuntimeRegistrationServices.cs.txt": "9541dd9cfcd70798ad14f70ae0b036e4246cefa1e775912bed11942f72f27a32",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Registration/NuplaneSetupConfigurationServices.cs.txt": "fb043044c0bddb287fb52c66ff86790f62048dd07cd050f386ed703f8ace043c",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Setup/NuplaneSetupOptions.cs.txt": "b8d7528cf7a6b1ee9d4812679238a1ce8cf818da28e8e9bb5e6a99fa98510cee",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Setup/NuplaneSetupOptionsValidator.cs.txt": "6639a37644101acea063a7904160709eabbcfb6105016b9dd624953f71e2c3dc",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Sources/ManifestOptions.cs.txt": "16a924292e17ff602695763a371983f43eaec87bd84ac874232de6e59274a06d",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Store/Cleanup/CleanupExecutionMode.cs.txt": "24caf61ccd2ffd29ebeb588346d525d6f66c286599c376df21dd712d8de62c13",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Store/Cleanup/CleanupPolicyOptions.cs.txt": "d3fb5a84bb21a50536f7de9055f08176bee634af411d18666635ac82b27768e2",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Store/State/EffectiveStorePersistenceSettings.cs.txt": "8a050f0796e2ad4a863fb019e0483e56016981c2220ca9ac2aa64b308ad51a8c",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Store/State/StoreRegistryOptions.cs.txt": "1574e79b65401b76ceb852bbb0fdf626269bb07c23ed7e152c2a6a2278895be4",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Store/State/StoreRegistryOptionsValidator.cs.txt": "3d45de29835dffcfc5b26be356e0f9919b76759fdea55750b6dfdcd926e33a62",
+        "public-host-payload/.orbyss-foundation/settings-sources/vendor/Nuplane/Store/Validation/CleanupPolicyOptionsValidator.cs.txt": "9b168872d1a1182db1606410b649ee3f4d43b6a0085a10c4c1f034e5a306c555",
+        "public-host-payload/CShells.Abstractions.dll": "dbcf0e5d572791124ac582e3a10519d80f01b9f2e4228cffadb61171f796b5a0",
+        "public-host-payload/CShells.AspNetCore.Abstractions.dll": "3b0062c2ad98dc96471a1cb18527855c4a06eb7220cda44c48e89e13cb816084",
+        "public-host-payload/CShells.AspNetCore.dll": "88d7fdcb2776870c9934b0cec9a2bd29e74599c96436f31b99d191adb23d44c6",
+        "public-host-payload/CShells.dll": "b0afda775aa0c330f982856ebfaeb461c7ea1c5d201998351ba7ca105f69ebc0",
+        "public-host-payload/JetBrains.Annotations.dll": "8f2c837af3f4f61b1726a2e67eafcf5bae23debd9e1de425bb5ce1d4837508d6",
+        "public-host-payload/Microsoft.Extensions.Compliance.Abstractions.dll": "0e563bd78c48881463abda90b94fa1cd37cd55a1f0658eb26125727fbff32a88",
+        "public-host-payload/Microsoft.Extensions.DependencyModel.dll": "76f6e973e2dcb09a893745f4fb730863d55298e9485cc96e29b124a743ca795d",
+        "public-host-payload/Microsoft.Extensions.Diagnostics.ExceptionSummarization.dll": "d237bc38bf6ae1d83a8094ca9358b8634383a6a51d7310c14e23573bc8aa4388",
+        "public-host-payload/Microsoft.Extensions.Resilience.dll": "ed4482d3d462a400ed8c6e17dee9339e55757e388336c29f7e4d7d6e20d8852a",
+        "public-host-payload/Microsoft.Extensions.Telemetry.Abstractions.dll": "b509bb9f7a8c0bcc6b15f2144147f262e8bb619c2c147e0fa52a2e7bb1904cc5",
+        "public-host-payload/Newtonsoft.Json.dll": "22c649f75fce5be7c7ccda8880473b634ef69ecf33f5d1ab8ad892caf47d5a07",
+        "public-host-payload/NuGet.Common.dll": "4134339735c6268fa0531fc99d50912477a4e361e0b5bf585815b5c0d52f1cd9",
+        "public-host-payload/NuGet.Configuration.dll": "50e8989369403fb4e014d06369decb8be8be4e737ce374a05a135091a506ab2b",
+        "public-host-payload/NuGet.Frameworks.dll": "b85df18649cd9261dac5603a712b986c18c8d9b9f3000fea57ffae6f9d591cbe",
+        "public-host-payload/NuGet.Packaging.dll": "825f825fe271585a2cce2b1890a445e9fd27b122bc034d6febdb4231b1d89d4b",
+        "public-host-payload/NuGet.Protocol.dll": "1185a5658e886f4476a4b14eb2ac67f62783cd1e304a418794d3d3fed899e5c2",
+        "public-host-payload/NuGet.Resolver.dll": "9fca0b3617ccd63919ae9cb64d8810e45c89e04436fdcae380d36610dd577321",
+        "public-host-payload/NuGet.Versioning.dll": "83a2b7f97cb9ab52a4a75ab7948c123f6049b421c4b0f09552c83d5522cb1255",
+        "public-host-payload/Nuplane.Abstractions.dll": "64d89c8b0a3718675e65763f2ed43e51c952df017d76be836f94bc1a1dee47f9",
+        "public-host-payload/Nuplane.Loading.Abstractions.dll": "6a8a668eb29633e53e28d6516f8c8ba61df553e7b8f1c19bd9580be8858463e3",
+        "public-host-payload/Nuplane.Loading.dll": "9f366e3a69b29e5f38a175f34917ad4732caeb3163abca6f06d021682a2b3888",
+        "public-host-payload/Nuplane.Sources.Directory.dll": "d4492157c35a81de4e1953e36d2eefe7e8da8e891ee40a256282f92446e33a80",
+        "public-host-payload/Nuplane.dll": "70a9f3374e2befc4c8714c96f31357193092a85c2a1a2370365a5b94ebe100e7",
+        "public-host-payload/Orbyss.Foundation.Host.deps.json": "ff5c67b7cabdc3cfab64377c5d05adfcc8bbea19e9d4f2425b0ed74981f9e0d7",
+        "public-host-payload/Orbyss.Foundation.Host.dll": "700cad876c268514091aaa1efe1550b83d25f03f0ef2abba36857d4e969e062e",
+        "public-host-payload/Orbyss.Foundation.Host.pdb": "395e3d4c30cb74cdfb7e71d0f34efa164679475e1ab26114d73356575dc431cc",
+        "public-host-payload/Orbyss.Foundation.Host.runtimeconfig.json": "f71b4c67b5233a19be9131b5fe4b45fe7829997cf2b42e762d6baa037da93863",
+        "public-host-payload/Orbyss.Foundation.Host.staticwebassets.endpoints.json": "c1686417e8d5c31bba969f12b6f3d2b35e6609adb5ca42f212261a3a02771aac",
+        "public-host-payload/Orbyss.Foundation.Host.xml": "58eb99d2551512b852e27c2a4c84b1a348b43bd4f56fabd2b80d5a9e57fcf900",
+        "public-host-payload/Polly.Core.dll": "7d5bf167f967457370f5d7d0a209e07673fa92a3304961b74dd9e27cd432db29",
+        "public-host-payload/Polly.Extensions.dll": "620afd797c79f4f0eeacb1d4954620bc18d4c5e0b3a2531b363ee4ef2d7e22a9",
+        "public-host-payload/Polly.RateLimiting.dll": "afe3042cd4062438857d42880623845f32575375f460fd1ac07f705ea0211804",
+        "public-host-payload/System.Security.Cryptography.ProtectedData.dll": "81a0385cf1fed22f3153789d4ae1fee75719f23e72cd543edba1af48926fbf24",
+        "public-host-payload/appsettings.json": "5363ca561f5f7f962ee7e34ef9cecf3f20841c0cea4f2a65c41c92ab190cd521",
+        "public-host-payload/hostsettings.json": "cd3237f3a473e944e7527e30e5427d7e9416f1026c03c225f076db26bd7a512a",
+        "public-host-payload/runtimes/osx-arm64/native/libnuplane_store_native.dylib": "1bc00a1c290354386672ba7de29d53fb6ca37d1f730072672693a558e2406997",
+        "public-host-payload/runtimes/osx-x64/native/libnuplane_store_native.dylib": "1bc00a1c290354386672ba7de29d53fb6ca37d1f730072672693a558e2406997",
+        "public-host-payload/runtimes/win/lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll": "1c73a1b016cfc8d497106eec08af07616f2f4c07e4ddc807c9f120ceacd0a53a",
+        "public-host-payload/shells.json": "6e40927e5fdb2988767c0ddddaf5374255e3e1cc591d439285ff678d5651cac7",
+        "public-host-payload/web.config": "4d28a60f077b77a5b24ae68b293ac3a2bcbb6316681e076133426da9c2720ed3",
+        "runtime-archive-inputs/cshells.abstractions.0.0.31.nupkg": "bcedbe8df744b088652e84d9355ccf35cc403bb0bd8951fdb5965d28702b1999",
+        "runtime-archive-inputs/cshells.abstractions.0.0.31.nupkg.metadata.json": "ec955811a81a3465327c04d064244895d214cc55195bf0b955abf610241d1de4",
+        "runtime-archive-inputs/cshells.aspnetcore.abstractions.0.0.31.nupkg": "7e08103b6cb4f32cecfbb6a8bb9e62ed41961cbeb69b32b0aab3b83d181e95ae",
+        "runtime-archive-inputs/cshells.aspnetcore.abstractions.0.0.31.nupkg.metadata.json": "851c76087d726fac55afb0b9feeafd7b27860e71be475c451b20de93691c1192",
+        "runtime-archive-inputs/jetbrains.annotations.2025.2.4.nupkg": "609a52efb507f6d4c44c2287af933e6d039ac7504b3c5a88aff8be28b37db442",
+        "runtime-archive-inputs/microsoft.aspnetcore.openapi.10.0.13.nupkg": "355d1297f4ef020f16a91a44822130d0fb14d739ce53abd44e81f9878f438fd3",
+        "runtime-archive-inputs/microsoft.extensions.configuration.10.0.0.nupkg": "32c2ec9153e9902be8bf9f835886802c2b75a9f4515f8bb6dbc787c6fa44d1d8",
+        "runtime-archive-inputs/microsoft.extensions.configuration.abstractions.10.0.0.nupkg": "19c82b9d302278257b0154f5df3c8e8dfc302fce9ef7d8a23bf32230ec4f186d",
+        "runtime-archive-inputs/microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg": "f62a1d5cfdfd62a831a269ce3cec5dfe6cdb1b425f3925f3168354de8993d8fb",
+        "runtime-archive-inputs/microsoft.extensions.options.10.0.0.nupkg": "8f930ea9948a794b71c739998f364c1b2d2f10b1ddbcfadaab04d0410355b180",
+        "runtime-archive-inputs/microsoft.extensions.primitives.10.0.0.nupkg": "0eea74f0a729b4b8e59e9379b79ffffa9e27f0551381102ae27ff0d6ceaeb3e2",
+        "runtime-archive-inputs/microsoft.openapi.2.12.2.nupkg": "3a35b85631e1c7b877b61244ca93e042f6a249ca2e055fd5c3d92b54f1b247a9",
+        "runtime-archive-inputs/orbyss.foundation.collections.core.0.3.6.nupkg": "dee43c1dc461835cce86572be7230feb7c78fbcd210d42dd06577c13c9360f70",
+        "runtime-archive-inputs/orbyss.foundation.json.0.3.6.nupkg": "03cc7d1fe0b943048e0b9ffb73c9e229e4cbecb3d145b0b4f1a613a4b7e886bd",
+        "runtime-archive-inputs/orbyss.foundation.json.aspnetcore.0.3.6.nupkg": "d954c024512e06e8d2df54ec5c41407d97f4e0dd51be6bb33acf017579bb5e32",
+        "runtime-archive-inputs/orbyss.foundation.web.openapi.0.3.6.nupkg": "1e8e8b4c7a2edc068dc44314131e7d2f73c3276af39ce79198530e42ce6cd043",
+        "runtime-archive-inputs/orbyss.foundation.web.problemdetails.0.3.6.nupkg": "1e18b0df5ec0f6b234b6af9b139ac780bc4446ab10464b5b9975cca6984addec",
+        "runtime-archive-inputs/orbyss.foundation.web.problemdetails.core.0.3.6.nupkg": "59e055660e6162903b2916916b0858329b8fe95cc4bfb2ddebcf0fb18999eaee",
+        "runtime-archive-inputs/orbyss.foundation.webdefaults.0.3.6.nupkg": "81592c0e97534f3f7b3ac8ab3d7828670971daca28535f2c5604efcf67b13eb6",
+        "runtime-archive-inputs/system.text.json.10.0.11.nupkg": "6ce27e07fce25c7c3e572f22f20824f87906eb38ee52a83f4a87ad90ea296ebc",
+        "runtime-cleanup-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "runtime-cleanup-1.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "runtime-cleanup-2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "runtime-cleanup-2.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "runtime-cleanup.json": "0d7131257896917ec4d0510aa1f24e3501b261ba6917d7838d9090b4fdfc5605",
+        "runtime-inputs.json": "bed09e889143482e9e5cc734bf7d6debbdeaaaee58e28db741821d3062cf32ce",
+        "runtime-package-inputs.json": "e25ba8b103f4668ed7125409db82ced1c879912bb7c5489699fefc0bd31c02ec",
+        "runtime-process-result.json": "5bcda7e9d7cc2d7853b4416adcc105dbbee4ca13d548ba2923c0fd6d7f286e29",
+        "runtime-shared-bindings.json": "bf1bcb9fb3d1c16a38a59b86203aedd908f314a5d03af450ee058d2ba2f9e22e",
+        "runtime.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "runtime.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "schemaVersion": 1,
+      "sharedPackages": [
+        {
+          "archive": "cshells.abstractions.0.0.31.nupkg",
+          "assemblyPath": "lib/net10.0/CShells.Abstractions.dll",
+          "assemblySha256": "dbcf0e5d572791124ac582e3a10519d80f01b9f2e4228cffadb61171f796b5a0",
+          "id": "CShells.Abstractions/0.0.31",
+          "nativeProvenance": "cshells.abstractions.0.0.31.nupkg.metadata.json",
+          "nativeProvenanceSha256": "ec955811a81a3465327c04d064244895d214cc55195bf0b955abf610241d1de4",
+          "nativeSource": "https://f.feedz.io/valence-works/cshells/nuget/index.json",
+          "omittedRuntimeRoot": true,
+          "sha256": "bcedbe8df744b088652e84d9355ccf35cc403bb0bd8951fdb5965d28702b1999"
+        },
+        {
+          "archive": "cshells.aspnetcore.abstractions.0.0.31.nupkg",
+          "assemblyPath": "lib/net10.0/CShells.AspNetCore.Abstractions.dll",
+          "assemblySha256": "3b0062c2ad98dc96471a1cb18527855c4a06eb7220cda44c48e89e13cb816084",
+          "id": "CShells.AspNetCore.Abstractions/0.0.31",
+          "nativeProvenance": "cshells.aspnetcore.abstractions.0.0.31.nupkg.metadata.json",
+          "nativeProvenanceSha256": "851c76087d726fac55afb0b9feeafd7b27860e71be475c451b20de93691c1192",
+          "nativeSource": "https://f.feedz.io/valence-works/cshells/nuget/index.json",
+          "omittedRuntimeRoot": true,
+          "sha256": "7e08103b6cb4f32cecfbb6a8bb9e62ed41961cbeb69b32b0aab3b83d181e95ae"
+        }
+      ]
+    },
+    "resultsSha256": "93d1e4efefedbedf345edf67d4b1578ce1f9a66d25e3fdb95a1fbe55f5d71fd2",
+    "runtimePackageInputsSha256": "e25ba8b103f4668ed7125409db82ced1c879912bb7c5489699fefc0bd31c02ec",
+    "runtimeSharedBindingsSha256": "bf1bcb9fb3d1c16a38a59b86203aedd908f314a5d03af450ee058d2ba2f9e22e",
+    "satisfied": true
+  }
+}

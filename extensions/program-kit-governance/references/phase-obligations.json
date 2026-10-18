@@ -5570,6 +5570,9 @@
         "checks": [
           "tests/validate_default_dependency_profile.py",
           "tests/validate_normal_development.py"
+        ],
+        "recipes": [
+          "extensions/program-kit-dotnet/references/examples/typed-operation/README.md"
         ]
       }
     },

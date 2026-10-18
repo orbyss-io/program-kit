@@ -149,6 +149,11 @@ def recover_transactions(target: Path) -> list[str]:
 
 def apply_plan(target: Path, actions: list[dict], next_state: bytes) -> str:
     target = filesystem_root(target)
+    # Optional caller preconditions bind an inspected creation/transformation to
+    # the actual current bytes. Check the entire set before staging any writes.
+    for action in actions:
+        if 'expectedHash' in action and _current_hash(target / safe_relative(action['path'])) != action['expectedHash']:
+            raise ReconciliationError('Reconciliation inputs changed; source preserved: ' + action['path'])
     transaction_id = uuid.uuid4().hex
     transaction = target / ".program-kit/transactions" / transaction_id
     stage_root = transaction / "stage"
@@ -162,6 +167,8 @@ def apply_plan(target: Path, actions: list[dict], next_state: bytes) -> str:
         relative = safe_relative(action["path"])
         destination = target / relative
         original = destination.read_bytes() if destination.is_file() else None
+        if 'expectedHash' in action and (sha256_bytes(original) if original is not None else None) != action['expectedHash']:
+            raise ReconciliationError('Reconciliation inputs changed during staging; source preserved: ' + relative)
         desired = action.get("content")
         if desired is not None and not isinstance(desired, bytes):
             raise ReconciliationError(f"Invalid desired bytes for {relative}")
@@ -205,13 +212,23 @@ def apply_plan(target: Path, actions: list[dict], next_state: bytes) -> str:
         for index, action in enumerate(serialized_actions, 1):
             relative = action["path"]
             destination = target / relative
+            if _current_hash(destination) != action['originalHash']:
+                raise ReconciliationError('Reconciliation destination changed during commit; source preserved: ' + relative)
             if action["kind"] == "remove":
                 if destination.is_file():
                     destination.unlink()
+            elif action['kind'] == 'create':
+                # Source creation has no replacement window: an intervening
+                # authored file causes exclusive creation to fail and rollback.
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                with destination.open('xb') as output:
+                    output.write((stage_root / relative).read_bytes())
             else:
                 atomic_write(destination, (stage_root / relative).read_bytes(), transaction_id)
             if fail_after == index:
                 raise OSError(f"Injected reconciliation interruption after action {index}")
+        if _current_hash(state_path) != journal['oldStateHash']:
+            raise ReconciliationError('Reconciliation ownership state changed during commit; preserve and review it before retrying')
         atomic_write(state_path, next_state, transaction_id)
         journal["status"] = "committed"
         write_journal(journal_path, journal)

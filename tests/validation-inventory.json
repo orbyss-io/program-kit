@@ -155,7 +155,8 @@
         "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
         "extensions/program-kit-dotnet/templates/dotnet/template.yml",
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
-        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
+        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        "tests/identity_projection_cases.py"
       ],
       "dependsOn": [
         "profiles"
@@ -167,7 +168,8 @@
         "extensions/program-kit-building-blocks/references/dependency-profile*",
         "extensions/program-kit-building-blocks/references/dependency-qualification*",
         "scripts/update_dependency_profiles.py",
-        "scripts/build_dependency_qualification.py"
+        "scripts/build_dependency_qualification.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json"
       ],
       "dependsOn": []
     },
@@ -224,7 +226,9 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/oasdiff*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/*client*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/label*",
-        "extensions/program-kit-building-blocks/scripts/wire_capabilities.py"
+        "extensions/program-kit-building-blocks/scripts/wire_capabilities.py",
+        "extensions/program-kit-dotnet/references/examples/typed-operation/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json"
       ],
       "dependsOn": [
         "profiles",
@@ -330,6 +334,18 @@
       ],
       "dependsOn": [
         "schema"
+      ]
+    },
+    "coding-realization": {
+      "inputs": [
+        "extensions/program-kit-governance/scripts/coding_scaffold.py",
+        "extensions/program-kit-dotnet/scripts/typed_operation.py",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.coding-scaffold.md",
+        "extensions/program-kit-dotnet/references/examples/typed-operation/**"
+      ],
+      "dependsOn": [
+        "knowledge",
+        "architecture"
       ]
     }
   },
@@ -5435,6 +5451,70 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_scaffolding",
+      "purpose": "Finite qualified realization, emitted C# readability with independent syntax negatives, source/ownership preconditions, consumer customization preservation and transactional negatives. No workers/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_scaffolding.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-realization"
+      ],
+      "inputs": [
+        "tests/validate_coding_scaffolding.py",
+        "tests/csharp_readability_check.py",
+        "tests/fixtures/csharp-readability/**",
+        "tests/coding_label_check.py",
+        "tests/scaffold_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_scaffold_review",
+      "purpose": "Retained installed F4 fixture: qualified selection, inspectable source creation, independent actual application positives/negatives and manual edit/completion boundaries.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/scaffold_review_fixture.py",
+        "--review"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-realization"
+      ],
+      "inputs": [
+        "tests/scaffold_review_fixture.py",
+        "tests/coding_label_check.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 300,
+      "timeoutSeconds": 600,
+      "manualOnly": true,
+      "reviewInputs": [
+        "tests/scaffold_review_fixture.py"
+      ]
     }
   ]
 }

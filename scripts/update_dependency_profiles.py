@@ -225,7 +225,34 @@ def publisher_knowledge(directory,native,profile,host):
     return reference(manifest,REGISTRY)
 
 
-def qualify(directory,engines):
+def retain_browser(profile, identity, reason):
+    """Explicit maintainer disposition for unchanged released npm artifacts only."""
+    import re
+    if not reason or not reason.strip():
+        raise ValueError('Retaining unchanged browser evidence requires an explicit reason')
+    index=blocks.load_json(REGISTRY/'index.json'); entry=index['profiles'][identity]
+    proof=REGISTRY/entry['evidence']['path']
+    revision=subprocess.check_output(['git','log','-1','--format=%H','--',str(proof.relative_to(ROOT))],cwd=ROOT,text=True).strip()
+    if not re.fullmatch('[a-f0-9]{40}',revision): raise ValueError('Historical browser source revision unavailable')
+    paths=[ROOT/'tests/validate_published_forms_browser.py',
+           ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc',
+           ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/.npm-version']
+    paths += [p for p in (ROOT/'tests/fixtures/knowledge-application/forms-browser-packages').rglob('*') if p.is_file()]
+    hashes={}
+    for path in paths:
+        relative=path.relative_to(ROOT).as_posix()
+        before=subprocess.check_output(['git','show',revision+':'+relative],cwd=ROOT)
+        normalized=lambda data:data.replace(b'\r\n',b'\n')
+        if normalized(before)!=normalized(path.read_bytes()): raise ValueError('Browser fixture/toolchain input changed; fresh qualification required: '+relative)
+        hashes[relative]=hashlib.sha256(normalized(before)).hexdigest()
+    summary=copy.deepcopy(blocks.load_json(proof)['browserIntegration'])
+    summary['retainedFrom']={'profileId':identity,'evidence':entry['evidence'],'reason':reason,
+                             'inputRevision':revision,'inputs':hashes}
+    prior=blocks.retained_browser_evidence(REGISTRY,profile,summary)
+    return summary,[a for a in prior['availableArtifacts'] if a['packageKey'].startswith('npm:')]
+
+
+def qualify(directory,engines,retained_profile=None,reason=None,native_evidence=None,host_evidence=None):
     import validate_default_dependency_profile as native_qualifier
     from build_dependency_qualification import build
     import public_availability
@@ -238,21 +265,38 @@ def qualify(directory,engines):
         command('native lock',[sys.executable,'tests/validate_default_dependency_profile.py','--profile',str(profile_path),'--catalog',str(target_path),'--prepare-lock',str(lock)])
     snapshot={**state['snapshot'],'path':(REGISTRY/state['snapshot']['path']).relative_to(ROOT).as_posix(),
               'base':reference(REGISTRY/state['snapshot']['base']['path'])}
-    recipe=directory/('recipe-'+uuid.uuid4().hex[:8]+'.json')
-    write(recipe,{'schemaVersion':1,'id':'qualification-'+uuid.uuid4().hex[:8],
-                  'profile':{**reference(profile_path),'id':profile['id']},'families':profile['families'],
-                  'catalogSnapshot':snapshot,'nativeLock':reference(lock,normalized=True),
-                  'executor':reference(ROOT/'tests/validate_default_dependency_profile.py',normalized=True)})
-    native=ROOT/'artifacts/profile-update-native'/uuid.uuid4().hex[:8]
-    native_qualifier.qualify(profile_path,native,catalog_path=target_path,native_lock=lock,qualification_recipe=recipe)
-    browser_root=ROOT/'artifacts/published-forms-browser'; before=set(browser_root.glob('*'))
-    command('browser',[sys.executable,'tests/validate_published_forms_browser.py','--profile',str(profile_path),'--catalog',str(target_path),'--engines='+engines])
-    browser=new_result(browser_root,before,'qualification-result.json')
-    host_root=ROOT/'artifacts/bootstrap-runtime'; before=set(host_root.glob('*'))
-    command('host',[sys.executable,'tests/validate_bootstrap_runtime.py','--profile',str(profile_path),'--catalog',str(target_path)])
-    host=new_result(host_root,before,'qualification-result.json')
-    available=directory/'availability.json'; write(available,{'artifacts':public_availability.verify(catalog,sorted(catalog['packages']))})
-    receipt=build(profile_path,native,browser,available,host,catalog_path=target_path,native_lock=lock,qualification_recipe=recipe)
+    if native_evidence:
+        native=native_evidence.resolve()
+        if not native.is_relative_to(ROOT/'artifacts/profile-update-native'): raise ValueError('Select explicit owned native profile evidence')
+        digest=blocks.load_json(native/'qualification.json')['source']['qualificationRecipeSha256']
+        matches=[p for p in directory.glob('recipe-*.json') if blocks.raw_sha256(p)==digest]
+        if len(matches)!=1: raise ValueError('Retained native evidence has no exact candidate recipe')
+        recipe=matches[0]
+    else:
+        recipe=directory/('recipe-'+uuid.uuid4().hex[:8]+'.json')
+        write(recipe,{'schemaVersion':1,'id':'qualification-'+uuid.uuid4().hex[:8],
+                      'profile':{**reference(profile_path),'id':profile['id']},'families':profile['families'],
+                      'catalogSnapshot':snapshot,'nativeLock':reference(lock,normalized=True),
+                      'executor':reference(ROOT/'tests/validate_default_dependency_profile.py',normalized=True)})
+        native=ROOT/'artifacts/profile-update-native'/uuid.uuid4().hex[:8]
+        native_qualifier.qualify(profile_path,native,catalog_path=target_path,native_lock=lock,qualification_recipe=recipe)
+    retained=None; historical_npm=[]; browser=None
+    if retained_profile:
+        retained,historical_npm=retain_browser(profile,retained_profile,reason)
+    else:
+        browser_root=ROOT/'artifacts/published-forms-browser'; before=set(browser_root.glob('*'))
+        command('browser',[sys.executable,'tests/validate_published_forms_browser.py','--profile',str(profile_path),'--catalog',str(target_path),'--engines='+engines])
+        browser=new_result(browser_root,before,'qualification-result.json')
+    if host_evidence:
+        host=host_evidence.resolve()
+        if not host.is_relative_to(ROOT/'artifacts/bootstrap-runtime'): raise ValueError('Select explicit owned Host profile evidence')
+    else:
+        host_root=ROOT/'artifacts/bootstrap-runtime'; before=set(host_root.glob('*'))
+        command('host',[sys.executable,'tests/validate_bootstrap_runtime.py','--profile',str(profile_path),'--catalog',str(target_path)])
+        host=new_result(host_root,before,'qualification-result.json')
+    keys=sorted(k for k in catalog['packages'] if not retained or not k.startswith('npm:'))
+    available=directory/'availability.json'; write(available,{'artifacts':public_availability.verify(catalog,keys)+historical_npm})
+    receipt=build(profile_path,native,browser,available,host,catalog_path=target_path,native_lock=lock,qualification_recipe=recipe,retained_browser=retained)
     proof=directory/'qualification.json'; write(proof,receipt)
     knowledge=publisher_knowledge(directory,native,profile,blocks.load_json(host/'qualification-result.json'))
     state.update(status='qualified',recipe=reference(recipe,REGISTRY),proof=reference(proof,REGISTRY),
@@ -287,13 +331,17 @@ def main():
     parser.add_argument('command',choices=['prepare','qualify','promote','update'])
     parser.add_argument('--candidate',type=Path)
     parser.add_argument('--engines',default='chromium,webkit' if os.name=='nt' else 'chromium,firefox,webkit')
+    parser.add_argument('--retain-unchanged-browser', help='Explicit qualified historical profile; identical npm pins and browser fixture/toolchain required. No new browser execution claim.')
+    parser.add_argument('--reason', help='Maintainer disposition for explicitly retained unchanged browser evidence')
+    parser.add_argument('--native-evidence',type=Path,help='Exact successful candidate native evidence; the normal builder revalidates all inputs, stages and archives')
+    parser.add_argument('--host-evidence',type=Path,help='Exact successful candidate Host evidence; the normal builder revalidates all manifests, cases and cleanup')
     args=parser.parse_args()
     directory=prepare() if args.command in {'prepare','update'} else args.candidate
     if directory is None and args.command in {'prepare','update'}:
         print('Public profile and publisher knowledge are already current; no duplicate qualification.')
         return
     if directory is None: parser.error('--candidate is required')
-    if args.command in {'qualify','update'}: qualify(directory.resolve(),args.engines)
+    if args.command in {'qualify','update'}: qualify(directory.resolve(),args.engines,args.retain_unchanged_browser,args.reason,args.native_evidence,args.host_evidence)
     if args.command in {'promote','update'}: promote(directory.resolve())
     print('Candidate: '+str(directory))
 

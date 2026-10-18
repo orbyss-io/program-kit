@@ -231,7 +231,17 @@ the actual native build; declared root settings alone establish no effective-pol
 ## Orbyss style overlay
 
 - Private fields use camelCase without an underscore; enforce through EditorConfig naming rules.
-- Use a 120-column target. When a call becomes multiline, place one argument per line.
+- Use a 120-column target. Methods and constructors with more than two parameters, and calls with more than
+  two arguments, must put every parameter/argument on its own line after the opening parenthesis. Close on
+  a separate line aligned with the indentation of the line containing the opening parenthesis. Apply the
+  same layout whenever a shorter list is split across lines, including primary constructors.
+- Never invoke a method inside an argument to another method or constructor. Prepare the result in a named
+  local first, including awaited results. Prepare constructed argument values separately as well. Keep
+  deferred factories/handlers in named methods or delegate variables rather than nesting their bodies
+  inside a call's argument list. Preserve evaluation order, cancellation, disposal and deferred activation.
+- In a method chain, put the receiver on its own line and every invocation on a following indented line,
+  starting with the first invocation. Never leave the first call beside the receiver or combine calls on
+  one line. A single unchained invocation may stay on the receiver's line.
 - Named-argument Policy B: require names for ambiguous booleans, enums, null/default literals, adjacent same-typed
   primitives, and project-defined calls with four or more arguments. Keep one- and two-argument obvious calls
   positional. Public parameter renames remain a source-compatibility concern.
@@ -240,13 +250,18 @@ the actual native build; declared root settings alone establish no effective-pol
 
 ## Enforcement classification
 
-- Universal: owned/observed async work, cancellation, bounded concurrency, lifecycle-safe teardown, explicit
+- Universal: argument/parameter layout, prepared argument values, one invocation per chain line,
+  owned/observed async work, cancellation, bounded concurrency, lifecycle-safe teardown, explicit
   resource ownership, immutable production composition, no shell-level `AddHostedService`, coherent method
   abstraction, one declared type per file, private helpers last, and purposeful XML documentation on every
   declared type and member.
 - Conditional: `ValueTask`, PLINQ, structs, records, primary constructors, frozen collections, live unloading,
   and specialized synchronization.
-- Recommendation: line width, multiline layout, contextual named arguments, and sealing internal leaves.
+- Recommendation: line width, contextual named arguments, and sealing internal leaves.
+- The invocation readability rules above are mandatory source-review checks. The current SDK/selected
+  Foundation analyzer configuration does not certify them; a green build does not waive that review.
+  Apply them to owned authored source and editable examples/templates; do not reformat external packages,
+  immutable historical evidence or native generated output. Check changes after manual edits too.
 - Prohibited unless ADR: invisible work, sync-over-async, unbounded queues/fan-out, custom schedulers, runtime feed
   mutation, and live reload without drain/unload evidence.
 

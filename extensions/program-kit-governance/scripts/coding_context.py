@@ -349,6 +349,8 @@ def prepare(root, feature, *, operation=None, affected_paths=(), reconcile=False
     units, pattern_reports, pattern_blockers = apply(registry, units, excluded, root,
         Path(__file__).resolve().parents[2], observed_patterns, choices(feature))
     blockers += pattern_blockers
+    from coding_scaffold import routes
+    routes(units, registry)
     inputs = [source(root, p) for p in documents + [root / 'eng/architecture.json', root / 'global.json',
               root / 'Directory.Packages.props', root / 'docs/architecture/bootstrap-decisions.json',
               root / 'docs/architecture/architecture-map.json', verify]]

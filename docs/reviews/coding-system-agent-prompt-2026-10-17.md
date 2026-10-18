@@ -1,6 +1,31 @@
 Implement the approved Program Kit coding-system feature in an isolated feature branch/worktree.
 
-Implementation base: `fc402ef784c025caced1770cd12f64af1a0bdf45` from `origin/main`, fetched on 17 October 2026, plus the documentation handoff containing this prompt. This includes the release/validation redesign and subsequent public-delivery upgrade fixes. Start from that base and preserve its behavior; do not start from the old maintenance branch. If main has advanced, explicitly integrate and inspect those changes before proceeding.
+Current continuation boundary: F1/F2/F3/F4 are approved. On 18 October 2026 the human
+approved F4 after its readability follow-up and authorized its commit and an F5
+prompt for a new session. Reuse `artifacts/coding-system-f1` on
+`codex/coding-system-f1` at the approved F4 commit; do not reset to an older base.
+Read `docs/reviews/coding-system-f5-session-prompt-2026-10-18.md` and all four
+checkpoints, including F4's retained guided indices. The user explicitly requested the Foundation baseline correction;
+the qualified default now selects Foundation 0.3.6, Build 0.3.2 and Exporter 0.2.7.
+The unchanged Forms evidence has an explicit human-authorized historical disposition.
+Native behavior completed but its direct 986.955-second run exceeds the registered
+budget/runner limit; do not call that a passing named check or repeat it automatically.
+F5 starts in the new session with investigation and grilling of only its unsettled
+choices, followed by shared-understanding confirmation before implementation.
+Stop at F5's human review checkpoint; do not begin F6, clean retained review
+consumers or create the deferred development skill. Approval preserves every
+failure, budget disclosure and proof limit; it does not reclassify old evidence.
+
+F4 review follow-up: the human endorsed the rest and required gentler invocation
+style. More than two parameters/arguments use one per line with an aligned closing
+parenthesis on its own line; prepare method/constructor argument values in locals;
+start every fluent invocation, including the first, below its receiver. The canonical
+.NET style overlay now makes these mandatory source-review duties. F4 examples and
+its TypeScript adapter follow them; a test-only SDK syntax oracle checks current C#
+output and independent invalid controls. It is not a shipped consumer analyzer.
+Read the checkpoint's follow-up evidence and retain earlier results/cost limits.
+
+Historical implementation base: `fc402ef784c025caced1770cd12f64af1a0bdf45` from `origin/main`, fetched on 17 October 2026, plus the documentation handoff containing this prompt. This includes the release/validation redesign and subsequent public-delivery upgrade fixes. Preserve that behavior and the later approved F1–F4 work; do not reset to this historical base or start from the old maintenance branch. Inspect any subsequent main changes before deciding whether integration is necessary.
 
 The human approved the complete feature and the later canonical-knowledge, modularity/domain-event, thin-endpoint and browser-quality refinements. They requested that implementation build on the latest main. Approval is already granted; do not request it again. Create or reuse a dedicated isolated feature branch without switching, resetting or cleaning the shared dirty checkout or copying unfinished owner changes.
 
@@ -18,10 +43,9 @@ checkpoint, validation/cost disclosures and retained review output. F2 was appro
 on 18 October 2026 and its commit was explicitly authorized. Its status is recorded in
 `docs/reviews/coding-system-f2-checkpoint-2026-10-17.md`. Read that checkpoint and
 `docs/coding-context.md` before continuation. F3 was approved on 18 October 2026,
-and the human authorized its commit and requested F4 in a fresh session. That session
-investigates/interviews F4 against this same worktree, preserves F1/F2/F3 decisions,
-defines its inspectable fixture and confirms understanding before implementation.
-Stop at F4's human review checkpoint; do not automatically advance to F5.
+and the human authorized its commit and requested F4 in a fresh session. F4 then
+completed its separate investigation, interview, implementation and guided review.
+Its approval and authorized F5 continuation are recorded at the top of this prompt.
 No review cleanup was requested, and the shared dirty checkout remains separate.
 
 F3's interview is now settled: the human accepted all recommendations on 18 October
@@ -30,8 +54,8 @@ F3's interview is now settled: the human accepted all recommendations on 18 Octo
 `docs/coding-patterns.md` for implementation, actual proof, remaining limits and the
 next-session boundary. F3 approval preserves its proof limits and failure disclosures.
 Preserve all retained consumers/output and prior failures/budget disclosures. The
-requested fresh session handles F4 only. Do not create the deferred development skill
-or advance beyond F4 from this handoff.
+next fresh session handles F5 only. Do not create the deferred development skill
+or advance beyond F5 from this handoff.
 
 Deliver the plan's integrated accepted-context -> applicable composable skills -> safe scaffold/edit -> actual-change reconciliation -> appropriate evaluation route, with private consumer-local patterns and teach/qualify/adopt/improve/retire behavior. Discover rules across references/decisions, prompts/scripts, schemas/build/analyzer settings, templates/examples/tests and exact publisher captures. Extend the existing registry; one authoritative source per rule supplies attributable selection, realization and checks. Resolve generated guidance from canonical sources and remove duplicate/hidden policy only after replacement proof. Preserve independent negative oracles.
 

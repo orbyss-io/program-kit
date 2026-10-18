@@ -146,6 +146,22 @@ Expose why a pattern applies, does not apply, is stale or lacks evidence, withou
 
 ### F4 — safe scaffolding and subsequent editing
 
+**F4 approved on 18 October 2026; commit and a new-session F5 prompt authorized.**
+The human confirmed all four recommendations: a finite label slice using
+F2/F3, immediate consumer ownership, create/identical/conflict behavior, digest-bound
+diffs through native transactions, and retained installed/native proof. The human
+later explicitly prioritized correcting the stale Foundation default and authorized
+retaining unchanged Forms browser evidence when the GitHub CLI token lacked package
+scope. The current default is Foundation 0.3.6, Build 0.3.2 and Exporter 0.2.7, with
+new lock/captures and explicit historical browser provenance. Read the
+[F4 checkpoint](coding-system-f4-checkpoint-2026-10-18.md), both guided indices and
+its native cost overrun. The final review also approved mandatory invocation
+readability rules and their template/oracle follow-up. Approval preserves the
+reported limitations and failed/over-budget statuses. Preserve review material,
+the shared dirty checkout and earlier failures/budgets. F5 has not started; use the
+[new-session prompt](coding-system-f5-session-prompt-2026-10-18.md) for its separate
+investigation/interview. The proposed development skill remains deferred.
+
 Build or consolidate small scripts/recipes for supported structures where generation improves consistency. Inputs come from F2 accepted context and F3 selection. Qualify endpoint/DTO/operation boundaries, owned provider query/mapping/transaction responsibilities, typed options/native binding consumption, selected browser/UI integration and project/test ownership. Prefer extending existing native generators and typed-operation examples once their owner has qualified them.
 
 An HTTP endpoint is a transport adapter. Its code admits the wire request, applies declared endpoint metadata/policy, passes cancellation and mapped input to an owned application/use-case capability, and maps the established result to HTTP. Business rules, workflow orchestration, persistence/transactions and domain-event dispatch belong to their semantic/application/provider owners. Moving those responsibilities into an API-local helper does not satisfy the boundary. Keep domain policy pure in Core and runtime orchestration/effects in the appropriate implementation; do not invent a generic Business layer, mediator or pass-through interface per endpoint. Review responsibilities and behavior, not line counts. Generate complete vertical slices across those owners and the actual client journey where applicable; an operation-folder layout alone is insufficient.

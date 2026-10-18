@@ -68,9 +68,28 @@ def verify_named_runtime_evidence(native: Path, catalog: dict, receipt: dict) ->
             for package in selected.values()), 'named runtime publisher artifacts differ from the receipt')
 
 
+def current_browser(browser, selected):
+    browser_stages = {}
+    for stage in ('strict-graph', 'renew', 'locked', 'bundle', 'browser'):
+        path = browser / 'evidence' / stage / 'process.json'
+        value = blocks.load_json(path)
+        require(value['exitCode'] == 0 and not value['timedOut'] and value['cleanupComplete'] and value['logsDrained'], 'browser stage did not finish')
+        for stream in ('stdout', 'stderr'):
+            source = blocks.repository_path(path.parent, value[stream]['path'])
+            require(blocks.raw_sha256(source) == value[stream]['sha256'], 'browser stream changed')
+        browser_stages[stage] = blocks.raw_sha256(path)
+    browser_profile = blocks.load_json(browser / 'qualification-profile.json')
+    require(browser_profile['catalogResolutionSha256'] == selected['catalogResolutionSha256'], 'browser profile differs')
+    require(bool(browser_profile['packages']) and all(selected['artifacts'].get('npm:' + key) == pin
+            for key, pin in browser_profile['packages'].items()), 'browser package pins differ')
+    browser_result = blocks.load_json(browser / 'qualification-result.json')
+    require(browser_result.get('satisfied') is True and {'chromium', 'webkit'} <= set(browser_result['engines']), 'browser engines incomplete')
+    return {'stages': browser_stages, 'profile': browser_profile, 'engines': browser_result['engines']}
+
+
 def build(profile: Path, native: Path, browser: Path, availability: Path, host: Path, *,
           catalog_path: Path | None = None, native_lock: Path | None = None,
-          qualification_recipe: Path | None = None) -> dict:
+          qualification_recipe: Path | None = None, retained_browser: dict | None = None) -> dict:
     selected = blocks.load_json(profile)
     explicit = any(value is not None for value in (catalog_path, native_lock, qualification_recipe))
     if explicit:
@@ -102,22 +121,11 @@ def build(profile: Path, native: Path, browser: Path, availability: Path, host: 
         for key, path in [('recipeSha256', ROOT / 'tests/validate_default_dependency_profile.py'),
                           ('lockSha256', ROOT / 'tests/fixtures/default-dependency-profile/packages.lock.json')]:
             require(receipt['source'][key] == profile_catalogs.source_sha256(path), 'native recipe or lock changed')
-    browser_stages = {}
-    for stage in ('strict-graph', 'renew', 'locked', 'bundle', 'browser'):
-        path = browser / 'evidence' / stage / 'process.json'
-        value = blocks.load_json(path)
-        require(value['exitCode'] == 0 and not value['timedOut'] and value['cleanupComplete'] and value['logsDrained'], 'browser stage did not finish')
-        for stream in ('stdout', 'stderr'):
-            source = blocks.repository_path(path.parent, value[stream]['path'])
-            require(blocks.raw_sha256(source) == value[stream]['sha256'], 'browser stream changed')
-        browser_stages[stage] = blocks.raw_sha256(path)
-    browser_profile = blocks.load_json(browser / 'qualification-profile.json')
-    require(browser_profile['catalogResolutionSha256'] == selected['catalogResolutionSha256'], 'browser profile differs')
-    require(bool(browser_profile['packages']) and all(selected['artifacts'].get('npm:' + key) == pin
-            for key, pin in browser_profile['packages'].items()), 'browser package pins differ')
-    browser_result = blocks.load_json(browser / 'qualification-result.json')
-    require(browser_result.get('satisfied') is True and {'chromium', 'webkit'} <= set(browser_result['engines']), 'browser engines incomplete')
-    summary = {'stages': browser_stages, 'profile': browser_profile, 'engines': browser_result['engines']}
+    if retained_browser is None:
+        summary = current_browser(browser, selected)
+    else:
+        blocks.retained_browser_evidence(blocks.profile_registry(), selected, retained_browser, available['artifacts'])
+        summary = retained_browser
     host_result = blocks.load_json(host / 'qualification-result.json')
     require(host_result.get('satisfied') is True and host_result['inputs']['catalogResolutionSha256'] == selected['catalogResolutionSha256'], 'host profile differs')
     if explicit:

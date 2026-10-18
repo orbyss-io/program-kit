@@ -20,6 +20,19 @@ spec.loader.exec_module(m)
 
 
 class UpdateTests(unittest.TestCase):
+    def test_browser_retention_rejects_changed_fixture_inputs(self):
+        sys.path.insert(0,str(ROOT/'scripts'))
+        import update_dependency_profiles as updater
+        registry=self.root/'registry';registry.mkdir()
+        m.write_json(registry/'index.json',{'profiles':{'original':{'evidence':{'path':'proof.json','sha256':'b'*64}}}})
+        source=self.root/'tests/validate_published_forms_browser.py';source.parent.mkdir();source.write_bytes(b'changed fixture')
+        with patch.object(updater,'ROOT',self.root),patch.object(updater,'REGISTRY',registry), \
+                patch.object(updater.subprocess,'check_output',side_effect=['a'*40,b'original fixture']):
+            with self.assertRaisesRegex(ValueError,'fixture/toolchain input changed'):
+                updater.retain_browser({'id':'new'},'original','Explicit bounded test disposition')
+        with self.assertRaisesRegex(ValueError,'explicit reason'):
+            updater.retain_browser({'id':'new'},'original','')
+
     def test_ci_tool_pins_are_discovered_and_updated_without_other_dependency_changes(self):
         requirement = self.root / 'ci-tool-requirements.txt'
         requirement.write_text('uv==0.13.1\n')
@@ -56,7 +69,7 @@ class UpdateTests(unittest.TestCase):
         original_path = os.environ.get('PATH', '')
         inherited = original_path + os.pathsep + 'X' * max(0, 8500 - len(original_path))
         self.assertGreater(len(inherited), 8191)
-        with patch.dict(os.environ, {'PATH': inherited}), patch.object(sys, 'argv', ['update_dependencies', '--development']), \
+        with patch.dict(os.environ, {'PATH': inherited}), patch.object(sys, 'argv', ['update_dependencies', '--development', '--refresh-locks']), \
                 patch.object(importlib.util, 'spec_from_file_location', return_value=fake_spec), \
                 patch.object(importlib.util, 'module_from_spec', return_value=policy), \
                 patch.object(update, 'run', side_effect=lambda name, args: commands.append((name, args))):

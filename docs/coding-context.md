@@ -23,7 +23,8 @@ non-goals are excluded from affirmative intent.
 Each unit exposes canonical text/provenance/fingerprint, its applicability reason,
 manual-edit or maintained-recipe route, context requirements and evaluation duties.
 Maintainer routing checks are labeled separately from consumer tests and semantic
-review. Manual editing is a real route; F2 does not supply F4 generation. Exact
+review. Manual editing remains supported. [F4 realization](coding-scaffolding.md)
+uses selected qualified inputs and preserves consumer source ownership. Exact
 adopted publisher contracts still use the existing capture/profile resolver. A
 package declaration alone never qualifies its APIs or runtime compatibility.
 

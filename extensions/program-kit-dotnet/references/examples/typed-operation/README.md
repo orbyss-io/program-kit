@@ -6,10 +6,13 @@ Export the exact installed optional sources into a new owned artifact directory:
 python .specify/extensions/program-kit-governance/scripts/asset_sources.py --repository . --component program-kit-dotnet --subtree references/examples/typed-operation
 ```
 
-Place `ILabelStore.cs` in the accepted Core project, `PostgreSqlLabelStore.cs` in its
-selected PostgreSQL provider, and the `Label*.cs` files in its API. Each named type
-has its own file. The small bodyless read returns the same stored resource
-representation; the write owns strict request admission and its provider effect.
+Place `ILabelStore.cs` and `ILabelOperations.cs` in the accepted Core project,
+`LabelOperations.cs` and `LabelServices.cs` in its runtime implementation,
+`PostgreSqlLabelStore.cs` in the selected PostgreSQL provider, and the remaining
+`Label*.cs` files in its API. Each named type has its own file. The endpoint owns
+strict request admission, cancellation and response mapping; the application
+capability owns write-then-read orchestration. That observation is not an atomic
+write/read snapshot and supplies no general transaction or retry guarantee.
 Declare the real
 Core project references in the native projects and `eng/architecture.json`. Register
 `ILabelStore` to `PostgreSqlLabelStore<YourContext>` beside the existing native
@@ -40,7 +43,11 @@ own bounded JSON profiles. Merge these values under that shell's `Configuration`
 }
 ```
 
-The contract's supported maximum and the configured budget must agree. Binding this
+The owning runtime feature calls `LabelServices.Configure`.
+API and runtime depend on Core rather than each other's implementation. Shell
+configuration selects both features and the provider. Registration is authored
+integration, never inferred from generated source presence.
+The contract's supported maximum and configured budget must agree. Binding this
 small contract to a larger default profile correctly fails shell activation.
 No provider is created,
 schema deployed or operation executed while registering or exporting metadata.
@@ -85,3 +92,19 @@ AbortSignal for an explicit operation.
 Cancel before dispatch performs no write. After dispatch failure, reconcile the
 actual outcome before considering another request. No provider/model/coding agent
 or human approval is invoked by this example.
+
+For an F2-prepared task with a qualified F3 pattern bound to this recipe, use
+`coding_scaffold.py preview/apply`; see the contributor `docs/coding-scaffolding.md`.
+The finite adapter creates absent consumer source, shows exact diffs and preserves
+existing content on conflicts. Application code is consumer-owned immediately and
+never added to toolkit managed-file ownership. Use ordinary editing for later
+refactors. Unsupported adapters retain the compatible manual recipe route and all
+normal evaluation duties.
+
+The editable C# sources follow the canonical `dotnet-engineering.md` Orbyss style
+overlay: more than two parameters/arguments use one per line and an aligned closing
+parenthesis on its own line; argument values are prepared before calls; fluent
+chains start below the receiver and put each invocation on its own line. The named
+endpoint factory still resolves dependencies only in the request scope. Named route
+handlers retain their explicit service-binding attributes. Review these mandatory
+conventions after ordinary edits too; current build analyzers do not certify them.
