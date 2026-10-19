@@ -273,6 +273,18 @@ Before integration merge/rebase intervening source into the isolated branch unde
 authority, reassess affected inputs and verify the combined result. Workspace `integrate`
 records destination HEAD, source delta and ignored setup changes. Commit/review the candidate,
 then merge reviewed source under consumer authority. Git merge cannot promote ignored setup.
+Tracked toolkit installation files and generated native skills may arrive together
+through that source merge. Activation checks them against the captured candidate
+installation; ignored assets must still match the original baseline. Do not manually
+restore a subset of `.specify`, mix packed descriptors with old loose sources, or
+revert skills independently of their real generation records. After archiving the
+destination, the adapter projects the complete original native installation (sources,
+registries, outputs and original generation history) from preparation's exact baseline
+and runs the ordinary forward updater with its admission guards. Reviewed application
+tooling and consumer authority remain candidate inputs. Fresh destination checks must
+then converge to the reviewed candidate. Failed activation restores the exact setup
+present before activation, including reviewed tracked installation bytes; the source
+merge remains consumer-owned.
 `activate --target <isolated> --destination <consumer> --input <destination-checks.json>`
 archives original destination inputs, reproduces the verified release there through the
 updater and reruns required checks. Changed source or installation inputs stop stale
@@ -397,6 +409,32 @@ toolkit cases cannot replace those obligations, and archived code is never impor
 to manufacture current coverage. Preserve original failed and historical results.
 
 ## Reconcile declared local tooling repairs
+
+Before choosing dispositions or `requiredCases`, state each repair's underlying
+purpose and original applicability. Inspect actual current consumer use and the
+exact candidate's supported implementation, including its callers and emitted
+tooling. Classify the repair as still required, replaced by a supported equivalent,
+obsolete for current use, or genuinely uncertain. Record that reasoning in the
+existing upgrade finding/brief and declaration rationale where applicable; no new
+form or approval authority is needed. Unknown original context stays unknown.
+
+Select cases for the applicable outcome after that assessment. Preserve a parameter,
+helper or dispatch route only when an actual current caller or compatibility contract
+requires it. For example, a local `BuildVersion` plus scoped-test wrapper can be
+retired when the candidate already forwards the selected `VERSION` through fresh
+release build, test and pack and no current caller needs the old route. Verify the
+resulting version and command failure propagation. A missing old parameter alone
+does not demonstrate outcome loss. A wrong packaged version or swallowed command
+failure remains a blocker; equivalence must be supported, not assumed.
+
+Ownership/provenance admission is independent of those behavioral cases. Missing
+native generation provenance requires the maintained forward, no-force
+`specify integration use <integration>` route through the staged release's CLI bridge,
+after inspecting ownership/customizations; never fabricate an old generation profile
+or change historical hashes. A failed forward recovery remains unresolved. Fresh
+admission, scoped behavioral checks, installation, applicable migration, destination
+activation and human/application acceptance each establish different claims. Preserve
+original failures even when a later reassessment retires an implementation-shaped case.
 
 Use the trusted staged release's updater with both `--local-repairs
 <consumer-relative-declaration.json>` and `--local-repairs-sha256

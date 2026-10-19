@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.14.2 - 2026-10-19
+
+- Assess local repairs by purpose, current use and supported outcomes before choosing required cases; old API or dispatch shapes require an actual current contract.
+- Repair activation after tracked toolkit sources and generated skills arrive through reviewed Git integration. Keep original native sources, outputs and generation records together for the forward updater.
+- Preserve reviewed consumer intent and exact pre-activation recovery bytes; retain native admission and stale-input guards.
+- Check exact historical witness preservation independently of catalogue row order. Add real packaged tracked upgrade/activation/recovery and release version/failure regressions for [issue #51](https://github.com/orbyss-io/program-kit/issues/51).
+- Preserve existing dependency profiles, locks and public releases. See [migration guidance](releases/migration-0.14.2.md).
+
 ## 0.14.1 - 2026-10-19
 
 - Add reviewed hash-bound tooling upgrades for deliberately withdrawn application authority; preserve selected dependencies, native receipts and strict active-design guards.

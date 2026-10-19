@@ -332,6 +332,40 @@ class ConsumerUpgradeTests(unittest.TestCase):
         workspace.restore(self.root, archive, before, after)
         self.assertEqual('named output\n', changed.read_text())
 
+    def test_native_projection_keeps_generation_with_sources_and_rejects_changed_archive(self):
+        # Projection unit: fictional bytes, no claim of native ownership admission.
+        paths = ['.specify/commands/example.md', '.specify/program-kit/render-profiles/head.json',
+                 '.agents/skills/speckit-example/SKILL.md']
+        for path in paths:
+            write(self.root, path, 'original ' + path)
+        authority = '.specify/memory/consumer-intent.md'
+        write(self.root, authority, 'original intent')
+        archive = self.root / 'baseline'
+        hashes = workspace.snapshot(self.root, archive, paths + [authority])
+        target = self.root.parent / 'candidate'
+        target.mkdir()
+        added = '.specify/commands/new-packed-source.json'
+        for path in paths + [added]:
+            write(target, path, 'candidate ' + path)
+            write(self.root, path, 'candidate ' + path)
+        write(self.root, 'eng/Build.ps1', 'reviewed application tooling')
+        write(self.root, authority, 'reviewed candidate intent')
+        value = {'workspace': {'source': str(self.root), 'evidenceDirectory': '.', 'ownedBaseline': hashes}}
+        installed = lambda root, release: set(paths if root.resolve() == archive.resolve() else paths + [added])
+        before = {p: flow.sha(self.root / p) for p in paths + [added]}
+        with patch.object(workspace, 'native_installation_files', side_effect=installed):
+            saved = (archive / paths[0]).read_bytes()
+            (archive / paths[0]).write_bytes(b'corrupted original')
+            with self.assertRaisesRegex(ValueError, 'Original installation archive changed'):
+                workspace.project_original_installation(value, target, self.root, ROOT)
+            self.assertEqual(before, {p: flow.sha(self.root / p) for p in before})
+            (archive / paths[0]).write_bytes(saved)
+            workspace.project_original_installation(value, target, self.root, ROOT)
+        self.assertEqual({p: hashes[p] for p in paths}, {p: flow.sha(self.root / p) for p in paths})
+        self.assertEqual('reviewed candidate intent', (self.root / authority).read_text())
+        self.assertFalse((self.root / added).exists())
+        self.assertEqual('reviewed application tooling', (self.root / 'eng/Build.ps1').read_text())
+
 
 class InstalledUpgradeTests(unittest.TestCase):
     def test_packaged_command_scan_recipe_and_ignored_installation_are_real_installed_assets(self):

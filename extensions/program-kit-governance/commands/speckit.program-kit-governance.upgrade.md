@@ -51,6 +51,13 @@ affected existing areas, preserve requirements, checked tasks and IDs, and resum
 the earliest affected phase. A feature at tasks does not automatically return to specify.
 Use normal task_draft resume, analyze and preflight; preserve founding bootstrap history.
 Use the release-owned workspace install adapter for the sequential updater.
+Before selecting local repair dispositions and `requiredCases`, follow the
+purpose-first assessment in consumer-upgrade.md, "Reconcile declared local tooling
+repairs". Inspect actual current use and the exact candidate's supported mechanism;
+classify each repair as still required, replaced, obsolete or uncertain. Test the
+applicable outcome. An old parameter/helper/dispatch shape is required only by an
+actual current contract. Keep original-source/native generation admission separate
+from behavioral compatibility, installation, migration, activation and acceptance.
 For story-delivery-v1 adoption, use the fresh-feature exception in `references/phase-evidence.md`:
 archive/abandon the affected unfinished feature, amend and normally ratify the constitution, review
 and explicitly select its owned reset inventory, then rerun specify, clarification, plan, tasks,

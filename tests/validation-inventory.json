@@ -3782,6 +3782,21 @@
       "manualOnly": true
     },
     {
+      "id": "validate_tracked_upgrade_activation",
+      "purpose": "Three real installations through historical tracked setup, isolated upgrade and destination failure/retry; native generation, source integration, retained intent, edit refusal and exact recovery. Explicit investigation; measured Windows journey requires a 360s bound; no agents.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_tracked_upgrade_activation.py"],
+      "kind": "package",
+      "capabilities": ["upgrade"],
+      "inputs": ["tests/validate_tracked_upgrade_activation.py", "tests/validate_consumer_upgrade_install.py", "tests/local_bundle_fixture.py"],
+      "needs": ["build-release"],
+      "prerequisites": ["module:specify_cli", "module:yaml", "tool:git", "runtime:json-schema", "git-ref:previous-release"],
+      "suites": [],
+      "budgetSeconds": 360,
+      "timeoutSeconds": 600,
+      "manualOnly": true
+    },
+    {
       "id": "validate_consumer_upgrade_install",
       "purpose": "Real packaged primitive installation, isolated updater/destination recovery, resolved commands and one deterministic fresh-story reset with normal ratification; simulated humans and no coding agents.",
       "platforms": [

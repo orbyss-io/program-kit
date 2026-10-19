@@ -433,6 +433,8 @@ def integration_review(target, destination):
         integrated = False
     value['integration'] = {'destination': str(destination), 'destinationCommit': head, 'changedSinceBaseline': changed,
                             'installationChanges': setup_changes, 'combinedCandidate': integrated,
+                            'candidateInstallation': workflow.capture(target, {
+                                p: file_hash(target, p) for p in installation_files(target)}),
                             'candidateInputs': workflow.capture(target, candidate), 'destinationInputsSha256': workflow.digest(workflow.inputs(destination)),
                             'nextAction': 'Merge/rebase intervening source into the isolated branch, assess affected inputs and run current checks before reviewed source merge.'}
     workflow.save(target, value, 'integration-reassessment')
@@ -478,6 +480,62 @@ def mutation_files(root, known, integration_roots):
     return paths
 
 
+def native_setup_path(relative):
+    # Spec Kit also stores consumer authority (memory, feature selection, etc.)
+    # under .specify. Only native setup and upgrade-origin state is replayed.
+    return relative.startswith(('.specify/extensions/', '.specify/presets/', '.specify/workflows/',
+        '.specify/integrations/', '.specify/templates/', '.specify/scripts/',
+        '.specify/program-kit/render-profiles/', '.specify/governance/program-kit-upgrade-attempts/')) or relative in {
+            '.specify/integration.json', '.specify/init-options.json', '.specify/bundle-records.json',
+            '.specify/governance/migration-completion.json', '.specify/governance/program-kit-upgrades.json'}
+
+
+def native_installation_files(root, release):
+    """Native sources, registries and generated outputs, excluding application tooling."""
+    _, files = updater.managed_mutation_destinations(
+        root, release, updater.selected_integration(root, 'auto'), None, False, None, [])
+    # Core manifests own their concrete output paths; extension/preset command
+    # destinations come from the same updater owner, with no application profile.
+    registered = set()
+    for manifest in workflow.inside(root, '.specify/integrations').glob('*.manifest.json'):
+        registered.update(workflow.read(manifest)['files'])
+    return ({p for p in installation_files(root) if native_setup_path(p)}
+            | registered | {p.relative_to(root).as_posix() for p in files})
+
+
+def project_original_installation(value, target, destination, release):
+    """Restore one complete authenticated baseline for the ordinary forward updater.
+
+    A source merge can carry new native sources AND generation records/outputs.
+    Restoring only sources creates a hybrid which native admission must reject.
+    Authored engineering inputs and selected consumer authority stay at the candidate.
+    The activation ledger already archives all affected destination bytes.
+    """
+    archive = io_root(workflow.inside(Path(value['workspace']['source']),
+                                     value['workspace']['evidenceDirectory'] + '/baseline'))
+    destination = io_root(destination)
+    original = baseline(value)
+    paths = native_installation_files(archive, release) | native_installation_files(target, release)
+    paths.update(p for p in original if native_setup_path(p))
+    paths.add('.program-kit/installation/migration.json')
+    # Check every archive member before touching even one destination file.
+    for relative, expected in original.items():
+        workflow.require(file_hash(archive, relative) == expected,
+                         'Original installation archive changed: ' + relative)
+    for relative in paths:
+        workflow.require(file_hash(archive, relative) == original.get(relative),
+                         'Original native installation archive changed: ' + relative)
+        workflow.inside(destination, relative)
+    for relative in sorted(paths):
+        current = workflow.inside(destination, relative)
+        if original.get(relative) is None:
+            current.unlink(missing_ok=True)
+        else:
+            current.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(workflow.inside(archive, relative), current)
+    return sorted(paths)
+
+
 def activation(target, destination, release, commands, extra=(), runner=None):
     """After reviewed source merge, run the updater in destination with durable original recovery."""
     value = workflow.load(target)
@@ -497,12 +555,26 @@ def activation(target, destination, release, commands, extra=(), runner=None):
     actual = workflow.inputs(destination)
     workflow.require(candidate == actual, 'Destination source differs from the combined verified candidate')
     original = baseline(value)
-    local = {p: file_hash(destination, p) for p in original}
-    # Reviewed tracked engineering edits can arrive through Git; ignored installation assets cannot.
-    expected_local = {p: candidate.get(p, h) for p, h in original.items()}
+    candidate_installation = workflow.captured(target, review.get('candidateInstallation'))
+    workflow.require(candidate_installation == {p: file_hash(target, p) for p in installation_files(target)},
+                     'Candidate installation changed; repeat integration review')
+    # Tracked installation files arrive through reviewed Git integration. Ignored
+    # installation files must still match the captured original, including absences.
+    tracked = set(workflow.git(destination, 'ls-files', '-z').split('\0'))
+    tracked.update(workflow.git(target, 'ls-tree', '-r', '--name-only', '-z', value['sourceCommit']).split('\0'))
+    installation = set(original) | set(candidate_installation) | set(installation_files(destination))
+    local = {p: file_hash(destination, p) for p in installation}
+    expected_local = {p: candidate_installation.get(p) if p in tracked else candidate.get(p, original.get(p))
+                      for p in installation}
     workflow.require(local == expected_local, 'Destination installation changed after integration review')
+    retained_setup = {p: h for p, h in local.items() if p.startswith('.specify/') and not native_setup_path(p)}
     # Snapshot all authored and owned inputs within the known updater mutation surface.
-    paths = set(installation_files(destination)) | set(installation_files(target)) | {workflow.RECORD}
+    archive = io_root(workflow.inside(Path(value['workspace']['source']),
+                                     value['workspace']['evidenceDirectory'] + '/baseline'))
+    # Include original-only native outputs: projection may recreate a command
+    # removed by the candidate, even though it is absent from both current trees.
+    paths = (set(installation_files(destination)) | set(installation_files(target))
+             | native_installation_files(archive, release) | {workflow.RECORD})
     roots, files = updater.managed_mutation_destinations(destination, release, updater.selected_integration(destination, 'auto'),
                                                        updater.load_managed_profile(destination), False, None, [])
     integration_roots = [p.relative_to(destination).as_posix() for p, reasons in roots.items()
@@ -511,19 +583,6 @@ def activation(target, destination, release, commands, extra=(), runner=None):
     paths = mutation_files(destination, paths, integration_roots)
     directory = workflow.inside(destination, 'artifacts/program-kit/consumer-activation/' + uuid.uuid4().hex)
     before = snapshot(destination, directory / 'original', paths)
-    for relative in ('.program-kit/installation/migration.json', '.specify/governance/migration-completion.json'):
-        archived = workflow.inside(directory / 'original', relative)
-        if relative in original:
-            source = workflow.inside(Path(value['workspace']['source']),
-                value['workspace']['evidenceDirectory'] + '/baseline/' + relative)
-            workflow.require(workflow.sha(source) == original[relative], 'Original installation origin changed')
-            archived.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, archived)
-            before[relative] = original[relative]
-        else:
-            archived.unlink(missing_ok=True)
-            before[relative] = None
-    workflow.atomic(directory / 'original/inventory.json', before)
     ledger = {'schemaVersion': 1, 'status': 'activating', 'destination': str(destination), 'original': before,
               'integrationRoots': integration_roots, 'sourceRecordSha256': workflow.sha(target / workflow.RECORD),
               'updaterOptions': options}
@@ -534,16 +593,8 @@ def activation(target, destination, release, commands, extra=(), runner=None):
         reviewed_options(destination, extra, options)
         ledger['gitOriginalsReconciled'] = reconcile_originals(target, destination)
         workflow.atomic(directory / 'activation.json', ledger)
-        # Installation-only receipts are local state, even when a consumer tracked them.
-        # Re-establish the exact original installation origin before using the forward updater.
-        for relative in ('.program-kit/installation/migration.json', '.specify/governance/migration-completion.json'):
-            if relative in original:
-                source = workflow.inside(Path(value['workspace']['source']),
-                    value['workspace']['evidenceDirectory'] + '/baseline/' + relative)
-                workflow.require(workflow.sha(source) == original[relative], 'Original migration origin evidence changed')
-                shutil.copy2(source, workflow.inside(destination, relative))
-            elif workflow.inside(destination, relative).is_file():
-                workflow.inside(destination, relative).unlink()
+        ledger['originalInstallationProjected'] = project_original_installation(value, target, destination, release)
+        workflow.atomic(directory / 'activation.json', ledger)
         if runner:
             runner(destination, release)
         else:
@@ -551,6 +602,8 @@ def activation(target, destination, release, commands, extra=(), runner=None):
             workflow.require(installed.get('updaterExitCode') == 0,
                              'Destination updater failed; inspect the preserved updaterEvidence streams')
         validate_installation(destination, value['targetVersion'])
+        workflow.require(all(file_hash(destination, p) == h for p, h in retained_setup.items()),
+                         'Installer changed reviewed consumer setup/authority; reassess before acceptance')
         workflow.require(workflow.inputs(destination) == candidate, 'Installer changed reviewed authored inputs; reassess the actual destination before acceptance')
         value = workflow.load(destination)
         value['checks'] = workflow.run_checks(destination, commands)

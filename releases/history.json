@@ -326,6 +326,33 @@
         "Preserve original history and failed attempts; resume interrupted installation through the maintained workspace adapter with the same reviewed arguments.",
         "Changed source, declarations or destination bytes require owner reconciliation; no initializer, synthetic application authority or forced migration."
       ]
+    },
+    {
+      "version": "0.14.2",
+      "previous": "0.14.1",
+      "guide": "migration-0.14.2.md",
+      "automatic": [
+        "Install purpose-first local repair assessment at disposition and required-case selection.",
+        "Activate reviewed tracked toolkit sources and generated native outputs through complete original native setup projection and the supported forward updater.",
+        "Preserve reviewed consumer intent and exact pre-activation recovery bytes without rewriting native generation history."
+      ],
+      "review": [
+        "Assess repair purpose, original applicability, current callers and exact supported candidate outcomes before retaining an old parameter or dispatch shape.",
+        "Repeat integration review with the new adapter; keep provenance admission, behavioral compatibility, installation, migration, activation and acceptance separate."
+      ],
+      "verification": [
+        "Verify native source ownership, installation coherence, retained consumer intent and current outcome-oriented repair cases.",
+        "Verify reviewed source integration, exact destination recovery after failed checks and fresh destination activation.",
+        "Require exact-source package CI, native publication approval and actual public installation/upgrade verification."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve original and failed evidence. Use the existing activation recovery owner; a source merge remains consumer-owned.",
+        "Changed baseline, candidate or destination inputs require scoped review; never fabricate historical generation profiles or patch a public archive."
+      ]
     }
   ]
 }

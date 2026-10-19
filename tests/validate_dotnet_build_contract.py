@@ -114,6 +114,7 @@ def main() -> int:
                 "@echo off\r\n"
                 f"echo %*^|%NUGET_PACKAGES%^|%NUGET_HTTP_CACHE_PATH%^|%NUGET_SCRATCH%^|"
                 f"%NUGET_PLUGINS_CACHE_PATH%^|%DOTNET_CLI_HOME%^|%APPDATA%^|%LOCALAPPDATA%>>\"{log}\"\r\n"
+                'if "%1"=="%PROGRAMKIT_FIXTURE_FAIL_COMMAND%" exit /b 17\r\n'
                 "if \"%1\"==\"sln\" goto solution_list\r\n"
                 "if \"%1\"==\"msbuild\" goto test_property\r\n"
                 "exit /b 0\r\n"
@@ -134,6 +135,7 @@ def main() -> int:
                 f"printf '%s|%s|%s|%s|%s|%s|%s|%s\\n' \"$*\" \"$NUGET_PACKAGES\" "
                 f"\"$NUGET_HTTP_CACHE_PATH\" \"$NUGET_SCRATCH\" \"$NUGET_PLUGINS_CACHE_PATH\" "
                 f"\"$DOTNET_CLI_HOME\" \"$APPDATA\" \"$LOCALAPPDATA\" >> '{log}'\n"
+                'if [ "$1" = "$PROGRAMKIT_FIXTURE_FAIL_COMMAND" ]; then exit 17; fi\n'
                 "if [ \"$1\" = sln ]; then printf 'Project(s)\\n----------\\nConsumer.csproj\\n'; fi\n"
                 "if [ \"$1\" = msbuild ]; then printf 'true\\n'; fi\n",
                 encoding="utf-8",
@@ -223,6 +225,26 @@ def main() -> int:
         test = next((line for line in entries if line.startswith("test ")), "")
         if "--solution" not in test or str(repository / "Consumer.slnx") not in test:
             raise AssertionError(f"managed Build.ps1 did not use MTP solution syntax: {test}")
+        # Outcome-oriented local-repair assessment: the supported fresh release
+        # route already supplies the selected VERSION without a BuildVersion API
+        # or a scoped verification wrapper. This fake SDK observes dispatch only;
+        # it does not claim compiled-package or application acceptance.
+        for operation in ('build', 'test', 'pack'):
+            calls = [line.split('|')[0].split() for line in entries if line.startswith(operation + ' ')]
+            if len(calls) != 1 or '-p:Version=1.0.0' not in calls[0]:
+                raise AssertionError(f'{operation} lost the exact selected VERSION: {calls}')
+        for operation in ('build', 'test', 'pack'):
+            offset = len(log.read_text(encoding='utf-8').splitlines())
+            failed = subprocess.run(
+                [shell, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(managed / 'Build.ps1'), '-SkipReleaseBundle'],
+                cwd=repository, env=dict(environment, PROGRAMKIT_FIXTURE_FAIL_COMMAND=operation),
+                capture_output=True, text=True, timeout=60)
+            if failed.returncode == 0 or f'dotnet {operation} failed.' not in failed.stdout + failed.stderr:
+                raise AssertionError(f'{operation} failure was swallowed or never reached: {failed.stdout}{failed.stderr}')
+            calls = log.read_text(encoding='utf-8').splitlines()[offset:]
+            later = ('test', 'pack') if operation == 'build' else ('pack',) if operation == 'test' else ()
+            if any(line.startswith(step + ' ') for line in calls for step in later):
+                raise AssertionError(f'Release processing continued after failed {operation}: {calls}')
 
         consumer = repository / "eng/verify.ps1"
         consumer.parent.mkdir(parents=True, exist_ok=True)

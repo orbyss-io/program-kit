@@ -14,6 +14,14 @@ import asset_sources
 import release_guidance
 
 
+def require_original_witnesses(original, current):
+    """Preserve complete original rows; the catalogue builder may insert releases."""
+    for row in original:
+        if row not in current:
+            raise AssertionError('Original native witness missing or changed: '
+                                 + str((row.get('id'), row.get('version'), row.get('sourceCommit'), row.get('sourceEncoding'))))
+
+
 class InstallationContracts(unittest.TestCase):
     def test_current_registry_has_canonical_routes_without_retired_policy(self):
         import phase_obligations
@@ -34,15 +42,25 @@ class InstallationContracts(unittest.TestCase):
         path = 'extensions/program-kit-governance/references/native-phase-source-baselines.json'
         original = json.loads(subprocess.check_output(['git', 'show', commit + ':' + path], cwd=ROOT))
         current = json.loads((ROOT / path).read_text(encoding='utf-8'))
-        self.assertEqual(original['components'], current['components'][:len(original['components'])])
+        require_original_witnesses(original['components'], current['components'])
         from build_native_phase_baselines import capture
         captured = capture(ROOT, commit)
-        offset = len(original['components'])
-        self.assertEqual(captured, current['components'][offset:offset + len(captured)])
+        require_original_witnesses(captured, current['components'])
         catalog = json.loads(subprocess.check_output(['git', 'show', commit + ':extensions/program-kit-governance/references/phase-obligations.json'], cwd=ROOT))
         snapshot = json.loads((ROOT / 'tests/fixtures/coding-system/f7-historical-requirements.json').read_text())
         self.assertTrue(snapshot['historicalOnly'])
         self.assertEqual(catalog['requirements'], snapshot['requirements'])
+
+    def test_witness_preservation_allows_new_order_but_rejects_missing_or_changed_sources(self):
+        # Fictional witnesses isolate preservation from the publisher catalogue.
+        first = {'id': 'original-a', 'files': {'command.md': 'original-command-hash'}}
+        second = {'id': 'original-b', 'files': {'helper.py': 'original-helper-hash'}}
+        require_original_witnesses([first, second], [second, {'id': 'new-release'}, first])
+        with self.assertRaisesRegex(AssertionError, 'missing or changed'):
+            require_original_witnesses([first, second], [first, {'id': 'new-release'}])
+        changed = {**second, 'files': {'helper.py': 'changed-helper-hash'}}
+        with self.assertRaisesRegex(AssertionError, 'missing or changed'):
+            require_original_witnesses([first, second], [first, changed])
 
     def test_packed_generated_guides_keep_independent_original_checksum_authority(self):
         from build_release_guidance import build
