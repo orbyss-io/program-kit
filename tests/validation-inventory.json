@@ -25,6 +25,7 @@
         "release-policy.json",
         "bundle.yml",
         "VERSION",
+        "extensions/*/extension.yml",
         "catalogs/**",
         "Initialize-ProgramKit.*",
         "scripts/invoke_specify.py",

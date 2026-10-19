@@ -1,15 +1,17 @@
-# Program Kit 0.13.3
+# Program Kit 0.14.0
 
-This release carries the approved 47-finding maintenance batch and the already merged repair-feedback feature. It repairs native upgrade recovery and source ownership, structured phase evidence, generated .NET/frontend tooling, private session lifecycle, and provider isolation while retaining authored work, exact consumer locks, original obligations and historical evidence.
+Minor release of the approved F1–F8 coding system and repository-scoped development skill.
+See [migration guidance](migration-0.14.0.md) for contents, upgrade duties and proof limits.
 
-The new default profile consumes public Foundation runtime [0.3.6](https://github.com/orbyss-io/dotnet-foundation/releases/tag/v0.3.6), Build [0.3.2](https://github.com/orbyss-io/dotnet-foundation/releases/tag/build-v0.3.2) and exporter [0.2.7](https://github.com/orbyss-io/dotnet-foundation/releases/tag/exporter-v0.2.7) together with their publisher knowledge. Existing consumers retain their selected profiles until the supported reviewed transition. Foundation's independently versioned releases are verified separately from Program Kit publication.
+Every original failure and cost remains in its checkpoint. The final fresh F8 journey
+remains **126.204s / 120s, over-budget** despite human approval. The separate existing consumer did
+not complete its separate upgrade/feature trial; it is distinct from OwnerReport.
 
-Supported native BFF/Hosted Pages paths, including the qualified nested shell path, retain native protocol and private-state guards. SPA source/client and Foundation protocol qualification remain separate; this release does not claim a turnkey executable SPA Host or support unqualified composition shapes.
+Exact-main package CI, fresh security, native publication approval and public fresh-install/
+0.13.3-upgrade verification remain required before availability. The contributor skill
+is excluded from consumer archives. No unrelated dependency upgrade is included.
 
-Upgrade through the released updater's inspectable plan. Preserve in-progress features, architectural decisions, implementation, exact original recovery context and original failed evidence. Routine maintenance does not require discarding unfinished work or restarting completed bootstrap. See [migration guidance](migration-0.13.3.md) for versioned adoption guidance.
-
-Development now uses fast integrity checks and capability-selected mechanical fixtures. Native, service and browser integrations run for the specific affected contracts. CI builds the actual publication packages and checks clean installation and installed entrypoints on Windows and Linux. Local behavioral results remain maintainer-reported; CI does not independently witness those executions.
-
-Publication requires successful exact-source package checks, applicable security results and native maintainer approval before tagging. The approved packages are promoted without rebuilding. Public availability is announced only after promotion and public installation/upgrade succeed. Historical reports and obsolete validation machinery are removed from the maintained tree; functional profile and migration data remain. No paid coding-agent or provider acceptance is claimed.
-
-The first 0.13.3 candidate at `5ea3e6f002b0f682a48d38f48e2a9dd2e70fae4a` published GitHub assets and passed public installation, but its [public upgrade verification failed](https://github.com/orbyss-io/program-kit/actions/runs/39051563925) before any component installation because the authenticated source catalog omitted 0.13.2. The corrected candidate recognizes the exact prior public source while retaining customization refusal. Same-version recovery preserves the failed-run evidence and the original assets in a [clearly labelled failed-candidate archive](https://github.com/orbyss-io/program-kit/releases/tag/failed-v0.13.3-39051563925), then publishes the corrected approved assets under 0.13.3. No NuGet or Host-image publication occurred in the failed run.
+The preserved maintenance/0.13.x branch starts at successful v0.13.3. The
+[withdrawal runbook](../docs/maintenance/withdraw-0.14.0.md) preserves evidence,
+separates release/tag withdrawal and defines a main-compatible maintenance route.
+Withdrawal does not downgrade consumers or erase immutable package destinations.

@@ -36,7 +36,9 @@ class InstallationContracts(unittest.TestCase):
         current = json.loads((ROOT / path).read_text(encoding='utf-8'))
         self.assertEqual(original['components'], current['components'][:len(original['components'])])
         from build_native_phase_baselines import capture
-        self.assertEqual(capture(ROOT, commit), current['components'][len(original['components']):])
+        captured = capture(ROOT, commit)
+        offset = len(original['components'])
+        self.assertEqual(captured, current['components'][offset:offset + len(captured)])
         catalog = json.loads(subprocess.check_output(['git', 'show', commit + ':extensions/program-kit-governance/references/phase-obligations.json'], cwd=ROOT))
         snapshot = json.loads((ROOT / 'tests/fixtures/coding-system/f7-historical-requirements.json').read_text())
         self.assertTrue(snapshot['historicalOnly'])

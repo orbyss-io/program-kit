@@ -301,7 +301,7 @@ universal performance claim. No live store, database or network is involved.
             helper = review / 'profile-setup.py'
             write(helper, '''import json,sys
 from pathlib import Path
-root=Path(sys.argv[1]); installed=Path(sys.argv[2]); tests=Path(sys.argv[3])
+root=Path(sys.argv[1]); installed=Path(sys.argv[2]); tests=Path(sys.argv[3]); version=sys.argv[4]
 sys.path[:0]=[str(installed/'program-kit-building-blocks/scripts'),str(tests)]
 import building_blocks as blocks
 from validate_building_blocks import accepted_fixture
@@ -312,17 +312,18 @@ catalog,profile=blocks.qualified_dependency_profile(registry,historical,blocks.l
 old=root/'historical-catalog.json';blocks.atomic_write(old,blocks.pretty_json(catalog))
 selection,architecture=accepted_fixture(blocks,root,catalog)
 blocks.preserve_dependency_profile(root,blocks.load_json(selection),old)
-plan=blocks.resolve(root,selection,old,'0.13.3')
+plan=blocks.resolve(root,selection,old,version)
 blocks.apply_materialization(root,root/'eng/building-blocks.lock.json',plan,catalog)
 before=(root/'.program-kit/dependency-profile.json').read_bytes()
 current=installed/'program-kit-building-blocks/references/orbyss-building-blocks.json'
-actual=blocks.resolve(root,selection,current,'0.13.3')
+actual=blocks.resolve(root,selection,current,version)
 assert actual['inputs']['catalog']['resolutionSha256']==blocks.catalog_resolution_sha256(catalog)
 assert before==(root/'.program-kit/dependency-profile.json').read_bytes()
 print(json.dumps({'retained':historical,'availableDefault':index['default'],'retainedResolutionSha256':blocks.catalog_resolution_sha256(catalog),'automaticAdoption':False,'fictionalAcceptedArchitecture':True}))
 ''')
             installed = consumer / '.specify/extensions'
-            run('qualified-profile-retention', [sys.executable, helper, profile_root, installed, ROOT / 'tests'])
+            run('qualified-profile-retention', [sys.executable, helper, profile_root, installed, ROOT / 'tests',
+                                                (ROOT / 'VERSION').read_text().strip()])
             profiles = installed / 'program-kit-building-blocks/scripts/dependency_profiles.py'
             index = json.loads((installed / 'program-kit-building-blocks/references/dependency-profiles/index.json').read_text())
             protected = ['eng/building-blocks.lock.json', '.program-kit/dependency-profile.json',
