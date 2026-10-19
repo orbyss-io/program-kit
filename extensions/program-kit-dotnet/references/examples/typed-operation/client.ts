@@ -5,12 +5,19 @@ export type LabelResponse = paths['/api/sample-label']['post']['responses'][200]
 
 // Application-owned transport adapter checked against the maintained generated
 // paths. It neither generates a substitute schema nor retries an uncertain write.
-export async function storeLabel(value: LabelRequest, headerName: string, requestToken: string, signal: AbortSignal): Promise<LabelResponse> {
-  const response = await fetch('/api/sample-label', {
+export async function storeLabel(
+  value: LabelRequest,
+  headerName: string,
+  requestToken: string,
+  signal: AbortSignal
+): Promise<LabelResponse> {
+  const serialized = JSON.stringify(value);
+  const options: RequestInit = {
     method: 'POST', credentials: 'same-origin', signal,
     headers: { 'content-type': 'application/json', [headerName]: requestToken },
-    body: JSON.stringify(value),
-  });
+    body: serialized,
+  };
+  const response = await fetch('/api/sample-label', options);
   if (!response.ok) throw new Error('The sample write needs explicit outcome handling.');
   const body: unknown = await response.json();
   if (!body || typeof body !== 'object' || !('policy' in body) || typeof body.policy !== 'string') {

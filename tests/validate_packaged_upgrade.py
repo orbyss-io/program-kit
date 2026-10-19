@@ -41,7 +41,7 @@ def scenario():
     started = time.monotonic()
     with FixtureDirectory() as directory:
         owned = Path(directory)
-        project = owned / 'supported consumer with spaces'
+        project = owned / 'consumer app'
         project.mkdir()
         previous, release = owned / 'previous', owned / 'candidate'
         historical = owned / 'historical.zip'

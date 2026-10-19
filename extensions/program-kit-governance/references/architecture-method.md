@@ -18,10 +18,12 @@ consequences intact. The final architecture gate hash-binds and accepts that exa
 unrelated Proposed ADRs remain outside the approval.
 
 <!-- program-kit:decision-rule authority-conflicts -->
+<!-- program-kit:knowledge-rule principle.authority-conflicts -->
 Compare accepted decisions with the constitution and applicable adopted engineering constraints.
 Acceptance is not an implicit waiver: surface conflicts before dependent design or implementation.
 Preserve history and resolve substantive architecture changes through explicit scoped ADR review;
 an exception must identify its governing authority, consequences and current verification.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 
 The constitution is not an ordinary feature specification and never enters the feature

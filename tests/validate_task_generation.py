@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 import os
 import shutil
+from owned_fixture import filesystem_path, FixtureDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
@@ -55,7 +56,7 @@ def validate_analyzer_instructions(analyze):
             raise AssertionError('Installed analyze lost scoped ordering: ' + marker)
 
 
-def validate_installed_workflow(project, fresh_reset=False):
+def validate_installed_workflow(project, fresh_reset=False, *, execute=True):
     """Called by the real archive-install validator, using its disposable consumer."""
     import yaml
     hooks = yaml.safe_load((project / '.specify/extensions.yml').read_text(encoding='utf-8'))['hooks']
@@ -95,6 +96,8 @@ def validate_installed_workflow(project, fresh_reset=False):
             raise AssertionError('Installed implement lost focused execution/handoff semantics: ' + marker)
     if 'Common Patterns by Technology' in implement or 'Read research.md for technical decisions' in implement:
         raise AssertionError('The installed command appended to the broad core body instead of replacing it')
+    if not execute:
+        return  # The connected installed coding fixture owns actual execution.
     spec_root = project / 'specs'
     spec_root.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='999-task-resume-', dir=spec_root) as directory:
@@ -298,9 +301,10 @@ class TaskTests(unittest.TestCase):
     def test_installed_cli_finalizes_future_graph_in_a_fresh_unrelated_process(self):
         installed = self.root / '.specify/extensions'
         for extension, folders in {'program-kit-governance': ['scripts', 'references'],
-                                   'program-kit-dotnet': ['scripts', 'references', 'templates/dotnet/files/eng']}.items():
+                                   'program-kit-dotnet': ['scripts', 'references', 'templates/dotnet/files'],
+                                   'program-kit-building-blocks': ['scripts', 'references']}.items():
             for folder in folders:
-                shutil.copytree(ROOT / 'extensions' / extension / folder, installed / extension / folder,
+                shutil.copytree(filesystem_path(ROOT / 'extensions' / extension / folder), filesystem_path(installed / extension / folder),
                                 ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules', 'dist'))
         graph = {'runtimeComposition': {'projects': [
             {'path': 'src/Owned/Owned.csproj', 'role': 'implementation', 'projectReferences': []},
@@ -488,7 +492,7 @@ class TaskTests(unittest.TestCase):
         self.assertNotEqual(previous,draft.inputs(self.root,self.feature)[failed.relative_to(self.root).as_posix()])
 
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix='task-drafting-')
+        temporary = FixtureDirectory(prefix='task-drafting-', native=True)
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         self.feature = self.root / 'specs/002-cut-list'
@@ -597,6 +601,9 @@ class TaskTests(unittest.TestCase):
         self.assertLess(path.stat().st_size, first_size + 80)
         progress = context.finish(self.root, self.feature)
         self.assertFalse(progress['acceptanceEstablished'])
+        self.assertEqual('needs-attention', progress['status'])
+        self.assertFalse(progress['canProceed'])
+        self.assertTrue(progress['coding']['blockers'], 'Fictional source context must not bypass reconciliation')
         self.assertEqual(draft.current_projection(current), progress['currentCheckpoint'])
         fixed = draft.checkpoint(self.feature, {'baseline': 'original-commit', 'outcome': 'Create policy',
             'next': 'Owned list', 'checks': ['green: artifacts/create-fixed.trx'],

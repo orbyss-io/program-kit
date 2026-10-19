@@ -64,7 +64,7 @@ the published toolkit through its supported upgrade mechanism when available. Re
 accepted project responsibilities and map the composition input to the actual feature
 registrations and package roots. Apply the existing
 [lifecycle ownership repair](application-lifecycle-repair.md) where an unnecessary aggregate
-owns provider initialization or application workers. Preserve legitimate selection presets.
+owns provider initialization or application workers. Retire C# selection-preset projects through explicit responsibility repair; preserve shell/deployment selection.
 Retired test projects use the existing successor-ownership mapping and fresh unfiltered
 successor tests; renaming a runner does not erase a failure.
 

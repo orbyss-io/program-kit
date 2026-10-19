@@ -551,6 +551,45 @@
         "basis": "Approved frozen 47-finding maintenance plan and retained implementation ledger; migration-0.13.3.md.",
         "route": "Maintained consumer updater, scoped reconciliation and existing material-change/human-review boundaries; no automatic reset or bootstrap."
       }
+    },
+    {
+      "id": "canonical-coding-context-and-current-evaluation",
+      "introduced": "0.14.0",
+      "kind": "contract",
+      "summary": "Use canonical applicable coding guidance, qualified shared/private patterns, safe scaffolds and source-current evaluation at completion.",
+      "constraint": "Preserve authored work and historical evidence. Retired C# composition-preset roles require explicit architectural reconciliation. Installation does not renew qualification, approve a design or establish application acceptance.",
+      "selectors": {
+        "paths": [
+          "eng/**",
+          "src/**",
+          "web/**",
+          "tests/**",
+          "contracts/**",
+          "specs/**",
+          "docs/architecture/**",
+          ".program-kit/**"
+        ],
+        "selectedDependencies": true
+      },
+      "supportedRetention": [
+        "Retain authored/custom software, private patterns, original evidence prefixes, accepted architecture, historical profiles, captures, exact locks, task identities and failures."
+      ],
+      "alternatives": [
+        "Retain supported selected profiles and reconcile only affected duties.",
+        "Resolve unsupported or retired architecture through its existing owner before affected implementation; do not infer a reset."
+      ],
+      "verification": [
+        "Verify native installed-source ownership/coherence and actual scoped application behavior.",
+        "Recheck/rebind changed canonical sources, patterns and adapters; reject stale or missing proof and preserve unrelated scopes."
+      ],
+      "method": "selective-feature-repair-v1",
+      "duePhase": "planning",
+      "supersedes": [],
+      "dependencies": [],
+      "review": {
+        "basis": "Approved F1\u2013F8 checkpoints and migration-0.14.0.md, within their recorded proof limits.",
+        "route": "Supported updater, existing architecture/task owners and current coding preparation/reconciliation/evaluation; real human acceptance remains separate."
+      }
     }
   ]
 }

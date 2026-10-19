@@ -271,6 +271,34 @@
       "recovery": [
         "Keep prepared evidence and historical receipts on failure; reconcile actual remote objects before retrying the same approved identity. No public fallback for local delivery."
       ]
+    },
+    {
+      "version": "0.14.0",
+      "previous": "0.13.3",
+      "guide": "migration-0.14.0.md",
+      "automatic": [
+        "Install canonical knowledge discovery, coding context, qualified shared/private patterns, safe scaffolding and current evaluation through the supported sequential updater.",
+        "Refresh native commands, hooks and managed sources; retain authored software, original witnesses, historical profiles, captures, locks and failures.",
+        "Keep the contributor development skill in the Program Kit repository; it is not a consumer bundle asset."
+      ],
+      "review": [
+        "Reconcile affected coding context and renew source-current pattern/evaluation evidence through existing owners; never relabel old evidence.",
+        "C# composition-preset projects are retired. Review affected architecture and move registrations into owning features with shell/deployment selection; do not silently rewrite accepted architecture.",
+        "Missing composition or absent projects marked observed require owner reconciliation, not forced upgrade, restoration of an unconfirmed design or bootstrap restart."
+      ],
+      "verification": [
+        "Verify installed coherence, exact predecessor ownership, authored/private data preservation and supported upgrade/retry behavior.",
+        "Run affected native/application checks and human reviews; tooling migration is not application acceptance.",
+        "Use successful exact-main package CI and native publication approval; verify public hashes, fresh installation and the 0.13.3 upgrade before availability."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve failed attempts, source/package evidence, locks, private patterns and uncertain effects; repair scoped inputs and resume the supported updater.",
+        "Withdrawal does not downgrade consumers. No automatic 0.14.0 to 0.13.x downgrade is supported; use the repository withdrawal runbook for an explicitly authorized recovery."
+      ]
     }
   ]
 }

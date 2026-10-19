@@ -32,9 +32,9 @@ eng/verify.ps1 when supplied, then compiled architecture checks; otherwise it ru
 build/tests. Build also stages the application release bundle for the selected published host.
 Packing writes a fresh run inventory under artifacts/packages/<version>/<run-id>.
 Bundle roots are currently activated feature packages and accepted publisher selections;
-each root contributes its exact restored project/package runtime closure. Core/helpers and
-legitimate selection presets can appear as transitive dependencies without a catch-all
-Composition project. Removed or unselected packages in older pack output are excluded.
+each root contributes its exact restored project/package runtime closure, including Core/helpers.
+Shell/deployment configuration selects features directly; C# composition-preset projects are retired.
+Removed or unselected packages in older pack output are excluded.
 For independently delivered pure libraries without feature descriptors, select current-source
 package identities explicitly: `./eng/Build.ps1 -LockedMode -RootPackage 'Example.Core'`.
 Manual staging accepts repeatable `--root-package Example.Core` with the exact fresh pack-run

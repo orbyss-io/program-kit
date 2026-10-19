@@ -10,26 +10,30 @@ invokes the prepared native `eng/composition_run.py run` route and requires its
 current host/provider/authentication readiness before consumer coding. First-use
 acquisition belongs to explicit `prepare`; the hook never installs device tools.
 Reuse current spec.md, plan.md, tasks.md and applicable accepted decisions already loaded by implement.
+Apply every selected coding unit printed by this command, across its actual semantic owners.
+The ordinary brief is bounded. For missing details use
+`python .specify/extensions/program-kit-governance/scripts/phase_obligations.py prepare --feature-dir <feature> --operation <operation> --unit <selected-unit> --format json`.
+Omit operation only when no operation map/active operation exists. This is focused read-only lookup,
+not another preflight or approval. Inspect that unit's canonical rules, context, reasons, selected
+manual-edit/recipe route and evaluation. Never infer implementation success from selection.
+Units are extended through canonical-bound `codingUnits` in the existing responsibility registry;
+declarations cannot execute submitted code. Inspect selected qualification and alternatives through
+the installed coding-patterns command; use its teach workflow for a new contribution.
+Missing mandatory context or native evaluation blocks only the affected work with its named repair.
+Before source work, native evaluation inspects selected imported/conditional project settings,
+dependencies and Compile membership without a build/restore target; planned-only projects remain
+explicitly unevaluated until materialized. Actual Foundation readiness retains its existing route below.
 Read only changed inputs or the relevant operation when resuming. This is the sole pre-implementation
 guidance/structural check; do not independently invoke phase-context or repeat preflight afterward.
-Apply the contextual programming rules before editing the affected code. Preserve DDD ownership,
-allowed dependencies, pure policies, explicit effects, cancellation and resource ownership.
+Before editing, resolve the selected unit's canonical rules and complete evaluation duties through
+the focused preparation command above. They own the engineering constraints; this command owns invocation.
 Resolve any reported feature-plan decision in its actual plan section after normal review before
 dependent implementation. Preserve approved bootstrap history; a plan cannot close compatibility
 or delivery execution. Missing responsibility metadata needs review of the selected projects.
-The declared graph checks supplied labels; inspect actual Core/runtime/provider ownership and
-canonical-permission versus resource/state/effect authorization in the changed code.
-For relevant changed operations, trace production abstractions to real responsibilities, completed and
-uncertain result payloads to known facts, final clock reads past asynchronous waits, and one outer deadline
-through provider stages. Trace operational limits from actual activated options through API admission and
-execution. Exercise public production registration with independent durable-effect assertions instead of
-friend access or test-only production wrappers. Browser protocol checks do not establish a usable journey.
-For untrusted parsers, apply the failure/fallback, deferred-work, actual-runtime and resource-bound
-qualification in `program-kit-governance/references/programming-guardrails.md`; reject inconclusive
-inspection before downstream dispatch. Do not promote top-level traversal to unexercised guarantees.
-For .NET operations apply the concrete correction and regression patterns in
-`program-kit-dotnet/references/implementation-boundaries.md`, including current storage metadata,
-activated pagination settings, lock-wait expiry, public transaction tests and
+The selected semantic families route applicable source review and independent behavior checks.
+Use focused canonical lookup for unresolved ownership, effects, provider, parser and browser duties.
+Conditional .NET corrections remain in
+`program-kit-dotnet/references/implementation-boundaries.md` and
 [normalized-label export](../../program-kit-dotnet/references/label-validation.md).
 Resolve concrete findings in ordinary tasks/source review; do not add another review or approval artifact.
 Resolve material `lifecycleFindings` against their named owner/source in normal scoped review:
@@ -49,13 +53,10 @@ Preserve due authority/security/provider gates beside their dependent operation;
 foundation phase is introduced. Drafting never starts services. Implementation's
 single prehook starts/checks the prepared composition using that same native route.
 
-Run compiler/analyzer checks and
-targeted tests as code changes. Select sequence by risk: known scaffold batches first, maintained
-checks before dependent behavior, then missing consumer tests. Prefer meaningful test-first for
-critical/uncertain behavior and regression-first for bugs; wiring uses immediate verification and
-refactoring existing regressions. Expand through changed contracts and reverse dependencies.
-Progress saves, task batches and resumes do not trigger full acceptance. Restore only for changed
-dependency inputs or an explicit preparation need; package only when an affected integration needs it.
+Use the canonical phase actions and selected evaluation duties for verification sequence,
+scope, reuse and completion. Invoke the existing native Focused/Affected owner and its
+prerequisite closure for the actual change; retain returned checks and failures. The
+phase-evidence reference owns the risk-selected workflow and human checkpoint contract.
 A plan disagreement is a finding to resolve, not a reason to
 rewrite unrelated design documents. Ask humans only about material choices or scoped exceptions.
 Do not require bootstrap completion, ratification receipts, roadmap status, analysis hashes,

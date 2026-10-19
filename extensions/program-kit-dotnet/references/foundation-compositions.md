@@ -76,6 +76,7 @@ save reports `unknown`; only the application's actual acknowledged save reports
 `clean`. This example implements no persistence, automatic save, replay or domain
 acceptance, and cancellation leaves its field value intact.
 
+<!-- program-kit:knowledge-rule principle.private-provider-binding -->
 Private-file provider authoring uses the exact typed binding projected into
 `eng/foundation-composition.resolved.json`, the generated configuration reference and
 scoped phase context. For a binding selecting `EvidenceFiles:Root`, read that key in
@@ -86,6 +87,7 @@ and their presence cannot establish actual compiled registration or exhaustive
 dynamic C# access coverage. Use configured native activation to establish that proof.
 The maintained lifecycle fixture includes an actual emitted private binding and
 missing/invented-key negatives, without changing the accepted private location.
+<!-- /program-kit:knowledge-rule -->
 
 The sole authoring input is schema version 2 of `eng/foundation-composition.json`.
 Start from `templates/dotnet/compositions/application-foundation.json` or its
@@ -181,6 +183,7 @@ Do not fabricate connection configuration for export. Build stages every declare
 its canonical `runtimeStage`/`rootPackages`; contracts select their unique shell's host stage,
 closure evidence and effective shell configuration. Closure freshness remains mandatory.
 
+<!-- program-kit:knowledge-rule principle.strict-profile-schema -->
 Foundation 0.3.3's strict request parser rejects numeric strings, while ASP.NET's default
 `JsonNumberHandling.AllowReadingFromString` can produce number|string schemas. Compare
 real export output with each registered profile's `TypeInfo<T>()` before implementing the
@@ -190,6 +193,7 @@ are exclusively strict contracts. Verify real producer output and actual numeric
 rejection before adoption. A publisher profile-aware transformer must distinguish contract
 direction/profile; do not strip strings from all schemas, broaden parsing, change all shell
 serializer options, or reset a compatibility baseline. Contract changes still require review.
+<!-- /program-kit:knowledge-rule -->
 
 A frontend can bind several distinct page routes in the same shell while sharing one
 compiled deployment root. Each `frontend` binding supplies its `routeId` and `path`,

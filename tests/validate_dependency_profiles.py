@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
-from owned_fixture import FixtureDirectory
+from owned_fixture import FixtureDirectory, filesystem_path
 import shutil
 import unittest
 from unittest.mock import patch
@@ -21,13 +21,48 @@ CURRENT = 'foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2'
 
 
 class ProfileTests(unittest.TestCase):
+    def test_retained_browser_preserves_original_evidence_and_rejects_changed_scope(self):
+        with FixtureDirectory() as directory:
+            registry=Path(directory)
+            def write(path, value): path.write_text(json.dumps(value),encoding='utf-8')
+            old={'id':'original','artifacts':{'npm:@example/forms':'1.2.3','nuget:Runtime':'1.0.0'}}
+            new={'id':'new','artifacts':{'npm:@example/forms':'1.2.3','nuget:Runtime':'2.0.0'}}
+            browser={'profile':{'catalogResolutionSha256':'a'*64,'packages':{'@example/forms':'1.2.3'}},
+                     'stages':{'browser':'b'*64},'engines':['chromium','webkit']}
+            available=[{'packageKey':'npm:@example/forms','version':'1.2.3','reference':'original immutable observation'}]
+            write(registry/'old-profile.json',old)
+            write(registry/'old-proof.json',{'browserIntegration':browser,'availableArtifacts':available})
+            evidence={'path':'old-proof.json','sha256':blocks.raw_sha256(registry/'old-proof.json')}
+            write(registry/'index.json',{'profiles':{'original':{'status':'qualified','path':'old-profile.json',
+                'sha256':blocks.raw_sha256(registry/'old-profile.json'),'evidence':evidence}}})
+            retained={**copy.deepcopy(browser),'retainedFrom':{'profileId':'original','evidence':evidence,'reason':'Explicit bounded maintainer disposition',
+                'inputRevision':'c'*40,'inputs':{'tests/fixture.ts':'d'*64}}}
+            with patch.object(blocks,'qualified_dependency_profile',return_value=({},old)) as verify:
+                result=blocks.retained_browser_evidence(registry,new,retained,available)
+                self.assertEqual(browser,result['browserIntegration'])
+                self.assertEqual('a'*64,retained['profile']['catalogResolutionSha256'])
+                self.assertTrue(verify.called)
+                changed=copy.deepcopy(new);changed['artifacts']['npm:@example/forms']='9.0.0'
+                with self.assertRaisesRegex(ValueError,'changed npm'):
+                    blocks.retained_browser_evidence(registry,changed,retained)
+                for corrupt in (lambda v:v['profile'].update(catalogResolutionSha256='new-profile-hash'),
+                                lambda v:v['retainedFrom'].update(reason=''),
+                                lambda v:v['retainedFrom']['evidence'].update(sha256='0'*64)):
+                    value=copy.deepcopy(retained);corrupt(value)
+                    with self.assertRaises(ValueError): blocks.retained_browser_evidence(registry,new,value)
+                with self.assertRaisesRegex(ValueError,'original historical records'):
+                    blocks.retained_browser_evidence(registry,new,retained,[{**available[0],'reference':'new observation'}])
+            (registry/'old-proof.json').write_text('{}')
+            with self.assertRaisesRegex(ValueError,'qualification changed'):
+                blocks.retained_browser_evidence(registry,new,retained)
+
     def test_bundle_compaction_preserves_all_historical_authorities_and_fact_bytes(self):
         sys.path.insert(0, str(ROOT / 'scripts'))
         from build_release import pack_historical_package_facts
         with FixtureDirectory() as directory:
             staging = Path(directory)
             registry = staging / 'extensions/program-kit-building-blocks/references/dependency-profiles'
-            shutil.copytree(blocks.profile_registry(), registry)
+            shutil.copytree(filesystem_path(blocks.profile_registry()), registry)
             before = {path.relative_to(registry).as_posix(): path.read_bytes() for path in registry.rglob('*') if path.is_file()}
             original_registry = registry
             staging = pack_historical_package_facts(staging)
@@ -159,7 +194,7 @@ class ProfileTests(unittest.TestCase):
         catalog = blocks.load_json(fixtures.CATALOG)
         with FixtureDirectory() as directory:
             registry = Path(directory) / 'registry'
-            shutil.copytree(blocks.profile_registry(), registry)
+            shutil.copytree(filesystem_path(blocks.profile_registry()), registry)
             index = blocks.load_json(registry / 'index.json')
             # Exercise the retained generic receipt independently of later defaults.
             index['default']=CURRENT
@@ -259,7 +294,7 @@ class ProfileTests(unittest.TestCase):
 
     def native_registry(self, directory):
         registry = Path(directory) / 'profiles'
-        shutil.copytree(blocks.profile_registry(), registry)
+        shutil.copytree(filesystem_path(blocks.profile_registry()), registry)
         index = blocks.load_json(registry / 'index.json')
         index['default'] = HISTORICAL
         entry = index['profiles'][index['default']]
@@ -313,7 +348,7 @@ class ProfileTests(unittest.TestCase):
     def test_installed_qualified_profile_binds_portable_checkout_bytes(self):
         with FixtureDirectory() as directory:
             registry = Path(directory) / 'profiles'
-            shutil.copytree(blocks.profile_registry(), registry)
+            shutil.copytree(filesystem_path(blocks.profile_registry()), registry)
             index = blocks.load_json(registry / 'index.json')
             entry = index['profiles'][index['default']]
             profile = registry / entry['path']
@@ -351,7 +386,7 @@ class ProfileTests(unittest.TestCase):
             selected_catalog = blocks.new_project_catalog(captured['profile'])
             self.assertEqual({p['packageId']:p['version'] for p in selected_catalog['packages'].values() if p['ecosystem']=='nuget'}, upgrade_pins)
             registry = root / 'registry'
-            shutil.copytree(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles', registry)
+            shutil.copytree(filesystem_path(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'), registry)
             index = blocks.load_json(registry / 'index.json')
             index['default'] = 'an-unqualified-later-default'
             fixtures.write_json(registry / 'index.json', index)
@@ -541,7 +576,7 @@ class ProfileTests(unittest.TestCase):
         with FixtureDirectory() as directory:
             root = Path(directory)
             registry = root / 'registry'
-            shutil.copytree(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles', registry)
+            shutil.copytree(filesystem_path(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'), registry)
             index = blocks.load_json(registry / 'index.json')
             identity = index['default']
             index['profiles'][identity]['excludedActivations'] = ['Orbyss.Foundation.DomainEvents']
@@ -619,7 +654,7 @@ class ProfileTests(unittest.TestCase):
             changed_bytes = (root / LEDGER).read_bytes()
             self.assertEqual(result, profiles.accept(root, destination, registry, 'profile-review', 'Reviewed independent exporter change'))
             self.assertEqual(changed_bytes, (root / LEDGER).read_bytes())
-            (destination / 'accepted.json').unlink()
+            Path(filesystem_path(destination / 'accepted.json')).unlink()
             with self.assertRaisesRegex(ValueError, 'ledger differs'):
                 profiles.accept(root, destination, registry, 'profile-review', 'Reviewed independent exporter change')
         finally:
@@ -633,7 +668,7 @@ class ProfileTests(unittest.TestCase):
             fixtures.write_json(installed, catalog)
             selection, _ = fixtures.accepted_fixture(blocks, root, catalog)
             registry = root / 'registry'
-            shutil.copytree(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles', registry)
+            shutil.copytree(filesystem_path(ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'), registry)
             index = blocks.load_json(registry / 'index.json')
             identity = index['default']
             index['profiles'][identity]['excludedActivations'] = ['Orbyss.Foundation.DomainEvents']

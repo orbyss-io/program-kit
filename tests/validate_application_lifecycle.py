@@ -4,13 +4,15 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import json
 import uuid
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
+sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
+import building_blocks as blocks
+from owned_fixture import FixtureDirectory
 from live.v2.cli import supervisor_environment
 from live.v2.common import LiveContractError
 from live.v2.supervisor import run_supervised
@@ -21,15 +23,22 @@ def stage_passed(result, stderr, expected_failure):
         return False
     if expected_failure:
         lines = stderr.splitlines()
-        return result.exitCode == 1 and bool(lines) and lines[0] == 'System.InvalidOperationException: policy ran before provider'
+        expected_message = expected_failure if isinstance(expected_failure, str) else 'System.InvalidOperationException: policy ran before provider'
+        return result.exitCode == 1 and bool(lines) and lines[0] == expected_message
     return result.exitCode == 0
 
 
 def main():
     evidence = ROOT/'artifacts/application-lifecycle'/uuid.uuid4().hex
     evidence.mkdir(parents=True)
-    result_record = {'packages': {'CShells.AspNetCore': '0.0.30-preview.159', 'Orbyss.Foundation.Tasks': '0.3.1', 'Orbyss.Foundation.DomainEvents': '0.3.1'}, 'checks': [], 'outcome': 'running'}
-    with tempfile.TemporaryDirectory(prefix='application-lifecycle-') as temporary:
+    catalog = blocks.new_project_catalog()
+    shared = ET.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props')
+    shared_pins = {row.get('Include'): row.get('Version') for row in shared.iter('PackageVersion')}
+    versions = {name: catalog['packages']['nuget:' + name]['version'] for name in
+                ('Orbyss.Foundation.Tasks', 'Orbyss.Foundation.DomainEvents')}
+    versions['CShells.AspNetCore'] = shared_pins['CShells.AspNetCore.Abstractions']
+    result_record = {'packages': versions, 'checks': [], 'outcome': 'running'}
+    with FixtureDirectory(native=True) as temporary:
         root = Path(temporary)
         shutil.copytree(ROOT/'tests/fixtures/application-lifecycle', root, dirs_exist_ok=True)
         shutil.copy2(ROOT/'extensions/program-kit-dotnet/templates/dotnet/files/global.json', root/'global.json')
@@ -38,7 +47,8 @@ def main():
         sources = []
         cached = Path.home()/'.nuget/packages'
         closures = [p for p in (ROOT/'artifacts/profile-update-native').glob('*/closure')
-                    if (p/'orbyss.foundation.tasks.0.3.1.nupkg').is_file()]
+                    if all((p / (name.lower() + '.' + version + '.nupkg')).is_file()
+                           for name, version in versions.items() if name.startswith('Orbyss.Foundation.'))]
         if cached.is_dir() and closures:
             config = ET.Element('configuration')
             feeds = ET.SubElement(config, 'packageSources'); ET.SubElement(feeds, 'clear')
@@ -48,7 +58,9 @@ def main():
             ET.ElementTree(config).write(root/'NuGet.Config', encoding='utf-8', xml_declaration=True)
         commands = [ ['dotnet', 'restore', str(root/'Probe.csproj'), *sources],
                      ['dotnet', 'run', '--project', str(root/'Probe.csproj'), '--no-restore'],
-                     ['dotnet', 'run', '--project', str(root/'Probe.csproj'), '--no-restore', '--no-build', '--', '--break-schema-order'] ]
+                     ['dotnet', 'run', '--project', str(root/'Probe.csproj'), '--no-restore', '--no-build', '--', '--break-schema-order'],
+                     ['dotnet', 'run', '--project', str(root/'Probe.csproj'), '--no-restore', '--no-build', '--', '--missing-handler'],
+                     ['dotnet', 'run', '--project', str(root/'Probe.csproj'), '--no-restore', '--no-build', '--', '--missing-dispatcher'] ]
         for number, command in enumerate(commands):
             try:
                 process_evidence = evidence / str(number)
@@ -61,9 +73,11 @@ def main():
                 result_record.update(outcome='failed', diagnostic=type(error).__name__)
                 (evidence/'result.json').write_text(json.dumps(result_record, indent=2)+'\n', encoding='utf-8')
                 raise
-            expected_failure = number == 2
+            expected_failure = {2:'System.InvalidOperationException: policy ran before provider',
+                                3:'Missing typed reaction registration observed.',
+                                4:'Missing selected native dispatcher observed.'}.get(number, False)
             passed = stage_passed(result, stderr, expected_failure)
-            result_record['checks'].append({'stage': ('restore', 'actual-lifecycle', 'ordering-regression-red')[number], 'exitCode': result.exitCode, 'expectedFailure': expected_failure, 'passed': passed, 'timeoutSeconds': 180, 'process': result.as_dict()})
+            result_record['checks'].append({'stage': ('restore', 'actual-lifecycle-and-native-events', 'ordering-regression-red', 'missing-handler-red', 'missing-dispatcher-red')[number], 'exitCode': result.exitCode, 'expectedFailure': expected_failure, 'passed': passed, 'timeoutSeconds': 180, 'process': result.as_dict()})
             result_record['outcome'] = 'running' if passed else 'failed'
             (evidence/'result.json').write_text(json.dumps(result_record, indent=2)+'\n', encoding='utf-8')
             print(stdout)

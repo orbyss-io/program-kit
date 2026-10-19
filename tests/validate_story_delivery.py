@@ -13,8 +13,10 @@ import sys
 import tempfile
 import uuid
 import zipfile
+import xml.etree.ElementTree as ET
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
@@ -56,28 +58,57 @@ def story_tasks():
 '''
 
 
-def seed(root, feature):
+def seed(root, feature, *, evaluation=False):
     """Initialize fictional state for focused controls; installed reset exercises ratification."""
     for name in ('spec.md', 'plan.md'):
         (feature / name).write_text(delivery.POLICY + '\nFictional fresh specification.', encoding='utf-8')
     (feature / 'tasks.md').write_text(story_tasks(), encoding='utf-8')
-    for name in ('src/Create.txt', 'src/Export.txt', 'artifacts/passing.json'):
+    for name in ('src/Create.txt', 'src/Export.txt'):
         target = root / name
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps({'status': 'completed', 'exitCode': 0, 'fixture': 'simulated; no human acceptance'}) if name.endswith('.json')
-                          else 'Fictional fixture; no human acceptance.', encoding='utf-8')
+        target.write_text('Fictional fixture; no human acceptance.', encoding='utf-8')
+    import toolkit_verification as toolkit
+    (root / 'checks').mkdir(exist_ok=True)
+    (root / 'checks/story.py').write_text('assert 2 + 2 == 4\nprint("Synthetic state-machine check; no application behavior claim")\n')
+    (root / 'eng').mkdir(exist_ok=True)
+    (root / 'eng/verification.json').write_text(json.dumps({'schemaVersion': 1, 'toolkitChecks': [{
+        'id': 'story-state', 'script': 'checks/story.py', 'arguments': [], 'inputs': ['checks/story.py'], 'timeoutSeconds': 10}]}))
+    (root / 'review.md').write_text('Fictional scoped workflow review: state transitions and source freshness only. No application, semantic correctness or human acceptance claim. F7 actual application proof is separate.')
+    retained = root / 'artifacts/tests/toolkit-runs/story-fixture/result.json'
+    if not retained.is_file():
+        with patch.object(toolkit.uuid, 'uuid4', return_value=SimpleNamespace(hex='story-fixture')):
+            toolkit.execute(root, ['story-state'], toolkit.declarations(root, json.loads((root / 'eng/verification.json').read_text())))
     with patch.object(delivery, 'require_policy'):
         delivery.transition(root, feature, {'action': 'initialize', 'baseline': 'original-commit',
                                            'source': 'simulated requesting-human conversation'}, now=0)
+    if evaluation:
+        # Pending-intake/phase fixtures initialize state without inventing review
+        # before accepted context exists. Completion fixtures opt in explicitly.
+        from coding_context import prepare, bind_evaluation
+        coding = prepare(root, feature, feature_wide=True)['coding']
+        saved = delivery.current(feature)
+        saved['evaluation'] = bind_evaluation(root, feature, coding, fictional_evaluation(root, feature))
+        delivery.save_current(feature, saved)
+
+
+def fictional_evaluation(root, feature, task_ids=None):
+    """Ordinary fictional authorship for workflow tests, not application qualification."""
+    from coding_context import prepare
+    coding = prepare(root, feature, task_ids=task_ids, feature_wide=task_ids is None)['coding']
+    return [{'rules': [d['rule'] for d in coding['evaluation']['duties']],
+             'checks': [{'kind': 'toolkit', 'id': 'story-state'}], 'review': 'review.md',
+             'conclusion': 'Synthetic workflow state and declared material scope inspected; no application correctness claim.',
+             'limits': 'Fictional unit-test review; technical evidence executes only its synthetic state check.'}]
 
 
 def accepted_fixture(root, feature):
-    seed(root, feature)
+    seed(root, feature, evaluation=True)
     target = feature / 'tasks.md'
     target.write_text(target.read_text().replace('- [ ]', '- [X]'))
     for key in ('US1', 'US2'):
         delivery.transition(root, feature, {'action': 'present', 'checkpoint': key,
-            'checks': ['artifacts/passing.json'], 'basisPaths': ['src/Create.txt' if key == 'US1' else 'src/Export.txt'],
+            'evaluation': fictional_evaluation(root, feature, delivery.load_delivery(feature)['stories'][key]['taskIds']),
+            'checks': ['artifacts/tests/toolkit-runs/story-fixture/result.json'], 'basisPaths': ['src/Create.txt' if key == 'US1' else 'src/Export.txt'],
             'entryPoint': 'fixture supported interface', 'preparedData': 'fictional account/data',
             'walkthrough': 'exercise fictional integrated outcome', 'expected': 'owned useful outcome',
             'limitations': 'Simulated decisions only; no real human acceptance'}, now=0)
@@ -89,11 +120,11 @@ class DeliveryTests(unittest.TestCase):
     def test_invalid_check_action_reports_real_transition_and_keeps_review_authority(self):
         original = delivery.load_delivery(self.feature)
         with self.assertRaisesRegex(ValueError, 'engineering.*checkpoint.*checks.*human acceptance'):
-            self.act('check-record', checkpoint='US1', checks=['artifacts/passing.json'])
+            self.act('check-record', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
         current = delivery.load_delivery(self.feature)
         self.assertEqual(original['checkpoints'], current['checkpoints'])
         self.complete('T001', 'T002')
-        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('engineering', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
         self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
         with self.assertRaises(ValueError):
             self.act('engineering', checkpoint='US1', checks=['artifacts/does-not-exist.json'])
@@ -105,7 +136,7 @@ class DeliveryTests(unittest.TestCase):
         solution = self.root / 'Application.slnx'
         solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /></Solution>')
         self.complete('T001', 'T002')
-        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+        self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'],
                  basisPaths=['src/Create.txt', 'Application.slnx', *extra_basis], entryPoint='Fictional application',
                  preparedData='Synthetic records', walkthrough='Create and reopen', expected='Owned result',
                  limitations='Simulated human assessment; unit fixture has no native build claim')
@@ -117,7 +148,7 @@ class DeliveryTests(unittest.TestCase):
         decision = original['checkpoints']['US1']['decisions'][-1]
         request = {'checkpoint': 'US1', 'actor': 'owner', 'source': 'Simulated explicit separate owner assessment',
                    'decisionSha256': hashlib.sha256(delivery._basis_bytes(decision)).hexdigest(),
-                   'checks': ['artifacts/passing.json'], 'changes': [{
+                   'checks': ['artifacts/tests/toolkit-runs/story-fixture/result.json'], 'changes': [{
                        'path': 'Application.slnx', 'before': {'path': 'artifacts/original.slnx',
                            'sha256': hashlib.sha256(archive.read_bytes()).hexdigest()},
                        'afterSha256': hashlib.sha256(solution.read_bytes()).hexdigest(), 'conclusion': 'nonmaterial',
@@ -144,8 +175,25 @@ class DeliveryTests(unittest.TestCase):
         solution = self.root / 'Application.slnx'
         solution.write_text('<Solution><Project Path="src/Create/Create.csproj" /></Solution>')
         commands = []
+        # This real native case supplies the actual ownership/baseline now consumed
+        # by direct presentation; the other state-machine cases remain fictional.
+        graph = self.root / 'eng/architecture.json'
+        graph.parent.mkdir(exist_ok=True)
+        graph.write_text(json.dumps({'runtimeComposition': {'projects': [
+            {'path': 'src/' + name + '/' + name + '.csproj', 'role': 'implementation', 'projectReferences': [],
+             'responsibilities': [{'name': name + 'Work', 'kind': 'runtime', 'effects': []}]}
+            for name in ('Create', 'Unrelated')], 'bindings': []}}))
+        (self.root / '.gitignore').write_text('**/bin/\n**/obj/\nartifacts/\n')
+        for arguments in (['init', '-q'], ['add', 'src', 'eng/architecture.json', 'Directory.Build.props', 'Application.slnx', '.gitignore'],
+                          ['-c', 'user.name=Fictional Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Native fixture baseline'],
+                          ['tag', 'original-commit']):
+            subprocess.run(['git', *arguments], cwd=self.root, check=True, capture_output=True, timeout=30)
         def native(*args):
             command = ['dotnet', *args]
+            if args[0] in ('restore', 'build'):
+                # This bounded output/review case does not qualify parallel
+                # MSBuild scheduling. Serialize its two-project local fixture.
+                command.append('-m:1')
             completed = subprocess.run(command, cwd=self.root, capture_output=True, text=True, encoding='utf-8', timeout=120)
             log = evidence / ('command-' + str(len(commands)) + '.log')
             log.write_text(completed.stdout + completed.stderr, encoding='utf-8')
@@ -170,11 +218,14 @@ class DeliveryTests(unittest.TestCase):
         packages = [next((self.root / 'artifacts' / folder).glob('*.nupkg')) for folder in ('package-before', 'package-after')]
         with zipfile.ZipFile(packages[0]) as left, zipfile.ZipFile(packages[1]) as right:
             self.assertEqual(left.read('lib/net10.0/Create.dll'), right.read('lib/net10.0/Create.dll'))
-        report = self.root / 'artifacts/native-checks.json'
-        report.write_text(json.dumps({'status': 'completed', 'exitCode': 0, 'commands': commands,
-            'selectedBuildAndRuntimeBefore': before, 'selectedBuildAndRuntimeAfter': after,
-            'humanAssessment': 'simulated; real consumer authority not established'}))
-        request['checks'] = ['artifacts/native-checks.json']
+        # A real JUnit report follows the successful command and byte/runtime assertions.
+        # The retained command manifest is attribution, not a status-only JSON receipt.
+        report = self.root / 'artifacts/native-checks.xml'
+        suite = ET.Element('testsuite', name='ActualNativeMaterialAssertions')
+        for label in ('selected-package-assembly-equality', 'selected-runtime-before-and-after'):
+            ET.SubElement(suite, 'testcase', name=label)
+        ET.ElementTree(suite).write(report, encoding='utf-8', xml_declaration=True)
+        request['checks'] = ['artifacts/native-checks.xml']
         self.act('assess-material', **request); self.act('status')
         retained = delivery.load_delivery(self.feature)['checkpoints']['US1']
         self.assertEqual('accepted', retained['human'])
@@ -217,7 +268,7 @@ class DeliveryTests(unittest.TestCase):
             changed = copy.deepcopy(request); mutate(changed)
             with self.assertRaises(ValueError): self.act('assess-material', **changed)
             self.assertFalse(delivery.load_delivery(self.feature)['checkpoints']['US1'].get('materialAssessments'))
-        (self.root / 'artifacts/passing.json').write_text('{"status":"failed","exitCode":1}')
+        (self.root / 'artifacts/tests/toolkit-runs/story-fixture/result.json').write_text('{"status":"failed","exitCode":1}')
         with self.assertRaisesRegex(ValueError, 'Failed/incomplete'):
             self.act('assess-material', **request)
 
@@ -227,7 +278,7 @@ class DeliveryTests(unittest.TestCase):
         with patch.object(delivery, 'assessment_policy', return_value={'policy': 'changed'}):
             self.act('status')
         self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
-        (self.root / 'artifacts/passing.json').write_text('{"status":"completed","exitCode":0,"changed":true}')
+        (self.root / 'artifacts/tests/toolkit-runs/story-fixture/result.json').write_text('{"status":"completed","exitCode":0,"changed":true}')
         self.act('status')
         self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
         state = delivery.load_delivery(self.feature)
@@ -271,7 +322,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertFalse(result['materialUnchanged'])
         self.assertFalse(result['acceptanceEstablished'])
         self.assertIn('runtime assessment', result['inputs'][1]['reason'])
-        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('engineering', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
         refreshed = review_material.explain(self.root, delivery.load_delivery(self.feature)['checkpoints']['US1'])
         self.assertFalse(refreshed['materialUnchanged'])
         self.assertFalse(refreshed['inputs'][1]['rawChanged'])
@@ -381,10 +432,14 @@ class DeliveryTests(unittest.TestCase):
         self.root = Path(temporary.name).resolve()
         self.feature = self.root / 'specs/001-record'
         self.feature.mkdir(parents=True)
-        seed(self.root, self.feature)
+        seed(self.root, self.feature, evaluation=True)
         self.now = 0
 
     def act(self, action, **fields):
+        if action in ('engineering', 'present') and 'evaluation' not in fields:
+            value = delivery.load_delivery(self.feature)
+            review = value['checkpoints'][fields['checkpoint']]
+            fields['evaluation'] = fictional_evaluation(self.root, self.feature, review.get('taskIds', value['stories'][review['story']]['taskIds']))
         return delivery.transition(self.root, self.feature, {'action': action, **fields}, self.now)
 
     def complete(self, *ids):
@@ -396,7 +451,7 @@ class DeliveryTests(unittest.TestCase):
 
     def present(self, key='US1'):
         self.complete(*delivery.load_delivery(self.feature)['stories'][key]['taskIds'])
-        return self.act('present', checkpoint=key, checks=['artifacts/passing.json'],
+        return self.act('present', checkpoint=key, checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'],
                         basisPaths=['src/Create.txt' if key == 'US1' else 'src/Export.txt'],
                         entryPoint='http://localhost/records', preparedData='fixture owner account',
                         walkthrough='Create, reopen, exercise failure', expected='Owned persistent result',
@@ -415,7 +470,7 @@ class DeliveryTests(unittest.TestCase):
             {'path': 'src/Create.txt', 'kind': 'file'},
             {'path': 'eng/foundation-composition.json', 'kind': 'foundation-composition', 'version': 1,
              'hosts': ['application-host'], 'environments': ['development']}]}
-        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+        self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'],
             basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
             entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
         self.accept()
@@ -431,7 +486,7 @@ class DeliveryTests(unittest.TestCase):
             {'path': 'src/Create.txt', 'kind': 'file'},
             {'path': self.plan_relative, 'kind': 'story-document', 'version': 1,
              'stories': ['US1'], 'knownStories': ['US1', 'US2']}]}
-        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+        self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'],
             basisPaths=['src/Create.txt', self.plan_relative], materialScope=self.document_scope,
             entryPoint='fictional interface', preparedData='fictional account', walkthrough='create and reopen',
             expected='owned useful record', limitations='synthetic scope proof, no real human acceptance')
@@ -451,7 +506,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(before['checkpoints']['US1']['decisions'], review['decisions'])
         with self.assertRaisesRegex(ValueError, 'engineering checks remain due'):
             self.act('start', operation='export')
-        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('engineering', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
         self.act('start', operation='export')
         after = delivery.load_delivery(self.feature)
         self.assertEqual(before['checkpoints']['US1']['decisions'], after['checkpoints']['US1']['decisions'])
@@ -529,7 +584,7 @@ class DeliveryTests(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text('Fictional original source ' + str(index))
             paths.append(name)
-        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'], basisPaths=paths,
+        self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'], basisPaths=paths,
                  entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
         return paths
 
@@ -556,7 +611,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(60, len(original))
         self.assertEqual(121, len(original[0]['basis']))
         (self.root / paths[0]).write_text('changed material fixture')
-        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'], basisPaths=paths,
+        self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'], basisPaths=paths,
                  entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
         self.act('decision', checkpoint='US1', verdict='deferred', actor='owner', permits=['export'], source='simulated changed review')
         self.assertEqual(original, delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'][:60])
@@ -671,7 +726,7 @@ class DeliveryTests(unittest.TestCase):
         self.composition.write_text(json.dumps(self.graph))
         self.act('start', operation='export')
         self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['engineering'])
-        (self.root / 'artifacts/passing.json').write_text('{"status":"failed","exitCode":1}')
+        (self.root / 'artifacts/tests/toolkit-runs/story-fixture/result.json').write_text('{"status":"failed","exitCode":1}')
         with self.assertRaisesRegex(ValueError, 'cannot be waived'):
             self.act('start', operation='export')
 
@@ -728,7 +783,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(decision, review['decisions'])
         with self.assertRaisesRegex(ValueError, 'engineering checks remain due'):
             self.act('start', operation='export')
-        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('engineering', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
         self.act('start', operation='export')
         self.assertEqual(decision, delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
 
@@ -736,8 +791,8 @@ class DeliveryTests(unittest.TestCase):
         self.scoped_presentation()
         prior = copy.deepcopy(delivery.load_delivery(self.feature)['checkpoints']['US1']['decisions'])
         self.composition.write_text(json.dumps(self.graph, indent=4))
-        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
-        self.act('present', checkpoint='US1', checks=['artifacts/passing.json'],
+        self.act('engineering', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
+        self.act('present', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'],
             basisPaths=['src/Create.txt', 'eng/foundation-composition.json'], materialScope=self.scope,
             entryPoint='fixture', preparedData='fixture', walkthrough='fixture', expected='fixture', limitations='fixture')
         review = delivery.load_delivery(self.feature)['checkpoints']['US1']
@@ -802,9 +857,9 @@ class DeliveryTests(unittest.TestCase):
     def test_failed_checks_cannot_renew_scoped_engineering(self):
         self.scoped_presentation()
         self.composition.write_text(json.dumps(self.graph, indent=2))
-        (self.root / 'artifacts/passing.json').write_text('{"status":"failed","exitCode":1}')
+        (self.root / 'artifacts/tests/toolkit-runs/story-fixture/result.json').write_text('{"status":"failed","exitCode":1}')
         with self.assertRaisesRegex(ValueError, 'Failed/incomplete'):
-            self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+            self.act('engineering', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
         self.act('status')
         self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['engineering'])
 
@@ -840,7 +895,7 @@ class DeliveryTests(unittest.TestCase):
         self.act('start', operation='create'); self.complete('T001', 'T002')
         with self.assertRaisesRegex(ValueError, 'Pause'):
             self.act('start', operation='export')
-        self.act('engineering', checkpoint='US1', checks=['artifacts/passing.json'])
+        self.act('engineering', checkpoint='US1', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'])
         with self.assertRaisesRegex(ValueError, 'remain due'):
             delivery.guard(self.root, self.feature, closure=True)
         self.assertEqual('pending', delivery.load_delivery(self.feature)['checkpoints']['US1']['human'])
@@ -925,7 +980,7 @@ class DeliveryTests(unittest.TestCase):
         self.act('early-checkpoint', actor='owner', source='simulated agreed early review',
                  checkpoint='early', story='US1', taskIds=['T001'])
         self.complete('T001')
-        self.act('present', checkpoint='early', checks=['artifacts/passing.json'], basisPaths=['src/Create.txt'],
+        self.act('present', checkpoint='early', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'], basisPaths=['src/Create.txt'],
                  entryPoint='fixture runnable interface', preparedData='fixture account', walkthrough='create',
                  expected='owned result', limitations='simulation')
         self.act('decision', checkpoint='early', actor='requester', source='simulated explicit review', verdict='accepted')
@@ -934,7 +989,7 @@ class DeliveryTests(unittest.TestCase):
         self.complete('T002')
         self.act('early-checkpoint', actor='owner', source='simulated agreed full-story review',
                  checkpoint='early-full', story='US1', taskIds=['T001', 'T002'])
-        self.act('present', checkpoint='early-full', checks=['artifacts/passing.json'], basisPaths=['src/Create.txt'],
+        self.act('present', checkpoint='early-full', checks=['artifacts/tests/toolkit-runs/story-fixture/result.json'], basisPaths=['src/Create.txt'],
                  entryPoint='fixture runnable interface', preparedData='fixture account', walkthrough='create/reopen',
                  expected='complete owned result', limitations='simulation')
         self.act('decision', checkpoint='early-full', actor='requester', source='simulated full-story review', verdict='accepted')
@@ -943,11 +998,12 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual('early-full', result['delivery']['checkpoints']['US1']['reusedFrom'])
 
     def test_failed_or_changed_check_artifacts_cannot_be_waived(self):
-        target = self.root / 'artifacts/passing.json'
+        target = self.root / 'artifacts/tests/toolkit-runs/story-fixture/result.json'
+        valid = target.read_bytes()
         target.write_text('{"status":"failed","exitCode":1}')
         with self.assertRaisesRegex(ValueError, 'cannot be waived'):
             self.present()
-        target.write_text('{"status":"completed","exitCode":0}')
+        target.write_bytes(valid)
         self.present()
         target.write_text('{"status":"interrupted","exitCode":130}')
         with self.assertRaisesRegex(ValueError, 'cannot be waived'):

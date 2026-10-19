@@ -8,6 +8,19 @@ import re
 import sys
 from pathlib import Path
 
+_asset_reader = None
+
+
+def source_bytes(path):
+    """Use this release's sibling reader even when loaded by absolute filename."""
+    global _asset_reader
+    if _asset_reader is None:
+        source = Path(__file__).with_name('asset_sources.py')
+        specification = importlib.util.spec_from_file_location('release_guidance_source_assets', source)
+        _asset_reader = importlib.util.module_from_spec(specification)
+        specification.loader.exec_module(_asset_reader)
+    return _asset_reader.read(path)
+
 BASELINE = '0.12.5'
 VERIFICATION_CHECKS = {'installation-coherence', 'dependency-verification', 'required-phase-evidence'}
 
@@ -20,7 +33,7 @@ def version_key(value):
 
 def load_index(directory, target):
     directory = Path(directory)
-    index = json.loads((directory / 'migration-index.json').read_text(encoding='utf-8'))
+    index = json.loads(source_bytes(directory / 'migration-index.json'))
     if index.get('schemaVersion') != 1 or index.get('supportedFrom') != BASELINE:
         raise ValueError('PKU130 unsupported release guidance index')
     entries = index['entries']
@@ -36,7 +49,7 @@ def load_index(directory, target):
         path = (directory / relative).resolve()
         if relative.is_absolute() or not path.is_relative_to(directory.resolve()):
             raise ValueError('PKU130 release guide escapes verified inputs')
-        if hashlib.sha256(path.read_bytes()).hexdigest() != entry['sha256']:
+        if hashlib.sha256(source_bytes(path)).hexdigest() != entry['sha256']:
             raise ValueError('PKU130 release guide hash differs: ' + str(relative))
         if not {'automatic', 'review', 'verification', 'recovery'} <= entry.keys():
             raise ValueError('PKU130 incomplete migration entry')
@@ -46,9 +59,9 @@ def load_index(directory, target):
     semantic = index.get('consumerChanges')
     if semantic:
         path = directory / semantic['file']
-        if Path(semantic['file']).name != semantic['file'] or hashlib.sha256(path.read_bytes()).hexdigest() != semantic['sha256']:
+        if Path(semantic['file']).name != semantic['file'] or hashlib.sha256(source_bytes(path)).hexdigest() != semantic['sha256']:
             raise ValueError('PKU130 consumer semantic metadata differs from verified release guidance')
-        validate_changes(json.loads(path.read_text(encoding='utf-8')), versions)
+        validate_changes(json.loads(source_bytes(path)), versions)
     return index
 
 
@@ -92,7 +105,7 @@ def semantic_changes(directory, installed, target):
     asset = index.get('consumerChanges')
     if not asset:
         return {'changes': [], 'limitations': ['Structured semantic coverage is missing; inspect actual release guidance and consumer layout.']}
-    changes = json.loads((Path(directory) / asset['file']).read_text(encoding='utf-8'))['changes']
+    changes = json.loads(source_bytes(Path(directory) / asset['file']))['changes']
     active = [c for c in changes if version_key(c['introduced']) <= destination and
               (not c.get('retired') or version_key(c['retired']) > destination)]
     superseded = {identity for c in active for identity in c['supersedes']}

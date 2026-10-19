@@ -16,7 +16,7 @@ RUN = ROOT/'artifacts/consumer-upgrade-package-runs'/uuid.uuid4().hex
 sys.path[:0] = [str(ROOT/'scripts'), str(ROOT/'extensions/program-kit-governance/scripts')]
 import consumer_upgrade as flow
 import schema_runtime
-from owned_fixture import FixtureDirectory, native_path
+from owned_fixture import FixtureDirectory, native_path, filesystem_path
 
 
 def run(command, root, environment=None, expected_exit=0):
@@ -32,9 +32,10 @@ def run(command, root, environment=None, expected_exit=0):
         evidence.mkdir()
         for relative in ('.program-kit/consumer-upgrade.json', '.program-kit/installation/migration.json'):
             original = root/relative
-            if original.is_file(): shutil.copy2(original, evidence/original.name)
+            if original.is_file(): shutil.copy2(filesystem_path(original), filesystem_path(evidence/original.name))
         for directory in ('artifacts/program-kit/consumer-upgrade', 'artifacts/program-kit/consumer-activation'):
-            if (root/directory).is_dir(): shutil.copytree(root/directory, evidence/Path(directory).name)
+            if (root/directory).is_dir():
+                shutil.copytree(filesystem_path(root/directory), filesystem_path(evidence/Path(directory).name))
         record_path = root / flow.RECORD
         if record_path.is_file():
             isolated = Path(flow.read(record_path).get('workspace', {}).get('target', str(root)))

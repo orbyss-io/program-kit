@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import shutil
 import sys
-import tempfile
+from owned_fixture import FixtureDirectory
 import unittest
 import validate_building_blocks as fixture
 
@@ -16,7 +16,7 @@ import upgrade_program_kit as upgrade
 
 class UpgradeRetryTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix='upgrade-real-transition-')
+        self.temporary = FixtureDirectory(prefix='upgrade-real-transition-')
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name).resolve()
         self.blocks = fixture.load_module(fixture.RESOLVER)

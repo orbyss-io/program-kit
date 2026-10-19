@@ -15,6 +15,10 @@ Resolve reported associations/conflicts; repository-wide adoption does not selec
 Use focused section lookup for a concrete unresolved choice, not a checklist to reread every source. Use `--only <id>`
 for a focused follow-up. Apply their conditions to concrete design/code choices;
 record decisions, exceptions and actual required tests in the existing plan and tasks.
+For attributable source ownership and evaluation routes, use the single discovery entry point:
+`python .specify/extensions/program-kit-governance/scripts/knowledge_discovery.py catalog --requirement <id>`.
+Add `--resolve` for actual canonical declarations. This lookup is regenerable output, not another
+consumer catalog or acceptance record; source availability and declared routing do not prove application.
 When a selected foundation composition affects configuration, link its existing
 `docs/architecture/foundation-configuration.md` ownership/flow reference and the redacted
 `eng/foundation_composition.py --repository . --effective` view. State whether the view

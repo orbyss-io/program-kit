@@ -12,10 +12,10 @@ each declared project's `responsibilities`. Correct confirmed structural violati
 For example, a persistence-calling NotesService is runtime even when its project was called Core.
 Reconcile its responsibility and capability inventory with the plan and relevant ADRs; do not merely
 repeat role labels. A passing declared graph is structural evidence and never a semantic PASS.
-Address material `lifecycleFindings` with their concrete owner/source evidence. Review whether a
-composition project owns real reusable selection or merely registers foreign tasks/calls provider
-preparation. Apply the selected publisher lifecycle mechanisms and retain legitimate presets and
-independent business-event reactions. Record corrections in the current plan/tasks and ordinary review,
+Address material `lifecycleFindings` with their concrete owner/source evidence. Retire C#
+composition-preset projects through explicit responsibility repair: selection belongs to shell/deployment
+configuration; services, tasks and provider preparation belong to their owning features. Apply the
+selected publisher lifecycle mechanisms and preserve independent business-event reactions. Record corrections in the current plan/tasks and ordinary review,
 preserving approved history; the findings create no new proof or approval dossier.
 Before a feature directory exists, review the request and existing constitutional/architectural
 context directly; do not require a feature-dependent command or create a feature on the hook's behalf.
@@ -41,6 +41,10 @@ Do not first run project and then check for the same event, or reread entire ref
 During specification and planning, present design findings without requiring application builds,
 tests or completion evidence. At after-implement run `{SCRIPT} finish --feature-dir <feature>`.
 Pending tasks or a draft return progress without full engineering acceptance. State remaining work;
+Progress and closure first reconcile retained-baseline changes (including untracked and both rename
+owners), actual Compile ownership, native dependencies and newly selected coding duties. An unresolved
+finding returns needs-attention and preserves source/task progress; independent owned scopes remain
+available. This does not intercept arbitrary writes or establish arbitrary-language semantics.
 do not claim completion. An explicit formal review handoff adds `--handoff`; neither a status request
 nor a task batch is a handoff. Completed feature/domain work runs the full engineering command once.
 Reuse its current result in the final report; do not separately invoke verify or that command again.

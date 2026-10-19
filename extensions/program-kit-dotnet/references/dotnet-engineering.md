@@ -6,16 +6,26 @@ ownership rules are profile requirements.
 ## Async and shell-owned work
 
 <!-- program-kit:decision-rule async-ownership -->
+<!-- program-kit:knowledge-rule principle.async-representation -->
 - `Task`/`Task<T>` is the default asynchronous representation. Use `ValueTask` only for a measured hot path
   whose consumers obey its single-consumption constraints.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.bounded-async-work -->
 - `async void` is limited to event handlers. Do not use `.Result`, `.Wait()`, sync-over-async, unobserved work,
   unbounded producer queues, or unbounded fan-out.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.async-operation-policy -->
 - Propagate cancellation and define timeout, retry, idempotency, fault, terminal-state, and observability policy.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.shell-owned-work -->
 - `IHostedService` and `BackgroundService` are root-provider, process-global facilities. A CShells feature must
   register shell-owned work through `Orbyss.Foundation.Tasks`; the Generic Host does not start services registered in
   a shell provider.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.shell-task-lifetimes -->
 - Startup tasks may be scoped. Background and recurring tasks are shell-singletons owned by the task manager.
   Shutdown is idempotent, cancels, awaits with a bound, drains before provider disposal, and has disposal fallback.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 - Custom schedulers, `Task.Factory.StartNew`, invisible fire-and-forget, and runtime work without an owner require
   an Accepted ADR and measured evidence.
@@ -43,9 +53,13 @@ ownership rules are profile requirements.
 ## Resource and memory ownership
 
 <!-- program-kit:decision-rule resource-ownership -->
+<!-- program-kit:knowledge-rule principle.disposal-ownership -->
 - The creator owns disposal unless ownership is explicitly transferred. DI disposes services it creates; do not
   manually dispose them or register pre-created disposable instances without an owner.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.async-teardown -->
 - Use `IAsyncDisposable` when teardown performs asynchronous work. Constructors do not start background work.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 - Bound caches, queues, buffers, subscriptions, and retained task state. Static references, timers, event
   handlers, callbacks, threads, and outstanding work must not retain a drained shell generation.
@@ -192,6 +206,7 @@ not automatically justified: it must make the caller easier to read or own an in
 
 ## Source files and documentation
 
+<!-- program-kit:knowledge-rule principle.source-file-context -->
 Task context projects the actual selected `Orbyss.Foundation.Analyzers` pin and root
 `.editorconfig` declarations. ORB1003 is the one-type-per-file rule. Write an interface,
 request record, decision enum and failure record in four files, including support and
@@ -199,6 +214,7 @@ test types. The maintained [contract example](examples/contract-layout/) compile
 the selected pin; `python tests/validate_contract_layout.py` also proves that combining
 those valid types fails ORB1003. Nested configuration and suppressions still require
 the actual native build; declared root settings alone establish no effective-policy pass.
+<!-- /program-kit:knowledge-rule -->
 
 - A C# source file declares exactly one named type: class, record, struct, interface, enum, or delegate. Nested and
   supporting type declarations use their own files as well. Anonymous types and tuples are expressions and do not
@@ -215,7 +231,17 @@ the actual native build; declared root settings alone establish no effective-pol
 ## Orbyss style overlay
 
 - Private fields use camelCase without an underscore; enforce through EditorConfig naming rules.
-- Use a 120-column target. When a call becomes multiline, place one argument per line.
+- Use a 120-column target. Methods and constructors with more than two parameters, and calls with more than
+  two arguments, must put every parameter/argument on its own line after the opening parenthesis. Close on
+  a separate line aligned with the indentation of the line containing the opening parenthesis. Apply the
+  same layout whenever a shorter list is split across lines, including primary constructors.
+- Never invoke a method inside an argument to another method or constructor. Prepare the result in a named
+  local first, including awaited results. Prepare constructed argument values separately as well. Keep
+  deferred factories/handlers in named methods or delegate variables rather than nesting their bodies
+  inside a call's argument list. Preserve evaluation order, cancellation, disposal and deferred activation.
+- In a method chain, put the receiver on its own line and every invocation on a following indented line,
+  starting with the first invocation. Never leave the first call beside the receiver or combine calls on
+  one line. A single unchained invocation may stay on the receiver's line.
 - Named-argument Policy B: require names for ambiguous booleans, enums, null/default literals, adjacent same-typed
   primitives, and project-defined calls with four or more arguments. Keep one- and two-argument obvious calls
   positional. Public parameter renames remain a source-compatibility concern.
@@ -224,13 +250,18 @@ the actual native build; declared root settings alone establish no effective-pol
 
 ## Enforcement classification
 
-- Universal: owned/observed async work, cancellation, bounded concurrency, lifecycle-safe teardown, explicit
+- Universal: argument/parameter layout, prepared argument values, one invocation per chain line,
+  owned/observed async work, cancellation, bounded concurrency, lifecycle-safe teardown, explicit
   resource ownership, immutable production composition, no shell-level `AddHostedService`, coherent method
   abstraction, one declared type per file, private helpers last, and purposeful XML documentation on every
   declared type and member.
 - Conditional: `ValueTask`, PLINQ, structs, records, primary constructors, frozen collections, live unloading,
   and specialized synchronization.
-- Recommendation: line width, multiline layout, contextual named arguments, and sealing internal leaves.
+- Recommendation: line width, contextual named arguments, and sealing internal leaves.
+- The invocation readability rules above are mandatory source-review checks. The current SDK/selected
+  Foundation analyzer configuration does not certify them; a green build does not waive that review.
+  Apply them to owned authored source and editable examples/templates; do not reformat external packages,
+  immutable historical evidence or native generated output. Check changes after manual edits too.
 - Prohibited unless ADR: invisible work, sync-over-async, unbounded queues/fan-out, custom schedulers, runtime feed
   mutation, and live reload without drain/unload evidence.
 

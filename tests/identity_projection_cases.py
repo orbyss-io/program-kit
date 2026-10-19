@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from owned_fixture import FixtureDirectory
+from owned_fixture import FixtureDirectory, filesystem_path
 
 
 def exercise(root):
@@ -30,7 +30,7 @@ def exercise(root):
     with FixtureDirectory(prefix='identity-local-repair-') as directory:
         fixture = Path(directory)
         sources = fixture / 'source'
-        shutil.copytree(root / 'extensions', sources / 'extensions', ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules'))
+        shutil.copytree(filesystem_path(root / 'extensions'), sources / 'extensions', ignore=shutil.ignore_patterns('__pycache__', 'bin', 'obj', 'node_modules'))
         copied = sources / 'extensions/program-kit-dotnet'
         wrapper = copied / 'templates/dotnet/files/eng/Invoke-RepositoryVerification.ps1'
         wrapper.write_bytes(wrapper.read_bytes() + b'\n# Retained local isolation repair\n')

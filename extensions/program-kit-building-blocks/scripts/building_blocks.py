@@ -1686,6 +1686,47 @@ def publisher_package_fact(directory: Path, item: dict) -> dict:
     return value
 
 
+def retained_browser_evidence(directory, selected, browser, available=None):
+    """Verify explicitly retained immutable browser proof; never relabel it as a new run.
+
+    Single-hop retention is limited to identical npm artifacts. Native Foundation,
+    Host and exporter evidence must still belong to the current exact profile.
+    """
+    retained = require_object(browser.get('retainedFrom'), 'browser.retainedFrom')
+    if (set(retained) != {'profileId', 'evidence', 'reason', 'inputRevision', 'inputs'}
+            or retained.get('profileId') == selected['id']
+            or not isinstance(retained.get('reason'), str) or not retained['reason'].strip()
+            or not re.fullmatch('[a-f0-9]{40}', str(retained.get('inputRevision', '')))
+            or not isinstance(retained.get('inputs'), dict) or not retained['inputs']
+            or any(not isinstance(k, str) or not re.fullmatch('[a-f0-9]{64}', str(v)) for k, v in retained['inputs'].items())):
+        fail('PKB611', 'retained browser evidence needs an explicit unchanged-input disposition')
+    index = load_json(directory / 'index.json')
+    entry = index['profiles'].get(retained['profileId'])
+    if not entry or entry.get('status') != 'qualified' or retained['evidence'] != entry.get('evidence'):
+        fail('PKB611', 'retained browser evidence has no exact qualified historical owner')
+    proof = repository_path(directory, entry['evidence']['path'])
+    if raw_sha256(proof) != entry['evidence']['sha256']:
+        fail('PKB611', 'retained browser qualification changed')
+    old = load_json(proof)
+    original = old.get('browserIntegration', {})
+    if 'retainedFrom' in original or {k: v for k, v in browser.items() if k != 'retainedFrom'} != original:
+        fail('PKB611', 'retained browser proof must preserve one original run without chaining')
+    old_profile = load_json(repository_path(directory, entry['path']))
+    if raw_sha256(repository_path(directory, entry['path'])) != entry['sha256']:
+        fail('PKB611', 'retained browser profile changed')
+    npm = lambda p: {k: v for k, v in p['artifacts'].items() if k.startswith('npm:')}
+    if npm(selected) != npm(old_profile) or not npm(selected):
+        fail('PKB611', 'retained browser proof cannot cover changed npm versions')
+    # Validate the original owner normally, after refusing retention chains.
+    qualified_dependency_profile(directory, retained['profileId'], load_json(default_catalog(Path(__file__))))
+    if available is not None:
+        prior = [r for r in old.get('availableArtifacts', []) if r['packageKey'].startswith('npm:')]
+        current = [r for r in available if r['packageKey'].startswith('npm:')]
+        if current != prior:
+            fail('PKB611', 'retained npm availability must preserve its original historical records')
+    return old
+
+
 def qualified_dependency_profile(directory: Path, identity: str | None, catalog: dict) -> tuple[dict, dict]:
     directory = filesystem_root(Path(directory).resolve())
     index = load_json(directory / 'index.json')
@@ -1831,7 +1872,10 @@ def qualified_dependency_profile(directory: Path, identity: str | None, catalog:
         browser_profile = require_object(browser.get('profile'), 'qualification.browserProfile')
         browser_stages = require_object(browser.get('stages'), 'qualification.browserStages')
         browser_packages = require_object(browser_profile.get('packages'), 'qualification.browserPackages')
-        if (browser_profile.get('catalogResolutionSha256') != selected['catalogResolutionSha256']
+        retained = 'retainedFrom' in browser
+        if retained:
+            retained_browser_evidence(directory, selected, browser, receipt.get('availableArtifacts'))
+        if ((not retained and browser_profile.get('catalogResolutionSha256') != selected['catalogResolutionSha256'])
                 or not browser_packages or any(selected['artifacts'].get('npm:' + key) != pin for key, pin in browser_packages.items())
                 or set(browser_stages) != {'strict-graph', 'renew', 'locked', 'bundle', 'browser'}
                 or any(not re.fullmatch(r'[0-9a-f]{64}', str(value)) for value in browser_stages.values())

@@ -125,6 +125,8 @@ class ClosureTests(unittest.TestCase):
         empty=self.root/'empty-feed';empty.mkdir()
         def run(*arguments):
             command=['dotnet',*arguments]
+            if arguments[0] in ('restore','build','pack') and '-m:1' not in command:
+                command.append('-m:1')
             result=subprocess.run(command,cwd=self.root,env=env,capture_output=True,text=True,encoding='utf-8',timeout=120)
             label=str(len(steps))
             for stream in ('stdout','stderr'):(evidence/(label+'.'+stream+'.log')).write_text(getattr(result,stream),encoding='utf-8')
@@ -146,10 +148,10 @@ class ClosureTests(unittest.TestCase):
                 return {'assembly':closure.file_hash(self.root/'src/StoryA/bin/Release/net10.0/StoryA.dll'),
                         'packagePayload':payload,'runtime':run('src/StoryA/bin/Release/net10.0/StoryA.dll')}
             before=qualify('package-before');self.assertEqual('baseline',before['runtime'])
-            feature=self.root/'specs/001-fixture';feature.mkdir(parents=True);stories.seed(self.root,feature)
+            feature=self.root/'specs/001-fixture';feature.mkdir(parents=True);stories.seed(self.root,feature,evaluation=True)
             tasks=feature/'tasks.md';tasks.write_text(tasks.read_text().replace('- [ ] T001','- [X] T001').replace('- [ ] T002','- [X] T002'))
             scope={'schemaVersion':1,'inputs':[{'path':'Application.slnx','kind':'solution-closure','version':1,'projects':['src/StoryA/StoryA.csproj']}]}
-            stories.delivery.transition(self.root,feature,{'action':'present','checkpoint':'US1','checks':['artifacts/passing.json'],
+            stories.delivery.transition(self.root,feature,{'action':'present','checkpoint':'US1','checks':['artifacts/tests/toolkit-runs/story-fixture/result.json'],
                 'basisPaths':['Application.slnx'],'materialScope':scope,'entryPoint':'synthetic CLI','preparedData':'synthetic',
                 'walkthrough':'run StoryA','expected':'baseline','limitations':'Simulated reviewer; native checks retained separately'},now=0)
             stories.delivery.transition(self.root,feature,{'action':'decision','checkpoint':'US1','actor':'requester','verdict':'accepted',

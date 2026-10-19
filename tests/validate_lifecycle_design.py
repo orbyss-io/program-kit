@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from owned_fixture import FixtureDirectory
+from owned_fixture import FixtureDirectory, filesystem_path
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,60 +35,60 @@ class LifecycleDesignTests(unittest.TestCase):
         path.write_text(content, encoding='utf-8')
         return path
 
-    def test_genuine_selection_preset_and_feature_owned_lifecycle_are_valid(self):
+    def test_direct_selection_and_feature_owned_lifecycle_are_valid(self):
+        self.manifest['runtimeComposition']['projects'].pop()
         self.source(self.provider, 'Schema.cs', 'public class Schema : IShellInitializer { }')
         self.source(self.provider, 'Feature.cs', 'services.AddShellInitializer<Schema>(LifecyclePhase.Prepare);')
         self.source(self.application, 'Worker.cs', 'public class Worker : IBackgroundTask { }')
         self.source(self.application, 'Feature.cs', 'services.AddSingleton<IBackgroundTask, Worker>();')
-        self.source(self.preset, 'Feature.cs', '[ShellFeature("NotesPreset", DependsOn = ["Notes", "Notes.PostgreSql"])] public class Preset : IShellFeature { }')
+        shells = {'CShells': {'Shells': {'notes': {'Features': {'Notes': {}, 'Notes.PostgreSql': {}}}}}}
+        (self.root / 'shells.json').write_text(json.dumps(shells))
+        architecture.validate_manifest(self.root, self.manifest)
         self.assertEqual([], architecture.lifecycle_findings(self.root, self.manifest))
+        self.assertFalse((self.root / Path(self.preset).parent).exists())
 
-    def test_unjustified_catch_all_has_concrete_review_finding(self):
-        self.manifest['runtimeComposition']['projects'][2]['responsibilities'][0].pop('rationale')
+    def test_even_justified_retained_preset_is_diagnosed_without_mutation(self):
+        original = copy.deepcopy(self.manifest)
+        with self.assertRaisesRegex(ValueError, 'PKA022 retired C# composition project role'):
+            architecture.validate_manifest(self.root, self.manifest)
         findings = architecture.lifecycle_findings(self.root, self.manifest)
-        self.assertTrue(any(row['id'] == 'composition-selection-responsibility' for row in findings))
+        self.assertEqual(['retired-composition-project'], [row['id'] for row in findings])
+        self.assertIn('do not merely relabel', findings[0]['message'])
+        self.assertEqual(original, self.manifest)
 
-    def test_concrete_provider_initialization_and_foreign_tasks_are_found_by_ownership(self):
+    def test_foreign_tasks_are_found_after_preset_retirement(self):
+        self.manifest['runtimeComposition']['projects'].pop()
         self.source(self.provider, 'Schema.cs', 'namespace Notes.PostgreSql; public class Schema : IShellInitializer { }')
-        self.source(self.application, 'Worker.cs', 'namespace Notes; public class Worker : IBackgroundTask { }')
-        self.source(self.preset, 'Bootstrap.cs', 'provider.GetRequiredService<Notes.PostgreSql.Schema>().InitializeAsync(token); services.AddSingleton<IBackgroundTask, Notes.Worker>();')
+        self.source(self.application, 'Bootstrap.cs', 'provider.GetRequiredService<Notes.PostgreSql.Schema>().InitializeAsync(token);')
         findings = architecture.lifecycle_findings(self.root, self.manifest)
         self.assertEqual({'foreign-lifecycle-ownership'}, {row['id'] for row in findings})
         self.assertTrue(any('Schema.cs' in row['ownerSource'] for row in findings))
-        self.assertTrue(any('Worker.cs' in row['ownerSource'] for row in findings))
 
     def test_names_alone_and_domain_events_are_not_lifecycle_violations(self):
+        self.manifest['runtimeComposition']['projects'].pop()
         self.source(self.provider, 'Model.cs', 'public record SchemaInitializerReport(string Status);')
         self.source(self.application, 'Reaction.cs', 'public class Reaction : IDomainEventHandler<NoteSaved> { }')
-        self.source(self.preset, 'Feature.cs', 'services.AddSingleton<IDomainEventHandler<NoteSaved>, Reaction>(); var report = new SchemaInitializerReport("ok");')
+        self.source(self.application, 'Feature.cs', 'services.AddSingleton<IDomainEventHandler<NoteSaved>, Reaction>(); var report = new SchemaInitializerReport("ok");')
         self.assertEqual([], architecture.lifecycle_findings(self.root, self.manifest))
 
-    def test_reported_plain_provider_helper_and_composition_startup_is_found(self):
-        self.source(self.provider, 'Schema.cs', 'public class NotesSchemaInitializer { public Task InitializeAsync(CancellationToken token) => Task.CompletedTask; }')
-        self.source(self.preset, 'Startup.cs', 'public class NotesStartup(NotesSchemaInitializer schema) : IStartupTask { public Task ExecuteAsync(CancellationToken token) => schema.InitializeAsync(token); }')
-        findings = architecture.lifecycle_findings(self.root, self.manifest)
-        self.assertTrue(any(row['id'] == 'composition-runtime-lifecycle' and row['source'].endswith('Startup.cs') for row in findings))
-
-    def test_normal_phase_handoff_projects_scoped_findings_and_worked_publisher_route(self):
+    def test_normal_phase_scopes_retirement_and_blocks_retained_graph(self):
         sys.path.insert(0, str(ROOT/'extensions/program-kit-governance/scripts'))
         import phase_obligations as knowledge
         feature = self.root/'specs/001-notes'; feature.mkdir(parents=True)
         (feature/'spec.md').write_text('C# Notes application lifecycle.', encoding='utf-8')
         (feature/'plan.md').write_text('Change '+self.preset, encoding='utf-8')
-        for row in self.manifest['runtimeComposition']['projects'][:2]:
-            row['responsibilities'] = [{'name': 'OwnedRuntime', 'kind': 'runtime', 'effects': ['runtime']}]
         self.manifest['runtimeComposition']['projects'].append({'path': 'src/Unrelated/Unrelated.csproj', 'role': 'composition'})
-        self.source(self.preset, 'Startup.cs', 'public class NotesStartup : IStartupTask { }')
-        self.source('src/Unrelated/Unrelated.csproj', 'Startup.cs', 'public class OtherStartup : IStartupTask { }')
         manifest = self.root/'eng/architecture.json'; manifest.parent.mkdir()
         manifest.write_text(json.dumps(self.manifest), encoding='utf-8')
-        for phase in ('planning', 'after-plan'):
-            result = knowledge.project(self.root, feature, phase) if phase == 'planning' else knowledge.check(self.root, feature, phase)
-            self.assertEqual({self.preset}, {row['project'] for row in result['lifecycleFindings']})
-            brief = knowledge.render(result, phase)
-            self.assertIn('composition-runtime-lifecycle', brief)
-            self.assertIn('LifecyclePhase.Prepare', brief)
-            self.assertIn('publisher_knowledge.py', brief)
+        result = knowledge.project(self.root, feature, 'planning')
+        self.assertEqual({self.preset}, {row['project'] for row in result['lifecycleFindings']})
+        brief = knowledge.render(result, 'planning')
+        self.assertIn('retired-composition-project', brief)
+        self.assertIn('LifecyclePhase.Prepare', knowledge.render(result, 'planning', detailed=True))
+        self.assertIn('publisher_knowledge.py', brief)
+        for phase in ('after-plan', 'after-tasks', 'implementation'):
+            with self.subTest(phase=phase), self.assertRaisesRegex(ValueError, 'PKA022 retired C# composition project role'):
+                knowledge.check(self.root, feature, phase)
 
     def test_versioned_route_supports_selected_cshells(self):
         from validate_building_blocks import load_module, RESOLVER
@@ -150,7 +150,7 @@ class LifecycleDesignTests(unittest.TestCase):
 
     def test_installed_registry_and_captured_historical_scaffold_do_not_choose_new_default(self):
         installed = self.root/'.specify/extensions/program-kit-building-blocks'
-        shutil.copytree(ROOT/'extensions/program-kit-building-blocks', installed)
+        shutil.copytree(filesystem_path(ROOT/'extensions/program-kit-building-blocks'), installed)
         command = [sys.executable, str(installed/'scripts/publisher_knowledge.py'), '--target', str(self.root), '--package', 'CShells.Abstractions']
         result = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)

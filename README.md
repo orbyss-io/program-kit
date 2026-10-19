@@ -244,10 +244,10 @@ and as immutable release assets. Forms and Localization activation and consumer
 Delivery acceptance remain outside that native qualification.
 
 New projects use
-`foundation-0.2.4-exporter-0.2.4-forms-0.2.1-localization-0.1.2`: Foundation
-runtime/analyzer and host 0.2.4, Exporter 0.2.4, Forms 0.2.1, and Localization
-0.1.2. Generic qualification covers canonical publisher metadata, all 47 registered
-activation closures at the exporter boundary, and public Forms browser integration.
+`foundation-0.3.6-build-0.3.2-exporter-0.2.7-forms-0.2.1-localization-0.1.2`: Foundation
+runtime/analyzer and host 0.3.6, Build 0.3.2, Exporter 0.2.7, Forms 0.2.1, and Localization
+0.1.2. Native qualification covers the selected activation closures. Unchanged Forms/Localization
+browser evidence retains its explicit historical disposition; no fresh browser qualification is inferred.
 Publisher features excluded from OpenAPI composition are checked as metadata;
 consumer compatibility and Delivery acceptance remain separate. Installing a
 Program Kit upgrade preserves existing accepted and scaffold-captured profiles.
@@ -586,6 +586,7 @@ review must explicitly address applicable coverage and harness limitations.
   It also contains `scripts/upgrade_program_kit.py`, the supported sequential offline/local-release
   updater for existing installations.
 - `program-kit-governance-<version>.zip`: standalone governance extension package.
+- `program-kit-building-blocks-<version>.zip`: standalone building-block selection extension.
 - `program-kit-dotnet-<version>.zip`: standalone .NET capability extension package.
 - `program-kit-governance-preset-<version>.zip`: standalone governance template preset.
 - `program-kit-bootstrap-<version>.zip`: standalone bootstrap workflow package.
@@ -599,10 +600,10 @@ review must explicitly address applicable coverage and harness limitations.
 - A separate CI source/package manifest and normal Actions logs bind candidate
   commit, version and exact archive hashes. They remain CI artifacts.
 
-Verify a downloaded artifact:
+Compare a downloaded artifact's SHA-256 with its release's `SHA256SUMS` and inspected
+CI source/package manifest. The maintained publisher does not issue artifact attestations:
 
 ```powershell
-gh attestation verify program-kit-0.13.3.zip --repo orbyss-io/program-kit
 Get-FileHash program-kit-0.13.3.zip -Algorithm SHA256
 ```
 
@@ -642,7 +643,7 @@ consumer-facing checks; implementation and release tests remain in the owning co
 comparable diagnostics, local contributor intake, reviewed GitHub issue/evidence
 submissions, follow-up evidence and freshly retrieved status/history. The evaluator
 remains repository-only. See the [operating contract](extensions/program-kit-governance/references/repair-feedback/operating.md)
-and [indexed unreleased guidance](releases/migration-0.13.3.md).
+and [indexed unreleased guidance](releases/migration-0.14.0.md).
 The [public evidence repository](https://github.com/orbyss-io/program-kit-evidence)
 and App-bound guardian were provisioned and tested in three synthetic scenarios;
 the maintained operating contract describes its supported boundaries.

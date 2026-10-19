@@ -27,6 +27,8 @@
     { "path": "eng/web/package.json", "ownership": "managed", "sourceRoot": "web-profiles/common" },
     { "path": "eng/web/package-lock.json", "ownership": "managed", "sourceRoot": "web-profiles/common" },
     { "path": "eng/web/playwright.config.ts", "ownership": "managed", "sourceRoot": "web-profiles/common" },
+    { "path": "eng/web/private-diagnostics.mjs", "ownership": "managed", "sourceRoot": "web-profiles/common" },
+    { "path": "eng/web/private-diagnostics.d.mts", "ownership": "managed", "sourceRoot": "web-profiles/common" },
     { "path": "eng/web/persona-fixture.ts", "ownership": "managed", "sourceRoot": "web-profiles/common" },
     { "path": "eng/web/tsconfig.json", "ownership": "managed", "sourceRoot": "web-profiles/common" },
     { "path": "eng/web/tests/authentication.spec.ts", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },

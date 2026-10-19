@@ -189,7 +189,9 @@ def installed_source_files(installed, release=None):
 def generated_guidance_guard(repository, release, metadata):
     """Generated packaged guides retain their existing checksum/index authority."""
     directory = contained(repository, '.specify/extensions/program-kit-governance/references/release-guidance', 'generated release guidance')
-    if not directory.exists():
+    reader = asset_reader(release)
+    logical = reader.tree(directory) if reader else {}
+    if not directory.exists() and not logical:
         return None
     import importlib.util
     source = Path(release) / 'extensions/program-kit-governance/scripts/release_guidance.py' if release else None
@@ -203,7 +205,8 @@ def generated_guidance_guard(repository, release, metadata):
         raise OwnershipError('PKU135 generated release guidance failed its existing index/checksum authority: '
                              + directory.relative_to(repository).as_posix()) from error
     return {'owner': 'existing-release-guidance-index-validator', 'version': metadata['version'],
-            'indexSha256': digest((directory / 'migration-index.json').read_bytes())}
+            'indexSha256': digest(reader.read(directory / 'migration-index.json') if reader else
+                                  (directory / 'migration-index.json').read_bytes())}
 
 
 def rendered_outputs(repository, agent, manifest, installed, options, interpreter=None):

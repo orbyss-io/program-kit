@@ -14,7 +14,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from architecture_rules import (ALLOWED_ROLE_REFERENCES, FORBIDDEN_CORE_PACKAGE_PREFIXES,
-                                CAPABILITY_IMPLEMENTATION_ROLES, PERSISTENCE_PACKAGE_PREFIXES)
+                                CAPABILITY_IMPLEMENTATION_ROLES, PERSISTENCE_PACKAGE_PREFIXES,
+                                ACTIVATABLE_PROJECT_ROLES, validate_project_role)
 
 def require(condition, message):
     if not condition:
@@ -106,16 +107,14 @@ def lifecycle_findings(root, manifest, affected=None):
         sources[path] = rows
     for project in projects:
         path = project['path']
-        if project['role'] != 'composition' or path not in selected: continue
-        responsibilities = project.get('responsibilities', [])
-        if not any(row.get('kind') == 'composition' and str(row.get('rationale', '')).strip() for row in responsibilities):
-            findings.append({'id': 'composition-selection-responsibility', 'project': path,
-                             'message': 'Name the concrete reusable selection responsibility and rationale in the existing composition responsibility. Task registration/provider preparation alone does not justify a project.'})
-        for owner, owner_source, symbol, contracts in contributors:
-            if owner == path:
-                findings.append({'id': 'composition-runtime-lifecycle', 'project': path, 'source': owner_source,
-                                 'message': 'Review ' + symbol + ' implementing ' + ', '.join(sorted(contracts)) +
-                                            ' inside the selection preset. Required admission/workers belong to the application; provider preparation belongs to the provider. A selection rationale does not justify owning runtime orchestration.'})
+        if path not in selected: continue
+        if project['role'] == 'composition':
+            try:
+                validate_project_role(project['role'], path)
+            except ValueError as error:
+                findings.append({'id': 'retired-composition-project', 'project': path, 'message': str(error)})
+        elif project['role'] not in ACTIVATABLE_PROJECT_ROLES:
+            continue
         for owner, owner_source, symbol, contracts in contributors:
             if owner == path: continue
             for relative, content in sources[path]:
@@ -123,7 +122,7 @@ def lifecycle_findings(root, manifest, affected=None):
                     findings.append({'id': 'foreign-lifecycle-ownership', 'project': path,
                                      'source': relative, 'ownerProject': owner, 'ownerSource': owner_source,
                                      'message': 'Review reference to ' + symbol + ' (' + ', '.join(sorted(contracts)) +
-                                                ') owned by another feature. That feature registers its own contribution; a selection preset does not own its tasks or invoke its preparation.'})
+                                                ') owned by another feature. That feature registers its own contribution; do not register its tasks or invoke its preparation from a peer feature.'})
     return findings
 
 
@@ -135,7 +134,6 @@ def validate_responsibilities(projects, bindings, required=False):
         'implementation': {'runtime', 'http', 'pure-helper'},
         'provider': {'persistence', 'runtime', 'pure-helper'},
         'bridge': {'runtime', 'pure-helper'},
-        'composition': {'composition', 'pure-helper'},
         'test': {'test', 'pure-helper'},
     }
     for path, project in projects.items():
@@ -190,7 +188,7 @@ def validate_manifest(root, manifest):
                 'Architecture project must use a repository-relative .csproj path: ' + path)
         inside(root, path)
         require(path.casefold() not in {p.casefold() for p in projects}, 'Duplicate architecture project identity: ' + path)
-        require(project.get('role') in ALLOWED_ROLE_REFERENCES, 'Unknown architecture role: ' + path)
+        validate_project_role(project.get('role'), path)
         require('persistenceOwnerNamespaces' not in project,
                 'A namespace waiver cannot replace a provider compilation boundary: ' + path)
         projects[path] = project
@@ -398,7 +396,7 @@ def validate_graph(root, manifest, evaluated, compiled):
     capabilities = [(p, t['name']) for p in projects if projects[p]['role'] == 'core'
                     for t in by_project[p].values() if t['isInterface']]
     for path in projects:
-        if projects[path]['role'] not in CAPABILITY_IMPLEMENTATION_ROLES | {'composition'}:
+        if projects[path]['role'] not in CAPABILITY_IMPLEMENTATION_ROLES:
             continue
         for item in by_project[path].values():
             if item['isInterface'] or item.get('isAbstract', False):
@@ -408,6 +406,36 @@ def validate_graph(root, manifest, evaluated, compiled):
                     require((owner, capability, path, item['name']) in listed,
                             f'Unlisted active capability binding: {capability} -> {item["name"]} in {path}')
     return {'evaluated-and-compiled-graph', 'compiled-capability-bindings'}
+
+
+def evaluate_project(root, relative, configuration='Debug', version=None, framework=None):
+    """Query actual imported/conditional settings without executing a target or restore.
+
+    This is evaluation, not compiled dependency or runtime acceptance. MSBuild
+    remains the native project owner; callers must select trusted repository input.
+    """
+    path = inside(root, relative)
+    require(path.is_file(), 'Missing project for native evaluation: ' + relative)
+    require(bool(re.fullmatch(r'[A-Za-z0-9_. -]+', configuration)), 'Select one native configuration identity')
+    if framework:
+        declared = evaluate_project(root, relative, configuration, version)
+        properties = declared['Properties']
+        targets = (properties.get('TargetFrameworks') or properties.get('TargetFramework', '')).split(';')
+        require(framework in targets, 'Selected target framework is not declared by the project')
+        if not properties.get('TargetFrameworks'):
+            return declared
+    from owned_scratch import native_path
+    command = ['dotnet', 'msbuild', native_path(path), '-nologo', f'-p:Configuration={configuration}',
+               '-getProperty:AssemblyName,TargetPath,Configuration,ManagePackageVersionsCentrally,TargetFramework,TargetFrameworks,NETCoreSdkVersion,MSBuildProjectFullPath',
+               '-getItem:ProjectReference,PackageReference,PackageVersion,FrameworkReference,InternalsVisibleTo,AssemblyAttribute,Compile']
+    if version:
+        command.append('-p:Version=' + version)
+    if framework:
+        require(bool(re.fullmatch(r'[A-Za-z0-9.\-]+', framework)), 'Select a native target framework identity')
+        command.append('-p:TargetFramework=' + framework)
+    result = subprocess.run(command, cwd=native_path(root), capture_output=True, text=True, encoding='utf-8',
+                            check=True, timeout=120)
+    return json.loads(result.stdout)
 
 
 def execute(root, manifest, configuration, feature=None, build_subject=None, version=None):
@@ -456,13 +484,7 @@ def execute(root, manifest, configuration, feature=None, build_subject=None, ver
     paths = []
     for project in manifest['runtimeComposition']['projects']:
         path = inside(root, project['path'])
-        command = ['dotnet', 'msbuild', str(path), '-nologo', f'-p:Configuration={configuration}',
-                   '-getProperty:AssemblyName,TargetPath,ManagePackageVersionsCentrally',
-                   '-getItem:ProjectReference,PackageReference,PackageVersion,InternalsVisibleTo,AssemblyAttribute']
-        if version:
-            command.append('-p:Version=' + version)
-        result = subprocess.run(command, cwd=root, capture_output=True, text=True, encoding='utf-8', check=True, timeout=120)
-        data = json.loads(result.stdout)
+        data = evaluate_project(root, project['path'], configuration, version)
         evaluated[project['path']] = data
         assembly = Path(data['Properties']['TargetPath']).resolve()
         require(assembly.is_relative_to(root) and assembly.is_file(), 'Build current assemblies before architecture verification')

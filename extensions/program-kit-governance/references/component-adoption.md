@@ -37,10 +37,18 @@ context; metadata/strict graph verification remains required before planning acc
 
 ## Foundation web and JSON
 
+<!-- program-kit:knowledge-rule adapter.foundation-response -->
 WebDefaults uses shell-local `Foundation:Web:ResponsePolicies` and explicit
 `WebResponseMetadata` on owned routes. One response-start writer owns headers;
 private/error/cookie responses remain no-store. Test endpoint policy selection and
 failure behavior, not merely feature activation.
+<!-- /program-kit:knowledge-rule -->
+
+<!-- program-kit:knowledge-rule adapter.foundation-settings -->
+Use the exact selected package schemas and typed configuration for shell deployment
+values. Keep application permission/route identities in application-owned constants
+and use captured framework identifiers; classify literals by owner and lifecycle.
+<!-- /program-kit:knowledge-rule -->
 
 JSON endpoints explicitly obtain `JsonProfileCatalog.Get("strict-request")` (or the
 appropriate accepted profile) and perform typed admission. `Json.AspNetCore` does
@@ -48,6 +56,7 @@ not configure global HttpJsonOptions or infer profiles from DTO types. Tolerant 
 reading is a distinct boundary policy. Do not silently replace existing canonical
 numeric/hash identity with the new canonicalizer during upgrade.
 
+<!-- program-kit:knowledge-rule adapter.hosted-pages -->
 HostedPages supports fixed encoded semantic HTML, typed bootstrap and admitted
 immutable assets with Vite `mount(element, bootstrap)`. The exact qualified 0.3.3
 contract adds distinct typed `Routes` with owned `Id`/`Path`, optional `Revision`
@@ -67,6 +76,7 @@ IDs belong in application-owned constants. It does not support arbitrary templat
 private downloads, per-account bootstrap or SVG branding. Program Kit's broader UI SVG allowance
 does not imply HostedPages compatibility; use an allowed branding representation or
 review a different adapter. Verify the actual hosted journey and asset admission.
+<!-- /program-kit:knowledge-rule -->
 
 ## Ordinary development evidence
 
@@ -79,8 +89,10 @@ Task generation schedules compatibility/admission work; it does not execute prob
 services or claim acceptance. Execute the relevant checks before dependent implementation
 and require actual executed behavior and normal code review before completion.
 <!-- program-kit:decision-rule capability-evidence -->
+<!-- program-kit:knowledge-rule principle.capability-evidence -->
 Keep selected, materialized, activated and exercised claims separate; none substitutes
 for the next. Historical dossier readers remain available only for historical evidence.
 Compiled bindings establish structural registration possibilities; consumer composition tests must
 exercise actual public mechanisms, activation/resolution and applicable lifetime/replacement behavior.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->

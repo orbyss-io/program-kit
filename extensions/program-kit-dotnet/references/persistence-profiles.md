@@ -125,25 +125,35 @@ with their data owner.
   A stable datasource owns connection pooling per shell/provider generation; context pooling is a
   separate decision. Do not rewrite connection strings per operation to select time budgets.
 <!-- program-kit:decision-rule persistence-admission -->
+<!-- program-kit:knowledge-rule principle.provider-outcomes -->
 - Native connection/command/lock/deadline options remain provider-owned typed validated configuration.
   Consumers own operation policy and map safe SQLSTATE plus named constraints to outcomes. Preserve
   commit uncertainty: cancellation cannot prove rollback. Verify independent contexts, replay races,
   actual provider state reset and redacted application diagnostics with real PostgreSQL.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.query-shape -->
 - Disable lazy-loading packages/proxies by default. Select only required columns, use projections
   for reads, default read-only queries to no tracking, pass cancellation tokens, and test query count
   or SQL shape where N+1/cartesian behavior is a risk.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.transaction-replay -->
 - `SaveChanges` is normally one transaction. An explicit multi-operation transaction combined with
   retry execution strategies must execute the complete unit through that strategy and address
   ambiguous commit/idempotency. Do not hide transaction semantics inside a generic repository.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.durable-external-delivery -->
 - Keep external effects outside a retried database unit. Persist stable operation identity and its
   result atomically; conflicting reuse is a defined denial, not a new execution. For durable external
   delivery, use an admitted outbox and idempotent receiver. Retry the complete unit only when its
   replay/commit verification contract is safe; never promise exactly-once network delivery.
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.physical-effect-fencing -->
 - For cross-resource file effects, require resource-side fencing of publication,
   recovery reads and erase, retained high-water/removal protection, and checks after
   input/guard waits. The [physical fencing recipe](cross-resource-fencing.md) gives
   a bounded synthetic example and native process/crash regressions. An outbox or
   database completion fence alone cannot revoke an in-flight external mutation.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 - Connection strings and secrets come from environment/secret providers. `shells.json` may contain
   feature activation and validated configuration names only, never credentials.

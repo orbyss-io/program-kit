@@ -24,12 +24,26 @@ import composition_migrate
 
 def add_typed_operation(root):
     """Use the shipping example bytes in actual independent native projects."""
-    examples = ROOT / 'extensions/program-kit-dotnet/references/examples/typed-operation'
-    for name, destination in [('ILabelStore.cs', 'src/Planned.Core/ILabelStore.cs'),
-            ('PostgreSqlLabelStore.cs', 'src/Application.PostgreSql/PostgreSqlLabelStore.cs'),
-            *[(name, 'src/Application.Api/' + name) for name in ('LabelEndpoints.cs', 'LabelRequest.cs',
-                'LabelResponse.cs', 'LabelApiOptions.cs', 'LabelEndpoint.cs')]]:
-        (root / destination).write_bytes((examples / name).read_bytes())
+    sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
+    import typed_operation
+    owners = {'core': 'src/Planned.Core/Planned.Core.csproj', 'runtime': 'src/Application.Runtime/Application.Runtime.csproj',
+              'api': 'src/Application.Api/Application.Api.csproj', 'provider': 'src/Application.PostgreSql/Application.PostgreSql.csproj',
+              'test': 'tests/Application.Tests/Application.Tests.csproj', 'frontend': 'web/policy-web',
+              'generatedTypes': 'tools/openapi/policies/generated/types.ts'}
+    for destination, content in typed_operation.render(owners, ROOT / 'extensions').items():
+        if destination.endswith('client.ts'):
+            continue  # The actual native generator runs before client integration below.
+        (root / destination).write_bytes(content)
+    runtime = root / 'src/Application.Runtime/ApplicationRuntimeFeature.cs'
+    text = runtime.read_text()
+    seam = 'public void ConfigureServices(IServiceCollection services) { }'
+    if text.count(seam) != 1:
+        raise ValueError('Native runtime registration seam changed; preserve source for review')
+    runtime.write_text('using ProgramKit.Examples.TypedOperation;\n' + text.replace(seam,
+        'public void ConfigureServices(IServiceCollection services) { LabelServices.Configure(services); }'), encoding='utf-8')
+    runtime_project = root / owners['runtime']
+    runtime_project.write_text(runtime_project.read_text().replace('</Project>',
+        '<ItemGroup><ProjectReference Include="../Planned.Core/Planned.Core.csproj" /></ItemGroup></Project>'), encoding='utf-8')
     provider = root / 'src/Application.PostgreSql/ProviderFeature.cs'
     provider.write_text('using ProgramKit.Examples.TypedOperation;\n' + provider.read_text().replace(
         'public void ConfigureServices(IServiceCollection services)\n    {',
@@ -45,6 +59,8 @@ def add_typed_operation(root):
     project.write_bytes(ET.tostring(document) + b'\n')
     architecture = root / 'eng/architecture.json'; value = json.loads(architecture.read_bytes())
     for row in value['runtimeComposition']['projects']:
+        if row['path'] == owners['runtime']:
+            row['projectReferences'].append(owners['core'])
         if row['path'] == 'src/Application.PostgreSql/Application.PostgreSql.csproj':
             row['projectReferences'].append('src/Planned.Core/Planned.Core.csproj')
         if row['path'] == 'src/Application.Api/Application.Api.csproj' and 'packageReferences' in row:
@@ -237,8 +253,17 @@ def install_native_tooling(root, directory):
             path = (release / name).resolve()
             if not path.is_relative_to(release.resolve()): raise ValueError('Owned bundle entry escaped its release directory')
         archive.extractall(release)
-    import specify_cli
-    site = str(Path(specify_cli.__file__).parent.parent)
+    # Library-based native installation uses the existing Spec Kit environment;
+    # consumer execution still uses the selected shared device Python.
+    site = os.environ.get('PROGRAM_KIT_SPECIFY_SITE_PACKAGES')
+    if not site:
+        import shutil
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from invoke_specify import launcher_site_packages
+        launcher = shutil.which('specify')
+        if not launcher:
+            raise ValueError('Existing Spec Kit launcher/site-packages required; no runtime installation was attempted')
+        site = str(launcher_site_packages(Path(launcher)))
     environment = dict(os.environ, SPECIFY_INIT_DIR=filesystem_path(root), PROGRAM_KIT_SPECIFY_SITE_PACKAGES=site)
     cli = [sys.executable, str(ROOT / 'scripts/invoke_specify.py'), '--site-packages', site, '--']
     command([*cli, 'init', '.', '--force', '--non-interactive', '--integration', 'codex', '--script', 'py', '--ignore-agent-tools'],
@@ -377,13 +402,16 @@ def main():
     # Native MSBuild assembly probing on Windows still rejects some ordinary
     # package paths over MAX_PATH. Keep this retained SDK fixture short; this
     # qualifies the stated native path envelope, not arbitrary-depth SDK builds.
-    directory = ROOT / 'artifacts/t' / ('composition-' + uuid.uuid4().hex[:12])
-    root = directory / 'consumer'
+    directory = ROOT / 'artifacts/t' / ('cs-' + uuid.uuid4().hex[:8])
+    root = directory / 'c'
     (root / 'eng').mkdir(parents=True)
     if args.tooling:
         install_native_tooling(root, directory)
     started = time.monotonic()
     graph = two_apps(ROOT, dynamic_ports=True)
+    graph['resources']['label-runtime'] = {'kind': 'feature', 'role': 'implementation', 'responsibility': 'runtime',
+        'path': 'src/Application.Runtime/Application.Runtime.csproj', 'packageId': 'Application.Runtime', 'featureIdentity': 'Application.Runtime'}
+    graph['bindings'].append({'kind': 'featureShell', 'featureRef': 'label-runtime', 'shellRef': 'application-shell'})
     if args.nested_shell:
         graph['resources']['application-shell']['pathBase'] = '/products/orders'
     graph['resources']['ordinary-provider'] = {'kind': 'feature', 'role': 'provider', 'responsibility': 'runtime',

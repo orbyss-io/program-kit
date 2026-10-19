@@ -45,6 +45,11 @@ def assert_profile(repository: Path, expected: str) -> None:
         assert not any(feature.startswith("Orbyss.Foundation.Authentication") for feature in features)
         assert not (repository / "deploy/keycloak/program-kit-realm.json").exists()
     else:
+        for name in ('private-diagnostics.mjs', 'private-diagnostics.d.mts'):
+            relative = 'eng/web/' + name
+            source = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/web-profiles/common' / relative
+            assert (repository / relative).read_bytes() == source.read_bytes(), relative
+            assert state['files'][relative]['ownership'] == 'managed', relative
         selected = (
             "Orbyss.Foundation.Authentication.BffCookie"
             if expected == "bff-cookie"

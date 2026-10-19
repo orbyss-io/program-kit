@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.13.3"
+  version: "0.14.0"
   description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
@@ -14,6 +14,12 @@ requires:
 
 provides:
   scripts:
+    - name: "coding-scaffold"
+      file: "scripts/coding_scaffold.py"
+      description: "Preview/apply a finite qualified coding recipe; preserve consumer source and native ownership."
+    - name: "coding-patterns"
+      file: "scripts/coding_patterns.py"
+      description: "Prepare pattern drafts and inspect/bind ordinary scoped evidence without executing submissions."
     - name: "json-schema"
       file: "scripts/json_schema.py"
       description: "Read-only JSON Schema validation and focused descriptions."
@@ -21,6 +27,12 @@ provides:
       file: "scripts/schema_runtime.py"
       description: "Explicit project-local dependency setup and installed-copy checks."
   commands:
+    - name: "speckit.program-kit-governance.coding-scaffold"
+      file: "commands/speckit.program-kit-governance.coding-scaffold.md"
+      description: "Realize a selected qualified pattern through inspectable native source recipes."
+    - name: "speckit.program-kit-governance.coding-patterns"
+      file: "commands/speckit.program-kit-governance.coding-patterns.md"
+      description: "Assist shared/private pattern authoring through the existing coding context and normal verification owners."
     - name: "speckit.program-kit-governance.repair-request"
       file: "commands/speckit.program-kit-governance.repair-request.md"
       description: "Prepare repair observations, queue local evidence, review public issue/fork submissions and retrieve fresh status."
@@ -167,12 +179,12 @@ hooks:
     - command: "speckit.program-kit-governance.implementation-check"
       priority: 1
       optional: false
-      description: "Supply focused implementation guidance and validate planned architecture once without building."
+      description: "Prepare composable coding units, reconcile actual source and validate native project context once before coding."
   after_implement:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
     optional: false
-    description: "Distinguish progress from feature closure/formal handoff; require complete engineering acceptance only at delivery."
+    description: "Reconcile coding responsibilities at progress/completion; require complete engineering acceptance only at delivery."
 
 tags:
   - "architecture"

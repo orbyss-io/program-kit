@@ -1,0 +1,17 @@
+body { max-width: 82rem; margin: auto; }
+header { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:1.5rem 2rem; border-bottom:1px solid var(--pk-border); }
+.brand { font-weight:800; letter-spacing:.1em; text-decoration:none; }.brand span { display:block; font-weight:400; letter-spacing:0; font-size:.85rem; margin-top:.3rem; }
+.badge { border:1px solid var(--pk-border); border-radius:2rem; padding:.4rem .8rem; font-size:.8rem; }
+main { margin:2rem; padding:2rem; border:1px solid var(--pk-border); border-radius:1rem; }
+nav { display:flex; gap:1.5rem; }.intro { margin:3rem 0; max-width:45rem; }.intro h1 { font-size:clamp(2rem,4vw,3.4rem); line-height:1.1; letter-spacing:-.035em; }
+.eyebrow { font-size:.75rem; font-weight:800; letter-spacing:.12em; }.columns { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:3rem; }
+label { display:block; font-weight:650; margin-top:1.4rem; }input { box-sizing:border-box; width:100%; padding:.7rem; border-radius:.35rem; margin-top:.4rem; }
+button { padding:.7rem 1rem; border-radius:.4rem; cursor:pointer; margin:.5rem .4rem .5rem 0; font-weight:650; }button:disabled { cursor:default; opacity:.65; }
+header button { white-space:nowrap; margin:0; }
+.hint,footer { font-size:.85rem; }.hint { margin:.5rem 0; }.error { color:var(--pk-alert); }.recovery,.note { margin-top:1.5rem; padding:1rem; border:1px solid var(--pk-border); border-radius:.5rem; }
+aside { border-left:1px solid var(--pk-border); padding-left:2rem; }#receipts { padding-left:1.25rem; }#receipts li { margin-bottom:1rem; overflow-wrap:anywhere; }
+dialog { max-width:30rem; padding:2rem; border:2px solid var(--pk-border); border-radius:.75rem; color:var(--pk-text); background:var(--pk-surface); }dialog::backdrop { background:#0008; }
+footer { padding-top:2rem; }.skip { position:absolute; left:-10000px; }.skip:focus { left:1rem; top:1rem; }
+[hidden] { display:none !important; }[data-pk-error-summary] { border:2px solid var(--pk-alert); padding:1rem; }
+@media(max-width:45rem) { header { padding:1rem; align-items:flex-start; flex-wrap:wrap; }.brand { flex:1; }.badge { order:3; }main { margin:1rem; padding:1rem; }.intro { margin:2rem 0; }.columns { grid-template-columns:1fr; gap:2rem; }aside { border-left:0; border-top:1px solid var(--pk-border); padding:1.5rem 0 0; } }
+@media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }

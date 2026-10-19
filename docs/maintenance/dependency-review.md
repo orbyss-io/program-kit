@@ -31,6 +31,24 @@ Lookup, security and test failures stop maintenance and identify the repair. A t
 or partial result is never accepted. Preserve actionable diagnostics in normal Actions
 artifacts, then fix/reproduce the failed focused check before retrying.
 
+An explicit maintainer disposition may retain the original Forms browser evidence
+when its entire npm artifact set, reviewed browser fixture and selected Node/npm
+inputs are unchanged. Use `update_dependency_profiles.py qualify --candidate <path>
+--retain-unchanged-browser <qualified-historical-profile> --reason <disposition>`.
+The producer compares all 17 fixture/toolchain inputs against their historical Git
+revision. The new receipt preserves the original browser profile, run-stage hashes,
+engines and npm availability records, with a separate `retainedFrom` reference and
+the reason. It claims no new browser execution or fresh npm-registry lookup. Changed
+npm versions, changed fixture inputs, altered evidence and retention chains fail.
+Current Foundation native/exporter and public Host evidence remain required.
+
+For an interrupted candidate qualification, explicit `--native-evidence <directory>`
+and `--host-evidence <directory>` can select successful components for that exact
+candidate. The ordinary portable builder revalidates their profile, recipe, locks,
+every native stage/archive/provenance, actual Host cases and cleanup. A directory
+name or prior success alone supplies no reuse. This is scoped dependency evidence;
+it does not borrow CI qualification, authorize publication or alter historical proof.
+
 Public Aqua repository metadata uses the policy's explicit anonymous lookup; other
 GitHub lookups retain authentication. Unavailable releases and unresolved action tags
 are failures, not silent fallbacks. See [validation](../validation.md) for adding a

@@ -18,7 +18,9 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / 'extensions/program-kit-dotnet/templates/dotnet'
 sys.path[:0] = [str(ROOT / 'tests'), str(ROOT / 'extensions/program-kit-dotnet/scripts'), str(TEMPLATE / 'files/eng'),
-                str(ROOT / 'extensions/program-kit-governance/scripts')]
+                str(ROOT / 'extensions/program-kit-governance/scripts'),
+                str(ROOT / 'extensions/program-kit-building-blocks/scripts')]
+import building_blocks as blocks
 from composition_fixture import two_apps
 import composition_render as render
 import prepare_hosted_pages
@@ -28,7 +30,9 @@ import foundation_fixture
 from native_start.test_hosted_frontend_update import BuildCommands
 from owned_fixture import native_path
 
-PROFILE = 'foundation-0.3.3-build-0.3.1-exporter-0.2.5-forms-0.2.1-localization-0.1.2'
+REGISTRY = blocks.profile_registry()
+PROFILE_INDEX = blocks.load_json(REGISTRY / 'index.json')
+PROFILE = PROFILE_INDEX['default']
 SOURCE_NAMES = ('HostedPageRendering.cs', 'HostedPageRevision.cs', 'HostedBrandLocale.cs', 'HostedViteChunk.cs',
                 'HostedAssetDescriptor.cs', 'AdmittedHostedRevision.cs', 'AdmittedHostedPageRoute.cs', 'HostedPageAdmission.cs')
 
@@ -69,7 +73,7 @@ def browser_matrix(args, directory, current, index, provenance, baseline, timing
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--engines', default='chromium,firefox,webkit')
-    parser.add_argument('--browser-root', type=Path, default=ROOT / 'artifacts/ui-browser/web/generated/program-kit/acceptance/tests')
+    parser.add_argument('--browser-root', type=Path, default=os.environ.get('PROGRAMKIT_BROWSER_ROOT', ROOT / 'artifacts/ui-browser/web/generated/program-kit/acceptance/tests'))
     parser.add_argument('--prepared', type=Path, help='Reuse a preserved disposable renderer/native build fixture for browser-only repairs.')
     args = parser.parse_args()
     engines = args.engines.split(',')
@@ -82,8 +86,9 @@ def main():
     commands = BuildCommands(directory)
     started = time.monotonic()
     timings = {'infrastructureRepairSeconds': 0, 'infrastructureRepairScope': 'No infrastructure repair performed; existing SDK/Node/browser runtime and operator caches disclosed.'}
-    registry = ROOT / 'extensions/program-kit-building-blocks/references/dependency-profiles'
-    index_path = registry / 'candidates' / PROFILE / 'knowledge/index.json'
+    registry = REGISTRY
+    blocks.qualified_dependency_profile(registry, PROFILE, blocks.load_json(blocks.default_catalog(Path(blocks.__file__))))
+    index_path = registry / PROFILE_INDEX['profiles'][PROFILE]['knowledge']['path']
     index = json.loads(index_path.read_text())
     provenance = []
     for name in SOURCE_NAMES:

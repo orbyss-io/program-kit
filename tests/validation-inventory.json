@@ -25,12 +25,15 @@
         "release-policy.json",
         "bundle.yml",
         "VERSION",
+        "extensions/*/extension.yml",
         "catalogs/**",
         "Initialize-ProgramKit.*",
         "scripts/invoke_specify.py",
         "scripts/initialize_device.py",
         "tests/release_workflow_contracts.py",
-        ".github/scripts/update_published_readme.py"
+        ".github/scripts/update_published_readme.py",
+        "extensions/program-kit-governance/scripts/asset_sources.py",
+        "extensions/program-kit-governance/scripts/release_guidance.py"
       ],
       "dependsOn": []
     },
@@ -78,10 +81,13 @@
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.specification-intake.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.research.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.roadmap.md",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.assessment.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.assessment.md",
+        "extensions/program-kit-governance/scripts/implementation_preflight.py",
+        "extensions/program-kit-governance/extension.yml"
       ],
       "dependsOn": [
-        "shared-governance"
+        "shared-governance",
+        "knowledge"
       ]
     },
     "knowledge": {
@@ -90,7 +96,24 @@
         "extensions/program-kit-governance/references/knowledge/**",
         "extensions/program-kit-governance/references/phase-obligations.json",
         "extensions/program-kit-building-blocks/scripts/dependency_context.py",
-        "extensions/program-kit-building-blocks/scripts/profile_catalogs.py"
+        "extensions/program-kit-building-blocks/scripts/profile_catalogs.py",
+        "extensions/program-kit-governance/scripts/knowledge_sources.py",
+        "extensions/program-kit-governance/scripts/knowledge_discovery.py",
+        "tests/knowledge_review_fixture.py",
+        "extensions/*/references/*.md",
+        "extensions/*/references/technology-profiles/*.md",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Build.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/label-validation.schema.json",
+        "extensions/program-kit-building-blocks/scripts/building_blocks.py",
+        "docs/decisions/*",
+        "extensions/program-kit-governance/scripts/coding_context.py",
+        "tests/coding_review_fixture.py",
+        "extensions/program-kit-governance/scripts/coding_patterns.py",
+        "tests/pattern_review_fixture.py",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.coding-patterns.md",
+        "extensions/program-kit-governance/scripts/historical_phase_evidence.py"
       ],
       "dependsOn": [
         "profiles"
@@ -108,7 +131,9 @@
         "scripts/proxy_bootstrap.py",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap*.md",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.proxy*.md",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.readiness.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.readiness.md",
+        "extensions/program-kit-governance/examples/bootstrap-runtime/**",
+        "extensions/program-kit-governance/examples/bootstrap-identity/**"
       ],
       "dependsOn": [
         "shared-governance"
@@ -136,7 +161,8 @@
         "extensions/program-kit-dotnet/templates/dotnet/managed-files.json",
         "extensions/program-kit-dotnet/templates/dotnet/template.yml",
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
-        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
+        "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
+        "tests/identity_projection_cases.py"
       ],
       "dependsOn": [
         "profiles"
@@ -148,7 +174,8 @@
         "extensions/program-kit-building-blocks/references/dependency-profile*",
         "extensions/program-kit-building-blocks/references/dependency-qualification*",
         "scripts/update_dependency_profiles.py",
-        "scripts/build_dependency_qualification.py"
+        "scripts/build_dependency_qualification.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json"
       ],
       "dependsOn": []
     },
@@ -162,6 +189,8 @@
     },
     "architecture": {
       "inputs": [
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/README.md",
+        "extensions/program-kit-governance/scripts/artifact_ownership.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_architecture.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/architecture_rules.py",
         "extensions/program-kit-governance/scripts/architecture*.py",
@@ -190,7 +219,9 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/test_project.py",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/verification*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/test*",
-        "tests/verification_isolation_cases.py"
+        "tests/verification_isolation_cases.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/repository_verification.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/toolkit_verification.py"
       ],
       "dependsOn": [
         "architecture",
@@ -203,7 +234,9 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/oasdiff*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/*client*",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/label*",
-        "extensions/program-kit-building-blocks/scripts/wire_capabilities.py"
+        "extensions/program-kit-building-blocks/scripts/wire_capabilities.py",
+        "extensions/program-kit-dotnet/references/examples/typed-operation/**",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json"
       ],
       "dependsOn": [
         "profiles",
@@ -309,6 +342,67 @@
       ],
       "dependsOn": [
         "schema"
+      ]
+    },
+    "coding-realization": {
+      "inputs": [
+        "extensions/program-kit-governance/scripts/coding_scaffold.py",
+        "extensions/program-kit-dotnet/scripts/typed_operation.py",
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.coding-scaffold.md",
+        "extensions/program-kit-dotnet/references/examples/typed-operation/**"
+      ],
+      "dependsOn": [
+        "knowledge",
+        "architecture"
+      ]
+    },
+    "coding-seeds": {
+      "inputs": [
+        "extensions/program-kit-dotnet/references/examples/evidence-submission/**",
+        "extensions/program-kit-governance/references/file-selection-example.mjs",
+        "tests/evidence_review_fixture.py",
+        "tests/fixtures/evidence-submission/**",
+        "tests/validate_coding_seeds.py",
+        "tests/evidence_context_review.py",
+        "docs/coding-seeds.md"
+      ],
+      "dependsOn": [
+        "knowledge",
+        "web"
+      ]
+    },
+    "coding-learning": {
+      "inputs": [
+        "extensions/program-kit-dotnet/references/examples/snapshot-query/**",
+        "tests/learning_review_fixture.py",
+        "tests/validate_coding_learning.py"
+      ],
+      "dependsOn": [
+        "knowledge"
+      ]
+    },
+    "coding-evaluation": {
+      "inputs": [
+        "tests/evaluation_review_fixture.py",
+        "tests/validate_coding_evaluation.py"
+      ],
+      "dependsOn": [
+        "knowledge",
+        "phases",
+        "test-generation"
+      ]
+    },
+    "coding-installation": {
+      "inputs": [
+        "tests/coding_install_review_fixture.py",
+        "tests/validate_coding_installation.py",
+        "tests/fixtures/coding-system/*"
+      ],
+      "dependsOn": [
+        "release",
+        "upgrade",
+        "coding-realization",
+        "coding-evaluation"
       ]
     }
   },
@@ -552,13 +646,27 @@
     {
       "id": "validate_native_phase_baselines",
       "purpose": "Require a complete exact immediate-predecessor source witness before packaging; reject missing lineage and manifest-only substitutes.",
-      "platforms": ["Windows", "Linux"],
-      "command": ["{python}", "tests/validate_native_phase_baselines.py"],
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_native_phase_baselines.py"
+      ],
       "kind": "integration",
-      "capabilities": ["release", "upgrade"],
-      "inputs": ["tests/validate_native_phase_baselines.py"],
+      "capabilities": [
+        "release",
+        "upgrade"
+      ],
+      "inputs": [
+        "tests/validate_native_phase_baselines.py"
+      ],
       "needs": [],
-      "prerequisites": ["module:yaml", "tool:git"],
+      "prerequisites": [
+        "module:yaml",
+        "tool:git"
+      ],
       "suites": [],
       "budgetSeconds": 15,
       "timeoutSeconds": 30
@@ -1332,7 +1440,8 @@
         "release"
       ],
       "inputs": [
-        "tests/validate_release_guidance.py"
+        "tests/validate_release_guidance.py",
+        "extensions/program-kit-governance/scripts/release_guidance.py"
       ],
       "needs": [],
       "prerequisites": [],
@@ -1808,7 +1917,7 @@
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
-      "manualOnly": true
+      "manualOnly": false
     },
     {
       "id": "validate_feature_knowledge",
@@ -3058,7 +3167,8 @@
         "release"
       ],
       "inputs": [
-        "tests/validate_public_component_use.py"
+        "tests/validate_public_component_use.py",
+        "tests/fixtures/knowledge-application/components/**"
       ],
       "needs": [],
       "prerequisites": [
@@ -3883,7 +3993,9 @@
       ],
       "inputs": [
         "tests/validate_authentication_presentation.py",
-        "tests/fixtures/authentication-presentation/**"
+        "tests/fixtures/authentication-presentation/**",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/private-diagnostics*",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"
       ],
       "needs": [],
       "prerequisites": [
@@ -4673,7 +4785,8 @@
         "release"
       ],
       "inputs": [
-        "tests/validate_asset_sources.py"
+        "tests/validate_asset_sources.py",
+        "extensions/program-kit-governance/scripts/asset_sources.py"
       ],
       "needs": [
         "build-release"
@@ -5315,6 +5428,620 @@
         "Linux"
       ],
       "purpose": "Public delivery byte/source binding, initializer/updater orchestration and failure/timeout/cleanup guards; no public execution."
+    },
+    {
+      "id": "validate_knowledge_sources",
+      "purpose": "Canonical non-Markdown source resolution, independent negatives, scoped freshness and retained-review fixture behavior; no coding agents.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_knowledge_sources.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge"
+      ],
+      "inputs": [
+        "tests/validate_knowledge_sources.py",
+        "tests/knowledge_review_fixture.py",
+        "tests/validate_consumer_upgrade_install.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_context",
+      "purpose": "Extensible canonical-bound coding units, real native evaluation, scoped preparation and installed progress reconciliation with independent negative cases. No agents or application services.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_context.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge",
+        "phases",
+        "architecture"
+      ],
+      "inputs": [
+        "tests/validate_coding_context.py",
+        "tests/coding_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_patterns",
+      "purpose": "Versioned shared/private pattern inputs through existing composition; current check evidence, invariant protection and guided installed negatives. No agents/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_patterns.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "knowledge",
+        "source-quality"
+      ],
+      "inputs": [
+        "tests/validate_coding_patterns.py",
+        "tests/pattern_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_scaffolding",
+      "purpose": "Finite qualified realization, emitted C# readability with independent syntax negatives, source/ownership preconditions, consumer customization preservation and transactional negatives. No workers/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_scaffolding.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-realization"
+      ],
+      "inputs": [
+        "tests/validate_coding_scaffolding.py",
+        "tests/csharp_readability_check.py",
+        "tests/fixtures/csharp-readability/**",
+        "tests/coding_label_check.py",
+        "tests/scaffold_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_scaffold_review",
+      "purpose": "Retained installed F4 fixture: qualified selection, inspectable source creation, independent actual application positives/negatives and manual edit/completion boundaries.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/scaffold_review_fixture.py",
+        "--review"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-realization"
+      ],
+      "inputs": [
+        "tests/scaffold_review_fixture.py",
+        "tests/coding_label_check.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 300,
+      "timeoutSeconds": 600,
+      "manualOnly": true,
+      "reviewInputs": [
+        "tests/scaffold_review_fixture.py"
+      ]
+    },
+    {
+      "id": "validate_coding_seed_native",
+      "purpose": "F5 actual current native feature/application/model/HTTP proof; fictional identity, no paid worker.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/evidence_review_fixture.py",
+        "--review",
+        "--native-only",
+        "--mutations"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-seeds"
+      ],
+      "inputs": [
+        "tests/evidence_review_fixture.py",
+        "tests/fixtures/evidence-submission/**",
+        "extensions/program-kit-dotnet/references/examples/evidence-submission/**",
+        "extensions/program-kit-governance/references/file-selection-example.mjs"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:docker"
+      ],
+      "suites": [],
+      "budgetSeconds": 300,
+      "timeoutSeconds": 600,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_seed_journey",
+      "purpose": "F5 actual current native feature/application/model/HTTP proof and retained browser product journey; fictional identity, no paid worker.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/evidence_review_fixture.py",
+        "--review",
+        "--engines={engines}"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-seeds"
+      ],
+      "inputs": [
+        "tests/evidence_review_fixture.py",
+        "tests/fixtures/evidence-submission/**",
+        "extensions/program-kit-dotnet/references/examples/evidence-submission/**",
+        "extensions/program-kit-governance/references/file-selection-example.mjs",
+        "tests/evidence_context_review.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:docker",
+        "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 300,
+      "timeoutSeconds": 600,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_private_browser_diagnostics",
+      "purpose": "Actual failed setup/assertion/timeout/retry browser cases, trusted source inventory, unknown locations and private canaries in attachments and both streams.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/private_diagnostics_check.py"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "web",
+        "coding-seeds"
+      ],
+      "inputs": [
+        "tests/private_diagnostics_check.py",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/private-diagnostics*",
+        "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/web/tests/authentication.spec.ts"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_seeds",
+      "purpose": "Complete canonical F5 family routing/exclusions, actual file-selection algorithm and independent stale/syntax controls.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_seeds.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-seeds"
+      ],
+      "inputs": [
+        "tests/validate_coding_seeds.py",
+        "tests/csharp_readability_check.py",
+        "tests/fixtures/evidence-submission/**",
+        "extensions/program-kit-dotnet/references/examples/evidence-submission/**",
+        "extensions/program-kit-governance/references/file-selection-example.mjs"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:node"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_learning_contracts",
+      "purpose": "Teaching intent/version preservation, explicit shared-file boundaries, history/evidence-transfer rejection and detector/runtime freshness. No submissions execute.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_learning.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-learning"
+      ],
+      "inputs": [
+        "tests/validate_coding_learning.py",
+        "tests/csharp_readability_check.py",
+        "tests/fixtures/csharp-readability/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet"
+      ],
+      "suites": [],
+      "budgetSeconds": 60,
+      "timeoutSeconds": 120
+    },
+    {
+      "id": "validate_coding_learning",
+      "purpose": "Retained installed F6 teaching, qualification, version adoption, actual compiled later-task application, independent invalid controls, bounded performance and isolated shared preparation. No agents/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/learning_review_fixture.py",
+        "--review"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-learning"
+      ],
+      "inputs": [
+        "tests/learning_review_fixture.py",
+        "extensions/program-kit-dotnet/references/examples/snapshot-query/**"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_evaluation",
+      "purpose": "F7 canonical duty completeness, current maintained evidence and supported admission; fictional review, no agents/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_evaluation.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-evaluation"
+      ],
+      "inputs": [
+        "tests/validate_coding_evaluation.py"
+      ],
+      "needs": [],
+      "prerequisites": [],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_coding_evaluation_journey",
+      "purpose": "F7 canonical duty completeness, current maintained evidence and supported admission; fictional review, no agents/providers.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/evaluation_review_fixture.py",
+        "--review"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-evaluation"
+      ],
+      "inputs": [
+        "tests/evaluation_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240
+    },
+    {
+      "id": "validate_coding_installed_fresh",
+      "purpose": "F8 actual packaged fresh coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "fresh"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_installed_old",
+      "purpose": "F8 actual packaged old coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "old"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_installed_update",
+      "purpose": "F8 actual packaged update coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "update"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_installed_scaffold",
+      "purpose": "F8 actual packaged scaffold coding journey through native installation/ownership and retained independent controls; fictional authoring, no agent.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "scaffold"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "validate_coding_installation_contracts",
+      "purpose": "F8 active canonical retirement, immutable source-baseline preservation and independent packed-guide corruption controls.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_coding_installation.py"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/validate_coding_installation.py",
+        "tests/fixtures/coding-system/*"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
+    },
+    {
+      "id": "validate_coding_installed_adoption",
+      "purpose": "Actual installed qualified-profile retention, explicit reviewed adoption boundary and managed transaction rollback/retry/conflict; no runtime migration acceptance.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "adoption"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
+      "id": "prepare_coding_human_review",
+      "purpose": "Prepare a separate actual installed consumer at the human-operated Spec Kit starting boundary; no agent, feature execution or human decision.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/coding_install_review_fixture.py",
+        "--mode",
+        "human"
+      ],
+      "kind": "integration",
+      "capabilities": [
+        "coding-installation"
+      ],
+      "inputs": [
+        "tests/coding_install_review_fixture.py"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema",
+        "tool:dotnet",
+        "tool:git"
+      ],
+      "suites": [],
+      "budgetSeconds": 120,
+      "timeoutSeconds": 240,
+      "manualOnly": true
     }
   ]
 }

@@ -159,11 +159,13 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError): updater.update_text('missing marker', '0.13.1')
         release = {'tag_name': 'v0.13.1', 'draft': False, 'prerelease': False}
         run = {'name': 'Release', 'event': 'workflow_dispatch', 'conclusion': 'success',
+               'path': '.github/workflows/release.yml', 'status': 'completed',
                'head_sha': 'published-commit', 'head_branch': 'main',
                'head_repository': {'full_name': 'orbyss-io/program-kit'}}
         with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}]):
             self.assertEqual('0.13.1', updater.published_version({'workflow_run': run}))
         for changes in ({'conclusion': 'failure'}, {'head_branch': 'other-branch'},
+                        {'path': '.github/workflows/unrelated.yml'}, {'status': 'in_progress'},
                         {'event': 'pull_request'}, {'head_repository': {'full_name': 'fork/repo'}}):
             with patch.object(updater, 'api', side_effect=[release, {'sha': 'published-commit'}]):
                 with self.assertRaises(ValueError):

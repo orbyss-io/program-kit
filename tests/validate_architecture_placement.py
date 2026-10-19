@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from owned_fixture import FixtureDirectory, native_path
+from owned_fixture import FixtureDirectory, native_path, filesystem_path
 from pathlib import Path
 from unittest.mock import patch
 
@@ -66,7 +66,7 @@ def workflow_checks(root, context, run_id):
 
 def main():
     blocks = bt.load_module(bt.RESOLVER)
-    context = ct.load_module(ROOT)
+    context = ct.load_module(Path(filesystem_path(ROOT)))
     catalog = blocks.load_json(bt.CATALOG)
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng'))
     from repository_architecture import validate_manifest
@@ -86,7 +86,7 @@ def main():
         try:
             validate_manifest(planned_root, invalid_graph)
         except ValueError as error:
-            assert 'implementation/provider/bridge role' in str(error)
+            assert 'PKA022 retired C# composition project role' in str(error)
         else:
             raise AssertionError('Planned composition role hid a domain implementation')
         validate_manifest(planned_root, {'runtimeComposition': {'projects': []}})
@@ -95,7 +95,7 @@ def main():
         root = Path(temporary)
         intake = {"routing": {"capabilities": ["authenticated-browser-bff", "forms", "localization"]}}
         installed = root / ".specify/extensions/program-kit-building-blocks"
-        shutil.copytree(ROOT / "extensions/program-kit-building-blocks", installed)
+        shutil.copytree(filesystem_path(ROOT / "extensions/program-kit-building-blocks"), installed)
         contract = context.building_block_stage_contract(root, intake)
         assert len(contract["target_inventory"]["candidates"]) == 1
         assert contract["target_inventory"]["candidates"][0]["origin"] == "convention"

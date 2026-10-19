@@ -164,7 +164,7 @@ class MaintenanceTests(unittest.TestCase):
                 result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8', timeout=90)
                 self.assertEqual(2, result.returncode, result.stdout + result.stderr)
                 value = json.loads(result.stdout)
-                self.assertTrue(any('PKA001' in c['reason'] and 'boundary' in c['reason'] for c in value['conflicts']))
+                self.assertTrue(any('PKA001' in c['reason'] and 'PKA022 retired C# composition project role' in c['reason'] for c in value['conflicts']))
                 for p, content in before.items(): self.assertEqual(content, p.read_bytes())
                 self.assertFalse((self.root / '.program-kit/managed.json').exists())
 

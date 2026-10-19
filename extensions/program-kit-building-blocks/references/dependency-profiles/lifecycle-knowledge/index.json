@@ -12,6 +12,10 @@
     "0.0.30": {
       "path": "lifecycle-knowledge/0.0.30/index.json",
       "sha256": "18d0fa6d242f4379652ad3298eb59bcf6b41511a167dadffd7cb0d1c06323d7e"
+    },
+    "0.0.31": {
+      "path": "lifecycle-knowledge/0.0.31/index.json",
+      "sha256": "8054b982f1ba249f130b7b7d1f8cddd106cb3a28d7ee63d83e5932ae35b58bc4"
     }
   }
 }

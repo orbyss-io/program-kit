@@ -60,9 +60,6 @@ Application.Context.Import.Excel
 Application.Consumer.Provider
   -> Application.Consumer.Core
   -> Application.Provider.Core
-
-Application.Persistence.PostgreSql
-  -> selected per-context PostgreSQL providers as an optional composition preset
 ```
 
 The external host is the composition root and loads the selected feature package closure; the
@@ -70,13 +67,13 @@ consumer repository does not create a host project unless an explicit accepted o
 custom runtime. A runtime feature is an activation type and stable identity, not a project-name
 layer. Project, package, and namespace names MUST NOT contain a generic `.Feature` segment. Use
 domain language and name an implementation by the behavior, protocol, provider, consumer/provider
-bridge, helper, or composition preset it contributes. A class such as `CatalogFeature` remains
+bridge, or helper it contributes. A class such as `CatalogFeature` remains
 appropriate inside `PriceCalculator.Catalog`.
 
 Separate Core, runtime implementation, API and persistence projects even within one bounded context
 and deployment bundle. Package, feature activation and deployment decisions remain distinct from
-compiler boundaries. Composition selects runtime behavior rather than containing the implementations
-it selects. Namespace waivers and role relabeling cannot replace this rule. Pure Core utilities and
+compiler boundaries. Shell/deployment configuration selects runtime behavior directly; C#
+composition-preset projects and the composition project role are retired. Namespace waivers and role relabeling cannot replace this rule. Pure Core utilities and
 empty initial repositories remain legitimate without invented runtime projects.
 
 `Application.Context.Core` defines the context's deliberately stable semantic surface: aggregates,

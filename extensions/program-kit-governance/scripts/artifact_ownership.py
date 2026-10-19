@@ -407,14 +407,16 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict, *, design_on
             continue
         if matches(path, manifest) is None:
             errors.append(f"PKA015 runtime composition project is not owned by the manifest: {path}")
-        if project.get("role") not in RUNTIME_PROJECT_ROLES:
-            errors.append(f"PKA015 {path} has an invalid runtime composition role: {project.get('role')!r}")
+        try:
+            validate_project_role(project.get("role"), path)
+        except ValueError as error:
+            errors.append(str(error))
         project_name_parts = {part.lower() for part in Path(path).stem.split(".")}
         legacy_parts = sorted(project_name_parts & LEGACY_PROJECT_MARKERS)
         if legacy_parts:
             errors.append(
                 f"PKA015 {path} uses layer-marker project name(s) {legacy_parts}; use a domain-specific "
-                ".Core project or name the implementation, provider, protocol, bridge, helper, or composition capability"
+                ".Core project or name the implementation, provider, protocol, bridge, or helper capability"
             )
         project_refs = project.get("projectReferences")
         build_refs = project.get('buildProjectReferences', [])
@@ -592,7 +594,7 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict, *, design_on
             if target_role not in allowed:
                 errors.append(
                     f"PKA015 forbidden {role}-to-{target_role} ProjectReference: {path} -> {reference}; "
-                    "only composition projects may reference runtime implementations/providers/bridges"
+                    "runtime implementations/providers/bridges cannot reference peer implementations; select features through shell/deployment configuration"
                 )
 
     undecided_core_edges = sorted(actual_core_edges - declared_core_edges)

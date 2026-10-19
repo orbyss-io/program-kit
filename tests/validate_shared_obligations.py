@@ -39,7 +39,7 @@ class TaskScopedFailures(unittest.TestCase):
         before = copy.deepcopy(draft.load_failures(self.feature))
         with self.assertRaisesRegex(ValueError, 'Resolve required technical failures'):
             draft.transition(self.root, self.feature, {'action': 'engineering', 'checkpoint': 'US1',
-                'checks': ['artifacts/passing.json']}, now=0)
+                'checks': ['artifacts/tests/toolkit-runs/story-fixture/result.json']}, now=0)
         self.assertEqual(before, draft.load_failures(self.feature))
 
     def test_later_task_hint_cannot_waive_a_retained_required_failure(self):
@@ -67,7 +67,7 @@ class TaskScopedFailures(unittest.TestCase):
     def test_resolved_failure_removes_only_its_obsolete_scope(self):
         self.write_hint(['T003'])
         draft.checkpoint(self.feature, {'baseline': 'original-commit', 'outcome': 'Synthetic',
-            'next': 'Continue', 'resolvedFailures': [self.failure], 'checks': ['artifacts/passing.json']})
+            'next': 'Continue', 'resolvedFailures': [self.failure], 'checks': ['artifacts/tests/toolkit-runs/story-fixture/result.json']})
         self.assertEqual([], draft.load_failures(self.feature))
         self.assertNotIn('failureScopes', draft.current(self.feature))
         self.assertIn(self.failure, json.dumps(draft.progress_history(self.feature)))

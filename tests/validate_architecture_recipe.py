@@ -129,8 +129,8 @@ class RecipeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'PKA021 compiled friend access'): self.check()
 
     def test_binding_roles_and_physical_separation_are_mandatory(self):
-        for index, role, message in ((0, 'composition', 'capability.*Core'),
-                                     (1, 'composition', 'implementation.*role')):
+        for index, role, message in ((0, 'helper', 'capability.*Core'),
+                                     (1, 'helper', 'implementation.*role')):
             with self.subTest(role=role, index=index):
                 original = self.manifest['runtimeComposition']['projects'][index]['role']
                 self.manifest['runtimeComposition']['projects'][index]['role'] = role
@@ -160,8 +160,8 @@ class RecipeTests(unittest.TestCase):
             {'name': 'Workbench.Core.INotes', 'isInterface': True, 'baseType': '', 'interfaces': [], 'methods': []}]}]
         with self.assertRaisesRegex(ValueError, 'Core types.*separate'): self.check()
 
-    def test_compiled_persistence_dependency_cannot_hide_in_composition(self):
-        self.manifest['runtimeComposition']['projects'][1]['role'] = 'composition'
+    def test_compiled_persistence_dependency_cannot_hide_in_implementation(self):
+        self.manifest['runtimeComposition']['projects'][1]['role'] = 'implementation'
         self.manifest['runtimeComposition']['bindings'] = []
         self.compiled[1]['references'].append('Microsoft.EntityFrameworkCore')
         with self.assertRaisesRegex(ValueError, 'Persistence.*provider'): self.check()
@@ -179,7 +179,7 @@ class RecipeTests(unittest.TestCase):
         validate = getattr(recipe, 'validate_manifest', None)
         self.assertIsNotNone(validate, 'Planned architecture validation must exist')
         validate(self.root, self.manifest)
-        self.manifest['runtimeComposition']['projects'][1]['role'] = 'composition'
+        self.manifest['runtimeComposition']['projects'][1]['role'] = 'helper'
         with self.assertRaisesRegex(ValueError, 'implementation.*role'):
             validate(self.root, self.manifest)
 
@@ -202,7 +202,7 @@ class RecipeTests(unittest.TestCase):
     def test_frozen_original_workbench_graph_is_rejected_without_mutation(self):
         path = ROOT / 'tests/fixtures/foundation-consumer-contracts/baseline/mixed-workbench-architecture.json'
         original = path.read_bytes()
-        with self.assertRaisesRegex(ValueError, 'namespace.*boundary'):
+        with self.assertRaisesRegex(ValueError, 'PKA022 retired C# composition project role'):
             recipe.validate_manifest(self.root, json.loads(original))
         self.assertEqual(original, path.read_bytes())
 

@@ -6,7 +6,7 @@ import json
 import re
 
 PACK='.program-kit-sources.json'
-ROOTS={'examples','templates/ui-experience','references/examples'}
+ROOTS={'examples','templates/ui-experience','references/examples','references/release-guidance'}
 
 
 def require(condition,message):

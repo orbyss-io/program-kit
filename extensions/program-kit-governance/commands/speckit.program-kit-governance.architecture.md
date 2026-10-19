@@ -24,8 +24,8 @@ resources to the existing Accepted model/selection IDs, using one authority, exp
 client/API relationships and separately placed database/server resources as applicable.
 The executable graph lives in `eng/foundation-composition.json`; settings, provider imports
 and Docker Compose are generated outputs. Do not introduce a `.Composition` project to
-collect feature selections or start services. A separate preset needs an explicitly
-Accepted reusable source responsibility. Reconcile active scoped decisions and retire
+collect feature selections or start services. The C# composition project role is retired;
+select features in shell/deployment configuration and keep registration with each owning feature. Reconcile active scoped decisions and retire
 superseded placements before updating dependent plans, preserving prior decision history.
 
 
@@ -255,7 +255,7 @@ The architecture baseline must also define:
 
 - the bounded-context map and ubiquitous language boundaries;
 - module and feature ownership, public contracts, data ownership, and allowed dependency graph;
-- Core/helper/implementation/provider/bridge/composition roles, semantic capability ownership, and
+- Core/helper/implementation/provider/bridge roles, semantic capability ownership, and
   selected runtime feature identities without layer-marker project names;
 - a compact candidate slice catalog that names the user journey and observable outcome, entry
   point, participating boundaries, owned public contract/data/lifecycle portion, success and

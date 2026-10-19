@@ -35,15 +35,25 @@ class ProviderContextTests(unittest.TestCase):
 
     def test_shipped_probe_and_exporter_pins_match_managed_foundation(self):
         import xml.etree.ElementTree as ET
-        version = json.loads(CATALOG.read_text())['families']['foundation']['releaseVersion']
+        resolver = load_module(RESOLVER)
+        current = resolver.new_project_catalog()
+        version = current['families']['foundation']['releaseVersion']
         files = list((ROOT / 'extensions/program-kit-governance/examples').rglob('*.csproj'))
         files += list((ROOT / 'tests/fixtures/knowledge-application/components').rglob('*.csproj'))
+        files += list((ROOT / 'tests/fixtures/application-lifecycle').rglob('*.csproj'))
+        packages = ET.parse(ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props')
+        shared_pins = {row.get('Include'): row.get('Version') for row in packages.iter('PackageVersion')}
         checked = 0
         for path in files:
             for reference in ET.parse(path).iter('PackageReference'):
                 if reference.get('Include', '').startswith('Orbyss.Foundation.'):
-                    self.assertEqual(version, reference.get('Version'), str(path))
+                    self.assertEqual(version, reference.get('Version').strip('[]'), str(path))
                     checked += 1
+                elif reference.get('Include', '').startswith('CShells.'):
+                    self.assertEqual(shared_pins['CShells.AspNetCore.Abstractions'],
+                                     reference.get('Version').strip('[]'), str(path))
+                elif reference.get('Include', '').startswith('Orbyss.Forms.'):
+                    self.assertEqual(current['families']['forms']['releaseVersion'], reference.get('Version'), str(path))
         self.assertGreater(checked, 0)
         tools = ROOT / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json'
         exporter = load_module(RESOLVER).new_project_catalog()['packages']['nuget:Orbyss.Foundation.OpenApi.Exporter']['version']

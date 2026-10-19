@@ -98,7 +98,7 @@ class DevelopmentTests(unittest.TestCase):
                            ('plan.md','Pure domain policy; no database or browser required.'),
                            ('tasks.md','Implement and test reservation outcomes.')]:
             (self.feature / name).write_text(text)
-        seed(self.root, self.feature)
+        seed(self.root, self.feature, evaluation=True)
 
     def snapshot(self):
         return {p.relative_to(self.root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
@@ -119,14 +119,14 @@ class DevelopmentTests(unittest.TestCase):
     def test_failed_entry_requires_a_fresh_successful_invocation_after_repair(self):
         import task_draft
         before = task_draft.current(self.feature)['delivery']
-        path = self.root / 'eng/architecture.json'; path.parent.mkdir()
+        path = self.root / 'eng/architecture.json'; path.parent.mkdir(exist_ok=True)
         graph = {'runtimeComposition': {'projects': [{'path': 'src/Policy/Policy.csproj',
                  'role': 'core'}], 'bindings': []}}
         path.write_text(json.dumps(graph))
         with (self.feature / 'plan.md').open('a') as stream:
             stream.write('\nC# policy in src/Policy/Policy.csproj.\n')
         command = [sys.executable, str(ROOT / 'extensions/program-kit-governance/scripts/implementation_preflight.py'),
-                   '--repository', str(self.root), '--feature-dir', 'specs/001-slots']
+                   '--repository', str(self.root), '--feature-dir', 'specs/001-slots', '--stage', 'setup']
         failed = subprocess.run(command, cwd=self.root, capture_output=True, text=True)
         self.assertEqual(2, failed.returncode, failed.stdout + failed.stderr)
         self.assertIn('responsibilities', failed.stdout)
@@ -139,7 +139,7 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(before, task_draft.current(self.feature)['delivery'])
 
     def test_planned_roles_gate_after_plan_tasks_and_source_without_builds(self):
-        eng = self.root / 'eng'; eng.mkdir()
+        eng = self.root / 'eng'; eng.mkdir(exist_ok=True)
         graph = {'runtimeComposition': {'projects': [
             {'path': 'src/Notes.Core/Notes.Core.csproj', 'role': 'core',
              'responsibilities': [{'name': 'Notes.INotes', 'kind': 'contract', 'effects': []}]},
@@ -152,7 +152,7 @@ class DevelopmentTests(unittest.TestCase):
         before = self.snapshot()
         with patch.object(subprocess, 'run', side_effect=AssertionError('Planned validation must not build')):
             for phase in ('after-plan', 'after-tasks', 'implementation'):
-                with self.assertRaisesRegex(ValueError, 'implementation.*role'):
+                with self.assertRaisesRegex(ValueError, 'PKA022 retired C# composition project role'):
                     knowledge.check(self.root, self.feature, phase)
             with contextlib.redirect_stdout(io.StringIO()), patch.object(sys, 'argv',
                     ['preflight', '--repository', str(self.root), '--feature-dir', 'specs/001-slots']):
@@ -161,13 +161,13 @@ class DevelopmentTests(unittest.TestCase):
         graph['runtimeComposition']['projects'][1]['role'] = 'implementation'
         path.write_text(json.dumps(graph))
         for phase in ('after-plan', 'after-tasks', 'implementation'):
-            knowledge.check(self.root, self.feature, phase)
+            knowledge.check(self.root, self.feature, phase, coding_stage='setup')
 
     def test_planned_source_requires_manifest_but_empty_repository_is_valid(self):
         (self.feature / 'plan.md').write_text('Implement src/Notes.Core/Notes.Core.csproj in C#.')
         with self.assertRaisesRegex(ValueError, 'eng/architecture.json'):
             knowledge.check(self.root, self.feature, 'after-plan')
-        eng = self.root / 'eng'; eng.mkdir()
+        eng = self.root / 'eng'; eng.mkdir(exist_ok=True)
         (eng / 'architecture.json').write_text('{"runtimeComposition":{"projects":[],"bindings":[]}}')
         knowledge.check(self.root, self.feature, 'after-plan')
 
@@ -255,7 +255,8 @@ class DevelopmentTests(unittest.TestCase):
         (self.feature/'plan.md').write_text('C# immutable value semantics for a small identifier.')
         rules={r['id']:r for r in knowledge.project(self.root,self.feature,'planning')['requirements']}
         self.assertIn('dotnet-source-quality',rules)
-        self.assertIn('not a blanket replacement',rules['dotnet-source-quality']['example'])
+        self.assertNotIn('example', rules['dotnet-source-quality'])
+        self.assertIn('guidance.dotnet-engineering.source-files-and-documentation', rules['dotnet-source-quality']['ruleIds'])
 
     def test_excluded_capabilities_do_not_activate_guidance(self):
         (self.feature/'plan.md').write_text('C# policy only. No database. API and browser are future out of scope.')
@@ -358,11 +359,12 @@ class DevelopmentTests(unittest.TestCase):
         (self.feature/'tasks.md').write_text('- [X] T001 Test the operation\n- [ ] T002 Finish the story\n')
         with patch.object(knowledge, 'execute') as execute:
             result = knowledge.finish(self.root, self.feature)
-            self.assertEqual('in-progress', result['status'])
+            self.assertEqual('needs-attention', result['status'])
             self.assertFalse(result['acceptanceEstablished'])
             execute.assert_not_called()
-            with self.assertRaisesRegex(ValueError, 'old progress grants no authority'):
-                knowledge.finish(self.root, self.feature, handoff=True)
+            handoff = knowledge.finish(self.root, self.feature, handoff=True)
+            self.assertFalse(handoff['canProceed'])
+            self.assertIn('PKC020', handoff['instruction'])
             execute.assert_not_called()
         (self.feature/'tasks.md').write_text('> Draft: incomplete\n- [X] T001 A saved phase\n')
         with patch.object(knowledge, 'execute') as execute:
@@ -413,7 +415,7 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual('delivery', json.loads(ledger.read_text())['prerequisites'][0]['trigger'])
 
     def test_closure_does_not_reuse_prior_scoped_pass_as_acceptance(self):
-        eng = self.root/'eng'; eng.mkdir()
+        eng = self.root/'eng'; eng.mkdir(exist_ok=True)
         (eng/'Invoke-RepositoryVerification.ps1').write_text('exit 0')
         prior = self.root/'artifacts/tests/runs/old'; prior.mkdir(parents=True)
         scoped = {'schemaVersion': 1, 'scope': 'Focused', 'status': 'completed',
@@ -432,7 +434,7 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(1, len(list((self.root/'artifacts/program-kit/runs').glob('*/run.json'))))
 
     def test_failed_engineering_remains_failed_and_preserves_diagnostics(self):
-        eng = self.root/'eng';eng.mkdir()
+        eng = self.root/'eng';eng.mkdir(exist_ok=True)
         (eng/'Invoke-RepositoryVerification.ps1').write_text('Write-Error "actual application failure"; exit 7')
         with self.assertRaisesRegex(ValueError,'Application verification failed'):
             knowledge.execute(self.root,self.feature)

@@ -65,10 +65,10 @@ class NativePackTests(unittest.TestCase):
         import ui_profile
         evidence=ROOT/'artifacts/source-assets'/uuid.uuid4().hex;evidence.mkdir(parents=True)
         result={'status':'running','steps':[],'providerCalls':0,'modelCalls':0,'scope':'Actual packaged source and native install/UI/OCR preparation; no provider/agent/application acceptance'}
-        staging=Path(filesystem_path(ROOT/'artifacts/t'/('assets-'+uuid.uuid4().hex[:12])))
+        staging=Path(filesystem_path(ROOT/'artifacts/t'/('a'+uuid.uuid4().hex[:7])))
         staging.mkdir(parents=True)
         release=staging/'release';release.mkdir()
-        consumer=staging/'consumer';consumer.mkdir()
+        consumer=staging/'c';consumer.mkdir()
         site=str(Path(__import__('specify_cli').__file__).parent.parent)
         env=dict(os.environ,PROGRAM_KIT_SPECIFY_SITE_PACKAGES=site,SPECIFY_INIT_DIR=native_path(consumer),PYTHONUTF8='1')
         def run(label,command):

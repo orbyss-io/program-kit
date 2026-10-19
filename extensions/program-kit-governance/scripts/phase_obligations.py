@@ -12,6 +12,7 @@ import subprocess
 from pathlib import Path
 from feature_context import context, adopted_context
 from decision_knowledge import constraints
+from knowledge_sources import resolve
 
 
 from dotnet_adapter import bootstrap
@@ -32,6 +33,10 @@ def read(path, default=None):
 
 def catalog():
     return read(Path(__file__).resolve().parents[1] / 'references/phase-obligations.json')
+
+
+def canonical_rules(identities):
+    return [resolve(catalog(), identity, extensions=Path(__file__).resolve().parents[2]) for identity in identities]
 
 
 def intent(root, feature, phase='implementation', affected_paths=()):
@@ -107,7 +112,7 @@ def foundation_applicability(root, feature, inherited, tags):
     capture = effective['publisherKnowledge']
     if not capture:
         return {'version': version, 'profile': effective['profile'], 'sourceCommit': None,
-                'guidance': ['This exact selection has no captured publisher mechanism knowledge. Resolve its exact profile before choosing an unverified Foundation mechanism; no newer default is substituted.']}
+                'facts': {'captureAvailable': False}, 'canonicalRules': canonical_rules(['guidance.component-adoption.foundation-web-and-json'])}
     capabilities = provider('program-kit-building-blocks/scripts/wire_capabilities.py').project(blocks, effective)
     registry = Path(effective['registryPath'])
     def document(name):
@@ -116,20 +121,15 @@ def foundation_applicability(root, feature, inherited, tags):
     metadata = document('src/Orbyss.Foundation.WebDefaults/WebResponseMetadata.cs')
     writer = document('src/Orbyss.Foundation.WebDefaults/WebResponsePoliciesMiddleware.cs')
     permission = document('src/Orbyss.Foundation.Authentication/PermissionPolicyProvider.cs')
-    guidance = []
-    if 'WebResponseMetadata' in metadata and 'OnStarting' in writer:
-        guidance += ['Shell Foundation:Web:ResponsePolicies selects response policies; endpoints declare WebResponseMetadata(Private: true). WebDefaults owns the final header writer across success, denial, error and redirect. Admit public immutable assets separately.']
-    else:
-        guidance += ['This exact capture does not expose the current response-policy/private-metadata/final-writer contract. Resolve that capability before relying on it; headers alone supply no admission.']
-    if 'permission:' in permission:
-        guidance += ['Where BFF is selected, it supplies session admission; endpoints require canonical permission:<owned id> through Foundation authorization. Application code retains resource/state/effect checks.']
-    guidance += ['Use the exact package schemas and typed configuration for shell deployment values. Keep application permission/route identities in owned constants and use captured framework identifiers; literals are assessed by ownership and lifecycle.']
-    if capabilities['problem']:
-        guidance += ['Selected problem writer fields: ' + ', '.join(capabilities['problem']['fields'])
-                     + '; closed envelope. Put recovery metadata in typed operation responses/UI with retained server-issued operation identity.']
+    facts = {'captureAvailable': True, 'responsePolicyWriter': 'WebResponseMetadata' in metadata and 'OnStarting' in writer,
+             'permissionPolicy': 'permission:' in permission,
+             'problemFields': capabilities['problem']['fields'] if capabilities['problem'] else [],
+             'jsonProfiles': bool(capabilities['json']), 'unresolvedWireCapabilities': capabilities['unresolved']}
+    rule_ids = ['guidance.component-adoption.foundation-web-and-json', 'principle.authorization-ownership', 'adapter.foundation-settings']
+    if facts['responsePolicyWriter']:
+        rule_ids.append('adapter.foundation-response')
     if capabilities['json']:
-        guidance += ['Selected JSON profiles require Strict numeric tokens. Use demonstrated scoped JsonNumberHandling.Strict DTO metadata; regenerate actual producer/client output and prove reader/writer parity. Custom converters or shared types under distinct profiles require exact binding proof.']
-    guidance += ['Unresolved selected wire capability: ' + message for message in capabilities['unresolved']]
+        rule_ids.append('principle.strict-profile-schema')
     prose = '\n'.join((feature / name).read_text(encoding='utf-8') for name in ('spec.md', 'plan.md') if (feature / name).is_file())
     hosted = [instance for instance in instances if instance['composition'] == 'hosted_pages']
     if hosted:
@@ -144,16 +144,16 @@ def foundation_applicability(root, feature, inherited, tags):
             private_intent = bool(re.search(r'(?:private|authenticated)\s+(?:html\s+)?(?:pages?|entries|bootstrap)', identity + ' ' + purpose + ' ' + prose, re.I))
             if private_intent and not public_assets and not private_contract:
                 raise ValueError('Foundation ' + version + ' HostedPages is public-only in its exact captured contract; selected private-page intent requires a demonstrated qualified private-page mechanism before affected source work. Public immutable assets remain separately valid.')
+        facts['hostedPages'] = {'typedPrivateRoutes': private_contract, 'anonymousFeature': 'AllowAnonymous' in feature_source}
         if private_contract:
-            guidance += ['This capture exposes typed HostedPages Routes. Bind distinct route IDs/paths/revisions and page/bootstrap access; qualify the actual admission behavior, including inherited bootstrap requirements and shared-revision isolation.']
-        elif 'AllowAnonymous' in feature_source:
-            guidance += ['HostedPages in this exact capture serves public HTML/bootstrap. An instance name or response policy cannot confer private admission.']
+            rule_ids.append('adapter.hosted-pages')
     return {'version': version, 'profile': effective['profile'], 'sourceCommit': capture['sourceCommit'],
-            'wireCapabilities': capabilities, 'guidance': guidance}
+            'wireCapabilities': capabilities, 'facts': facts, 'canonicalRules': canonical_rules(rule_ids)}
 
 
-def model(root, feature, phase='planning', affected_paths=()):
-    tags = intent(root, feature, phase, affected_paths)
+def model(root, feature, phase='planning', affected_paths=(), extra_tags=(), selected_tags=None):
+    tags = set(selected_tags) if selected_tags is not None else intent(root, feature, phase, affected_paths)
+    tags.update(extra_tags)
     registry_phase = 'after-plan' if phase == 'tasks' else phase
     inherited = adopted_context(root, feature)
     from feature_plan_decisions import project as decisions
@@ -201,27 +201,23 @@ def project(root, feature, phase, affected_paths=()):
 
 
 def render(value, phase, detailed=False):
-    canonical = constraints(catalog(), value['requirements'], Path(__file__).resolve().parents[2])
+    canonical = constraints(catalog(), value['requirements'], Path(__file__).resolve().parents[2], detailed)
     lines = [f'# Applicable guidance: {phase}', '',
              'Record concrete decisions and tests in plan.md/tasks.md. No separate review receipts are required.',
              'Conditional guidance applies only when its stated conditions hold.',
              'Canonical decision constraints below apply before choosing a design. Use focused lookup for an unresolved mechanism; this is not a reading checklist.',
              'Use --only <id> for its example, diagnostics and focused reference sections.', '']
-    actions = {
-        'planning': 'Make design decisions and name their cheapest reliable tests. No application tests run during planning.',
-        'after-plan': 'Review changed design decisions and the planned graph. Carry real-provider tests into the tasks.',
-        'tasks': 'Size coherent runnable stories; name risk, verification sequence and exact prerequisites. Materialize known scaffolds first, run maintained checks, then add missing consumer tests. Do not execute proofs while drafting.',
-        'after-tasks': 'Check the finalized graph and run normal read-only analyze once. Drafting is not implementation.',
-        'implementation': 'Use verification selected by risk. Review runnable stories with the assigned human; required checkpoints pause further product work unless explicitly deferred. Progress saves and resumes are not full acceptance boundaries.',
-        'delivery': 'Run complete acceptance at feature/domain closure or formal review handoff, then review changed responsibilities.',
-    }
-    lines += [actions[phase], '']
+    lines += [canonical_rules(['phase-action.' + phase])[0]['text'], '']
+    if value.get('coding'):
+        coding = value['coding']
+        lines += ['Apply composed coding units: ' + ', '.join(u['id'] for u in coding['skills']) + '.',
+                  'Context/reasons/routes/evaluation: prepare --format json; reconcile before completion. Routing is not application proof.', '']
     if value.get('sourceQuality'):
         quality = value['sourceQuality']
         lines += ['Selected source rule ' + quality['rule'] + '; '
                   + quality['analyzerPackage'] + ' version ' + str(quality['selectedVersion'])
                   + '; root .editorconfig declarations ' + json.dumps(quality['rootDeclarations']) + '.',
-                  *quality['guidance'], '']
+                  *[r['text'] for r in canonical_rules(quality['canonicalRuleIds'])], '']
         if quality.get('diagnostic'):
             lines += ['Source rule context unresolved: ' + quality['diagnostic'], '']
     for binding in value.get('providerBindings', []):
@@ -229,14 +225,17 @@ def render(value, phase, detailed=False):
                   + '; exact configuration key ' + binding['configurationKey']
                   + '; emitted by ' + binding['environmentKey'] + '.',
                   'Native declaration: ' + binding.get('nativeDeclaration', 'not observed') + '.',
-                  'Use its native settings contract and actual configured registration. Missing/invented keys fail; a direct DI fixture repeating a key does not prove composition activation. Dynamic accesses need runtime proof. Preserve the selected private mount.', '']
+                  *[r['text'] for r in canonical_rules(['principle.private-provider-binding'])], '']
     if value.get('buildOutputGuidance'):
         lines += ['Owned SDK build outputs: review the selected build edge before inventing custom publish/copy tasks.',
                   *value['buildOutputGuidance'], '']
     if value.get('foundationApplicability'):
         brief = value['foundationApplicability']
         lines += ['Selected Foundation ' + brief['version'] + '; profile ' + str(brief['profile'])
-                  + '; captured source ' + str(brief['sourceCommit']) + '.', *brief['guidance'], '']
+                  + '; captured source ' + str(brief['sourceCommit']) + '.',
+                  'Observed capture capabilities: ' + json.dumps(brief['facts'], sort_keys=True) + '.',
+                  *[r['text'] for r in brief['canonicalRules'] if r['id'].startswith('adapter.')],
+                  'Canonical mechanisms: --only capability-adoption; full attributable rules in --format json.', '']
     if value.get('validation'):
         lines += [('Declared graph: PASS.' if value['validation']['declaredGraphPassed'] else
                    'Declared graph: not supplied; no graph check was established.')
@@ -266,12 +265,9 @@ def render(value, phase, detailed=False):
                   proof['task'], 'Gate scope: retained roadmap-feature prerequisite; operation dependency declarations cannot defer or waive it.',
                   'A reviewed plan cannot substitute for its required proof or governing authority.', '']
     for rule in value['requirements']:
-        guidance = rule['requirement'] if detailed else rule.get('guidance', {}).get(phase, rule['requirement'])
-        lines += [f"## {rule['id']}", guidance,
+        lines += [f"## {rule['id']}",
                   'Enforcement: ' + rule['enforcement']['kind']]
         lines += canonical[rule['id']]
-        if detailed:
-            lines.append('Example: ' + rule['example'])
         if detailed and rule['enforcement'].get('diagnostics'):
             lines.append('Compiler diagnostics: ' + ', '.join(rule['enforcement']['diagnostics']))
         for source, sections in rule.get('sections', {}).items() if detailed else ():
@@ -280,7 +276,7 @@ def render(value, phase, detailed=False):
     return '\n'.join(lines)
 
 
-def check(root, feature, phase, affected_paths=(), operation=None, repair=False):
+def check(root, feature, phase, affected_paths=(), operation=None, repair=False, configuration='Debug', framework=None, coding_stage='source'):
     graph_checked, execution = None, None
     from consumer_upgrade import scan, request_scope
     compatibility = scan(root, request_scope(root, feature=feature), {'after-plan': 'planning', 'after-tasks': 'tasks'}.get(phase, phase))
@@ -303,10 +299,15 @@ def check(root, feature, phase, affected_paths=(), operation=None, repair=False)
         require_resolved(root, feature)
         require_due_proofs(root, feature, phase)
         from task_draft import guard
-        guard(root, feature, operation=operation, closure=phase == 'delivery', repair=repair)
+        guard(root, feature, operation=operation, closure=phase == 'delivery', repair=repair, configuration=configuration, framework=framework)
     if phase == 'delivery':
         execution = execute(root, feature)
-    value = model(root, feature, phase, affected_paths)
+    if phase == 'implementation':
+        from coding_context import prepare, require_ready
+        value = prepare(root, feature, operation=operation, affected_paths=affected_paths, reconcile=True, configuration=configuration, framework=framework, stage=coding_stage)
+        require_ready(value)
+    else:
+        value = model(root, feature, phase, affected_paths)
     if phase in ('after-plan', 'after-tasks', 'implementation'):
         value['validation'] = {'declaredGraphPassed': True if graph_checked else None, 'semanticReviewEstablished': False,
                                'scope': 'Declared structure; actual semantic ownership requires normal review.'}
@@ -330,6 +331,9 @@ def validate_planned_architecture(root, feature):
     scoped = {p for s in adopted_context(root, feature)['sources'] for p in s.get('targetPaths', [])}
     scoped.update(p['path'] for p in manifest.get('runtimeComposition', {}).get('projects', [])
                   if p['path'] in declarations or str(Path(p['path']).parent).replace('\\', '/') in declarations)
+    tags = intent(root, feature)
+    if not scoped and 'web' in tags and 'dotnet' not in tags:
+        return False
     # Existing unrelated manifests retain their structural scope; review metadata
     # is added to the selected design rather than migrating every old project.
     required = (scoped or True) if 'dotnet' in intent(root, feature) else False
@@ -385,14 +389,32 @@ def execute(root, feature, scope='Acceptance', changed_from=None):
             'instruction': 'Engineering command passed for its stated scope. Complete required consumer behavior and normal semantic/human review before overall acceptance.'}
 
 
-def finish(root, feature, handoff=False):
+def finish(root, feature, handoff=False, configuration='Debug', framework=None):
     """A task checkpoint is progress; only actual closure/handoff runs acceptance."""
     tasks = feature / 'tasks.md'
     require(tasks.is_file(), 'Locate tasks.md before claiming feature closure')
-    from task_draft import load, current
+    from task_draft import load, current, current_projection
     content, draft_state = load(tasks)
+    from coding_context import prepare, require_ready, require_evaluated, retained_evaluations
+    coding = prepare(root, feature, reconcile=True, configuration=configuration, framework=framework, feature_wide=True)['coding']
     pending = len(re.findall(r'^\s*-\s+\[ \]\s+', content, re.M))
     draft = '> Draft:' in content or bool(draft_state and draft_state.get('status') != 'complete')
+    if not coding['canProceed']:
+        return {'status': 'needs-attention', 'coding': coding, 'pendingTasks': pending, 'draft': draft,
+                'currentCheckpoint': current_projection(current(feature)),
+                'applicationChecksPassed': False, 'acceptanceEstablished': False, 'canProceed': False,
+                'instruction': 'Resolve affected coding findings in their existing owners. Progress is preserved; independent scopes may continue.'}
+    completed = re.findall(r'^\s*- \[[xX]\] (T\d+)(?=\s|$)', content, re.M)
+    if completed or handoff:
+        evaluation = coding if not pending or handoff else prepare(root, feature, reconcile=True, task_ids=completed,
+            configuration=configuration, framework=framework)['coding']
+        try:
+            require_ready({'coding': evaluation})
+            require_evaluated(root, feature, evaluation, retained_evaluations(feature))
+        except ValueError as error:
+            return {'status': 'needs-attention', 'coding': evaluation, 'pendingTasks': pending, 'draft': draft,
+                    'currentCheckpoint': current_projection(current(feature)), 'applicationChecksPassed': False,
+                    'acceptanceEstablished': False, 'canProceed': False, 'instruction': str(error)}
     if not handoff and (pending or draft):
         from task_draft import current, current_projection
         can_proceed, review_diagnostic = False, 'Initialize fresh story delivery before implementation; old partial progress grants no continuation authority.'
@@ -406,6 +428,7 @@ def finish(root, feature, handoff=False):
                     raise
                 can_proceed, review_diagnostic = False, str(error)
         return {'status': 'in-progress', 'pendingTasks': pending, 'draft': draft,
+                'coding': coding,
                 'applicationChecksPassed': False, 'acceptanceEstablished': False,
                 'canProceed': can_proceed, 'reviewDiagnostic': review_diagnostic,
                 'currentCheckpoint': current_projection(current(feature)),
@@ -413,15 +436,16 @@ def finish(root, feature, handoff=False):
     require(handoff or bool(re.search(r'^\s*-\s+\[[xX]\]\s+', content, re.M)),
             'Feature closure requires completed tasks or an explicit formal handoff')
     from task_draft import guard
-    guard(root, feature, closure=True)
+    guard(root, feature, closure=True, configuration=configuration, framework=framework)
     result = execute(root, feature)
+    result['coding'] = coding
     result['humanReviewsPassed'] = True
     return result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('project', 'check', 'verify', 'finish'))
+    parser.add_argument('command', choices=('project', 'check', 'verify', 'finish', 'prepare', 'reconcile'))
     parser.add_argument('--repository', default='.')
     parser.add_argument('--feature-dir', required=True)
     parser.add_argument('--phase', default='planning', choices=('planning','after-plan','tasks','after-tasks','implementation','delivery'))
@@ -432,21 +456,37 @@ def main():
     parser.add_argument('--handoff', action='store_true', help='Explicit formal review handoff, including intentionally unfinished work')
     parser.add_argument('--operation', help='Explicit operation for scoped deferred work or repair')
     parser.add_argument('--repair', action='store_true', help='Repair/diagnose only the active presented outcome')
+    parser.add_argument('--format', choices=('text', 'json'), default='text', help='Detailed regenerable coding context, never an approval artifact')
+    parser.add_argument('--unit', help='Focused selected coding unit; use with prepare/reconcile --format json')
+    parser.add_argument('--configuration', default='Debug', help='Native coding context configuration')
+    parser.add_argument('--framework', help='Explicit target for multi-target native coding preparation')
+    parser.add_argument('--stage', choices=('setup', 'source'), default='source', help='Setup permits project/input materialization, never a waiver for changed source')
     args = parser.parse_args()
     root = Path(args.repository).resolve()
     feature = inside(root, args.feature_dir)
     try:
         affected = [inside(root, p).relative_to(root).as_posix() for p in args.affected_path]
-        result = (finish(root, feature, args.handoff) if args.command == 'finish' else
+        if args.command in ('prepare', 'reconcile'):
+            from coding_context import prepare
+            result = prepare(root, feature, operation=args.operation, affected_paths=affected, reconcile=args.command == 'reconcile', configuration=args.configuration, framework=args.framework, stage=args.stage)
+            if args.unit:
+                units = [u for u in result['coding']['skills'] if u['id'] == args.unit]
+                if not units:
+                    raise ValueError('PKC013 coding unit is not selected in this scope: ' + args.unit)
+                result['coding']['skills'] = units
+            print(json.dumps(result, indent=2) if args.format == 'json' else render(result, 'implementation')
+                  if result['coding']['canProceed'] else 'Coding preparation blocked: ' + json.dumps(result['coding']['blockers']))
+            return 0 if result['coding']['canProceed'] else 2
+        result = (finish(root, feature, args.handoff, args.configuration, args.framework) if args.command == 'finish' else
                   execute(root, feature, args.scope, changed_from=args.changed_from) if args.command == 'verify' else
                   project(root, feature, args.phase, affected) if args.command == 'project' else
-                  check(root, feature, args.phase, affected, args.operation, args.repair))
+                  check(root, feature, args.phase, affected, args.operation, args.repair, args.configuration, args.framework, args.stage))
         if args.only and args.command not in ('verify', 'finish'):
             result['requirements'] = [r for r in result['requirements'] if r['id'] == args.only]
             if not result['requirements']:
                 raise ValueError('Requested obligation is not applicable in this phase')
-        print(json.dumps(result) if args.command in ('verify', 'finish') else render(result, args.phase, bool(args.only)))
-        return 0
+        print(json.dumps(result, indent=2) if args.format == 'json' or args.command in ('verify', 'finish') else render(result, args.phase, bool(args.only)))
+        return 2 if result.get('coding', {}).get('canProceed') is False or result.get('status') == 'needs-attention' else 0
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(str(error))
         return 2

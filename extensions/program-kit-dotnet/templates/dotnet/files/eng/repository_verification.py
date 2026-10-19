@@ -726,7 +726,7 @@ def argument_inputs(root, arguments):
 
 
 def evidence_valid(root, path, outcome):
-    if outcome.get('status') != 'completed' or not outcome.get('fingerprint') or outcome.get('executedTests', 0) < 1:
+    if outcome.get('status') != 'completed' or not outcome.get('fingerprint') or type(outcome.get('executedTests')) is not int or outcome['executedTests'] < 1:
         return False
     logs = outcome.get('evidence', {})
     if not logs:
@@ -793,6 +793,8 @@ def plan(root, selection, arguments, build_configuration='Debug', reason='', too
             'toolkitNeeded': [{'check': name, 'fingerprint': toolkit_verification.fingerprint(root, row)}
                               for name, row in toolkit_declarations(root).items() if name in selection.get('toolkitChecks', [])],
             'nativeReport': native_report,
+            'reuseLimits': {'nonReusableProjects': sorted(nonreusable), 'unknownArguments': bool(unknown_arguments),
+                            'unmanagedEnvironment': unmanaged_environment},
             'reason': reason or ('Named Focused test projects.' if selection['scope'] == 'Focused'
                                 else 'Affected dependencies from the complete retained implementation baseline.'),
             'fingerprints': current, 'needed': needed, 'reusable': list(reusable.values()), 'unresolved': unresolved}

@@ -4,9 +4,9 @@
     <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps><ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
     <NuGetAudit>false</NuGetAudit><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="CShells.AspNetCore" Version="[0.0.30-preview.159]" />
-    <PackageReference Include="Orbyss.Foundation.Tasks" Version="[0.3.1]" />
-    <PackageReference Include="Orbyss.Foundation.DomainEvents" Version="[0.3.1]" />
+  <ItemGroup><Compile Remove="Core/**/*.cs;Runtime/**/*.cs"/><ProjectReference Include="Core/Notes.Core.csproj"/><ProjectReference Include="Runtime/Notes.csproj"/>
+    <PackageReference Include="CShells.AspNetCore" Version="[0.0.31]" />
+    <PackageReference Include="Orbyss.Foundation.Tasks" Version="[0.3.6]" />
+    <PackageReference Include="Orbyss.Foundation.DomainEvents" Version="[0.3.6]" />
   </ItemGroup>
 </Project>

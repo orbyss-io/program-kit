@@ -219,7 +219,7 @@ def _progress_history(value):
     """Progress references are integrity links, never renewed human authority."""
     history = value.get('progressHistory')
     if history is None:
-        snapshot = {key: value[key] for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures') if key in value}
+        snapshot = {key: value[key] for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures', 'evaluation') if key in value}
         return [_history_event(1, None, 'retained-snapshot', snapshot)]
     require(isinstance(history, list) and history, 'Malformed retained progress history')
     previous = None
@@ -294,9 +294,9 @@ def checkpoint(feature, update):
         raise ValueError('Locate existing tasks.md before saving progress')
     content = path.read_text(encoding='utf-8')
     prior = current(feature) or {}
-    allowed = {'baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures', 'resolvedFailures'}
+    allowed = {'baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures', 'resolvedFailures', 'evaluation'}
     if not isinstance(update, dict) or set(update) - allowed:
-        raise ValueError('Checkpoint accepts only baseline, outcome, next, taskIds, checks, decisions, failures, resolvedFailures')
+        raise ValueError('Checkpoint accepts only baseline, outcome, next, taskIds, checks, decisions, failures, resolvedFailures, evaluation')
     for field in ('baseline', 'outcome', 'next'):
         if not isinstance(update.get(field), str) or not update[field].strip():
             raise ValueError('Checkpoint requires nonempty ' + field)
@@ -323,6 +323,8 @@ def checkpoint(feature, update):
                                          else retained + update.get(field, [])))
     if 'delivery' in prior:
         value.update(version=2, delivery=prior['delivery'])
+    if 'evaluation' in update or 'evaluation' in prior:
+        value['evaluation'] = copy.deepcopy(update.get('evaluation', prior.get('evaluation')))
     history = _progress_history(prior) if prior else []
     delta = {field: [item for item in update.get(field, []) if item not in prior.get(field, [])]
              for field in ('decisions', 'failures')}
@@ -331,8 +333,10 @@ def checkpoint(feature, update):
         delta['resolvedFailures'] = update['resolvedFailures']
     if 'checks' in update and update['checks'] != prior.get('checks', []):
         delta['checks'] = update['checks']
+    if 'evaluation' in update and update['evaluation'] != prior.get('evaluation'):
+        delta['evaluation'] = copy.deepcopy(update['evaluation'])
     if not history or delta:
-        event_value = ({key: copy.deepcopy(value[key]) for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures')}
+        event_value = ({key: copy.deepcopy(value[key]) for key in ('baseline', 'outcome', 'next', 'taskIds', 'checks', 'decisions', 'failures', 'evaluation') if key in value}
                        if not history else {'baseline': value['baseline'], 'outcome': value['outcome'], 'taskIds': value['taskIds'], **delta})
         history = [*history, _history_event(len(history) + 1, history[-1]['sha256'] if history else None, 'checkpoint', event_value)]
     value['progressHistory'] = history
@@ -667,7 +671,15 @@ def main():
         elif args.command == 'checkpoint':
             if not args.content_file:
                 raise ValueError('checkpoint requires --content-file with concise current state JSON')
-            result = current_projection(checkpoint(feature, json.loads(Path(args.content_file).read_text(encoding='utf-8'))))
+            request = json.loads(Path(args.content_file).read_text(encoding='utf-8'))
+            if 'evaluation' in request:
+                from coding_context import prepare as coding_prepare, require_ready, bind_evaluation, require_evaluated
+                prepared = coding_prepare(root, feature, task_ids=request.get('taskIds'), reconcile=True,
+                    configuration=request.pop('configuration', 'Debug'), framework=request.pop('framework', None))
+                require_ready(prepared)
+                request['evaluation'] = bind_evaluation(root, feature, prepared['coding'], request['evaluation'], request.get('checks', []))
+                require_evaluated(root, feature, prepared['coding'], request['evaluation'])
+            result = current_projection(checkpoint(feature, request))
         elif args.command == 'current':
             result = progress_history(feature, args.history_sha) if args.history else current_projection(current(feature))
         elif args.command == 'review-material':
@@ -738,16 +750,29 @@ def check_artifacts(root, references, *, freshness=True):
         require(target.is_file(), 'Missing check artifact: ' + ref)
         if target.suffix == '.json':
             record = json.loads(target.read_text(encoding='utf-8'))
+            require(isinstance(record, dict), 'Technical JSON needs a maintained execution record: ' + ref)
             require(record.get('status') == 'completed' and record.get('exitCode', 0) == 0,
                     'Failed/incomplete technical checks cannot be waived: ' + ref)
-            if 'outcomes' in record:
-                require(record['outcomes'] and all(outcome.get('status') == 'completed' for outcome in record['outcomes']),
-                        'Required technical outcomes are incomplete: ' + ref)
-                # Reuse the maintained native evidence reader when its fingerprints are present.
-                from repository_verification import evidence_valid
-                for outcome in record['outcomes']:
-                    if freshness and outcome.get('fingerprint'):
-                        require(evidence_valid(root, target, outcome), 'Stale/corrupt technical evidence: ' + ref)
+            from coding_patterns import current_check
+            import repository_verification as native
+            import toolkit_verification as toolkit
+            native_owner = target.parent.parent == root / 'artifacts/tests/runs' and record.get('schemaVersion') == 2
+            toolkit_owner = target.parent.parent == root / 'artifacts/tests/toolkit-runs' and record.get('schemaVersion') == 1
+            require(native_owner or toolkit_owner, 'Technical JSON needs its maintained native/toolkit evidence owner: ' + ref)
+            require(record.get('outcomes') and all(outcome.get('status') == 'completed' for outcome in record['outcomes']),
+                    'Required technical outcomes are incomplete: ' + ref)
+            for outcome in record['outcomes']:
+                if native_owner:
+                    require(isinstance(record.get('testArguments'), list) and nonempty(record.get('configuration'))
+                            and nonempty(outcome.get('project')), 'Incomplete native coverage/configuration; restore the native evidence owner: ' + ref)
+                    require(native.evidence_valid(root, target, outcome), 'Stale/corrupt technical evidence: ' + ref)
+                    declaration = {'kind': 'native', 'project': outcome['project'], 'arguments': record['testArguments'],
+                                   'configuration': record['configuration']}
+                else:
+                    require(toolkit.evidence_valid(root, target, outcome), 'Stale/corrupt technical evidence: ' + ref)
+                    declaration = {'kind': 'toolkit', 'id': outcome['check']}
+                if freshness:
+                    current_check(root, declaration, ref, handoff=native_owner)
         elif target.suffix in ('.trx', '.xml'):
             from phase_obligations import test_results
             results = test_results(target, 'trx' if target.suffix == '.trx' else 'junit')
@@ -1077,7 +1102,7 @@ def accrue(value, now):
     return warnings
 
 
-def guard(root, feature, operation=None, closure=False, repair=False):
+def guard(root, feature, operation=None, closure=False, repair=False, configuration='Debug', framework=None):
     value = load_delivery(feature)
     import retained_inputs
     retained_inputs.validate_document_outputs(root, (feature / 'tasks.md').read_text(encoding='utf-8'))
@@ -1088,7 +1113,14 @@ def guard(root, feature, operation=None, closure=False, repair=False):
     require(plan(content) == value['plan'],
             'Story plan changed; obtain a scope decision and update the affected artifacts/state')
     persist(feature, value)
-    return _review_guard(root, feature, value, operation, closure=closure, repair=repair)
+    result = _review_guard(root, feature, value, operation, closure=closure, repair=repair)
+    if closure:
+        # Delivery checks and direct closure share the same duty boundary as finish.
+        from coding_context import prepare as coding_prepare, require_ready, require_evaluated, retained_evaluations
+        prepared = coding_prepare(root, feature, reconcile=True, feature_wide=True, configuration=configuration, framework=framework)
+        require_ready(prepared)
+        require_evaluated(root, feature, prepared['coding'], retained_evaluations(feature))
+    return result
 
 
 def _review_guard(root, feature, value, operation=None, closure=False, repair=False):
@@ -1211,6 +1243,23 @@ def initialize(root, feature, request, now):
 def transition(root, feature, request, now=None, reader=github_read):
     now = time.time() if now is None else now
     action = request.get('action')
+    if action in ('engineering', 'present'):
+        # Direct supported completion/presentation must see manual changes too,
+        # even when a host does not run the optional after-implement hook.
+        from coding_context import prepare as coding_prepare, require_ready, bind_evaluation, require_evaluated, retained_evaluations
+        delivery = load_delivery(feature)
+        review = delivery['checkpoints'][request['checkpoint']]
+        task_ids = review.get('taskIds', delivery['stories'][review['story']]['taskIds'])
+        prepared = coding_prepare(root, feature, task_ids=task_ids, affected_paths=request.get('basisPaths', []), reconcile=True,
+                                  configuration=request.get('configuration', 'Debug'), framework=request.get('framework'))
+        require_ready(prepared)
+        require(not load_failures(feature), 'Resolve required technical failures before presenting a story')
+        check_artifacts(root, request.get('checks'))
+        evaluation = (bind_evaluation(root, feature, prepared['coding'], request['evaluation'], request.get('checks', [])) if 'evaluation' in request
+                      else retained_evaluations(feature))
+        require_evaluated(root, feature, prepared['coding'], evaluation)
+        require('evaluation' not in request or all(item['run'] in request['checks'] for record in evaluation for item in record['checks']),
+                'Include the actual evaluation check artifacts in the engineering handoff')
     if action == 'initialize':
         return {'delivery': initialize(root, feature, request, now), 'acceptanceEstablished': False}
     value = refresh(root, load_delivery(feature))
@@ -1245,6 +1294,9 @@ def transition(root, feature, request, now=None, reader=github_read):
         completed = set(re.findall(r'^- \[[xX]\] (T\d+)\b', content, re.M))
         require(set(review.get('taskIds', story['taskIds'])) <= completed, 'Complete the checkpoint engineering tasks and relevant checks first')
         review.update(engineering='complete', checks=request['checks'], checkBasis=checks)
+        if review.get('evaluation') and review['evaluation'] != evaluation:
+            review.setdefault('evaluationHistory', []).append(copy.deepcopy(review['evaluation']))
+        review['evaluation'] = evaluation
         if review.get('basisPaths'):
             review['engineeringInputBasis'] = basis(root, review['basisPaths'])
         if action == 'present':

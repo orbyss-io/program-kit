@@ -11,15 +11,33 @@ authoritative. The isolated UI acceptance graph must not change the application'
 When TypeScript or a browser UI is detected, evaluate and normally enforce:
 
 <!-- program-kit:decision-rule typescript-admission -->
+<!-- program-kit:knowledge-rule principle.typescript-strictness -->
 - strict TypeScript mode and no implicit unsafe boundary casts;
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.typescript-tools -->
 - linting and formatting with pinned, non-conflicting tools;
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.typescript-runtime-admission -->
 - explicit runtime validation for untrusted API, storage, URL, and message data;
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.typescript-contracts -->
 - generated or checked API/schema contracts rather than duplicated handwritten shapes;
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.typescript-accessibility -->
 - accessible UI semantics and automated checks supplemented by human testing;
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.typescript-test-boundaries -->
 - component tests for behavior, integration tests for boundaries, and a small number of high-value end-to-end journeys;
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.typescript-supply-chain -->
 - dependency, lockfile, license, secret, and supply-chain checks;
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.typescript-budgets -->
 - bundle-size and performance budgets appropriate to the product;
+<!-- /program-kit:knowledge-rule -->
+<!-- program-kit:knowledge-rule principle.typescript-client-security -->
 - safe rendering, CSP, CSRF/session/token treatment, and secret-free client configuration.
+<!-- /program-kit:knowledge-rule -->
 <!-- /program-kit:decision-rule -->
 
 For an authenticated browser UI, adopt the versioned secure web profile selected by the bootstrap.

@@ -15,6 +15,7 @@ import time
 import unittest
 from unittest.mock import patch
 import uuid
+from owned_fixture import FixtureDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'extensions/program-kit-governance/scripts'))
@@ -24,8 +25,7 @@ import provider_operation_authority as authority
 
 class AccountingTests(unittest.TestCase):
     def setUp(self):
-        scratch = ROOT/'artifacts/t';scratch.mkdir(parents=True,exist_ok=True)
-        temporary = tempfile.TemporaryDirectory(prefix='op-',dir=scratch)
+        temporary = FixtureDirectory(native=True)
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         self.resource = '/subscriptions/fictional/resourceGroups/test/providers/Microsoft.CognitiveServices/accounts/fictional'
@@ -210,7 +210,8 @@ class NativeAdmissionTests(unittest.TestCase):
         from owned_fixture import filesystem_path, native_path
         import validate_bootstrap_lifecycle as fixture
         previous=Path.cwd()
-        retained=ROOT/'artifacts/t'/('op-native-'+uuid.uuid4().hex)
+        # Keep native package paths below Windows toolchain limits; retain this exact fixture.
+        retained=ROOT/'artifacts/t'/('o-'+uuid.uuid4().hex[:8])
         retained.mkdir(parents=True)
         inputs=[Path(__file__),ROOT/'tests/provider-operation-cases.json',
                 *sorted((ROOT/'extensions/program-kit-governance/scripts').glob('provider_operation*.py')),
