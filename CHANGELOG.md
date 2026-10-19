@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.14.1 - 2026-10-19
+
+- Add reviewed hash-bound tooling upgrades for deliberately withdrawn application authority; preserve selected dependencies, native receipts and strict active-design guards.
+- Transport exact local-repair and inactive-history arguments through isolated installation, interrupted retry and destination activation.
+- Bound Windows checkout newline recovery to exact committed originals, and recognize existing native UTF-8 transformations without admitting other edits.
+- Distinguish installation, scoped tooling migration, design acceptance, destination activation and application correctness. See [migration guidance](releases/migration-0.14.1.md).
+
 ## 0.12.5 - 2026-10-03
 
 - Distinguish valid proof-plan-registered bootstrap compatibility fixture projects from

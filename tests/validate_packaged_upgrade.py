@@ -6,6 +6,8 @@ network package lookup, coding agent, native application build or publication.
 from __future__ import annotations
 
 import json
+import argparse
+import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -23,7 +25,65 @@ PREVIOUS = next(entry['previous'] for entry in json.loads((ROOT / 'releases/hist
                 if entry['version'] == (ROOT / 'VERSION').read_text().strip())
 
 
-def scenario():
+def inactive_setup(project, previous):
+    """Fictional withdrawn history and reviewed source; no consumer acceptance."""
+    import validate_inactive_upgrade as inactive
+    original_catalog = inactive.fixture.CATALOG
+    seed = inactive.InactiveUpgradeTests('test_active_guards_and_explicit_tooling_apply_are_separate_and_idempotent')
+    try:
+        inactive.fixture.CATALOG = previous / 'extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
+        seed.setUp()
+        for path in seed.root.rglob('*'):
+            if path.is_file():
+                target = project / path.relative_to(seed.root)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
+        selection = inactive.blocks.load_json(project / inactive.history.SELECTION)
+        inactive.blocks.preserve_dependency_profile(project, selection, inactive.fixture.CATALOG)
+        managed = inactive.blocks.load_json(project / '.program-kit/managed.json')
+        managed['programKitVersion'] = PREVIOUS
+        inactive.write(project, '.program-kit/managed.json', managed)
+        contract = seed.contract
+    finally:
+        inactive.fixture.CATALOG = original_catalog
+        seed.doCleanups()
+    for path in (project / '.program-kit/dependency-profiles').rglob('*'):
+        if path.is_file(): contract['inputs'][path.relative_to(project).as_posix()] = inactive.history.sha(path)
+    contract['inputs'][inactive.history.PROFILE] = inactive.history.sha(project / inactive.history.PROFILE)
+    declaration = inactive.write(project, 'artifacts/review/history.json', contract)
+    source_relative = '.specify/extensions/program-kit-governance/scripts/tooling_witness.py'
+    source = project / source_relative
+    before = inactive.history.sha(source)
+    source.write_bytes(source.read_bytes() + b'\n# Fictional reviewed source annotation for argument transport.\n')
+    module = inactive.write(project, 'artifacts/review/repaired_witness.py', (
+        'import unittest, runpy, hashlib\nfrom pathlib import Path\n'
+        'class Witness(unittest.TestCase):\n'
+        ' def test_current_hash_behavior(self):\n'
+        '  scope = runpy.run_path(str(Path.cwd() / ' + repr(source_relative) + '))\n'
+        '  self.assertEqual(hashlib.sha256(b"transport fixture").hexdigest(), scope["sha"](b"transport fixture"))\n'
+    ).encode())
+    case = 'repaired_witness.Witness.test_current_hash_behavior'
+    cases = inactive.write(project, 'artifacts/review/cases.json', {'schemaVersion': 1,
+        'inputs': [source_relative], 'modules': [{'module': 'repaired_witness', 'path': module.relative_to(project).as_posix(),
+        'sha256': inactive.history.sha(module), 'cases': {case: ['Windows', 'Linux']}}]})
+    repairs = inactive.write(project, 'artifacts/review/repairs.json', {'schemaVersion': 1,
+        'contract': cases.relative_to(project).as_posix(), 'contractSha256': inactive.history.sha(cases),
+        'repairs': [{'path': source_relative, 'beforeSha256': before, 'afterSha256': inactive.history.sha(source),
+                    'requiredCases': [case], 'rationale': 'Fictional source annotation; execute actual hash behavior before replacement.'}]})
+    engineering = previous / 'extensions/program-kit-dotnet/templates/dotnet/files/eng/Build.ps1'
+    original = engineering.read_bytes()
+    managed = inactive.blocks.load_json(project / '.program-kit/managed.json')
+    digest = hashlib.sha256(original).hexdigest()
+    managed['files']['eng/Build.ps1'] = {'ownership': 'managed', 'sourceIdentity': 'files/eng/Build.ps1',
+        'templateHash': digest, 'lastWrittenHash': digest}
+    inactive.write(project, '.program-kit/managed.json', managed)
+    inactive.write(project, 'eng/Build.ps1', original + b'\n# Fictional consumer conflict must reject.\n')
+    preserved = {name: inactive.history.sha(project / name) for name in contract['inputs']}
+    return (['--inactive-history', declaration.relative_to(project).as_posix(), '--inactive-history-sha256', inactive.history.sha(declaration),
+             '--local-repairs', repairs.relative_to(project).as_posix(), '--local-repairs-sha256', inactive.history.sha(repairs)], preserved, original)
+
+
+def scenario(*, inactive=False):
     import specify_cli
     import yaml
     sys.path.insert(0, str(ROOT / 'extensions/program-kit-governance/scripts'))
@@ -60,7 +120,7 @@ def scenario():
             PROGRAM_KIT_SPECIFY_SITE_PACKAGES=str(site), PYTHONUTF8='1',
             TEMP=native_path(scratch), TMP=native_path(scratch), TMPDIR=native_path(scratch))
 
-        def run(label, command):
+        def run(label, command, expected=0):
             step_started = time.monotonic()
             result = subprocess.run([str(x) for x in command], cwd=native_path(project), env=environment,
                 capture_output=True, text=True, encoding='utf-8', timeout=90)
@@ -69,7 +129,7 @@ def scenario():
             steps.append({'id': label, 'exitCode': result.returncode,
                 'elapsedSeconds': round(time.monotonic() - step_started, 3)})
             (evidence / 'steps.json').write_text(json.dumps(steps, indent=2))
-            if result.returncode:
+            if result.returncode != expected:
                 raise AssertionError(label + ' failed; inspect ' + str(evidence) + '\n' + result.stdout + result.stderr)
             return result
 
@@ -88,9 +148,18 @@ def scenario():
             path = project / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(payload)
-        run('packaged-updater', [sys.executable, native_path(release / 'scripts/upgrade_program_kit.py'),
+        extra, preserved, original_engineering = inactive_setup(project, previous) if inactive else ([], {}, None)
+        command = [sys.executable, native_path(release / 'scripts/upgrade_program_kit.py'),
             '--release-root', native_path(release), '--target', native_path(project), '--integration', 'copilot',
-            '--offline', '--specify-command-json', json.dumps(bridge)])
+            '--offline', '--specify-command-json', json.dumps(bridge), *extra]
+        if inactive:
+            run('inactive-preview', [*command, '--plan'])
+            failed = run('inactive-managed-conflict', command, expected=2)
+            assert 'conflict' in (failed.stdout + failed.stderr).lower()
+            attempts = list((project / 'artifacts/program-kit/runs').glob('*/upgrade-attempt.json'))
+            assert any(json.loads(path.read_text())['status'] == 'incomplete' for path in attempts)
+            (project / 'eng/Build.ps1').write_bytes(original_engineering)
+        run('packaged-updater', command)
         for relative, payload in authored.items():
             assert (project / relative).read_bytes() == payload, 'Updater changed authored input: ' + relative
         records = json.loads((project / '.specify/bundle-records.json').read_text())
@@ -108,15 +177,30 @@ def scenario():
         assert migration['fromVersion'] == PREVIOUS and migration['toVersion'] == version
         assert migration['checks']['installation-coherence'] is True
         assert migration['migrationCompletionEstablished'] is True
+        if inactive:
+            assert migration['migrationScope'] == 'tooling-only-inactive-history'
+            assert migration['scopedMigrationCompletionEstablished'] is True
+            assert migration['designAcceptanceEstablished'] is False
+            assert migration['destinationActivationEstablished'] is False
+            assert migration['localRepairs']['execution']['executedCases']['repaired_witness.Witness.test_current_hash_behavior'] == 'passed'
+            assert preserved == {p: hashlib.sha256((project / p).read_bytes()).hexdigest() if (project / p).is_file() else None for p in preserved}
+            # A completed attempt is not an interrupted retry. Its old declaration
+            # cannot be reused to admit source bytes that are no longer installed.
+            rejected = run('inactive-completed-declaration-reuse', command, expected=2)
+            assert 'reviewed after hash' in rejected.stderr
+            assert preserved == {p: hashlib.sha256((project / p).read_bytes()).hexdigest() if (project / p).is_file() else None for p in preserved}
         # Copilot supports dev symlinks on POSIX. A release upgrade must leave
         # ordinary native outputs, independently usable after staging is gone.
         verify_release_copies(project, release)
     result = {'status': 'passed', 'fromVersion': PREVIOUS, 'toVersion': version,
         'elapsedSeconds': round(time.monotonic() - started, 3), 'steps': steps,
+        'inactiveHistory': inactive,
         'scope': 'Actual immutable-tag source installation to packaged sequential updater; authored data preserved. No application acceptance.'}
     (evidence / 'result.json').write_text(json.dumps(result, indent=2))
     print('Packaged updater journey: ' + json.dumps(result), flush=True)
 
 
 if __name__ == '__main__':
-    scenario()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--inactive-history', action='store_true', help='Fictional withdrawn design plus freshly executed local repair transport')
+    scenario(inactive=parser.parse_args().inactive_history)

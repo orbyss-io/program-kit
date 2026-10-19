@@ -16,6 +16,7 @@ from pathlib import Path
 
 import package_execution
 import sync_readiness
+import inactive_history
 from lifecycle_state import lifecycle_sha256
 
 
@@ -83,7 +84,12 @@ def version() -> str:
     return match.group(1)
 
 
-def context(repository: Path, phase: str, feature: str | None) -> dict:
+def context(repository: Path, phase: str, feature: str | None, history=None) -> dict:
+    if history:
+        if phase != 'upgrade':
+            raise ValueError('PKU149 inactive history authorizes tooling upgrade only')
+        history = inactive_history.validate(repository, history['declaration'], history['declarationSha256'],
+                                            provider('program-kit-building-blocks/scripts/building_blocks.py'))
     if feature is None:
         feature = load(repository / ".specify/feature.json", {}).get("feature_directory")
     if feature:
@@ -125,13 +131,15 @@ def context(repository: Path, phase: str, feature: str | None) -> dict:
     if feature:
         inputs.extend(f"{feature}/{name}" for name in ("spec.md", "plan.md", "artifact-ownership.json", "tasks.md"))
     web = managed.get("webProfile", "auto") if phase == "upgrade" else "auto"
-    persistence = provider('program-kit-dotnet/scripts/persistence_selection.py').resolve(
-        repository, '' if phase == 'upgrade' else feature)
+    persistence = ({'summary': managed.get('persistenceProfile', 'none'), 'owners': [], 'installedOwners': [], 'blockers': [], 'deferredAdmissions': []} if history
+                   else provider('program-kit-dotnet/scripts/persistence_selection.py').resolve(
+                       repository, '' if phase == 'upgrade' else feature))
     selection = load(repository / "docs/architecture/building-block-selection.json", {})
     targets = [{"id": item["id"], "path": item["path"], "kind": item["kind"],
-                "state": "materialized" if contained(repository, item["path"]).is_file() else "planned"}
+                "state": 'inactive-history' if history else "materialized" if contained(repository, item["path"]).is_file() else "planned"}
                for item in selection.get("targets", [])]
     return {"schemaVersion": 1, "programKitVersion": version(), "phase": phase, "feature": feature,
+            "inactiveHistory": history,
             "dotnet": dotnet, "javascript": javascript, "webProfile": web, "persistenceProfile": persistence['summary'],
             "persistence": persistence,
             "toolchainPins": pins, "targets": targets,
@@ -152,7 +160,7 @@ def provider_inputs() -> dict:
 def dotnet_command(repository: Path, setup: dict) -> list[str]:
     return [sys.executable, str(package_execution.extension_root() / "program-kit-dotnet/scripts/dotnet_sync.py"),
             "--target", str(repository), "--profile-selected", "--web-profile", setup["webProfile"],
-            "--persistence-profile", "auto"] + (["--upgrade-existing"] if setup['phase'] == 'upgrade' else []) + (["--feature-dir", setup["feature"]] if setup.get("feature") else [])
+            "--persistence-profile", "auto"] + (["--upgrade-existing"] if setup['phase'] == 'upgrade' else []) + (["--feature-dir", setup["feature"]] if setup.get("feature") else []) + inactive_history.arguments(setup.get('inactiveHistory'))
 
 
 def toolchain_current(repository: Path, pins: dict) -> bool:
@@ -181,8 +189,8 @@ def toolchain_current(repository: Path, pins: dict) -> bool:
     return True
 
 
-def describe(repository: Path, phase: str, feature: str | None = None) -> dict:
-    setup = context(repository, phase, feature)
+def describe(repository: Path, phase: str, feature: str | None = None, history=None) -> dict:
+    setup = context(repository, phase, feature, history)
     operations = []
     if setup["dotnet"] and phase != "bootstrap":
         result = run(repository, dotnet_command(repository, setup) + ["--check", "--json"], (0, 1))
@@ -204,7 +212,7 @@ def describe(repository: Path, phase: str, feature: str | None = None) -> dict:
         operations.append({"id": "toolchain", "adapter": "javascript", "pins": setup["toolchainPins"], "required": required, "network": False})
     selection = repository / "docs/architecture/building-block-selection.json"
     lock_path = repository / "eng/building-blocks.lock.json"
-    if selection.is_file() and phase in {"implementation-setup", "implementation", "upgrade"}:
+    if not history and selection.is_file() and phase in {"implementation-setup", "implementation", "upgrade"}:
         blocks = provider("program-kit-building-blocks/scripts/building_blocks.py")
         catalog = package_execution.extension_root() / "program-kit-building-blocks/references/orbyss-building-blocks.json"
         full = blocks.resolve(repository, selection, catalog, version())
@@ -215,7 +223,7 @@ def describe(repository: Path, phase: str, feature: str | None = None) -> dict:
     # Bind the reviewed plan to inputs and exact adapter plans. Readiness does not mean that a
     # planning-time candidate graph has already installed application dependencies.
     plan = {"schemaVersion": 1, "context": setup, "operations": operations,
-            "deferredTargets": [item for item in setup["targets"] if item["state"] == "planned"],
+            "deferredTargets": [item for item in setup["targets"] if item["state"] in {"planned", "inactive-history"}],
             "packageNetwork": "explicit-separate-operation"}
     plan["planDigest"] = package_execution.canonical_hash(plan)
     return plan
@@ -306,7 +314,8 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
     unsigned.pop("planDigest", None)
     if package_execution.canonical_hash(unsigned) != plan["planDigest"]:
         raise ValueError("PKS005 stored plan was modified")
-    now = context(repository, setup["phase"], setup["feature"])
+    history = setup.get('inactiveHistory')
+    now = context(repository, setup["phase"], setup["feature"], history)
     if any(now[key] != setup[key] for key in ("authorityInputs", "providerInputs", "toolchainPins")):
         raise ValueError("PKS005 authority or provider inputs changed; review a new plan")
     if validate_authority and setup["phase"] == "bootstrap":
@@ -319,14 +328,14 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
             raise ValueError("PKS003 bootstrap acceptance is required before setup")
     receipt_path = repository / ".program-kit/sync/receipt.json"
     previous = load(receipt_path, {})
-    current = describe(repository, setup["phase"], setup["feature"])
+    current = describe(repository, setup["phase"], setup["feature"], history)
     if not any(item["required"] for item in current["operations"]) and previous.get("context") == now and previous.get("status") == "offline-synchronized":
         for operation in current["operations"]:
             if operation["adapter"] == "javascript":
                 package_execution.javascript_runtime().context(repository, repository / "artifacts/program-kit/toolchain.json")
             elif operation["adapter"] == "building-blocks":
                 provider("program-kit-building-blocks/scripts/building_blocks.py").check_materialization(repository, load(repository / "eng/building-blocks.lock.json"))
-        return {**previous, "readiness": readiness(repository, setup["phase"], setup["feature"], validate_authority=False), "reused": True}
+        return {**previous, "readiness": readiness(repository, setup["phase"], setup["feature"], validate_authority=False, history=history), "reused": True}
     write(repository / f".program-kit/sync/plans/{plan['planDigest']}.json", plan)
     receipt = {"schemaVersion": 1, "reviewedPlanDigest": plan["planDigest"], "context": setup, "operations": [], "status": "running"}
     write(repository / ".program-kit/sync/context.json", setup)
@@ -370,7 +379,7 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
             receipt["status"] = "incomplete"
             write(receipt_path, receipt)
             raise
-    if setup["phase"] in {"implementation-setup", "implementation", "upgrade"}:
+    if not history and setup["phase"] in {"implementation-setup", "implementation", "upgrade"}:
         materialized = load(repository / "eng/building-blocks.lock.json", {})
         dependency_plan = sync_readiness.dependencies(repository, setup, materialized)
         if setup["phase"] == "upgrade":
@@ -380,20 +389,20 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
             dependency_plan.pop("planDigest", None)
             dependency_plan["planDigest"] = package_execution.canonical_hash(dependency_plan)
         write(repository / ".program-kit/sync/dependencies.json", dependency_plan)
-    receipt["context"] = context(repository, setup["phase"], setup["feature"])
+    receipt["context"] = context(repository, setup["phase"], setup["feature"], history)
     write(repository / ".program-kit/sync/context.json", receipt["context"])
     receipt["status"] = "offline-synchronized"
-    receipt["readiness"] = readiness(repository, setup["phase"], setup["feature"], validate_authority=False)
+    receipt["readiness"] = readiness(repository, setup["phase"], setup["feature"], validate_authority=False, history=history)
     write(receipt_path, receipt)
     return receipt
 
 
-def readiness(repository: Path, phase: str, feature: str | None = None, *, validate_authority: bool = True) -> dict:
-    plan = describe(repository, phase, feature)
+def readiness(repository: Path, phase: str, feature: str | None = None, *, validate_authority: bool = True, history=None) -> dict:
+    plan = describe(repository, phase, feature, history)
     restore = provider("program-kit-building-blocks/scripts/restore_dependencies.py")
     problems = sync_readiness.blockers(repository, plan["context"], plan["operations"], restore)
     deferred_admissions = []
-    if phase not in {'bootstrap', 'planning'}:
+    if not history and phase not in {'bootstrap', 'planning'}:
         persistence = provider('program-kit-dotnet/scripts/persistence_selection.py')
         template = package_execution.extension_root() / 'program-kit-dotnet/templates/dotnet/files'
         selection = plan['context']['persistence']
@@ -408,7 +417,7 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
         except ValueError as error:
             problems.append(f'PKS015 setup authority is not current: {error}')
     pending = []
-    if phase == "upgrade":
+    if phase == "upgrade" and not history:
         dependencies = load(repository / ".program-kit/sync/dependencies.json", {})
         if dependencies.get("targets"):
             try:
@@ -416,13 +425,15 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
             except (OSError, ValueError, RuntimeError) as error:
                 pending.append(str(error))
     return {"phase": phase, "ready": not problems, "readinessScope": "offline-setup" if phase == "upgrade" else phase,
+            "inactiveHistory": history, "designAcceptanceEstablished": False if history else None,
+            "applicationCorrectnessEstablished": False,
             "blockers": problems, "pendingPackageVerification": pending, "deferredTargets": plan["deferredTargets"],
             "deferredPersistenceAdmissions": deferred_admissions}
 
 
-def upgrade(repository: Path) -> dict:
+def upgrade(repository: Path, history=None) -> dict:
     """The release-owned upgrader already validated admission and component mutation authority."""
-    return apply(repository, describe(repository, "upgrade"), validate_authority=False)
+    return apply(repository, describe(repository, "upgrade", history=history), validate_authority=False)
 
 
 def main() -> int:
@@ -432,10 +443,20 @@ def main() -> int:
     parser.add_argument("--phase", choices=PHASES, required=True)
     parser.add_argument("--feature-dir")
     parser.add_argument("--plan-digest")
+    parser.add_argument('--inactive-history')
+    parser.add_argument('--inactive-history-sha256')
     args = parser.parse_args()
     try:
         repository = Path(args.repository).resolve()
+        if bool(args.inactive_history) != bool(args.inactive_history_sha256):
+            raise ValueError('PKU149 inactive history needs both reviewed arguments')
+        history = ({'declaration': args.inactive_history, 'declarationSha256': args.inactive_history_sha256}
+                   if args.inactive_history else None)
+        if history and args.phase != 'upgrade':
+            raise ValueError('PKU149 inactive history authorizes tooling upgrade only')
         if args.operation.startswith("request-"):
+            if history:
+                raise ValueError('PKU149 inactive history cannot authorize dependency acquisition')
             restore = provider("program-kit-building-blocks/scripts/restore_dependencies.py")
             lock_path = repository / ".program-kit/sync/dependencies.json"
             request = restore.restore_request(repository, lock_path, load(lock_path), args.operation.removeprefix("request-"))
@@ -444,7 +465,7 @@ def main() -> int:
             return 0
         if args.operation == "recover":
             with mutation_lock(repository):
-                setup = context(repository, args.phase, args.feature_dir)
+                setup = context(repository, args.phase, args.feature_dir, history)
                 if setup["dotnet"]:
                     run(repository, dotnet_command(repository, setup) + ["--recover", "--check"], (0, 1))
                 provider("program-kit-building-blocks/scripts/building_blocks.py").recover_materialization(repository)
@@ -458,7 +479,7 @@ def main() -> int:
                 raise ValueError("PKS005 resume phase differs from the reviewed plan")
             print(json.dumps(apply(repository, plan), indent=2))
             return 0
-        plan = describe(repository, args.phase, args.feature_dir)
+        plan = describe(repository, args.phase, args.feature_dir, history)
         if args.operation == "apply":
             if (args.phase == 'bootstrap' or args.plan_digest is not None) and args.plan_digest != plan["planDigest"]:
                 raise ValueError("PKS005 reviewed sync plan is missing or changed; run plan and review its digest")
@@ -466,7 +487,7 @@ def main() -> int:
         elif args.operation == "plan":
             print(json.dumps(plan, indent=2))
         else:
-            report = readiness(repository, args.phase, args.feature_dir)
+            report = readiness(repository, args.phase, args.feature_dir, history=history)
             print(json.dumps(report, indent=2))
             return 0 if report["ready"] else 1
         return 0

@@ -40,6 +40,7 @@
     "documentation": {
       "inputs": [
         "docs/**",
+        "CHANGELOG.md",
         "README.md",
         "LICENSE",
         "THIRD-PARTY-NOTICES.md",
@@ -149,6 +150,9 @@
         "scripts/consumer_upgrade_workspace.py",
         "scripts/openapi_upgrade_reconciliation.py",
         "extensions/program-kit-governance/scripts/consumer_upgrade.py",
+        "extensions/program-kit-governance/scripts/inactive_history.py",
+        "extensions/program-kit-governance/scripts/repository_sync.py",
+        "extensions/program-kit-governance/scripts/dependency_audit.py",
         "extensions/program-kit-governance/scripts/render_profile.py",
         "extensions/program-kit-governance/references/native-phase-source-baselines.json",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.upgrade.md"
@@ -685,6 +689,21 @@
       "timeoutSeconds": 30
     },
     {
+      "id": "validate_packaged_inactive_upgrade",
+      "purpose": "Actual packaged inactive-history installation, managed-conflict interruption and retry with fresh fictional local repair cases; preserved profiles, authority and scoped verdicts.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_packaged_upgrade.py", "--inactive-history"],
+      "kind": "integration",
+      "capabilities": ["upgrade"],
+      "inputs": ["tests/validate_packaged_upgrade.py"],
+      "needs": ["build-release"],
+      "prerequisites": ["module:specify_cli", "module:yaml", "tool:git", "runtime:json-schema"],
+      "suites": [],
+      "budgetSeconds": 150,
+      "timeoutSeconds": 240,
+      "manualOnly": true
+    },
+    {
       "id": "validate_native_phase_ownership",
       "purpose": "Exact native extension/preset source and generated output ownership, customization refusal, secondary integrations and immutable archived-source witnesses before upgrade mutation.",
       "platforms": [
@@ -1082,6 +1101,21 @@
       "reviewInputs": [
         "tests/qualify_reusable_foundations.py"
       ]
+    },
+    {
+      "id": "validate_inactive_upgrade",
+      "purpose": "Hash-bound inactive history, unchanged active guards, tooling-only apply/idempotence, retained native pins, reviewed repair argument transport/retry and blob-authenticated newline recovery.",
+      "platforms": ["Windows", "Linux"],
+      "command": ["{python}", "tests/validate_inactive_upgrade.py"],
+      "kind": "unit",
+      "capabilities": ["upgrade", "scaffolding"],
+      "inputs": ["tests/validate_inactive_upgrade.py"],
+      "needs": [],
+      "prerequisites": ["module:specify_cli", "module:yaml"],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 120,
+      "manualOnly": false
     },
     {
       "id": "validate_consumer_upgrade",

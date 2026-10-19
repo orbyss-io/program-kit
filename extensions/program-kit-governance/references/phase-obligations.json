@@ -962,6 +962,8 @@
           "extensions/program-kit-governance/scripts/tooling_witness.py"
         ],
         "sections": [
+          "Withdrawn application authority and tooling-only upgrades",
+          "Reviewed repair transport and isolated checkout recovery",
           "Fresh story-delivery adoption",
           "Retained exact tooling source",
           "Required shared regression cases",
@@ -978,6 +980,14 @@
       "owner": "program-kit-governance",
       "disposition": "manual",
       "sections": {
+        "Withdrawn application authority and tooling-only upgrades": {
+          "disposition": "manual",
+          "route": "manual"
+        },
+        "Reviewed repair transport and isolated checkout recovery": {
+          "disposition": "manual",
+          "route": "manual"
+        },
         "Fresh story-delivery adoption": {
           "disposition": "manual",
           "route": "manual"

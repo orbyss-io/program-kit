@@ -1132,7 +1132,7 @@ def repository_files(repository: Path, pattern: str) -> list[Path]:
     )
 
 
-def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock: dict | None) -> None:
+def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock: dict | None, *, inactive_tool_pin=None, inactive_history=False) -> None:
     owned = output_map(ownership_lock or {})
     # The coordinator's engineering baseline and retained proof inputs have their own
     # authorities. Never infer ownership from a docs/specs directory name.
@@ -1143,7 +1143,9 @@ def audit_unmanaged_dependencies(repository: Path, catalog: dict, ownership_lock
         sys.path.insert(0, str(governance))
         try:
             from dependency_audit import audit_exemptions, composition_dependency_ownership
-            exempt = audit_exemptions(repository, ownership_lock or {})
+            exempt = (audit_exemptions(repository, ownership_lock or {}, inactive_tool_pin=inactive_tool_pin,
+                                      inactive_catalog=catalog if inactive_history else None)
+                      if inactive_tool_pin is not None or inactive_history else audit_exemptions(repository, ownership_lock or {}))
             composition_projects = composition_dependency_ownership(repository)[0]
         except (OSError, ValueError, KeyError, TypeError) as error:
             fail('PKB405', str(error))
@@ -2223,6 +2225,9 @@ def main() -> int:
             command.add_argument("--require-placement-provenance", action="store_true")
         if name == "apply":
             command.add_argument("--plan-digest", required=True)
+        if name == 'plan':
+            command.add_argument('--inactive-history')
+            command.add_argument('--inactive-history-sha256')
     args = parser.parse_args()
     script = Path(__file__)
     catalog_path = Path(args.catalog).resolve() if getattr(args, "catalog", None) else default_catalog(script)
@@ -2271,6 +2276,16 @@ def main() -> int:
             print(f"Accepted selection; review materialization plan digest {lock['planDigest']} before apply.")
             return 0
         lock_path = repository / args.lock
+        if getattr(args, 'inactive_history', None) or getattr(args, 'inactive_history_sha256', None):
+            sys.path.insert(0, str(script.resolve().parents[2] / 'program-kit-governance/scripts'))
+            import inactive_history
+            if args.selection != inactive_history.SELECTION or args.lock != inactive_history.LOCK:
+                raise ValueError('PKU149 inactive history requires the canonical historical selection and lock')
+            history = inactive_history.validate(repository, args.inactive_history, args.inactive_history_sha256,
+                                                sys.modules[__name__])
+            print(pretty_json({'inactiveHistory': history, 'materializationPerformed': False,
+                              'lockPreserved': True}), end='')
+            return 0
         catalog_path = consumer_catalog(repository, load_json(selection_path), catalog_path)
         catalog = load_json(catalog_path)
         lock = resolve(
@@ -2311,7 +2326,7 @@ def main() -> int:
         transaction_id = apply_materialization(repository, lock_path, lock, catalog)
         print(f"Materialized accepted building-block plan and lock in transaction {transaction_id}: {lock_path}")
         return 0
-    except ResolverError as error:
+    except (ResolverError, ValueError, RuntimeError) as error:
         print(str(error), file=sys.stderr)
         return 2
 
