@@ -299,6 +299,33 @@
         "Preserve failed attempts, source/package evidence, locks, private patterns and uncertain effects; repair scoped inputs and resume the supported updater.",
         "Withdrawal does not downgrade consumers. No automatic 0.14.0 to 0.13.x downgrade is supported; use the repository withdrawal runbook for an explicitly authorized recovery."
       ]
+    },
+    {
+      "version": "0.14.1",
+      "previous": "0.14.0",
+      "guide": "migration-0.14.1.md",
+      "automatic": [
+        "Install explicit hash-bound inactive-history tooling reconciliation while preserving active architecture guards.",
+        "Carry reviewed local repair arguments through isolated installation, interrupted retry and destination activation.",
+        "Reconcile only Git-blob-authenticated isolated checkout newline conversions; retain original failures and receipts."
+      ],
+      "review": [
+        "Review the exact inactive-history declaration and semantic local-repair coverage before choosing their digests.",
+        "Retain selected profiles, locks, historical observations and native receipts; review successor architecture and any retained frontend repair before application use."
+      ],
+      "verification": [
+        "Verify installation coherence, scoped tooling completion, fresh required cases and unchanged bound originals.",
+        "Run current affected checks; integrate reviewed source and activate the destination separately.",
+        "Require successful exact-source package CI and native publication approval, then verify public installation and upgrade."
+      ],
+      "verificationChecks": [
+        "installation-coherence",
+        "dependency-verification"
+      ],
+      "recovery": [
+        "Preserve original history and failed attempts; resume interrupted installation through the maintained workspace adapter with the same reviewed arguments.",
+        "Changed source, declarations or destination bytes require owner reconciliation; no initializer, synthetic application authority or forced migration."
+      ]
     }
   ]
 }

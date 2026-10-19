@@ -1185,7 +1185,7 @@ def software_update_offer() -> dict:
 
 
 def building_block_upgrade_state(target: Path, release: Path, exporter_transition: dict | None = None, repair_of: str | None = None,
-                                 retry_context: UpgradeRetryContext | None = None) -> str | None:
+                                 retry_context: UpgradeRetryContext | None = None, history=None) -> str | None:
     """Validate authority and distinguish an accepted plan from applied dependencies.
 
     A missing lock alone is never evidence of an unmaterialized selection. That
@@ -1206,6 +1206,16 @@ def building_block_upgrade_state(target: Path, release: Path, exporter_transitio
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
+    if history:
+        if exporter_transition is not None:
+            raise UpgradeError('PKU149 inactive history cannot authorize a dependency transition')
+        history_module = load_release_module(release / 'extensions/program-kit-governance/scripts/inactive_history.py', 'upgrade_inactive_history')
+        sys.path.insert(0, str(release / 'extensions/program-kit-governance/scripts'))
+        try:
+            history_module.validate(target, history['declaration'], history['declarationSha256'], module)
+        finally:
+            sys.path.pop(0)
+        return 'inactive-history'
     selection = json.loads(selection_path.read_text(encoding="utf-8"))
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     if selection.get("status") != "Accepted":
@@ -1613,6 +1623,8 @@ def main() -> int:
     parser.add_argument('--repair-of-release-sha256', help='Explicitly resume a corrected candidate from this exact preserved failed release fingerprint')
     parser.add_argument('--local-repairs', help='Exact consumer-relative reviewed local repair declaration; executes its current required cases before replacement')
     parser.add_argument('--local-repairs-sha256', help='Original reviewed SHA-256 of --local-repairs; both arguments are required together')
+    parser.add_argument('--inactive-history', help='Consumer-relative reviewed tooling-only inactive-history declaration')
+    parser.add_argument('--inactive-history-sha256', help='Exact reviewed SHA-256 of the inactive-history declaration')
     parser.add_argument("--specify-command", default="specify", help=argparse.SUPPRESS)
     parser.add_argument("--specify-command-json", default="", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -1625,6 +1637,8 @@ def main() -> int:
         target = Path(args.target).resolve()
         if bool(args.local_repairs) != bool(args.local_repairs_sha256):
             raise UpgradeError('PKU147 local repair reconciliation requires both the exact declaration and its original reviewed SHA-256')
+        if bool(args.inactive_history) != bool(args.inactive_history_sha256):
+            raise UpgradeError('PKU149 inactive history requires both its declaration and reviewed SHA-256')
         effective_root = os.environ.get('SPECIFY_INIT_DIR')
         if not args.plan and effective_root and Path(effective_root).resolve() != target:
             raise UpgradeError('PKU133 inherited SPECIFY_INIT_DIR targets another project; no mutation started. '
@@ -1636,6 +1650,16 @@ def main() -> int:
                                'No component mutation started.')
         version = validate_release(release)
         retry_context = upgrade_retry_context(target, release, version, args.repair_of_release_sha256)
+        history = ({'declaration': args.inactive_history, 'declarationSha256': args.inactive_history_sha256}
+                   if args.inactive_history else None)
+        if history:
+            building_block_upgrade_state(target, release, {} if args.accept_openapi_producer_pin_reconciliation else None,
+                                         history=history)
+        history_arguments = (['--inactive-history', args.inactive_history, '--inactive-history-sha256', args.inactive_history_sha256]
+                             if history else [])
+        prior_history, _, _ = prior_attempt(target, release, version, args.repair_of_release_sha256)
+        if prior_history and prior_history[1].get('inactiveHistory') != history:
+            raise UpgradeError('PKU149 retry must retain its original inactive-history arguments')
         if args.plan:
             observed = previous_installed_version(target, release, version, args.repair_of_release_sha256)
             _, plan = migration_plan(release, migration_origin(target, current_version(target), observed, version, retry_context), version)
@@ -1654,11 +1678,13 @@ def main() -> int:
             if profile:
                 result = subprocess.run([sys.executable, str(release / 'extensions/program-kit-dotnet/scripts/dotnet_sync.py'),
                     '--target', str(target), '--profile-selected', '--web-profile', profile[0],
-                    '--upgrade-existing', '--check', '--json'], cwd=target, capture_output=True, text=True, encoding='utf-8', timeout=90)
+                    '--upgrade-existing', '--check', '--json', *history_arguments], cwd=target, capture_output=True, text=True, encoding='utf-8', timeout=90)
                 if result.returncode not in (0,1,2) or not result.stdout.strip().startswith('{'):
                     raise UpgradeError('PKU116 cannot preview engineering migration: ' + result.stderr)
                 plan['engineeringPlan'] = json.loads(result.stdout)
             plan['applicationChecksPerformed'] = False
+            plan['inactiveHistory'] = history
+            plan['designAcceptanceEstablished'] = False
             plan['releaseReadinessEstablished'] = False
             plan['optionalSoftwareReview'] = software_update_offer()
             print(json.dumps(plan, indent=2))
@@ -1701,7 +1727,7 @@ def main() -> int:
             descriptor, lock_path = acquire_lock(target)
             recover_upgrade_transactions(target, release)
         exporter_transition = {} if args.accept_openapi_producer_pin_reconciliation else None
-        building_block_state = building_block_upgrade_state(target, release, exporter_transition, args.repair_of_release_sha256, retry_context)
+        building_block_state = building_block_upgrade_state(target, release, exporter_transition, args.repair_of_release_sha256, retry_context, history)
         retained_exporter = None
         if building_block_state and not args.accept_openapi_producer_pin_reconciliation:
             blocks = load_release_module(release / 'extensions/program-kit-building-blocks/scripts/building_blocks.py', 'upgrade_profile_preflight')
@@ -1710,7 +1736,8 @@ def main() -> int:
             catalog = blocks.load_json(blocks.consumer_catalog(target, selection, installed))
             component_versions = {p['packageId']: p['version'] for p in catalog['packages'].values() if p['ecosystem'] == 'nuget'}
             retained_exporter = component_versions.get('Orbyss.Foundation.OpenApi.Exporter')
-        persistence_upgrade_preflight(target, release)
+        if not history:
+            persistence_upgrade_preflight(target, release)
         profile = load_managed_profile(target)
         has_bootstrap_decisions = False  # Completed bootstrap history is immutable; installation owns its version record.
         reconciliation = discover_openapi_reconciliation(target, release, retained_exporter)
@@ -1748,6 +1775,7 @@ def main() -> int:
         attempt['toolingWitness'] = witness.retain(target, release, attempt['releaseInputsSha256'])
         if local_repairs is not None:
             attempt['localRepairs'] = local_repairs
+        attempt['inactiveHistory'] = history
         checked = {}
         if local_repairs is not None:
             executed = local_repairs['execution']
@@ -1759,6 +1787,9 @@ def main() -> int:
                 source = repository_relative_path(target, relative, 'executed local repair source')
                 if not source.is_file() or hashlib.sha256(source.read_bytes()).hexdigest() != expected:
                     raise UpgradeError('PKU147 local repair execution inputs changed before original capture: ' + relative)
+        if history:
+            checked.update(json.loads(repository_relative_path(target, args.inactive_history, 'inactive history declaration').read_text(encoding='utf-8'))['inputs'])
+            checked[args.inactive_history] = args.inactive_history_sha256
         if attempt.get('originalInputs'):
             witness.verify_attempt_inputs(target, attempt['originalInputs'], attempt['originals'])
         else:
@@ -1775,7 +1806,7 @@ def main() -> int:
         audit.archive_toolkit_proof_inputs(target)
         if exporter_transition:
             archive_catalog_transition(exporter_transition)
-        elif building_block_state:
+        elif building_block_state and not history:
             blocks = load_release_module(release / 'extensions/program-kit-building-blocks/scripts/building_blocks.py', 'upgrade_retained_profile')
             selection = blocks.load_json(target / 'docs/architecture/building-block-selection.json')
             installed = target / '.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'
@@ -1834,9 +1865,9 @@ def main() -> int:
             sys.modules[sync_spec.name] = sync_module
             sync_spec.loader.exec_module(sync_module)
             restore_verifier = sync_module.provider('program-kit-building-blocks/scripts/restore_dependencies.py')
-            receipt = sync_module.upgrade(target)
+            receipt = sync_module.upgrade(target, history=history) if history else sync_module.upgrade(target)
             print(f"[{next_step + 1}/{total}] Verify offline repository convergence")
-            report = sync_module.readiness(target, "upgrade")
+            report = sync_module.readiness(target, "upgrade", history=history) if history else sync_module.readiness(target, "upgrade")
             if not report["ready"]:
                 raise UpgradeError("PKU116 repository setup did not converge: " + json.dumps(report))
             print(json.dumps(report, indent=2))
@@ -1917,6 +1948,10 @@ def main() -> int:
         migration['toolingWitness'] = attempt['toolingWitness']
         migration['originalInputs'] = attempt['originalInputs']
         migration['originals'] = attempt['originals']
+        if history:
+            migration.update(inactiveHistory=report['inactiveHistory'], migrationScope='tooling-only-inactive-history',
+                             scopedMigrationCompletionEstablished=migration['migrationCompletionEstablished'],
+                             designAcceptanceEstablished=False, destinationActivationEstablished=False)
         if attempt.get('localRepairs'):
             migration['localRepairs'] = attempt['localRepairs']
         preserve_migration_completion(target, attempt_path)
@@ -1951,6 +1986,8 @@ def main() -> int:
             recovery.extend(['--repair-of-release-sha256', args.repair_of_release_sha256])
         if args.local_repairs:
             recovery.extend(['--local-repairs', args.local_repairs, '--local-repairs-sha256', args.local_repairs_sha256])
+        if args.inactive_history:
+            recovery.extend(['--inactive-history', args.inactive_history, '--inactive-history-sha256', args.inactive_history_sha256])
         if args.offline: recovery.append('--offline')
         if args.accept_openapi_producer_pin_reconciliation: recovery.append('--accept-openapi-producer-pin-reconciliation')
         print('Next action: fix the reported cause, then run ' + subprocess.list2cmdline(recovery), file=sys.stderr)

@@ -223,7 +223,7 @@ def reject_active_references(root, evidence, lock):
                     raise ValueError(f'active npm workspace includes retained evidence: {path}: {pattern}')
 
 
-def engineering_outputs(root):
+def engineering_outputs(root, *, inactive_tool_pin=None):
     """Require both the installed template and reconciler's exact ownership receipt."""
     state = read(root / '.program-kit/managed.json', {})
     installed = root / '.specify/extensions/program-kit-dotnet'
@@ -244,16 +244,31 @@ def engineering_outputs(root):
         from repository_sync import provider
         profiles = provider('program-kit-dotnet/scripts/dependency_profile.py')
         expected = profiles.render(root, relative, expected)
+        prior_expected = expected
         if path.name == 'dotnet-tools.json':
             from repository_sync import provider
             persistence = provider('program-kit-dotnet/scripts/persistence_selection.py')
             selection = persistence.resolve(root)
             pins = persistence.pins(persistence.effective(selection), template)
+            # The hash-bound inactive-history owner retains this tooling pin;
+            # it does not admit a persistence owner or project.
+            if inactive_tool_pin is not None:
+                pins = {**pins, 'Microsoft.EntityFrameworkCore.Design': inactive_tool_pin}
             if 'Microsoft.EntityFrameworkCore.Design' in pins:
                 value = json.loads(expected)
                 value['tools']['dotnet-ef'] = {'version': pins['Microsoft.EntityFrameworkCore.Design'], 'commands': ['dotnet-ef']}
                 expected = (json.dumps(value, indent=2) + '\n').encode('utf-8')
         digest = hashlib.sha256(expected).hexdigest()
+        if path.name == 'dotnet-tools.json' and inactive_tool_pin is not None:
+            # Retain the explicitly bound historical EF-tool addition without
+            # relabelling its old receipt. Its complete semantic shape must equal
+            # the retained publisher tools plus that one exact profile pin.
+            prior_digest = hashlib.sha256(prior_expected).hexdigest()
+            if (read(path) == json.loads(expected) and
+                    entry.get('lastWrittenHash') == entry.get('templateHash') and
+                    entry.get('lastWrittenHash') in {digest, prior_digest}):
+                result.add(path.resolve())
+                continue
         if sha(path) != digest or entry.get('lastWrittenHash') != digest or entry.get('templateHash') != digest:
             raise ValueError(f'engineering dependency output or ownership hash changed: {relative}')
         result.add(path.resolve())
@@ -295,10 +310,35 @@ def composition_dependency_ownership(root):
     return projects, {path.resolve()}
 
 
-def audit_exemptions(root, lock):
+def inactive_composition_pins(root, catalog):
+    """Retained native pins are history when no application graph is admitted."""
+    relative = 'eng/ProgramKit.Foundation.props'
+    path = root / relative
+    if not path.is_file(): return set()
+    entry = read(root / '.program-kit/managed.json', {}).get('files', {}).get(relative, {})
+    actual = sha(path)
+    if (entry.get('ownership') != 'managed' or entry.get('contribution') != 'foundation'
+            or entry.get('sourceIdentity') != '../../scripts/foundation_composition.py'
+            or actual != entry.get('lastWrittenHash') or actual != entry.get('templateHash')):
+        raise ValueError('Retained composition pins lack their exact native ownership receipt')
+    document = ET.parse(path).getroot()
+    allowed = {p['packageId']: p['version'] for p in catalog['packages'].values() if p['ecosystem'] == 'nuget'}
+    seen = set()
+    for node in document.iter():
+        if node.tag == 'Project' and node is document and not node.attrib: continue
+        if node.tag == 'ItemGroup' and not node.attrib: continue
+        if (node.tag != 'PackageVersion' or set(node.attrib) != {'Include','Version'}
+                or node.get('Include') in seen or allowed.get(node.get('Include')) != node.get('Version')):
+            raise ValueError('Retained composition pins differ from the selected dependency catalog')
+        seen.add(node.get('Include'))
+    return {path.resolve()}
+
+
+def audit_exemptions(root, lock, *, inactive_tool_pin=None, inactive_catalog=None):
     evidence = evidence_inputs(root)
     reject_active_references(root, evidence, lock)
-    return evidence | engineering_outputs(root) | composition_dependency_ownership(root)[1]
+    retained = inactive_composition_pins(root, inactive_catalog) if inactive_catalog is not None else set()
+    return evidence | engineering_outputs(root, inactive_tool_pin=inactive_tool_pin) | composition_dependency_ownership(root)[1] | retained
 
 
 def planned_selection_errors(root, projects):

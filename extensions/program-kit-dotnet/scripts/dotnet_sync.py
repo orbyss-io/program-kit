@@ -454,19 +454,21 @@ def main() -> int:
     parser.add_argument('--feature-dir', help='Feature admission scope, relative to the consuming repository')
     parser.add_argument('--upgrade-existing', action='store_true',
                         help='Refresh an existing baseline; retain future unmaterialized admissions as obligations')
+    parser.add_argument('--inactive-history')
+    parser.add_argument('--inactive-history-sha256')
     args = parser.parse_args()
 
     if not args.profile_selected:
         print("Refusing to scaffold: the .NET technology profile was not explicitly selected.", file=sys.stderr)
         return 3
-    if not args.check and not args.foundation_host_accepted:
+    if not args.check and not args.foundation_host_accepted and not args.inactive_history:
         print(
             "Refusing to scaffold: the Orbyss Foundation host choice is not confirmed by the approved "
             "bootstrap baseline or a later Accepted override.",
             file=sys.stderr,
         )
         return 4
-    if not args.check and not args.building_block_sources_approved:
+    if not args.check and not args.building_block_sources_approved and not args.inactive_history:
         print(
             "Refusing to scaffold: adding independently versioned building-block packages and NuGet sources was not explicitly approved.",
             file=sys.stderr,
@@ -476,6 +478,15 @@ def main() -> int:
     extension_root = Path(__file__).resolve().parents[1]
     template_root = extension_root / "templates" / "dotnet"
     target = Path(args.target).resolve()
+    inactive = None
+    if args.inactive_history or args.inactive_history_sha256:
+        sys.path.insert(0, str(extension_root.parent / 'program-kit-governance/scripts'))
+        import inactive_history
+        if not args.upgrade_existing:
+            raise ValueError('PKU149 inactive history is restricted to an existing tooling upgrade')
+        sys.path.insert(0, str(extension_root.parent / 'program-kit-building-blocks/scripts'))
+        import building_blocks
+        inactive = inactive_history.validate(target, args.inactive_history, args.inactive_history_sha256, building_blocks)
     pending = reconciliation.pending_transactions(target)
     if pending and not args.recover:
         print(
@@ -504,7 +515,8 @@ def main() -> int:
     dotnet_sdk, dotnet_sdk_source = selected_dotnet_sdk(
         target, template_root / "files" / "global.json"
     )
-    web_profile = selected_web_profile(target, args.web_profile)
+    web_profile = (load_json(target / '.program-kit/managed.json', {}).get('webProfile', 'none') if inactive
+                   else selected_web_profile(target, args.web_profile))
     foundation_configuration = None
     foundation_outputs = {}
     if (target / foundation_composition.INPUT).is_file():
@@ -540,12 +552,14 @@ def main() -> int:
     state_path = target / ".program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
     engineering_default = dependency_profile.engineering_default(target)
-    persistence = persistence_selection.resolve(target, feature=args.feature_dir, requested=args.persistence_profile)
+    persistence = ({'summary': state.get('persistenceProfile', 'none'), 'owners': [], 'installedOwners': [], 'blockers': [], 'deferredAdmissions': []} if inactive
+                   else persistence_selection.resolve(target, feature=args.feature_dir, requested=args.persistence_profile))
     if args.upgrade_existing:
         if not (target / '.program-kit/managed.json').is_file():
             raise ValueError('PKP001 upgrade-existing requires an existing managed baseline')
-        persistence = persistence_selection.upgrade_scope(
-            target, persistence_selection.resolve(target, feature='', requested=args.persistence_profile))
+        if not inactive:
+            persistence = persistence_selection.upgrade_scope(
+                target, persistence_selection.resolve(target, feature='', requested=args.persistence_profile))
         if persistence['blockers']:
             raise ValueError('PKP002 upgrade admission blocked: ' + '; '.join(persistence['blockers']))
     effective_persistence = persistence_selection.effective(persistence)
@@ -554,6 +568,14 @@ def main() -> int:
     if not isinstance(old_files, dict):
         raise ValueError(f"Invalid managed-file state in {state_path}")
     previous_profile = state.get("webProfile")
+    if inactive:
+        # Refresh only owned engineering executable sources. Preserve
+        # every dependency pin/lock, toolchain selector, runtime configuration and
+        # historical ownership row. No application graph is generated or retired.
+        entries = [entry for entry in entries if entry['ownership'] == 'managed'
+                   and entry['path'].startswith('eng/')
+                   and Path(entry['path']).suffix in {'.py', '.ps1', '.psm1', '.sh'}
+                   and entry['path'] not in inactive['retainedApplicationTooling']]
     retained_foundation_sources: set[str] = set()
     retained_foundation_projects: set[str] = set()
     def foundation_source(path: str, entry: object) -> bool:
@@ -603,6 +625,8 @@ def main() -> int:
     if not isinstance(migrations, list):
         raise ValueError("The .NET migration catalog has no migrations list.")
     applied_migrations = list(state.get("appliedMigrations", []))
+    if inactive:
+        migrations = []
     current_version = str(state.get("programKitVersion", "0.0.0"))
     applicable_migrations: list[dict] = []
     for migration in migrations:
@@ -626,8 +650,9 @@ def main() -> int:
     entries.extend({'path':path, 'ownership':ownership, 'contribution':'foundation',
                     'sourceRoot':'../../scripts', 'source':'foundation_composition.py'}
                    for path, (_, ownership) in foundation_outputs.items() if path not in present)
-    entries.append({'path': 'eng/verification.setup.json', 'ownership': 'managed', 'contribution': 'engineering',
-                    'sourceRoot': '../../scripts', 'source': 'dotnet_sync.py'})
+    if not inactive:
+        entries.append({'path': 'eng/verification.setup.json', 'ownership': 'managed', 'contribution': 'engineering',
+                        'sourceRoot': '../../scripts', 'source': 'dotnet_sync.py'})
     for entry in entries:
         relative = entry["path"]
         if relative in desired_by_path:
@@ -705,10 +730,10 @@ def main() -> int:
     conflicts: list[str] = []
     conflict_details: dict[str, str] = {}
     actions: list[dict] = []
-    next_files: dict[str, dict] = {}
+    next_files: dict[str, dict] = ({p: row for p, row in old_files.items() if p not in desired_by_path} if inactive else {})
 
     architecture_path = target / 'eng/architecture.json'
-    if architecture_path.is_file():
+    if architecture_path.is_file() and not inactive:
         try:
             validate_manifest(target, load_json(architecture_path, {}))
         except (ValueError, KeyError, TypeError) as error:
@@ -926,6 +951,8 @@ def main() -> int:
                 )
 
     for relative, candidate in retirement_candidates.items():
+        if inactive:
+            continue
         destination = target / relative
         if not destination.is_file():
             continue
@@ -1008,6 +1035,8 @@ def main() -> int:
         "appliedMigrations": applied_migrations,
         "desiredManifestDigest": stable_plan_digest({"files": manifest_rows}),
     }
+    if inactive:
+        plan_core['inactiveHistory'] = inactive
     legacy_root = target / "eng" / "program-kit"
     cleanup_directories = bool(
         any(path == "eng/program-kit" or path.startswith("eng/program-kit/") for path in removed)
@@ -1044,6 +1073,10 @@ def main() -> int:
         "appliedMigrations": applied_migrations,
         "files": next_files,
     }
+    if inactive:
+        next_state_value = {**state, 'programKitVersion': extension_version(extension_root),
+                            'files': next_files, 'inactiveHistory': inactive,
+                            'desiredManifestDigest': plan_core['desiredManifestDigest']}
     if engineering_default is not None: next_state_value['newProjectDependencyProfile'] = engineering_default
     next_state = (json.dumps(next_state_value, indent=2, sort_keys=True) + "\n").encode("utf-8")
     state_changed = not state_path.is_file() or state_path.read_bytes() != next_state
@@ -1078,7 +1111,7 @@ def main() -> int:
         return 2
     if args.check:
         return 1 if actions or state_changed or cleanup_directories else 0
-    if web_profile in {"bff-cookie", "spa-pkce"} and foundation_configuration is None:
+    if not inactive and web_profile in {"bff-cookie", "spa-pkce"} and foundation_configuration is None:
         # Validate identity desired-state semantics against staged bytes before commit.
         realm = desired_by_path.get(identity_fixture.REALM_PATH)
         if realm is None:
@@ -1094,7 +1127,7 @@ def main() -> int:
     print(f"committed reconciliation transaction: {transaction_id}")
     for relative in prune_retired_program_kit_directories(target):
         print(f"removed empty retired Program Kit directory: {relative}")
-    if web_profile in {"bff-cookie", "spa-pkce"}:
+    if not inactive and web_profile in {"bff-cookie", "spa-pkce"}:
         if foundation_configuration is None:
             identity_fixture.verify_repository(target, web_profile, spa_configuration)
         else:

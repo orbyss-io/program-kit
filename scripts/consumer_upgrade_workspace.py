@@ -6,6 +6,7 @@ merges source automatically, or treats workspace recovery as external rollback.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -107,19 +108,32 @@ def snapshot(root, directory, paths):
 def reproduce(snapshot_root, target, hashes):
     """Exact owned baseline bytes. Never overwrite a consumer or invent installation history."""
     snapshot_root, target = io_root(snapshot_root), io_root(target)
+    conversions = []
     for relative, expected in hashes.items():
         source = workflow.inside(snapshot_root, relative)
         destination = workflow.inside(target, relative)
         workflow.require(workflow.sha(source) == expected, 'Original baseline archive changed: ' + relative)
         if expected is None:
             continue
-        workflow.require(not destination.exists() or workflow.sha(destination) == expected,
-                         'Tracked/custom installed asset conflicts with reproduced baseline: ' + relative)
+        if destination.exists() and workflow.sha(destination) != expected:
+            # Only a checkout conversion of an exact committed original is repairable.
+            # All conflicts are checked before copying even one archived file.
+            original, current = source.read_bytes(), destination.read_bytes()
+            blob = subprocess.run(['git', '-c', 'safe.directory=' + str(target), '-c',
+                'core.excludesFile=' + ('' if os.name == 'nt' else '/dev/null'),
+                'show', 'HEAD:' + relative], cwd=target, capture_output=True, check=False)
+            workflow.require(blob.returncode == 0 and blob.stdout == original and b'\0' not in original
+                             and original.replace(b'\r\n', b'\n') == current.replace(b'\r\n', b'\n'),
+                             'Tracked/custom installed asset conflicts with reproduced baseline: ' + relative)
+            conversions.append({'path': relative, 'originalSha256': expected,
+                                'checkoutSha256': workflow.sha(destination),
+                                'gitBlobSha256': hashlib.sha256(blob.stdout).hexdigest()})
     for relative, expected in hashes.items():
         if expected is not None:
             destination = workflow.inside(target, relative)
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(workflow.inside(snapshot_root, relative), destination)
+    return conversions
 
 
 def effective_environment(target):
@@ -246,7 +260,7 @@ def prepare(source, target, release, branch):
     workflow.atomic(owner / 'preparation.json', preparation)
     try:
         workflow.git(source, 'worktree', 'add', '-b', branch, str(target), inventory['commit'])
-        reproduce(owner / 'baseline', target, hashes)
+        preparation['newlineReconciliations'] = reproduce(owner / 'baseline', target, hashes)
         validate_installation(target)
         workflow.require(updater.current_version(target) == source_version, 'Source setup changed during baseline capture; preserve both and reassess')
         # Validate the release-owned updater's effective destinations against the reproduced installation.
@@ -284,7 +298,7 @@ def resume(source, preparation_path):
             workflow.require(existing['sourceCommit'] == preparation['baseCommit'], 'Resumed worktree provenance differs')
             return existing
     workflow.require(target.is_dir() and workflow.git(target, 'rev-parse', 'HEAD') == preparation['baseCommit'], 'Preparation worktree changed')
-    reproduce(archive, target, preparation['ownedBaseline'])
+    conversions = reproduce(archive, target, preparation['ownedBaseline'])
     validate_installation(target)
     value = {'schemaVersion': 1, 'sourceVersion': updater.current_version(source),
              'targetVersion': updater.validate_release(Path(preparation['release'])), 'sourceCommit': preparation['baseCommit'],
@@ -297,19 +311,92 @@ def resume(source, preparation_path):
     value['sourceProfile'] = {k: binding.get(k) for k in ('id', 'resolutionSha256', 'familyReleases')}
     value['originalAuthority'] = workflow.capture(target, {p: h for p, h in workflow.inputs(target).items() if p.startswith('docs/architecture/')})
     _, value['targeting'] = effective_environment(target)
+    value['preparationResume'] = {'newlineReconciliations': conversions,
+                                'originalPreparationSha256': workflow.sha(preparation_path)}
     carry_previous(source, target, preparation_path.parent, preparation, value)
     return workflow.save(target, value, 'resume-preparation')
+
+
+def reviewed_options(target, extra, previous=None):
+    """Bind reviewed arguments to actual local inputs before any updater mutation.
+
+    The updater alone authenticates originals and executes current required cases.
+    The adapter preserves the exact selection across retry and activation.
+    """
+    extra = list(extra)
+    inputs = {}
+    for flag, digest_flag in (('--local-repairs', '--local-repairs-sha256'),
+                              ('--inactive-history', '--inactive-history-sha256')):
+        workflow.require(extra.count(flag) <= 1 and extra.count(digest_flag) <= 1,
+                         'Duplicate reviewed updater option: ' + flag)
+        workflow.require((flag in extra) == (digest_flag in extra), 'Both reviewed arguments are required: ' + flag)
+        if flag not in extra:
+            continue
+        try:
+            relative, expected = extra[extra.index(flag) + 1], extra[extra.index(digest_flag) + 1]
+        except IndexError as error:
+            raise ValueError('Missing reviewed updater argument value') from error
+        path = workflow.inside(target, relative)
+        workflow.require(path.is_file() and len(expected) == 64 and workflow.sha(path) == expected,
+                         'Reviewed updater input changed or missing: ' + relative)
+        inputs[relative] = expected
+        if flag == '--local-repairs':
+            declaration = workflow.read(path)
+            contract = declaration['contract']
+            workflow.require(workflow.sha(workflow.inside(target, contract)) == declaration['contractSha256'],
+                             'Reviewed local repair case contract changed or missing')
+            inputs[contract] = declaration['contractSha256']
+            definitions = workflow.read(workflow.inside(target, contract))
+            for module in definitions.get('modules', []):
+                module_path, module_hash = module['path'], module['sha256']
+                workflow.require(workflow.sha(workflow.inside(target, module_path)) == module_hash,
+                                 'Reviewed local repair module changed or missing')
+                inputs[module_path] = module_hash
+        else:
+            for name, digest in workflow.read(path).get('inputs', {}).items():
+                workflow.require(workflow.sha(workflow.inside(target, name)) == digest,
+                                 'Reviewed history input changed or missing: ' + name)
+                inputs[name] = digest
+    selection = {'arguments': extra, 'inputs': inputs}
+    workflow.require(previous is None or previous == selection,
+                     'Retry/activation must retain the original reviewed updater arguments and inputs')
+    return selection
+
+
+def transfer_reviewed_inputs(source, destination, selection, *, apply=False):
+    """Carry exact review evidence through activation; never overwrite authored files.
+
+    Tracked input changes belong to the source merge. Only missing artifact files
+    and retained history snapshots may be copied, and failure evidence stays local.
+    """
+    pending = []
+    for relative, expected in selection['inputs'].items():
+        original, current = workflow.inside(source, relative), workflow.inside(destination, relative)
+        workflow.require(workflow.sha(original) == expected, 'Reviewed candidate input changed: ' + relative)
+        if workflow.sha(current) == expected:
+            continue
+        workflow.require(expected is not None and not current.exists()
+                         and relative.startswith(('artifacts/', '.program-kit/inactive-history/')),
+                         'Destination reviewed input conflicts or was not integrated: ' + relative)
+        pending.append((original, current))
+    if apply:
+        for original, current in pending:
+            current.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(original, current)
+    return [current.relative_to(destination).as_posix() for _, current in pending]
 
 
 def install(target, release, extra):
     value = workflow.load(target)
     workflow.require(updater.validate_release(release) == value['targetVersion'], 'Exact target release changed')
     workflow.require(updater.release_fingerprint(release) == value['workspace']['releaseInputsSha256'], 'Prepared exact release bytes changed; reassess before mutation')
+    options = reviewed_options(target, extra, value.get('updaterOptions'))
     environment, targeting = effective_environment(target)
     command = [sys.executable, str(release / 'scripts/upgrade_program_kit.py'), '--release-root', str(release), '--target', str(target), *extra]
     run = workflow.inside(target, 'artifacts/program-kit/consumer-upgrade/' + uuid.uuid4().hex)
     run.mkdir(parents=True)
-    value.update(stage='installing', targeting=targeting, releaseInputsSha256=updater.release_fingerprint(release))
+    value.update(stage='installing', targeting=targeting, updaterOptions=options,
+                 releaseInputsSha256=updater.release_fingerprint(release))
     workflow.save(target, value, 'updater-start')
     from compatibility_process import run as run_process
     try:
@@ -394,6 +481,8 @@ def mutation_files(root, known, integration_roots):
 def activation(target, destination, release, commands, extra=(), runner=None):
     """After reviewed source merge, run the updater in destination with durable original recovery."""
     value = workflow.load(target)
+    options = reviewed_options(target, extra, value.get('updaterOptions'))
+    transfer_reviewed_inputs(target, destination, options)
     review = value.get('integration', {})
     workflow.require(review.get('destination') == str(destination) and review.get('combinedCandidate'), 'Reassess the combined candidate before integration')
     workflow.require(workflow.captured(target, review.get('candidateInputs')) == workflow.inputs(target), 'Combined candidate changed; reassess before integration')
@@ -436,10 +525,13 @@ def activation(target, destination, release, commands, extra=(), runner=None):
             before[relative] = None
     workflow.atomic(directory / 'original/inventory.json', before)
     ledger = {'schemaVersion': 1, 'status': 'activating', 'destination': str(destination), 'original': before,
-              'integrationRoots': integration_roots, 'sourceRecordSha256': workflow.sha(target / workflow.RECORD)}
+              'integrationRoots': integration_roots, 'sourceRecordSha256': workflow.sha(target / workflow.RECORD),
+              'updaterOptions': options}
     workflow.atomic(directory / 'activation.json', ledger)
     try:
         transfer_views(target, destination, value)
+        ledger['reviewedInputsTransferred'] = transfer_reviewed_inputs(target, destination, options, apply=True)
+        reviewed_options(destination, extra, options)
         ledger['gitOriginalsReconciled'] = reconcile_originals(target, destination)
         workflow.atomic(directory / 'activation.json', ledger)
         # Installation-only receipts are local state, even when a consumer tracked them.
@@ -520,11 +612,18 @@ def main():
     parser.add_argument('--ledger', help='Preparation or activation ledger, relative to its owning checkout')
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--specify-command-json', default='')
+    parser.add_argument('--local-repairs')
+    parser.add_argument('--local-repairs-sha256')
+    parser.add_argument('--inactive-history')
+    parser.add_argument('--inactive-history-sha256')
     args = parser.parse_args()
     source, target, release = Path(args.source).resolve(), Path(args.target).resolve(), Path(args.release_root).resolve()
     destination = Path(args.destination).resolve() if args.destination else source
     extra = ['--offline'] if args.offline else []
     if args.specify_command_json: extra += ['--specify-command-json', args.specify_command_json]
+    for name in ('local_repairs', 'local_repairs_sha256', 'inactive_history', 'inactive_history_sha256'):
+        if getattr(args, name) is not None:
+            extra += ['--' + name.replace('_', '-'), getattr(args, name)]
     try:
         if args.action == 'prepare': result = prepare(source, target, release, args.branch or 'consumer-upgrade-' + uuid.uuid4().hex[:8])
         elif args.action == 'resume': result = resume(source, workflow.inside(source, args.ledger))

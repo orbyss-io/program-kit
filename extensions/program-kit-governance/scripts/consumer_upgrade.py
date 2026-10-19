@@ -309,11 +309,24 @@ def inventory(root):
             features.append({'path': directory, 'nextPhase': phase,
                              'owners': scope['brief'].get('architectureScope', []), 'entry': scope['entry']})
     installed, customizations = {}, []
+    utf8 = None
+    if inside(root, '.specify/integrations/speckit.manifest.json').is_file():
+        try:
+            from ensure_utf8 import transformation_plan
+            _, utf8 = transformation_plan(root)
+        except (OSError, ValueError, KeyError, TypeError):
+            pass  # Unexplained differences retain their ordinary customization diagnosis.
     for manifest in inside(root, '.specify/integrations').glob('*.manifest.json'):
         for relative, expected in read(manifest).get('files', {}).items():
             observed = sha(inside(root, relative))
             installed[relative] = {'sha256': observed, 'baselineSha256': expected if isinstance(expected, str) else None}
             if isinstance(expected, str) and observed != expected.removeprefix('sha256:'):
+                transformed = (utf8 or {}).get('files', {}).get(relative, {}) if manifest.name == 'speckit.manifest.json' else {}
+                if observed is not None and transformed.get('transformedSha256') == observed:
+                    installed[relative].update(baselineSha256=observed, baselineOwner='exact-native-utf8-transformation',
+                        nativeSha256=transformed['nativeSha256'], nativeManifestSha256=utf8['nativeManifestSha256'],
+                        transformationRecipeSha256=utf8['recipeSha256'])
+                    continue
                 preset = preset_baseline(root, relative, manifest.name.removesuffix('.manifest.json'))
                 if preset:
                     installed[relative].update(baselineSha256=preset, baselineOwner='active-native-preset')
@@ -750,16 +763,29 @@ def readiness(root):
     expected = completion(declared_plan, convergence.get('checks', {})) if isinstance(declared_plan, dict) else {}
     installed_expected = captured(root, value.get('installedInputs'))
     installed_actual = installation_inputs(root)
+    inactive_problems = []
+    if convergence.get('inactiveHistory'):
+        try:
+            import inactive_history
+            from repository_sync import provider
+            binding = convergence['inactiveHistory']
+            inactive_history.validate(root, binding['declaration'], binding['declarationSha256'],
+                                      provider('program-kit-building-blocks/scripts/building_blocks.py'))
+        except (OSError, ValueError, RuntimeError, KeyError, TypeError) as error:
+            inactive_problems.append(str(error))
     toolkit = (convergence.get('toVersion') == value['targetVersion'] and expected.get('migrationCompletionEstablished') is True
                and convergence.get('migrationCompletionEstablished') is True
                and expected.get('planSha256') == convergence.get('planSha256')
-               and installed_expected == installed_actual)
+               and installed_expected == installed_actual and not inactive_problems)
     assessed = value.get('assessmentTargetVersion') == value['targetVersion'] and bool(value.get('inventory'))
     resolved = assessed and all(f['disposition'] not in {'unresolved', 'required'} and current(root, f.get('evidence', {}))
                    and scoped_files(inputs(root), f['scope']) == (captured(root, f['scopeInputs']) if f.get('scopeInputs') else
                        scoped_files(captured(root, value.get('assessedInputs')), f['scope']))
                    for f in value['findings'])
     return {**result, 'toolkitConverged': toolkit, 'requiredChecksCurrent': valid,
+            'migrationScope': convergence.get('migrationScope', 'declared-tooling-migrations'),
+            'inactiveHistoryProblems': inactive_problems,
+            'designAcceptanceEstablished': False if convergence.get('inactiveHistory') else None,
             'toolkitChecks': {'targetVersionMatched': convergence.get('toVersion') == value['targetVersion'],
                               'migrationCompletionEstablished': expected.get('migrationCompletionEstablished') is True,
                               'planDigestMatched': expected.get('planSha256') == convergence.get('planSha256'),

@@ -1,5 +1,114 @@
 # Consumer upgrade and migration planning method
 
+## Withdrawn application authority and tooling-only upgrades
+
+An Accepted historical selection whose observed projects have since been removed
+does not authorize reconstructing them. The ordinary typed-composition and placement
+guards remain active. First check whether a normally reviewed successor design can
+use the existing architecture, selection and composition owners. When application
+authority is deliberately inactive, an explicit tooling-only reconciliation can
+preserve the original selection, map, ADRs, profile, locks and receipts instead.
+
+The updater, its workspace `install`/`activate` adapter, `dotnet_sync.py
+--upgrade-existing`, and building-block **plan** accept the paired arguments
+`--inactive-history <consumer-relative-json>` and `--inactive-history-sha256
+<reviewed-raw-file-sha256>`. This is a new source capability; older published packages
+must not be edited and described as unchanged releases. Direct repository-sync
+plan/check/apply supports the same pair with `--phase upgrade`. Other phases and
+dependency acquisition do not accept this authority. The building-block apply/check
+commands retain ordinary active-design admission.
+
+The version 1 declaration has exactly these fields:
+
+```json
+{
+  "schemaVersion": 1,
+  "scope": "tooling-only-inactive-history",
+  "rationale": "Reviewed explanation of the withdrawal and bounded upgrade scope",
+  "intakeRoot": "artifacts/confirmed-intake",
+  "withdrawalEvidence": ["artifacts/reviewed-withdrawal.txt"],
+  "historicalSubjects": {},
+  "historicalPersistence": null,
+  "retainedApplicationTooling": {},
+  "inputs": {}
+}
+```
+
+`inputs` must be populated with raw SHA-256 values (or explicit `null` absences).
+It binds the canonical selection, map and cited decision files, original lock and
+every lock output, every selection target, bootstrap decisions, historical governance
+migration receipt, selected profile binding and retained profile snapshots, native
+engineering dependency contributions, all repository dependency locks/tool manifests,
+withdrawal evidence, and the complete confirmed-intake tree. Missing bindings are
+reported by name. The intake runs its actual confirmation/artifact validation.
+Changed or missing inputs invalidate this scope; a new hash is a new review, never
+fresh evidence for an old receipt. Installation attempt witnesses retain replaced
+tooling and original installation receipts under their existing owners.
+
+`historicalSubjects` maps exact, bound architecture compatibility project paths to
+reviewed dispositions. It supplies no current execution or dependency qualification.
+Native active-reference checks reject using them as runtime/selection/solution inputs;
+the unmanaged building-block dependency audit still runs. Directory names alone
+cannot establish retained-proof provenance.
+
+When an existing EF tool belongs to withdrawn persistence intent,
+`historicalPersistence` can bind `{"profile":"ef-postgresql","template":
+"artifacts/retained-persistence.props"}` (also SQL Server or SQLite). Preserve the
+actual original profile template, bind its hash, and inspect its attribution; do not
+invent publisher provenance. The tool manifest must match the complete selected
+publisher tool set plus that exact Design-tool pin, and its original receipt must
+still match the original native output. Unknown tools/versions remain conflicts.
+Surviving generated Foundation pins must have their exact native ownership receipt
+and selected-catalog versions. These checks neither restore a persistence admission
+nor change a pin, a lock or a historical receipt.
+
+Only executable engineering scripts are refreshed in this scope. Runtime/configuration
+scaffolds, package/toolchain selections, native dependency outputs and application
+sources are preserved. A locally repaired `eng/prepare_hosted_pages.py` may be bound
+in `retainedApplicationTooling` with its reviewed pending-merge rationale. It retains
+its original ownership row and bytes, is not executed here, and remains a conflict
+for ordinary active-design synchronization. Other customized tooling still requires
+its normal merge/ownership route. A tooling-only pass cannot qualify that retained
+frontend repair or establish complete application migration.
+
+Use the single upgrade coordination record to keep installation, scoped tooling
+migration completion, unresolved design/application duties and destination activation
+separate. Status revalidates the bound history. The scoped receipt reports no design
+acceptance or application correctness. Before using a successor graph, complete its
+ordinary design/placement review, merge retained tooling, and run current checks.
+
+## Reviewed repair transport and isolated checkout recovery
+
+The workspace adapter accepts both `--local-repairs` and `--local-repairs-sha256`.
+It records the exact argument vector, declaration, case-contract and module hashes
+before installation. Retry and destination activation require the same arguments and
+inputs. The updater still authenticates complete originals and executes current
+required cases separately in each actual destination; workspace transport grants no
+native-source admission. Use literal consumer-relative paths and preserve raw bytes.
+
+Integrate tracked review inputs through the normal reviewed source merge. Missing
+review artifacts and immutable inactive-history snapshots may be transported from
+the verified worktree into the destination through the existing activation ledger.
+Existing destination files must agree exactly; nothing overwrites a conflicting
+review or authored file. Transferred review/failure evidence is retained after failed
+activation. The existing recovery restores owned setup and preserves concurrent edits.
+
+Preparation/resume handles checkout newline conversions only when the archived
+consumer bytes exactly equal that target's committed Git blob and the new checkout
+differs solely by CRLF/LF. Binary or semantic customization still rejects. Every
+conflict is checked before copying any file. The ledger records original, blob and
+checkout hashes; source bytes, Git configuration and prior failed preparation records
+remain unchanged. This does not normalize already customized real-consumer files.
+
+Recovery sequence: select an exact repaired source/package; prepare the isolated
+baseline; review the inactive-history and local-repair declarations with their actual
+coverage; inspect the complete updater/engineering/native plan; install through the
+workspace adapter with both reviewed pairs; reassess and run scoped current checks;
+review and integrate source; activate with the same arguments and fresh destination
+checks. A remaining native repair coverage, managed-file conflict, design decision or
+qualification gap must be resolved explicitly before issuing a concrete real-consumer
+installation command. Never rerun the initializer or revive withdrawn architecture.
+
 The maintained initializer and native CLI bridge retain original generation
 profiles under `.specify/program-kit/render-profiles`. Each record binds actual
 native writes, the selected interpreter literal, installed producer/template hashes

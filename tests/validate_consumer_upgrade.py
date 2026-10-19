@@ -378,6 +378,12 @@ class InstalledUpgradeTests(unittest.TestCase):
             write(source, '.program-kit/dependency-profile.json', {'selected': 'unchanged exact fixture profile'})
             write(source, 'artifacts/cache/private-cache/secret', 'must never be copied')
             write(source, 'note.txt', 'retained output')
+            # Fictional reviewed transport inputs; this callback-based recovery
+            # fixture does not claim execution of a real local repair case.
+            case_contract = write(source, 'reviewed-cases.json', {'schemaVersion': 1})
+            declaration = write(source, 'reviewed-repairs.json', {'contract': case_contract.name,
+                                'contractSha256': flow.sha(case_contract)})
+            local_extra = ['--local-repairs', declaration.name, '--local-repairs-sha256', flow.sha(declaration)]
             commit(source)
             originals = {p: p.read_bytes() for p in (installed/'scripts/consumer_upgrade.py', skill)}
             target = root/'upgrade'
@@ -399,6 +405,7 @@ class InstalledUpgradeTests(unittest.TestCase):
             value = flow.load(target)
             value['releaseInputsSha256'] = workspace.updater.release_fingerprint(ROOT)
             value['installedInputs'] = flow.capture(target, flow.installation_inputs(target))
+            value['updaterOptions'] = workspace.reviewed_options(target, local_extra)
             flow.save(target, value, 'exact-release')
             # Concurrent development is merged into the isolated branch and verified there.
             write(source, 'other.txt', 'intervening consumer development')
@@ -422,22 +429,25 @@ class InstalledUpgradeTests(unittest.TestCase):
                 write(destination, 'note.txt', 'consumer edit during activation')
                 raise KeyboardInterrupt('fixture operator interruption')
             with self.assertRaises(KeyboardInterrupt):
-                workspace.activation(target, source, ROOT, checks, runner=interrupted)
+                workspace.activation(target, source, ROOT, checks, extra=local_extra, runner=interrupted)
             self.assertEqual(before_activation, {p: p.read_bytes() for p in originals})
             self.assertFalse((source/'.specify/partial-new-asset.json').exists())
             self.assertEqual('consumer edit during activation', (source/'note.txt').read_text())
             ledger_path = next((source/'artifacts/program-kit/consumer-activation').glob('*/activation.json'))
             self.assertEqual('recovered', flow.read(ledger_path)['status'])
+            self.assertEqual(local_extra, flow.read(ledger_path)['updaterOptions']['arguments'])
             self.assertEqual('intervening consumer development', (source/'other.txt').read_text())
             with self.assertRaisesRegex(ValueError, 'differs from the combined'):
-                workspace.activation(target, source, ROOT, checks, runner=lambda *_: None)
+                workspace.activation(target, source, ROOT, checks, extra=local_extra, runner=lambda *_: None)
             write(source, 'note.txt', 'retained output')  # Explicit fixture restoration after reviewing the edit.
             def fixture_convergence(destination, release):
                 write(destination, '.program-kit/installation/migration.json', flow.read(target/'.program-kit/installation/migration.json'))
                 state = flow.load(destination)
                 state['installedInputs'] = flow.capture(destination, flow.installation_inputs(destination))
                 flow.save(destination, state, 'fixture-coherent-installation')
-            result = workspace.activation(target, source, ROOT, checks, runner=fixture_convergence)
+            with self.assertRaisesRegex(ValueError, 'original reviewed updater arguments'):
+                workspace.activation(target, source, ROOT, checks, runner=fixture_convergence)
+            result = workspace.activation(target, source, ROOT, checks, extra=local_extra, runner=fixture_convergence)
             self.assertTrue(result['activated'])
             self.assertFalse(result['applicationAcceptanceEstablished'])
             # Installed export remains local and does not expose full original setup.
