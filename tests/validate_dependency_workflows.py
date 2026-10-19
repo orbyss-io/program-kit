@@ -276,7 +276,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(sorted(workflow.index(stage) for stage in ordered),[workflow.index(stage) for stage in ordered])
         self.assertIn('chromium,firefox,webkit',workflow)
 
-    def test_update_prepares_new_runtime_and_dispatches_only_shared_package_ci(self):
+    def test_update_prepares_new_runtime_and_uses_repository_scoped_app_authority(self):
         import yaml
         update = yaml.safe_load((ROOT / '.github/workflows/update-dependencies.yml').read_text())
         steps = update['jobs']['update']['steps']
@@ -289,11 +289,37 @@ class WorkflowTests(unittest.TestCase):
         self.assertLess(setup, qualification)
         self.assertLess(qualification, validation)
         pr = next(step['run'] for step in steps if 'gh pr create' in step.get('run', ''))
-        self.assertLess(pr.index('git push'), pr.index('gh workflow run ci.yml'))
-        self.assertIn('--ref "$branch" -f expected_commit="$(git rev-parse HEAD)"', pr)
-        self.assertEqual('write', update['permissions']['actions'])
+        self.assertLess(pr.index('gh auth setup-git'), pr.index('git push'))
+        self.assertEqual('read', update['permissions']['contents'])
+        self.assertNotIn('pull-requests', update['permissions'])
+        self.assertFalse(steps[0]['with']['persist-credentials'])
+        app = next(step for step in steps if step.get('id') == 'maintenance-app')
+        self.assertEqual('${{ github.repository_owner }}', app['with']['owner'])
+        self.assertEqual('${{ github.event.repository.name }}', app['with']['repositories'])
+        permissions = {key: value for key, value in app['with'].items() if key.startswith('permission-')}
+        self.assertEqual({'permission-contents': 'write', 'permission-pull-requests': 'write',
+                          'permission-workflows': 'write'}, permissions)
+        opener = next(step for step in steps if 'gh pr create' in step.get('run', ''))
+        self.assertEqual('${{ steps.maintenance-app.outputs.token }}', opener['env']['GH_TOKEN'])
+        self.assertGreater(steps.index(app), validation)
+        self.assertNotIn('gh workflow run', pr)  # An App-created PR triggers native package CI.
         self.assertNotIn('gh pr merge', pr)
-        self.assertNotIn('workflow run release.yml', pr)
+
+    def test_missing_app_configuration_stops_before_upgrading_and_never_echoes_credentials(self):
+        import os
+        import yaml
+        steps = yaml.safe_load((ROOT / '.github/workflows/update-dependencies.yml').read_text())['jobs']['update']['steps']
+        check = next(step for step in steps if step.get('name') == 'Check dedicated maintenance App configuration')
+        command = shlex.split(check['run'])[2]
+        for environment in ({}, {'APP_CLIENT_ID': 'fictional-client'}, {'APP_PRIVATE_KEY': 'fictional-secret'}):
+            with patch.dict(os.environ, environment, clear=True):
+                with self.assertRaisesRegex(AssertionError, 'built-in GITHUB_TOKEN cannot push') as error:
+                    exec(command, {})
+                self.assertNotIn('fictional-secret', str(error.exception))
+        with patch.dict(os.environ, {'APP_CLIENT_ID': 'fictional-client', 'APP_PRIVATE_KEY': 'fictional-secret'}, clear=True):
+            exec(command, {})
+        upgrade = next(i for i, step in enumerate(steps) if 'dependency_maintenance.py upgrade' in step.get('run', ''))
+        self.assertLess(steps.index(check), upgrade)
 
     def test_integrity_update_does_not_provision_runtime_or_refresh_locks(self):
         import update_dependencies as updates

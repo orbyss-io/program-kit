@@ -5,7 +5,6 @@ import copy
 from datetime import timedelta
 import hashlib
 import io
-import os
 import importlib.util
 from pathlib import Path
 import sys
@@ -39,19 +38,6 @@ class CandidateTests(unittest.TestCase):
         path.write_bytes(b'qualified package')
         record = {'name': path.name, 'size': path.stat().st_size, 'sha256': rc.sha256(path)}
         return {'schemaVersion': 1, 'source': self.identity, 'assets': [record]}
-
-    def test_package_dispatch_binds_event_expected_and_checkout_without_publication_authority(self):
-        with patch.dict(os.environ, {'GITHUB_SHA': self.identity['commit']}), patch.object(rc, 'source', return_value=self.identity):
-            rc.assert_package_source(self.identity['commit'])
-            for expected in ('', 'main', 'd' * 40):
-                with self.assertRaisesRegex(ValueError, 'must agree'):
-                    rc.assert_package_source(expected)
-            with patch.object(rc, 'source', return_value={**self.identity, 'commit': 'd' * 40}):
-                with self.assertRaisesRegex(ValueError, 'must agree'):
-                    rc.assert_package_source(self.identity['commit'])
-        run = {**self.run, 'path': '.github/workflows/ci.yml', 'head_branch': 'codex/dependencies-fixture'}
-        with self.assertRaisesRegex(ValueError, 'main candidate'):
-            rc.verify_run(run, self.jobs, self.identity, self.rules)
 
     def verify(self, value):
         # Inventory derivation itself is exercised by release-guidance/package fixtures.

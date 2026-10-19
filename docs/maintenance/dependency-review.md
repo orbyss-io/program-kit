@@ -41,13 +41,27 @@ investigations remain explicit. Unknown inputs and required coverage decisions s
 stop automatic maintenance; they never select the full inventory or become success.
 
 Passing maintenance pushes a new `codex/dependencies-*` branch and opens a PR; it does
-not merge `main` or publish packages. Because GitHub suppresses ordinary PR events
-created with `GITHUB_TOKEN`, the job explicitly dispatches `ci.yml` for the exact new
-branch commit. That runs the same package build, Windows/Linux installation and
-security checks used by other PRs. Its result is separate from maintenance and must
-be reviewed before merge. A dispatched branch CI run cannot supply release promotion
-authority; exact-main qualification and the native publication approval remain in
-the release flow. See [GitHub's trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+not merge `main` or publish packages. A dedicated GitHub App supplies a short-lived,
+repository-scoped token only for the final push and PR creation. Its native PR event
+starts the existing package CI: one build, Windows/Linux installation and applicable
+security checks. Review that separate CI result before merging. The built-in
+`GITHUB_TOKEN` remains read-only and checkout does not persist it for Git pushes.
+It cannot push workflow-file updates, and its PR events would be suppressed. There
+is no duplicate manual CI dispatch. Exact-main qualification and native publication
+approval remain in the release flow. See [GitHub's trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+
+Provision a dedicated GitHub App and install it **only on this repository**. Grant
+repository **Contents: read/write**, **Pull requests: read/write**, and **Workflows:
+read/write**; metadata read is implicit. No organization, administration, secrets,
+environment or publication permissions are needed. Webhooks and user authorization
+are not used. Save its public client ID as repository variable
+`DEPENDENCY_UPDATES_APP_CLIENT_ID` and its PEM private key as repository Actions secret
+`DEPENDENCY_UPDATES_APP_PRIVATE_KEY`. Keep the private key out of source, logs and chat.
+The pinned token action requests only those three permissions for the current
+repository, and revokes its installation token at job completion. Missing App
+configuration stops the job before discovery/upgrades. Follow GitHub's
+[App registration](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app)
+and [installation](https://docs.github.com/en/apps/using-github-apps/installing-your-own-github-app) procedures.
 
 The native bundle retains Spec Kit's 512-entry limit. Publication compacts historical
 publisher facts and qualification locks into a bounded indexed container, preserving

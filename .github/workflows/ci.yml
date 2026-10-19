@@ -1,12 +1,6 @@
 name: CI
 on:
   pull_request:
-  workflow_dispatch:
-    inputs:
-      expected_commit:
-        description: Exact branch commit to check (package CI only)
-        required: true
-        type: string
 permissions:
   contents: read
   actions: read
@@ -18,4 +12,4 @@ jobs:
   packages:
     uses: ./.github/workflows/qualify-candidate.yml
     with:
-      expected_commit: ${{ inputs.expected_commit || github.sha }}
+      expected_commit: ${{ github.sha }}
