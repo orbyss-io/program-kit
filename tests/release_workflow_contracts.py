@@ -39,8 +39,13 @@ def validate_workflows():
     assert 'validate_package_smoke.py --assets-dir artifacts/payload' in commands(packages['install'])
     assert {row['platform'] for row in packages['install']['strategy']['matrix']['include']} == {'linux','windows'}
     ci = workflow('ci.yml')
-    assert set(ci.get('on', ci.get(True))) == {'pull_request'}
+    assert set(ci.get('on', ci.get(True))) == {'pull_request', 'workflow_dispatch'}
     assert ci['jobs']['packages']['uses'] == './.github/workflows/qualify-candidate.yml'
+    assert ci['jobs']['packages']['with']['expected_commit'] == '${{ inputs.expected_commit || github.sha }}'
+    build = packages['build']
+    assert 'assert-source --expected-commit' in commands(build)
+    main = next(step for step in build['steps'] if 'assert-main --expected-commit' in step.get('run', ''))
+    assert 'github.workflow_ref' in main['if'] and '.github/workflows/qualify-candidate.yml@' in main['if']
 
 
 if __name__ == '__main__':

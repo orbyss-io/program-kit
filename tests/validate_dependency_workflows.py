@@ -276,5 +276,32 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(sorted(workflow.index(stage) for stage in ordered),[workflow.index(stage) for stage in ordered])
         self.assertIn('chromium,firefox,webkit',workflow)
 
+    def test_update_prepares_new_runtime_and_dispatches_only_shared_package_ci(self):
+        import yaml
+        update = yaml.safe_load((ROOT / '.github/workflows/update-dependencies.yml').read_text())
+        steps = update['jobs']['update']['steps']
+        setup = next(i for i, step in enumerate(steps) if step.get('run') ==
+                     'python extensions/program-kit-governance/scripts/schema_runtime.py setup')
+        upgraded_python = [i for i, step in enumerate(steps) if 'actions/setup-python@' in step.get('uses', '')][-1]
+        qualification = next(i for i, step in enumerate(steps) if 'update_dependency_profiles.py update' in step.get('run', ''))
+        validation = next(i for i, step in enumerate(steps) if 'update_dependencies.py --refresh-locks' in step.get('run', ''))
+        self.assertLess(upgraded_python, setup)
+        self.assertLess(setup, qualification)
+        self.assertLess(qualification, validation)
+        pr = next(step['run'] for step in steps if 'gh pr create' in step.get('run', ''))
+        self.assertLess(pr.index('git push'), pr.index('gh workflow run ci.yml'))
+        self.assertIn('--ref "$branch" -f expected_commit="$(git rev-parse HEAD)"', pr)
+        self.assertEqual('write', update['permissions']['actions'])
+        self.assertNotIn('gh pr merge', pr)
+        self.assertNotIn('workflow run release.yml', pr)
+
+    def test_integrity_update_does_not_provision_runtime_or_refresh_locks(self):
+        import update_dependencies as updates
+        with patch.object(sys, 'argv', ['update_dependencies.py', '--development']), patch.object(updates, 'run') as run:
+            updates.main()
+        self.assertEqual(1, run.call_count)
+        self.assertEqual('deterministic-tests', run.call_args.args[0])
+        self.assertIn('Integrity', run.call_args.args[1])
+
 
 if __name__=='__main__': unittest.main()

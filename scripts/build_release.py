@@ -237,6 +237,23 @@ def pack_historical_package_facts(staging: Path) -> Path:
             raise ValueError('Historical publisher fact container is ambiguous')
         facts[item['path']] = raw
     for entry in index['profiles'].values():
+        recipe_ref = entry.get('qualificationRecipe')
+        if recipe_ref:
+            recipe_path = (registry / recipe_ref['path']).resolve()
+            if not recipe_path.is_relative_to(registry.resolve()) or sha256(recipe_path) != recipe_ref['sha256']:
+                raise ValueError('Historical qualification recipe differs from its original authority')
+            recipe = load_json(recipe_path)
+            prefix = registry_relative.as_posix() + '/'
+            if not recipe['nativeLock']['path'].startswith(prefix):
+                raise ValueError('Historical qualification lock escapes its registry')
+            relative = recipe['nativeLock']['path'].removeprefix(prefix)
+            lock = (registry / relative).resolve()
+            if not lock.is_relative_to(registry.resolve()):
+                raise ValueError('Historical qualification lock escapes its registry')
+            raw = lock.read_bytes()
+            if hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest() != recipe['nativeLock']['sha256']:
+                raise ValueError('Historical qualification lock differs from its original authority')
+            retain({'path': relative, 'sha256': hashlib.sha256(raw).hexdigest()})
         if not entry.get('knowledge'):
             continue
         manifest = load_json(registry / entry['knowledge']['path'])
@@ -246,6 +263,15 @@ def pack_historical_package_facts(staging: Path) -> Path:
         for key in ('sourcePack', 'packagePack'):
             if manifest.get(key):
                 retain(manifest[key])
+    lifecycle = registry / 'lifecycle-knowledge/index.json'
+    if lifecycle.is_file():
+        for reference in load_json(lifecycle)['versions'].values():
+            manifest_path = (registry / reference['path']).resolve()
+            if not manifest_path.is_relative_to(registry.resolve()) or sha256(manifest_path) != reference['sha256']:
+                raise ValueError('Historical lifecycle manifest differs from its original authority')
+            manifest = load_json(manifest_path)
+            for item in manifest['packages']:
+                retain(item)
     if not facts:
         return staging
     publication = staging / '.program-kit-publication'

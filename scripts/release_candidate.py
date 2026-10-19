@@ -58,6 +58,12 @@ def source():
             'policySha256': sha256(ROOT / 'release-policy.json')}
 
 
+def assert_package_source(expected):
+    require(re.fullmatch('[0-9a-f]{40}', expected) and
+            os.environ.get('GITHUB_SHA') == expected == source()['commit'],
+            'Event source, expected commit and checkout must agree')
+
+
 def basename(name):
     require(isinstance(name, str) and name not in ('', '.', '..') and
             not any(c in name for c in '/\\:'), 'Asset must be a basename')
@@ -299,6 +305,7 @@ def main():
     sub.add_parser('assert-environment')
     sub.add_parser('timing')
     sub.add_parser('assert-main').add_argument('--expected-commit', required=True)
+    sub.add_parser('assert-source').add_argument('--expected-commit', required=True)
     p = sub.add_parser('snapshot'); p.add_argument('--directory', type=Path, default=ROOT / 'artifacts'); p.add_argument('--output', type=Path, required=True)
     p = sub.add_parser('verify-payload'); p.add_argument('--manifest', type=Path, required=True); p.add_argument('--directory', type=Path, default=ROOT / 'artifacts')
     for name in ('download', 'verify-promotion', 'prepare-trial'):
@@ -314,6 +321,7 @@ def main():
         elif args.command == 'import-payload': import_payload()
         elif args.command == 'assert-environment': assert_environment()
         elif args.command == 'timing': timing_summary()
+        elif args.command == 'assert-source': assert_package_source(args.expected_commit)
         elif args.command == 'assert-main':
             require(re.fullmatch('[0-9a-f]{40}', args.expected_commit) and
                     os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch' and os.environ.get('GITHUB_REF') == 'refs/heads/main' and

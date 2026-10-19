@@ -33,8 +33,12 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
-      - name: Assert exact candidate
-        if: github.event_name == 'workflow_dispatch'
+      - name: Assert exact package source
+        env:
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+        run: python scripts/release_candidate.py assert-source --expected-commit "$EXPECTED_COMMIT"
+      - name: Assert exact main candidate for direct qualification
+        if: github.event_name == 'workflow_dispatch' && startsWith(github.workflow_ref, format('{0}/.github/workflows/qualify-candidate.yml@', github.repository))
         env:
           EXPECTED_COMMIT: ${{ inputs.expected_commit }}
         run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"

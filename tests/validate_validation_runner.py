@@ -138,6 +138,36 @@ class SelectionTests(unittest.TestCase):
         self.assertNotIn('qualify_composition_start', ids)
         self.assertNotIn('validate_typed_operation', ids)
 
+    def test_active_maintenance_pins_have_focused_coverage(self):
+        import dependency_maintenance as maintenance
+        inventory = maintenance.inventory(runner.ROOT, maintenance.read_json(runner.ROOT / 'maintenance-policy.json'))
+        paths = sorted({path for pin in inventory['pins'] for path in pin['paths']})
+        checks, gaps, _ = runner.select_affected(runner.load_definition(), paths)
+        self.assertEqual([], gaps)
+        ids = {c['id'] for c in checks}
+        self.assertTrue({'validate_dependency_updates', 'validate_dependency_workflows',
+                         'validate_guardian_workflow', 'mechanics-scaffold',
+                         'validate_composition_tooling', 'validate_openapi_export_client'} <= ids)
+        self.assertFalse(any(c.get('manualOnly') for c in checks))
+        self.assertFalse({'qualify_composition_start', 'validate_typed_operation', 'validate_emitted_ci'} & ids)
+
+    def test_missing_schema_runtime_is_declared_before_phase_execution(self):
+        check = next(c for c in runner.load_definition()['checks'] if c['id'] == 'validate_phase_obligations')
+        with patch.object(runner, 'schema_runtime_ready', return_value=False):
+            missing = runner.missing_prerequisites(check)
+        self.assertEqual(1, len(missing))
+        self.assertIn('runtime:json-schema; prepare with ', missing[0])
+        self.assertIn('schema_runtime.py setup', missing[0])
+
+    def test_guardian_pin_change_selects_its_small_source_contract(self):
+        checks, gaps, _ = runner.select_affected(runner.load_definition(), [
+            'evidence-repository/.github/workflows/guardian.yml'])
+        self.assertEqual([], gaps)
+        ids = {c['id'] for c in checks}
+        self.assertIn('validate_guardian_workflow', ids)
+        self.assertNotIn('validate_repair_feedback', ids)
+        self.assertFalse(any(c['kind'] == 'integration' for c in checks))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -6,6 +6,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
   packages: read
 concurrency:
   group: dependency-update
@@ -37,6 +38,8 @@ jobs:
         run: |
           npm install --global "npm@$(cat extensions/program-kit-dotnet/templates/dotnet/files/.npm-version)" --ignore-scripts --no-audit --no-fund
           python -c "import re, subprocess, sys; from pathlib import Path; pins=set(re.findall(r'specify-cli==([0-9.]+)', Path('.github/workflows/qualify-candidate.yml').read_text())); assert len(pins)==1, 'CI must select one exact Spec Kit pin'; subprocess.run([sys.executable, '-m', 'pip', 'install', '--disable-pip-version-check', 'specify-cli=='+pins.pop()], check=True)"
+      - name: Prepare schema runtime for the upgraded Python and requirements
+        run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
       - name: Qualify and promote the new profile and publisher knowledge
         env:
           GH_TOKEN: ${{ github.token }}
@@ -51,7 +54,7 @@ jobs:
           version: v0.76.0
       - name: Scan the actual qualified public Host
         run: python scripts/dependency_maintenance.py scan --image "$(python scripts/dependency_maintenance.py host-image)"
-      - name: Open the tested update pull request
+      - name: Open the maintenance pull request and start package CI
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -63,7 +66,10 @@ jobs:
           git add -A
           git commit -m "Update dependencies, qualified profile and versioned publisher knowledge"
           git push origin "$branch"
-          gh pr create --title "Update dependencies and default profile" --body "Upgraded active tooling and packages, refreshed native locks, qualified and promoted the public profile and its publisher knowledge, validated affected capabilities and scanned both Host platforms. Evidence is attached to this workflow run."
+          gh pr create --base main --head "$branch" --title "Update dependencies and default profile" --body "Upgraded active tooling and packages, refreshed native locks, qualified and promoted the public profile and its publisher knowledge, validated affected capabilities and scanned both Host platforms. Evidence is attached to this workflow run. Shared package CI is dispatched separately for this exact branch commit; review its result before merging. This PR grants no release publication authority."
+          # GITHUB_TOKEN-created PRs do not trigger pull_request workflows.
+          # Dispatch the same package CI explicitly; this cannot publish a release.
+          gh workflow run ci.yml --ref "$branch" -f expected_commit="$(git rev-parse HEAD)"
       - name: Preserve update evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

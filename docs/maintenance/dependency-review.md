@@ -27,9 +27,34 @@ The unattended workflow provisions its own selected tools, explicitly qualifies 
 changed profile, refreshes locks and runs affected contracts. Native/profile
 qualification can remain expensive because it establishes a specific dependency
 contract; it is not repeated for unrelated feature changes or every release.
+After selecting the upgraded Python and requirements, CI explicitly prepares the
+project-local schema runtime. Checks that use it declare `runtime:json-schema` in
+the validation inventory; ordinary integrity/affected validation never installs it.
 Lookup, security and test failures stop maintenance and identify the repair. A timeout
 or partial result is never accepted. Preserve actionable diagnostics in normal Actions
 artifacts, then fix/reproduce the failed focused check before retrying.
+
+Active maintenance inputs select the corresponding small update, generated-workflow,
+scaffold, schema and API/tooling contracts. Pin propagation checks for optional viewer
+and PDF/OCR examples do not claim execution of those products; their native/provider
+investigations remain explicit. Unknown inputs and required coverage decisions still
+stop automatic maintenance; they never select the full inventory or become success.
+
+Passing maintenance pushes a new `codex/dependencies-*` branch and opens a PR; it does
+not merge `main` or publish packages. Because GitHub suppresses ordinary PR events
+created with `GITHUB_TOKEN`, the job explicitly dispatches `ci.yml` for the exact new
+branch commit. That runs the same package build, Windows/Linux installation and
+security checks used by other PRs. Its result is separate from maintenance and must
+be reviewed before merge. A dispatched branch CI run cannot supply release promotion
+authority; exact-main qualification and the native publication approval remain in
+the release flow. See [GitHub's trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+
+The native bundle retains Spec Kit's 512-entry limit. Publication compacts historical
+publisher facts and qualification locks into a bounded indexed container, preserving
+their original bytes and recipe hashes. Original repository files, registered profiles,
+qualification evidence and existing consumer locks are retained. Installed readers
+verify both the packed bytes and the selected recipe's lock authority; compaction
+grants no new qualification claim.
 
 An explicit maintainer disposition may retain the original Forms browser evidence
 when its entire npm artifact set, reviewed browser fixture and selected Node/npm

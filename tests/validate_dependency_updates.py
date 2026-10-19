@@ -12,6 +12,7 @@ import sys
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
+from owned_fixture import FixtureDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('maintenance', ROOT / 'scripts/dependency_maintenance.py')
@@ -83,7 +84,7 @@ class UpdateTests(unittest.TestCase):
         self.assertTrue(all('--global' not in args for args in locks))
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = FixtureDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.policy = {'inputs': ['package.json', 'global.json'], 'additionalPins': []}
