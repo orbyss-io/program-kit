@@ -6,6 +6,7 @@ establish no package availability, published profile or public default authority
 from __future__ import annotations
 
 import copy
+import hashlib
 import io
 import importlib.util
 import json
@@ -18,6 +19,7 @@ import unittest
 import xml.etree.ElementTree as ET
 import zipfile
 from unittest.mock import patch
+from owned_fixture import FixtureDirectory, filesystem_path, native_path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'extensions/program-kit-building-blocks/scripts'))
@@ -445,11 +447,11 @@ def additive(base):
 
 class CatalogProfileTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory()
+        self.temporary = FixtureDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.registry = self.root / 'registry'
-        shutil.copytree(blocks.profile_registry(), self.registry)
+        shutil.copytree(filesystem_path(blocks.profile_registry()), self.registry)
         self.base = blocks.load_json(blocks.default_catalog(Path(blocks.__file__)))
         self.target = additive(self.base)
         self.base_path = self.registry / 'catalogs/unit-base.json'
@@ -497,7 +499,7 @@ class CatalogProfileTests(unittest.TestCase):
         return blocks.qualified_dependency_profile(self.registry, IDENTITY, supplied or self.base)
 
     def test_prepared_foundation_contract_catalog_is_additive_complete_and_unregistered(self):
-        registry = blocks.profile_registry()
+        registry = Path(filesystem_path(blocks.profile_registry()))
         directory = registry / 'catalogs/foundation-0-3-0-contracts'
         targets, bases = list(directory.glob('target-*.json')), list(directory.glob('base-*.json'))
         self.assertEqual(1, len(targets))
@@ -582,7 +584,7 @@ class CatalogProfileTests(unittest.TestCase):
             blocks.validate_additive_profile_catalog(self.base, broken)
 
     def test_new_profile_selects_complete_snapshot_and_preserves_historical_bytes(self):
-        original_registry = blocks.profile_registry()
+        original_registry = Path(filesystem_path(blocks.profile_registry()))
         before = {path.relative_to(original_registry): path.read_bytes()
                   for path in original_registry.rglob('*.json')}
         for identity in blocks.load_json(original_registry / 'index.json')['profiles']:
@@ -980,10 +982,10 @@ class CatalogProfileTests(unittest.TestCase):
 class LifecycleLockTests(unittest.TestCase):
     """Copied real registry checks preserve current and historical qualification authority."""
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='lifecycle-lock-')
+        self.temp = FixtureDirectory(prefix='lifecycle-lock-')
         self.addCleanup(self.temp.cleanup)
         self.registry = Path(self.temp.name)/'dependency-profiles'
-        shutil.copytree(blocks.profile_registry(), self.registry)
+        shutil.copytree(filesystem_path(blocks.profile_registry()), self.registry)
         self.index = blocks.load_json(self.registry/'index.json')
         self.identity = self.index['default']
         entry = self.index['profiles'][self.identity]
@@ -1034,6 +1036,37 @@ print(json.dumps(lifecycle.selected(blocks, registry, identity)))
         manifest = lifecycle_knowledge.selected(blocks, self.registry, historical)
         self.assertEqual('0.0.30-preview.159', manifest['version'])
         self.assertEqual(self.identity, blocks.load_json(self.registry/'index.json')['default'])
+
+    def test_native_consumer_paths_still_read_loose_locks_and_record_real_sources(self):
+        # Installed upgrade preflight passes ordinary native paths, even when a
+        # retained profile's filename exceeds the Windows legacy path limit.
+        native = Path(native_path(self.registry))
+        sources = {}
+        self.assertEqual(lifecycle_knowledge.selected(blocks, self.registry, self.identity),
+                         lifecycle_knowledge.selected(blocks, native, self.identity, sources))
+        self.assertTrue(sources)
+        for path, digest in sources.items():
+            self.assertEqual(digest, blocks.raw_sha256(Path(path)))
+
+    def test_compacted_crlf_lock_retains_recipe_authority_even_if_storage_is_rehashed(self):
+        raw = self.lf.replace(b'\n', b'\r\n')
+        relative = self.lock.relative_to(self.registry).as_posix()
+        pack = self.registry / 'historical-package-facts.pack'
+        storage = self.registry / 'historical-package-facts.json'
+        def store(data):
+            pack.write_bytes(data)
+            storage.write_text(json.dumps({'schemaVersion': 1, 'entries': {
+                relative: {'byteOffset': 0, 'byteLength': len(data),
+                           'sha256': hashlib.sha256(data).hexdigest()}}}))
+        expected = lifecycle_knowledge.selected(blocks, self.registry, self.identity)
+        store(raw)
+        self.lock.unlink()  # Exact disposable fixture member, never a source registry.
+        sources = {}
+        self.assertEqual(expected, lifecycle_knowledge.selected(blocks, self.registry, self.identity, sources))
+        self.assertIn(str(pack), sources)
+        store(raw.replace(b'CShells.Abstractions', b'CShells.Changed', 1))
+        with self.assertRaisesRegex(blocks.ResolverError, 'selected lifecycle dependency lock changed'):
+            lifecycle_knowledge.selected(blocks, self.registry, self.identity)
 
 
 

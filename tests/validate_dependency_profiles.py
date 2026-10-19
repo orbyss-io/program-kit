@@ -78,9 +78,19 @@ class ProfileTests(unittest.TestCase):
                 else:
                     self.assertEqual(original, (registry / relative).read_bytes(), relative)
             index = blocks.load_json(registry / 'index.json')
+            import lifecycle_knowledge
             for identity, entry in index['profiles'].items():
                 if entry['status'] == 'qualified':
                     blocks.qualified_dependency_profile(registry, identity, blocks.load_json(fixtures.CATALOG))
+                    sources = {}
+                    self.assertEqual(lifecycle_knowledge.selected(blocks, original_registry, identity),
+                                     lifecycle_knowledge.selected(blocks, registry, identity, sources))
+                    for source, digest in sources.items():
+                        self.assertEqual(digest, blocks.raw_sha256(Path(source)))
+                if entry.get('qualificationRecipe'):
+                    recipe = blocks.load_json(registry / entry['qualificationRecipe']['path'])
+                    relative = recipe['nativeLock']['path'].split('/dependency-profiles/', 1)[1]
+                    self.assertIn(relative, storage['entries'])
             # Read a real indexed source through its unchanged original range,
             # then prove it cannot escape its own container into adjacent bytes.
             for entry in index['profiles'].values():

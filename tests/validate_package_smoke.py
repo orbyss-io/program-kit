@@ -74,6 +74,19 @@ def main():
             extract(assets / f'{name}-{version}.zip', expanded / name)
         require((expanded / 'program-kit/scripts/install_local_extension.py').is_file(),
                 'Install bundle lacks its native release-copy adapter')
+        # Exercise the actual compact bundle's reader, not only loose component
+        # archives. Read default lifecycle facts and a historical publisher fact.
+        bundled = expanded / 'program-kit/extensions/program-kit-building-blocks'
+        index = json.loads((bundled / 'references/dependency-profiles/index.json').read_text())
+        historical = next(identity for identity, entry in index['profiles'].items()
+                          if identity != index['default'] and entry.get('qualificationRecipe'))
+        for identity, package in ((index['default'], 'CShells.Abstractions'),
+                                  (historical, 'Orbyss.Foundation.Json')):
+            result = execute([sys.executable, bundled / 'scripts/publisher_knowledge.py',
+                              '--profile', identity, '--package', package], project)
+            fact = json.loads(result.stdout.split('\n', 1)[1])
+            require(fact['id'] == package and bool(fact['facts']),
+                    'Compacted bundle lost selected publisher facts')
         execute([*bridge, 'init', '.', '--force','--non-interactive','--integration','copilot',
                  '--script','py','--ignore-agent-tools'], project)
         # Only transport changes: native core resolves pins, installs each

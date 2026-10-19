@@ -58,7 +58,8 @@
         "extensions/program-kit-governance/scripts/schema_runtime.py",
         "extensions/program-kit-governance/references/*schema.json",
         "tests/schemas/**",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.json-schema.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.json-schema.md",
+        "extensions/program-kit-governance/scripts/json-schema-requirements.txt"
       ],
       "dependsOn": []
     },
@@ -113,7 +114,8 @@
         "extensions/program-kit-governance/scripts/coding_patterns.py",
         "tests/pattern_review_fixture.py",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.coding-patterns.md",
-        "extensions/program-kit-governance/scripts/historical_phase_evidence.py"
+        "extensions/program-kit-governance/scripts/historical_phase_evidence.py",
+        "extensions/program-kit-building-blocks/scripts/lifecycle_knowledge.py"
       ],
       "dependsOn": [
         "profiles"
@@ -162,7 +164,9 @@
         "extensions/program-kit-dotnet/templates/dotnet/template.yml",
         "extensions/program-kit-building-blocks/scripts/building_blocks.py",
         "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
-        "tests/identity_projection_cases.py"
+        "tests/identity_projection_cases.py",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.github/workflows/*.yml",
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/profiles/persistence/*.props"
       ],
       "dependsOn": [
         "profiles"
@@ -183,7 +187,12 @@
       "inputs": [
         "maintenance-policy.json",
         "scripts/dependency_maintenance.py",
-        "scripts/update_dependencies.py"
+        "scripts/update_dependencies.py",
+        ".github/workflows/update-dependencies.yml",
+        "tests/ci-tool-requirements.txt",
+        "extensions/program-kit-governance/references/c4-viewer-tool.json",
+        "extensions/program-kit-dotnet/references/examples/pdf-decoding/PdfDecodingExample.csproj",
+        "extensions/program-kit-dotnet/references/examples/ocr-operation/OcrOperation.csproj"
       ],
       "dependsOn": []
     },
@@ -210,7 +219,8 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc",
         "extensions/program-kit-dotnet/templates/dotnet/files/.npm-version",
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/*toolchain*",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props"
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/ProgramKit.Packages.props",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.python-version"
       ],
       "dependsOn": []
     },
@@ -236,7 +246,8 @@
         "extensions/program-kit-dotnet/templates/dotnet/files/eng/label*",
         "extensions/program-kit-building-blocks/scripts/wire_capabilities.py",
         "extensions/program-kit-dotnet/references/examples/typed-operation/**",
-        "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json"
+        "extensions/program-kit-dotnet/templates/dotnet/files/eng/.config/dotnet-tools.json",
+        "extensions/program-kit-dotnet/templates/dotnet/files/.oasdiff-version"
       ],
       "dependsOn": [
         "profiles",
@@ -301,9 +312,11 @@
         "extensions/program-kit-governance/references/repair-feedback/**",
         "scripts/*repair*",
         "scripts/*evidence*",
-        "evidence-repository/**",
         "extensions/program-kit-governance/commands/speckit.program-kit-governance.repair-request.md",
-        "extensions/program-kit-governance/commands/speckit.program-kit-governance.sync.md"
+        "extensions/program-kit-governance/commands/speckit.program-kit-governance.sync.md",
+        "evidence-repository/*.py",
+        "evidence-repository/*.json",
+        "evidence-repository/*.md"
       ],
       "dependsOn": []
     },
@@ -1815,7 +1828,9 @@
         "tests/validate_phase_obligations.py"
       ],
       "needs": [],
-      "prerequisites": [],
+      "prerequisites": [
+        "runtime:json-schema"
+      ],
       "suites": [],
       "budgetSeconds": 120,
       "timeoutSeconds": 240
@@ -4346,7 +4361,8 @@
       ],
       "kind": "unit",
       "capabilities": [
-        "bootstrap"
+        "bootstrap",
+        "maintenance"
       ],
       "inputs": [
         "tests/validate_dependency_workflows.py"
@@ -6042,6 +6058,35 @@
       "budgetSeconds": 120,
       "timeoutSeconds": 240,
       "manualOnly": true
+    },
+    {
+      "id": "validate_guardian_workflow",
+      "purpose": "Prepare the actual data-only guardian source and verify its trusted checkout, token scope and packaged repair contract without contacting GitHub.",
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "command": [
+        "{python}",
+        "tests/validate_repair_feedback.py",
+        "RepairTests.test_prepared_repository_is_source_only_and_internal_evaluator_not_packaged"
+      ],
+      "kind": "unit",
+      "capabilities": [
+        "maintenance"
+      ],
+      "inputs": [
+        "evidence-repository/.github/workflows/guardian.yml"
+      ],
+      "needs": [],
+      "prerequisites": [
+        "module:yaml",
+        "module:specify_cli",
+        "runtime:json-schema"
+      ],
+      "suites": [],
+      "budgetSeconds": 30,
+      "timeoutSeconds": 60
     }
   ]
 }

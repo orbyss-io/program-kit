@@ -25,9 +25,23 @@ def selected(blocks, directory, identity, sources=None):
     lock_path = blocks.repository_path(directory, relative)
     # Native qualification recipes bind the maintained LF-normalized lock digest.
     # NuGet writes CRLF on Windows; content changes still invalidate this binding.
-    if hashlib.sha256(blocks.filesystem_root(lock_path).read_bytes().replace(b'\r\n', b'\n')).hexdigest() != lock_ref['sha256']:
+    storage = blocks.filesystem_root(directory / 'historical-package-facts.json')
+    physical_lock = blocks.filesystem_root(lock_path)
+    if physical_lock.is_file():
+        lock_bytes = physical_lock.read_bytes()
+        lock_sources = [lock_path]
+    else:
+        # Publication may store original qualification locks in the same bounded
+        # fact container. The recipe still owns their LF-normalized authority.
+        if storage.stat().st_size > 1_048_576:
+            blocks.fail('PKB611', 'historical package storage index exceeds its bound')
+        row = blocks.load_json(storage)['entries'][relative]
+        lock_bytes = blocks.publisher_document_bytes(directory,
+            {'path': relative, 'sha256': row['sha256']}, 16 * 1_048_576)
+        lock_sources = [storage, directory / 'historical-package-facts.pack']
+    if hashlib.sha256(lock_bytes.replace(b'\r\n', b'\n')).hexdigest() != lock_ref['sha256']:
         blocks.fail('PKB611', 'selected lifecycle dependency lock changed')
-    lock = blocks.load_json(lock_path)
+    lock = json.loads(lock_bytes)
     versions = {row['resolved'] for target in lock['dependencies'].values()
                 for name, row in target.items() if name == 'CShells.Abstractions'}
     if len(versions) != 1:
@@ -43,10 +57,10 @@ def selected(blocks, directory, identity, sources=None):
     manifest = blocks.load_json(manifest_path)
     if manifest.get('version') != version:
         blocks.fail('PKB611', 'lifecycle knowledge differs from selected dependency lock')
-    paths = [supplement_index, recipe_path, lock_path, manifest_path]
+    paths = [supplement_index, recipe_path, *lock_sources, manifest_path]
     for row in manifest['packages']:
         path = blocks.repository_path(directory, row['path'])
-        if blocks.raw_sha256(path) != row['sha256']:
+        if hashlib.sha256(blocks.publisher_document_bytes(directory, row, 16 * 1_048_576)).hexdigest() != row['sha256']:
             blocks.fail('PKB611', 'selected lifecycle package fact changed')
         fact = blocks.publisher_package_fact(directory, row)
         if fact.get('id') != row['id'] or fact.get('version') != version:
@@ -58,7 +72,8 @@ def selected(blocks, directory, identity, sources=None):
                       for name, value in target.items() if name == row['id']}
             if hashes != {fact.get('archiveSha512')}:
                 blocks.fail('PKB611', 'lifecycle fact archive differs from selected qualification lock')
-        paths.append(path)
+        paths.extend([path] if blocks.filesystem_root(path).is_file() else
+                     [storage, directory / 'historical-package-facts.pack'])
     if sources is not None:
         sources.update({str(p): blocks.raw_sha256(p) for p in paths})
     return manifest
