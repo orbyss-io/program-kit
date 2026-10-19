@@ -38,7 +38,7 @@ jobs:
         env:
           EXPECTED_COMMIT: ${{ inputs.expected_commit }}
         run: python scripts/release_candidate.py assert-main --expected-commit "$EXPECTED_COMMIT"
-      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
+      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.1"
       - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
       - name: Fast integrity
         run: python scripts/run_validation.py --suite Integrity
@@ -88,7 +88,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version-file: .python-version
-      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.0"
+      - run: python -m pip install --disable-pip-version-check "specify-cli==1.2.1"
       - run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
       - name: Import original build artifact
         run: python scripts/release_candidate.py import-payload
